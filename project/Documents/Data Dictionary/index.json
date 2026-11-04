@@ -1964,6 +1964,14 @@
           "pointer": "/content/columns/Borrower Note"
         },
         {
+          "subject": "Referral Rebate Rate",
+          "pointer": "/content/columns/Referral Rebate Rate"
+        },
+        {
+          "subject": "Referral Rebate Cap",
+          "pointer": "/content/columns/Referral Rebate Cap"
+        },
+        {
           "subject": "Borrowers_Payment Request Cash Account_fkey",
           "pointer": "/content/constraints/Borrowers_Payment Request Cash Account_fkey"
         },
@@ -1986,6 +1994,14 @@
         {
           "subject": "borrower_not_own_referrer",
           "pointer": "/content/constraints/borrower_not_own_referrer"
+        },
+        {
+          "subject": "borrowers_referral_rebate_cap_check",
+          "pointer": "/content/constraints/borrowers_referral_rebate_cap_check"
+        },
+        {
+          "subject": "borrowers_referral_rebate_rate_check",
+          "pointer": "/content/constraints/borrowers_referral_rebate_rate_check"
         }
       ]
     },
@@ -2089,6 +2105,14 @@
         {
           "subject": "Ref Offset Payment",
           "pointer": "/content/columns/Ref Offset Payment"
+        },
+        {
+          "subject": "Rebate Rate",
+          "pointer": "/content/columns/Rebate Rate"
+        },
+        {
+          "subject": "Rebate Cap",
+          "pointer": "/content/columns/Rebate Cap"
         },
         {
           "subject": "Business Expenses_Allocation Basis_not_null",
@@ -12111,6 +12135,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.referral_loan_closed()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-referral-rebate-terms-p-referrer-text-7c01f444.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.referral_rebate_terms(p_referrer text)",
       "scope": "production",
       "status": "documented",
       "lookup": []

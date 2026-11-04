@@ -1,7 +1,7 @@
 # Change notes — DEV sync on open: refused receipts and header progress, 4 November 2026
 
 ## Purpose
-The owner reported a long sync on every open in DEV and asked on 4 November 2026 (Asia/Bangkok) for an investigation and a client fix ("Go ahead"). This batch rides the Open release R120: it is PWA Hosting only, and the workflow keeps one Open release for product work. No new release number.
+The owner reported a long sync on every open in DEV and asked on 4 November 2026 (Asia/Bangkok) for an investigation and a client fix ("Go ahead"). This batch is the first scope of the Open release R121 (R120 was already Released): it is PWA Hosting only. The owner then said "push all the way to prod", which covers its promotion.
 
 ## Changes
 Findings (read-only; DEV logs 28 October to 4 November and the DEV change log read as `codex-cloud-read`):
@@ -16,7 +16,7 @@ Fix (PWA client only; no SQL, server or infrastructure change):
 - `apps/pwa/src/SyncStatus.tsx`: the first-download bar ends with the data domains (UX-HOLD-07).
 - The on-screen receipt view still asks the network.
 - Tests: `tests/unit/offline-dataset-receipts.test.mjs` (new), `tests/unit/offline-dataset-coordinator.test.mjs`, `tests/e2e/back-consumers-independent.spec.ts` (Byte).
-- Documents: Release Tracker and Development Changes (R120 rows), PWA Data Model Overview (offline preparation paragraph), Data Dictionary `systems/pwa/application.yaml` (coverage and progress text). Offline tag and schema digest are unchanged by this batch.
+- Documents: Release Tracker and Development Changes (R121 rows), PWA Data Model Overview (offline preparation paragraph), Data Dictionary `systems/pwa/application.yaml` (coverage and progress text). Offline tag and schema digest are unchanged by this batch.
 
 Noted, not changed: `services/payment-command/handler.mjs` line 5 lists known error codes without `receipt_reference_unsupported`, so request logs show `command_unavailable` for these refusals.
 
@@ -34,7 +34,7 @@ Noted, not changed: `services/payment-command/handler.mjs` line 5 lists known er
 
 ## Not run
 - Live receipt behaviour on the owner's phone: not exercised before the push.
-- PROD: nothing run; Hosting for PROD follows the owner's promotion instruction for R120.
+- PROD: nothing run; Hosting for PROD follows the owner's instruction "push all the way to prod" (release R121).
 
 ## Recovery
 Revert the commit of this batch (Git baseline) and redeploy the prior Hosting version. Stored `dataset-media-refused` rows are harmless to the older client and are swept after 7 days. No database or server state changed.
@@ -43,4 +43,4 @@ Revert the commit of this batch (Git baseline) and redeploy the prior Hosting ve
 - Whether to fix the server-side causes of the full walks (delta fallbacks, the Bangkok day-change re-read, management hourly analytics, notifications without an unchanged answer) and the DEV receipt reference format.
 
 ## Remaining work
-- Push with Byte's check evidence; deploy to DEV with R120's Hosting; the owner decides the server-side items; PROD follows the R120 promotion instruction.
+- Push with Byte's check evidence; deploy to DEV as R121's Hosting; the owner decides the server-side items; PROD follows under "push all the way to prod".
