@@ -111,3 +111,9 @@ test('B-C09 referrer options return every matching borrower in name order with n
  try{const capped=await store.borrowerOptions(principal,bulk);assert.equal(capped.status,200);assert.equal(capped.truncated,true);assert.equal(capped.referrers.length,1000);assert.equal(capped.referrers[0].id,bulk+'0001');assert.equal(capped.referrers.at(-1).id,bulk+'1000')}
  finally{await admin.query('DELETE FROM "Borrowers" WHERE "Row ID" LIKE $1',[bulk+'%'])}
 });
+
+test('R120 before V135 (this V96 database) the record carries no referral rebate terms and the version still matches SQL',async()=>{
+ const item=await create();for(const key of ['referralRebateRate','referralRebateCap'])assert.equal(Object.hasOwn(item,key),false,key);
+ assert.equal(Object.hasOwn(item.details,'referralRebateRateEffective'),false);
+ assert.equal(item.version,(await admin.query('SELECT public.pwa_borrower_version_v2($1) AS v',[item.id])).rows[0].v,'the Node mirror equals pwa_borrower_version_v2');
+});

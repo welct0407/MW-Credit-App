@@ -43,7 +43,7 @@ async function openExpensesC(page:Page){if(page.viewportSize()!.width<=1050)awai
 // mock field names with it, not the assertions). Wording follows Echo (LC-1 to LC-4, EX-1, EX-2).
 const expenseOffsetC={...expenseFullC,id:'rr1:C-loan',category:expenseCategoriesUiC[5],amount:'300.00',payeeName:'ผู้แนะนำจำลอง',payeeBorrowerId:'C-referrer',payeeBorrowerLabel:'ผู้แนะนำจำลอง',relatedLoanId:'C-loan',relatedLoanLabel:'L-0412',paidByAccountId:null,paidByAccountLabel:null,paidByHolderId:null,paidByHolderLabel:null,sourceType:'Referral Rebate',sourceKey:'REFERRAL_REBATE:C-loan',grossProfitBasis:'3000.00',ruleVersion:'REFERRAL_REBATE_V1',canEdit:false,canDelete:false,offsetPaymentId:'ro122:C-close',offsetAmount:'300.00',offsetLoanId:'C-referrer-loan',offsetLoanLabel:'L-0398',payableAmount:'0'};
 const rebate=(over:any={})=>({amount:'300',referrer:{id:'C-referrer',displayName:'ผู้แนะนำจำลอง'},hasOpenLoan:true,previousPath:null,
- offset:{loans:{'C-referrer-loan':'L-0398'},rows:[{loanId:'C-referrer-loan',chargeDate:'2026-10-09',principalDue:'0',interestDue:'75',partial:false},{loanId:'C-referrer-loan',chargeDate:'2026-10-10',principalDue:'0',interestDue:'75',partial:false},{loanId:'C-referrer-loan',chargeDate:'2026-10-11',principalDue:'0',interestDue:'75',partial:false},{loanId:'C-referrer-loan',chargeDate:'2026-10-12',principalDue:'0',interestDue:'75',partial:false}],paidThrough:{'C-referrer-loan':'2026-10-12'},covered:'300',payable:'0'},businessDate:'2026-10-09',...over});
+ offset:{loans:{'C-referrer-loan':'L-0398'},rows:[{loanId:'C-referrer-loan',chargeDate:'2026-10-09',principalDue:'0',interestDue:'75',partial:false},{loanId:'C-referrer-loan',chargeDate:'2026-10-10',principalDue:'0',interestDue:'75',partial:false},{loanId:'C-referrer-loan',chargeDate:'2026-10-11',principalDue:'0',interestDue:'75',partial:false},{loanId:'C-referrer-loan',chargeDate:'2026-10-12',principalDue:'0',interestDue:'75',partial:false}],paidThrough:{'C-referrer-loan':'2026-10-12'},covered:'300',payable:'0'},businessDate:'2026-10-09',profit:'3000',rate:10,cap:1000,custom:false,...over});
 const preview=(s:State,r:any)=>({ok:true,businessDate:'2026-10-09',sourceVersion:loanFullC.version,amount:'115',planHash:'c'.repeat(64),accounts:s.loanAccounts,...(r?{rebate:r}:{})});
 async function openClose(page:Page,s:State,r:any){s.closePreview=preview(s,r);await fullLoan(page,s);await page.getByRole('button',{name:'Close Loan',exact:true}).click();await expect(page.getByRole('button',{name:'Review close',exact:true})).toBeDisabled()}
 async function reviewAndConfirm(page:Page){await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('C-account');await page.getByRole('combobox',{name:/^Payment Method(?: \*)?$/}).selectOption('Cash');await page.getByRole('button',{name:'Review close',exact:true}).click();await expect(page.getByRole('button',{name:'Confirm',exact:true})).toBeVisible()}
@@ -170,4 +170,38 @@ test('R119: a record with only closeRebate (no closeRebates) shows one line with
  await setup(page);const detail=await openClosingPayment(page,closeRebate({loanDisplayKey:'SYNTHETIC C-฿1,000-01/10-2%'}));
  const lines=detail.locator('.close-rebate-line');await expect(lines).toHaveCount(1);
  await expect(lines).toHaveText('Loan closed · rebate ฿300 offset to L-0398, paid through 12 Oct');
+});
+
+// R120: the basis line under the rebate (Echo LC-1, LC-3): the profit base, the referrer's rate and cap, and the referrer's
+// name when the terms are custom; in both the offset fieldset and the payout-only variant; hidden for an older preview.
+test('R120 the Loan Close basis line with default terms sits under the legend of the offset choice',async({page})=>{
+ const s=await setup(page);await openClose(page,s,rebate());
+ await expect(group(page).locator('legend+p.field-help')).toHaveText('10% of ฿3,000 interest and late charges, maximum ฿1,000');
+ // LC-4: the basis line takes its own full row; the two option cards share the row below it.
+ const box=await group(page).evaluate(f=>{const r=(e:Element|null)=>e!.getBoundingClientRect(),basis=r(f.querySelector('.rebate-basis')),labels=[...f.querySelectorAll(':scope>label')].map(e=>r(e)),inner=f.clientWidth;return {basis:basis.width,inner,below:labels.length===2&&labels.every(l=>l.top>=basis.bottom)}});
+ expect(box.basis).toBeGreaterThanOrEqual(box.inner-1);expect(box.below).toBe(true);expect(s.writes).toHaveLength(0);
+});
+test('R120 custom terms name the referrer under the payout line, in English and Thai',async({page})=>{
+ const s=await setup(page);await openClose(page,s,rebate({hasOpenLoan:false,offset:null,amount:'360',profit:'2400',rate:15,cap:1500,custom:true}));
+ const summary=page.locator('p.field-summary').filter({hasText:'Rebate ฿360 to ผู้แนะนำจำลอง, transfer from Lisa'});await expect(summary).toBeVisible();
+ await expect(summary.locator('+p.field-help')).toHaveText('15% of ฿2,400 interest and late charges, maximum ฿1,500 · custom terms for ผู้แนะนำจำลอง');
+ await chooseLanguagePreservingForm(page,'ไทย');await expect(page.locator('main')).toContainText('15% ของดอกเบี้ยและค่าปรับล่าช้า ฿2,400 สูงสุด ฿1,500 · เงื่อนไขเฉพาะของ ผู้แนะนำจำลอง');expect(s.writes).toHaveLength(0);
+});
+test('R120 a preview without the terms (before V135) shows no basis line',async({page})=>{
+ const s=await setup(page);await openClose(page,s,rebate({profit:undefined,rate:undefined,cap:undefined,custom:undefined}));
+ await expect(group(page)).toBeVisible();await expect(page.locator('main')).not.toContainText('interest and late charges');expect(s.writes).toHaveLength(0);
+});
+for(const [label,item,expected] of [['a V2 referral rebate shows its Rebate terms',{...expenseOffsetC,ruleVersion:'REFERRAL_REBATE_V2',rebateRate:15,rebateCap:1500},'15% · maximum ฿1,500'],['a V1 referral rebate shows a dash',expenseOffsetC,'—']] as const)
+ test('R120 Expenses: '+label,async({page})=>{
+  const s=await setup(page);s.expenseItem=item;await openExpensesC(page);await page.locator('.borrower-card').click();
+  const row=page.locator('dt',{hasText:/^Rebate terms$/});await expect(row).toBeVisible();await expect(row.locator('+dd')).toHaveText(expected);
+  const order=await page.locator('main dt').allTextContents();expect(order.indexOf('Rebate terms')).toBe(order.indexOf('Gross Profit Basis')+1);expect(s.writes).toHaveLength(0);
+ });
+test('R120 Expenses: the Rebate terms row in Thai',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});const s=await setup(page);s.expenseItem={...expenseOffsetC,ruleVersion:'REFERRAL_REBATE_V2',rebateRate:15,rebateCap:1500};await openExpensesC(page);await page.locator('.borrower-card').click();
+ await chooseLanguage(page,'ไทย');await expect(page.locator('dt',{hasText:/^เงื่อนไขค่าแนะนำ$/}).locator('+dd')).toHaveText('15% · สูงสุด ฿1,500');expect(s.writes).toHaveLength(0);
+});
+test('R120 Expenses: a manual expense has no Rebate terms row',async({page})=>{
+ const s=await setup(page);s.expenseItem={...expenseFullC};await openExpensesC(page);await page.locator('.borrower-card').click();
+ await expect(page.locator('dt',{hasText:/^Gross Profit Basis$/})).toBeVisible();await expect(page.locator('dt',{hasText:/^Rebate terms$/})).toHaveCount(0);expect(s.writes).toHaveLength(0);
 });

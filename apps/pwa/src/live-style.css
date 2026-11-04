@@ -211,7 +211,11 @@
 .payment-borrower-group>summary,.payment-month-group>summary{min-height:44px;padding:10px 12px;cursor:pointer;background:#eee;border-bottom:1px solid #ccc;font-weight:600;overflow-wrap:anywhere}.payment-month-group{margin-left:12px}.payment-month-group>summary{background:#f5f5f5}.payment-month-group>summary span+span{margin-left:12px;font-weight:400}.payment-record dt{color:#666;font-size:.9rem;font-weight:400}.payment-record dd{color:#202124;font-size:1.05rem;font-weight:600;margin:4px 0 14px}.payment-record .related-loans-heading h2{flex:1;min-width:0}
 
 
-.root-record-heading{border:1px solid #ccc;border-radius:8px;background:#f2f2f2;padding:0 8px;margin-bottom:8px;min-height:44px}.root-record-heading h2{font-size:18px;margin:0}.payment-compact-row{min-height:44px;padding:8px 12px;justify-content:space-between}.payment-status-posted{color:#188038}.payment-status-error{color:#b3261e}.payment-status-processing{color:#9a6700}.payment-status-unknown{color:#666}.dashboard-record{display:flex;flex-direction:column;gap:16px}.dashboard-section{border:1px solid #ccc;border-radius:10px;padding:16px;background:#fff;box-shadow:0 1px 3px #00000012}.dashboard-section>h2:first-child{margin-top:0}
+.root-record-heading{border:1px solid #ccc;border-radius:8px;background:#f2f2f2;padding:0 8px;margin-bottom:8px;min-height:44px}.root-record-heading h2{font-size:18px;margin:0}.payment-compact-row{min-height:44px;padding:8px 12px;justify-content:space-between}.payment-status-posted{color:#188038}.payment-status-error{color:#b3261e}
+/* R120: the inline rebate-term error (BR-1) uses the error colour above, spaced like the help line; the Loan Close basis line
+   takes its own row under the legend of the offset choice (LC-4). */
+.borrower-record .term-error{font-size:14px;line-height:1.5;margin:4px 0 12px}
+.rebate-options>.rebate-basis{flex-basis:100%;margin:0 0 6px}.payment-status-processing{color:#9a6700}.payment-status-unknown{color:#666}.dashboard-record{display:flex;flex-direction:column;gap:16px}.dashboard-section{border:1px solid #ccc;border-radius:10px;padding:16px;background:#fff;box-shadow:0 1px 3px #00000012}.dashboard-section>h2:first-child{margin-top:0}
 /* Native transition snapshots paint above DOM z-index; keep app chrome in its own stationary layers. */
 :root:has(.live-shell){view-transition-name:none}
 .live-shell .topbar{view-transition-name:live-header}

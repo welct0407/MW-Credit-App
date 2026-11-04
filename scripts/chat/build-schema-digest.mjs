@@ -117,6 +117,8 @@ export const EXCLUDED_NAMES=Object.freeze({
  "payment_reallocation_permitted":"guard predicate of the reallocation triggers",
  // R116 (V130): the write-off test the income views apply to each repayment row; the views carry its result.
  "is_principal_writeoff":"row predicate of the write-off views",
+ // R120 (V135): EXECUTE for the application role only; the chat reads the referrer's terms from the Borrowers columns.
+ "referral_rebate_terms":"referral rebate terms helper of the rebate trigger and the Loan Close preview",
 });
 
 const quote=x=>/^[a-z_][a-z0-9_]*$/.test(x)?x:'"'+x.replaceAll('"','""')+'"';

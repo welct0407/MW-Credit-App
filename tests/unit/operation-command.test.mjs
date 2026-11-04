@@ -41,3 +41,18 @@ test('R111 loan.close takes an optional rebatePath (offset | expense) as its las
   assert.match(operationIdentity({...close,inputs:{...inputs,rebatePath}},actor).canonicalJson,new RegExp('"expectedPlanHash":"a{64}","rebatePath":"'+rebatePath+'"\\}'));}
  for(const rebatePath of ['Offset','payout',null,1])assert.throws(()=>canonicalOperation({...close,inputs:{...inputs,rebatePath}}),undefined,String(rebatePath));
 });
+
+test('R120 borrower referral rebate terms: optional whole numbers after aiCollectionEnabled, canonical JSON numbers, invalid values refused',()=>{
+ const legacy=operationIdentity(command,actor);assert.equal(JSON.parse(legacy.canonicalJson).command.inputs.referralRebateRate,undefined,'absent keys stay absent');
+ for(const [rate,cap] of [[15,1500],[0,null],[null,1],[100,999999999999],[null,null]]){
+  const inputs={...fields,aiCollectionEnabled:true,referralRebateRate:rate,referralRebateCap:cap},canonical=canonicalOperation({...command,inputs});
+  assert.deepEqual(Object.keys(canonical.inputs).slice(-3),['aiCollectionEnabled','referralRebateRate','referralRebateCap'],'the SQL order');
+  assert.ok(operationIdentity({...command,inputs},actor).canonicalJson.includes('"aiCollectionEnabled":true,"referralRebateRate":'+JSON.stringify(rate)+',"referralRebateCap":'+JSON.stringify(cap)+'}'),'JSON numbers, never strings');
+ }
+ // Either key alone; the order is fixed whatever order the client sent.
+ assert.deepEqual(Object.keys(canonicalOperation({...command,inputs:{referralRebateCap:150,...fields}}).inputs).at(-1),'referralRebateCap');
+ assert.deepEqual(Object.keys(canonicalOperation({...command,inputs:{referralRebateCap:150,referralRebateRate:5,...fields}}).inputs).slice(-2),['referralRebateRate','referralRebateCap']);
+ for(const bad of [{referralRebateRate:'15'},{referralRebateRate:12.5},{referralRebateRate:101},{referralRebateRate:-1},{referralRebateRate:true},{referralRebateRate:Number.NaN},
+  {referralRebateCap:0},{referralRebateCap:'1000'},{referralRebateCap:1.5},{referralRebateCap:1e12},{referralRebateCap:-5}])
+  assert.throws(()=>canonicalOperation({...command,inputs:{...fields,...bad}}),/invalid_request/,JSON.stringify(bad));
+});

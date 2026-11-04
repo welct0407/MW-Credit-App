@@ -305,3 +305,41 @@ test('R119: closeRebates follow the Payment Allocations order, not the loan id o
  assert.deepEqual(lines.map(l=>l.loanDisplayKey),record.item.allocations.map(a=>a.loanDisplayKey));
  assert.deepEqual(record.item.closeRebate,lines[0],'closeRebate is the first line');
 });
+
+// R120 (V135): the referrer's own rate and cap. The terms are set through the governed borrower command (and the direct
+// borrower record edit), read back with the effective terms, guarded by the version, and used by the Loan Close preview,
+// the close itself, the Expenses read and a Receive payment close (closeRebates).
+const borrowerInputs=item=>Object.fromEntries(['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note'].map(key=>[key,item[key]]));
+const borrowerUpdate=(item,terms)=>({requestId:randomUUID(),operation:'borrower.update',targetId:item.id,expectedVersion:item.version,predecessorRequestId:null,receiptId:null,inputs:{...borrowerInputs(item),...terms}});
+test('R120: referral rebate terms through the borrower command, the version, the Loan Close basis, the expense and closeRebates',async()=>{
+ const s=await scenario({interest:2400,referrerLoans:[]}),before=(await store.borrowerRecord(principal,s.referrer)).item;
+ assert.equal(before.referralRebateRate,null);assert.equal(before.referralRebateCap,null);
+ assert.equal(before.details.referralRebateRateEffective,10);assert.equal(before.details.referralRebateCapEffective,1000);
+ const defaultPreview=await store.loanClosePreview(principal,s.loan);
+ assert.deepEqual([defaultPreview.rebate.amount,defaultPreview.rebate.profit,defaultPreview.rebate.rate,defaultPreview.rebate.cap,defaultPreview.rebate.custom],['240','2400',10,1000,false]);
+ // Invalid terms are refused before anything is recorded.
+ for(const terms of [{referralRebateRate:'15'},{referralRebateRate:12.5},{referralRebateRate:101},{referralRebateCap:0}]){
+  const r=await store.operation(principal,borrowerUpdate(before,terms));assert.equal(r.status,400,JSON.stringify(terms)+' '+JSON.stringify(r));assert.equal(r.code,'invalid_request');
+  const direct=await store.borrowerRecord(principal,s.referrer,'edit',{expectedVersion:before.version,fields:{...borrowerInputs(before),...terms}});assert.equal(direct.status,400);
+ }
+ const set=await store.operation(principal,borrowerUpdate(before,{referralRebateRate:15,referralRebateCap:1500}));assert.equal(set.originalOutcome?.status,'applied',JSON.stringify(set));
+ const after=(await store.borrowerRecord(principal,s.referrer)).item;
+ assert.deepEqual([after.referralRebateRate,after.referralRebateCap,after.details.referralRebateRateEffective,after.details.referralRebateCapEffective],[15,1500,15,1500]);
+ assert.notEqual(after.version,before.version,'the terms are part of the version');
+ const stale=await store.operation(principal,borrowerUpdate(before,{referralRebateRate:20}));assert.equal(stale.originalOutcome?.code,'source_conflict',JSON.stringify(stale));
+ // A direct record edit without the keys leaves the terms; with a null cap it returns that term to the default.
+ const edited=await store.borrowerRecord(principal,s.referrer,'edit',{expectedVersion:after.version,fields:{...borrowerInputs(after),note:'R120 synthetic note'}});assert.equal(edited.status,200,JSON.stringify(edited));assert.deepEqual([edited.item.referralRebateRate,edited.item.referralRebateCap],[15,1500]);
+ const capDefault=await store.borrowerRecord(principal,s.referrer,'edit',{expectedVersion:edited.item.version,fields:{...borrowerInputs(edited.item),referralRebateCap:null}});assert.equal(capDefault.status,200,JSON.stringify(capDefault));
+ assert.deepEqual([capDefault.item.referralRebateRate,capDefault.item.referralRebateCap,capDefault.item.details.referralRebateCapEffective],[15,null,1000]);
+ const restored=await store.operation(principal,borrowerUpdate(capDefault.item,{referralRebateRate:15,referralRebateCap:1500}));assert.equal(restored.originalOutcome?.status,'applied',JSON.stringify(restored));
+ // Loan Close: the basis of the custom amount, then the close books it with the applied terms.
+ const {preview,applied}=await close(s,{rebatePath:'expense'});assert.equal(applied.originalOutcome?.status,'applied',JSON.stringify(applied));
+ assert.deepEqual([preview.rebate.amount,preview.rebate.profit,preview.rebate.rate,preview.rebate.cap,preview.rebate.custom],['360','2400',15,1500,true]);
+ const record=await store.expenseRecord(principal,'rr1:'+s.loan);assert.equal(record.status,200,JSON.stringify(record));
+ assert.deepEqual([record.item.amount,record.item.ruleVersion,record.item.rebateRate,record.item.rebateCap,record.item.grossProfitBasis],['360.00','REFERRAL_REBATE_V2',15,1500,'2400.00']);
+ // Receive payment: a custom-terms referrer's rebate line on the closing payment (rate 5: 300 interest -> 15).
+ const x=await autoScenario();await admin.query('UPDATE "Borrowers" SET "Referral Rebate Rate"=5 WHERE "Row ID"=$1',[x.referrer]);
+ const {posted}=await receive(x);assert.equal(posted.originalOutcome?.status,'posted',JSON.stringify(posted));
+ const closing=await store.paymentRecord(principal,posted.originalOutcome.paymentId);assert.equal(Number(closing.item.closeRebates[0].amount),15,'closeRebates carries the custom amount');
+ assert.deepEqual((await admin.query(`SELECT "Amount"::numeric::text AS amount,"Rebate Rate"::text AS rate,"Rebate Cap"::text AS cap FROM "Business Expenses" WHERE "Row ID"=$1`,['rr1:'+x.loan])).rows[0],{amount:'15.00',rate:'5',cap:'1000'});
+});

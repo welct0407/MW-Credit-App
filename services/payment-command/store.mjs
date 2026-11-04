@@ -90,8 +90,10 @@ async function readCloseRebate(client,loanId,calculation,businessDate){
     const plan=await readPayForwardPlan(client,projection.referrerId,projection.amount,{forward:true,principal:[],loans:null});
     if(plan){const covered=(BigInt(projection.amount)-BigInt(plan.uncovered)).toString();offset={rows:plan.forward,paidThrough:plan.paidThrough,covered,payable:plan.uncovered,loans:await loanLabels(client,projection.referrerId)};}
   }
+  // R120 (V135): the basis of the amount, the profit base and the referrer's terms; null from a projection before V135.
+  const basis={profit:projection.profit??null,rate:projection.rate??null,cap:projection.cap??null,custom:typeof projection.custom==='boolean'?projection.custom:null};
   return {amount:projection.amount,referrer:{id:projection.referrerId,displayName:borrowerDisplayName(projection.referrerName,projection.referrerDescription)},hasOpenLoan:offerable,
-   previousPath:['offset','expense'].includes(previousPath)?previousPath:null,offset,businessDate};
+   previousPath:['offset','expense'].includes(previousPath)?previousPath:null,offset,businessDate,...basis};
 }
 /** R110: the purpose a v10 command carries, as the command derives it: its principal entries, and forward for the loans of
  * the lines dated after the business date (a materialize entry names its loan; a recorded charge's loan is read). */
