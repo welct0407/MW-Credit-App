@@ -7,7 +7,7 @@ R122 romanizes Thai names quickly with Claude Sonnet 5.5, which needs thinking t
 - `src/mw_integration_agent/chat_relay_api.py`: the request-key allowlist gains an optional `thinking` key, strictly validated to absent, `{type:adaptive}` or `{type:between_tools}`; anything else is rejected as before. It is forwarded unchanged.
 - No service is added, removed or switched; `chat_messages_relay` keeps its identities, federation rules and limits. A request without `thinking` behaves exactly as before, so the chat is unchanged.
 - [SERVICE_CATALOGUE.md](../SERVICE_CATALOGUE.md): the `chat_messages_relay` row lists the optional `thinking` key. The catalogue revision stays 35 (Forge), and the JSON manifest is unchanged because no service definition or default switch changed.
-- Main change note: [R122](../../Change%20Logs/CHANGE_NOTES_R122_BORROWER_DISPLAY_TRANSLATE_2026-11-04.md).
+- Main change note: [R122](https://github.com/welct0407/MW-Credit-App/blob/2d4dd30/Change%20Logs/CHANGE_NOTES_R122_BORROWER_DISPLAY_TRANSLATE_2026-11-04.md).
 
 ## Checks
 | Command | Result |
