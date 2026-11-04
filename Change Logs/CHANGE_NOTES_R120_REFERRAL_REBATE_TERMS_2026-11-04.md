@@ -41,7 +41,10 @@ UX (Echo to review wording):
 | BR-2 | Inline validation before the request: "Enter a whole percent from 0 to 100", "Enter a whole baht amount above 0". The API answers 422 `invalid_request`. |
 | LC-1 | Loan Close: a `field-help` basis line under the "Referral rebate ฿X" legend, "10% of ฿2,400 interest and late charges, maximum ฿1,000", or with custom terms "15% of ฿2,400 ..., maximum ฿1,500 · custom terms for <referrer>"; Thai wording as in the design. |
 | EX-1 | Expense detail: "Rebate terms" row after Gross Profit Basis ("15% · maximum ฿1,500"), "—" for rows booked before V135. |
-| BR-8, BR-9, LC-4 | Echo's built-UI findings on DEV; Byte is fixing them (see Remaining work). |
+| BR-8 | Every invalid term is flagged at once and the first one is focused. |
+| BR-9 | The field labels are "Rebate rate as referrer (%)" / "อัตราค่าแนะนำเมื่อเป็นผู้แนะนำ (%)" and "Rebate maximum as referrer (฿)" / "ค่าแนะนำสูงสุดเมื่อเป็นผู้แนะนำ (฿)", also in the offline viewed record. The chat catalogue and expense labels are unchanged. |
+| LC-4 | The Loan Close basis line takes its own full row in the offset fieldset (flex-basis 100%). |
+| BR-1 follow-up | The inline error uses the existing error colour (`payment-status-error`, #b3261e) through a `.term-error` rule. |
 | NONE | Receive payment, chat card, agent and push take the amount from the projection or expense and need no new text. The referred borrower's record, Collection, Dashboard and reports are unchanged. |
 
 Out of scope: showing the terms on the referred borrower, per-loan terms, restating booked rebates, backfill, a settings page for the defaults, push or agent wording beyond the catalogue inputs and business rules text.
@@ -60,10 +63,12 @@ Out of scope: showing the terms on the referred borrower, per-loan terms, restat
 | Chase adversarial review (c9c1c0e) | Pass |
 | CI `Database migrations` run 41806922523 (head 5f3a34b) | Pass (guards and 4 rebuilds) |
 | CI `Development checks` run 41806917499 (head 5f3a34b) | Pass (lint, check, 3 e2e shards; terraform skipped) |
+| Typecheck, lint, borrower-lock-key unit 6/6, both changed Playwright specs on desktop-chromium and mobile-chromium (Byte, 5dadcea's tree) | Pass: typecheck, lint clean, 6/6, 68/68 on each project, including the new BR-8 and LC-4 tests |
+| CI `Development checks` run 41812512541 (head 5dadcea) | Pass (lint, check, 3 e2e shards; terraform skipped) |
 | DEV: V135, images, Hosting, smoke | Pass (Forge), see the DEV promotion record |
 | DEV acceptance, API as the DEV test Partner (Chase) | Pass, details below |
 | Push wording, read-only render of `pwa_notify_content_v4` on DEV events (Forge) | Pass: "Rebate ฿90 / ฿75 / ฿40 to R120 Test Referrer, transfer from Lisa"; the offset push reads "Rebate offset ฿60 · from loan …". Nothing was forced; the ordinary DEV dispatcher had already sent them |
-| Echo built-UI check on DEV, 375 px and desktop, English and Thai | Pass; findings BR-9, LC-4, BR-8 and the BR-1 error style are being fixed by Byte |
+| Echo built-UI check on DEV, 375 px and desktop, English and Thai | Pass; findings BR-9, LC-4, BR-8 and the BR-1 error style were fixed in 5dadcea |
 
 DEV acceptance results:
 - Custom terms 15 and 1,500: set, read back, version OK.
@@ -77,7 +82,6 @@ DEV acceptance results:
 - The remainder-payable offset case on DEV (covered by lab RO-T).
 - A push on a device.
 - No PROD action; PROD promotion needs the owner's instruction. No PROD data, payment, forced notification or financial correction is part of this batch.
-- The checks after Byte's fixes for BR-9, LC-4, BR-8 and BR-1 (to be added with their commit).
 
 ## Recovery
 - Before deployment: revert the commit.
@@ -91,7 +95,6 @@ None. Production promotion needs the owner's "move to prod" or equivalent. Accep
 - A rate set to 0 after a quote closes with no rebate.
 
 ## Remaining work
-- Byte's fixes for BR-9, LC-4, BR-8 and the BR-1 error style, then a Hosting redeploy; add its id and the re-run checks.
 - Data Dictionary refresh from a PROD capture after V135 is applied (the design approval covers the new `referral_rebate_terms` routine entry; deferral to closure accepted).
 - Closure: promotion record, tag record, freeze pin and prune in the closure pull request.
 
@@ -108,10 +111,11 @@ No secret value, token or borrower data appears here. Pins are in the [environme
 | Readback | SQL readback OK; `referral_rebate_terms` has EXECUTE for `mw_app_dev` only |
 | Terraform | 0 add, 3 change, 0 destroy (image only), applied 09:41:05Z to 09:41:43Z, re-plan clean, settings generation `1793785264889957` (previous `1793764420940700`) |
 | Revisions | read `00069-l8g`, command `00086-dkz`, chat `00038-p57` |
-| Hosting | `9d8740e03edcaec0`, live 09:43:43Z |
+| Hosting | `9d8740e03edcaec0`, live 09:43:43Z, from `5f3a34b` |
+| Hosting redeploy | Hosting only (the runner input rule confirmed no image change), for the UX fixes in `5dadcea`: version `d31a99056a6794ce`, release `1793787754128000`, live 10:22:34Z; build-version R120 `50ccda655c09077724b98d2b`, entry `/assets/index-CoWK9ZXp.js`; `--check` passed, both origins serve it, `sw.js` no-store |
 | Smoke | Pass |
 | Limitation | A 7.5-minute borrower-edit gap, because the post-migrate reconcile took 6.5 minutes; no edit was attempted. PROD has no reconcile step |
-| Rollback | Settings generation `1793764420940700` plus Hosting `def99383e9f7b534`, or the V134 backup |
+| Rollback | Settings generation `1793764420940700` plus Hosting `def99383e9f7b534`, or the V134 backup; Hosting alone: `9d8740e03edcaec0` |
 
 Synthetic DEV records left in place, all marked "R120 DEV acceptance synthetic":
 - Borrowers: R120 Test Referrer `a47075fa…`, Referred A `e767c09e…`, Referred B `2fec85c3…`, Referred D `1095f411…`.
