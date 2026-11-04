@@ -61,7 +61,7 @@ test('R111: an offset payment push carries the method and closed loan from v2',a
  assert.deepEqual(sent,[{title:'Rebate offset',body:'Rebate offset ฿300 · Malee Srisuk · from loan L-0412'}]);
 });
 test('content RPC failure or no row still sends once with generic text and never defers',async()=>{
- for(const content of [Error('function public.pwa_notify_content_v1(uuid, bigint) does not exist'),[],[{found:true,event_type:'loan.unknown',language:'en'}]]){
+ for(const content of [Object.assign(Error('function public.pwa_notify_content_v1(uuid, bigint) does not exist'),{code:'42883'}),[],[{found:true,event_type:'loan.unknown',language:'en'}]]){
   const {calls,pool}=scriptedPool(content);const sent=[];
   const dispatch=createNotificationDispatcher({pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{sent.push(options.content);return{kind:'accepted'};}});
   assert.deepEqual((await dispatch()).results,[{state:'sent'}]);assert.deepEqual(sent,[{title:'MW Credit',body:'New activity'}]);
