@@ -34,6 +34,7 @@ DEV deploy scope: the VM-01 chat relay (installed by the integration-agent deplo
 | Playwright desktop-chromium `chat.spec.ts -g "R122: (Translate|the New)"` | 3 passed, including 320 and 390 px in English and Thai and targets of 44 px or more (Chase; 1b9931d + transliterate edit) |
 | Diff review | No defects; relay `thinking` validation is exact-match and rejects `disabled`, `budget_tokens` and extra keys (Chase) |
 | `npm run check:docs` | Pass (Dewey) |
+| DEV acceptance (read-only; DEV test Partner, iPhone 13 viewport, Chromium, deployed 74a5705) | Pass. Related loans: open loan `Mint-฿2,500` shows outstanding ฿2,143 (not ฿2,500), an open fully repaid loan shows ฿0, closed loans show original principal, each group has its own legend. Cash statement From/To for a borrower shows `บลู` in Thai and `Blue` in English. New borrower: Translate disabled when blank; `สมชาย ใจดี` filled `Somchai Chaidi` in 3.8 s; replace-confirm dismissed kept the typed name, accepted replaced it; nothing saved (no borrower or financial write). The language switch wrote the test Partner's `preference.update` (Thai, then back to English; verified English). Screenshots outside the repo (Chase) |
 | Development checks (CI) | pending, after the push |
 
 ## Not run
