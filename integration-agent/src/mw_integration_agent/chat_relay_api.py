@@ -1,7 +1,8 @@
 """Chat relay for the MW Credit chat services (catalogue key chat_messages_relay, R102).
 
 POST /v1/chat/messages takes one Anthropic Messages API request (JSON, at most 1 MB, a claude-* model, stream true,
-custom tools only, `thinking` absent or exactly {"type":"adaptive"} / {"type":"between_tools"}) from an allowed chat service identity (Google ID token, audience = the relay URL), and forwards it
+custom tools only, `thinking` absent or exactly {"type":"adaptive"} or {"type":"between_tools"} (R122)) from an allowed
+chat service identity (Google ID token, audience = the relay URL), and forwards it
 to https://api.anthropic.com/v1/messages, streaming the SSE bytes back unchanged. The relay is keyless: it holds no
 Anthropic API key. Upstream credentials come from Anthropic workload identity federation: the VM's own Google ID
 token (audience per environment, format=full) is exchanged at /v1/oauth/token for a short-lived Bearer token, cached
@@ -287,8 +288,7 @@ def checked_request(raw):
     tools = value.get('tools', [])
     if not isinstance(tools, list) or any(not isinstance(t, dict) or t.get('type', 'custom') != 'custom' for t in tools):
         raise rejected('tools_not_allowed')  # custom tools only: no server-side tool spends or fetches on the relay
-    if 'thinking' in value and not any(value['thinking'] == mode and type(value['thinking']) is dict and type(value['thinking']['type']) is str
-                                       for mode in THINKING_MODES):
+    if 'thinking' in value and value['thinking'] not in THINKING_MODES:  # exact dict equality: no other key or type
         raise rejected('thinking_not_allowed')
     return value['model']
 
