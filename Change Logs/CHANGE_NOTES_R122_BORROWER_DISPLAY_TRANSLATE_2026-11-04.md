@@ -48,7 +48,7 @@ DEV deploy scope: the VM-01 chat relay (installed by the integration-agent deplo
 No PROD action. `services/business/cash.mjs` SQL was not run on a disposable PostgreSQL. iPhone/WebKit and the wide browser suite are left to the pull request CI. Live romanization against the relay is not run until the DEV deploy. A skipped check is not a pass.
 
 ## Recovery
-Git baseline is R121 `f6622c5` (tag `R121`). Revert the R122 commit and redeploy the prior DEV images, Hosting and the prior relay package on VM-01; no schema change to undo.
+Git baseline is R121 `3f885fa` (tag `R121`; closure merge `f6622c5`). Revert the R122 commit and redeploy the prior DEV images, Hosting and the prior relay package on VM-01; no schema change to undo.
 
 ## Open questions
 None for the owner at present.
@@ -70,3 +70,31 @@ Forge, 4 November 2026 (UTC), from PR #234 head `74a5705` (unmerged; Development
 | Hosting redeploy (`399a35c`, CSS fix `37da2fa`, R122-NEW-07; Development checks run 41863289902 green) | Hosting only: `git diff --stat 74a5705 399a35c -- services integration-agent` shows records only, so images, Terraform and the relay are unchanged. `build:live-dev` from a detached worktree of `399a35c` (release R122, build-version `2e72ba31ac5160a23dc9ba67`, entry `/assets/index-Dtf8iet3.js`), `--check` then deploy: version `89deb290b5c1d5a4`, release `1793809886101000`. Readback: public `build-version.json` matches; `/sw.js` 200 `no-store`; the bundle carries `399a35c`; the live CSS has `.field-help.translate-error{color:#b3261e}`. Previous Hosting `5ab8b076a340d42e` (`74a5705`). The red error was not checked in a browser |
 
 Rollback: activation generation `1793785264889957` (images `3556d8ec…ddde8`) and Hosting `f321bf286e369835` (R121); the relay as in the agent note.
+
+## PROD promotion record (Forge, 4 November 2026, UTC)
+Authority: owner instruction of 4 November 2026, "Move R122 to production and close the release". No SQL, so no backup was needed. No PROD payment, forced notification, backfill, PROD test write or financial correction. No secret value, token or borrower data appears here. Private records are in the operator bucket under `promotion-packages/r122/`.
+
+| Step | Result |
+| --- | --- |
+| Freeze | 16:49:11Z. Package: `main` at `b83bf3a` (merge of PR #234; tree identical to CI-tested head `505e1b5`). Baseline: tag R121 `3f885fa`. Next unused number: R123. Runtime inputs changed since R121: `services/business/cash.mjs` and `services/chat/{handler,store,transliterate}.mjs`. These reach read, command and chat; notify and jobs are unchanged |
+| Baseline | Project `clever-oasis-508610-n7`. Read `00044-v55`, command `00049-2dx` and chat `00028-gvc` on `5679b454…3cbd`. Notify `00027-mkt` and jobs `00027-xch` on `a66cbf29…27ba`. Hosting site `mw-credit-prod-737787224638`, version `f8dd8e3f2900f9cb` (R121) |
+| SQL | None. `Invoke-CloudFlyway.py verify --target prod`, read-only as `codex-cloud-read`: `loan_manager_prod` at 135, nothing pending, 0 writes (16:51:58Z to 16:52:58Z) |
+| Image | Cloud Build `1615448e-804f-4e0f-83a1-b7a2e9db0ec8` (PROD builder `mw-credit-app-build-prod`, `cloudbuild-business.yaml` smoke passed, `git archive` of `b83bf3a`), 16:49:48Z to 16:50:24Z. Digest `sha256:713c063850c0272c53e1fff3a1039de04123cef96dae0d38a54dd3877aa9dcce` |
+| Terraform | `runtime_image_overrides` for read, command and chat. Plan 0 add, 3 change, 0 destroy, image attribute only (plan sha256 `00024ea5…7a03`, JSON `def7d819…a315`). Applied 16:52:58Z to 16:53:37Z. Activation generation `1793790340124426` to `1793811235115849` |
+| Revisions | Read `00045-7xg`, command `00050-r7q` and chat `00029-7lh`, each 100% on `713c0638…dcce` with `cpu_idle` true. Notify and jobs unchanged |
+| VM-01 relay | Checkout back on `main` (`update-from-github.sh` to `b83bf3a`). Dry run: schema through V11, no drift, no module changed against the running `74a5705`. Freeze 16:58:02Z, backup `runtime-20261104T165803147668Z`. Install with no file or unit changes; `check` passes. Activate 16:58:09Z, probe `ef5b33f2-a7e6-43bf-858d-0f2974de870f`. `mw-chat-relay` restarted 16:58:13Z. `/ready` true on `b83bf3a`; relay and recognizer `/healthz` ok; no failed units. The temporary root-only `mw_agent` connection file was shredded |
+| Hosting | Generic runner as `mw-credit-unattended-admin`; `--check`, then `--apply` 17:17:26Z to 17:18:17Z. Version `1d09a013dcdb5158`, release `1793812690305000`, 17 files, `no-store`, package sha256 `2bcf0dad…bdd9`; private receipt `R122-HOSTING-RECEIPT.json`. Build-version R122 `8bdd1b46bd4fc94bc8c4ce00`, entry `/assets/index-nC40MiSA.js`. The first `--check` refused the `check` CI receipt because run 41859773201 had ended cancelled. That run's cancelled e2e shards were re-run, and attempt 2 succeeded at 17:14Z. The first `--apply` stopped before any upload on a manifest typing error (build source generation as a number); after the fix the second `--apply` succeeded |
+| CI receipts | `check`: evidence from run 41859773201 attempt 2 (`37da2fa`). e2e: run 41863289902 (`399a35c`). terraform: run 41203206026 (`cb875ea`). Database guards and the four rebuilds: run 41854481914 (`74a5705`). Package tree identical to `505e1b5` (run 41868176944) |
+| Smoke (read-only) | `/health` 200 on read, command and chat; unauthenticated `POST /api/chat/transliterate` 401. `lm.mw-credit.com` and `web.app` serve build-version R122 `8bdd1b46…`; the entry bundle carries `b83bf3a` and R122 (About); `/sw.js` 200 `no-store`. No ERROR logs from 16:52Z to 17:19Z |
+| Not deployed | Notify, jobs and Metabase |
+| Recovery | Activation generation `1793790340124426` (images `5679b454…3cbd`), Hosting `f8dd8e3f2900f9cb` (R121), relay `deploy-runtime.py rollback --commit b83bf3aa31f9b9803dcd4a1f503ec07725395b78` (restores `74a5705`; earlier backup `runtime-20261104T152257442522Z` holds `0a8a8cd`) |
+
+### Limitations
+- PROD transliterate not exercised: there is no PROD Partner token and no harmless PROD caller path.
+
+## Closure prune (Dewey, 4 November 2026)
+R122 is Released, so the retention window is R122, R121 and R120. Inbound links to the R119 records were repointed to commit `b83bf3a` first (Release_Tracker, Development_Changes, Solution_Design, Environment_Inventory, the integration-agent catalogue, CONVERSATION_POLL, OPERATIONS and PARTNER_REVIEW). Deleted:
+- `Change Logs/CHANGE_NOTES_R119_REBATE_LINES_AGENT_RECHECK_2026-11-04.md`
+- `integration-agent/Change Logs/CHANGE_NOTES_R119_AGENT_RECHECK_2026-11-04.md`
+- `project/outputs/dictionary-r119-20261104/` (`coverage.json`, `plan.json`, `production-postgresql-observations.json`; nothing current cites them)
+Development Changes keeps no R122 section; its R122 row is the follow-up line.
