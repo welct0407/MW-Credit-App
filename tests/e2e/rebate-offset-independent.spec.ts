@@ -176,7 +176,10 @@ test('R119: a record with only closeRebate (no closeRebates) shows one line with
 // name when the terms are custom; in both the offset fieldset and the payout-only variant; hidden for an older preview.
 test('R120 the Loan Close basis line with default terms sits under the legend of the offset choice',async({page})=>{
  const s=await setup(page);await openClose(page,s,rebate());
- await expect(group(page).locator('legend+p.field-help')).toHaveText('10% of ฿3,000 interest and late charges, maximum ฿1,000');expect(s.writes).toHaveLength(0);
+ await expect(group(page).locator('legend+p.field-help')).toHaveText('10% of ฿3,000 interest and late charges, maximum ฿1,000');
+ // LC-4: the basis line takes its own full row; the two option cards share the row below it.
+ const box=await group(page).evaluate(f=>{const r=(e:Element|null)=>e!.getBoundingClientRect(),basis=r(f.querySelector('.rebate-basis')),labels=[...f.querySelectorAll(':scope>label')].map(e=>r(e)),inner=f.clientWidth;return {basis:basis.width,inner,below:labels.length===2&&labels.every(l=>l.top>=basis.bottom)}});
+ expect(box.basis).toBeGreaterThanOrEqual(box.inner-1);expect(box.below).toBe(true);expect(s.writes).toHaveLength(0);
 });
 test('R120 custom terms name the referrer under the payout line, in English and Thai',async({page})=>{
  const s=await setup(page);await openClose(page,s,rebate({hasOpenLoan:false,offset:null,amount:'360',profit:'2400',rate:15,cap:1500,custom:true}));

@@ -47,7 +47,7 @@ test('Borrower upcoming controls stay read-only inside the borrower form',async(
 });
 
 for(const width of [320,390,1440])test(`F2 borrower ordered fields/read-only metadata and compact geometry ${width}px`,async({page},info)=>{await page.setViewportSize({width,height:900});const s=await setup(page);await page.getByRole('button',{name:'Add borrower',exact:true}).click();const region=page.getByRole('region',{name:'Borrower record',exact:true});await expect(region.getByRole('button',{name:'Save borrower',exact:true})).toBeVisible();
- const labels=await region.locator('form>label').evaluateAll(es=>es.map(e=>e.childNodes[0]?.textContent?.trim()));expect(labels).toEqual(['Borrower name (Thai)','Creation Date','English name','Preferred Receiving Cash Account','Payer names on slips','Instagram Username','AI Collection Enabled','City','Working Location','Address','Referrer','Rebate rate (%)','Rebate maximum (฿)','Borrower Note','Hide from Borrowers List']);
+ const labels=await region.locator('form>label').evaluateAll(es=>es.map(e=>e.childNodes[0]?.textContent?.trim()));expect(labels).toEqual(['Borrower name (Thai)','Creation Date','English name','Preferred Receiving Cash Account','Payer names on slips','Instagram Username','AI Collection Enabled','City','Working Location','Address','Referrer','Rebate rate as referrer (%)','Rebate maximum as referrer (฿)','Borrower Note','Hide from Borrowers List']);
  await expect(region.getByRole('textbox',{name:/^Creation Date(?: \*)?$/})).toHaveCount(0);await expect(region.getByRole('checkbox',{name:'AI Collection Enabled',exact:true})).toBeChecked();await expect(region.getByRole('textbox',{name:/phone|document/i})).toHaveCount(0);
  for(const lang of ['EN','ไทย'] as const){await chooseLanguagePreservingForm(page,lang);expect(await page.locator('body').evaluate(e=>e.scrollWidth)).toBeLessThanOrEqual(width);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);await expect(page.locator('main')).not.toContainText(/Loading|Checking/);mkdirSync('test-results/r052-phase5-completion',{recursive:true});await page.screenshot({path:`test-results/r052-phase5-completion/borrower-form-${info.project.name}-${width}-${lang==='EN'?'en':'th'}.png`})}expect(s.writes).toHaveLength(0);
 });
@@ -59,9 +59,9 @@ test('F2 full detail groups precede contact fields, exact notes/referrer and rel
 // anything is queued.
 test('R120 rebate terms: defaults in view, then 15 and 1,500 sent as JSON numbers',async({page})=>{
  const s=await setup(page);await full(page);const region=page.getByRole('region',{name:'Borrower record',exact:true});
- await expect(region.locator('label').filter({hasText:/^Rebate rate \(%\)/})).toContainText('Default (10%)');await expect(region.locator('label').filter({hasText:/^Rebate maximum \(฿\)/})).toContainText('Default (฿1,000)');
+ await expect(region.locator('label').filter({hasText:/^Rebate rate as referrer \(%\)/})).toContainText('Default (10%)');await expect(region.locator('label').filter({hasText:/^Rebate maximum as referrer \(฿\)/})).toContainText('Default (฿1,000)');
  await page.getByRole('button',{name:'Edit borrower',exact:true}).click();
- const rate=region.getByRole('textbox',{name:'Rebate rate (%)',exact:true}),cap=region.getByRole('textbox',{name:'Rebate maximum (฿)',exact:true});
+ const rate=region.getByRole('textbox',{name:'Rebate rate as referrer (%)',exact:true}),cap=region.getByRole('textbox',{name:'Rebate maximum as referrer (฿)',exact:true});
  await expect(rate).toHaveAttribute('inputmode','numeric');await expect(rate).toHaveAttribute('placeholder','10');await expect(cap).toHaveAttribute('placeholder','1000');
  await expect(region).toContainText('Leave blank to use the default (10%, maximum ฿1,000).');
  await rate.fill(' 15 ');await cap.fill('1,500');await page.getByRole('button',{name:'Save borrower',exact:true}).click();
@@ -71,19 +71,29 @@ test('R120 rebate terms: defaults in view, then 15 and 1,500 sent as JSON number
 test('R120 rebate terms: custom terms in view (English and Thai); clearing both sends null',async({page})=>{
  const s=await setup(page);s.borrowerItem={...record,version:'b'.repeat(64),referralRebateRate:15,referralRebateCap:1500,details:{...record.details,referralRebateRateEffective:15,referralRebateCapEffective:1500}};
  await full(page);const region=page.getByRole('region',{name:'Borrower record',exact:true});
- await expect(region.locator('label').filter({hasText:/^Rebate rate \(%\)/})).toContainText('15% · custom');await expect(region.locator('label').filter({hasText:/^Rebate maximum \(฿\)/})).toContainText('฿1,500 · custom');
- await page.getByRole('button',{name:'Edit borrower',exact:true}).click();const rate=region.getByRole('textbox',{name:'Rebate rate (%)',exact:true}),cap=region.getByRole('textbox',{name:'Rebate maximum (฿)',exact:true});
+ await expect(region.locator('label').filter({hasText:/^Rebate rate as referrer \(%\)/})).toContainText('15% · custom');await expect(region.locator('label').filter({hasText:/^Rebate maximum as referrer \(฿\)/})).toContainText('฿1,500 · custom');
+ await page.getByRole('button',{name:'Edit borrower',exact:true}).click();const rate=region.getByRole('textbox',{name:'Rebate rate as referrer (%)',exact:true}),cap=region.getByRole('textbox',{name:'Rebate maximum as referrer (฿)',exact:true});
  await expect(rate).toHaveValue('15');await expect(cap).toHaveValue('1500');await rate.fill('');await cap.fill('');await page.getByRole('button',{name:'Save borrower',exact:true}).click();
  await expect.poll(()=>s.writes.length).toBe(1);expect(s.writes[0].body.inputs).toMatchObject({referralRebateRate:null,referralRebateCap:null});expect(s.writes[0].body.expectedVersion).toBe('b'.repeat(64));
 });
 test('R120 rebate terms: custom terms in Thai',async({page})=>{
  await page.setViewportSize({width:1440,height:900});const s=await setup(page);s.borrowerItem={...record,referralRebateRate:15,referralRebateCap:1500,details:{...record.details,referralRebateRateEffective:15,referralRebateCapEffective:1500}};
  await full(page);await chooseLanguage(page,'ไทย');
- await expect(page.locator('main label').filter({hasText:/^อัตราค่าแนะนำ \(%\)/})).toContainText('15% · กำหนดเอง');await expect(page.locator('main label').filter({hasText:/^ค่าแนะนำสูงสุด \(฿\)/})).toContainText('฿1,500 · กำหนดเอง');expect(s.writes).toHaveLength(0);
+ await expect(page.locator('main label').filter({hasText:/^อัตราค่าแนะนำเมื่อเป็นผู้แนะนำ \(%\)/})).toContainText('15% · กำหนดเอง');await expect(page.locator('main label').filter({hasText:/^ค่าแนะนำสูงสุดเมื่อเป็นผู้แนะนำ \(฿\)/})).toContainText('฿1,500 · กำหนดเอง');expect(s.writes).toHaveLength(0);
+});
+test('R120 rebate terms validation: both invalid fields are flagged at once in the error colour and the first is focused (BR-8)',async({page})=>{
+ const s=await setup(page);await full(page);const region=page.getByRole('region',{name:'Borrower record',exact:true});await page.getByRole('button',{name:'Edit borrower',exact:true}).click();
+ const rate=region.getByRole('textbox',{name:'Rebate rate as referrer (%)',exact:true}),cap=region.getByRole('textbox',{name:'Rebate maximum as referrer (฿)',exact:true});
+ await rate.fill('101');await cap.fill('0');await page.getByRole('button',{name:'Save borrower',exact:true}).click();
+ await expect(region.getByRole('alert')).toHaveText(['Enter a whole percent from 0 to 100.','Enter a whole baht amount of 1 or more.']);
+ await expect(rate).toHaveAttribute('aria-invalid','true');await expect(cap).toHaveAttribute('aria-invalid','true');await expect(rate).toBeFocused();
+ expect(await region.getByRole('alert').first().evaluate(e=>getComputedStyle(e).color)).toBe('rgb(179, 38, 30)');
+ await rate.fill('20');await expect(region.getByRole('alert')).toHaveText(['Enter a whole baht amount of 1 or more.']);await expect(rate).not.toHaveAttribute('aria-invalid','true');
+ expect(s.writes).toHaveLength(0);expect(await pending(page)).toHaveLength(0);
 });
 test('R120 rebate terms validation: 101 and a cap of 0 show the message under the field, focus it and queue nothing',async({page})=>{
  const s=await setup(page);await full(page);const region=page.getByRole('region',{name:'Borrower record',exact:true});await page.getByRole('button',{name:'Edit borrower',exact:true}).click();
- const rate=region.getByRole('textbox',{name:'Rebate rate (%)',exact:true}),cap=region.getByRole('textbox',{name:'Rebate maximum (฿)',exact:true});
+ const rate=region.getByRole('textbox',{name:'Rebate rate as referrer (%)',exact:true}),cap=region.getByRole('textbox',{name:'Rebate maximum as referrer (฿)',exact:true});
  await rate.fill('101');await page.getByRole('button',{name:'Save borrower',exact:true}).click();
  await expect(region.getByRole('alert')).toHaveText('Enter a whole percent from 0 to 100.');await expect(rate).toHaveAttribute('aria-invalid','true');await expect(rate).toBeFocused();
  await rate.fill('12.5');await page.getByRole('button',{name:'Save borrower',exact:true}).click();await expect(region.getByRole('alert')).toHaveText('Enter a whole percent from 0 to 100.');
