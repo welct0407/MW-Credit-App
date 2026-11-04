@@ -8,6 +8,18 @@ import {createEnvironmentCommandHandler} from '../../services/payment-command/ha
 import {createEnvironmentCommandStore} from '../../services/payment-command/store.mjs';
 import {loadBusinessConfig} from '../../services/production/business-config.mjs';
 import {businessEnv} from './business-env-fixture.mjs';
+import {bangkokClock} from '../../apps/pwa/src/bangkok-clock.ts';
+
+test('R123 the page defaults come from one Bangkok reading: today and the time rounded down to 10 minutes',()=>{
+ for(const [at,expected] of [
+  ['2026-11-04T16:59:59Z',{date:'2026-11-04',hour:'23',minute:'50'}],
+  ['2026-11-04T17:05:00Z',{date:'2026-11-05',hour:'00',minute:'00'}],
+  ['2026-11-04T03:19:59Z',{date:'2026-11-04',hour:'10',minute:'10'}],
+  ['2026-11-04T03:20:00Z',{date:'2026-11-04',hour:'10',minute:'20'}],
+  ['2026-12-31T17:00:00Z',{date:'2027-01-01',hour:'00',minute:'00'}],
+ ])assert.deepEqual(bangkokClock(new Date(at)),expected,at);
+ const now=bangkokClock();assert.match(now.date,/^\d{4}-\d{2}-\d{2}$/);assert.match(now.hour,/^([01]\d|2[0-3])$/);assert.match(now.minute,/^[0-5]0$/);
+});
 
 const base={movementDate:'2026-11-01',movementTime:'10:00',toAccountId:'WD-CASH'};
 const request=inputs=>({requestId:'a1111111-1111-4111-8111-111111111111',operation:'cash-withdrawal.create',targetId:'b1111111-1111-4111-8111-111111111111',expectedVersion:null,predecessorRequestId:null,receiptId:null,inputs});

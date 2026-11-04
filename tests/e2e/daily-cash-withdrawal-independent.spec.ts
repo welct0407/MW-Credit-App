@@ -15,16 +15,22 @@ async function fixture(page:Page){
  return {reads,posts};
 }
 test('Daily cash withdrawal reloads as-of balances, blocks an overdraw and confirms one request for both lines',async({page})=>{
- const {reads,posts}=await fixture(page);await page.goto('/');await page.waitForFunction(()=>(window as any).__dcwReady===true);
+ // The page reads the device clock: 2026-10-10 12:07 Bangkok, the harness business date.
+ const {reads,posts}=await fixture(page);await page.clock.setFixedTime(new Date('2026-10-10T05:07:00Z'));await page.goto('/');await page.waitForFunction(()=>(window as any).__dcwReady===true);
  const action=page.getByRole('button',{name:'Daily cash withdrawal',exact:true});
  await expect(action.locator('.record-action-icon svg')).toHaveAttribute('data-icon','cash');
  await expect(page.locator('.root-record-heading .record-action').last()).toHaveAccessibleName('Daily cash withdrawal');
  await action.click();
- // DCW-4: yesterday by default; hour 00-23 and minute 00..50 selects.
- await expect(page.getByLabel('Date',{exact:true})).toHaveValue('2026-10-09');
- await expect(page.getByLabel('Minute',{exact:true}).locator('option')).toHaveText(['00','10','20','30','40','50']);
- await expect(page.getByLabel('Hour',{exact:true}).locator('option')).toHaveCount(24);
- await page.getByLabel('Hour',{exact:true}).selectOption('10');await page.getByLabel('Minute',{exact:true}).selectOption('00');
+ // DCW-4/R123: Bangkok today and the current time rounded down to 10 minutes by default; hour 00-23 and minute 00..50 selects.
+ const dateBox=page.getByLabel('Date',{exact:true}),hourBox=page.getByLabel('Hour',{exact:true}),minuteBox=page.getByLabel('Minute',{exact:true});
+ await expect(dateBox).toHaveValue('2026-10-10');await expect(hourBox).toHaveValue('12');await expect(minuteBox).toHaveValue('00');await expect(dateBox).toHaveAttribute('max','2026-10-10');
+ await expect(minuteBox.locator('option')).toHaveText(['00','10','20','30','40','50']);
+ await expect(hourBox.locator('option')).toHaveCount(24);
+ // R123: shown again past midnight, untouched defaults follow the clock and today stays selectable; after an edit they stay put.
+ const shown=async(at:string)=>{await page.clock.setFixedTime(new Date(at));await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')))};
+ await shown('2026-10-10T17:01:00Z');await expect(dateBox).toHaveValue('2026-10-11');await expect(hourBox).toHaveValue('00');await expect(minuteBox).toHaveValue('00');await expect(dateBox).toHaveAttribute('max','2026-10-11');
+ await dateBox.fill('2026-10-09');await hourBox.selectOption('10');await minuteBox.selectOption('00');
+ await shown('2026-10-10T17:31:00Z');await expect(dateBox).toHaveValue('2026-10-09');await expect(hourBox).toHaveValue('10');await expect(minuteBox).toHaveValue('00');
  await expect(page.locator('.dcw-asof')).toHaveText('As of 09-Oct 10:00');
  await expect.poll(()=>reads.at(-1)).toBe('?date=2026-10-09&time=10%3A00');
  // DCW-1/destination: Dad's cash account is the destination; the other Dad accounts are the lines.
@@ -55,6 +61,17 @@ test('Daily cash withdrawal reloads as-of balances, blocks an overdraw and confi
  expect(posts).toHaveLength(1);
  expect(posts[0]).toMatchObject({operation:'cash-withdrawal.create',expectedVersion:null,predecessorRequestId:null,receiptId:null,inputs:{movementDate:'2026-10-09',movementTime:'10:00',toAccountId:'dad-cash',lines:[{fromAccountId:'dad-scb',amount:'650'},{fromAccountId:'dad-ttb',amount:'200'}]}});
  expect(posts[0].targetId).toMatch(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
+});
+test('R123 a withdrawal under review keeps its reviewed date and time when the page is shown again past midnight',async({page})=>{
+ const {posts}=await fixture(page);await page.clock.setFixedTime(new Date('2026-10-10T16:55:00Z'));await page.goto('/');await page.waitForFunction(()=>(window as any).__dcwReady===true);
+ await page.getByRole('button',{name:'Daily cash withdrawal',exact:true}).click();
+ await expect(page.locator('.dcw-asof')).toHaveText('As of 10-Oct 23:50');
+ await page.locator('.dcw-line').filter({hasText:'SYNTHETIC Dad TTB'}).getByRole('textbox').fill('100');await page.getByRole('button',{name:'Confirm withdrawal',exact:true}).click();
+ const summary=page.locator('.dcw-summary');await expect(summary).toContainText('10-Oct 23:50');
+ await page.clock.setFixedTime(new Date('2026-10-10T17:01:00Z'));await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+ await expect(summary).toContainText('10-Oct 23:50');await expect(summary).not.toContainText('11-Oct');
+ await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect(page.getByRole('heading',{name:'Cash Position',exact:true})).toBeVisible();
+ expect(posts).toHaveLength(1);expect(posts[0].inputs).toMatchObject({movementDate:'2026-10-10',movementTime:'23:50',lines:[{fromAccountId:'dad-ttb',amount:'100'}]});
 });
 test('Daily cash withdrawal is unavailable offline and reads nothing',async({page})=>{
  const {reads,posts}=await fixture(page);await page.addInitScript(()=>{(window as any).__dcwOffline=true});await page.goto('/');await page.waitForFunction(()=>(window as any).__dcwReady===true);
