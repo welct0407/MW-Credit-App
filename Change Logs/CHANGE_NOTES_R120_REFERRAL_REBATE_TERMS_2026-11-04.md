@@ -1,7 +1,7 @@
 # Change notes — R120 referral rebate overrides, 4 November 2026
 
 ## Purpose
-The owner asked on 4 November 2026 for per-referrer overrides of the referral rebate and accepted the design the same day. The rebate stays 10% of interest and late charges received, at most ฿1,000, unless the referrer's own Borrower record sets a different rate or maximum. The owner then moved R120 to production. Status: Released to DEV and PROD on 4 November 2026 (PROD package `a36046c`, PR #230); PROD acceptance pending the owner's first real use of custom terms; the tag record is PENDING (see the tag record).
+The owner asked on 4 November 2026 for per-referrer overrides of the referral rebate and accepted the design the same day. The rebate stays 10% of interest and late charges received, at most ฿1,000, unless the referrer's own Borrower record sets a different rate or maximum. The owner then moved R120 to production. Status: Released to DEV and PROD on 4 November 2026 (PROD package `a36046c`, PR #230); PROD acceptance pending the owner's first real use of custom terms; tag `R120` is on `a36046c`.
 
 ## Changes
 Scope:
@@ -97,7 +97,6 @@ None. Accepted limitations (Chase's review):
 - A rate set to 0 after a quote closes with no rebate.
 
 ## Remaining work
-- Tag record: PENDING, until the Release tag workflow succeeds (see the tag record).
 - PROD acceptance: the owner's first real use of custom terms.
 - Limitations stay as under Open questions; the push is not exercised on a device.
 
@@ -153,7 +152,7 @@ Authority: the owner's instruction to move R120 to production, recorded under Pu
 - No authenticated PROD read was made (no PROD Partner token).
 
 ### Tag record
-Tag `R120` on `a36046c`: PENDING. The Release tag workflow run 41819246730 failed with GitHub 500s during a GitHub outage and created no tag. The orchestrator retries it; record the successful run id here: `<PENDING run id>`.
+Tag `R120` on `a36046c` (annotated tag object `f761b2d4fbaea997cfae3e2c2fe617ec455a014a`) through Release tag workflow run 41822526077, which succeeded at about 11:35Z; the same run published the [GitHub Release](https://github.com/welct0407/MW-Credit-App/releases/tag/R120). The first attempt, run 41819246730 (two tries), failed with GitHub 500s during the GitHub Git-operations incident and created no tag.
 
 ### Closure and prune record
 Closure pull request on branch `claude/r120-closure`, records only: tracker (R120 Released, R121 opened, next unused number R122), Development Changes (R120 follow-up row, R121 row), Environment Inventory (PROD rows), `database/README.md` (V135 applied), Solution Design and Data Model Overview status, the Data Dictionary and this note.
