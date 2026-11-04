@@ -25,7 +25,8 @@ export function SyncStatus({preparation,thai,visible}:{preparation:OfflinePrepar
   const timer=setTimeout(()=>setRequestedAt(null),NOT_STARTED_MS-(Date.now()-requestedAt));return()=>clearTimeout(timer);
  },[requestedAt,preparation.domainsPending]);
  const t=(en:string,th:string)=>thai?th:en,at=preparation.lastChecked;
- const firstDownload=preparation.syncActive&&(preparation.state!=='ready'||preparation.foreground),syncing=firstDownload||requestedAt!==null&&navigator.onLine;
+ // UX-HOLD-07: the first download ends with the data domains; receipts that still download (or retry) do not hold the bar.
+ const firstDownload=preparation.syncActive&&(!preparation.dataReady||preparation.foreground),syncing=firstDownload||requestedAt!==null&&navigator.onLine;
  const failed=preparation.updateFailed?preparation.failedDomains.split(',').filter(Boolean):[],names=pausedSections(preparation.failedDomains,thai),short=failed.length?shortSectionName(failed[0],thai):'';
  // HDR-SYNC-04: one failed section shows its short name; the hidden detail then carries only the advice, several sections list the full names.
  const failedText=failed.length>1?t('Update failed','อัปเดตไม่สำเร็จ'):t(short+' not updated','ยังไม่อัปเดต '+short),failedDetail=failed.length>1?t('Not updated: '+names+'. Saved data is still available; refresh to try again.','ยังไม่อัปเดต: '+names+' ข้อมูลที่บันทึกยังใช้ได้ รีเฟรชเพื่อลองอีกครั้ง'):t('Saved data is still available; refresh to try again.','ข้อมูลที่บันทึกยังใช้ได้ รีเฟรชเพื่อลองอีกครั้ง');

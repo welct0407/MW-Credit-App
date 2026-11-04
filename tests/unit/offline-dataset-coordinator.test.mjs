@@ -33,6 +33,7 @@ function repository(bundles){
   saveDatasetProgress:async(domain,value,revision,expected)=>{if(revision!==0||expected!==undefined&&(progress(domain)?.nextCursor??null)!==expected){log.push(['progress-refused',domain]);return false}rows.set('dataset-progress:'+domain,structuredClone(value));log.push(['progress',domain,value.nextCursor]);return true},
   saveDataset:async(domain,value,revision,expected)=>{if(revision!==0||expected!==undefined&&(progress(domain)?.nextCursor??null)!==expected){log.push(['dataset-refused',domain,expected]);return false}rows.set('dataset:'+domain,structuredClone(value));rows.delete('dataset-progress:'+domain);log.push(['dataset',domain]);saves.push([domain,structuredClone(value)]);return true},
   readDatasetMedia:async()=>null,listDatasetMediaKeys:async()=>[],removeDatasetMedia:async()=>{},saveDatasetMedia:async()=>true,
+  readDatasetMediaRefusals:async()=>[],saveDatasetMediaRefusal:async()=>true,removeDatasetMediaRefusal:async()=>{},clearDatasetMediaRefusals:async()=>{},
  };
 }
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});

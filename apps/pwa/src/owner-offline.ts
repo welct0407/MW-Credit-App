@@ -3,7 +3,7 @@ import {validateViewedSnapshot,type ViewedSnapshot} from './viewed-snapshot';
 const expiry=24*60*60*1000;
 /** APP-OFFLINE-04: offline read data is kept for 7 days after the last successful online check (lease:owner.verifiedAt). */
 const retention=7*expiry;
-const retainedKinds=['dataset','dataset-progress','dataset-media','cache','snapshot'];
+const retainedKinds=['dataset','dataset-progress','dataset-media','dataset-media-refused','cache','snapshot'];
 /** Keys are `kind:id`; a bounded key range reads or deletes one kind without walking the store. */
 const kindRange=(kind:string)=>IDBKeyRange.bound(kind+':',kind+':\uffff');
 /** Deletes stale offline read data; pending:* rows, drafts, the lease and meta rows are never touched. */
@@ -159,6 +159,16 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   /** Keys of every stored receipt (without the kind prefix); blobs are not loaded. */
   async listDatasetMediaKeys(){return cacheTransaction<string[]>('readonly',[],(store,done)=>{const request=store.getAllKeys(kindRange('dataset-media'));request.onsuccess=()=>done((request.result as string[]).map(key=>key.slice('dataset-media:'.length)))})},
   async removeDatasetMedia(key:string){return cacheTransaction<void>('readwrite',undefined,(store,done)=>{store.delete('dataset-media:'+key);done()})},
+  /** Receipts the server refused definitively (422 receipt_reference_unsupported), by media key, with the receipt time
+   * (ms) refused and when the marker was written. Offline read data like the stored receipts: swept with them and
+   * removed by a purge. */
+  async readDatasetMediaRefusals(){return cacheTransaction<{key:string;version:number;savedAt:number}[]>('readonly',[],(store,done)=>{const request=store.getAll(kindRange('dataset-media-refused'));request.onsuccess=()=>done((request.result as any[]).filter(row=>row?.kind==='dataset-media-refused'&&typeof row.value?.version==='number'&&typeof row.savedAt==='number').map(row=>({key:String(row.key).slice('dataset-media-refused:'.length),version:row.value.version,savedAt:row.savedAt})))})},
+  async saveDatasetMediaRefusal(key:string,version:number){
+   if(!key||!Number.isFinite(version))throw Error('Invalid receipt refusal');
+   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{store.put({key:'dataset-media-refused:'+key,kind:'dataset-media-refused',savedAt:Date.now(),value:{version}});done(true)});
+  },
+  async removeDatasetMediaRefusal(key:string){return cacheTransaction<void>('readwrite',undefined,(store,done)=>{store.delete('dataset-media-refused:'+key);done()})},
+  async clearDatasetMediaRefusals(){return cacheTransaction<void>('readwrite',undefined,(store,done)=>{store.delete(kindRange('dataset-media-refused'));done()})},
   /** savedAt: a receipt seeded from the server copy the owner just uploaded records the server's receipt time (R078). */
   async saveDatasetMedia(key:string,value:Blob,revision:number,savedAt=Date.now()){
    if(!(value instanceof Blob)||!['image/png','image/jpeg','image/webp'].includes(value.type))throw Error('Invalid offline receipt');

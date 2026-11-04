@@ -270,12 +270,17 @@
       \ separate; missing initial epoch disables cache/fallback for that read while valid online response succeeds. Downloads\
       \ never rewrite pending requests/drafts; retained complete data remains visible on update/failure."
     "coverage": "Used server read DTOs, existing membership/financial calculations, eligible records and recent cash-statement\
-      \ dates. Receipt media uses authenticated native reads, not raw storage access or signed URLs."
+      \ dates. Receipt media uses authenticated native reads, not raw storage access or signed URLs. A receipt the server refuses\
+      \ with HTTP 422 receipt_reference_unsupported is remembered per receipt version (receipt time; unparseable counts as 0)\
+      \ in IndexedDB kind dataset-media-refused, swept with offline read data after 7 days, and is not asked for again by\
+      \ background preparation for 24 hours (a marker dated ahead of now counts as expired; a failed first read of the markers\
+      \ is retried); a changed receipt downloads normally and Full sync retries once. Any other failure keeps the\
+      \ normal retry; an on-screen receipt view still asks the network."
     "progress": "Status text left of the refresh icon shows the percentage (12px) above a 60x6 bar only during the first download\
       \ or a refresh-icon-started dataset check, until its queued domains are checked, using cycle-completed work separate\
       \ from retained cached completeness (domainsPending). The bar ends when sync is paused (offline, unauthorized, 401/403);\
       \ automatic polls and focus checks stay quiet. No indeterminate dataset bar; current GET activity remains refresh-icon\
-      \ feedback."
+      \ feedback. The bar and percentage follow the data domains only; receipts download afterwards without header progress."
     "network_only": "Fresh financial close/correction/auto-assignment/review and command status stay online. Guarded read-only\
       \ Collection Note baseline may use prepared data only when not editing, busy, blocked or pending; dirty text is not\
       \ replaced. Note autosave algorithm and deferred concern unchanged."
