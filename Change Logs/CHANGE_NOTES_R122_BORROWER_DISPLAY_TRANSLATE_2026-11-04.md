@@ -49,4 +49,15 @@ None for the owner at present.
 Commit and push, CI, Forge DEV deploy and live test of the three items, then owner review. PROD promotion is not in scope.
 
 ## DEV deploy
-Pending. Forge records the DEV evidence here; deployment pins live only in the Environment Inventory.
+Forge, 4 November 2026 (UTC), from PR #234 head `74a5705` (unmerged; Development checks run 41854555684 and Agent tests run 41854555800 green). Authority: owner instructions "Push everything to dev and test it" and "Change relay, so thinking can be an option". No SQL, no schema change, notify and jobs unchanged. No secret value or borrower data appears here.
+
+| Step | Evidence |
+| --- | --- |
+| VM-01 relay | Runtime `0a8a8cd` to `74a5705` (detached checkout of `refs/pull/234/head`); see the [agent note](../integration-agent/Change%20Logs/CHANGE_NOTES_R122_CHAT_RELAY_THINKING_2026-11-04.md#dev-deploy). **PROD chat now also runs through the relay at unmerged `74a5705`** (one shared relay; requests without `thinking` are unchanged) |
+| Image | Cloud Build `fba84fb2-3614-4a3a-8b2c-83e5b034d0c6` (`cloudbuild-command.yaml`, builder `mw-credit-app-build`, exact `git archive` of `74a5705`), 15:25:10Z to 15:25:46Z, digest `sha256:c6609e5c88663dbb9b8ec685619b2f047536f09377253ffe2e0307ac819f17b8`, tag `keep-dev-20261104-c6609e5c`. `services/business/cash.mjs` reaches read and command (`business-runtime.mjs`) and chat (`proposals.mjs`), so all three take it |
+| Terraform | Activation generation `1793785264889957` to `1793806096697744` (read, command and chat image pins only). Plan 0 add, 3 change, 0 destroy, image attribute only (plan sha256 `1324cee9…0d74`); applied 15:27:30Z to 15:28:09Z; re-plan no changes |
+| Readback | `mw-credit-app-read-dev-00070-trf`, `mw-credit-app-command-dev-00087-zkb`, `mw-credit-app-chat-dev-00039-k2k`, each 100% on `c6609e5c`; `cpu_idle` true; command and chat keep private-ranges VPC egress; `/health` 200 on all three; unauthenticated `POST /api/chat/transliterate` 401; no ERROR logs since 15:27Z |
+| Hosting | `build:live-dev` from a detached worktree of `74a5705` (release R122, build-version `5105f5fb620c2d3267c239c1`, entry `/assets/index-CMctkZAU.js`), `deploy-hosting.mjs --live-dev --check` then deploy: version `5ab8b076a340d42e`, release `1793806255298000`; public `build-version.json` reads R122 |
+| Smoke (DEV test Partner) | `POST /api/chat/transliterate` with a synthetic Thai name: 200 `{"english":"Somchai Chaidi"}` in 3.9 s (relay: `claude-sonnet-5-5`, caller `mw-credit-app-chat-dev@`, 200 `relayed`). Latin-only input: 400 `invalid_request`. One chat turn on `claude-opus-5-5` (no `thinking` key, the PROD chat shape): 200, reply "OK", relay 200 `relayed`; the smoke thread was archived |
+
+Rollback: activation generation `1793785264889957` (images `3556d8ec…ddde8`) and Hosting `f321bf286e369835` (R121); the relay as in the agent note.
