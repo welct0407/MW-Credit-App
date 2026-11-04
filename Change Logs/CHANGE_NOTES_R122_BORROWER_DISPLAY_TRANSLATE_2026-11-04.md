@@ -71,6 +71,24 @@ Forge, 4 November 2026 (UTC), from PR #234 head `74a5705` (unmerged; Development
 
 Rollback: activation generation `1793785264889957` (images `3556d8ec…ddde8`) and Hosting `f321bf286e369835` (R121); the relay as in the agent note.
 
+## PROD promotion record (Forge, 4 November 2026, UTC)
+Authority: owner instruction of 4 November 2026, "Move R122 to production and close the release". No SQL, so no backup was needed. No PROD payment, forced notification, backfill, PROD test write or financial correction. No secret value, token or borrower data appears here. Private records are in the operator bucket under `promotion-packages/r122/`.
+
+| Step | Result |
+| --- | --- |
+| Freeze | 16:49:11Z. Package: `main` at `b83bf3a` (merge of PR #234; tree identical to CI-tested head `505e1b5`). Baseline: tag R121 `3f885fa`. Next unused number: R123. Runtime inputs changed since R121: `services/business/cash.mjs` and `services/chat/{handler,store,transliterate}.mjs`. These reach read, command and chat; notify and jobs are unchanged |
+| Baseline | Project `clever-oasis-508610-n7`. Read `00044-v55`, command `00049-2dx` and chat `00028-gvc` on `5679b454…3cbd`. Notify `00027-mkt` and jobs `00027-xch` on `a66cbf29…27ba`. Hosting site `mw-credit-prod-737787224638`, version `f8dd8e3f2900f9cb` (R121) |
+| SQL | None. `Invoke-CloudFlyway.py verify --target prod`, read-only as `codex-cloud-read`: `loan_manager_prod` at 135, nothing pending, 0 writes (16:51:58Z to 16:52:58Z) |
+| Image | Cloud Build `1615448e-804f-4e0f-83a1-b7a2e9db0ec8` (PROD builder `mw-credit-app-build-prod`, `cloudbuild-business.yaml` smoke passed, `git archive` of `b83bf3a`), 16:49:48Z to 16:50:24Z. Digest `sha256:713c063850c0272c53e1fff3a1039de04123cef96dae0d38a54dd3877aa9dcce` |
+| Terraform | `runtime_image_overrides` for read, command and chat. Plan 0 add, 3 change, 0 destroy, image attribute only (plan sha256 `00024ea5…7a03`, JSON `def7d819…a315`). Applied 16:52:58Z to 16:53:37Z. Activation generation `1793790340124426` to `1793811235115849` |
+| Revisions | Read `00045-7xg`, command `00050-r7q` and chat `00029-7lh`, each 100% on `713c0638…dcce` with `cpu_idle` true. Notify and jobs unchanged |
+| VM-01 relay | Checkout back on `main` (`update-from-github.sh` to `b83bf3a`). Dry run: schema through V11, no drift, no module changed against the running `74a5705`. Freeze 16:58:02Z, backup `runtime-20261104T165803147668Z`. Install with no file or unit changes; `check` passes. Activate 16:58:09Z, probe `ef5b33f2-a7e6-43bf-858d-0f2974de870f`. `mw-chat-relay` restarted 16:58:13Z. `/ready` true on `b83bf3a`; relay and recognizer `/healthz` ok; no failed units. The temporary root-only `mw_agent` connection file was shredded |
+| Hosting | **Pending.** The PROD artifact is built (R122, build-version `8bdd1b46bd4fc94bc8c4ce00`, entry `/assets/index-nC40MiSA.js`). The generic runner `--check` refuses the CI receipt for the `check` job: the only run that executed `check` on the source's inputs, 41859773201 at `37da2fa`, ended cancelled because its e2e shards were cancelled |
+| Smoke (read-only) | `/health` 200 on read, command and chat; unauthenticated `POST /api/chat/transliterate` 401; no ERROR logs from 16:52Z |
+
+### Limitations
+- PROD transliterate not exercised: there is no PROD Partner token and no harmless PROD caller path.
+
 ## Closure prune (Dewey, 4 November 2026)
 R122 is Released, so the retention window is R122, R121 and R120. Inbound links to the R119 records were repointed to commit `b83bf3a` first (Release_Tracker, Development_Changes, Solution_Design, Environment_Inventory, the integration-agent catalogue, CONVERSATION_POLL, OPERATIONS and PARTNER_REVIEW). Deleted:
 - `Change Logs/CHANGE_NOTES_R119_REBATE_LINES_AGENT_RECHECK_2026-11-04.md`
