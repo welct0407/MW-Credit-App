@@ -681,7 +681,7 @@ async function openNewBorrower(page:Page){
  await page.getByRole('button',{name:/^(Borrowers|ผู้กู้)$/}).filter({visible:true}).first().click();
  await page.getByRole('button',{name:'Add borrower',exact:true}).click();
  const region=page.getByRole('region',{name:'Borrower record',exact:true});await expect(region).toBeVisible();
- return {region,thai:region.getByLabel('Name',{exact:true}),english:region.getByLabel('English name',{exact:true}),button:region.getByRole('button',{name:'Translate from Thai',exact:true})};
+ return {region,thai:region.getByLabel(/^Borrower name \(Thai\)/),english:region.getByLabel('English name',{exact:true}),button:region.getByRole('button',{name:'Translate from Thai',exact:true})};
 }
 test('R122: Translate from Thai fills the English name, asks before replacing, shows an error and is disabled while the Thai name is blank',async()=>{
  const calls:any[]=[];let mode:'ok'|'fail'|'hold'='ok',release:(()=>void)|undefined,answer='Somchai Jaidee';

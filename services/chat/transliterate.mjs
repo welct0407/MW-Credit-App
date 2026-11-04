@@ -1,15 +1,17 @@
 /** R122 Thai name romanization (POST /api/chat/transliterate; Archie design, Echo R122-NEW-06). One tool-less Claude
- * request through the existing VM chat relay transport (claude.mjs): the chat's default model (Claude Opus 5.5), the
- * fixed effort medium, no tools, tool_choice, temperature or thinking, stream true as the relay requires. The reply must
- * be the JSON {"romanized":"…"} and a plain Latin name; nothing is stored. */
-import {providerFor,availableModel} from './config.mjs';
+ * request through the existing VM chat relay transport (claude.mjs). Owner change: the fixed model Claude Sonnet 5.5 at
+ * effort low, for speed, independent of the chat model allowlist (CHAT_MODELS_JSON); only the relay must be configured.
+ * No tools, tool_choice, temperature (non-default sampling is refused on Sonnet 5.5) or thinking (its thinking-off mode
+ * {type:'between_tools'} is not among the relay's accepted request keys, so thinking stays adaptive); stream true as the
+ * relay requires. The reply must be the JSON {"romanized":"…"} and a plain Latin name; nothing is stored. */
 import {transportFor} from './engine.mjs';
-import {CLAUDE_EFFORT} from './claude.mjs';
 
 export const NAME_LIMIT=120;
-/** Adaptive thinking is always on for Claude Opus 5.5 and counts toward max_tokens, so the bound leaves it room above
- * the short JSON reply (a cut reply is CLAUDE_STOP_MAX_TOKENS, answered 503). */
-export const TRANSLITERATE_MAX_TOKENS=1024;
+export const TRANSLITERATE_MODEL='claude-sonnet-5-5';
+export const TRANSLITERATE_EFFORT='low';
+/** Adaptive thinking (low effort) counts toward max_tokens, so the bound leaves it room above the short JSON reply (a
+ * cut reply is CLAUDE_STOP_MAX_TOKENS, answered 503). */
+export const TRANSLITERATE_MAX_TOKENS=512;
 /** The whole call (with the transport's bounded retries) stays well inside the PWA's wait. */
 export const TRANSLITERATE_DEADLINE_MS=45000;
 export const ROMANIZED=/^[A-Za-z][A-Za-z .'-]{0,119}$/;
@@ -31,9 +33,9 @@ export function transliterationInput(value){
 }
 
 /** The Messages request body (the relay accepts model, system, messages, max_tokens, output_config, stream). */
-export function transliterationBody(model,text){
- return {model,max_tokens:TRANSLITERATE_MAX_TOKENS,system:[{type:'text',text:TRANSLITERATE_SYSTEM}],
-  messages:[{role:'user',content:[{type:'text',text}]}],output_config:{effort:CLAUDE_EFFORT},stream:true};
+export function transliterationBody(text){
+ return {model:TRANSLITERATE_MODEL,max_tokens:TRANSLITERATE_MAX_TOKENS,system:[{type:'text',text:TRANSLITERATE_SYSTEM}],
+  messages:[{role:'user',content:[{type:'text',text}]}],output_config:{effort:TRANSLITERATE_EFFORT},stream:true};
 }
 
 /** The romanized name of a reply text, or null: the JSON object {"romanized"} (an optional ```json fence is tolerated). */
@@ -46,14 +48,15 @@ export function romanizedName(reply){
  return ROMANIZED.test(name)?name:null;
 }
 
-/** One romanization: {english}. Throws TransliterateError 503 model_unavailable (no Claude default or relay, or any
- * relay failure) or 502 transliteration_invalid (a reply that is not the expected JSON name). */
+/** One romanization: {english}. Throws TransliterateError 503 model_unavailable (no relay transport, or any relay
+ * failure) or 502 transliteration_invalid (a reply that is not the expected JSON name). chat supplies only the
+ * request timeout. */
 export async function transliterate({chat,transport,text,now=Date.now}){
- const model=chat.default,channel=transportFor(transport,'claude');
- if(providerFor(model)!=='claude'||!availableModel(chat,model)||!channel)throw new TransliterateError(503,'model_unavailable');
+ const model=TRANSLITERATE_MODEL,channel=transportFor(transport,'claude');
+ if(!channel)throw new TransliterateError(503,'model_unavailable');
  let response;
  try{
-  response=await channel.request({model,body:transliterationBody(model,text),requestTimeoutMs:Math.min(chat.requestTimeoutSeconds*1000,TRANSLITERATE_DEADLINE_MS),
+  response=await channel.request({model,body:transliterationBody(text),requestTimeoutMs:Math.min(chat.requestTimeoutSeconds*1000,TRANSLITERATE_DEADLINE_MS),
    deadline:now()+TRANSLITERATE_DEADLINE_MS});
  }catch(error){
   throw new TransliterateError(503,'model_unavailable',String(error?.detail??error?.message??'unavailable').slice(0,200));

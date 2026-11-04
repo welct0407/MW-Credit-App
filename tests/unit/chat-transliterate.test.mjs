@@ -5,13 +5,17 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import {createChatHandler} from '../../services/chat/handler.mjs';
 import {createRelayTransport} from '../../services/chat/claude.mjs';
-import {transliterationInput,transliterationBody,romanizedName,TRANSLITERATE_SYSTEM} from '../../services/chat/transliterate.mjs';
+import {createVertexTransport} from '../../services/chat/gemini.mjs';
+import {transliterationInput,transliterationBody,romanizedName,TRANSLITERATE_SYSTEM,TRANSLITERATE_MODEL} from '../../services/chat/transliterate.mjs';
 import {loadBusinessConfig} from '../../services/production/business-config.mjs';
 import {chatEnv,MODELS} from './chat-fixture.mjs';
 
-const RELAY='http://10.148.0.2:8791/v1/chat/messages',CLAUDE='claude-opus-5-5';
+const RELAY='http://10.148.0.2:8791/v1/chat/messages',CLAUDE='claude-opus-5-5',SONNET='claude-sonnet-5-5';
 const claudeConfig=loadBusinessConfig(chatEnv('dev',{CHAT_MODELS_JSON:JSON.stringify({...MODELS,default:CLAUDE,models:[{id:CLAUDE,label:'Claude Opus 5.5',available:true}]}),CHAT_RELAY_URL:RELAY}));
+/** No relay URL: the chat lists Gemini only, so no Claude transport exists. */
 const geminiConfig=loadBusinessConfig(chatEnv('dev'));
+/** The relay of a Gemini-only allowlist (no Claude model listed): transliterate still runs on its fixed model. */
+const relayOnlyConfig=loadBusinessConfig(chatEnv('dev',{CHAT_RELAY_URL:RELAY}));
 const ORIGIN='https://dev-lm.mw-credit.com';
 /** A Messages stream: an (empty) thinking block, then the text in two deltas. */
 const anthropic=text=>[{type:'message_start',message:{id:'msg_1',type:'message',role:'assistant',content:[],usage:{input_tokens:50,output_tokens:1}}},
@@ -21,13 +25,13 @@ const anthropic=text=>[{type:'message_start',message:{id:'msg_1',type:'message',
  {type:'message_delta',delta:{stop_reason:'end_turn',stop_sequence:null},usage:{output_tokens:20}},{type:'message_stop'}];
 const sse=events=>new Response(events.map(e=>`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join(''),{status:200,headers:{'content-type':'text/event-stream'}});
 
-async function server({cfg=claudeConfig,relay=()=>sse(anthropic('{"romanized":"Somchai"}'))}={}){
+async function server({cfg=claudeConfig,relay=()=>sse(anthropic('{"romanized":"Somchai"}')),relayTransport=true}={}){
  const bodies=[],logs=[],readers=[];
  const verifyPrincipal=async authorization=>{
   const m=/^Bearer token-(\w+)$/.exec(authorization??'');if(!m)return {ok:false,status:401,code:'sign_in_required'};
   return {ok:true,subject:'sub-'+m[1],email:`${m[1]}@example.invalid`};};
  const store={async reader(p){readers.push(p.email);if(p.email!=='a@example.invalid')throw Error('access_denied');return {partnerId:'PA'};}};
- const transport={claude:createRelayTransport({url:RELAY,mintToken:async()=>'aaa.bbb.ccc',sleep:async()=>{},fetch:async(_url,init)=>{bodies.push(JSON.parse(init.body));return relay();}})};
+ const transport=!relayTransport?createVertexTransport({projectId:'clever-oasis-508610-n7',location:'global',getToken:async()=>'t',fetch:async()=>{throw Error('no Vertex call expected');}}):{claude:createRelayTransport({url:RELAY,mintToken:async()=>'aaa.bbb.ccc',sleep:async()=>{},fetch:async(_url,init)=>{bodies.push(JSON.parse(init.body));return relay();}})};
  const handler=createChatHandler({config:cfg,verifyPrincipal,store,createTools:()=>({}),transport,log:r=>logs.push(r)});
  const srv=http.createServer(handler);await new Promise(r=>srv.listen(0,'127.0.0.1',r));
  const base=`http://127.0.0.1:${srv.address().port}`;
@@ -50,22 +54,22 @@ test('reply: only {"romanized"} with a plain Latin name (a json fence is tolerat
   `{"romanized":"${'A'.repeat(121)}"}`,'{"romanized":"Som<chai>"}',undefined])assert.equal(romanizedName(bad),null,String(bad));
 });
 
-test('the relay request is tool-less: model, system, one user text block, max_tokens, effort medium, stream',()=>{
- const body=transliterationBody(CLAUDE,'สมชาย');
+test('the relay request is tool-less: Sonnet 5.5, system, one user text block, max_tokens, effort low, stream',()=>{
+ const body=transliterationBody('สมชาย');assert.equal(TRANSLITERATE_MODEL,SONNET);
  assert.deepEqual(Object.keys(body).sort(),['max_tokens','messages','model','output_config','stream','system']);
  assert.deepEqual(body.messages,[{role:'user',content:[{type:'text',text:'สมชาย'}]}]);
- assert.deepEqual(body.output_config,{effort:'medium'});assert.equal(body.stream,true);assert.equal(body.model,CLAUDE);
- assert.ok(body.max_tokens>=200&&body.max_tokens<=2048);
+ assert.deepEqual(body.output_config,{effort:'low'});assert.equal(body.stream,true);assert.equal(body.model,SONNET);
+ assert.equal(body.max_tokens,512);
  assert.equal(body.system[0].text,TRANSLITERATE_SYSTEM);assert.match(TRANSLITERATE_SYSTEM,/RTGS/);assert.match(TRANSLITERATE_SYSTEM,/Somchai/);
 });
 
-test('a Thai name answers {english} through the relay on the default Claude model; the name is never logged',async t=>{
+test('a Thai name answers {english} through the relay on Claude Sonnet 5.5 (not the chat default); the name is never logged',async t=>{
  const s=await server();t.after(s.close);
  const r=await s.call({body:{text:'สมชาย'}});
  assert.equal(r.status,200);assert.equal(r.headers.get('access-control-allow-origin'),ORIGIN);
  assert.deepEqual(await r.json(),{english:'Somchai'});
  assert.equal(s.bodies.length,1);const [body]=s.bodies;
- assert.equal(body.model,CLAUDE);assert.deepEqual(body.output_config,{effort:'medium'});
+ assert.equal(body.model,SONNET);assert.notEqual(body.model,claudeConfig.chat.default);assert.deepEqual(body.output_config,{effort:'low'});
  for(const key of ['tools','tool_choice','temperature','thinking'])assert.equal(key in body,false,key);
  assert.deepEqual(body.messages,[{role:'user',content:[{type:'text',text:'สมชาย'}]}]);
  assert.deepEqual(s.readers,['a@example.invalid']);
@@ -111,8 +115,11 @@ test('a relay failure answers 503 model_unavailable; a malformed reply 502 trans
  r=await cut.call({body:{text:'สมชาย'}});assert.equal(r.status,503);assert.deepEqual(await r.json(),{error:'model_unavailable'});
 });
 
-test('without a Claude default model the route answers 503 model_unavailable and calls nothing',async t=>{
- const s=await server({cfg:geminiConfig});t.after(s.close);
- const r=await s.call({body:{text:'สมชาย'}});
- assert.equal(r.status,503);assert.deepEqual(await r.json(),{error:'model_unavailable'});assert.equal(s.bodies.length,0);
+test('the chat model allowlist does not gate the call; without the relay transport it answers 503 model_unavailable',async t=>{
+ const listed=await server({cfg:relayOnlyConfig});t.after(listed.close);
+ let r=await listed.call({body:{text:'สมชาย'}});
+ assert.equal(r.status,200);assert.deepEqual(await r.json(),{english:'Somchai'});assert.deepEqual(listed.bodies.map(b=>b.model),[SONNET]);
+ const none=await server({cfg:geminiConfig,relayTransport:false});t.after(none.close);
+ r=await none.call({body:{text:'สมชาย'}});
+ assert.equal(r.status,503);assert.deepEqual(await r.json(),{error:'model_unavailable'});assert.equal(none.bodies.length,0);
 });
