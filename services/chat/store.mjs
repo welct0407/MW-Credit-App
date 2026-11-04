@@ -81,6 +81,8 @@ export function createChatStore({pool,guardConnection,resolveActor,issuer,readRo
    }
    return {actor:a,value,writer:writes?{allowed:!!(writer?.reviewer&&writer.command),...writer}:null,recent};
   },false,{writer:writes}),
+  /** R122: resolves the actor with the 'read' capability (no RPC): the transliterate route's membership check. */
+  reader:p=>run(p,async(_c,a)=>({partnerId:a.partnerId}),true),
   /** R106 D5: whether the Partner may use the proposal routes ({reviewer, command}). */
   writer:p=>run(p,async(_c,_a,writer)=>writer,true,{writer:true}),
   /** R106 V118 proposal RPCs; the reviewer gate is enforced in SQL as well (42501 reviewer_required). */

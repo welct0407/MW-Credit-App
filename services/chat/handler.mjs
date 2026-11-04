@@ -10,7 +10,9 @@
  * unknown outcome), POST .../proposals/:id/confirm (executes through the command service with the Partner's own
  * token) and POST .../proposals/:id/cancel. Without the URL the routes answer 404 and no write tool exists; without
  * the reviewer flag or the capability they answer 403 reviewer_required / command_required.
- * R112: Confirm of a payment card with remainder choices carries {purpose} (400 purpose_required / purpose_not_offered). */
+ * R112: Confirm of a payment card with remainder choices carries {purpose} (400 purpose_required / purpose_not_offered).
+ * R122: POST /api/chat/transliterate {text} romanizes a Thai personal name ({english}) with one tool-less Claude request
+ * through the relay (transliterate.mjs); same token, origins and 'read' capability, nothing stored. */
 import {beginRequest} from '../lib/http-boundary.mjs';
 import {UUID_V4} from '../lib/ids.mjs';
 import {availableModel,providerFor} from './config.mjs';
@@ -20,11 +22,15 @@ import {ToolError} from './errors.mjs';
 import {createCommandClient} from './command-client.mjs';
 import {loadCatalogue,catalogueView,createProposalPlanner,executeGroup,reconcileGroup,cancelGroup,loadGroup,assertIdle,publicProposal,needsPurpose} from './proposals.mjs';
 import {chosenPurpose} from './payment-plan.mjs';
+import {transliterate,transliterationInput,TransliterateError} from './transliterate.mjs';
 
 export const BODY_LIMIT=65536;
 export const PING_MS=15000;
 /** The presence body: {state} or the beacon's {token, state}; a Firebase ID token is about 1 KB. */
 export const PRESENCE_LIMIT=16384;
+/** R122: the transliterate body is {text} with at most 120 characters. */
+export const TRANSLITERATE_LIMIT=4096;
+const TRANSLITERATE='/api/chat/transliterate';
 const THREAD=/^\/api\/chat\/threads\/([0-9a-f-]{36})$/;
 const MESSAGES=/^\/api\/chat\/threads\/([0-9a-f-]{36})\/messages$/;
 const MESSAGE=/^\/api\/chat\/threads\/([0-9a-f-]{36})\/messages\/([0-9a-f-]{36})$/;
@@ -164,11 +170,11 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   if(boundary.originDenied)return reply(403,{error:'access_denied'});
   const path=url.pathname;
   const proposalMatch=commandUrl?PROPOSAL.exec(path):null;
-  route=path==='/api/chat/models'?'models':path==='/api/chat/threads'?'threads':THREAD.test(path)?'thread':MESSAGES.test(path)?'messages':MESSAGE.test(path)?'message':PRESENCE.test(path)?'presence'
+  route=path==='/api/chat/models'?'models':path===TRANSLITERATE?'transliterate':path==='/api/chat/threads'?'threads':THREAD.test(path)?'thread':MESSAGES.test(path)?'messages':MESSAGE.test(path)?'message':PRESENCE.test(path)?'presence'
    :proposalMatch?(proposalMatch[3]?'proposal_'+proposalMatch[3]:'proposal'):'unknown';
   if(route==='unknown')return reply(404,{error:'not_found'});
   if(req.method==='OPTIONS')return boundary.preflight()?reply(204,{}):reply(403,{error:'access_denied'});
-  const allowed={models:['GET'],threads:['GET','POST'],thread:['GET','PATCH'],messages:['GET','POST'],message:['GET'],presence:['POST'],proposal:['GET'],proposal_confirm:['POST'],proposal_cancel:['POST']}[route];
+  const allowed={models:['GET'],threads:['GET','POST'],thread:['GET','PATCH'],messages:['GET','POST'],message:['GET'],presence:['POST'],proposal:['GET'],proposal_confirm:['POST'],proposal_cancel:['POST'],transliterate:['POST']}[route];
   if(!allowed.includes(req.method))return reply(404,{error:'not_found'});
   // Batch 2c presence: the body comes first, because the hidden beacon carries the ID token in it. The beacon form
   // (text/plain {token, state}, no Authorization) is a CORS simple request: no preflight, which Safari does not
@@ -208,6 +214,25 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
     const value=models();
     if(last&&availableModel(chat,last))value.default=last;
     return reply(200,value);
+   }
+   if(route==='transliterate'){
+    query(url,[]);
+    const body=await readBody(req,{limit:TRANSLITERATE_LIMIT});
+    const text=plain(body)&&Object.keys(body).join()==='text'?transliterationInput(body.text):null;
+    if(!text)throw invalid();
+    // The 'read' capability, fresh for this request (the same actor resolution as every chat RPC).
+    await store.reader(principal);
+    const started=now();
+    try{
+     const value=await transliterate({chat,transport,text,now});
+     log({event:'chat_transliterate',ok:true,code:'ok',latencyMs:Math.max(0,Math.round(now()-started))});
+     return reply(200,value);
+    }catch(error){
+     if(!(error instanceof TransliterateError))throw error;
+     // The name itself is never logged.
+     log({event:'chat_transliterate',ok:false,code:error.code,detail:error.detail,latencyMs:Math.max(0,Math.round(now()-started))});
+     return reply(error.status,{error:error.code});
+    }
    }
    if(route==='threads'&&req.method==='GET'){
     const q=query(url,['status','before','limit']);

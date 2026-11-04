@@ -70,6 +70,9 @@ export async function getThread(access:ChatAccess,id:string,signal?:AbortSignal)
  return (await response.json() as {item:ChatThread}).item;
 }
 export const updateThread=(access:ChatAccess,id:string,patch:{title?:string;model?:string;status?:'active'|'archived'})=>write<{item:ChatThread}>(access,threadPath(id),'PATCH',patch).then(value=>value.item);
+/** R122: the RTGS romanization of a Thai personal name ({english}); nothing is stored. Failures are ChatHttpError
+ * (400 invalid_request, 502 transliteration_invalid, 503 model_unavailable) or ChatAccessError. */
+export const transliterateName=(access:ChatAccess,text:string,signal?:AbortSignal)=>write<{english:string}>(access,'/api/chat/transliterate','POST',{text},signal).then(value=>value.english);
 
 /** The presence of the asking device on one running turn (batch 2c, Archie D4). */
 export type TurnPresence={arm(token:string):void;stop():void};

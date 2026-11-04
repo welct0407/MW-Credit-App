@@ -85,6 +85,7 @@ async function saved(page:Page,label:string){
   await page.getByRole('button',{name:'Payment details',exact:true}).click();await page.getByRole('button',{name:'Correct payment',exact:true}).click();
  }else if(row?.value.domain==='preference'){await expect(page.getByRole('combobox',{name:/^Account(?: \\*)?$/})).toHaveValue('C-account');await page.getByLabel('Statement Date',{exact:true}).fill(row.value.draft.date);}
 }
+let statementBorrower:{th:string|null;en:string|null}|null=null;
 async function launch(updateHarness=false,configure?:(context:any,page:Page)=>Promise<void>){console.log('C static stage: launch');
  const context=await chromium.launchPersistentContext('',{headless:true,...(mobile?devices['Pixel 7']:devices['Desktop Chrome']),viewport:{width:320,height:900},args:fixtureLaunchArgs(fixture.port,[],fixtureHost)});fixtureContexts.add(context);context.setDefaultTimeout(5000);console.log('C static stage: context ready');const page=await context.newPage();page.on('pageerror',e=>console.log('C synthetic pageerror: '+e.message));const now=Math.floor(Date.now()/1000),token=[{alg:'none',typ:'JWT'},{sub:uid,user_id:uid,aud:'clever-oasis-508610-n7',iss:'https://securetoken.google.com/clever-oasis-508610-n7',iat:now,exp:now+3600,auth_time:now,email:'synthetic@example.test',email_verified:true,firebase:{sign_in_provider:'custom'}}].map(x=>Buffer.from(JSON.stringify(x)).toString('base64url')).join('.')+'.synthetic';
  if(updateHarness)await context.addInitScript(()=>{(window as any).__pwaReloads=0;(window as any).__syntheticPwaReload=()=>{(window as any).__pwaReloads++};const original=navigator.serviceWorker.register.bind(navigator.serviceWorker);navigator.serviceWorker.register=async(...args:any[])=>{if((window as any).__pwaReuseRegistration)return(window as any).__pwaRegistration;const registration=await(original as any)(...args);(window as any).__pwaRegistration=registration;return registration}});
@@ -100,7 +101,7 @@ async function launch(updateHarness=false,configure?:(context:any,page:Page)=>Pr
  else if(u.pathname.endsWith('/correction-preview')){if(s.deleted)return r.fulfill({status:404,body:'{}'});data={ok:true,item:s.correction}}
  else if(u.pathname==='/api/preferences')data=s.preferences;
  else if(u.pathname==='/api/cash-overview')data={dashboard:{},accounts:[]};
- else if(u.pathname==='/api/cash-statements')data={summary:{openingBalance:'20',moneyIn:'5',moneyOut:'10',netMovement:'-5',closingBalance:'15',transactionCount:1},items:[{id:'C-ledger',date:'2026-10-09',transactionType:'Payment details',amount:'5',balanceAfter:'15',paymentId:'C-payment',notes:'synthetic ledger note'}],nextCursor:null};
+ else if(u.pathname==='/api/cash-statements')data={summary:{openingBalance:'20',moneyIn:'5',moneyOut:'10',netMovement:'-5',closingBalance:'15',transactionCount:1},items:[{id:'C-ledger',date:'2026-10-09',transactionType:'Payment details',amount:'5',balanceAfter:'15',paymentId:'C-payment',notes:'synthetic ledger note',...(statementBorrower?{borrowerId:'C-borrower',borrowerLabel:statementBorrower.th,borrowerDescription:statementBorrower.en}:{})}],nextCursor:null};
  else if(u.pathname.endsWith('/receipt')){const source=u.searchParams.get('source')??'preferred';s.receiptReads.push(source);if(source!=='agent'&&s.manualFail)return r.fulfill({status:422,body:'{}'});return r.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a7ZkAAAAASUVORK5CYII=','base64')})}
  else if(u.pathname.startsWith('/api/payment-records/'))data={ok:true,item:{...s.record,asOf:new Date().toISOString(),businessDate:'2026-10-09'}};
  else if(u.pathname==='/api/borrower-options')data={ok:true,accounts,referrers:[{id:'C-other',label:'Synthetic destination'}]};
@@ -416,3 +417,17 @@ if(fixtureEnvironment==='prod'){
   }finally{state.holdPreferences=false;state.releasePreferences();await context.close()}
  });
 }
+
+// R122: the Cash statement From / To shows the borrower name by the viewer's language (Thai name, English description), as the Cash Ledger does.
+for(const [th,en,expected] of [['สมชาย ทดสอบ','Somchai Test',['Somchai Test','สมชาย ทดสอบ']],['สมชาย ทดสอบ',null,['สมชาย ทดสอบ','สมชาย ทดสอบ']],[null,'Somchai Test',['Somchai Test','Somchai Test']]] as const)
+test(`R122 Cash statement From / To follows the viewer language (${th??'no Thai'} / ${en??'no English'})`,async()=>{
+ statementBorrower={th,en};
+ const{context,page}=await launch();
+ try{
+  await seed(page,'preference','own',{preferences:preferenceA,account:'C-account',date:'2026-10-09',language:'English'});await saved(page,'Synthetic preference');
+  const cell=page.locator('.cash-transactions tbody tr td:nth-child(3)');
+  await expect(cell).toHaveText(expected[0]);
+  await chooseSettledLanguage(page,'ไทย');await expect(cell).toHaveText(expected[1]);
+  await chooseSettledLanguage(page,'EN');await expect(cell).toHaveText(expected[0]);
+ }finally{statementBorrower=null;await context.close()}
+});

@@ -412,6 +412,23 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(self.post(headers={'Content-Type': 'text/plain'})[0], 415)
         self.assertEqual((self.upstream.requests, self.exchange.count), ([], 0))
 
+    def test_thinking_is_optional_and_only_adaptive_or_between_tools(self):
+        # R122: absent (adaptive by default), {"type":"adaptive"} or {"type":"between_tools"} are relayed byte for byte.
+        accepted = (BODY, {**BODY, 'thinking': {'type': 'adaptive'}},
+                    {**BODY, 'model': 'claude-sonnet-5-5', 'thinking': {'type': 'between_tools'}, 'output_config': {'effort': 'medium'}})
+        self.start(Upstream(*[FakeResponse(200, chunks=SSE) for _ in accepted]))
+        for body in accepted:
+            with self.subTest(thinking=body.get('thinking')):
+                self.assertEqual(self.post(body)[:2], (200, b''.join(SSE)))
+                self.assertEqual(self.upstream.requests[-1]['body'], json.dumps(body).encode())
+        for thinking in ({'type': 'disabled'}, {'type': 'enabled', 'budget_tokens': 1024}, {'type': 'adaptive', 'display': 'summarized'},
+                         {'type': 'between_tools', 'budget_tokens': 1024}, {'type': 'adaptive', 'extra': 1}, {}, {'type': 'ADAPTIVE'},
+                         {'type': ['adaptive']}, 'adaptive', None, ['between_tools'], True):
+            with self.subTest(thinking=thinking):
+                status, data, _ = self.post({**BODY, 'thinking': thinking})
+                self.assertEqual((status, json.loads(data)['reason']), (400, 'thinking_not_allowed'))
+        self.assertEqual(len(self.upstream.requests), len(accepted))
+
     def test_disabled_switch_or_catalogue_entry_and_health(self):
         self.start(Upstream())
         for change in ('config', 'catalogue'):
