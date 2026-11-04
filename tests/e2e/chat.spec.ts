@@ -678,11 +678,11 @@ test('R112: a split needs the principal part and is used only once it is entered
 
 // R122: "Translate from Thai" on the New borrower form (POST /api/chat/transliterate stubbed; synthetic names only).
 const borrowerOptions=async(context:BrowserContext)=>{await context.route('https://'+commandHost+'/api/borrower-options**',route=>route.fulfill({json:{ok:true,accounts:[],referrers:[]}}))};
-async function openNewBorrower(page:Page){
+async function openNewBorrower(page:Page,th=false){
  await page.getByRole('button',{name:/^(Borrowers|ผู้กู้)$/}).filter({visible:true}).first().click();
- await page.getByRole('button',{name:'Add borrower',exact:true}).click();
- const region=page.getByRole('region',{name:'Borrower record',exact:true});await expect(region).toBeVisible();
- return {region,thai:region.getByLabel(/^Borrower name \(Thai\)/),english:region.getByLabel('English name',{exact:true}),button:region.getByRole('button',{name:'Translate from Thai',exact:true})};
+ await page.getByRole('button',{name:th?'เพิ่มผู้กู้':'Add borrower',exact:true}).click();
+ const region=page.getByRole('region',{name:th?'ข้อมูลผู้กู้':'Borrower record',exact:true});await expect(region).toBeVisible();
+ return {region,thai:region.getByLabel(th?/^ชื่อผู้กู้ \(ไทย\)/:/^Borrower name \(Thai\)/),english:region.getByLabel(th?'ชื่อภาษาอังกฤษ':'English name',{exact:true}),button:region.locator('.transliterate-button')};
 }
 test('R122: Translate from Thai fills the English name, asks before replacing, shows an error and is disabled while the Thai name is blank',async()=>{
  const calls:any[]=[];let mode:'ok'|'fail'|'hold'='ok',release:(()=>void)|undefined,answer='Somchai Jaidee';
@@ -727,14 +727,13 @@ test('R122: Translate from Thai is absent without a chat origin and disabled off
 test('R122: the New borrower form with Translate from Thai fits 320 and 390 px (EN and TH)',async()=>{
  const {context,page}=await launch({configure:borrowerOptions});
  try{
-  for(const width of [320,390]){
-   await page.setViewportSize({width,height:844});const {thai,button,region}=await openNewBorrower(page);await thai.fill('สมชาย ใจดี');
-   for(const language of ['EN','ไทย'] as const){
-    await chooseLanguage(page,language);await expect(region.locator('.transliterate-button')).toBeVisible();
-    const box=(await region.locator('.transliterate-button').boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-   }
-   await chooseLanguage(page,'EN');await page.getByRole('button',{name:'Back to borrowers',exact:true}).click();
+  for(const width of [320,390])for(const language of ['EN','ไทย'] as const){
+   await page.setViewportSize({width,height:844});await chooseLanguage(page,language);
+   const {thai,button,region}=await openNewBorrower(page,language==='ไทย');await thai.fill('สมชาย ใจดี');
+   await expect(button).toBeVisible();const box=(await button.boundingBox())!;
+   expect(box.height).toBeGreaterThanOrEqual(44);expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await region.page().getByRole('button',{name:language==='ไทย'?'กลับรายชื่อผู้กู้':'Back to borrowers',exact:true}).click();
   }
  }finally{await context.close()}
 });
