@@ -2752,6 +2752,18 @@
           "pointer": "/content/columns/Payment Request Token"
         },
         {
+          "subject": "Late Charge Due",
+          "pointer": "/content/columns/Late Charge Due"
+        },
+        {
+          "subject": "Late Charge Paid",
+          "pointer": "/content/columns/Late Charge Paid"
+        },
+        {
+          "subject": "Late Charge Remaining",
+          "pointer": "/content/columns/Late Charge Remaining"
+        },
+        {
           "subject": "Charges_Payment Request Cash Account_fkey",
           "pointer": "/content/constraints/Charges_Payment Request Cash Account_fkey"
         },
@@ -3780,6 +3792,10 @@
         {
           "subject": "Created At",
           "pointer": "/content/columns/Created At"
+        },
+        {
+          "subject": "Allocated Late Charge",
+          "pointer": "/content/columns/Allocated Late Charge"
         },
         {
           "subject": "Payment Allocations_Row ID_not_null",
@@ -7934,6 +7950,10 @@
           "pointer": "/content/columns/Ref Payment Allocation"
         },
         {
+          "subject": "Late Charge Paid",
+          "pointer": "/content/columns/Late Charge Paid"
+        },
+        {
           "subject": "Repayments_Row ID_not_null",
           "pointer": "/content/constraints/Repayments_Row ID_not_null"
         },
@@ -11731,6 +11751,26 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_notify_content_v2(delivery uuid, generation bigint)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-content-v3-delivery-uuid-generation-bigint-99dd9b15.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_content_v3(delivery uuid, generation bigint)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-content-v4-delivery-uuid-generation-bigint-2d839a37.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_content_v4(delivery uuid, generation bigint)",
       "scope": "production",
       "status": "documented",
       "lookup": []
