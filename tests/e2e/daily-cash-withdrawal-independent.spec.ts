@@ -76,12 +76,14 @@ test('R123 a withdrawal under review keeps its reviewed date and time when the p
 test('R124 on an iPhone-width screen the date field stays inside its label, a 12px gap clear of the time selects',async({page})=>{
  await fixture(page);await page.setViewportSize({width:390,height:844});await page.clock.setFixedTime(new Date('2026-11-04T19:05:00Z'));await page.goto('/');await page.waitForFunction(()=>(window as any).__dcwReady===true);
  await page.getByRole('button',{name:'Daily cash withdrawal',exact:true}).click();await expect(page.getByLabel('Date',{exact:true})).toHaveValue('2026-11-05');
- const layout=await page.evaluate(()=>{const label=document.querySelector('.dcw-when>label')!,input=label.querySelector('input')!,time=document.querySelector('.dcw-when>.dcw-time')!,[l,i,t]=[label,input,time].map(e=>e.getBoundingClientRect());return {label:[l.left,l.right],input:[i.left,i.right],time:[t.left,t.top],inputTop:i.top,overflow:label.scrollWidth-label.clientWidth,box:getComputedStyle(input).boxSizing,flex:getComputedStyle(label).flex}});
+ const layout=await page.evaluate(()=>{const label=document.querySelector('.dcw-when>label')!,input=label.querySelector('input')!,time=document.querySelector('.dcw-when>.dcw-time')!,[l,i,t]=[label,input,time].map(e=>e.getBoundingClientRect());return {label:[l.left,l.right],input:[i.left,i.right],time:[t.left,t.top],inputTop:i.top,overflow:label.scrollWidth-label.clientWidth,box:getComputedStyle(input).boxSizing,appearance:[getComputedStyle(input).appearance,getComputedStyle(input).webkitAppearance],look:[input,document.querySelector('.dcw-time-selects select')!].map(e=>{const c=getComputedStyle(e);return [c.backgroundColor,c.borderTop,c.borderRadius,c.minHeight,c.fontSize].join('|')}),flex:getComputedStyle(label).flex}});
  // iOS sizes the native date control wider than its intrinsic flex width, so the label has a fixed basis and the input fills it.
  expect(layout.flex).toBe('0 0 168px');expect(layout.input[1]-layout.input[0]).toBeCloseTo(layout.label[1]-layout.label[0],0);
  // One row at 390px: the date's right edge clears the time fieldset by the 12px gap, and the label contains the native control.
  expect(layout.time[1]).toBeLessThan(layout.inputTop);expect(layout.input[1]).toBeLessThanOrEqual(layout.time[0]-12+0.5);
  expect(layout.input[0]).toBeGreaterThanOrEqual(layout.label[0]-0.5);expect(layout.input[1]).toBeLessThanOrEqual(layout.label[1]+0.5);expect(layout.overflow).toBeLessThanOrEqual(0);expect(layout.box).toBe('border-box');
+ // R125: iOS keeps a native date control at its own minimum width, so the field drops native appearance and takes the selects' look.
+ expect(layout.appearance).toEqual(['none','none']);expect(layout.look[0]).toBe(layout.look[1]);
 });
 test('Daily cash withdrawal is unavailable offline and reads nothing',async({page})=>{
  const {reads,posts}=await fixture(page);await page.addInitScript(()=>{(window as any).__dcwOffline=true});await page.goto('/');await page.waitForFunction(()=>(window as any).__dcwReady===true);
