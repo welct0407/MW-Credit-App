@@ -90,7 +90,10 @@ Authority: owner instruction of 4 November 2026, "Move R122 to production and cl
 | Recovery | Activation generation `1793790340124426` (images `5679b454…3cbd`), Hosting `f8dd8e3f2900f9cb` (R121), relay `deploy-runtime.py rollback --commit b83bf3aa31f9b9803dcd4a1f503ec07725395b78` (restores `74a5705`; earlier backup `runtime-20261104T152257442522Z` holds `0a8a8cd`) |
 
 ### Limitations
-- PROD transliterate not exercised: there is no PROD Partner token and no harmless PROD caller path.
+- PROD transliterate was not exercised during promotion: there is no PROD Partner token and no harmless PROD caller path.
+
+### Owner acceptance
+- 4 November 2026: the owner reported "Translate works" in PROD after promotion. That closes the PROD transliterate limitation above. The owner asked for the acceptance to be recorded at once, not with the next product pull request.
 
 ## Closure prune (Dewey, 4 November 2026)
 R122 is Released, so the retention window is R122, R121 and R120. Inbound links to the R119 records were repointed to commit `b83bf3a` first (Release_Tracker, Development_Changes, Solution_Design, Environment_Inventory, the integration-agent catalogue, CONVERSATION_POLL, OPERATIONS and PARTNER_REVIEW). Deleted:
