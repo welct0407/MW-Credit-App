@@ -7,6 +7,8 @@ Wants=network-online.target
 Type=oneshot
 User=mwagent
 Group=mwagent
+# Read-only journal access: the IG poll's newest UNIT_SUCCESS entry (journal_success_epoch).
+SupplementaryGroups=systemd-journal
 Environment=HOME=/var/lib/mw-integration-agent
 ExecStart=/opt/mw-integration-agent/.venv/bin/python /opt/mw-resource-monitoring/debian-health.py
 TimeoutStartSec=180

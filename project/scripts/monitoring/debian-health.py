@@ -121,9 +121,34 @@ def timer_status(service, timer, uptime, now, max_idle, max_run):
 
 
 POLL_STALL_SECONDS = 600
+# systemd's UNIT_SUCCESS catalogue entry ("<unit>: Deactivated successfully"), logged by PID 1 for each clean exit.
+UNIT_SUCCESS_MESSAGE_ID = '7ad2d189f7e94e70a38c781354912448'
 
 
-def polling_status(service, timer, monotonic_now, epoch_now, last_success, max_run=600, stall=POLL_STALL_SECONDS):
+def journal_success_epoch(unit, runner=run):
+    """Epoch seconds of `unit`'s newest successful exit in the system journal, or None.
+
+    Reads one UNIT_SUCCESS entry (newest first, 15 s bound) written by systemd (_PID 1). A non-zero exit, no entry (also when the journal is not
+    readable), an unexpected entry, a parse error or a timeout gives None, so the caller keeps its systemd-only view.
+    """
+    try:
+        result = runner(['journalctl', '-u', unit, 'MESSAGE_ID=' + UNIT_SUCCESS_MESSAGE_ID,
+                         '-o', 'json', '-n', '1', '-r', '-q', '--no-pager'], timeout=15)
+        if result.returncode:
+            return None
+        lines = [line for line in result.stdout.splitlines() if line.strip()]
+        entry = json.loads(lines[0]) if lines else None
+        if (not isinstance(entry, dict) or entry.get('MESSAGE_ID') != UNIT_SUCCESS_MESSAGE_ID
+                or entry.get('UNIT') != unit or entry.get('_PID') != '1'):
+            return None
+        value = int(entry['__REALTIME_TIMESTAMP']) // 1_000_000
+        return value if value > 0 else None
+    except (OSError, subprocess.SubprocessError, ValueError, TypeError, KeyError):
+        return None
+
+
+def polling_status(service, timer, monotonic_now, epoch_now, last_success, max_run=600, stall=POLL_STALL_SECONDS,
+                   journal_success=None):
     """IG polling: (status, last_success). Runs every ~70 s, so one failed run (exit 2 after a Meta timeout) is
     Degraded; Down only when polling stopped: timer or unit not loaded or inactive, a run hung past `max_run`, or no
     successful run for `stall` seconds.
@@ -131,6 +156,11 @@ def polling_status(service, timer, monotonic_now, epoch_now, last_success, max_r
     systemd keeps only the last run (ExecMainExitTimestamp is its exit, success or failure, and resets when a run
     starts), so the newest successful exit is carried in the collector state file as `last_success` (epoch). With no
     saved value it is seeded with this observation, which gives a fresh state one `stall` of grace.
+
+    `journal_success` (epoch, from journal_success_epoch) is the newest successful exit in the journal. It also counts
+    successes this sample did not see idle: when a slow poll cycle (run plus OnUnitInactiveSec) phase-locks with the
+    collector's cycle, every sample can see the unit running. last_success = max(saved, idle success, journal); None
+    (journal unreadable) or a value after `epoch_now` (clock skew) keeps the systemd-only behaviour.
     """
     if (timer.get('LoadState') != 'loaded' or service.get('LoadState') != 'loaded'
             or timer.get('ActiveState') != 'active'):
@@ -141,6 +171,10 @@ def polling_status(service, timer, monotonic_now, epoch_now, last_success, max_r
     ended = completion_epoch(service, monotonic_now, epoch_now)
     if not running and not failed and ended:
         last_success = max(last_success or 0, ended)
+    # A journal value after now is ignored, not clamped: it is re-read every sample, so clamping it after a clock step
+    # back would count a fresh success each time and hide a stall.
+    if type(journal_success) is int and 0 < journal_success <= epoch_now:
+        last_success = max(last_success or 0, journal_success)
     if last_success is None or last_success > epoch_now:
         # A saved value in the future (clock skew) could hide a stall: count it from now.
         last_success = int(epoch_now)
@@ -751,8 +785,9 @@ def main():
         polling_timing['last_completion'] = completion_epoch(service, monotonic_now, epoch_now)
         polling_timing['running'] = int(service.get('ActiveState') in ('active', 'activating'))
         saved = polling_state['last_success']
+        journal = safely_call(lambda: journal_success_epoch('mw-conversation-poll.service'), None)
         status, polling_state['last_success'] = polling_status(
-            service, timer, monotonic_now, epoch_now, saved if type(saved) is int else None)
+            service, timer, monotonic_now, epoch_now, saved if type(saved) is int else None, journal_success=journal)
         return status
     check('polling', lambda: polling() if config.get('conversation_poll_enabled') else 3)
     audit_relay = relay_snapshot(config, job)
