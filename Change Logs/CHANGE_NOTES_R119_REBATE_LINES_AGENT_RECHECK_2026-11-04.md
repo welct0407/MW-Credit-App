@@ -1,12 +1,12 @@
 # Change notes — R119 every rebate line and the agent recheck, 4 November 2026
 
 ## Purpose
-The owner deferred three items from R118 into R119 (3 November 2026) and instructed "There're some items queued for R119. Fix them", then answered "include the held-slip auto recheck" and "take R119 all the way to PROD". Status: In progress (DEV and PROD pending). The scope is two parts: show every rebate when one payment closes several referred loans (PWA, API, push), and let the integration agent recheck slips once their cause is fixed in the app. The agent part has its [own note](../integration-agent/Change%20Logs/CHANGE_NOTES_R119_AGENT_RECHECK_2026-11-04.md).
+The owner deferred three items from R118 into R119 (3 November 2026) and instructed "There're some items queued for R119. Fix them", then answered "include the held-slip auto recheck" and "take R119 all the way to PROD". Status: Released to DEV and PROD on 4 November 2026 under the owner's "All the way to PROD" (package `0a8a8cd`, PR #228, tag `R119`); PROD acceptance is pending the first real payment that closes two referred loans and the first borrower-master change. The scope is two parts: show every rebate when one payment closes several referred loans (PWA, API, push), and let the integration agent recheck slips once their cause is fixed in the app. The agent part has its [own note](../integration-agent/Change%20Logs/CHANGE_NOTES_R119_AGENT_RECHECK_2026-11-04.md).
 
 ## Changes
 Scope:
 - **Every rebate line.** Since R117 each closed loan gets its own rebate and offset (`ro122:<payment>:<loan>`), but the payment record and the push read only the first one (`LIMIT 1`). Both now show all of them.
-- **Agent recheck.** An ignored group slip is processed once its sender becomes an enabled borrower, and a held slip is requeued once its cause is fixed (borrower enabled, cash account number added). It is behind a switch that is off until activated.
+- **Agent recheck.** An ignored group slip is processed once its sender becomes an enabled borrower, and a held slip is requeued once its cause is fixed (borrower enabled, cash account number added). It is behind a switch that is off until activated (switched on in PROD on 4 November 2026).
 - **PREPARED route.** `receipt-reconsider` accepts a `PREPARED` job from `receipt-prepare`, so Gun's case no longer needs a database edit.
 
 Design decisions (Archie):
@@ -54,11 +54,11 @@ UX codes (Echo, accepted by the owner's instruction):
 | `tests/e2e/rebate-offset-independent.spec.ts --project=mobile-chromium` | 15/15 (Chase, Pixel 7) |
 | Probe of `renderNotification` over 800 combinations | Nothing over the 80-grapheme budget; "Lisa" always present; every amount present unless the total form was used (Chase) |
 | Agent: conversation_poll tests; `receipt_reconsider`, `receipt_recheck`, `deploy_runtime` tests; `ruff` | conversation_poll 43 OK with 2 new (an ambiguous time match is left alone; the snapshot is kept when a scan raises); the others and ruff pass (Chase) |
-| Chase review (adversarial, against Archie's test plan) | Done: no high-severity defect. One medium finding, fixed by Byte: the dispatcher's v4 to v3 fallback happens only on SQLSTATE 42883 or 42501, so another error no longer quietly shows only the first rebate (re-run pending, record with CI) |
-| Pull request `Development checks` and agent CI (`test`, `lab`) | Pending: record the run and commit |
-| `npm run check:docs` | Pending: record the result at the push |
-| DEV: V134 applied, images, Hosting, agent, bounded smoke test | Pending (Forge) |
-| PROD promotion record | Pending (Forge): backup at V133, V134 apply, images, Hosting, agent revision 35, switch activation, read-only smoke test, tag `R119` |
+| Chase review (adversarial, against Archie's test plan) | Done: no high-severity defect. One medium finding, fixed by Byte: the dispatcher's v4 to v3 fallback happens only on SQLSTATE 42883 or 42501, so another error no longer quietly shows only the first rebate |
+| Pull request `Development checks` and agent CI (`test`, `lab`) | Pass on head `778558d`: `Development checks` run 41767072377 (check, lint, three e2e shards; terraform skipped, no infrastructure input) and agent-tests run 41767072409. `main` `0a8a8cd` has the same tree; its `Database migrations` push run 41768071404 passed (guards and the four rebuilds) |
+| `npm run check:docs` | Pass at the closure push |
+| DEV: V134 applied, images, Hosting, bounded smoke test | Pass (Forge), see the DEV promotion record |
+| PROD promotion record | Pass (Forge), see the PROD promotion record; tag `R119` |
 
 ## Not run
 - Live push on a device and the agent against live Instagram: not exercised before PROD. The first live evidence is the first PROD payment that closes two referred loans and the first borrower-master change after activation.
@@ -69,7 +69,7 @@ UX codes (Echo, accepted by the owner's instruction):
 - Before deployment: revert the commit. After deployment:
   - V134 adds only a function; dispatchers before R119 read v3, and a later migration may drop v4. The old PWA bundle reads `closeRebate`.
   - Agent: set `conversation_poll_recheck_enabled` to false (restore the saved configuration backup), or `deploy-runtime.py rollback --commit <deployed>`.
-  - Database backup reference: to be recorded in the promotion record (taken at V133 before the PROD apply).
+  - Database backup reference: `prod-promotion-849c25f15a3148df94df42bed7b92de5` (PROD at V133, 4 November 2026 03:57:02Z, restore passed); DEV `dev-refresh-3a91772124864bebaaabebdc35607360` (V133).
 
 ## Open questions
 None. Known limitations, accepted:
@@ -81,7 +81,61 @@ None. Known limitations, accepted:
 - On a run where the master changed, `receipt-worker.lock` is held for the whole scan, so the worker skips that minute.
 - The push lists payees in expense Row ID order, while the payment record follows allocation order.
 - A held job with no archived original is counted as `held_skipped_no_archive` and retried on the next master change.
-- The switch `conversation_poll_recheck_enabled` is off until it is activated after the deploy (covered by "take R119 all the way to PROD").
+- The switch `conversation_poll_recheck_enabled` was switched on in PROD after the deploy, on 4 November 2026 at 04:12:53Z (covered by "take R119 all the way to PROD").
 
 ## Remaining work
-the Chase fix re-run, the push and CI, DEV, PROD promotion, activation of the recheck switch, the PROD Data Dictionary capture for `pwa_notify_content_v4` (and v3), and the closure pull request (freeze pin, promotion record, tag `R119`, prune, R120 opened).
+None for the promotion. Open: PROD acceptance (the first real payment that closes two referred loans; the first borrower-master change with the recheck on).
+
+## DEV promotion record (Forge, 4 November 2026, UTC)
+No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in the operator bucket under `promotion-packages/r119/dev/`.
+
+| Item | Result |
+| --- | --- |
+| Scope | V134, the read, command, chat, notify and jobs images and DEV Hosting labelled R119, from `main` `0a8a8cd` (merge of PR #228 head `778558d`, identical tree), in a detached worktree |
+| Backup at V133 | 03:39:56Z, dump sha256 `3bafef85…6ef3`, listing and restore passed, 38 table fingerprints matched, folder `dev-refresh-3a91772124864bebaaabebdc35607360` |
+| Owner window | The five DEV owners, 20 statements, opened 03:42:52Z, restored 03:49:47Z; readback inherit, set and CREATE all false |
+| V134 | `Invoke-Flyway.ps1 -Environment development migrate`, installed 03:43:07Z (2.7 s), head 134, 134 rows all successful; the post-migrate reconcile reported 0 violations |
+| Readback | `pwa_notify_content_v4` owned by `mw_notify_owner_dev`, SECURITY DEFINER, `search_path=pg_catalog, public`, EXECUTE for `mw_notify_dispatch_dev` only; v1 to v3 unchanged |
+| Image | One Cloud Build image (`6a237898`, DEV builder) from a `git archive` of `0a8a8cd` |
+| Terraform | Read, command, chat and workers images; plan 0 add, 5 change, 0 destroy (image only), applied 03:52:54Z to 03:53:30Z. Notify and jobs change too: the dispatcher and `content.mjs` reach `services/workers/server.mjs` (the runner's input rule) |
+| Hosting | DEV version labelled R119, embeds `0a8a8cd`, released 03:54:35Z; `--check` passed first |
+| Smoke | `/health` 200 on read, command and chat; unauthenticated 401; preflight 204; authenticated `/api/collection` 200 and a payment record carrying `closeRebates` as the DEV test Partner; no ERROR logs from 03:53Z |
+| Not deployed | The agent: there is no DEV agent target |
+| Rollback | The R118 settings generation and the previous Hosting version (see the inventory); V134 adds only a function, else restore the V133 backup |
+
+## PROD promotion record (Forge, 4 November 2026, UTC)
+Authority: the owner's "All the way to PROD" for R119, recorded under Purpose. No PROD payment, forced notification, chat write or financial correction. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in the operator bucket under `promotion-packages/r119/`.
+
+| Step | Result |
+| --- | --- |
+| Freeze | `main` at `0a8a8cd` (merge of PR #228 head `778558d`, identical tree), detached worktree. Runner derivation from R118 `22712b0`: all five services, migration V134 only, no infrastructure change |
+| Baseline (03:56Z) | `loan_manager_prod` head 133 on `mw-credit-pg-20261017` in `clever-oasis-508610-n7`; R118 image on all five services; Hosting R118; agent `5c61fc4` (PR #227, deployed after R118; not in the inventory before this record), catalogue revision 34 |
+| Backup at V133 | `prod-promotion-849c25f15a3148df94df42bed7b92de5`, 03:57:02Z, dump sha256 `079fce41…fdcb87`, listing and restore passed, 38 table fingerprints match |
+| SQL package | Release manifest `release-r119-v134-0a8a8cd.json` (`2c77fdd5…e163`); connect preflight 04:00:12Z (`1cc3581e…ba27`; 18 retained consumers, 0 DEV sessions); `check` 04:00:45Z: 0 writes, pending exactly V134 |
+| Owner window | `mw_notify_owner_prod`, 4 statements, opened 04:01:10Z, restored 04:02:36Z (the restore was given the production arguments, so the R118 refusal did not repeat); readback inherit, set and CREATE false |
+| V134 | `Invoke-CloudFlyway.py apply`, grouped transaction; installed 04:01:49Z (2.8 s, checksum 468740600, as DEV); head 134, 134 rows, 0 failed; `verify --target prod` clean (04:08:19Z) |
+| SQL readback | `pwa_notify_content_v4` owned by `mw_notify_owner_prod`, SECURITY DEFINER, pinned `search_path`, the v3 comment, EXECUTE for `mw_notify_dispatch_prod` only (no `mw_integration_agent` grant); v1 to v3 and the history functions unchanged |
+| Image | One Cloud Build image (`78b9f9eb`, PROD builder `mw-credit-app-build-prod`, `cloudbuild-business.yaml` smoke passed) from the same `git archive` of `0a8a8cd` as DEV |
+| Terraform | Read, command and chat overrides plus `workers.image` (notify, jobs: runner input rule); plan 0 add, 5 change, 0 destroy, image only; applied 04:04:44Z to 04:05:19Z; re-plan no changes |
+| Revisions | All five services Ready at 100% on the new image |
+| Hosting | `--check` passed (applied package); the first `--apply` (04:08:37Z) was refused before any Hosting change because the manifest lacked the Cloud Build source object; after adding it from the build record, `--check` and `--apply` 04:09:10Z to 04:09:53Z, 16 files, `no-store`; build-version R119, the bundle embeds `0a8a8cd`; both origins; private receipt `R119-HOSTING-RECEIPT.json` |
+| Agent | See the [agent note](../integration-agent/Change%20Logs/CHANGE_NOTES_R119_AGENT_RECHECK_2026-11-04.md#deploy-record): `0a8a8cd`, catalogue revision 35, `receipt_archive_enabled` confirmed on, the configuration backed up and `conversation_poll_recheck_enabled` on at 04:12:53Z |
+| Smoke (read-only) | `/health` 200 on read, command and chat; unauthenticated 401 on `/api/collection` and `/api/chat/models`; preflight 204; no Cloud Run ERROR logs from 04:04Z to 04:10:51Z. v4 cannot be called without a leased delivery, so its query body was run read-only (the lease condition replaced by the event id) against two existing `payment.posted` events and rendered with `content.mjs`, no send: the 26 October event with two payable rebates to one referrer renders the summed amount (v3 would show only the first), Lisa named, 38 graphemes; the 3 November event with two offset-settled rebates renders no rebate line, as designed. The agent's first poll after activation (04:13:48Z) reported `recheck: snapshot_written` |
+
+### Limitations
+- PROD acceptance is pending: the first real payment that closes two referred loans (payment record and push) and the first borrower-master change with the recheck on.
+- The push is not exercised on a device; the dry render ran locally on read-only data.
+- The schema digest at 134 starts a new chat history epoch.
+- No authenticated PROD read was made (no PROD Partner token).
+- The agent deploy needed a temporary root-only `mw_agent` operator connection file again (as in R113 and R118); it was shredded afterwards.
+
+### Tag record
+Tag `R119` on `0a8a8cd9292c5284bff917f8bb347387e361e7c1` through Release tag workflow run 41772000221, dispatched 04:14:35Z, completed successfully; the same run published the GitHub Release.
+
+### Closure and prune record
+Closure pull request on branch `claude/r119-closure`, records only: tracker (R119 Released, R120 opened, next unused number R121), Development Changes (R119 follow-up row, R120 row), Environment Inventory (DEV and PROD rows), `database/README.md` (V134 applied), the Data Dictionary and this note with the agent note.
+- Data Dictionary: PROD capture at 04:14:52Z; targeted reconcile of `pwa_notify_content_v3` and `pwa_notify_content_v4` (two new entries, evidence `project/outputs/dictionary-r119-20261104/`); `dictionary.py index` and `validate` pass (479 documents, 0 errors).
+- Deleted: `Change Logs/CHANGE_NOTES_R116_WRITEOFF_SEGREGATION_2026-11-02.md` and `Change Logs/CHANGE_NOTES_R116_CASH_LEDGER_SORT_2026-11-03.md` (R116 left the three-release retention window). Their inbound links in the tracker, Development Changes, the Environment Inventory and the Solution Design were first repointed to the permalink at `0a8a8cd`.
+- Kept: the R117 and R118 notes (inside the window).
+- Kept: `project/outputs/dictionary-r116-20261103/` (seven Data Dictionary entries cite it as their source). `npm run check:docs`: 0 failures, 0 warnings.
+- Also updated: the agent `SERVICE_CATALOGUE.md`, `docs/CONVERSATION_POLL.md` and `docs/OPERATIONS.md` now say the recheck is on in PROD.

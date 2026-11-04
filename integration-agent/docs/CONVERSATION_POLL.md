@@ -18,7 +18,7 @@ Deploy with `scripts/deploy-runtime.py` ([Operations](OPERATIONS.md#deploying-a-
 
 For an explicitly owner-requested same-day group backfill, use `conversation-poll --date YYYY-MM-DD` with the usual config/catalogue arguments. This mode reads from Bangkok midnight, restricts to group conversations, preserves normal polling watermarks/cutoffs, and queues only unseen images through the same receipt workflow. It does not reopen terminal receipt jobs or replay existing reviews. Earlier dates are rejected. A history gap holds only the affected group rather than skipping its messages.
 
-## Recheck after a borrower-master change — revision 35 (R119, implemented, off)
+## Recheck after a borrower-master change — revision 35 (R119, on in PROD)
 
 The poll decides each group message once, so a slip from a sender who was not yet an enabled borrower is recorded `IGNORED` and never read again, and a hold whose cause the owner fixes later in the app stays held. With the configuration switch `conversation_poll_recheck_enabled` true (default false; it requires `conversation_poll_enabled`, otherwise the configuration is refused) the poll rechecks both when the borrower master changes. See the [change note](../Change%20Logs/CHANGE_NOTES_R119_AGENT_RECHECK_2026-11-04.md).
 

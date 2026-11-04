@@ -21,7 +21,7 @@ Owner request, 3 and 4 November 2026 ("There're some items queued for R119. Fix 
 | `PYTHONPATH=src python3 -m unittest tests.test_conversation_poll tests.test_receipt_reconsider tests.test_receipt_prepare tests.test_receipt_recheck` (in `integration-agent/`) | 51 tests OK (Byte, working tree). New: an ignored slip is picked up after the borrower is enabled; a changed message id is matched by time; nothing on the first run; no duplicate job; the cursor is kept; other senders stay ignored; nothing with the switch off; the PREPARED route and a decided review still refused; both hold codes, the once-only guard and a decided review for the held recheck. |
 | `PYTHONPATH=src python3 -m unittest discover -s tests` (in `integration-agent/`) | 738 tests OK (Byte, working tree) |
 | `ruff check --no-cache integration-agent` | Clean (Byte) |
-| Pull request agent CI (`test`, `lab`) | Pending: record the run and commit |
+| Pull request agent CI (`test`, `lab`) | Pass: agent-tests run 41767072409 on head `778558d` (`main` `0a8a8cd` has the same tree) |
 | Chase (agent part) | conversation_poll tests 43 OK with 2 new (an ambiguous time match is left alone; the snapshot is kept when a scan raises); `receipt_reconsider`, `receipt_recheck` and `deploy_runtime` tests and ruff pass. No high-severity defect. |
 
 ## Not run
@@ -42,7 +42,21 @@ Owner request, 3 and 4 November 2026 ("There're some items queued for R119. Fix 
 None. Activation of the switch is covered by the owner's "take R119 all the way to PROD" and is recorded below when done.
 
 ## Remaining work
-Deploy to the VM and activate the switch after a configuration backup (Forge), then record it here.
+None. Open: the first real borrower-master change with the recheck on (live evidence).
 
 ## Deploy record
-Pending (Forge): VM `vm-mw-credit-agent`, revision 35, freeze and rollback directory, readback, configuration backup and the switch activation time.
+Forge, 4 November 2026 (UTC), under the owner's "All the way to PROD" for R119, after V134 and the PROD images. No secret value or borrower data appears here.
+
+| Step | Evidence |
+| --- | --- |
+| Baseline | VM `vm-mw-credit-agent` in `clever-oasis-508610-n7` (identity `mw-integration-agent@…`); live `code_version` `5c61fc4` (PR #227, receipt source gone after two attempts), catalogue revision 34; `receipt_archive_enabled` true and `conversation_poll_enabled` true; `conversation_poll_recheck_enabled` absent |
+| Checkout | `update-from-github.sh` to `0a8a8cd` |
+| Dry run | Schema through V11, no drift; 1 module added (`receipt_recheck.py`), 3 changed; units unchanged; ancestry `ancestor` |
+| Freeze | 04:11:43Z, rollback directory `runtime-20261104T041143831923Z` |
+| Install | No removed files, no unit changes |
+| Activate | 04:12:02Z to 04:12:10Z, probe `7429fbc4-29a1-4833-804f-2bb3bb364f67`; six timers and paths resumed |
+| Readback | `/ready` true with `code_version` `0a8a8cd`; catalogue revision 35; `check` passes; no failed units |
+| Switch | `config-only-change.py apply --tag r119-recheck` 04:12:43Z to 04:12:53Z: backup `/root/config.json.pre-r119-recheck`, one key added (`conversation_poll_recheck_enabled: true`), no other key changed; `check` passed; triggers resumed; live file `root:mwagent` 0640 |
+| First run | The poll at 04:13:48Z: 36 conversations, 0 failures, `recheck: snapshot_written`; snapshot `state/conversation-poll-master.json` mode 0600 |
+| Deviation | The deploy engine needed an `mw_agent` operator connection file that was absent on the VM (as in R113 and R118). A temporary root-only file was used and shredded afterwards |
+| Rollback | Switch: `config-only-change.py restore --tag r119-recheck`. Code: `deploy-runtime.py rollback` to the freeze above, which restores `5c61fc4` |
