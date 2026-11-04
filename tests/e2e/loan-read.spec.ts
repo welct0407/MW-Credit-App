@@ -42,3 +42,32 @@ test('nested loans synthetic list detail pagination errors and stale logout',asy
  code=200;await page.getByRole('button',{name:'Continue with Google'}).click();await page.locator('.borrower-tile-main').first().click();await expect(page.locator('.loan-record')).toHaveCount(1);release=undefined;
  hold=true;await page.getByRole('button',{name:'First loans page / refresh',exact:true}).click();await expect.poll(()=>Boolean(release)).toBe(true);await page.setViewportSize({width:1440,height:844});await signOut(page);release!();await expect(page.getByRole('heading',{name:'Sign in to continue'})).toBeVisible();await expect(page.locator('.related-loans')).toHaveCount(0);
 });
+// R122 (Echo R122-BOR-01..03): an open row shows its outstanding principal (฿0 once repaid, Unavailable when null), a closed
+// row its original principal, and each group carries its own legend.
+test('R122 related loans: open rows show outstanding principal, closed rows original, per-group legends',async({page})=>{
+ const rows=[
+  {...loan,id:'OPEN-1',status:'ยังไม่ปิดยอด',defaulted:false,principalAmount:'5000',outstandingPrincipal:'1234.56',paidThrough:null},
+  {...loan,id:'OPEN-REPAID',status:'ยังไม่ปิดยอด',defaulted:false,principalAmount:'7000',outstandingPrincipal:'0',paidThrough:null},
+  {...loan,id:'OPEN-NULL',status:'ยังไม่ปิดยอด',defaulted:false,principalAmount:'9000',outstandingPrincipal:null,paidThrough:null},
+  {...loan,id:'CLOSED-1',status:'ปิดยอดแล้ว',defaulted:false,principalAmount:'2345.67',outstandingPrincipal:'0',paidThrough:null}];
+ await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));
+ await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
+ await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{
+  const req=r.request(),u=new URL(req.url());if(req.method()==='OPTIONS'){await r.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'Authorization'}});return}
+  const nested=u.pathname.includes('/loans');
+  const result:any={ok:true,source:'dev',asOf:'2026-10-07T05:00:00Z',businessDate:'2026-10-07',items:nested?rows:[borrower],item:borrower,nextCursor:null};
+  await r.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(result)}).catch(()=>{});
+ });
+ await page.goto(base);await page.getByRole('button',{name:'Continue with Google'}).click();await page.locator('.borrower-tile-main').first().click();
+ const list=page.locator('.related-loans');await expect(list.locator('.loan-record')).toHaveCount(4);
+ await expect(list.locator('.record-group-heading')).toHaveText(['Open loans','Closed loans']);
+ await expect(list.locator('.list-meaning-legend')).toHaveText(['Outstanding principal · Interest received · Interest covering principal (%)','Principal · Interest received · Interest covering principal (%)']);
+ const open=list.locator('.loan-record:not(.closed)'),main=(i:number)=>open.nth(i).locator('.loan-record-main > span').first();
+ await expect(open).toHaveCount(3);
+ await expect(main(0)).toHaveText('฿1,235');await expect(main(0)).toHaveAttribute('title','Outstanding principal');
+ await expect(main(1)).toHaveText('฿0');await expect(main(2)).toHaveText('Unavailable');
+ const closed=list.locator('.loan-record.closed .loan-record-main > span').first();await expect(closed).toHaveText('฿2,346');await expect(closed).toHaveAttribute('title','Original principal');
+ await chooseLanguagePreservingForm(page,'ไทย');
+ await expect(list.locator('.list-meaning-legend').first()).toHaveText('เงินต้นคงเหลือ · ดอกเบี้ยรับแล้ว · ดอกเบี้ยครอบคลุมเงินต้น (%)');
+ await expect(main(0)).toHaveAttribute('title','เงินต้นคงเหลือ');
+});

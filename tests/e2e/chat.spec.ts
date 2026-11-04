@@ -675,3 +675,65 @@ test('R112: a split needs the principal part and is used only once it is entered
   await expect(card.locator('.chat-proposal-remainder')).toContainText('Split · principal ฿800, the rest pays forward');await expect(confirm).toBeEnabled({timeout:8000});
  }finally{await context.close()}
 });
+
+// R122: "Translate from Thai" on the New borrower form (POST /api/chat/transliterate stubbed; synthetic names only).
+async function openNewBorrower(page:Page){
+ await page.getByRole('button',{name:/^(Borrowers|ผู้กู้)$/}).filter({visible:true}).first().click();
+ await page.getByRole('button',{name:'Add borrower',exact:true}).click();
+ const region=page.getByRole('region',{name:'Borrower record',exact:true});await expect(region).toBeVisible();
+ return {region,thai:region.getByLabel('Name',{exact:true}),english:region.getByLabel('English name',{exact:true}),button:region.getByRole('button',{name:'Translate from Thai',exact:true})};
+}
+test('R122: Translate from Thai fills the English name, asks before replacing, shows an error and is disabled while the Thai name is blank',async()=>{
+ const calls:any[]=[];let mode:'ok'|'fail'|'hold'='ok',release:(()=>void)|undefined,answer='Somchai Jaidee';
+ const {context,page}=await launch({configure:async context=>{await context.route(chatOrigin+'/api/chat/transliterate',async route=>{
+  const request=route.request();if(request.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'POST'}});
+  calls.push({body:request.postDataJSON(),authorized:!!request.headers().authorization});
+  if(mode==='hold')await new Promise<void>(done=>{release=done});
+  if(mode==='fail')return route.fulfill({status:503,headers:{'access-control-allow-origin':'*'},json:{error:'model_unavailable'}});
+  return route.fulfill({headers:{'access-control-allow-origin':'*'},json:{english:answer}}).catch(()=>{});
+ })}});
+ try{
+  const {thai,english,button,region}=await openNewBorrower(page);
+  await expect(button).toBeDisabled();await expect(region.getByText('Enter the Thai name first',{exact:true})).toBeVisible();
+  // fill
+  await thai.fill('สมชาย ใจดี');await expect(button).toBeEnabled();await button.click();
+  await expect(english).toHaveValue('Somchai Jaidee');expect(calls).toHaveLength(1);expect(calls[0].body).toEqual({text:'สมชาย ใจดี'});expect(calls[0].authorized).toBe(true);
+  // replace-confirm: dismiss keeps the typed name, accept replaces it
+  answer='Somchai J.';const dialogs:string[]=[];let accept=false;page.on('dialog',d=>{dialogs.push(d.message());void(accept?d.accept():d.dismiss())});
+  await button.click();await expect.poll(()=>dialogs.length).toBe(1);expect(dialogs[0]).toBe('Replace current English name?');await expect(english).toHaveValue('Somchai Jaidee');
+  accept=true;await button.click();await expect(english).toHaveValue('Somchai J.');expect(dialogs).toHaveLength(2);
+  // the same result as the typed name needs no confirm
+  await button.click();await expect.poll(()=>calls.length).toBe(4);expect(dialogs).toHaveLength(2);
+  // error: alert, the typed English name is kept
+  mode='fail';await button.click();await expect(region.getByRole('alert').filter({hasText:'Translation unavailable. Type the English name.'})).toBeVisible();await expect(english).toHaveValue('Somchai J.');
+  await english.fill('x');await expect(region.getByRole('alert').filter({hasText:'Translation unavailable'})).toHaveCount(0);
+  // a result for a Thai name edited meanwhile is dropped
+  mode='hold';await english.fill('');await button.click();await expect(button).toBeDisabled();await expect(button).toHaveText('Translating…');
+  await thai.fill('สมหญิง ใจดี');release!();await expect(button).toHaveText('Translate from Thai');await expect(english).toHaveValue('');
+  // blank Thai name disables it again
+  await thai.fill('  ');await expect(button).toBeDisabled();
+ }finally{await context.close()}
+});
+test('R122: Translate from Thai is absent without a chat origin and disabled offline',async()=>{
+ fixture.setBuildRoot(join(root,'plain'));
+ try{
+  const {context,page}=await launch();
+  try{const {region,english}=await openNewBorrower(page);await expect(english).toBeVisible();await expect(region.getByRole('button',{name:'Translate from Thai'})).toHaveCount(0)}finally{await context.close()}
+ }finally{fixture.setBuildRoot(join(root,'chat'))}
+ const {context,page}=await launch();
+ try{const {thai,button}=await openNewBorrower(page);await thai.fill('สมชาย');await expect(button).toBeEnabled();await context.setOffline(true);await expect(button).toBeDisabled()}finally{await context.close()}
+});
+test('R122: the New borrower form with Translate from Thai fits 320 and 390 px (EN and TH)',async()=>{
+ const {context,page}=await launch();
+ try{
+  for(const width of [320,390]){
+   await page.setViewportSize({width,height:844});const {thai,button,region}=await openNewBorrower(page);await thai.fill('สมชาย ใจดี');
+   for(const language of ['EN','ไทย'] as const){
+    await chooseLanguage(page,language);await expect(region.locator('.transliterate-button')).toBeVisible();
+    const box=(await region.locator('.transliterate-button').boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   }
+   await chooseLanguage(page,'EN');await page.getByRole('button',{name:'Back to borrowers',exact:true}).click();
+  }
+ }finally{await context.close()}
+});
