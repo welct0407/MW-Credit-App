@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r117-20261103/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r120-20261104/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "1d529fa5a0ef9857f55e63bc6b3006626a3109ac"
+    "commit": "a36046cfdac29ff84ab43e97a886936571674503"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-create-referral-rebate-p-loan-text-dc831aa4.yaml"
     "identity":
       "system": "postgresql"
@@ -36,6 +36,7 @@
        r jsonb; offset_id text; ids text; actual public."Payments"%ROWTYPE; loan_key text;
        -- R111 V124: the automatic offset outside the Loan Close command.
        plan jsonb; offset_plan jsonb; covered numeric; creator text; h text; request uuid; canonical text;
+       terms jsonb; -- R120: the referrer's rate and cap
       BEGIN
        IF pg_trigger_depth()<1 THEN RAISE EXCEPTION 'Referral creation is only supported by loan-close trigger'; END IF;
        SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan FOR UPDATE;
@@ -43,13 +44,16 @@
          OR l."Close Date" IS NULL OR l."Ref Closing Payment" IS NULL THEN RETURN; END IF;
        IF EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Source Key"='REFERRAL_REBATE:'||p_loan) THEN RETURN; END IF;
        IF NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"=l."Ref Closing Payment" AND "Status"='Posted' AND "Amount Received"::numeric>0) THEN RETURN; END IF;
-       SELECT sum("Principal Paid"::numeric),sum("Interest Paid"::numeric) INTO principal,profit
+       -- R118: profit is interest plus late charge received (owner decision of 3 November 2026).
+       SELECT sum("Principal Paid"::numeric),sum("Interest Paid"::numeric+"Late Charge Paid"::numeric) INTO principal,profit
        FROM public."Repayments" WHERE "Ref Loans"=p_loan;
        IF coalesce(principal,0)<l."Principal Amount"::numeric OR coalesce(profit,0)<=0 THEN RETURN; END IF;
        SELECT "Ref Referrer" INTO referrer FROM public."Borrowers" WHERE "Row ID"=l."Ref Borrowers";
        IF referrer IS NULL THEN RETURN; END IF;
        SELECT "Borrower Name" INTO payee FROM public."Borrowers" WHERE "Row ID"=referrer;
-       rebate:=least(round(profit*0.10),1000);
+       -- R120: the referrer's own rate and cap (referral_rebate_terms, defaults 10% and 1,000), as the projection reads them.
+       terms:=public.referral_rebate_terms(referrer);
+       rebate:=least(round(profit*(terms->>'rate')::numeric/100),(terms->>'cap')::numeric);
        IF rebate<=0 THEN RETURN; END IF;
        -- R111 V123: the notes name the closed loan by the key the app shows (paymentLoanDisplayKey: borrower - English name,
        -- principal, loan day/month, original rate), not its Row ID.
@@ -119,9 +123,9 @@
         END;
        END IF;
        INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name",
-        "Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By","Ref Offset Payment")
+        "Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By","Ref Offset Payment","Rebate Rate","Rebate Cap")
        VALUES('rr1:'||p_loan,l."Close Date",'Referral Rebate / เงินคืนค่าแนะนำลูกค้า',rebate::money,payee,referrer,l."Ref Borrowers",p_loan,
-        'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V1','SQL:loan-close',offset_id)
+        'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V2','SQL:loan-close',offset_id,(terms->>'rate')::numeric,(terms->>'cap')::numeric)
        ON CONFLICT ("Source Key") WHERE nullif(btrim("Source Key"),'') IS NOT NULL DO NOTHING;
       END $function$
     "owner": "postgres"
@@ -136,5 +140,7 @@
     "settings":
     - "search_path=pg_catalog, public"
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
-    "comment": null
+    "comment": "R111/R118/R120: the referral rebate of a closed referred loan, the referrer's rate (default 10%) of the interest\
+      \ and late charges received, at most the referrer's cap (default 1,000), as an expense or offset to the referrer's open\
+      \ loan; the applied terms are stored on the expense."
     "extension": null

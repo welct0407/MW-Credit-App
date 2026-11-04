@@ -7,17 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
-  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "source": "outputs/dictionary-r120-20261104/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
   "previous_record":
-    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "commit": "a36046cfdac29ff84ab43e97a886936571674503"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/borrowers.yaml"
     "identity":
       "system": "postgresql"
-      "component": "unassigned-database"
+      "component": "loan_manager_prod"
       "kind": "relation"
-      "name": "Borrowers"
-      "scope": "as-recorded"
+      "name": "public.Borrowers"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -30,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres,mw_app_prod=arwd/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arw/postgres,mw_app_prod=arwd/postgres,mw_chat_read_prod=r/postgres}"
     "comment": null
     "view_definition": null
     "partition_key": null
@@ -54,7 +54,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=rw/postgres}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=rw/postgres,mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Borrower Name":
       "schema": "public"
@@ -72,11 +72,8 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_notify_owner_prod=r/postgres}"
       "comment": null
-      "business_rule": "Mandatory in the PWA/API since R068 W5 (owner, 17 October 2026): enforced in the Node command path\
-        \ (422 borrower_name_required), not by an SQL constraint; the column stays nullable and legacy nameless rows may exist.\
-        \ Detail: systems/pwa/application.yaml /content/editable_settings/borrower_name."
     "Description":
       "schema": "public"
       "relation": "Borrowers"
@@ -93,7 +90,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Creation Date":
       "schema": "public"
@@ -148,7 +145,8 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": null
-      "comment": "Payer names on slips, one per line (max 5): line 1 the borrower, later lines people who pay for them; ? is one unknown letter. Learned from posted slips; editable."
+      "comment": "Payer names on slips, one per line (max 5): line 1 the borrower, later lines people who pay for them; ?\
+        \ is one unknown letter. Learned from posted slips; editable."
     "Instagram Username":
       "schema": "public"
       "relation": "Borrowers"
@@ -474,6 +472,44 @@
       "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": "Optional persistent borrower note, edited in OLTP collection detail. Informational only; does not change\
         \ payment terms or balances."
+    "Referral Rebate Rate":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Referral Rebate Rate"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R120: percent of the profit (interest and late charges received) this borrower earns as referrer on each\
+        \ closed loan they referred, whole number 0 to 100; null = default 10 (referral_rebate_terms). 0 = no rebate."
+    "Referral Rebate Cap":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "Referral Rebate Cap"
+      "ordinal": 26
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R120: most this borrower earns as referrer per closed referred loan, whole baht, 1 or more; null = default\
+        \ 1,000 (referral_rebate_terms)."
   "constraints":
     "Borrowers_Payment Request Cash Account_fkey":
       "schema": "public"
@@ -576,6 +612,42 @@
       "column_numbers":
       - 20
       - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "borrowers_referral_rebate_cap_check":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "borrowers_referral_rebate_cap_check"
+      "kind": "c"
+      "definition": "CHECK (\"Referral Rebate Cap\" IS NULL OR \"Referral Rebate Cap\" >= 1::numeric AND \"Referral Rebate\
+        \ Cap\" = trunc(\"Referral Rebate Cap\"))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 26
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "borrowers_referral_rebate_rate_check":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "borrowers_referral_rebate_rate_check"
+      "kind": "c"
+      "definition": "CHECK (\"Referral Rebate Rate\" IS NULL OR \"Referral Rebate Rate\" >= 0::numeric AND \"Referral Rebate\
+        \ Rate\" <= 100::numeric AND \"Referral Rebate Rate\" = trunc(\"Referral Rebate Rate\"))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 25
       "referenced_column_numbers": null
       "referenced_relation": null
       "update_action": " "
@@ -906,61 +978,29 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "zzzzzzz_pwa_row_change":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "zzzzzzz_pwa_row_change"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_change AFTER INSERT OR DELETE OR UPDATE ON \"Borrowers\" FOR EACH ROW\
+        \ EXECUTE FUNCTION pwa_track_row_change('Row ID')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzzz_pwa_row_truncate":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "zzzzzzz_pwa_row_truncate"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_truncate AFTER TRUNCATE ON \"Borrowers\" FOR EACH STATEMENT EXECUTE FUNCTION\
+        \ pwa_track_row_change('Row ID')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
   "policies": {}
   "dependencies": []
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Borrower Name/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Borrower Note/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Creation Date/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Description/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Has Active Loan/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Hidden Flag/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Row ID/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Total Interest Earned/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Total Outstanding Principal/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/candidate_v92":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
-      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
-    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
-    "state": "absent"
-  "/content/columns/AI Collection Enabled":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
-      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
-    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
-    "state": "value"
-  "/content/columns/Borrower Name/business_rule":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/0fdf49a4458ee368adced58de3656e291df64192/services/business/borrowers.mjs"
-    "reason": "Owner decision 17 October 2026: borrower name mandatory (W5, source 0fdf49a); behaviour rule only, no schema\
-      \ change."
-    "state": "value"

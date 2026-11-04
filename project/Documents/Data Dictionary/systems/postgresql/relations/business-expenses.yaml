@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r120-20261104/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "57e1e09e042f2045812d6ec883797d02a4aad224"
+    "commit": "a36046cfdac29ff84ab43e97a886936571674503"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/business-expenses.yaml"
     "identity":
       "system": "postgresql"
@@ -454,6 +454,44 @@
       "acl": "{mw_notify_owner_prod=r/postgres}"
       "comment": "R111: the Referral Rebate Offset payment that settled this referral rebate on the referrer's loan; null\
         \ when the rebate is paid out. Set by Loan Close only."
+    "Rebate Rate":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "Rebate Rate"
+      "ordinal": 24
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R120: referral rebate rate (percent) applied when this rebate was booked (REFERRAL_REBATE_V2); null on rows\
+        \ booked before V135 and on other expenses."
+    "Rebate Cap":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "Rebate Cap"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R120: referral rebate cap (baht) applied when this rebate was booked (REFERRAL_REBATE_V2); null on rows\
+        \ booked before V135 and on other expenses."
   "constraints":
     "Business Expenses_Allocation Basis_not_null":
       "schema": "public"
@@ -862,7 +900,8 @@
       "kind": "c"
       "definition": "CHECK (\"Source Type\" <> 'Referral Rebate'::text OR \"Amount\"::numeric > 0::numeric AND \"Ref Related\
         \ Loan\" IS NOT NULL AND \"Ref Related Borrower\" IS NOT NULL AND \"Ref Payee Borrower\" IS NOT NULL AND \"Source\
-        \ Key\" = ('REFERRAL_REBATE:'::text || \"Ref Related Loan\") AND \"Rule Version\" = 'REFERRAL_REBATE_V1'::text)"
+        \ Key\" = ('REFERRAL_REBATE:'::text || \"Ref Related Loan\") AND (\"Rule Version\" = 'REFERRAL_REBATE_V1'::text OR\
+        \ \"Rule Version\" = 'REFERRAL_REBATE_V2'::text AND \"Rebate Rate\" IS NOT NULL AND \"Rebate Cap\" IS NOT NULL))"
       "deferrable": false
       "initially_deferred": false
       "validated": true
@@ -874,6 +913,8 @@
       - 6
       - 11
       - 18
+      - 24
+      - 25
       "referenced_column_numbers": null
       "referenced_relation": null
       "update_action": " "
