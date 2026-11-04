@@ -41,7 +41,7 @@ test('R118: v3 late-charge facts reach the push; a missing v4 and v3 fall back t
  await createNotificationDispatcher({pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{sent.push(options.content);return{kind:'accepted'};}})();
  assert.deepEqual(sent,[{title:'Payment received ฿150',body:'Late charge ฿50 · Somchai Jaidee'}]);
  const old=scriptedPool([{found:true,event_type:'payment.posted',language:'en',borrower_name:'Somchai Jaidee',amount:'150'}]);const answer=old.pool.connect;
- old.pool.connect=async()=>{const c=await answer();const query=c.query;c.query=async(sql,args)=>{if(/pwa_notify_content_v[34]/.test(sql))throw Error('function public.pwa_notify_content_v3(uuid, bigint) does not exist');return query(sql,args);};return c;};
+ old.pool.connect=async()=>{const c=await answer();const query=c.query;c.query=async(sql,args)=>{if(/pwa_notify_content_v[34]/.test(sql))throw Object.assign(Error('function public.pwa_notify_content_v3(uuid, bigint) does not exist'),{code:'42883'});return query(sql,args);};return c;};
  const fallback=[];await createNotificationDispatcher({pool:old.pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{fallback.push(options.content);return{kind:'accepted'};}})();
  assert.deepEqual(fallback,[{title:'Payment received ฿150',body:'Somchai Jaidee'}]);assert.ok(old.calls.some(c=>c.sql.includes('pwa_notify_content_v2')));
 });
@@ -51,7 +51,7 @@ test('R111: v2 rebate facts reach the push; a missing v4, v3 and v2 fall back to
  await dispatch();assert.deepEqual(sent,[{title:'Loan closed ฿10,000',body:'Rebate ฿300 to Malee Srisuk, transfer from Lisa · Somchai Jaidee'}]);
  assert.equal(calls.some(c=>c.sql.includes('pwa_notify_content_v1')),false);
  const old=scriptedPool([{found:true,event_type:'payment.posted',language:'en',borrower_name:'Somchai Jaidee',amount:'5000'}]);const answer=old.pool.connect;
- old.pool.connect=async()=>{const c=await answer();const query=c.query;c.query=async(sql,args)=>{if(/pwa_notify_content_v[234]/.test(sql))throw Error('function public.pwa_notify_content_v2(uuid, bigint) does not exist');return query(sql,args);};return c;};
+ old.pool.connect=async()=>{const c=await answer();const query=c.query;c.query=async(sql,args)=>{if(/pwa_notify_content_v[234]/.test(sql))throw Object.assign(Error('function public.pwa_notify_content_v2(uuid, bigint) does not exist'),{code:'42883'});return query(sql,args);};return c;};
  const fallback=[];await createNotificationDispatcher({pool:old.pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{fallback.push(options.content);return{kind:'accepted'};}})();
  assert.deepEqual(fallback,[{title:'Payment received ฿5,000',body:'Somchai Jaidee'}]);assert.ok(old.calls.some(c=>c.sql.includes('pwa_notify_content_v1')));
 });
@@ -83,9 +83,28 @@ test('R119: v4 rebates reach the push; a missing v4 falls back to v3 with the sa
  assert.deepEqual(await send(v4.pool),[{title:'Payment received ฿2,500',body:'Rebates ฿30 to A and ฿20 to B, transfer from Lisa · Somchai Jaidee'}]);
  assert.equal(v4.calls.some(c=>/pwa_notify_content_v[123]/.test(c.sql)),false,'v4 answers; no older read');
  const single=scriptedPool([{...row,rebates:[{amount:30,payee:'A',payable:30}]}]),old=scriptedPool([row]),answer=old.pool.connect;
- old.pool.connect=async()=>{const c=await answer();const query=c.query;c.query=async(sql,args)=>{if(sql.includes('pwa_notify_content_v4'))throw Error('function public.pwa_notify_content_v4(uuid, bigint) does not exist');return query(sql,args);};return c;};
+ old.pool.connect=async()=>{const c=await answer();const query=c.query;c.query=async(sql,args)=>{if(sql.includes('pwa_notify_content_v4'))throw Object.assign(Error('function public.pwa_notify_content_v4(uuid, bigint) does not exist'),{code:'42883'});return query(sql,args);};return c;};
  const fallback=await send(old.pool);
  assert.deepEqual(fallback,[{title:'Payment received ฿2,500',body:'Rebate ฿30 to A, transfer from Lisa · Somchai Jaidee'}]);
  assert.deepEqual(await send(single.pool),fallback,'one rebate reads the same from v4 and v3');
  assert.ok(old.calls.some(c=>c.sql.includes('pwa_notify_content_v3')));
+});
+// R119 (Chase): only a missing v4 (42883) or its missing grant (42501) falls back to v3; any other v4 error sends the
+// generic text instead of a push that names only the first rebate.
+test('R119: v4 falls back to v3 only on 42883 or 42501; another v4 error sends the generic text without reading v3',async()=>{
+ const row={found:true,event_type:'payment.posted',language:'en',borrower_name:'Somchai Jaidee',amount:'2500',rebate_amount:'30',rebate_payee:'A',rebate_payable:'30'};
+ const failing=error=>{const s=scriptedPool([row]),answer=s.pool.connect;
+  s.pool.connect=async()=>{const c=await answer();const query=c.query;c.query=async(sql,args)=>{if(sql.includes('pwa_notify_content_v4'))throw error;return query(sql,args);};return c;};return s;};
+ const send=async pool=>{const sent=[];const out=await createNotificationDispatcher({pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{sent.push(options.content);return{kind:'accepted'};}})();return{sent,out};};
+ for(const code of ['42883','42501']){
+  const s=failing(Object.assign(Error('v4 unavailable'),{code}));const {sent,out}=await send(s.pool);
+  assert.deepEqual(sent,[{title:'Payment received ฿2,500',body:'Rebate ฿30 to A, transfer from Lisa · Somchai Jaidee'}],code);
+  assert.ok(s.calls.some(c=>c.sql.includes('pwa_notify_content_v3')),code);assert.deepEqual(out.results,[{state:'sent'}]);
+ }
+ for(const error of [Object.assign(Error('canceling statement due to statement timeout'),{code:'57014'}),Object.assign(Error('connection terminated'),{code:'08006'}),Error('socket hang up')]){
+  const s=failing(error);const {sent,out}=await send(s.pool);
+  assert.deepEqual(sent,[{title:'MW Credit',body:'New activity'}],error.message);
+  assert.equal(s.calls.some(c=>/pwa_notify_content_v[123]/.test(c.sql)),false,'no older read after '+error.message);
+  assert.deepEqual(out.results,[{state:'sent'}],'the delivery completes as before');
+ }
 });
