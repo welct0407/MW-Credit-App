@@ -32,7 +32,7 @@ Revert the commit of this batch (Git baseline `919cbc9`) and redeploy the prior 
 None.
 
 ## Remaining work
-- Owner acceptance: confirmation on the iPhone that the overlap is gone, in PROD.
+- Owner acceptance: not given; R124 did not resolve the overlap on iOS (owner screenshot, 5 November 2026). Superseded by R125.
 
 ## DEV promotion record (Forge, 4 November 2026, UTC)
 Authority: the owner's instruction "Yes, push it all the way to prod" (R124, DEV first). Hosting only; no SQL, images, Terraform, notify or jobs, VM or Metabase. No backup was needed (no database change). No financial or test write. No secret value or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
@@ -62,7 +62,7 @@ Authority: the same instruction. Hosting only; no SQL, so no backup was needed. 
 | Rollback | Redeploy PROD Hosting version `ee199ec4b344c29b` (R123) |
 
 ### Limitations
-- The layout was not checked in a browser during promotion; the owner's iPhone confirmation is pending.
+- The layout was not checked in a browser during promotion. The owner's iPhone screenshot of 5 November 2026 showed the date pill still overlapping the hour select by about 3px: R124 did not resolve it on iOS. Superseded by R125.
 
 ### Tag record
 Tag `R124` on `ac3edbf` (annotated tag object `4909f85a0f6eae56ee0202f06a3056060f6cd6e0`) through Release tag workflow run 41896313962, with the GitHub Release published by the same run at 19:22:59Z.
