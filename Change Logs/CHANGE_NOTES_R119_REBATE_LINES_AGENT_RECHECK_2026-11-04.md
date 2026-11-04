@@ -50,7 +50,11 @@ UX codes (Echo, accepted by the owner's instruction):
 | Schema digest test | Pass at 134 (Byte) |
 | Integration test `tests/integration/rebate-offset-independent.test.mjs` | 14/14 (Byte) |
 | E2E desktop `tests/e2e/rebate-offset-independent.spec.ts` | 15/15 (Byte) |
-| Chase review (adversarial, against Archie's test plan) | Pending |
+| `tests/integration/rebate-offset-independent.test.mjs` on a fresh V134 cluster | 15/15 (Chase); includes his new test that the lines follow the Payment Allocations order, which fails when the ordering is put back to Row ID |
+| `tests/e2e/rebate-offset-independent.spec.ts --project=mobile-chromium` | 15/15 (Chase, Pixel 7) |
+| Probe of `renderNotification` over 800 combinations | Nothing over the 80-grapheme budget; "Lisa" always present; every amount present unless the total form was used (Chase) |
+| Agent: conversation_poll tests; `receipt_reconsider`, `receipt_recheck`, `deploy_runtime` tests; `ruff` | conversation_poll 43 OK with 2 new (an ambiguous time match is left alone; the snapshot is kept when a scan raises); the others and ruff pass (Chase) |
+| Chase review (adversarial, against Archie's test plan) | Done: no high-severity defect. One medium finding, fixed by Byte: the dispatcher's v4 to v3 fallback happens only on SQLSTATE 42883 or 42501, so another error no longer quietly shows only the first rebate (re-run pending, record with CI) |
 | Pull request `Development checks` and agent CI (`test`, `lab`) | Pending: record the run and commit |
 | `npm run check:docs` | Pending: record the result at the push |
 | DEV: V134 applied, images, Hosting, agent, bounded smoke test | Pending (Forge) |
@@ -58,6 +62,7 @@ UX codes (Echo, accepted by the owner's instruction):
 
 ## Not run
 - Live push on a device and the agent against live Instagram: not exercised before PROD. The first live evidence is the first PROD payment that closes two referred loans and the first borrower-master change after activation.
+- A 320 px layout check, WebKit, and a real Instagram or PROD recheck.
 - No PROD payment, forced notification or financial correction is part of the promotion.
 
 ## Recovery
@@ -71,7 +76,12 @@ None. Known limitations, accepted:
 - The schema digest moves to 134, which starts a new chat history epoch (as at 133).
 - The ignored-slip match tolerates a Meta time skew up to 5 seconds; a larger skew misses the match, and that slip then stays ignored.
 - The held-slip recheck needs `receipt_archive_enabled`, because the worker reads the archived original again; a hold with no archived image is skipped.
+- A slip whose message id changed, with another message from the group within 5 seconds, is skipped as ambiguous and stays ignored.
+- Re-enabling a borrower replays their ignored slips from yesterday and today (intended).
+- On a run where the master changed, `receipt-worker.lock` is held for the whole scan, so the worker skips that minute.
+- The push lists payees in expense Row ID order, while the payment record follows allocation order.
+- A held job with no archived original is counted as `held_skipped_no_archive` and retried on the next master change.
 - The switch `conversation_poll_recheck_enabled` is off until it is activated after the deploy (covered by "take R119 all the way to PROD").
 
 ## Remaining work
-Chase review, the push and CI, DEV, PROD promotion, activation of the recheck switch, the PROD Data Dictionary capture for `pwa_notify_content_v4` (and v3), and the closure pull request (freeze pin, promotion record, tag `R119`, prune, R120 opened).
+the Chase fix re-run, the push and CI, DEV, PROD promotion, activation of the recheck switch, the PROD Data Dictionary capture for `pwa_notify_content_v4` (and v3), and the closure pull request (freeze pin, promotion record, tag `R119`, prune, R120 opened).

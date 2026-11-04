@@ -353,6 +353,19 @@ class RecheckTests(unittest.TestCase):
         self.assertEqual(self.recheck([self.message('newer-id','456','2026-09-21T00:10:06+00:00')])['recheck_jobs'],0)
         self.assertEqual(self.outcomes(),{'old-id':'IGNORED'})
 
+    def test_two_ignored_rows_within_the_time_window_are_ambiguous_and_left(self):
+        # Chase (R119): Meta changed the slip's id and a caption text of the same group is recorded within 5 s of it: two
+        # candidates, so nothing is promoted (a wrong match would turn a text row into BORROWER and miss the slip).
+        text={'id':'t1','created_time':'2026-09-21T00:10:02+00:00','from':{'id':'456'},'message':'caption'}
+        self.first_scan([text,self.message('old-id','456','2026-09-21T00:10:00+00:00')])
+        self.enable_partner()
+        result=self.recheck([self.message('new-id','456','2026-09-21T00:10:01+00:00')])
+        self.assertEqual((result['recheck_jobs'],result['recheck_errors']),(0,0))
+        self.assertEqual(self.jobs(),{});self.assertEqual(self.outcomes(),{'old-id':'IGNORED','t1':'IGNORED'})
+        # The same slip with its stable id still matches exactly, whatever else is near it.
+        self.assertEqual(self.recheck([self.message('old-id','456','2026-09-21T00:10:00+00:00')])['recheck_jobs'],1)
+        self.assertEqual(self.outcomes(),{'old-id':'BORROWER','t1':'IGNORED'})
+
     def test_an_existing_job_by_either_id_or_by_source_blocks_a_duplicate(self):
         import json
         from datetime import datetime
@@ -480,6 +493,22 @@ class RecheckRunTests(unittest.TestCase):
         result,scanned,recheck=self.run_poll()
         self.assertEqual(scanned.call_args.kwargs['recheck'],{'usernames':set()})
         self.assertEqual(recheck.call_args.args[2:],(False,True,100.0));self.assertEqual(result['recheck'],'rechecked')
+
+    def test_a_scan_that_raises_keeps_the_snapshot_and_skips_the_held_pass(self):
+        # Chase (R119): the snapshot advances only after a complete scan and held pass; an exception in the scan leaves it.
+        from mw_integration_agent.conversation_poll import write_snapshot,master_fingerprint,run
+        self.config['conversation_poll_recheck_enabled']=True
+        saved=write_snapshot(self.root,master_fingerprint(self.master),now=100.0)
+        self.master['borrowers'].append({'id':'b2','username':'new','enabled':True})
+        recheck=Mock()
+        with patch('mw_integration_agent.conversation_poll.controls',return_value=self.config), \
+             patch('mw_integration_agent.conversation_poll.load_json',return_value={'services':{'conversation_poll':{'enabled':True}}}), \
+             patch('mw_integration_agent.conversation_poll.masters',return_value=self.master),patch('mw_integration_agent.conversation_poll.Instagram'), \
+             patch('mw_integration_agent.conversation_poll.scan',Mock(side_effect=RuntimeError('boom'))),patch('mw_integration_agent.receipt_recheck.recheck_held',recheck):
+            with self.assertRaises(RuntimeError):run('unused','unused')
+        recheck.assert_not_called();self.assertEqual(self.snapshot(),saved)
+        import fcntl
+        with (self.root/'receipt-worker.lock').open('a') as lock:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)  # released on the error
 
     def test_busy_worker_or_a_failed_group_keeps_the_snapshot(self):
         import fcntl

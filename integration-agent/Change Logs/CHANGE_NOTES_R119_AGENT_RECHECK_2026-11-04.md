@@ -22,10 +22,17 @@ Owner request, 3 and 4 November 2026 ("There're some items queued for R119. Fix 
 | `PYTHONPATH=src python3 -m unittest discover -s tests` (in `integration-agent/`) | 738 tests OK (Byte, working tree) |
 | `ruff check --no-cache integration-agent` | Clean (Byte) |
 | Pull request agent CI (`test`, `lab`) | Pending: record the run and commit |
-| Chase review | Pending |
+| Chase (agent part) | conversation_poll tests 43 OK with 2 new (an ambiguous time match is left alone; the snapshot is kept when a scan raises); `receipt_reconsider`, `receipt_recheck` and `deploy_runtime` tests and ruff pass. No high-severity defect. |
 
 ## Not run
+- A real Instagram or PROD recheck. Also not run: a 320 px layout check and WebKit (PWA part, see the release note).
 - Live Instagram and the VM: the recheck is exercised only against fakes and SQLite (and the lab in CI). The first live evidence is the first real master change after activation.
+
+## Known limitations
+- A slip whose message id changed, with another message from the group within 5 seconds, is skipped as ambiguous and stays ignored.
+- Re-enabling a borrower replays their ignored slips from yesterday and today (intended).
+- On a run where the master changed, `receipt-worker.lock` is held for the whole scan, so the worker skips that minute.
+- Archive guard: a held job with no archived original is counted as `held_skipped_no_archive` and retried on the next master change.
 
 ## Recovery
 - Switch off: set `conversation_poll_recheck_enabled` to false in the live configuration (a configuration-only change; restore the saved backup). The snapshot file can stay; it is read only while the switch is on.
