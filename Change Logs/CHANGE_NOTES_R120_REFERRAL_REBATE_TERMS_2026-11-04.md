@@ -41,18 +41,43 @@ UX (Echo to review wording):
 | BR-2 | Inline validation before the request: "Enter a whole percent from 0 to 100", "Enter a whole baht amount above 0". The API answers 422 `invalid_request`. |
 | LC-1 | Loan Close: a `field-help` basis line under the "Referral rebate ฿X" legend, "10% of ฿2,400 interest and late charges, maximum ฿1,000", or with custom terms "15% of ฿2,400 ..., maximum ฿1,500 · custom terms for <referrer>"; Thai wording as in the design. |
 | EX-1 | Expense detail: "Rebate terms" row after Gross Profit Basis ("15% · maximum ฿1,500"), "—" for rows booked before V135. |
+| BR-8, BR-9, LC-4 | Echo's built-UI findings on DEV; Byte is fixing them (see Remaining work). |
 | NONE | Receive payment, chat card, agent and push take the amount from the projection or expense and need no new text. The referred borrower's record, Collection, Dashboard and reports are unchanged. |
 
 Out of scope: showing the terms on the referred borrower, per-loan terms, restating booked rebates, backfill, a settings page for the defaults, push or agent wording beyond the catalogue inputs and business rules text.
 
 ## Checks
-<!-- PLACEHOLDER: the orchestrator supplies check results and DEV evidence; Dewey fills this table. Do not publish with this line. -->
 | Command | Result |
 | --- | --- |
-| (pending) | (pending) |
+| `Test-MigrationsCloud.py` chain (Byte, c9c1c0e) | Pass: 135 migrations, the SQL batch including `Test-RebateOffset.sql` section 5, the access matrix, 9 concurrency suites, checksum tamper rejected, `public-functions.sql` matches the rebuild |
+| `tests/integration/rebate-offset-independent.test.mjs` (Byte, c9c1c0e) | 16/16 |
+| `Run-Phase5` and `SettingsOnly` (Byte, c9c1c0e) | 10/10 and 4/4 |
+| Unit tests (Byte, c9c1c0e) | 1139 pass |
+| Typecheck, lint, `npm run check:docs` (Byte, c9c1c0e) | Pass |
+| The two changed Playwright specs (Byte, c9c1c0e) | 67/67 |
+| `Run-Phase5` R120 V96 compatibility (Chase, c9c1c0e) | 2/2 |
+| Full borrower test family (Chase, c9c1c0e) | 11/11 |
+| Chase adversarial review (c9c1c0e) | Pass |
+| CI `Database migrations` run 41806922523 (head 5f3a34b) | Pass (guards and 4 rebuilds) |
+| CI `Development checks` run 41806917499 (head 5f3a34b) | Pass (lint, check, 3 e2e shards; terraform skipped) |
+| DEV: V135, images, Hosting, smoke | Pass (Forge), see the DEV promotion record |
+| DEV acceptance, API as the DEV test Partner (Chase) | Pass, details below |
+| Push wording, read-only render of `pwa_notify_content_v4` on DEV events (Forge) | Pass: "Rebate ฿90 / ฿75 / ฿40 to R120 Test Referrer, transfer from Lisa"; the offset push reads "Rebate offset ฿60 · from loan …". Nothing was forced; the ordinary DEV dispatcher had already sent them |
+| Echo built-UI check on DEV, 375 px and desktop, English and Thai | Pass; findings BR-9, LC-4, BR-8 and the BR-1 error style are being fixed by Byte |
+
+DEV acceptance results:
+- Custom terms 15 and 1,500: set, read back, version OK.
+- Loan Close pay-out: expense ฿90 on profit 600, V2 with 15 and 1,500.
+- Receive payment settle-and-close: ฿75 on 500.
+- Terms cleared: defaults, ฿40 on 400 with 10 and 1,000.
+- Offset path with custom terms: ฿60 offset fully covered, payment `ro122:pwa:7df58fa0…`, expense V2 with 15 and 1,500.
+- Validation: 101, cap 0, "15" and 12.5 all return 400 with nothing written.
 
 ## Not run
-Pending the check results. Known so far: no PROD data, payment, forced notification or financial correction is part of this batch.
+- The remainder-payable offset case on DEV (covered by lab RO-T).
+- A push on a device.
+- No PROD action; PROD promotion needs the owner's instruction. No PROD data, payment, forced notification or financial correction is part of this batch.
+- The checks after Byte's fixes for BR-9, LC-4, BR-8 and BR-1 (to be added with their commit).
 
 ## Recovery
 - Before deployment: revert the commit.
@@ -61,9 +86,35 @@ Pending the check results. Known so far: no PROD data, payment, forced notificat
 - After deployment: V135 adds nullable columns and redefines functions; with no override set every close behaves as before. Pre-R120 images ignore the new columns. Restore from the verified PROD backup at V134 if the migration itself must be undone (backup reference pending, recorded in the promotion record).
 
 ## Open questions
-None. Production promotion needs the owner's "move to prod" or equivalent.
+None. Production promotion needs the owner's "move to prod" or equivalent. Accepted limitations (Chase's review):
+- The drift guard (P4C05) covers only the offset path, so a terms change between quote and close on the pay-out path books the current amount (same as before R120).
+- A rate set to 0 after a quote closes with no rebate.
 
 ## Remaining work
-- Checks table, DEV acceptance evidence (custom terms on a synthetic referrer through Loan Close and Receive payment, the expense row and the push text).
+- Byte's fixes for BR-9, LC-4, BR-8 and the BR-1 error style, then a Hosting redeploy; add its id and the re-run checks.
 - Data Dictionary refresh from a PROD capture after V135 is applied (the design approval covers the new `referral_rebate_terms` routine entry; deferral to closure accepted).
 - Closure: promotion record, tag record, freeze pin and prune in the closure pull request.
+
+## DEV promotion record (Forge, 4 November 2026, UTC)
+No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Item | Result |
+| --- | --- |
+| Scope | V135, the read, command and chat images and DEV Hosting labelled R120, from `5f3a34b`. Notify and jobs stay on R119 |
+| Backup at V134 | 09:25:31Z, listing and restore passed, 38 table fingerprints matched, folder `dev-refresh-77ebe5162593405b9906aa548672b7dc` |
+| Image | Cloud Build `70e0a4b1`, digest `3556d8ec…ddde8` |
+| Owner window | The five DEV owners, 20 statements, 09:33:58Z to 09:42:04Z; readback false |
+| V135 | Installed 09:34:18Z (6.1 s, checksum 1602217018), reconcile 0 violations, validate pass, head 135 |
+| Readback | SQL readback OK; `referral_rebate_terms` has EXECUTE for `mw_app_dev` only |
+| Terraform | 0 add, 3 change, 0 destroy (image only), applied 09:41:05Z to 09:41:43Z, re-plan clean, settings generation `1793785264889957` (previous `1793764420940700`) |
+| Revisions | read `00069-l8g`, command `00086-dkz`, chat `00038-p57` |
+| Hosting | `9d8740e03edcaec0`, live 09:43:43Z |
+| Smoke | Pass |
+| Limitation | A 7.5-minute borrower-edit gap, because the post-migrate reconcile took 6.5 minutes; no edit was attempted. PROD has no reconcile step |
+| Rollback | Settings generation `1793764420940700` plus Hosting `def99383e9f7b534`, or the V134 backup |
+
+Synthetic DEV records left in place, all marked "R120 DEV acceptance synthetic":
+- Borrowers: R120 Test Referrer `a47075fa…`, Referred A `e767c09e…`, Referred B `2fec85c3…`, Referred D `1095f411…`.
+- Open loans: `9fe89940…`, `cfc74bda…`, `4345f6a4…`.
+- Closed loans: `4e17a415…`, `5b4b3a5c…`, `40706a26…`, `c8dd59bb…`.
+- Their rebate expenses and payments.
