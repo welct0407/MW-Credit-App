@@ -13,6 +13,13 @@ Owner scope (4 November 2026): (1) the small numbers under open loans on the Bor
 - `integration-agent/src/mw_integration_agent/chat_relay_api.py`: the relay accepts an optional `thinking` key, strictly validated to absent, `{type:adaptive}` or `{type:between_tools}`; the chat service sends adaptive as before, so chat behaviour is unchanged. Records: [integration-agent change note](../integration-agent/Change%20Logs/CHANGE_NOTES_R122_CHAT_RELAY_THINKING_2026-11-04.md) and the `chat_messages_relay` catalogue row.
 - `tests/unit/chat-transliterate.test.mjs` (new).
 
+Speed benchmark (owner asked on 4 November 2026 to try faster models; Forge, VM-01, direct Messages API with the relay's DEV credentials, 10 synthetic names, 3 runs each):
+- Sonnet 5.5, thinking off: medium median 1380 ms (p90 1704); low 1384 ms (p90 1658), no gain.
+- Haiku 5.5, thinking off: low 822 ms (p90 985); medium 824 ms (p90 1251); weaker RTGS (for example ฤกษ์ดี gave "Rksdi", กฤษณ์ gave "Kritsanan", and the conventional spelling is Jaidee).
+- Haiku adaptive thinking: low 830 ms (p90 2573) with 3 of 30 replies not JSON; medium 1960 ms (p90 3227) with 7 of 30.
+- DEV end to end: model 1.3 to 1.8 s, chat and relay overhead 0.1 to 0.4 s, about 1.2 s network from the cloud test client (a phone in Bangkok was not measured), no cold start.
+- Owner decision: "Keep Sonnet". No code change.
+
 Design decisions and Byte's deviations from the design:
 - Relay auth is keyless federation; no Anthropic key exists in Secret Manager and none is added.
 - Model and thinking change on the owner's instructions of 4 November 2026: Sonnet 5.5 with thinking off, effort medium and `max_tokens` 512, replacing Opus 5.5 at medium and `max_tokens` 1024. Sonnet 5.5 needs `thinking:{type:'between_tools'}` to run without thinking, which the relay's request-key allowlist rejected, so the owner approved changing the relay.
