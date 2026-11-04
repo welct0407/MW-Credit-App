@@ -1,7 +1,7 @@
 # Change notes — R120 referral rebate overrides, 4 November 2026
 
 ## Purpose
-The owner asked on 4 November 2026 for per-referrer overrides of the referral rebate and accepted the design the same day. The rebate stays 10% of interest and late charges received, at most ฿1,000, unless the referrer's own Borrower record sets a different rate or maximum. Status: Open (in development).
+The owner asked on 4 November 2026 for per-referrer overrides of the referral rebate and accepted the design the same day. The rebate stays 10% of interest and late charges received, at most ฿1,000, unless the referrer's own Borrower record sets a different rate or maximum. The owner then moved R120 to production. Status: Released to DEV and PROD on 4 November 2026 (PROD package `a36046c`, PR #230); PROD acceptance pending the owner's first real use of custom terms; tag `R120` is on `a36046c`.
 
 ## Changes
 Scope:
@@ -65,6 +65,8 @@ Out of scope: showing the terms on the referred borrower, per-loan terms, restat
 | CI `Development checks` run 41806917499 (head 5f3a34b) | Pass (lint, check, 3 e2e shards; terraform skipped) |
 | Typecheck, lint, borrower-lock-key unit 6/6, both changed Playwright specs on desktop-chromium and mobile-chromium (Byte, 5dadcea's tree) | Pass: typecheck, lint clean, 6/6, 68/68 on each project, including the new BR-8 and LC-4 tests |
 | CI `Development checks` run 41812512541 (head 5dadcea) | Pass (lint, check, 3 e2e shards; terraform skipped) |
+| PROD: V135, images, Hosting, read-only smoke | Pass (Forge), see the PROD promotion record |
+| PROD CI receipts reused (Forge) | Check and e2e from run 41812512541 (5dadcea); terraform from 41203206026 (cb875ea); database guards and the four rebuilds from 41806922523 (5f3a34b); the PR run 41817174688 reused them |
 | DEV: V135, images, Hosting, smoke | Pass (Forge), see the DEV promotion record |
 | DEV acceptance, API as the DEV test Partner (Chase) | Pass, details below |
 | Push wording, read-only render of `pwa_notify_content_v4` on DEV events (Forge) | Pass: "Rebate ฿90 / ฿75 / ฿40 to R120 Test Referrer, transfer from Lisa"; the offset push reads "Rebate offset ฿60 · from loan …". Nothing was forced; the ordinary DEV dispatcher had already sent them |
@@ -81,22 +83,22 @@ DEV acceptance results:
 ## Not run
 - The remainder-payable offset case on DEV (covered by lab RO-T).
 - A push on a device.
-- No PROD action; PROD promotion needs the owner's instruction. No PROD data, payment, forced notification or financial correction is part of this batch.
+- No authenticated PROD read and no PROD write of custom terms: the first live evidence is the owner's first real use. No PROD payment, forced notification, backfill or financial correction was made.
 
 ## Recovery
 - Before deployment: revert the commit.
 - Deployment order risk: apply the images right after V135.
 - Version change: every borrower and expense version changes once at V135, so phone edits queued before V135 hit `source_conflict` once and recover through "Check current".
-- After deployment: V135 adds nullable columns and redefines functions; with no override set every close behaves as before. Pre-R120 images ignore the new columns. Restore from the verified PROD backup at V134 if the migration itself must be undone (backup reference pending, recorded in the promotion record).
+- After deployment: V135 adds nullable columns and redefines functions; with no override set every close behaves as before. Pre-R120 images ignore the new columns. PROD: activation generation `1793765130990079` and Hosting `98120c66424e688b` for the services; restore the verified backup `prod-promotion-139dcfd70c1943f1bf99c4f3f75559dc` (PROD at V134, 10:56:29Z, restore passed) if the migration itself must be undone.
 
 ## Open questions
-None. Production promotion needs the owner's "move to prod" or equivalent. Accepted limitations (Chase's review):
+None. Accepted limitations (Chase's review):
 - The drift guard (P4C05) covers only the offset path, so a terms change between quote and close on the pay-out path books the current amount (same as before R120).
 - A rate set to 0 after a quote closes with no rebate.
 
 ## Remaining work
-- Data Dictionary refresh from a PROD capture after V135 is applied (the design approval covers the new `referral_rebate_terms` routine entry; deferral to closure accepted).
-- Closure: promotion record, tag record, freeze pin and prune in the closure pull request.
+- PROD acceptance: the owner's first real use of custom terms.
+- Limitations stay as under Open questions; the push is not exercised on a device.
 
 ## DEV promotion record (Forge, 4 November 2026, UTC)
 No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
@@ -122,3 +124,39 @@ Synthetic DEV records left in place, all marked "R120 DEV acceptance synthetic":
 - Open loans: `9fe89940…`, `cfc74bda…`, `4345f6a4…`.
 - Closed loans: `4e17a415…`, `5b4b3a5c…`, `40706a26…`, `c8dd59bb…`.
 - Their rebate expenses and payments.
+
+## PROD promotion record (Forge, 4 November 2026, UTC)
+Authority: the owner's instruction to move R120 to production, recorded under Purpose. No PROD payment, forced notification, backfill, PROD test write or financial correction. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in the operator bucket under `promotion-packages/r120/`.
+
+| Step | Result |
+| --- | --- |
+| Freeze | `main` at `a36046c` (merge of PR #230 head `115578e`, identical tree). Runner derivation from R119 `0a8a8cd`: read, command and chat; V135; no infrastructure |
+| Baseline | `loan_manager_prod` on `mw-credit-pg-20261017` in `clever-oasis-508610-n7`; head 134, 134 rows, 0 failed; V134 checksum 468740600. All five services on the R119 image; Hosting R119 `98120c66424e688b` |
+| Backup at V134 | `prod-promotion-139dcfd70c1943f1bf99c4f3f75559dc`, 10:56:29Z, dump sha256 `5a3ac428…0324`, listing and restore passed, 38 table fingerprints |
+| SQL package | Manifest `release-r120-v135-a36046c.json` (`43a9c2f2…cc49`); connect preflight 11:02:23Z (18 retained consumers, 0 DEV sessions); `check` 11:02:28Z: 0 writes, pending exactly V135; V135 sha256 `2a24f4e0…7f3b`, the same as DEV |
+| Image | One Cloud Build image (`2952ffff`, PROD builder `mw-credit-app-build-prod`, `cloudbuild-business.yaml` smoke passed), 10:59:28Z to 10:59:57Z, digest `5679b454…3cbd` |
+| Owner window | `mw_app_prod_journal_owner`, 4 statements, opened 11:04:03Z, restored 11:06:57Z to 11:07:03Z; readback false |
+| V135 | `Invoke-CloudFlyway.py apply`, one transaction, 11:04:10Z to 11:05:34Z (6.8 s, checksum 1602217018); head 135, 0 failed; `verify --target prod` clean (11:07:57Z) |
+| Terraform | Read, command and chat overrides; plan 0 add, 3 change, 0 destroy, image only; applied 11:05:40Z to 11:06:17Z; re-plan clean |
+| Revisions | Ready 11:06:03Z to 11:06:08Z. The `source_conflict` window was about 35 s; no 409 responses |
+| SQL readback | OK. `referral_rebate_terms` has EXECUTE for `mw_app_prod` only, no agent grant; 0 rows populated |
+| Hosting | Generic runner as `mw-credit-unattended-admin`; `--check`, then `--apply` 11:09:42Z to 11:10:21Z, 16 files, `no-store`, package sha256 `5e5e0014…3aae`; private receipt `R120-HOSTING-RECEIPT.json` |
+| Smoke (read-only) | `/health` 200 on read, command and chat; unauthenticated 401; preflight 204; both origins on R120 embedding `a36046c`; `sw.js` no-store; no ERROR logs 11:04Z to 11:10:43Z; the command's version SQL equals `pwa_borrower_version_v2` for all 51 PROD borrowers |
+| CI receipts | Check and e2e from run 41812512541 (`5dadcea`); terraform from 41203206026 (`cb875ea`); database guards and the four rebuilds from 41806922523 (`5f3a34b`); the PR run 41817174688 reused them |
+| Not deployed | Notify, jobs, the agent, the VM and Metabase |
+
+### Limitations
+- PROD acceptance is pending: the owner's first real use of custom terms.
+- The P4C05 drift guard covers only the offset path; a rate set to 0 after a quote closes with no rebate.
+- The push is not exercised on a device. The schema digest at 135 starts a new chat history epoch.
+- No authenticated PROD read was made (no PROD Partner token).
+
+### Tag record
+Tag `R120` on `a36046c` (annotated tag object `f761b2d4fbaea997cfae3e2c2fe617ec455a014a`) through Release tag workflow run 41822526077, which succeeded at about 11:35Z; the same run published the [GitHub Release](https://github.com/welct0407/MW-Credit-App/releases/tag/R120). The first attempt, run 41819246730 (two tries), failed with GitHub 500s during the GitHub Git-operations incident and created no tag.
+
+### Closure and prune record
+Closure pull request on branch `claude/r120-closure`, records only: tracker (R120 Released, R121 opened, next unused number R122), Development Changes (R120 follow-up row, R121 row), Environment Inventory (PROD rows), `database/README.md` (V135 applied), Solution Design and Data Model Overview status, the Data Dictionary and this note.
+- Data Dictionary: PROD capture as `codex-cloud-read` (metadata only, schema at Flyway 135); targeted reconcile of `Borrowers`, `Business Expenses`, `create_referral_rebate`, `pwa_referral_rebate_projection_v1`, `pwa_submit_operation_v2`, `pwa_borrower_version_v2` and the new `referral_rebate_terms` (one new entry, evidence `project/outputs/dictionary-r120-20261104/`); `dictionary.py index` and `validate` pass (480 documents, 0 errors).
+- Deleted: `Change Logs/CHANGE_NOTES_R117_REBATE_OFFSET_PER_LOAN_2026-11-03.md` (R117 left the three-release retention window). Its inbound links in the tracker, Development Changes, the Environment Inventory and the Solution Design were first repointed to the permalink at `a36046c`. No R117 note exists under `integration-agent/Change Logs`.
+- Deleted: `project/outputs/dictionary-r117-20261103/` (no current document cites it after the R120 reconcile).
+- Kept: the R118 and R119 notes (inside the window); `project/outputs/dictionary-r116-20261103/`, `-r119-` and `-r115-` (cited by Data Dictionary entries).
