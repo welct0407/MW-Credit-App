@@ -15,6 +15,10 @@ and no default switch changed), the live service names and capabilities must mat
 kept exactly as they are (only the revision number changes). The live switches are never compared with the
 repository defaults: a host that enabled a service must pass. The new behaviour is behind the configuration switch
 pay_forward_options_enabled, which a deploy keeps as it is (absent means off).
+R119 (agent recheck of ignored and held slips): the one accepted change of a live revision 34 to the candidate revision
+35, the same shape as R112: the candidate's services are exactly the repository revision 34 template's (unchanged in 35),
+the live services match them and the live switches are kept. The new behaviour is behind the configuration switch
+conversation_poll_recheck_enabled, which a deploy keeps as it is (absent means off).
 `deploy-shared-receipt-api.py` is the engine; this file supplies the preparation. The probe is the engine's
 read-only receipt-status GET (the native conversation probe left with the conversation)."""
 import copy
@@ -42,6 +46,9 @@ R102_SERVICES=frozenset({'chat_messages_relay'})
 R112_REVISIONS=(33,34)
 # sha256 of the compact, key-sorted JSON of the repository revision 33 catalogue's services (unchanged in revision 34).
 R112_TEMPLATE_SHA256='5300fe1aa4c2072208df1d0b9853083c48ece0725a57636fc58d1655ab7b8e27'
+R119_REVISIONS=(34,35)
+# The repository revision 34 catalogue's services, unchanged in revision 35 (the same template as R112's).
+R119_TEMPLATE_SHA256=R112_TEMPLATE_SHA256
 
 
 def services_sha256(services):
@@ -58,6 +65,7 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
     r091=(catalogue.get('revision'),candidate.get('revision'))==R091_REVISIONS
     r102=(catalogue.get('revision'),candidate.get('revision'))==R102_REVISIONS
     r112=(catalogue.get('revision'),candidate.get('revision'))==R112_REVISIONS
+    r119=(catalogue.get('revision'),candidate.get('revision'))==R119_REVISIONS
     if r091:
         base.require(live-wanted==R091_SERVICES and wanted<=live,'R091 catalogue must drop exactly the retired conversation services')
     elif r102:
@@ -67,6 +75,10 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
         # Repository revision 34 against repository revision 33: no service definition or default switch changed.
         base.require(services_sha256(candidate['services'])==R112_TEMPLATE_SHA256,'R112 candidate must keep the revision 33 services and switches')
         base.require(live==wanted,'R112 catalogue must keep every service')
+    elif r119:
+        # Repository revision 35 against repository revision 34: no service definition or default switch changed.
+        base.require(services_sha256(candidate['services'])==R119_TEMPLATE_SHA256,'R119 candidate must keep the revision 34 services and switches')
+        base.require(live==wanted,'R119 catalogue must keep every service')
     else:
         base.require(catalogue.get('revision')==candidate.get('revision'),'Catalogue revision drift')
         base.require(live==wanted,'Service drift')
@@ -81,6 +93,9 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
     if r112:
         cat['revision']=candidate['revision']
         base.require(cat['services']==catalogue['services'],'R112 must keep the live switches')
+    if r119:
+        cat['revision']=candidate['revision']
+        base.require(cat['services']==catalogue['services'],'R119 must keep the live switches')
     if r102:
         cat['revision']=candidate['revision']
         for name in R102_SERVICES:cat['services'][name]=dict(candidate['services'][name])

@@ -128,11 +128,11 @@ test('Expenses: an offset-settled rebate reads "Settled by offset" with the refe
 // The record field `closeRebate` and its keys are Byte's contract to align; the wording is Echo's.
 // Amounts as the API sends them (numeric text with two decimals, found on DEV: a whole-number-only reader hid the line).
 const closeRebate=(over:any={})=>({loanId:'C-loan',amount:'300.00',referrerLabel:'ผู้แนะนำจำลอง',offsetPaymentId:'ro122:pwa:C-closing',offsetAmount:'300.00',payableAmount:'0',offsetLoanId:'C-referrer-loan',offsetLoanLabel:'L-0398',paidThrough:'2026-10-12',...over});
-async function openClosingPayment(page:Page,rebateLine:any){
+async function openClosingPayment(page:Page,rebateLine:any,extra:any={}){
  const row={id:'C-closing',paymentDate:'2026-10-09',month:'2026-10',borrowerId:record.id,borrowerDisplayName:'SYNTHETIC closing borrower',status:'Posted',amountReceived:'1300',postedAmount:'1300',createdAt:null,groupAmountReceived:'1300'};
  await page.route('https://mw-credit-app-command-dev-test.run.app/api/payment-records**',r=>{const u=new URL(r.request().url());
   if(u.pathname==='/api/payment-records'){const month=u.searchParams.get('month');const result=month?{level:'payments',items:[row],nextCursor:null}:u.searchParams.has('borrowerId')?{level:'months',items:[{month:'2026-10',amountReceived:'1300',count:1}],nextCursor:null}:{level:'borrowers',items:[{id:record.id,borrowerId:record.id,borrowerDisplayName:'SYNTHETIC closing borrower'}],nextCursor:null};return r.fulfill({contentType:'application/json',body:JSON.stringify(result)})}
-  return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,asOf:new Date().toISOString(),businessDate:'2026-10-09',item:{id:'C-closing',version:'e'.repeat(64),borrowerName:'SYNTHETIC closing borrower',paymentDate:'2026-10-09',amountReceived:'1300',postedAmount:'1300',status:'Posted',notes:null,allocations:[],repayments:[],cashMovements:[],agentReceiptPresent:false,receiptReference:null,...(rebateLine?{closeRebate:rebateLine}:{})}})})});
+  return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,asOf:new Date().toISOString(),businessDate:'2026-10-09',item:{id:'C-closing',version:'e'.repeat(64),borrowerName:'SYNTHETIC closing borrower',paymentDate:'2026-10-09',amountReceived:'1300',postedAmount:'1300',status:'Posted',notes:null,allocations:[],repayments:[],cashMovements:[],agentReceiptPresent:false,receiptReference:null,...(rebateLine?{closeRebate:rebateLine,...extra}:{})}})})});
  const nav=page.locator(page.viewportSize()!.width<=1050?'.live-bottom-nav':'#live-desktop-navigation');
  await nav.getByRole('button',{name:'Payments',exact:true}).click();
  const list=page.getByRole('region',{name:'Payments list',exact:true});await expect(list.locator('.payment-borrower-group')).toHaveCount(1);
@@ -154,4 +154,20 @@ test('a partly offset rebate adds the payable suffix; a payment without a rebate
 test('an ordinary payment has no Loan closed rebate line',async({page})=>{
  await setup(page);const detail=await openClosingPayment(page,null);
  await expect(detail).not.toContainText('Loan closed');await expect(detail).not.toContainText('rebate');
+});
+// R119 (Echo PR-1/PR-2): a payment that closed two referred loans shows one line per loan, each starting with the closed
+// loan's key, in the order the API sends (the Payment Allocations order); a single rebate keeps today's text.
+test('R119: two closeRebates give two lines in order, each starting with its closed loan key',async({page})=>{
+ await setup(page);
+ const first=closeRebate({loanId:'C-loan-a',loanDisplayKey:'SYNTHETIC A-฿1,000-01/10-2%',amount:'30.00',referrerLabel:'Referrer A',offsetPaymentId:null,offsetAmount:null,offsetLoanId:null,offsetLoanLabel:null,paidThrough:null,payableAmount:'30'});
+ const second=closeRebate({loanId:'C-loan-b',loanDisplayKey:'SYNTHETIC B-฿2,000-02/10-2%',amount:'20.00',referrerLabel:'Referrer B',offsetPaymentId:'ro122:pwa:C-closing:C-loan-b',offsetAmount:'20.00',payableAmount:'0'});
+ const detail=await openClosingPayment(page,first,{closeRebates:[first,second]});
+ const lines=detail.locator('.close-rebate-line');await expect(lines).toHaveCount(2);
+ await expect(lines.nth(0)).toHaveText('Loan SYNTHETIC A-฿1,000-01/10-2% closed · rebate ฿30 to Referrer A, transfer from Lisa');
+ await expect(lines.nth(1)).toHaveText('Loan SYNTHETIC B-฿2,000-02/10-2% closed · rebate ฿20 offset to L-0398, paid through 12 Oct');
+});
+test('R119: a record with only closeRebate (no closeRebates) shows one line with today\'s text',async({page})=>{
+ await setup(page);const detail=await openClosingPayment(page,closeRebate({loanDisplayKey:'SYNTHETIC C-฿1,000-01/10-2%'}));
+ const lines=detail.locator('.close-rebate-line');await expect(lines).toHaveCount(1);
+ await expect(lines).toHaveText('Loan closed · rebate ฿300 offset to L-0398, paid through 12 Oct');
 });

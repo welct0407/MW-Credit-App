@@ -176,7 +176,7 @@ for(const [kind,label] of [['daily','a daily-interest loan'],['installment','the
   // The offset payment reads like any payment (its plan comes from that journal row) and the closing payment says what became of the rebate.
   const offRecord=await store.paymentRecord(principal,off[0].id);assert.equal(offRecord.status,200,JSON.stringify(offRecord).slice(0,300));assert.ok(offRecord.item.allocations.length>=1);
   const closing=await store.paymentRecord(principal,posted.originalOutcome.paymentId);assert.equal(closing.status,200,JSON.stringify(closing).slice(0,300));
-  const line=closing.item.closeRebate;assert.ok(line,'the closing payment carries the rebate line');assert.equal(Number(line.amount),s.rebate);assert.equal(line.offsetPaymentId,off[0].id);assert.equal(Number(line.offsetAmount),s.rebate);assert.equal(Number(line.payableAmount),0);assert.equal(line.offsetLoanId,s.rl);assert.match(line.referrerLabel,/SYNTHETIC REFERRER/);if(s.rebate>=10)assert.ok(line.paidThrough,'a rebate covering a whole charge says paid through');
+  const line=closing.item.closeRebate;assert.ok(line,'the closing payment carries the rebate line');assert.deepEqual(closing.item.closeRebates,[line],'R119: one closed loan, one line');assert.equal(Number(line.amount),s.rebate);assert.equal(line.offsetPaymentId,off[0].id);assert.equal(Number(line.offsetAmount),s.rebate);assert.equal(Number(line.payableAmount),0);assert.equal(line.offsetLoanId,s.rl);assert.match(line.referrerLabel,/SYNTHETIC REFERRER/);if(s.rebate>=10)assert.ok(line.paidThrough,'a rebate covering a whole charge says paid through');
   // The Expenses read shows the offset settlement.
   const record=await store.expenseRecord(principal,'rr1:'+s.loan);assert.equal(record.item.offsetPaymentId,off[0].id);assert.equal(record.item.canDelete,false);
  });
@@ -191,7 +191,7 @@ test('extension: a referrer whose schedule cannot take the offset leaves the reb
  }
  assert.equal((await admin.query(`SELECT count(*)::integer AS n FROM "Charges" WHERE "Ref Loans"=$1`,[gated.rl])).rows[0].n,0,'the unbookable referrer loan is untouched');
  // The closing payment's record says the rebate is paid out from Lisa.
- const closing=await store.paymentRecord(principal,b.posted.originalOutcome.paymentId),line=closing.item.closeRebate;assert.ok(line);assert.equal(line.offsetPaymentId??null,null);assert.equal(Number(line.payableAmount),none.rebate);
+ const closing=await store.paymentRecord(principal,b.posted.originalOutcome.paymentId),line=closing.item.closeRebate;assert.ok(line);assert.equal(closing.item.closeRebates.length,1);assert.equal(line.offsetPaymentId??null,null);assert.equal(Number(line.payableAmount),none.rebate);
  const plain=await scenario(),ordinary=await store.paymentRecord(principal,(await close(plain,{rebatePath:'expense'})).applied.originalOutcome.result.paymentId);void ordinary;
 });
 
@@ -227,6 +227,14 @@ test('V131: one payment closing two referred loans offsets each rebate separatel
   assert.equal(await journalRow(loan,id),1,'one system.rebate-offset journal row for '+loan);
   assert.equal(await lisaNet(id,'rr1:'+loan),0,'Lisa cash nets to zero for '+loan);
  }
+ // R119: the closing payment's record carries both rebates, each with its own offset, in the Payment Allocations order;
+ // closeRebate stays the first for an older bundle.
+ const record=await store.paymentRecord(principal,closing);assert.equal(record.status,200,JSON.stringify(record).slice(0,300));
+ const lines=record.item.closeRebates;assert.equal(lines.length,2,'both rebates reach the payment record');
+ assert.deepEqual(lines.map(l=>[l.loanId,l.offsetPaymentId,Number(l.amount),Number(l.offsetAmount),Number(l.payableAmount)]).sort((a,b)=>a[0]<b[0]?-1:1),expected.map(([loan,amount])=>[loan,'ro122:'+closing+':'+loan,Number(amount),Number(amount),0]));
+ assert.deepEqual(lines.map(l=>l.loanDisplayKey),record.item.allocations.map(a=>a.loanDisplayKey),'one allocation per loan: the lines follow the allocations');
+ for(const l of lines)assert.ok(l.loanDisplayKey,'each line names its closed loan');
+ assert.deepEqual(record.item.closeRebate,lines[0]);
  // Replaying the same request returns the recorded status and adds nothing.
  const replay=await store.submit(principal,command);assert.equal(replay.originalOutcome?.status,'posted',JSON.stringify(replay));assert.equal(replay.originalOutcome.paymentId,closing);
  assert.equal((await offsetPayment(s.referrer)).length,2,'still two offsets after the replay');
@@ -273,4 +281,27 @@ test('extension: a correction re-post of an older closing payment (Close Date no
  assert.equal(corrected.originalOutcome?.status,'applied',JSON.stringify(corrected));
  assert.equal((await offsetPayment(s.referrer)).length,0,'a historical re-post never offsets');
  assert.deepEqual(await rebateExpense(s.loan),{amount:s.rebate+'.00',off:null,holder:'ch:lisa'},'the rebate is recreated as an expense');
+});
+
+// R119 (Chase): the two loans of the V131 case share a display key, so that test cannot tell the order. Here the second loan
+// differs (another principal) and the command lists its charge FIRST: closeRebates must follow the Payment Allocations order,
+// not the loan id order (LOAN < LOAN2), and closeRebate must be the first of them.
+test('R119: closeRebates follow the Payment Allocations order, not the loan id order; the keys differ',async()=>{
+ const s=await autoScenario(),loan2=s.id+'-LOAN2';
+ await admin.query(`INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval") VALUES($1,$2,$3,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-3,500::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,100::money,1)`,[loan2,s.borrower,fixture.lendingAccountId]);
+ await admin.query(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,$3::date,500::money,200::money)`,[loan2+'-today',loan2,today]);
+ await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"=$1`,[loan2]);
+ const total=1300+700,assigned=await store.autoAssign(principal,s.borrower,{amountReceived:String(total)});assert.equal(assigned.status,200,JSON.stringify(assigned));
+ const chargeLoan=new Map((await admin.query(`SELECT "Row ID" AS id,"Ref Loans" AS loan FROM "Charges" WHERE "Ref Loans"=ANY($1)`,[[s.loan,loan2]])).rows.map(r=>[r.id,r.loan]));
+ const reversed=[...assigned.allocations].sort((a,b)=>chargeLoan.get(a.chargeId)<chargeLoan.get(b.chargeId)?1:-1);
+ assert.equal(chargeLoan.get(reversed[0].chargeId),loan2,'the command lists the second loan first');
+ const command={schemaVersion:7,requestId:randomUUID(),borrowerId:s.borrower,allocations:reversed,cashAccountId:fixture.receivingAccountId,paymentDate:today,amountReceived:String(total),paymentMethod:'Bank Transfer',notes:null,receiptId:null,bankReference:null,transferTime:null};
+ const posted=await store.submit(principal,command);assert.equal(posted.originalOutcome?.status,'posted',JSON.stringify(posted));
+ const record=await store.paymentRecord(principal,posted.originalOutcome.paymentId);assert.equal(record.status,200,JSON.stringify(record).slice(0,300));
+ const lines=record.item.closeRebates,allocationLoans=record.item.allocations.map(a=>chargeLoan.get(a.chargeId));
+ assert.equal(lines.length,2);assert.deepEqual(allocationLoans,[loan2,s.loan],'the allocations are in the command order');
+ assert.deepEqual(lines.map(l=>l.loanId),[loan2,s.loan],'the lines follow the allocations, not "Row ID" order');
+ assert.notEqual(lines[0].loanDisplayKey,lines[1].loanDisplayKey,'the two loans have different keys');
+ assert.deepEqual(lines.map(l=>l.loanDisplayKey),record.item.allocations.map(a=>a.loanDisplayKey));
+ assert.deepEqual(record.item.closeRebate,lines[0],'closeRebate is the first line');
 });

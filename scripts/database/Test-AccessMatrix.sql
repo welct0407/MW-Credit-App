@@ -181,6 +181,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_dispatch_dev','pwa_notify_content_v1(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_content_v2(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_content_v3(uuid,bigint)'),
+  ('mw_notify_dispatch_dev','pwa_notify_content_v4(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_enqueue_v1(uuid,uuid,bigint,boolean)'),
   ('mw_notify_dispatch_dev','pwa_notify_prepare_send_v1(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_start_send_v1(uuid,bigint,bigint)'),
@@ -193,6 +194,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_owner_dev','pwa_notify_content_v1(uuid,bigint)'),
   ('mw_notify_owner_dev','pwa_notify_content_v2(uuid,bigint)'),
   ('mw_notify_owner_dev','pwa_notify_content_v3(uuid,bigint)'),
+  ('mw_notify_owner_dev','pwa_notify_content_v4(uuid,bigint)'),
   ('mw_notify_owner_dev','pwa_notify_eligible_v1(uuid,uuid)'),
   ('mw_notify_owner_dev','pwa_notify_enqueue_v1(uuid,uuid,bigint,boolean)'),
   ('mw_notify_owner_dev','pwa_notify_history_content_v1(jsonb,uuid[])'),
@@ -277,6 +279,9 @@ DO $$ BEGIN
   OR NOT has_column_privilege('mw_notify_owner_dev','public."Repayments"','Ref Payment','SELECT') OR NOT has_column_privilege('mw_notify_owner_dev','public."Repayments"','Late Charge Paid','SELECT')
   OR has_table_privilege('mw_notify_owner_dev','public."Repayments"','SELECT') OR has_column_privilege('mw_notify_owner_dev','public."Repayments"','Interest Paid','SELECT') THEN
   RAISE EXCEPTION 'pwa_notify_content_v3 must be the notify owner''s pinned definer reading two Repayments columns'; END IF;
+ -- V134 (R119): content v4 is the same pinned definer over the same column grants (no new grant).
+ IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_content_v4(uuid,bigint)'::regprocedure) THEN
+  RAISE EXCEPTION 'pwa_notify_content_v4 must be the notify owner''s pinned definer'; END IF;
  -- V103 (R089): the history content RPC is the notify owner's pinned definer over the same column grants (no new grant).
  IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_history_content_v1(jsonb,uuid[])'::regprocedure) THEN RAISE EXCEPTION 'pwa_notify_history_content_v1 must be the notify owner''s pinned definer'; END IF;
  -- V104 (R090): the chat owner owns the four tables and every pwa_chat_* routine and is NOLOGIN with no membership;

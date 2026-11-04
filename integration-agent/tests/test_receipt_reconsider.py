@@ -76,6 +76,45 @@ class ReconsiderTests(unittest.TestCase):
         journal = ReceiptJournal(self.root / 'receipt-processing.db'); self.addCleanup(journal.close)
         self.assertEqual(tuple(journal.db.execute('SELECT status,attempts FROM receipt_jobs').fetchone()), ('REVIEW', 2))
 
+    # R119: a PREPARED job from receipt-prepare (source kind operator-selected) goes back to PENDING through the same
+    # requeue; its candidate file stays as it is; a decided review is still refused.
+    def prepared(self, journal, kind='operator-selected'):
+        import hashlib
+        from mw_integration_agent.receipt_archive import source
+        key = hashlib.sha256(b'message-1:0').hexdigest()
+        journal.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,created_at,source) VALUES (?,?,?,?,?,?,?)",
+                           (key, 'message-1', '123', 'https://old', 'PREPARED', time.time(), source(kind, 'message-1', 0, '123', time.time(), time.time())))
+        journal.db.commit()
+        return key
+
+    def history(self):
+        return patch('mw_integration_agent.receipt_reconsider.pages',
+                     return_value=[[{'messages': {'data': [{'id': 'message-1', 'attachments': {'data': [{'image_data': {'url': 'https://fresh'}}]}}]}}]])
+
+    def test_prepared_operator_selected_job_returns_to_pending(self):
+        journal = self.journal(); key = self.prepared(journal); journal.close()
+        candidate = self.root / 'receipt-candidates'; candidate.mkdir(); (candidate / (key + '.json')).write_text('{"kept": true}')
+        with self.history():
+            self.assertEqual(receipt_reconsider.run('config', 'catalogue', key), {'status': 'RECONSIDERATION_QUEUED', 'prior_review_superseded': False})
+        journal = ReceiptJournal(self.root / 'receipt-processing.db'); self.addCleanup(journal.close)
+        self.assertEqual(tuple(journal.db.execute('SELECT status,detail,url,attempts FROM receipt_jobs WHERE id=?', (key,)).fetchone()),
+                         ('PENDING', 'OWNER_REQUESTED_RECONSIDERATION', 'https://fresh', 0))
+        self.assertEqual(json.loads(journal.db.execute('SELECT previous FROM receipt_reconsiderations').fetchone()[0])['status'], 'PREPARED')
+        self.assertEqual((candidate / (key + '.json')).read_text(), '{"kept": true}')
+
+    def test_prepared_job_of_another_source_or_with_a_decided_review_is_refused(self):
+        journal = self.journal(); key = self.prepared(journal, kind='poll'); journal.close()
+        with self.history(), self.assertRaisesRegex(ConfigurationError, 'RECONSIDERATION_NOT_ELIGIBLE'):
+            receipt_reconsider.run('config', 'catalogue', key)
+        journal = ReceiptJournal(self.root / 'receipt-processing.db')
+        journal.db.execute('DELETE FROM receipt_jobs'); journal.db.commit(); key = self.prepared(journal)
+        review = ReviewStore(journal.db).reserve(key, {'action': 'Lump Sum'})
+        journal.db.execute("UPDATE partner_reviews SET state='APPROVED' WHERE id=?", (review,)); journal.db.commit(); journal.close()
+        with self.history(), self.assertRaisesRegex(ConfigurationError, 'DECIDED_REVIEW_CANNOT_BE_REOPENED'):
+            receipt_reconsider.run('config', 'catalogue', key)
+        journal = ReceiptJournal(self.root / 'receipt-processing.db'); self.addCleanup(journal.close)
+        self.assertEqual(journal.db.execute('SELECT status FROM receipt_jobs').fetchone()[0], 'PREPARED')
+
 
 if __name__ == '__main__':
     unittest.main()

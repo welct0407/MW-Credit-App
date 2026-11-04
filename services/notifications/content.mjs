@@ -37,6 +37,38 @@ function rebateLine(language,facts){
  const amount=baht(facts.rebatePayable);if(!['loan.closed','payment.posted'].includes(facts.eventType??'')||!amount||!(Number(facts.rebatePayable)>0))return null;
  return payee=>language==='th'?`ค่าแนะนำ ${amount}${payee?' ให้ '+payee:''} โอนจาก Lisa`:`Rebate ${amount}${payee?' to '+payee:''}, transfer from Lisa`;
 }
+/** R119 (V134 pwa_notify_content_v4 `rebates`): every rebate of the payment, payable parts summed per referrer (Echo
+ * PUSH-1, in cents so the sum is exact); only payable (> 0) parts count. null when the facts predate V134. */
+function payableRebates(facts){
+ if(!Array.isArray(facts.rebates))return null;
+ const cents=new Map();
+ for(const r of facts.rebates){const n=Number(r?.payable);if(r?.payable==null||r.payable===''||!Number.isFinite(n)||!(n>0))continue;const payee=clean(r.payee);cents.set(payee,(cents.get(payee)??0)+Math.round(n*100));}
+ return [...cents].map(([payee,c])=>({payee,payable:c/100}));
+}
+/** R119 (Echo PUSH-2..4): the wording of two or more referrers in one line; the last item is joined with "and"/"และ";
+ * the collapsed form is the total and the number of referrers. Every push string of the several-rebates line is here. */
+const REBATES={
+ en:{item:(amount,payee)=>amount+(payee?' to '+payee:''),join:items=>items.length<3?items.join(' and '):items.slice(0,-1).join(', ')+' and '+items.at(-1),
+  line:list=>`Rebates ${list}, transfer from Lisa`,total:(amount,count)=>`Rebates ${amount} total to ${count} referrers, transfer from Lisa`},
+ th:{item:(amount,payee)=>amount+(payee?' ให้ '+payee:''),join:items=>items.slice(0,-1).join(' ')+' และ '+items.at(-1),
+  line:list=>`ค่าแนะนำ ${list} โอนจาก Lisa`,total:(amount,count)=>`ค่าแนะนำรวม ${amount} ให้ผู้แนะนำ ${count} ราย โอนจาก Lisa`}
+};
+const PAYEE_MIN=6;
+/** R119: two or more referrers. Fit (BODY_BUDGET): amounts and "Lisa" are never cut; the borrower name is shortened first
+ * (dropped under 2 graphemes), then every payee is cut to one equal length of at least 6; if still over, the total. */
+function rebatesBody(language,list,late,name){
+ const words=REBATES[language],sep=' · ',tail=late?sep+late:'';
+ const build=keep=>words.line(words.join(list.map(r=>words.item(baht(r.payable),keep==null||graphemeLength(r.payee)<=keep?r.payee:cut(r.payee,keep-1)))))+tail;
+ const withName=body=>{const rest=BODY_BUDGET-graphemeLength(body)-graphemeLength(sep);return name&&rest>=2?body+sep+(graphemeLength(name)>rest?cut(name,rest-1):name):body;};
+ let body=build(null);
+ if(graphemeLength(body)>BODY_BUDGET){
+  body=null;
+  for(let keep=Math.max(...list.map(r=>graphemeLength(r.payee)))-1;keep>=PAYEE_MIN&&body==null;keep--){const b=build(keep);if(graphemeLength(b)<=BODY_BUDGET)body=b;}
+  body??=words.total(baht(list.reduce((sum,r)=>sum+Math.round(r.payable*100),0)/100),list.length)+tail;
+  if(graphemeLength(body)>BODY_BUDGET)body=cut(body,BODY_BUDGET-1);
+ }
+ return withName(body);
+}
 /** R111: a Referral Rebate Offset payment is not cash from the referrer: "Rebate offset ฿300 · <referrer> · from loan <key>". */
 const OFFSET={en:{title:'Rebate offset',from:'from loan '},th:{title:'หักค่าแนะนำ',from:'จากสินเชื่อ '}};
 function offsetNotification(language,facts){
@@ -55,7 +87,7 @@ function latePart(language,facts){
  return facts.eventType==='payment.posted'&&amount&&Number(facts.lateChargeAmount)>0?LATE[language]+amount:'';
 }
 /**
- * @param {{found?:boolean,eventType?:string,language?:string,borrowerName?:string|null,amount?:unknown,rebatePayee?:string|null,rebatePayable?:unknown,paymentMethod?:string|null,rebateLoan?:string|null,lateChargeAmount?:unknown}|null|undefined} facts
+ * @param {{found?:boolean,eventType?:string,language?:string,borrowerName?:string|null,amount?:unknown,rebatePayee?:string|null,rebatePayable?:unknown,paymentMethod?:string|null,rebateLoan?:string|null,lateChargeAmount?:unknown,rebates?:{amount?:unknown,payee?:string|null,payable?:unknown}[]|null}|null|undefined} facts
  * @returns {{title:string,body:string}}
  */
 export function renderNotification(facts){
@@ -69,6 +101,11 @@ export function renderNotification(facts){
  // Body: the borrower name only (owner decision: no actor), shortened with "…" only beyond the budget. V100 already
  // picked the name for the recipient's language (English: the English name only); none gives an empty body, title only.
  const name=clean(facts.borrowerName);
+ // R119: with v4 facts the payable rebates are summed per referrer; one referrer keeps the single-rebate wording with
+ // the sum, two or more take the several-rebates line.
+ const list=['loan.closed','payment.posted'].includes(facts.eventType)?payableRebates(facts):null;
+ if(list&&list.length>1)return{title,body:rebatesBody(language,list,latePart(language,facts),name)};
+ if(list)facts={...facts,rebatePayee:list[0]?.payee||null,rebatePayable:list[0]?.payable??null};
  // R111: the rebate line comes first, then the borrower name; the referrer's name is shortened first, then the borrower's.
  const rebate=rebateLine(language,facts);
  // R118 (Echo LC-PUSH-2): the order is rebate line, late part, name; amounts are never cut; the name is shortened first,
