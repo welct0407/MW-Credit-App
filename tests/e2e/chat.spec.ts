@@ -677,6 +677,7 @@ test('R112: a split needs the principal part and is used only once it is entered
 });
 
 // R122: "Translate from Thai" on the New borrower form (POST /api/chat/transliterate stubbed; synthetic names only).
+const borrowerOptions=async(context:BrowserContext)=>{await context.route('https://'+commandHost+'/api/borrower-options**',route=>route.fulfill({json:{ok:true,accounts:[],referrers:[]}}))};
 async function openNewBorrower(page:Page){
  await page.getByRole('button',{name:/^(Borrowers|ผู้กู้)$/}).filter({visible:true}).first().click();
  await page.getByRole('button',{name:'Add borrower',exact:true}).click();
@@ -685,7 +686,7 @@ async function openNewBorrower(page:Page){
 }
 test('R122: Translate from Thai fills the English name, asks before replacing, shows an error and is disabled while the Thai name is blank',async()=>{
  const calls:any[]=[];let mode:'ok'|'fail'|'hold'='ok',release:(()=>void)|undefined,answer='Somchai Jaidee';
- const {context,page}=await launch({configure:async context=>{await context.route(chatOrigin+'/api/chat/transliterate',async route=>{
+ const {context,page}=await launch({configure:async context=>{await borrowerOptions(context);await context.route(chatOrigin+'/api/chat/transliterate',async route=>{
   const request=route.request();if(request.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'POST'}});
   calls.push({body:request.postDataJSON(),authorized:!!request.headers().authorization});
   if(mode==='hold')await new Promise<void>(done=>{release=done});
@@ -717,14 +718,14 @@ test('R122: Translate from Thai fills the English name, asks before replacing, s
 test('R122: Translate from Thai is absent without a chat origin and disabled offline',async()=>{
  fixture.setBuildRoot(join(root,'plain'));
  try{
-  const {context,page}=await launch();
+  const {context,page}=await launch({configure:borrowerOptions});
   try{const {region,english}=await openNewBorrower(page);await expect(english).toBeVisible();await expect(region.getByRole('button',{name:'Translate from Thai'})).toHaveCount(0)}finally{await context.close()}
  }finally{fixture.setBuildRoot(join(root,'chat'))}
- const {context,page}=await launch();
+ const {context,page}=await launch({configure:borrowerOptions});
  try{const {thai,button}=await openNewBorrower(page);await thai.fill('สมชาย');await expect(button).toBeEnabled();await context.setOffline(true);await expect(button).toBeDisabled()}finally{await context.close()}
 });
 test('R122: the New borrower form with Translate from Thai fits 320 and 390 px (EN and TH)',async()=>{
- const {context,page}=await launch();
+ const {context,page}=await launch({configure:borrowerOptions});
  try{
   for(const width of [320,390]){
    await page.setViewportSize({width,height:844});const {thai,button,region}=await openNewBorrower(page);await thai.fill('สมชาย ใจดี');
