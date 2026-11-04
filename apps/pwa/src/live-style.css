@@ -518,6 +518,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .payment-record>.related-loans-heading{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.payment-record>.related-loans-heading>h2{flex:1 1 160px;min-width:0;margin-right:8px}.payment-direct-actions{position:static;max-width:100%;flex-wrap:wrap;margin-left:auto}
 
 .field-help{font-size:14px;line-height:1.5;margin:4px 0 12px;color:#444}.field-help output{font-weight:600}
+/* R122 (Echo R122-NEW-07): the translate error keeps the error red over .field-help. */
+.field-help.translate-error{color:#b3261e}
 .referrer-truncated{display:block}
 .referrer-results{display:flex;flex-direction:column;gap:4px;max-height:264px;overflow-y:auto;margin:4px 0 12px;border:1px solid #ccc;border-radius:4px;padding:4px}.referrer-result{min-height:44px;text-align:left;background:#fff;border:0;border-radius:4px;padding:8px;font:inherit;color:inherit;overflow-wrap:anywhere}.referrer-result:hover,.referrer-result:focus-visible{background:#eef3fb}.referrer-result[aria-pressed=true]{font-weight:600;background:#e6efe6}
 .settlement-status{width:fit-content;border:1px solid #ccc;border-radius:4px;padding:1px 6px;color:#444;background:#f2f2f2;font-size:14px}.settlement-status:not(#_){display:inline-block}
