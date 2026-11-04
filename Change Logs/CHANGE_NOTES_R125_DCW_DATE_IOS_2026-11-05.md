@@ -31,7 +31,7 @@ Revert the commit of this batch (Git baseline `e55f1e0`) and redeploy the prior 
 None.
 
 ## Remaining work
-- Owner acceptance: confirmation on the iPhone that the overlap is gone, in PROD.
+- Owner acceptance: not given; the owner rejected the look. Superseded by R126.
 
 ## DEV promotion record (Forge, 4 November 2026, UTC)
 Authority: the owner's instruction "Yes, push it all the way to prod" for the overlap fix, applied to this completion (DEV first). Hosting only; no SQL, images, Terraform, notify or jobs, VM or Metabase. No backup was needed (no database change). No financial or test write. No secret value or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
@@ -61,7 +61,7 @@ Authority: the same instruction. Hosting only; no SQL, so no backup was needed. 
 | Rollback | Redeploy PROD Hosting version `36dd11f5affa432b` (R124) |
 
 ### Limitations
-- The control was not checked on a real iPhone during promotion; the owner's confirmation is pending.
+- The control was not checked on a real iPhone during promotion. The owner's iPhone screenshot then showed the look was rejected ("It looks very ugly"). Superseded by R126.
 
 ### Tag record
 Tag `R125` on `2d4dd30` (annotated tag object `fd7364983dac50246463a7f966e3b2d9fef12fe5`) through Release tag workflow run 41900739112, with the GitHub Release published by the same run at 19:50:13Z.
