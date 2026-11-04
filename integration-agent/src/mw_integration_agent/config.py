@@ -203,6 +203,12 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigurationError('conversation_poll_enabled must be boolean')
     if config.get('conversation_poll_enabled'):
         aware_cutoff(config, 'conversation_poll_cutoff')
+    # R119: the poll's recheck of ignored and held slips after a borrower-master change (default off); it runs inside
+    # the poll, so it needs the poll on.
+    if type(config.get('conversation_poll_recheck_enabled',False)) is not bool:
+        raise ConfigurationError('conversation_poll_recheck_enabled must be boolean')
+    if config.get('conversation_poll_recheck_enabled') and not config.get('conversation_poll_enabled'):
+        raise ConfigurationError('conversation_poll_recheck_enabled requires conversation_poll_enabled')
     if type(config.get('receipt_summary_enabled', False)) is not bool:
         raise ConfigurationError('receipt_summary_enabled must be boolean')
     # R095 payer_name_cutoff: jobs created from it on compare and resolve the slip payer name (receipt_identity).

@@ -388,6 +388,39 @@ BEGIN
  PERFORM pg_temp.ro_assert((SELECT count(DISTINCT j.request_id)=2 FROM public.pwa_payment_commands j WHERE j.canonical_json::jsonb#>>'{command,operation}'='system.rebate-offset' AND j.canonical_json::jsonb#>>'{command,targetId}' IN ('RO-LXM1','RO-LXM2')),'two-loan close: two distinct journal request ids');
  PERFORM pg_temp.ro_assert((SELECT count(*)=5 AND bool_and("Amount Remaining"::numeric=0) FROM public."Charges" WHERE "Ref Loans"='RO-RXM-L'),'two-loan close: 50 pays the referrer due 10 and four booked charges');
 END $$;
+-- R119 (V134): the closing payment's push facts. v4 `rebates` names both rebates (30 then 20, expense "Row ID" order, both
+-- fully offset: payable 0) with the v3 payee; its other columns equal v3, whose scalars stay the first rebate.
+INSERT INTO public."Partners"("Row ID","Partner Role","Partner Name","Login Email","Email","Language Preference") VALUES('RO-XM-LISA','B','Synthetic Lisa two-loan recipient','ro-xm-lisa@example.invalid','ro-xm-lisa@example.invalid','English');
+CREATE TEMP TABLE ro_xm_notice(delivery uuid,generation bigint,v3 jsonb,v4 jsonb) ON COMMIT DROP;
+GRANT ALL ON ro_xm_notice TO PUBLIC;
+DO $$
+DECLARE e uuid; s uuid; d uuid;
+BEGIN
+ INSERT INTO public.pwa_notification_events(dedupe_key,event_type,source_kind,source_id,source_version,actor_partner_id,actor_login_email)
+ VALUES('RO-xm-close','payment.posted','payment','pwa:e7777777-7777-4777-8777-777777777771','v1',NULL,NULL) RETURNING event_id INTO e;
+ INSERT INTO public.pwa_push_subscriptions(issuer,subject,partner_id,endpoint_hash,endpoint,p256dh,auth)
+ VALUES('https://securetoken.google.com/clever-oasis-508610-n7','ro-xm-close','RO-XM-LISA',encode(sha256(convert_to('ro-xm-close','UTF8')),'hex'),'https://fcm.googleapis.com/fcm/send/ro-xm-close','synthetic','synthetic') RETURNING subscription_id INTO s;
+ INSERT INTO public.pwa_notification_deliveries(event_id,channel,destination_key,recipient_partner_id,subscription_id,subscription_version,state,lease_generation,lease_expires_at)
+ VALUES(e,'web-push',encode(sha256(convert_to('ro-xm-close','UTF8')),'hex'),'RO-XM-LISA',s,1,'leased',3,clock_timestamp()+interval '60 seconds') RETURNING delivery_id INTO d;
+ INSERT INTO ro_xm_notice(delivery,generation) VALUES(d,3);
+END $$;
+CREATE ROLE ro_xm_dispatch LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+GRANT mw_notify_dispatch_dev TO ro_xm_dispatch WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+GRANT USAGE ON SCHEMA public TO ro_xm_dispatch;
+SET SESSION AUTHORIZATION ro_xm_dispatch;
+UPDATE ro_xm_notice k SET v3=(SELECT to_jsonb(x) FROM public.pwa_notify_content_v3(k.delivery,k.generation) x),v4=(SELECT to_jsonb(x) FROM public.pwa_notify_content_v4(k.delivery,k.generation) x);
+RESET SESSION AUTHORIZATION;
+DO $$
+DECLARE k record; payee text:=(SELECT coalesce(nullif(btrim("Description"),''),"Borrower Name") FROM public."Borrowers" WHERE "Row ID"='RO-RXM');
+BEGIN
+ SELECT * INTO k FROM ro_xm_notice;
+ PERFORM pg_temp.ro_assert(k.v4-'rebates'=k.v3,'v4: two-loan close, every column but rebates equals v3: '||k.v4::text||' vs '||k.v3::text);
+ PERFORM pg_temp.ro_assert((k.v3->>'rebate_amount')::numeric=30 AND (k.v3->>'rebate_payable')::numeric=0 AND k.v3->>'rebate_payee'=payee,'v3 unchanged: the first rebate only (30, fully offset)');
+ PERFORM pg_temp.ro_assert(k.v4->'rebates'=jsonb_build_array(jsonb_build_object('amount',30,'payee',payee,'payable',0),jsonb_build_object('amount',20,'payee',payee,'payable',0)),
+  'v4 rebates: both rebates (30, 20) in expense order with the v3 payee and nothing payable: '||(k.v4->'rebates')::text);
+END $$;
+DROP OWNED BY ro_xm_dispatch;
+DROP ROLE ro_xm_dispatch;
 DELETE FROM public."Payments" WHERE "Row ID"='pwa:e7777777-7777-4777-8777-777777777771';
 SET CONSTRAINTS ALL IMMEDIATE;
 DO $$ BEGIN
@@ -462,6 +495,12 @@ END $$;
 
 -- 4. pwa_notify_content_v2: access like v1, and the rebate facts of a closed loan.
 DO $$ BEGIN
+ -- R119 (V134): v4 has the v3 owner, definer, search path, comment and ACL (the owner and the dispatch capability only).
+ PERFORM pg_temp.ro_assert((SELECT p4.proowner=p3.proowner AND p4.prosecdef AND p3.prosecdef AND p4.proconfig=p3.proconfig AND obj_description(p4.oid,'pg_proc')=obj_description(p3.oid,'pg_proc')
+   FROM pg_proc p3,pg_proc p4 WHERE p3.oid='public.pwa_notify_content_v3(uuid,bigint)'::regprocedure AND p4.oid='public.pwa_notify_content_v4(uuid,bigint)'::regprocedure),'v4 has the v3 owner, definer header, search path and comment');
+ PERFORM pg_temp.ro_assert((SELECT array_agg(pg_get_userbyid(a.grantee)||':'||a.privilege_type ORDER BY 1) FROM pg_proc p CROSS JOIN LATERAL aclexplode(p.proacl) a WHERE p.oid='public.pwa_notify_content_v4(uuid,bigint)'::regprocedure)
+   =(SELECT array_agg(pg_get_userbyid(a.grantee)||':'||a.privilege_type ORDER BY 1) FROM pg_proc p CROSS JOIN LATERAL aclexplode(p.proacl) a WHERE p.oid='public.pwa_notify_content_v3(uuid,bigint)'::regprocedure),'v4 ACL equals the v3 ACL');
+ PERFORM pg_temp.ro_assert(has_function_privilege('mw_notify_dispatch_dev','public.pwa_notify_content_v4(uuid,bigint)','EXECUTE') AND NOT has_function_privilege('mw_app_dev','public.pwa_notify_content_v4(uuid,bigint)','EXECUTE') AND NOT has_function_privilege('public','public.pwa_notify_content_v4(uuid,bigint)','EXECUTE'),'v4: only notify dispatch executes');
  PERFORM pg_temp.ro_assert(EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.pwa_notify_content_v2(uuid,bigint)'::regprocedure AND prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig)),'v2 has the v1 owner, definer header and pinned search path');
  PERFORM pg_temp.ro_assert(has_function_privilege('mw_notify_dispatch_dev','public.pwa_notify_content_v2(uuid,bigint)','EXECUTE'),'v2: notify dispatch executes');
  PERFORM pg_temp.ro_assert(NOT has_function_privilege('mw_app_dev','public.pwa_notify_content_v2(uuid,bigint)','EXECUTE') AND NOT has_function_privilege('public','public.pwa_notify_content_v2(uuid,bigint)','EXECUTE'),'v2: neither the application role nor PUBLIC executes');

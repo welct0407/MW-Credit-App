@@ -133,3 +133,50 @@ test('R111 NT-2: the Payment received push of the payment that closed a referred
  const longer=renderNotification(paid({borrowerName:'Somchai Jaidee',rebatePayee:'An extraordinarily long referrer name that keeps going and going'}));
  withinBudgets(longer);assert.match(longer.body,/^Rebate ฿300 to An extraordinarily.*…, transfer from Lisa · S/);
 });
+
+// R119 (V134 pwa_notify_content_v4 `rebates`; Echo PUSH-1..4): every payable rebate of the payment, summed per referrer.
+test('R119: one payable referrer keeps today\'s single-rebate text; two rebates of one referrer give the sum',()=>{
+ const paid=(over={})=>facts({amount:'2500',...over});
+ const today=renderNotification(paid({rebatePayee:'Malee Srisuk',rebatePayable:'300'}));
+ assert.deepEqual(renderNotification(paid({rebatePayee:'Malee Srisuk',rebatePayable:'300',rebates:[{amount:'300',payee:'Malee Srisuk',payable:'300'}]})),today);
+ assert.equal(today.body,'Rebate ฿300 to Malee Srisuk, transfer from Lisa · Somchai Jaidee');
+ // Same referrer on two loans: one referrer left, today's text with the sum.
+ assert.equal(renderNotification(paid({rebatePayee:'Malee Srisuk',rebatePayable:'30',rebates:[{amount:'30',payee:'Malee Srisuk',payable:'30'},{amount:'20',payee:'Malee Srisuk',payable:'20'}]})).body,'Rebate ฿50 to Malee Srisuk, transfer from Lisa · Somchai Jaidee');
+ assert.equal(renderNotification(paid({language:'th',borrowerName:'สมชาย ใจดี',rebates:[{amount:'30',payee:'มาลี',payable:'30'},{amount:'20',payee:'มาลี',payable:'20'}]})).body,'ค่าแนะนำ ฿50 ให้ มาลี โอนจาก Lisa · สมชาย ใจดี');
+ // Two rebates, one fully offset (payable 0): the single wording for the payable one.
+ assert.equal(renderNotification(paid({rebatePayee:'A',rebatePayable:'0',rebates:[{amount:'30',payee:'A',payable:'0'},{amount:'20',payee:'B',payable:'20'}]})).body,'Rebate ฿20 to B, transfer from Lisa · Somchai Jaidee');
+ // Nothing payable: no rebate line, even if the first-rebate scalars disagree.
+ assert.equal(renderNotification(paid({rebatePayee:'A',rebatePayable:'30',rebates:[{amount:'30',payee:'A',payable:'0'}]})).body,'Somchai Jaidee');
+ // No v4 facts (null): today's first-rebate reading.
+ assert.deepEqual(renderNotification(paid({rebatePayee:'Malee Srisuk',rebatePayable:'300',rebates:null})),today);
+});
+test('R119 PUSH-2/3: two and three referrers join the last with "and" / "และ"',()=>{
+ const two=[{amount:'30',payee:'A',payable:'30'},{amount:'20',payee:'B',payable:'20'}],three=[...two,{amount:'10',payee:'C',payable:'10'}];
+ const en=rebates=>renderNotification(facts({rebates})),th=rebates=>renderNotification(facts({language:'th',borrowerName:'สมชาย ใจดี',rebates}));
+ assert.deepEqual(en(two),{title:'Payment received ฿5,000',body:'Rebates ฿30 to A and ฿20 to B, transfer from Lisa · Somchai Jaidee'});
+ assert.equal(th(two).body,'ค่าแนะนำ ฿30 ให้ A และ ฿20 ให้ B โอนจาก Lisa · สมชาย ใจดี');
+ assert.equal(en(three).body,'Rebates ฿30 to A, ฿20 to B and ฿10 to C, transfer from Lisa · Somchai Jaidee');
+ assert.equal(th(three).body,'ค่าแนะนำ ฿30 ให้ A ฿20 ให้ B และ ฿10 ให้ C โอนจาก Lisa · สมชาย ใจดี');
+ // A loan.closed push reads the same facts; the late part sits between the rebates and the name.
+ assert.equal(renderNotification(facts({rebates:two,lateChargeAmount:'50',borrowerName:'Nok'})).body,'Rebates ฿30 to A and ฿20 to B, transfer from Lisa · Late charge ฿50 · Nok');
+ assert.equal(renderNotification(facts({eventType:'loan.closed',rebates:two})).body,'Rebates ฿30 to A and ฿20 to B, transfer from Lisa · Somchai Jaidee');
+ for(const n of [en(two),th(two),en(three),th(three)])withinBudgets(n);
+});
+test('R119 fit: the borrower name is shortened first, then every payee (at least 6), then the total; amounts and Lisa stay',()=>{
+ const late={lateChargeAmount:'50'};
+ // 1. The rebates fit; only the borrower name is shortened.
+ const one=renderNotification(facts({...late,borrowerName:'A rather long borrower name',rebates:[{amount:'30',payee:'Alice',payable:'30'},{amount:'20',payee:'Bob',payable:'20'}]}));
+ withinBudgets(one);assert.equal(graphemeLength(one.body),BODY_BUDGET);
+ assert.equal(one.body,'Rebates ฿30 to Alice and ฿20 to Bob, transfer from Lisa · Late charge ฿50 · A r…');
+ // 2. The payees are cut to one equal length (the borrower dropped: no room left), amounts and "Lisa" intact.
+ const two=renderNotification(facts({borrowerName:'Somchai Jaidee',rebates:[{amount:'30',payee:'Alexandra Longname-Referrer',payable:'30'},{amount:'20',payee:'Bartholomew Longername',payable:'20'}]}));
+ withinBudgets(two);assert.equal(two.body,'Rebates ฿30 to Alexandra Longn… and ฿20 to Bartholomew Lon…, transfer from Lisa');
+ const cut3=renderNotification(facts({borrowerName:'Somchai Jaidee',rebates:[{amount:'30',payee:'Alexandra Longname',payable:'30'},{amount:'20',payee:'Bartholomew Longername',payable:'20'},{amount:'10',payee:'Chris',payable:'10'}]}));
+ withinBudgets(cut3);assert.equal(cut3.body,'Rebates ฿30 to Alexandr…, ฿20 to Bartholo… and ฿10 to Chris, transfer from Lisa','a payee shorter than the cut stays whole');
+ // 3. Three long payees no longer fit at 6 graphemes each: the total and the number of referrers.
+ const three=[{amount:'30',payee:'Alexandra Longname-Referrer',payable:'30'},{amount:'20',payee:'Bartholomew Longername Referrer',payable:'20'},{amount:'10',payee:'Christopher Extended Name',payable:'10'},{amount:'10',payee:'Dorothea Quite-Long Name',payable:'10'}];
+ const collapsed=renderNotification(facts({...late,borrowerName:'A long borrower name here',rebates:three}));
+ withinBudgets(collapsed);assert.match(collapsed.body,/^Rebates ฿70 total to 4 referrers, transfer from Lisa · Late charge ฿50 · A long/);
+ const thai=renderNotification(facts({language:'th',...late,borrowerName:'สมชาย ใจดี',rebates:three.map((r,i)=>({...r,payee:'ผู้แนะนำชื่อยาวมากคนที่ '+(i+1)}))}));
+ withinBudgets(thai);assert.equal(thai.body,'ค่าแนะนำรวม ฿70 ให้ผู้แนะนำ 4 ราย โอนจาก Lisa · ค่าปรับล่าช้า ฿50 · สมชาย ใจดี');
+});

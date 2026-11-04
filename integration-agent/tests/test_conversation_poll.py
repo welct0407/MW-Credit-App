@@ -289,3 +289,210 @@ class PollTests(unittest.TestCase):
         self.master['borrowers'].append({'id':'different-borrower','username':'someone_else','enabled':True})
         with self.assertRaisesRegex(ReceiptInvalid,'FORWARDED_BORROWER_CHANGED'):
             receipt_borrower(self.c,self.j.pending()[0],self.j,self.master,Mock(),api=api)
+
+
+class RecheckTests(unittest.TestCase):
+    """R119: after a borrower is enabled the poll turns their slips it had recorded IGNORED (yesterday and today) into
+    jobs; the cursor and every other outcome stay; the switch and the master snapshot gate it."""
+    def setUp(self):
+        from datetime import datetime
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
+        self.j=ReceiptJournal(self.tmp.name+'/receipt.db');self.addCleanup(self.j.close)
+        self.c={'instagram_account_id':'999','conversation_poll_cutoff':'2026-09-21T00:00:00+00:00'}
+        self.master={'borrowers':[{'id':'b-borrower','username':'borrower','enabled':True}],'accounts':[]}
+        self.now=datetime.fromisoformat('2026-09-21T01:00:00+00:00').timestamp()
+        self.people=[{'id':'123','username':'borrower'},{'id':'999','username':'business'},{'id':'456','username':'partner'},{'id':'777','username':'other'}]
+    def message(self,key,sender,time):
+        return {'id':key,'created_time':time,'from':{'id':sender},'attachments':{'data':[{'id':'att-'+key,'image_data':{'url':'https://example.invalid/'+key}}]}}
+    def api(self,messages):
+        return Mock(request=Mock(return_value={'data':[{'id':'group','participants':{'data':self.people},'messages':{'data':messages}}]}))
+    def outcomes(self):
+        return dict(self.j.db.execute('SELECT message_id,outcome FROM conversation_poll_messages').fetchall())
+    def jobs(self):
+        return {r['message_id']:dict(r) for r in self.j.db.execute('SELECT * FROM receipt_jobs')}
+    def cursor(self):
+        return self.j.db.execute('SELECT checked_through FROM conversation_poll_state').fetchone()[0]
+    def first_scan(self,messages):
+        # The partner (456) and other (777) are not enabled yet: their slips are recorded IGNORED.
+        scan(self.c,self.api(messages),self.master,self.j,self.now)
+        self.assertTrue(self.outcomes());self.assertTrue(all(v=='IGNORED' for v in self.outcomes().values()))
+    def enable_partner(self):
+        self.master['borrowers'].append({'id':'b-partner','username':'Partner','enabled':True})
+    def recheck(self,messages,later=3600):
+        return scan(self.c,self.api(messages),self.master,self.j,self.now+later,recheck={'usernames':{'partner'}})
+
+    def test_enabled_borrower_ignored_slip_becomes_a_job_and_cursor_stays(self):
+        slip=self.message('m1','456','2026-09-21T00:10:00+00:00')
+        self.first_scan([slip]);cursor=self.cursor()
+        self.assertEqual(self.jobs(),{})
+        self.enable_partner()
+        result=self.recheck([slip])
+        self.assertEqual((result['recheck_jobs'],result['recheck_errors'],result['image_jobs']),(1,0,0))
+        job=self.jobs()['m1']
+        self.assertEqual((job['status'],job['sender_id'],job['url']),('PENDING','456','https://example.invalid/m1'))
+        import hashlib
+        import json
+        self.assertEqual(job['id'],hashlib.sha256(b'm1:0').hexdigest())
+        source=json.loads(job['source'])
+        self.assertEqual((source['kind'],source['conversation_id'],source['sender_id'],source['attachment_id']),('poll','group','456','att-m1'))
+        self.assertEqual(self.outcomes(),{'m1':'BORROWER'})
+        self.assertEqual(self.cursor(),cursor)  # the cursor is untouched
+        # A second recheck adds nothing (the row is BORROWER and the job exists).
+        self.assertEqual(self.recheck([slip],7200)['recheck_jobs'],0);self.assertEqual(len(self.jobs()),1)
+
+    def test_changed_message_id_is_matched_by_time_and_the_new_id_recorded(self):
+        self.first_scan([self.message('old-id','456','2026-09-21T00:10:00+00:00')])
+        self.enable_partner()
+        result=self.recheck([self.message('new-id','456','2026-09-21T00:10:04+00:00')])
+        self.assertEqual(result['recheck_jobs'],1)
+        self.assertEqual(set(self.jobs()),{'new-id'})
+        self.assertEqual(self.outcomes(),{'old-id':'BORROWER','new-id':'BORROWER'})
+        # 6 s apart is a different message: nothing matches, nothing is added.
+        self.j.db.execute("UPDATE conversation_poll_messages SET outcome='IGNORED'");self.j.db.execute('DELETE FROM receipt_jobs');self.j.db.commit()
+        self.j.db.execute("DELETE FROM conversation_poll_messages WHERE message_id='new-id'");self.j.db.commit()
+        self.assertEqual(self.recheck([self.message('newer-id','456','2026-09-21T00:10:06+00:00')])['recheck_jobs'],0)
+        self.assertEqual(self.outcomes(),{'old-id':'IGNORED'})
+
+    def test_an_existing_job_by_either_id_or_by_source_blocks_a_duplicate(self):
+        import json
+        from datetime import datetime
+        from mw_integration_agent.receipt_archive import source
+        slip=self.message('m1','456','2026-09-21T00:10:00+00:00')
+        ts=datetime.fromisoformat('2026-09-21T00:10:00+00:00').timestamp()
+        self.first_scan([slip]);self.enable_partner()
+        for case,row in (('same id',('k1','m1',None)),('recorded id',('k2','m1',None)),
+                         ('same source',('k3','webhook-id',source('webhook','webhook-id',0,'456',ts+3,self.now,'group')))):
+            with self.subTest(case=case):
+                self.j.db.execute('DELETE FROM receipt_jobs');self.j.db.execute("DELETE FROM conversation_poll_messages WHERE message_id<>'m1'")
+                self.j.db.execute("UPDATE conversation_poll_messages SET outcome='IGNORED'")
+                self.j.db.execute('INSERT INTO receipt_jobs(id,message_id,sender_id,url,created_at,source) VALUES (?,?,?,?,?,?)',
+                                  (row[0],row[1],'456','',self.now,row[2]));self.j.db.commit()
+                # 'recorded id': Meta now reports another id for the slip; the job names the recorded one.
+                new=self.message('changed','456','2026-09-21T00:10:01+00:00') if case=='recorded id' else slip
+                self.assertEqual(self.recheck([new])['recheck_jobs'],0)
+                self.assertEqual(len(self.jobs()),1);self.assertEqual(self.outcomes(),{'m1':'IGNORED'})
+        # A source naming another group does not block.
+        self.j.db.execute('UPDATE receipt_jobs SET source=?',(json.dumps({'conversation_id':'other','sender_id':'456','sent_at':ts}),));self.j.db.commit()
+        self.assertEqual(self.recheck([slip])['recheck_jobs'],1)
+
+    def test_other_senders_stay_ignored_and_older_slips_are_untouched(self):
+        from datetime import datetime
+        other=self.message('o1','777','2026-09-21T00:20:00+00:00')
+        self.first_scan([other,self.message('m1','456','2026-09-21T00:10:00+00:00')])
+        # A slip from before yesterday's local midnight (19 Sep 17:00 UTC), recorded IGNORED by an earlier poll.
+        stale=self.message('s1','456','2026-09-19T16:59:00+00:00')
+        self.j.db.execute('INSERT INTO conversation_poll_messages VALUES (?,?,?,?,?)',
+                          ('s1','group',datetime.fromisoformat(stale['created_time']).timestamp(),self.now,'IGNORED'));self.j.db.commit()
+        self.enable_partner()
+        result=self.recheck([other,self.message('m1','456','2026-09-21T00:10:00+00:00'),stale])
+        self.assertEqual(result['recheck_jobs'],1)
+        self.assertEqual(self.outcomes(),{'m1':'BORROWER','o1':'IGNORED','s1':'IGNORED'})
+        self.assertEqual(set(self.jobs()),{'m1'})
+
+    def test_no_recheck_without_the_plan_or_in_a_backfill(self):
+        slip=self.message('m1','456','2026-09-21T00:10:00+00:00')
+        self.first_scan([slip]);self.enable_partner()
+        result=scan(self.c,self.api([slip]),self.master,self.j,self.now+3600)
+        self.assertNotIn('recheck_jobs',result);self.assertEqual(self.jobs(),{})
+        result=scan(self.c,self.api([slip]),self.master,self.j,self.now+60,day='2026-09-21',recheck={'usernames':{'partner'}})
+        self.assertNotIn('recheck_jobs',result);self.assertEqual(self.outcomes()['m1'],'IGNORED')
+
+    def test_unreadable_group_counts_a_recheck_error(self):
+        slip=self.message('m1','456','2026-09-21T00:10:00+00:00')
+        self.first_scan([slip]);self.enable_partner()
+        api=self.api([slip]);api.request.return_value['data'][0]['messages']['paging']={'next':'unused'}
+        # The poll's own read stops at its cursor; the two-day read needs the next page and has no cursor.
+        result=scan(self.c,api,self.master,self.j,self.now+3600,recheck={'usernames':{'partner'}})
+        self.assertEqual((result['failed_conversations'],result['recheck_errors'],result['recheck_jobs']),(0,1,0))
+        self.assertEqual(result['errors'][0]['error'],'RECHECK:POLL_HISTORY_INCOMPLETE_PAGINATION')
+        self.assertEqual(self.jobs(),{});self.assertEqual(self.outcomes(),{'m1':'IGNORED'})
+        # A group whose own read fails also counts, so the snapshot stays for the next run.
+        api.request.return_value['data'][0]['participants']['paging']={'next':'unused'}
+        result=scan(self.c,api,self.master,self.j,self.now+86400,recheck={'usernames':{'partner'}})
+        self.assertEqual((result['failed_conversations'],result['recheck_errors']),(1,1))
+
+
+class RecheckRunTests(unittest.TestCase):
+    """R119 run(): the switch, the first-run snapshot, the worker lock and the snapshot advance."""
+    def setUp(self):
+        from pathlib import Path
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name)
+        self.config={'instagram_account_id':'999','conversation_poll_cutoff':'2026-09-21T00:00:00+00:00','conversation_poll_enabled':True,
+                     'state_directory':self.tmp.name}
+        self.master={'borrowers':[{'id':'b1','username':'borrower','enabled':True}],'accounts':[{'id':'a','number':'1234567890','active':True}]}
+    def run_poll(self,scan_result=None,held=None,day=None):
+        from mw_integration_agent.conversation_poll import run
+        scanned=Mock(return_value=dict(scan_result or {'image_jobs':0}))
+        recheck=Mock(return_value=held or {'held_requeued':0,'held_skipped':0})
+        with patch('mw_integration_agent.conversation_poll.controls',return_value=self.config), \
+             patch('mw_integration_agent.conversation_poll.load_json',return_value={'services':{'conversation_poll':{'enabled':True}}}), \
+             patch('mw_integration_agent.conversation_poll.masters',return_value=self.master),patch('mw_integration_agent.conversation_poll.Instagram'), \
+             patch('mw_integration_agent.conversation_poll.scan',scanned),patch('mw_integration_agent.receipt_recheck.recheck_held',recheck):
+            return run('unused','unused',day=day),scanned,recheck
+    def snapshot(self):
+        import json
+        path=self.root/'conversation-poll-master.json'
+        return json.loads(path.read_text()) if path.exists() else None
+
+    def test_switch_off_writes_nothing_and_rechecks_nothing(self):
+        result,scanned,recheck=self.run_poll()
+        self.assertNotIn('recheck',result);self.assertIsNone(self.snapshot())
+        self.assertIsNone(scanned.call_args.kwargs['recheck']);recheck.assert_not_called()
+
+    def test_first_run_writes_the_snapshot_and_rechecks_nothing(self):
+        import os
+        import stat
+        self.config['conversation_poll_recheck_enabled']=True
+        result,scanned,recheck=self.run_poll()
+        self.assertEqual(result['recheck'],'snapshot_written');self.assertIsNone(scanned.call_args.kwargs['recheck']);recheck.assert_not_called()
+        saved=self.snapshot();self.assertEqual(saved['enabled'],['borrower']);self.assertEqual(len(saved['accounts_sha256']),64)
+        self.assertEqual(stat.S_IMODE(os.stat(self.root/'conversation-poll-master.json').st_mode),0o600)
+        # Unchanged master: nothing rechecked, the snapshot is not rewritten.
+        result,scanned,recheck=self.run_poll()
+        self.assertEqual(result['recheck'],'unchanged');recheck.assert_not_called();self.assertEqual(self.snapshot(),saved)
+        # A backfill never rechecks or writes, even with a change.
+        self.master['borrowers'].append({'id':'b2','username':'new','enabled':True})
+        result,scanned,recheck=self.run_poll(day='2026-09-21')
+        self.assertNotIn('recheck',result);self.assertEqual(self.snapshot(),saved)
+        # An unreadable snapshot is written again without a recheck.
+        (self.root/'conversation-poll-master.json').write_text('{')
+        result,scanned,recheck=self.run_poll()
+        self.assertEqual(result['recheck'],'snapshot_written');recheck.assert_not_called()
+
+    def test_change_rechecks_both_passes_and_advances_the_snapshot(self):
+        from mw_integration_agent.conversation_poll import write_snapshot,master_fingerprint
+        self.config['conversation_poll_recheck_enabled']=True
+        write_snapshot(self.root,master_fingerprint(self.master),now=100.0)
+        self.master['borrowers'].append({'id':'b2','username':'@New','enabled':True})
+        self.master['accounts'].append({'id':'b','number':'2222222222','active':True})
+        result,scanned,recheck=self.run_poll({'image_jobs':0,'recheck_jobs':1,'recheck_errors':0},{'held_requeued':2,'held_skipped':0})
+        self.assertEqual(scanned.call_args.kwargs['recheck'],{'usernames':{'new'}})
+        self.assertEqual(recheck.call_args.args[2:],(True,True,100.0))
+        self.assertEqual((result['recheck'],result['held_requeued']),('rechecked',2))
+        self.assertEqual(self.snapshot()['enabled'],['borrower','new']);self.assertGreater(self.snapshot()['written_at'],100.0)
+        self.assertTrue((self.root/'receipt-wake').exists())
+
+    def test_only_the_account_change_rechecks_held_recipient_jobs(self):
+        from mw_integration_agent.conversation_poll import write_snapshot,master_fingerprint
+        self.config['conversation_poll_recheck_enabled']=True
+        write_snapshot(self.root,master_fingerprint(self.master),now=100.0)
+        self.master['accounts'][0]['alternative']='9999999999'
+        result,scanned,recheck=self.run_poll()
+        self.assertEqual(scanned.call_args.kwargs['recheck'],{'usernames':set()})
+        self.assertEqual(recheck.call_args.args[2:],(False,True,100.0));self.assertEqual(result['recheck'],'rechecked')
+
+    def test_busy_worker_or_a_failed_group_keeps_the_snapshot(self):
+        import fcntl
+        from mw_integration_agent.conversation_poll import write_snapshot,master_fingerprint
+        self.config['conversation_poll_recheck_enabled']=True
+        saved=write_snapshot(self.root,master_fingerprint(self.master),now=100.0)
+        self.master['borrowers'].append({'id':'b2','username':'new','enabled':True})
+        with (self.root/'receipt-worker.lock').open('a') as held:
+            fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            result,scanned,recheck=self.run_poll()
+        self.assertEqual(result['recheck'],'worker_busy');self.assertIsNone(scanned.call_args.kwargs['recheck'])
+        recheck.assert_not_called();self.assertEqual(self.snapshot(),saved)
+        result,scanned,recheck=self.run_poll({'image_jobs':0,'recheck_jobs':0,'recheck_errors':1})
+        self.assertEqual(result['recheck'],'recheck_incomplete');self.assertEqual(self.snapshot(),saved)
+        # The poll released the worker lock.
+        with (self.root/'receipt-worker.lock').open('a') as lock:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)

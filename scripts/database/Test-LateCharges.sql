@@ -740,14 +740,26 @@ BEGIN
  PERFORM pg_temp.lc_assert((SELECT array_agg(u.n ORDER BY u.o) FROM pg_proc p,unnest(p.proargnames,p.proargmodes) WITH ORDINALITY u(n,m,o) WHERE p.oid='public.pwa_notify_content_v3(uuid,bigint)'::regprocedure AND u.m='t')
    =(SELECT array_agg(u.n ORDER BY u.o) FROM pg_proc p,unnest(p.proargnames,p.proargmodes) WITH ORDINALITY u(n,m,o) WHERE p.oid='public.pwa_notify_content_v2(uuid,bigint)'::regprocedure AND u.m='t')||ARRAY['late_charge_amount']::text[],
   'v3 returns the v2 columns and late_charge_amount last');
+ -- R119 (V134): v4 keeps the v3 boundary and returns the v3 columns plus rebates.
+ PERFORM pg_temp.lc_assert(EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.pwa_notify_content_v4(uuid,bigint)'::regprocedure AND prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig))
+   AND obj_description('public.pwa_notify_content_v4(uuid,bigint)'::regprocedure,'pg_proc')=obj_description('public.pwa_notify_content_v3(uuid,bigint)'::regprocedure,'pg_proc')
+   AND has_function_privilege('mw_notify_dispatch_dev','public.pwa_notify_content_v4(uuid,bigint)','EXECUTE')
+   AND NOT has_function_privilege('mw_app_dev','public.pwa_notify_content_v4(uuid,bigint)','EXECUTE') AND NOT has_function_privilege('public','public.pwa_notify_content_v4(uuid,bigint)','EXECUTE'),'v4 has the v3 owner, definer header, search path, comment and EXECUTE boundary');
+ PERFORM pg_temp.lc_assert((SELECT array_agg(u.n ORDER BY u.o) FROM pg_proc p,unnest(p.proargnames,p.proargmodes) WITH ORDINALITY u(n,m,o) WHERE p.oid='public.pwa_notify_content_v4(uuid,bigint)'::regprocedure AND u.m='t')
+   =(SELECT array_agg(u.n ORDER BY u.o) FROM pg_proc p,unnest(p.proargnames,p.proargmodes) WITH ORDINALITY u(n,m,o) WHERE p.oid='public.pwa_notify_content_v3(uuid,bigint)'::regprocedure AND u.m='t')||ARRAY['rebates']::text[],
+  'v4 returns the v3 columns and rebates last');
 END $$;
 SET SESSION AUTHORIZATION lc_dispatch;
 DO $$
-DECLARE r3 record;r2 record;k record;
+DECLARE r4 record;r3 record;r2 record;k record;
 BEGIN
  FOR k IN SELECT * FROM lc_notice ORDER BY name LOOP
+  SELECT * INTO r4 FROM public.pwa_notify_content_v4(k.delivery,k.generation);
   SELECT * INTO r3 FROM public.pwa_notify_content_v3(k.delivery,k.generation);
   SELECT * INTO r2 FROM public.pwa_notify_content_v2(k.delivery,k.generation);
+  -- R119 (V134): v4 is v3 apart from rebates (an array: these sources close no referred loan).
+  IF to_jsonb(r4)-'rebates' IS DISTINCT FROM to_jsonb(r3) THEN RAISE EXCEPTION 'FAILED: v4 differs from v3 apart from rebates for %: % vs %',k.name,to_jsonb(r4),to_jsonb(r3); END IF;
+  IF jsonb_typeof(r4.rebates) IS DISTINCT FROM 'array' OR jsonb_array_length(r4.rebates)<>0 THEN RAISE EXCEPTION 'FAILED: v4 rebates for % should be an empty array: %',k.name,r4.rebates; END IF;
   IF to_jsonb(r3)-'late_charge_amount' IS DISTINCT FROM to_jsonb(r2) THEN RAISE EXCEPTION 'FAILED: v3 differs from v2 apart from late_charge_amount for %: % vs %',k.name,to_jsonb(r3),to_jsonb(r2); END IF;
   IF k.name='late' AND (r3.late_charge_amount IS DISTINCT FROM 50 OR r3.amount IS DISTINCT FROM 60) THEN RAISE EXCEPTION 'FAILED: v3 late payment: amount %, late %',r3.amount,r3.late_charge_amount; END IF;
   IF k.name='nolate' AND coalesce(r3.late_charge_amount,0)<>0 THEN RAISE EXCEPTION 'FAILED: v3 payment without late: %',r3.late_charge_amount; END IF;

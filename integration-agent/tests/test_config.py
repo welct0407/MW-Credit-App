@@ -187,10 +187,24 @@ class RetiredConversationTests(unittest.TestCase):
         with self.assertRaisesRegex(ConfigurationError, "codex_home"):
             validate_config(dict(bare, receipt_extraction_provider="gemini", codex_home="relative/path"))
 
+    def test_conversation_poll_recheck_switch_is_boolean_default_off_and_needs_the_poll(self):
+        # R119: the poll's recheck of ignored and held slips; absent is off.
+        config = load_json(ROOT / "config.example.json")
+        self.assertNotIn("conversation_poll_recheck_enabled", config)
+        validate_config(config)
+        validate_config(dict(config, conversation_poll_recheck_enabled=False))
+        on = dict(config, conversation_poll_enabled=True, conversation_poll_cutoff="2026-11-04T00:00:00+07:00")
+        validate_config(dict(on, conversation_poll_recheck_enabled=True))
+        for value in ("true", 1, None):
+            with self.subTest(value=value), self.assertRaisesRegex(ConfigurationError, "^conversation_poll_recheck_enabled must be boolean$"):
+                validate_config(dict(on, conversation_poll_recheck_enabled=value))
+        with self.assertRaisesRegex(ConfigurationError, "^conversation_poll_recheck_enabled requires conversation_poll_enabled$"):
+            validate_config(dict(config, conversation_poll_enabled=False, conversation_poll_recheck_enabled=True))
+
     def test_catalogue_refuses_the_retired_services(self):
         from mw_integration_agent.config import RETIRED_SERVICES
         catalogue = load_json(ROOT / "service-catalogue.json")
-        self.assertEqual(catalogue["revision"], 34)  # R102 added chat_messages_relay (33) after R091's revision 32; R112 (34) changes no service
+        self.assertEqual(catalogue["revision"], 35)  # R102 added chat_messages_relay (33) after R091's revision 32; R112 (34) and R119 (35) change no service
         self.assertEqual(RETIRED_SERVICES & set(catalogue["services"]), set())
         validate_catalogue(catalogue)
         for name in sorted(RETIRED_SERVICES):

@@ -1,9 +1,10 @@
 """Official API intake only; shared receipt jobs, never signed-webhook evidence."""
 import hashlib
 import json
+import os
 import re
 import time
-from datetime import datetime
+from datetime import datetime,timedelta
 from pathlib import Path
 
 from .config import ConfigurationError, cutoff_ts, load_json
@@ -82,7 +83,14 @@ def pages(api,path,query):
     raise ConfigurationError('POLL_PAGE_LIMIT')
 
 
-def scan(config,api,master,journal,now=None,day=None):
+def enabled_usernames(master):
+    """The normalised Instagram usernames of AI-enabled borrowers (the poll's eligibility set)."""
+    return {username(b['username']) for b in master['borrowers'] if b['enabled'] is True and username(b['username'])}
+
+
+def scan(config,api,master,journal,now=None,day=None,recheck=None):
+    """recheck (R119, never with day): {'usernames': newly enabled usernames}; each group with such a participant also
+    re-reads yesterday and today for that participant's slips the poll recorded as IGNORED (recheck_ignored)."""
     now=time.time() if now is None else now
     cutoff=cutoff_ts(config,'conversation_poll_cutoff')
     if day:
@@ -97,9 +105,11 @@ def scan(config,api,master,journal,now=None,day=None):
           CREATE TABLE IF NOT EXISTS conversation_poll_messages
           (message_id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, event_time REAL NOT NULL,
            captured_at REAL NOT NULL, outcome TEXT NOT NULL);''')
-    enabled={username(b['username']) for b in master['borrowers'] if b['enabled'] is True and username(b['username'])}
+    enabled=enabled_usernames(master)
     counts={'conversations':0,'eligible_conversations':0,'new_messages':0,'image_jobs':0,
             'failed_conversations':0,'errors':[]}
+    newly=set(recheck['usernames']) if recheck and not day else set()
+    if newly:counts.update(recheck_jobs=0,recheck_errors=0)
     for batch in pages(api,config['instagram_account_id']+'/conversations',
                        {'platform':'instagram','fields':'id,participants,messages.limit('+str(FIRST_PAGE_MESSAGES)+'){'+MESSAGE_FIELDS+'}','limit':100}):
         for conversation in batch:
@@ -113,10 +123,106 @@ def scan(config,api,master,journal,now=None,day=None):
                     cid=conversation.get('id','') if isinstance(conversation,dict) else ''
                     counts['errors'].append({'conversation_key':hashlib.sha256(str(cid).encode()).hexdigest()[:16],
                                              'error':str(exc) if isinstance(exc,ConfigurationError) else 'POLL_CONVERSATION_UNAVAILABLE:'+type(exc).__name__})
+                # A group the recheck could not read keeps the master snapshot where it is (retried next run).
+                if newly and newly_present(config,conversation,newly):counts['recheck_errors']+=1
                 continue
             counts['eligible_conversations']+=int(eligible)
             counts['new_messages']+=added;counts['image_jobs']+=images
+            if newly and newly_present(config,conversation,newly):
+                try:counts['recheck_jobs']+=recheck_ignored(config,api,master,db,conversation,newly,now)
+                except Exception as exc:
+                    counts['recheck_errors']+=1
+                    if len(counts['errors'])<20:
+                        counts['errors'].append({'conversation_key':hashlib.sha256(str(conversation.get('id','')).encode()).hexdigest()[:16],
+                            'error':'RECHECK:'+(str(exc) if isinstance(exc,ConfigurationError) else type(exc).__name__)})
     return counts
+
+
+def group_context(config,master,participants):
+    """R095 C4': from payer_name_cutoff a group with two or more enabled borrowers carries them as evidence, so the
+    payer name decides who paid (receipt_identity). Returns (payer cutoff or None, sorted borrower ids or None)."""
+    payer_cutoff=cutoff_ts(config,'payer_name_cutoff') if config.get('payer_name_cutoff') else None
+    group_ids=None
+    if payer_cutoff is not None:
+        from .receipt_identity import group_borrowers
+        members=group_borrowers(master,[p for p in participants if str(p.get('id',''))!=str(config['instagram_account_id'])])
+        if len(members)>=2:group_ids=sorted(b['id'] for b in members)
+    return payer_cutoff,group_ids
+
+
+def group_evidence(payer_cutoff,group_ids,ts):
+    """C4': a borrower sends in a multi-borrower group; compared with the sender's name, never filled. Message time
+    gates it, like the forwarding cutoff."""
+    return json.dumps({'candidate_borrower_ids':group_ids}) if payer_cutoff is not None and ts>=payer_cutoff and group_ids else None
+
+
+# R119: the recheck window starts at yesterday's local midnight; a slip and a job (or poll row) are the same message
+# when Meta's id matches or, because Meta's ids are not stable, the same group's time is within MATCH_SECONDS.
+MATCH_SECONDS=5
+
+
+def recheck_since(now):
+    from .business_time import BANGKOK
+    today=datetime.fromtimestamp(now,BANGKOK).date()
+    return datetime.combine(today-timedelta(days=1),datetime.min.time(),BANGKOK).timestamp()
+
+
+def newly_present(config,conversation,newly):
+    try:
+        return any(username(p.get('username')) in newly and str(p.get('id',''))!=str(config['instagram_account_id'])
+                   for p in conversation['participants']['data'])
+    except (KeyError,TypeError,AttributeError):return False
+
+
+def recheck_ignored(config,api,master,db,conversation,newly,now):
+    """R119: slips a newly enabled participant sent yesterday or today, recorded as IGNORED while they were not enabled,
+    become jobs. Each slip needs an IGNORED row of this group (same message id, or time within MATCH_SECONDS) and no
+    job yet (by either message id, or a job since the window start whose source names this group, sender and time
+    within MATCH_SECONDS). One transaction turns the row into BORROWER (plus a BORROWER row for a changed id) and inserts
+    the jobs with the poll's source and the C4' group evidence. The cursor and every other outcome stay; the payer,
+    duplicate, archive and idempotency guards all apply when the job runs. Returns the number of jobs added."""
+    participants=conversation['participants']['data'];cid=conversation['id']
+    senders={str(p['id']) for p in participants if username(p.get('username')) in newly}
+    senders.discard(str(config['instagram_account_id']))
+    if not senders:return 0
+    since=recheck_since(now)
+    slips=[(m,ts) for m,ts in reversed(history_since(api,config,conversation,since,now))
+           if str(m.get('from',{}).get('id','')) in senders and m.get('attachments',{}).get('data')]
+    if not slips:return 0
+    payer_cutoff,group_ids=group_context(config,master,participants)
+    sources=[]
+    for row in db.execute('SELECT source FROM receipt_jobs WHERE created_at>=? AND source IS NOT NULL',(since,)).fetchall():
+        try:sources.append(json.loads(row[0]))
+        except (TypeError,ValueError):continue
+    from .receipt_archive import source
+    added=0
+    with db:
+        for message,ts in slips:
+            sender=str(message['from']['id'])
+            attachments=message['attachments']
+            if attachments.get('paging',{}).get('next'):raise ConfigurationError('POLL_ATTACHMENTS_INCOMPLETE')
+            rows=db.execute("SELECT message_id FROM conversation_poll_messages WHERE conversation_id=? AND outcome='IGNORED' AND message_id=?",
+                            (cid,message['id'])).fetchall() or db.execute(
+                "SELECT message_id FROM conversation_poll_messages WHERE conversation_id=? AND outcome='IGNORED' AND abs(event_time-?)<=?",
+                (cid,ts,MATCH_SECONDS)).fetchall()
+            if len(rows)!=1:continue  # never recorded as ignored, or two candidates: left as they are
+            recorded=rows[0][0]
+            if db.execute('SELECT 1 FROM receipt_jobs WHERE message_id=? OR message_id=?',(recorded,message['id'])).fetchone():continue
+            if any(isinstance(x,dict) and x.get('conversation_id')==cid and str(x.get('sender_id'))==sender
+                   and isinstance(x.get('sent_at'),(int,float)) and abs(x['sent_at']-ts)<=MATCH_SECONDS for x in sources):continue
+            db.execute("UPDATE conversation_poll_messages SET outcome='BORROWER' WHERE message_id=? AND outcome='IGNORED'",(recorded,))
+            if recorded!=message['id']:
+                db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',(message['id'],cid,ts,now,'BORROWER'))
+            evidence=group_evidence(payer_cutoff,group_ids,ts)
+            for index,item in enumerate(attachments.get('data',[])):
+                url=item.get('image_data',{}).get('url')
+                if not url:continue
+                key=hashlib.sha256(f"{message['id']}:{index}".encode()).hexdigest()
+                added+=db.execute('''INSERT OR IGNORE INTO receipt_jobs
+                  (id,message_id,sender_id,url,status,created_at,result,source) VALUES (?,?,?,?,'PENDING',?,?,?)''',
+                  (key,message['id'],sender,url,now,evidence,
+                   source('poll',message['id'],index,sender,ts,now,cid,item.get('id')))).rowcount
+    return added
 
 
 def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,day):
@@ -129,14 +235,8 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
     allowed.discard(str(config['instagram_account_id']))
     if not allowed:return 0,0,False
     cid=conversation['id']
-    # R095: from payer_name_cutoff a group with two or more enabled borrowers carries them as evidence, so the
-    # payer name decides who paid (receipt_identity). Message time gates it, like the forwarding cutoff.
-    payer_cutoff=cutoff_ts(config,'payer_name_cutoff') if config.get('payer_name_cutoff') else None
-    group_ids=None
-    if payer_cutoff is not None:
-        from .receipt_identity import group_borrowers
-        members=group_borrowers(master,[p for p in participants if str(p.get('id',''))!=str(config['instagram_account_id'])])
-        if len(members)>=2:group_ids=sorted(b['id'] for b in members)
+    # R095: the C4' group evidence (group_context; R119 shares it with recheck_ignored).
+    payer_cutoff,group_ids=group_context(config,master,participants)
     prior=db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(cid,)).fetchone()
     since=cutoff if day else max(cutoff,(prior[0]-300) if prior else cutoff)
     found=history_since(api,config,conversation,since,now)
@@ -153,9 +253,7 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
             forwarded=candidates=False
             forwarding_evidence=None
             payer_time=payer_cutoff is not None and ts>=payer_cutoff
-            if valid and payer_time and group_ids:
-                # C4': a borrower sends in a multi-borrower group; compared with the sender's name, never filled.
-                forwarding_evidence=json.dumps({'candidate_borrower_ids':group_ids})
+            if valid:forwarding_evidence=group_evidence(payer_cutoff,group_ids,ts)
             if not valid and config.get('receipt_forwarding_enabled') is True:
                 from .receipt_identity import forwarded_borrower,forwarded_candidates
                 from .receipt_rules import ReceiptInvalid
@@ -214,9 +312,76 @@ def run(config_path,catalogue_path,day=None):
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:return {'status':'already_running'}
         journal=ReceiptJournal(root/'receipt-processing.db', config=config)
-        try:result=scan(config,Instagram(config,read_timeout=READ_TIMEOUT),masters(config),journal,day=day)
-        finally:journal.close()
-        if result.get('image_jobs'):
+        worker=None
+        try:
+            master=masters(config)
+            plan=recheck_plan(config,root,master,day)
+            if plan.get('recheck'):
+                # The held pass requeues worker jobs: it runs under receipt-worker.lock, taken without waiting. A busy
+                # worker skips the whole recheck and keeps the snapshot, so the next run tries again.
+                worker=(root/'receipt-worker.lock').open('a')
+                try:fcntl.flock(worker,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                except BlockingIOError:
+                    worker.close();worker=None;plan={'status':'worker_busy'}
+            result=scan(config,Instagram(config,read_timeout=READ_TIMEOUT),master,journal,day=day,recheck=plan.get('recheck'))
+            if plan.get('recheck'):
+                from .receipt_recheck import recheck_held
+                result.update(recheck_held(config,journal,plan['grew'],plan['accounts_changed'],plan['snapshot']['written_at']))
+                if result.get('recheck_errors'):plan['status']='recheck_incomplete'
+                else:write_snapshot(root,plan['current']);plan['status']='rechecked'
+            if plan.get('status'):result['recheck']=plan['status']
+        finally:
+            if worker:worker.close()
+            journal.close()
+        if result.get('image_jobs') or result.get('recheck_jobs') or result.get('held_requeued'):
             from .receipt_wake import wake
             wake(config)
         return result
+
+
+# R119: the borrower-master snapshot the recheck compares against, next to the poll lock (0600, written atomically).
+SNAPSHOT='conversation-poll-master.json'
+
+
+def master_fingerprint(master):
+    """The enabled usernames (sorted) and a digest of the active cash accounts' numbers and alternative numbers."""
+    accounts=sorted([str(a.get('id')),str(a.get('number') or ''),str(a.get('alternative') or '')]
+                    for a in master['accounts'] if a.get('active') is True)
+    return {'enabled':sorted(enabled_usernames(master)),
+            'accounts_sha256':hashlib.sha256(json.dumps(accounts,separators=(',',':')).encode()).hexdigest()}
+
+
+def read_snapshot(root):
+    """The saved snapshot, or None when missing or unreadable."""
+    try:value=json.loads((Path(root)/SNAPSHOT).read_text())
+    except (OSError,ValueError):return None
+    if not (isinstance(value,dict) and isinstance(value.get('enabled'),list) and all(isinstance(x,str) for x in value['enabled'])
+            and isinstance(value.get('accounts_sha256'),str) and isinstance(value.get('written_at'),(int,float))):return None
+    return value
+
+
+def write_snapshot(root,current,now=None):
+    path=Path(root)/SNAPSHOT;temporary=path.with_name(SNAPSHOT+'.tmp')
+    value={**current,'written_at':time.time() if now is None else now}
+    descriptor=os.open(temporary,os.O_WRONLY|os.O_CREAT|os.O_TRUNC,0o600)
+    with os.fdopen(descriptor,'w') as stream:
+        json.dump(value,stream,sort_keys=True);stream.flush();os.fsync(stream.fileno())
+    os.chmod(temporary,0o600);os.replace(temporary,path)
+    return value
+
+
+def recheck_plan(config,root,master,day):
+    """What this run rechecks (R119, conversation_poll_recheck_enabled, never in a --date backfill). The first run or
+    an unreadable snapshot only writes the snapshot. A grown enabled set rechecks ignored slips of the new usernames
+    and PAYER_UNRESOLVED holds; a changed account fingerprint rechecks RECIPIENT_UNKNOWN_OR_AMBIGUOUS holds."""
+    if config.get('conversation_poll_recheck_enabled') is not True or day:return {}
+    snapshot=read_snapshot(root);current=master_fingerprint(master)
+    if snapshot is None:
+        write_snapshot(root,current);return {'status':'snapshot_written'}
+    grew=set(current['enabled'])-set(snapshot['enabled'])
+    changed=current['accounts_sha256']!=snapshot['accounts_sha256']
+    if not grew and not changed:
+        # A borrower disabled since: record it, so enabling them again is a change.
+        if current['enabled']!=snapshot['enabled']:write_snapshot(root,current)
+        return {'status':'unchanged'}
+    return {'recheck':{'usernames':grew},'grew':bool(grew),'accounts_changed':changed,'snapshot':snapshot,'current':current}

@@ -5122,6 +5122,73 @@ COMMENT ON FUNCTION public.pwa_notify_content_v3(delivery uuid, generation bigin
 
 
 --
+-- Name: pwa_notify_content_v4(uuid, bigint); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_notify_content_v4(delivery uuid, generation bigint) RETURNS TABLE(found boolean, event_type text, language text, borrower_name text, amount numeric, rebate_amount numeric, rebate_payee text, rebate_payable numeric, payment_method text, rebate_loan text, late_charge_amount numeric, rebates jsonb)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+BEGIN
+ PERFORM public.pwa_worker_guard_v1('dispatch');
+ RETURN QUERY SELECT src.source_found,
+  -- A chat reply carries its outcome ('chat.reply:ok' / 'chat.reply:failed', from source_version 'ok:<message>').
+  CASE WHEN e.event_type='chat.reply' THEN 'chat.reply:'||split_part(e.source_version,':',1) ELSE e.event_type END,
+  CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
+  -- Chat: the thread title. Thai: the Thai name. English: the English name only ("Description"); none when blank.
+  CASE WHEN e.source_kind='chat' THEN src.source_title WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+  src.source_amount,
+  -- R111: a closed loan's referral rebate, its payee (the v1 name rule) and the part not settled by offset
+  rb.rebate_amount,
+  -- (an English recipient falls back to the Thai name when the referrer has no English name: the line names a payee).
+  CASE WHEN rb.rebate_amount IS NULL THEN NULL WHEN recipient."Language Preference"='ไทย' THEN pb."Borrower Name" ELSE coalesce(nullif(btrim(pb."Description",E' \t\r\n\f\v'),''),pb."Borrower Name") END,
+  rb.rebate_payable,
+  -- R111: a posted payment's method, and for a Referral Rebate Offset the closed loan whose rebate it is (the push then
+  -- reads as a rebate offset, not as cash received from the referrer).
+  src.payment_method,
+  (SELECT x."Ref Related Loan" FROM public."Business Expenses" x WHERE e.source_kind='payment' AND x."Ref Offset Payment"=e.source_id ORDER BY x."Row ID" COLLATE "C" LIMIT 1),
+  -- R118: the late-charge part of the payment.
+  CASE WHEN e.source_kind='payment' THEN (SELECT coalesce(sum(y."Late Charge Paid"::numeric),0) FROM public."Repayments" y WHERE y."Ref Payment"=e.source_id) END,
+  -- R119: every rebate, in expense "Row ID" order; [] when none; NULL on a chat event.
+  CASE WHEN e.source_kind='chat' THEN NULL ELSE (
+   SELECT coalesce(jsonb_agg(jsonb_build_object('amount',x."Amount"::numeric,
+     'payee',CASE WHEN recipient."Language Preference"='ไทย' THEN xb."Borrower Name" ELSE coalesce(nullif(btrim(xb."Description",E' \t\r\n\f\v'),''),xb."Borrower Name") END,
+     'payable',x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0)) ORDER BY x."Row ID" COLLATE "C"),'[]'::jsonb)
+   FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment" LEFT JOIN public."Borrowers" xb ON xb."Row ID"=x."Ref Payee Borrower"
+   WHERE x."Source Type"='Referral Rebate' AND ((e.event_type='loan.closed' AND e.source_kind='loan' AND x."Ref Related Loan"=e.source_id)
+    OR (e.event_type='payment.posted' AND e.source_kind='payment' AND x."Ref Related Loan" IN (SELECT y."Row ID" FROM public."Loans" y WHERE y."Ref Closing Payment"=e.source_id)))) END
+ FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e ON e.event_id=d.event_id
+ LEFT JOIN public."Partners" recipient ON recipient."Row ID"=d.recipient_partner_id
+ LEFT JOIN LATERAL (
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount,NULL::text AS source_title,p."Payment Method" AS payment_method FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric,NULL::text,NULL::text FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,NULL::text,NULL::numeric,t.title,NULL::text FROM public.pwa_chat_threads t WHERE e.source_kind='chat' AND t.id::text=e.source_id AND t.partner_id=d.recipient_partner_id
+ ) source_row ON true
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount,source_row.source_title,source_row.payment_method) src
+ LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
+ LEFT JOIN LATERAL (
+  SELECT x."Amount"::numeric AS rebate_amount,x."Ref Payee Borrower" AS payee_id,x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0) AS rebate_payable
+  FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment"
+  WHERE x."Source Type"='Referral Rebate' AND ((e.event_type='loan.closed' AND e.source_kind='loan' AND x."Ref Related Loan"=e.source_id)
+   -- R111 V124: the payment that closed a referred loan carries that loan's rebate (its "Payment received" push).
+   OR (e.event_type='payment.posted' AND e.source_kind='payment' AND x."Ref Related Loan" IN (SELECT y."Row ID" FROM public."Loans" y WHERE y."Ref Closing Payment"=e.source_id)))
+  ORDER BY x."Row ID" COLLATE "C" LIMIT 1
+ ) rb ON true
+ LEFT JOIN public."Borrowers" pb ON pb."Row ID"=rb.payee_id
+ WHERE d.delivery_id=$1 AND d.lease_generation=$2 AND d.state='leased' AND d.lease_expires_at>clock_timestamp();
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_notify_content_v4(delivery uuid, generation bigint); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_notify_content_v4(delivery uuid, generation bigint) IS 'mw-access:governance fixed notification boundary; explicit capability only';
+
+
+--
 -- Name: pwa_notify_eligible_v1(uuid, uuid); Type: FUNCTION
 --
 

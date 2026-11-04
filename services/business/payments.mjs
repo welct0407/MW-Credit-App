@@ -19,16 +19,18 @@ export async function readPaymentRecord(client,id){
  // R111 V124 (RP-11): each referred loan this payment closed and its rebate: settled by offset on the referrer's loan (the
  // offset payment, its first loan's key and the latest charge it paid in full) or payable. The offset link is read
  // through to_jsonb(e), so a database before V122 reads none.
- const rebates=(await client.query(`SELECT l."Row ID" AS "loanId",e."Amount"::numeric::text AS amount,coalesce(rb."Borrower Name",'')||' - '||coalesce(rb."Description",'') AS "referrerLabel",
+ const rebates=(await client.query(`SELECT l."Row ID" AS "loanId",l."Principal Amount"::numeric::text AS "loanPrincipal",l."Loan Date"::text AS "loanDay",l."Original Daily Interest Rate"::text AS "loanRate",lb."Borrower Name" AS "loanBorrowerName",lb."Description" AS "loanBorrowerDescription",e."Amount"::numeric::text AS amount,coalesce(rb."Borrower Name",'')||' - '||coalesce(rb."Description",'') AS "referrerLabel",
   o."Row ID" AS "offsetPaymentId",o."Amount Received"::numeric::text AS "offsetAmount",ol."Row ID" AS "offsetLoanId",ol."Principal Amount"::numeric::text AS principal,ol."Loan Date"::text AS "loanDate",ol."Original Daily Interest Rate"::text AS rate,
   (SELECT max(c."Charge Date") FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=o."Row ID" AND c."Amount Remaining"=0)::text AS "paidThrough"
   FROM public."Loans" l JOIN public."Business Expenses" e ON e."Ref Related Loan"=l."Row ID" AND e."Source Type"='Referral Rebate'
-  LEFT JOIN public."Borrowers" rb ON rb."Row ID"=e."Ref Payee Borrower" LEFT JOIN public."Payments" o ON o."Row ID"=to_jsonb(e)->>'Ref Offset Payment'
+  LEFT JOIN public."Borrowers" lb ON lb."Row ID"=l."Ref Borrowers" LEFT JOIN public."Borrowers" rb ON rb."Row ID"=e."Ref Payee Borrower" LEFT JOIN public."Payments" o ON o."Row ID"=to_jsonb(e)->>'Ref Offset Payment'
   LEFT JOIN LATERAL (SELECT r."Ref Loans" AS loan FROM public."Repayments" r WHERE r."Ref Payment"=o."Row ID" ORDER BY r."Ref Loans" COLLATE "C" LIMIT 1) orl ON true
   LEFT JOIN public."Loans" ol ON ol."Row ID"=orl.loan
-  WHERE l."Ref Closing Payment"=$1 ORDER BY l."Row ID" COLLATE "C"`,[id])).rows;
- // R119: every referred loan this payment closed, one line each in loan order; closeRebate stays the first for an older bundle.
- item.closeRebates=rebates.map(rebate=>({loanId:rebate.loanId,amount:rebate.amount,referrerLabel:rebate.referrerLabel,offsetPaymentId:rebate.offsetPaymentId??null,offsetAmount:rebate.offsetAmount??null,
+  LEFT JOIN LATERAL (SELECT a."Allocation Order" AS ord,a."Row ID" AS aid FROM public."Payment Allocations" a JOIN public."Charges" c ON c."Row ID"=a."Ref Charge" WHERE a."Ref Payment"=$1 AND c."Ref Loans"=l."Row ID" ORDER BY a."Allocation Order",a."Row ID" COLLATE "C" LIMIT 1) fa ON true
+  WHERE l."Ref Closing Payment"=$1 ORDER BY fa.ord NULLS LAST,fa.aid COLLATE "C" NULLS LAST,l."Row ID" COLLATE "C"`,[id])).rows;
+ // R119 (Echo PR-1/PR-2): every referred loan this payment closed, in the Payment Allocations order (then loan id), with the
+ // closed loan's display key as the allocations show it; closeRebate stays the first for a phone on an older bundle.
+ item.closeRebates=rebates.map(rebate=>({loanId:rebate.loanId,loanDisplayKey:rebate.loanPrincipal==null?null:paymentLoanDisplayKey({principal:rebate.loanPrincipal,loanDate:rebate.loanDay,rate:rebate.loanRate,name:borrowerDisplayName(rebate.loanBorrowerName,rebate.loanBorrowerDescription)}),amount:rebate.amount,referrerLabel:rebate.referrerLabel,offsetPaymentId:rebate.offsetPaymentId??null,offsetAmount:rebate.offsetAmount??null,
   payableAmount:rebate.offsetAmount==null?rebate.amount:(Number(rebate.amount)-Number(rebate.offsetAmount)).toString(),offsetLoanId:rebate.offsetLoanId??null,
   offsetLoanLabel:rebate.offsetLoanId?paymentLoanDisplayKey({name:rebate.referrerLabel,principal:rebate.principal,loanDate:rebate.loanDate,rate:rebate.rate}):null,paidThrough:rebate.paidThrough??null}));
  item.closeRebate=item.closeRebates[0]??null;
