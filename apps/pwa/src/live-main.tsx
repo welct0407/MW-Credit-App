@@ -81,7 +81,7 @@ function App() {
   const languageRevision=useRef(0),preferenceOwner=useRef<string|null>(null);
   const [updateNavigation]=useState(()=>{try{const value=JSON.parse(sessionStorage.getItem('mw-app-update-navigation')??'null');sessionStorage.removeItem('mw-app-update-navigation');return value as {view?:string;management?:string}|null}catch{return null}});
   const [managementSection,setManagementSection]=useState<ManagementSection>(managementViews.some(item=>item.id===updateNavigation?.management)?updateNavigation!.management as ManagementSection:'cash-accounts'),[managementExpanded,setManagementExpanded]=useState(false);
-  const [view, setView] = useState<'borrowers' | 'collection' | 'expenses' | 'cash' | 'dashboard' | 'upcoming' | 'loans' | 'payments' | 'management' | 'notifications' | 'about' | 'chat'>(()=>{const saved=updateNavigation?.view;return saved==='about'?saved:saved&&(saved!=='chat'||chatOrigin)&&workspaceViews.some(item=>item.id===saved)?saved as typeof workspaceViews[number]['id']:businessWorkspace?'dashboard':'borrowers'});
+  const [view, setView] = useState<'borrowers' | 'collection' | 'expenses' | 'referrers' | 'cash' | 'dashboard' | 'upcoming' | 'loans' | 'payments' | 'management' | 'notifications' | 'about' | 'chat'>(()=>{const saved=updateNavigation?.view;return saved==='about'?saved:saved&&(saved!=='chat'||chatOrigin)&&workspaceViews.some(item=>item.id===saved)?saved as typeof workspaceViews[number]['id']:businessWorkspace?'dashboard':'borrowers'});
   const [searchOpen, setSearchOpen] = useState(false);
   const [chatTitle,setChatTitle]=useState('');
   // R090 batch 2 (B3): a chat-reply notification tap opens that thread (same nonce pattern as Notifications' openRequest).
@@ -327,7 +327,7 @@ function App() {
   }
   const collectionRequest = <T,>(path: string, onError: (failure: ReadFailure<CollectionReadError>) => void, onCached?: (value:T)=>void) => user
     ? request<T>(user, path, onError, failure => onError(failure),onCached) : Promise.resolve(null);
-  function changeView(next: 'borrowers' | 'collection' | 'expenses' | 'cash' | 'dashboard' | 'upcoming' | 'loans' | 'payments' | 'management' | 'notifications' | 'about' | 'chat') {
+  function changeView(next: 'borrowers' | 'collection' | 'expenses' | 'referrers' | 'cash' | 'dashboard' | 'upcoming' | 'loans' | 'payments' | 'management' | 'notifications' | 'about' | 'chat') {
     menuDrawer.close(()=>{
       setBorrowerEditor(undefined);
     setNotificationPayment(null);
@@ -460,7 +460,7 @@ function App() {
   const refreshPull=useWorkspaceGestures(workspace,{refreshing:headerState==='loading',menuMotion:menuDrawer,scope:(user?.uid??'')+':'+view+':'+(activeBack?.navigationKey??'root')+':'+searchOpen+':'+status,canOpenMenu:status==='ready'&&!activeBack&&!searchOpen,onOpenMenu:()=>{if(matchMedia('(max-width:1050px)').matches){menuDrawer.open()}else setNavigationCollapsed(false)},refreshButtonRef:refreshButton,refreshIdentity:activeRefresh});
   const navigation = (location: 'desktop' | 'mobile-bottom' | 'drawer') => {
     if (status !== 'ready') return null;
-    const routes = workspaceViews.filter(route => (!['expenses','cash','dashboard','upcoming','loans','payments','management'].includes(route.id)||businessWorkspace)&&(route.id!=='chat'||!!chatOrigin)).filter(route => location === 'desktop' || (location === 'mobile-bottom' ? route.frequent : !route.frequent));
+    const routes = workspaceViews.filter(route => (!['expenses','referrers','cash','dashboard','upcoming','loans','payments','management'].includes(route.id)||businessWorkspace)&&(route.id!=='chat'||!!chatOrigin)).filter(route => location === 'desktop' || (location === 'mobile-bottom' ? route.frequent : !route.frequent));
     if (!routes.length) return null;
     return <nav className={location === 'mobile-bottom' ? 'live-bottom-nav' : 'live-vertical-nav'} aria-label={t('Workspace navigation', 'เมนูพื้นที่ทำงาน')}>{routes.map(route => <React.Fragment key={route.id}><button type="button" aria-label={t(route.en, route.th)} title={t(route.en, route.th)} aria-expanded={route.id==='management'?managementExpanded:undefined} aria-current={view === route.id&&route.id!=='management' ? 'page' : undefined} onClick={() => {if(route.id==='management'){if(!managementExpanded)void loadManagement().catch(()=>{});setManagementExpanded(value=>!value);if(!managementExpanded&&location==='desktop')changeView('management')}else {collapseTabletNavigation();changeView(route.id)}}}><span className="live-nav-icon" aria-hidden="true"><Icon name={route.icon}/></span><span className="live-nav-label">{t(route.en, route.th)}{route.id==='management'&&<Icon className="nav-disclosure-icon" name={managementExpanded?'up':'down'}/>}</span></button>{route.id==='management'&&managementExpanded&&managementViews.map(item=><button type="button" className="management-nav-item" key={item.id} aria-label={t(item.en,item.th)} title={t(item.en,item.th)} aria-current={view==='management'&&managementSection===item.id?'page':undefined} onClick={()=>{collapseTabletNavigation();setManagementSection(item.id);changeView('management')}}><span className="live-nav-icon" aria-hidden="true"><Icon name={item.icon}/></span><span className="live-nav-label">{t(item.en,item.th)}</span></button>)}</React.Fragment>)}</nav>;
   };

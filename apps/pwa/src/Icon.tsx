@@ -30,6 +30,8 @@ const paths = {
  dashboard:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
  collection:'M8 4H4v17h8M8 2h8v5H8zM16 4h4v6M8 10h4M22 16a6 6 0 1 1-12 0 6 6 0 0 1 12 0M16 12v4l2 1',
  borrowers:'M15 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0M5 21v-4a7 7 0 0 1 14 0v4M20 4a3 3 0 0 1 0 6M23 20v-4a5 5 0 0 0-3-4',
+ // R129: the Referrers page (a person handing on to another).
+ referrers:'M12 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0M3 21v-3a6 6 0 0 1 10-4.5M15 14h7m-3-3 3 3-3 3',
  expenses:'M5 3h13v10M5 3v18l3-2 3 2 3-2M8 7h7M8 11h5M15 17h7m-3-3 3 3-3 3',
  upcoming:'M3 5h18v16H3zM7 2v6M17 2v6M3 10h18M8 14h2m4 0h2M8 17h2',
  cash:'M3 7V4h16v3M3 7h18v14H3zM16 12h5v5h-5zM18 14v1',

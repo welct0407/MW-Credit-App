@@ -11,7 +11,9 @@ function client(rebate){const rows=rebate==null?[]:Array.isArray(rebate)?rebate:
 }};}
 test('a closing payment with a default offset gives the offset, its loan key, paid-through day and the payable rest',async()=>{
  const item=await readPaymentRecord(client({loanId:'L-1',amount:'300',referrerLabel:'Malee - English',offsetPaymentId:'ro122:pwa:close',offsetAmount:'200',offsetLoanId:'L-0398',principal:'10000',loanDate:'2026-10-03',rate:'3',paidThrough:'2026-11-12'}),'pwa:close');
- assert.deepEqual(item.closeRebate,{loanId:'L-1',loanDisplayKey:null,amount:'300',referrerLabel:'Malee - English',offsetPaymentId:'ro122:pwa:close',offsetAmount:'200',payableAmount:'100',offsetLoanId:'L-0398',offsetLoanLabel:'Malee - English-฿10,000-03/10-3%',paidThrough:'2026-11-12'});
+ assert.deepEqual(item.closeRebate,{loanId:'L-1',loanDisplayKey:null,amount:'300',referrerLabel:'Malee - English',offsetPaymentId:'ro122:pwa:close',offsetAmount:'200',payableAmount:'100',offsetLoanId:'L-0398',offsetLoanLabel:'Malee - English-฿10,000-03/10-3%',paidThrough:'2026-11-12',
+  // R129: the state fields (none from a row without them, as before V137)
+  rebateState:null,pendingAmount:null,settlementId:null,settlementDate:null,owedTotal:null});
 });
 test('a paid-out rebate is payable in full, and a payment that closed no referred loan has none',async()=>{
  const item=await readPaymentRecord(client({loanId:'L-1',amount:'300',referrerLabel:'Malee - English',offsetPaymentId:null,offsetAmount:null,offsetLoanId:null,principal:null,loanDate:null,rate:null,paidThrough:null}),'pwa:close');

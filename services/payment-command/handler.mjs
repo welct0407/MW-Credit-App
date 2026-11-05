@@ -38,6 +38,12 @@ function route(raw) {
     if(url.pathname==='/api/cash-overview')return {operation:'cash_overview'};
     if(url.pathname==='/api/expense-options')return {operation:'expense_options'};
     if(url.pathname==='/api/expense-records')return {operation:'expense_list',options:pageOptions};
+    // R129 (V137): the Referrers page, a referrer's detail and one rebate settlement.
+    if(url.pathname==='/api/referrers')return {operation:'referrer_list'};
+    const referrer=/^\/api\/referrers\/([^/]+)$/.exec(url.pathname);
+    if(referrer)return {operation:'referrer_record',borrowerId:decodeURIComponent(referrer[1])};
+    const rebateSettlement=/^\/api\/rebate-settlements\/([^/]+)$/.exec(url.pathname);
+    if(rebateSettlement)return {operation:'rebate_settlement_record',settlementId:decodeURIComponent(rebateSettlement[1])};
     const expense=/^\/api\/expense-records\/([^/]+)$/.exec(url.pathname);
     if(expense)return {operation:'expense_record',expenseId:decodeURIComponent(expense[1])};
     if(url.pathname==='/api/loan-options')return {operation:'loan_options'};
@@ -80,7 +86,7 @@ function route(raw) {
  * revocation round trip. Exact (operation, method) pairs only; every write, every invalid or
  * unknown route and every method mismatch keeps verifyIdToken(token,true).
  */
-const READ_GET=new Set(['offline_dataset','management','record_list','cash_statement','collection_receipts','upcoming','payment_image','loan_related','payment_record','borrower_options','dashboard','preferences','cash_overview','expense_options','expense_list','expense_record','loan_options','operation_status','loan_close_preview','charge_record','loan_record','borrower_record','payment_history','command_result','payment_draft','receipt','command_status']);
+const READ_GET=new Set(['offline_dataset','management','record_list','cash_statement','collection_receipts','upcoming','payment_image','loan_related','payment_record','borrower_options','dashboard','preferences','cash_overview','expense_options','expense_list','expense_record','referrer_list','referrer_record','rebate_settlement_record','loan_options','operation_status','loan_close_preview','charge_record','loan_record','borrower_record','payment_history','command_result','payment_draft','receipt','command_status']);
 /** @param {any} target @param {string|undefined} method */
 export function isReadRoute(target,method){
   if(!target||target.invalid)return false;
@@ -139,7 +145,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if (target.operation === 'unknown') return reject(404, 'not_found');
     if ((target.operation === 'command_submit' && req.method !== 'POST') || (['command_status','command_result','payment_draft','payment_history'].includes(target.operation) && req.method !== 'GET')) return reject(405, 'method_not_allowed');
     if((['payment_review','payment_auto_assign','payment_select_all','payment_plan'].includes(target.operation)&&req.method!=='POST')||(target.operation==='command_metadata'&&req.method!=='PATCH')||(target.operation==='receipt'&&!['GET','POST'].includes(req.method))||(target.operation==='receipt_recognition'&&req.method!=='POST'))return reject(405,'method_not_allowed');
-    if(['borrower_create','operation_submit'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','loan_close_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
+    if(['borrower_create','operation_submit'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','referrer_list','referrer_record','rebate_settlement_record','loan_close_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
     let result;
     try {
       if(target.operation==='offline_dataset'){
@@ -164,6 +170,9 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       else if(target.operation==='expense_record')result=await store.expenseRecord(principal,target.expenseId);
       else if(target.operation==='expense_options')result=await store.expenseOptions(principal);
       else if(target.operation==='expense_list')result=await store.expenses(principal,target.options);
+      else if(target.operation==='referrer_list')result=await store.referrers(principal);
+      else if(target.operation==='referrer_record')result=await store.referrerRecord(principal,target.borrowerId);
+      else if(target.operation==='rebate_settlement_record')result=await store.rebateSettlementRecord(principal,target.settlementId);
       else if(target.operation==='collection_receipts')result=await store.collectionReceipts(principal,target.borrowerId,target.options);
       else if(target.operation==='payment_record')result=await store.paymentRecord(principal,target.paymentId,{preview:target.preview,targetLoanId:target.targetLoanId??null,paymentDate:target.paymentDate??null,proposedBorrowerId:target.proposedBorrowerId??null});
       else if(target.operation==='charge_record')result=await store.chargeRecord(principal,target.chargeId);

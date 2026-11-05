@@ -108,7 +108,13 @@ test('a rebate larger than the referrer schedule offsets up to the horizon; the 
  const off=(await offsetPayment(s.referrer))[0];assert.ok(Number(off.amount)>0&&Number(off.amount)<1000,'a partial offset');assert.equal(Number(off.amount),Number(preview.rebate.offset.covered));
  const last=(await admin.query(`SELECT max("Charge Date")::text AS d FROM "Charges" WHERE "Ref Loans"=$1`,[s.refLoans[0]])).rows[0].d;assert.ok(last<=await day(93),'nothing booked beyond day+93');
  assert.equal((await admin.query(`SELECT "Amount"::numeric::text AS a FROM "Business Expenses" WHERE "Row ID"=$1`,['rr1:'+s.loan])).rows[0].a,'1000.00');
- assert.equal(await lisaNet(off.id,'rr1:'+s.loan),-(1000-Number(off.amount)),'Lisa cash nets to minus the payable remainder');
+ // R129 (V137): the remainder is pending payment (a settlement pays it later), so Lisa's cash nets to zero at the close.
+ assert.equal(await lisaNet(off.id,'rr1:'+s.loan),0,'Lisa cash nets to zero; the remainder is pending');
+ assert.equal(Number((await admin.query('SELECT public.pwa_rebate_pending_v1($1) AS v',['rr1:'+s.loan])).rows[0].v),1000-Number(off.amount),'the remainder is pending');
+ // R129 referred borrowers: the one referee carries the offset and the pending remainder, and adds up to the tiles.
+ const detail=await store.referrerRecord(principal,s.referrer);assert.equal(detail.status,200,JSON.stringify(detail).slice(0,300));
+ assert.deepEqual(detail.referees.map(r=>[r.borrowerId,r.loanCount,r.openLoanCount,Number(r.unpaidAmount),Number(r.paidAmount),Number(r.offsetAmount),Number(r.accruingAmount)]),[[s.borrower,1,0,1000-Number(off.amount),0,Number(off.amount),0]]);
+ assert.deepEqual([detail.referrer.unpaidAmount,detail.referrer.offsetToDate,detail.referrer.paidToDate,detail.referrer.accruingAmount],[detail.referees[0].unpaidAmount,detail.referees[0].offsetAmount,'0.00','0.00'],'the referee adds up to the tiles');
 });
 
 test('several open loans of the referrer: due of both first, then the earliest date, the smaller key on a tie',async()=>{
@@ -336,7 +342,7 @@ test('R120: referral rebate terms through the borrower command, the version, the
  const {preview,applied}=await close(s,{rebatePath:'expense'});assert.equal(applied.originalOutcome?.status,'applied',JSON.stringify(applied));
  assert.deepEqual([preview.rebate.amount,preview.rebate.profit,preview.rebate.rate,preview.rebate.cap,preview.rebate.custom],['360','2400',15,1500,true]);
  const record=await store.expenseRecord(principal,'rr1:'+s.loan);assert.equal(record.status,200,JSON.stringify(record));
- assert.deepEqual([record.item.amount,record.item.ruleVersion,record.item.rebateRate,record.item.rebateCap,record.item.grossProfitBasis],['360.00','REFERRAL_REBATE_V2',15,1500,'2400.00']);
+ assert.deepEqual([record.item.amount,record.item.ruleVersion,record.item.rebateRate,record.item.rebateCap,record.item.grossProfitBasis],['360.00','REFERRAL_REBATE_V3',15,1500,'2400.00']);
  // Receive payment: a custom-terms referrer's rebate line on the closing payment (rate 5: 300 interest -> 15).
  const x=await autoScenario();await admin.query('UPDATE "Borrowers" SET "Referral Rebate Rate"=5 WHERE "Row ID"=$1',[x.referrer]);
  const {posted}=await receive(x);assert.equal(posted.originalOutcome?.status,'posted',JSON.stringify(posted));

@@ -40,8 +40,12 @@ test('catalogue: every sample canonicalizes and the list matches the command con
   ...['cash-holder','cash-account','partner'].flatMap(k=>['create','update','delete'].map(a=>`${k}.${a}`)),...literal]);
  for(const operation of contract)assert.doesNotThrow(()=>{try{canonicalOperation({requestId:'00000000-0000-4000-8000-000000000001',operation,targetId:'x',expectedVersion:V,predecessorRequestId:null,inputs:{},receiptId:null});}catch(e){if(e.message!=='invalid_request')throw e;}});
  const excluded=['partner.create','partner.update','partner.delete','cash-openings.initialize'];
+ // R129 D9: the chat neither creates nor deletes a rebate settlement in this release; the operations are not in the
+ // catalogue at all (command-catalogue.json unchanged), so the chat refuses them as unknown.
+ const notChat=['rebate-settlement.create','rebate-settlement.delete'];
+ for(const operation of notChat)assert.ok(contract.has(operation)&&!catalogue.entries.has(operation)&&!Object.hasOwn(catalogue.excluded,operation),operation);
  const operations=[...catalogue.entries.values()].filter(e=>e.kind==='operation').map(e=>e.operation).sort();
- assert.deepEqual(operations,[...contract].filter(op=>!excluded.includes(op)).sort());
+ assert.deepEqual(operations,[...contract].filter(op=>!excluded.includes(op)&&!notChat.includes(op)).sort());
  assert.ok(catalogue.entries.has('payment.record'));
  for(const operation of excluded)assert.ok(Object.hasOwn(catalogue.excluded,operation));
  // Every delete, settlement reverse/cancel and loan default stays included, flagged destructive.

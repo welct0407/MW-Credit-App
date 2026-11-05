@@ -2,7 +2,7 @@ import {useAppUpdateBlock} from './app-update-safety';
 import {draftFailure,type DraftFailure} from './draft-state';
 import {useEffect,useRef,useState} from 'react';
 import type {OwnerOfflineRepository} from './owner-offline';
-export type DraftDomain='borrower'|'loan'|'charge'|'expense'|'preference'|'payment'|'management';
+export type DraftDomain='borrower'|'loan'|'charge'|'expense'|'preference'|'payment'|'management'|'referrer';
 /** Five drafts are enforced once by the owner repository, across every domain. */
 export function useDomainDraft({repository,id,domain,label,value,enabled,restore,recoverNew=false,updateBlocked}:{repository?:OwnerOfflineRepository;id:string;domain:DraftDomain;label:string;value:any;enabled:boolean;updateBlocked?:boolean;recoverNew?:boolean;restore:(value:any)=>void}){
  useAppUpdateBlock(updateBlocked??true);

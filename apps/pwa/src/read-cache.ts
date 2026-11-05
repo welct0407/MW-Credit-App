@@ -50,7 +50,7 @@ function allowed(access:Access,url:URL,format:'json'|'blob'){
  else if(!commandOriginAllowed(url.origin,repository.environment)&&!(url.protocol==='https:'&&new RegExp('^mw-credit-app-read-'+repository.environment+'-[a-z0-9-]+(?:\\.[a-z0-9-]+)?\\.run\\.app$').test(url.hostname)))return false;
  if(format==='blob')return /^\/api\/(?:payment-records\/[^/]+\/receipt|payment-commands\/[^/]+\/receipts\/[^/]+)$/.test(url.pathname);
  if(/\/(?:close-preview|correction-preview|close-preparation|draft|auto-assign|select-all)(?:\/|$)/.test(url.pathname))return false;
- return /^\/api\/(?:borrowers|collection|dashboard|borrower-records|borrower-options|loan-records|loan-options|charge-records|payment-records|payment-drafts|expense-records|expense-options|management|cash-overview|cash-statements|preferences|notifications|upcoming|upcoming-charges)(?:\/|$)/.test(url.pathname);
+ return /^\/api\/(?:borrowers|collection|dashboard|borrower-records|borrower-options|loan-records|loan-options|charge-records|payment-records|payment-drafts|expense-records|expense-options|referrers|rebate-settlements|management|cash-overview|cash-statements|preferences|notifications|upcoming|upcoming-charges)(?:\/|$)/.test(url.pathname);
 }
 function cacheable(data:unknown){
  if(data instanceof Blob)return ['image/png','image/jpeg','image/webp'].includes(data.type);

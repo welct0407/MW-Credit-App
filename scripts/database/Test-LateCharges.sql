@@ -84,7 +84,9 @@ BEGIN
  IF EXISTS(SELECT 1 FROM lc_before.triggers b FULL JOIN (SELECT c.relname::text AS relation,t.tgname::text AS trigger_name,t.tgtype::integer AS trigger_type,t.tgenabled::text AS enabled,
    t.tgdeferrable AS is_deferrable,t.tginitdeferred AS is_initially_deferred,pg_get_triggerdef(t.oid) AS definition FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
    JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND NOT t.tgisinternal) a USING(relation,trigger_name)
-   WHERE a.trigger_name IS NULL OR b.trigger_name IS NULL OR (a.trigger_type,a.enabled,a.is_deferrable,a.is_initially_deferred,a.definition) IS DISTINCT FROM (b.trigger_type,b.enabled,b.is_deferrable,b.is_initially_deferred,b.definition)) THEN
+   -- R129 (V137): the comparison covers the tables of V131; a later table (pwa_rebate_settlements) brings its own triggers.
+   WHERE EXISTS(SELECT 1 FROM lc_before.tables x WHERE x.name=quote_ident(coalesce(a.relation,b.relation)))
+    AND (a.trigger_name IS NULL OR b.trigger_name IS NULL OR (a.trigger_type,a.enabled,a.is_deferrable,a.is_initially_deferred,a.definition) IS DISTINCT FROM (b.trigger_type,b.enabled,b.is_deferrable,b.is_initially_deferred,b.definition))) THEN
   RAISE EXCEPTION 'FAILED: a user trigger changed'; END IF;
 END $$;
 -- A loan defaulted at V131 (evidence without original_late) still undoes, and the late columns stay 0.

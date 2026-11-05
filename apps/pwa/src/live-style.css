@@ -653,8 +653,9 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .live-desktop-nav .live-account-controls{gap:8px}
 .live-account-signout-note{margin:0;font-size:14px;line-height:1.4;color:#444;overflow-wrap:anywhere}
 @media(min-width:1051px){.nav-collapsed .live-account-signout-group{align-items:center}}
-.live-desktop-nav .live-vertical-nav button{height:auto;min-height:48px;max-height:none;padding:4px 14px}
-.live-desktop-nav .live-vertical-nav{gap:4px}
+/* R129: ten workspace items (Referrers added) still fit 1280×800: each item keeps the 44 px touch target, 2 px apart. */
+.live-desktop-nav .live-vertical-nav button{height:auto;min-height:44px;max-height:none;padding:4px 14px}
+.live-desktop-nav .live-vertical-nav,.nav-collapsed .live-desktop-nav .live-vertical-nav{gap:2px;padding-top:8px;padding-bottom:8px}
 .live-shell .topbar:not(:has(.live-menu-toggle)) .live-brand{grid-column:1/3}
 .access-language{display:flex;gap:8px;margin:16px 0 0;padding:0;border:0;min-width:0}
 @media(min-width:1051px){.access-blocked .access-language{display:none}}
@@ -747,3 +748,37 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .payment-allocation-row>label{display:flex;flex-direction:column;justify-content:flex-end}
 /* R118 (Echo LC-PAY-R2-1): from 601 px the third input sits under Principal, not under the loan name. */
 @media(min-width:601px){.payment-allocation-row>.late-charge-input{grid-column:2}}
+/* R129 (V137) Referrers: rows wrap in two lines on a phone; the detail's four tiles are two by two on a phone and one row
+   from 1024 px; the Pay rebates button is full width above the first section; the settle list's rows are 44 px or taller;
+   the settle footer sticks to the bottom above the safe area. Status words are text, never colour alone. */
+.referrer-search{display:block;margin:0 0 8px}.referrer-search input{width:100%;box-sizing:border-box;min-height:44px}
+.live-shell .borrower-card.referrer-row,.live-shell .borrower-card.referrer-line{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:4px 12px;align-items:center;min-height:44px;text-align:left;width:100%}
+.referrer-row-name,.referrer-line>span{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
+.referrer-row-name small,.referrer-line small{font-size:13px;color:#4a5560}
+.referrer-row-figures{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-variant-numeric:tabular-nums;text-align:right}
+.referrer-unpaid{font-weight:700}.referrer-row-figures .muted{font-weight:400;color:#5f6b76}.referrer-referee small .muted{color:#5f6b76;font-style:italic}
+.referrer-terms{margin-bottom:2px}.referrer-terms-link{margin:0 0 8px}
+.referrer-line>strong{font-variant-numeric:tabular-nums;text-align:right}
+@media (max-width:600px){.live-shell .borrower-card.referrer-row{grid-template-columns:1fr}.referrer-row-figures{align-items:flex-start;text-align:left}}
+.referrer-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.referrer-tile{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid #d5dbe0;border-radius:6px;background:#fff;min-width:0}
+.referrer-tile span{font-size:13px;color:#4a5560;overflow-wrap:anywhere}.referrer-tile strong{font-size:1.2rem;font-variant-numeric:tabular-nums}
+@media (min-width:1024px){.referrer-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.referrer-pay{display:block;width:100%;min-height:44px;margin:8px 0 12px}
+.referrer-owed{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:4px 0}
+/* Echo BR-1: the Referrer page action keeps its caption on phones. */
+.referrer-owed .record-action:not(#_){width:auto;flex:0 0 auto;padding:7px 10px}.live-shell .referrer-owed .record-action-label:not(#_),.referrer-owed .record-action-label:not(#_){display:inline}
+.rebate-chip{display:inline-block;margin-top:2px;font-size:13px;font-weight:600;color:#3c4650}.rebate-chip-pending{color:#8a4b00}
+.rebate-settle-list{min-width:0;max-width:100%;border:1px solid #d5dbe0;border-radius:6px;padding:4px 10px}
+/* Echo PAY-1: beat .borrower-record label{display:block;margin:12px 0} so each tick row stays one row of 44 px or more. */
+.borrower-record label.rebate-settle-row{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;gap:10px;align-items:center;min-height:44px;margin:0;border-bottom:1px solid #eef1f3}
+.rebate-settle-row:last-child{border-bottom:0}.rebate-settle-row>span{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}.rebate-settle-row small{font-size:13px;color:#4a5560}
+.rebate-settle-row>strong{font-variant-numeric:tabular-nums;text-align:right}.rebate-settle-row input[type=checkbox]{width:22px;height:22px}
+.rebate-settle-all{font-weight:600}
+/* Echo PAY-2: the footer is a .form-sticky-actions bar (above the fixed bottom navigation at 1050 px and narrower). */
+.rebate-settle-footer>button{flex:1;width:100%;min-height:48px;font-weight:700}
+.rebate-settle-review{list-style:none;margin:0 0 8px;padding:0}.rebate-settle-review li{display:flex;justify-content:space-between;gap:12px;min-height:32px;align-items:center;border-bottom:1px solid #eef1f3}
+.rebate-settle-review strong{font-variant-numeric:tabular-nums}
+.destructive-note{font-weight:600;color:#a50e0e}
+.cash-rebates-payable{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:2px 12px;margin:10px 0 0;padding:8px 10px;border-top:1px solid #d5dbe0}
+.cash-rebates-payable strong{font-variant-numeric:tabular-nums}.cash-rebates-payable small{grid-column:1/-1;font-size:13px;color:#4a5560}
