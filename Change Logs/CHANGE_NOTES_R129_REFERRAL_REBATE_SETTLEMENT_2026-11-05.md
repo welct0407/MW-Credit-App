@@ -84,7 +84,7 @@ The wide Playwright suite locally (the pull request CI is the one broad run); re
 
 ## Open questions
 Owner confirmations the design assumed (first option of each): D3 accruing = rebate on interest and late charges received so far at today's terms, not a projection to the loan's end; D1 no conversion of rebates booked before V137, except the one owner-named legacy rebate above (if some others were in fact never paid, the owner sends the list for a separate authorized correction); D9 deferrals accepted; the menu item name "Referrers" / "ผู้แนะนำ".
-- Owner to decide: `docs/Development.md` says the DEV Hosting build carries nine settings including `VITE_NOTIFICATIONS`, but the live R128 bundle did not carry it. Forge built R129 with the same eight keys, so DEV behaves as before. Should the DEV notifications screen be on (a Hosting-only rebuild) or the docs line corrected?
+- Resolved (owner, 5 November 2026): the DEV notifications screen is back on. `docs/Development.md` says the DEV Hosting build carries nine settings including `VITE_NOTIFICATIONS`, but the live DEV bundle had been built without it (missing since R126 or earlier; the exact build was not identified). The first R129 Hosting deploy used the same eight keys, so a Hosting-only rebuild with all nine followed (see the DEV record). `docs/Development.md` needs no change.
 
 ## Remaining work
 - Owner review in DEV, then a separate promotion instruction (verified PROD backup, owner window, images, Hosting, tag).
@@ -112,6 +112,7 @@ Authority: the owner's 5 November 2026 instruction to implement, test and deploy
 | Revisions | read `00072-qdx`, command `00089-c7v`, chat `00041-jjd`, notify `00030-b8b`, jobs `00030-75c`, all on image `211cb0d9…` |
 | Hosting | Version `c6e5987387a2c67a`, release `1793887762721000`, build-version R129 `8a738345328014d112585b10`, embeds `7153aab`, deployed 14:09:14Z to 14:09:23Z; `.env.live-dev` shredded |
 | Smoke | `/health` 200 on read, command and chat; notify and jobs Ready; unauthenticated 401; CORS 204 on both origins; the three origins serve R129; `sw.js` no-store; `/api/referrers` 200 as the DEV test Partner with `{ok, items[14], businessDate}`; no ERROR logs 13:54Z to 14:10:41Z |
+| Hosting rebuild (notifications on) | Hosting only, at `7153aab`, nine settings including `VITE_NOTIFICATIONS=enabled`: build-version R129 `b60157e2154ab0b4eec004e8`, entry `/assets/index-BBCiqrv8.js`, `--check` 17 files, deployed 14:18:50Z to 14:18:57Z, version `da872b345ac72d6d`, release `1793888336923000`. Smoke: three origins serve it, `sw.js` no-store, unauthenticated push-config 401 on read and command, no ERROR logs 14:10Z to 14:19:15Z. No database, image, Terraform or settings change. Rollback: Hosting `c6e5987387a2c67a` |
 | Chat read role | Not done (optional operator grant on `pwa_rebate_settlements` to `mw_chat_read_dev`) |
 | Not done on DEV | The chat grant, the legacy rebate conversion (PROD step only), and any settlement (no synthetic settlement written) |
-| Rollback | Settings generation `1793865141900575`, then Hosting `172e9094f02fb9b9`; V137 stays (forward fix) or restore backup `dev-refresh-1a1641c4a5f8464aa67f9a191c4ba665` |
+| Rollback | Settings generation `1793865141900575`, then Hosting `172e9094f02fb9b9` (or `c6e5987387a2c67a` for the rebuild only); V137 stays (forward fix) or restore backup `dev-refresh-1a1641c4a5f8464aa67f9a191c4ba665` |
