@@ -4,6 +4,7 @@ import {RecordAction} from './RecordAction';
 import {OperationConfirm} from './OperationConfirm';
 import {ExpenseRecords} from './ExpenseRecords';
 import {PaymentRecord} from './PaymentRecord';
+import {LoanRecord} from './LoanRecord';
 import {SharedBorrowerDetail} from './SharedBorrowerDetail';
 import {RebateSettlementForm} from './RebateSettlementForm';
 import {wholeBaht} from './display-money';
@@ -14,12 +15,12 @@ import {invalidateCachedReads,readCachedJson} from './read-cache';
 import {useContextRefresh} from './context-refresh';
 import {useLayoutEffect,useEffect,useRef,useState} from 'react';
 import type {CommandAccess} from './SelectedCharges';
-import {matchesReferrer} from './referrer-text';
+import {matchesReferrer,refereeBreakdown,type Referee} from './referrer-text';
 type Referrer={id:string;name:string|null;description:string|null;terms:{rate:number;cap:number;custom:boolean};referredCount:number;unpaidAmount:string;unpaidCount:number;oldestUnpaidCloseDate:string|null;accruingAmount:string;accruingLoanCount:number;paidToDate:string;offsetToDate:string};
-type Related={kind:'expense'|'payment'|'borrower';id:string};
+type Related={kind:'expense'|'payment'|'borrower'|'loan';id:string};
 /**
  * R129 (V137): the Referrers page. The list (every borrower who referred someone: what each is owed and is accruing), a
- * referrer's detail (tiles, unpaid rebates, open referred loans, settlement history, Pay rebates) and one settlement (its
+ * referrer's detail (tiles, referred borrowers, unpaid rebates, open referred loans, settlement history, Pay rebates) and one settlement (its
  * rebates and Delete). Reads are the hybrid cache (saved first, then a refresh in place); nothing here is queued offline.
  */
 /** Opened in place from another page (the Borrower page, an expense's settlement), onExit and exitLabel are that page's Back
@@ -60,6 +61,7 @@ export function ReferrerRecords({access,thai,initialReferrerId,initialSettlement
  if(related?.kind==='expense')return <ExpenseRecords access={access} thai={thai} initialId={related.id} onBack={()=>setRelated(null)} backLabel={t('Back to referrer','กลับหน้าผู้แนะนำ')}/>;
  if(related?.kind==='payment')return <PaymentRecord access={access} id={related.id} thai={thai} onBack={()=>setRelated(null)} backLabel={t('Back to referrer','กลับหน้าผู้แนะนำ')}/>;
  if(related?.kind==='borrower')return <SharedBorrowerDetail access={access} id={related.id} thai={thai} onBack={()=>setRelated(null)} backLabel={t('Back to referrer','กลับหน้าผู้แนะนำ')}/>;
+ if(related?.kind==='loan')return <LoanRecord access={access} id={related.id} thai={thai} onBack={()=>setRelated(null)} backLabel={t('Back to referrer','กลับหน้าผู้แนะนำ')}/>;
  if(paying&&detail)return <RebateSettlementForm access={access} thai={thai} detail={detail} onBack={()=>setPaying(false)} onDone={()=>{setPaying(false);if(referrerId)void loadDetail(referrerId,'network-only')}}/>;
  if(deleting&&settlement)return <OperationConfirm access={access} command={deleting} domain="referrer" label={t('Delete settlement','ลบรายการจ่าย')} thai={thai} onBack={()=>setDeleting(null)}
   onBlocked={code=>{if(code==='source_conflict')void loadSettlement(settlement.id,'network-only')}}
@@ -78,9 +80,11 @@ export function ReferrerRecords({access,thai,initialReferrerId,initialSettlement
    <div className="referrer-tiles">{tiles.map(([label,value])=><div className="referrer-tile" key={label}><span>{label}</span><strong>{wholeBaht(value)}</strong></div>)}</div>
    <p className="field-help referrer-terms">{termsLine(r)}</p><p className="referrer-terms-link"><button type="button" className="text-action" onClick={()=>setRelated({kind:'borrower',id:r.id})}>{t('Borrower record','ข้อมูลผู้กู้')}</button></p>
    {Number(r.unpaidAmount)>0&&<button type="button" className="referrer-pay" disabled={busy||offline} title={offline?networkTitle:undefined} onClick={()=>setPaying(true)}>{t('Pay rebates '+wholeBaht(r.unpaidAmount),'จ่ายค่าแนะนำ '+wholeBaht(r.unpaidAmount))}</button>}
+   <h3>{t('Referred borrowers','ผู้ที่แนะนำ')+' · '+(d.referees?.length??0)}</h3>{d.referees?.length?d.referees.map((p:Referee)=>{const b=refereeBreakdown(p,thai,wholeBaht);
+    return <button type="button" className="borrower-card referrer-line referrer-referee" key={p.borrowerId} onClick={()=>setRelated({kind:'borrower',id:p.borrowerId})}><span>{p.borrowerLabel}<small>{b.loans} · <span className={b.rebates?undefined:'muted'}>{b.rebates??t('No rebates yet','ยังไม่มีค่าแนะนำ')}</span></small></span></button>}):<p>{t('No referred borrowers','ยังไม่มีผู้ที่แนะนำ')}</p>}
    <h3>{t('Unpaid rebates','ค่าแนะนำค้างจ่าย')}</h3>{d.unpaid.length?d.unpaid.map((u:any)=><button type="button" className="borrower-card referrer-line" key={u.expenseId} onClick={()=>setRelated({kind:'expense',id:u.expenseId})}><span>{u.loanDisplayKey??u.borrowerLabel}<small>{shortDate(u.closeDate,thai)} · {t('rebate ','ค่าแนะนำ ')+wholeBaht(u.amount)}{Number(u.offsetAmount)>0?' · '+t(wholeBaht(u.offsetAmount)+' offset','หัก '+wholeBaht(u.offsetAmount)):''}</small></span><strong>{wholeBaht(u.pendingAmount)}</strong></button>):<p>{t('No unpaid rebates','ไม่มีค่าแนะนำค้างจ่าย')}</p>}
    <h3>{t('Unsettled on open loans','สะสมจากสินเชื่อที่ยังไม่ปิด')}</h3><p className="field-help">{t('Estimated at the current terms from interest and late charges already received. The rebate is booked when the loan closes.','ประมาณจากดอกเบี้ยและค่าปรับที่รับแล้วตามเงื่อนไขปัจจุบัน ค่าแนะนำจะบันทึกเมื่อปิดสินเชื่อ')}</p>
-   {d.accruing.length?d.accruing.map((a:any)=><div className="borrower-card referrer-line" key={a.loanId}><span>{a.loanDisplayKey??a.borrowerLabel}<small>{shortDate(a.loanDate,thai)} · {t('received ','รับแล้ว ')+wholeBaht(a.profitToDate)}</small></span><strong>{wholeBaht(a.estimatedRebate)}</strong></div>):<p>{t('No open referred loans','ไม่มีสินเชื่อที่แนะนำและยังไม่ปิด')}</p>}
+   {d.accruing.length?d.accruing.map((a:any)=><button type="button" className="borrower-card referrer-line" key={a.loanId} onClick={()=>setRelated({kind:'loan',id:a.loanId})}><span>{a.loanDisplayKey??a.borrowerLabel}<small>{shortDate(a.loanDate,thai)} · {t('received ','รับแล้ว ')+wholeBaht(a.profitToDate)}</small></span><strong>{wholeBaht(a.estimatedRebate)}</strong></button>):<p>{t('No open referred loans','ไม่มีสินเชื่อที่แนะนำและยังไม่ปิด')}</p>}
    <h3>{t('Settlement history','ประวัติการจ่าย')}</h3>{d.history.length?d.history.map((h:any)=>{const text=h.kind==='settlement'?t('Paid '+wholeBaht(h.amount)+' · '+h.rebateCount+(h.rebateCount===1?' rebate':' rebates'),'จ่าย '+wholeBaht(h.amount)+' · '+h.rebateCount+' รายการ')+(h.accountLabel?' · '+h.accountLabel:'')+' · '+methodLabel(h.paymentMethod)+(h.bankReference?' · '+t('ref ','อ้างอิง ')+h.bankReference:'')
      :h.kind==='offset'?t('Offset '+wholeBaht(h.amount)+' to '+(h.offsetLoanLabel??'—'),'หัก '+wholeBaht(h.amount)+' กับ '+(h.offsetLoanLabel??'—')):t('Paid at close '+wholeBaht(h.amount),'จ่ายแล้วตอนปิด '+wholeBaht(h.amount));
     const open=()=>h.kind==='settlement'?openSettlement(h.settlementId):h.kind==='offset'?setRelated({kind:'payment',id:h.offsetPaymentId}):setRelated({kind:'expense',id:h.expenseId});

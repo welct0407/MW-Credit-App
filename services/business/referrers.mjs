@@ -58,6 +58,34 @@ const item=row=>({id:row.id,name:row.name,description:row.description,terms:{rat
 /** Sort: unpaid amount descending, then accruing descending, then the Thai name (then the id). */
 export const compareReferrers=(a,b)=>Number(b.unpaidAmount)-Number(a.unpaidAmount)||Number(b.accruingAmount)-Number(a.accruingAmount)
  ||(a.name??'').localeCompare(b.name??'','th')||Buffer.compare(Buffer.from(a.id),Buffer.from(b.id));
+// One row per referred borrower of $1 (self-referral excluded), plus any borrower a rebate of $1 was booked for (a referral
+// later moved), so the rows add up to the referrer's tiles: unpaid is pwa_rebate_pending_v1; paid is what a settlement paid
+// (a settled V3 rebate, its amount less its offset, the settlement's own total) plus the legacy paid-at-close remainders;
+// offset and the accruing estimate are the tiles' rules per rebate and per open loan.
+const refereeSql=`WITH t AS (SELECT public.referral_rebate_terms($1) AS terms),
+ rebates AS (
+  SELECT x."Ref Related Borrower" borrower,x."Amount"::numeric amount,coalesce(o."Amount Received"::numeric,0) offset_amount,x."Rule Version" rule,x."Ref Rebate Settlement" settlement,
+   public.pwa_rebate_pending_v1(x."Row ID") pending
+  FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment"
+  WHERE x."Ref Payee Borrower"=$1 AND x."Source Type"='Referral Rebate'),
+ referees AS (SELECT b."Row ID" id FROM public."Borrowers" b WHERE b."Ref Referrer"=$1 AND b."Row ID"<>$1 UNION SELECT borrower FROM rebates)
+ SELECT b."Row ID" AS "borrowerId",b."Borrower Name" AS name,b."Description" AS description,
+  (SELECT count(*)::int FROM public."Loans" l WHERE l."Ref Borrowers"=b."Row ID") AS "loanCount",
+  (SELECT count(*)::int FROM public."Loans" l WHERE l."Ref Borrowers"=b."Row ID" AND l."Loan Status"='ยังไม่ปิดยอด') AS "openLoanCount",
+  ${money('coalesce((SELECT sum(x.pending) FROM rebates x WHERE x.borrower=b."Row ID"),0)')} AS "unpaidAmount",
+  ${money(`coalesce((SELECT sum(greatest(x.amount-x.offset_amount,0)) FROM rebates x WHERE x.borrower=b."Row ID" AND (x.settlement IS NOT NULL OR x.rule IS DISTINCT FROM 'REFERRAL_REBATE_V3')),0)`)} AS "paidAmount",
+  ${money('coalesce((SELECT sum(least(x.offset_amount,x.amount)) FROM rebates x WHERE x.borrower=b."Row ID"),0)')} AS "offsetAmount",
+  ${money(`CASE WHEN b."Ref Referrer"=$1 AND b."Row ID"<>$1 THEN coalesce((SELECT sum(CASE WHEN p.profit>0 AND (t.terms->>'rate')::numeric>0 THEN least(round(p.profit*(t.terms->>'rate')::numeric/100),(t.terms->>'cap')::numeric) ELSE 0 END)
+    FROM public."Loans" l CROSS JOIN LATERAL (SELECT coalesce(sum(y."Interest Paid"::numeric+y."Late Charge Paid"::numeric),0) profit FROM public."Repayments" y WHERE y."Ref Loans"=l."Row ID") p
+    WHERE l."Ref Borrowers"=b."Row ID" AND l."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(l."Defaulted",false)),0) ELSE 0 END`)} AS "accruingAmount"
+ FROM referees r JOIN public."Borrowers" b ON b."Row ID"=r.id CROSS JOIN t`;
+/** Referees sort: unpaid descending, then accruing descending, then the Thai name (then the id). */
+export const compareReferees=(a,b)=>Number(b.unpaidAmount)-Number(a.unpaidAmount)||Number(b.accruingAmount)-Number(a.accruingAmount)
+ ||(a.name??'').localeCompare(b.name??'','th')||Buffer.compare(Buffer.from(a.borrowerId),Buffer.from(b.borrowerId));
+// The PWA's borrowerLabel: the Thai and English names that are set, joined by " - " (a row's first line, so no dangling dash).
+const refereeLabel=(name,description)=>[name,description].map(v=>v==null?'':String(v).trim()).filter(Boolean).join(' - ')||'—';
+const referee=({name,description,...row})=>({borrowerId:row.borrowerId,borrowerLabel:refereeLabel(name,description),loanCount:row.loanCount,openLoanCount:row.openLoanCount,
+ unpaidAmount:row.unpaidAmount,paidAmount:row.paidAmount,offsetAmount:row.offsetAmount,accruingAmount:row.accruingAmount});
 /** GET /api/referrers: every borrower who referred at least one borrower (D6), with what they are owed and accruing. */
 export async function readReferrers(client){
  const businessDate=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day;
@@ -88,6 +116,7 @@ export async function readReferrerRecord(client,id){
   WHERE b."Ref Referrer"=$1 AND b."Row ID"<>$1 AND l."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(l."Defaulted",false)
   ORDER BY l."Loan Date",l."Row ID" COLLATE "C"`,[id])).rows
   .map(r=>({loanId:r.loanId,loanDisplayKey:loanKey(r),borrowerLabel:borrowerDisplayName(r.borrowerName,r.borrowerDescription),loanDate:r.loanDate,profitToDate:r.profit,estimatedRebate:r.estimate}));
+ const referees=(await client.query(refereeSql,[id])).rows.sort(compareReferees).map(referee);
  // History, newest first: settlements, offsets (the referrer's loan they paid) and legacy rows Lisa paid on the close date.
  const settlements=(await client.query(`SELECT s.id AS "settlementId",s.settlement_date::text AS date,${money('s.amount')} AS amount,a."Account Label" AS "accountLabel",s.payment_method AS "paymentMethod",s.bank_reference AS "bankReference",
    (SELECT count(*)::int FROM public."Business Expenses" x WHERE to_jsonb(x)->>'Ref Rebate Settlement'=s.id) AS "rebateCount",s.created_at
@@ -109,7 +138,7 @@ export async function readReferrerRecord(client,id){
   WHERE h."Row ID"=$1 AND a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`,[LISA])).rows;
  const defaultAccountId=(await client.query('SELECT public.default_cash_account($1) AS id',[LISA])).rows[0]?.id??null;
  const businessDate=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day;
- return {referrer,unpaid,accruing,history,settleOptions:{accounts,defaultAccountId,businessDate}};
+ return {referrer,referees,unpaid,accruing,history,settleOptions:{accounts,defaultAccountId,businessDate}};
 }
 /** GET /api/rebate-settlements/:id: one settlement, its version (for delete) and the rebates it paid. */
 export async function readRebateSettlement(client,id){

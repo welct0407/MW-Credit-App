@@ -3,15 +3,19 @@
  * (GET /api/referrers, /api/referrers/:id, /api/rebate-settlements/:id) and the referral rebate expense records they open.
  * Referrer Mai (R-MAI) has one pending rebate, one partly offset (200 offset, 100 pending), one legacy row Lisa paid at
  * close, one earlier settlement and two open referred loans (3,000 and 0 received, custom terms 15% max ฿2,000); referrer
- * Pond (R-POND) is owed nothing. Synthetic names and ids only.
+ * Pond (R-POND) is owed nothing. Each referrer's referred borrowers (Mai: Nok, Kaew, Fon, Ton and Lee; Pond: Ploy) add up to
+ * its tiles; the borrower and open loan records they open are here too. Synthetic names and ids only.
  */
 export const REFERRERS_BUSINESS_DATE='2026-11-05';
 const terms={rate:15,cap:2000,custom:true};
-export const referrerMai={id:'R-MAI',name:'มาย',description:'Mai',terms,referredCount:4,unpaidAmount:'400.00',unpaidCount:2,oldestUnpaidCloseDate:'2026-10-12',accruingAmount:'450.00',accruingLoanCount:2,paidToDate:'750.00',offsetToDate:'200.00'};
+export const referrerMai={id:'R-MAI',name:'มาย',description:'Mai',terms,referredCount:5,unpaidAmount:'400.00',unpaidCount:2,oldestUnpaidCloseDate:'2026-10-12',accruingAmount:'450.00',accruingLoanCount:2,paidToDate:'750.00',offsetToDate:'200.00'};
 export const referrerPond={id:'R-POND',name:'ปอนด์',description:'Pond',terms:{rate:10,cap:1000,custom:false},referredCount:1,unpaidAmount:'0.00',unpaidCount:0,oldestUnpaidCloseDate:null,accruingAmount:'0.00',accruingLoanCount:0,paidToDate:'0.00',offsetToDate:'0.00'};
 export const referrerList={items:[referrerMai,referrerPond],businessDate:REFERRERS_BUSINESS_DATE};
 export const lisaAccounts=[{id:'ca:lisa-cash',label:'Lisa Cash'},{id:'ca:lisa-scb',label:'Lisa SCB'}];
+const referee=(borrowerId:string,borrowerLabel:string,loanCount:number,openLoanCount:number,over:Record<string,string>={})=>({borrowerId,borrowerLabel,loanCount,openLoanCount,unpaidAmount:'0.00',paidAmount:'0.00',offsetAmount:'0.00',accruingAmount:'0.00',...over});
 export const referrerMaiDetail={referrer:referrerMai,
+ referees:[referee('B-NOK','นก - Nok',1,0,{unpaidAmount:'300.00'}),referee('B-KAEW','แก้ว - Kaew',1,0,{unpaidAmount:'100.00',offsetAmount:'200.00'}),referee('B-FON','ฝน - Fon',2,2,{accruingAmount:'450.00'}),
+  referee('B-TON','ต้น - Ton',1,0,{paidAmount:'450.00'}),referee('B-LEE','ลี - Lee',1,0,{paidAmount:'300.00'})],
  unpaid:[
   {expenseId:'rr1:L-PEND',loanId:'L-PEND',loanDisplayKey:'นก - Nok-฿10,000-01/09-2%',borrowerLabel:'นก - Nok',closeDate:'2026-10-12',amount:'300.00',offsetAmount:'0.00',pendingAmount:'300.00'},
   {expenseId:'rr1:L-OFF',loanId:'L-OFF',loanDisplayKey:'แก้ว - Kaew-฿5,000-15/09-2%',borrowerLabel:'แก้ว - Kaew',closeDate:'2026-11-01',amount:'300.00',offsetAmount:'200.00',pendingAmount:'100.00'}],
@@ -23,7 +27,7 @@ export const referrerMaiDetail={referrer:referrerMai,
   {kind:'settlement',date:'2026-10-20',amount:'450.00',settlementId:'c1111111-1111-4111-8111-111111111111',rebateCount:1,accountLabel:'Lisa SCB',paymentMethod:'Bank Transfer',bankReference:'1234'},
   {kind:'paid-at-close',date:'2026-09-30',amount:'300.00',expenseId:'rr1:L-LEG'}],
  settleOptions:{accounts:lisaAccounts,defaultAccountId:'ca:lisa-cash',businessDate:REFERRERS_BUSINESS_DATE}};
-export const referrerPondDetail={referrer:referrerPond,unpaid:[],accruing:[],history:[],settleOptions:{accounts:lisaAccounts,defaultAccountId:'ca:lisa-cash',businessDate:REFERRERS_BUSINESS_DATE}};
+export const referrerPondDetail={referrer:referrerPond,referees:[referee('B-PLOY','พลอย - Ploy',1,0)],unpaid:[],accruing:[],history:[],settleOptions:{accounts:lisaAccounts,defaultAccountId:'ca:lisa-cash',businessDate:REFERRERS_BUSINESS_DATE}};
 export const settlementS1={item:{id:'c1111111-1111-4111-8111-111111111111',referrerId:'R-MAI',referrerLabel:'มาย - Mai',settlementDate:'2026-10-20',amount:'450.00',accountId:'ca:lisa-scb',accountLabel:'Lisa SCB',paymentMethod:'Bank Transfer',bankReference:'1234',notes:null,createdBy:'owner@example.invalid',createdAt:'2026-10-20T03:00:00.000Z',version:'d'.repeat(64),
  rebates:[{expenseId:'rr1:L-PAID',loanDisplayKey:'ต้น - Ton-฿9,000-01/08-2%',borrowerLabel:'ต้น - Ton',closeDate:'2026-10-15',amount:'450.00',offsetAmount:'0.00',paidAmount:'450.00'}]}};
 const expense=(id:string,over:Record<string,unknown>)=>({id,expenseDate:'2026-10-12',category:'Referral Rebate / เงินคืนค่าแนะนำลูกค้า',amount:'300.00',payeeName:'มาย',payeeBorrowerId:'R-MAI',payeeBorrowerLabel:'มาย - Mai',relatedBorrowerId:'B-'+id,relatedBorrowerLabel:'Synthetic referred',relatedLoanId:id.slice(4),relatedLoanLabel:null,notes:null,paidByAccountId:'ca:lisa-cash',paidByAccountLabel:'Lisa Cash',paidByHolderId:'ch:lisa',paidByHolderLabel:'Lisa',sourceType:'Referral Rebate',sourceKey:'REFERRAL_REBATE:'+id.slice(4),grossProfitBasis:'3000.00',allocationBasis:'Closing Date Contribution Ratio',partnerAShare:'0.5',partnerBShare:'0.5',partnerAExpense:'150.00',partnerBExpense:'150.00',ruleVersion:'REFERRAL_REBATE_V3',rebateRate:10,rebateCap:1000,createdAt:'2026-10-12 10:00:00',createdBy:'SQL:loan-close',offsetPaymentId:null,offsetAmount:null,offsetLoanId:null,offsetLoanLabel:null,payableAmount:null,canEdit:false,canDelete:false,version:'e'.repeat(64),reimbursements:[],
@@ -35,12 +39,19 @@ export const rebateExpenses:Record<string,any>={
  'rr1:L-PAID':expense('rr1:L-PAID',{expenseDate:'2026-10-15',amount:'450.00',rebateState:'paid',pendingAmount:'0.00',settlementId:'c1111111-1111-4111-8111-111111111111',settlementDate:'2026-10-20'}),
  'rr1:L-LEG':expense('rr1:L-LEG',{expenseDate:'2026-09-30',ruleVersion:'REFERRAL_REBATE_V2',rebateState:'paid-at-close',pendingAmount:'0.00',reimbursements:[{id:'cash:EXPENSE:rr1:L-LEG',movementDate:'2026-09-30',movementType:'Business Expense',amount:'300.00',entryOrigin:'System',fromAccountLabel:'Lisa Cash',toAccountLabel:null}]}),
 };
+/** The Borrower record a referee row opens (Nok) and the full loan record an accruing row opens (Fon's first loan). */
+export const refereeBorrowers:Record<string,any>={'B-NOK':{id:'B-NOK',version:'a'.repeat(64),name:'นก',description:'Nok',communicationName:null,instagramUsername:null,city:null,workingLocation:null,address:null,hidden:null,referrerId:'R-MAI',preferredReceivingAccountId:null,note:null,createdDate:'2026-08-01',aiCollectionEnabled:false,
+ details:{preferredReceivingAccountLabel:null,referrerName:'มาย',hasActiveLoan:false,hasClosedLoan:true,totalAmountLoaned:'10000',totalInterestEarned:'3000',totalNumberOfLoans:1,outstandingPrincipal:'0',activeInterest:'0',activeReturn:'0',activeProfit:'0',coverageDate:'2026-10-12',closedPrincipal:'10000',closedInterest:'3000',closedReturn:'0.3'}}};
+export const accruingLoans:Record<string,any>={'L-OPEN1':{id:'L-OPEN1',version:'b'.repeat(64),borrowerId:'B-FON',borrowerDisplayName:'ฝน - Fon',loanDate:'2026-10-01',principal:'20000',transferFee:'0',disbursingAccountId:'ca:lisa-scb',disbursingAccountLabel:'Lisa SCB',type:'ดอกเบี้ยรายวัน',dueDate:null,dailyPayment:null,fixedInterest:null,currentDailyInterest:'400',originalRate:2,paymentInterval:1,scheduleAnchor:'2026-10-01',arrangement:null,autoChargeEnabled:true,status:'ยังไม่ปิดยอด',defaulted:false,closeDate:null,defaultLoss:null,outstandingPrincipal:'20000',principalReceived:'0',interestReceived:'3000',amountReceived:'3000',defaultLossDate:null,lastDefaultLoss:null,unpaidChargeCount:0,unpaidChargeAmount:'0.00'}};
 /** The response a command-service GET answers with for an R129 route, or null for any other path. */
 export function referrerRoute(path:string):{status:number;body:any}|null{
  const ok=(body:any)=>({status:200,body:{ok:true,...body}}),missing={status:404,body:{ok:false,code:'not_found'}};
  if(path==='/api/referrers')return ok(referrerList);
  const referrer=/^\/api\/referrers\/([^/]+)$/.exec(path);if(referrer){const id=decodeURIComponent(referrer[1]);return id==='R-MAI'?ok(referrerMaiDetail):id==='R-POND'?ok(referrerPondDetail):missing;}
  const settlement=/^\/api\/rebate-settlements\/([^/]+)$/.exec(path);if(settlement)return decodeURIComponent(settlement[1])===settlementS1.item.id?ok(settlementS1):missing;
+ if(path==='/api/borrower-options')return ok({accounts:lisaAccounts,referrers:[{id:'R-MAI',label:'มาย - Mai'}]});
+ const borrower=/^\/api\/borrower-records\/([^/]+)$/.exec(path);if(borrower&&refereeBorrowers[decodeURIComponent(borrower[1])])return ok({item:refereeBorrowers[decodeURIComponent(borrower[1])]});
+ const loan=/^\/api\/loan-records\/([^/]+)$/.exec(path);if(loan&&accruingLoans[decodeURIComponent(loan[1])])return ok({item:accruingLoans[decodeURIComponent(loan[1])]});
  const record=/^\/api\/expense-records\/([^/]+)$/.exec(path);if(record&&rebateExpenses[decodeURIComponent(record[1])])return ok({item:rebateExpenses[decodeURIComponent(record[1])]});
  return null;
 }

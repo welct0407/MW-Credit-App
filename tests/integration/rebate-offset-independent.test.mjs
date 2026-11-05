@@ -111,6 +111,10 @@ test('a rebate larger than the referrer schedule offsets up to the horizon; the 
  // R129 (V137): the remainder is pending payment (a settlement pays it later), so Lisa's cash nets to zero at the close.
  assert.equal(await lisaNet(off.id,'rr1:'+s.loan),0,'Lisa cash nets to zero; the remainder is pending');
  assert.equal(Number((await admin.query('SELECT public.pwa_rebate_pending_v1($1) AS v',['rr1:'+s.loan])).rows[0].v),1000-Number(off.amount),'the remainder is pending');
+ // R129 referred borrowers: the one referee carries the offset and the pending remainder, and adds up to the tiles.
+ const detail=await store.referrerRecord(principal,s.referrer);assert.equal(detail.status,200,JSON.stringify(detail).slice(0,300));
+ assert.deepEqual(detail.referees.map(r=>[r.borrowerId,r.loanCount,r.openLoanCount,Number(r.unpaidAmount),Number(r.paidAmount),Number(r.offsetAmount),Number(r.accruingAmount)]),[[s.borrower,1,0,1000-Number(off.amount),0,Number(off.amount),0]]);
+ assert.deepEqual([detail.referrer.unpaidAmount,detail.referrer.offsetToDate,detail.referrer.paidToDate,detail.referrer.accruingAmount],[detail.referees[0].unpaidAmount,detail.referees[0].offsetAmount,'0.00','0.00'],'the referee adds up to the tiles');
 });
 
 test('several open loans of the referrer: due of both first, then the earliest date, the smaller key on a tie',async()=>{

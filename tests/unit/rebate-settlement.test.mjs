@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {canonicalRebateSettlementFields,sortedExpenseIds,rebateSettlementFields,REBATE_SETTLEMENT_MAX_EXPENSES} from '../../services/contracts/rebate-settlement-command.mjs';
 import {canonicalOperation,operationIdentity} from '../../services/contracts/operation-command.mjs';
-import {compareReferrers,settlementVersionSql,rebateStateSql,rebatePendingSql} from '../../services/business/referrers.mjs';
+import {compareReferrers,compareReferees,settlementVersionSql,rebateStateSql,rebatePendingSql} from '../../services/business/referrers.mjs';
 import {readRebateSettlement,readReferrerRecord,readReferrers} from '../../services/business/referrers.mjs';
 import {createPaymentCommandHandler,isReadRoute} from '../../services/payment-command/handler.mjs';
 import {readFileSync} from 'node:fs';
@@ -58,6 +58,11 @@ test('the SQL twins: the version mirror is the migration body; the derived state
 test('Referrers sort: unpaid descending, then accruing descending, then the Thai name',()=>{
  const rows=[{id:'4',name:'ข',unpaidAmount:'0.00',accruingAmount:'10.00'},{id:'1',name:'ก',unpaidAmount:'900.00',accruingAmount:'0.00'},{id:'3',name:'ก',unpaidAmount:'0.00',accruingAmount:'10.00'},{id:'2',name:'ค',unpaidAmount:'900.00',accruingAmount:'420.00'},{id:'5',name:'ก',unpaidAmount:'0.00',accruingAmount:'0.00'}];
  assert.deepEqual(rows.sort(compareReferrers).map(r=>r.id),['2','1','3','4','5']);
+});
+test('Referred borrowers sort: unpaid descending, then accruing descending, then the Thai name, then the id',()=>{
+ const rows=[{borrowerId:'B4',name:'ลี',unpaidAmount:'0.00',accruingAmount:'0.00'},{borrowerId:'B1',name:'นก',unpaidAmount:'300.00',accruingAmount:'0.00'},{borrowerId:'B3',name:'ต้น',unpaidAmount:'0.00',accruingAmount:'0.00'},
+  {borrowerId:'B2',name:'ฝน',unpaidAmount:'0.00',accruingAmount:'450.00'},{borrowerId:'B0',name:'แก้ว',unpaidAmount:'100.00',accruingAmount:'0.00'},{borrowerId:'B5',name:'ต้น',unpaidAmount:'0.00',accruingAmount:'0.00'}];
+ assert.deepEqual(rows.sort(compareReferees).map(r=>r.borrowerId),['B1','B0','B2','B3','B5','B4']);
 });
 test('reads refuse an invalid id and answer nothing before V137 (no settlement table)',async()=>{
  const before={query:async sql=>({rows:sql.includes('to_regclass')?[{present:false}]:[{day:'2026-11-05'}]})};

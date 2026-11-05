@@ -101,6 +101,50 @@ for(const size of sizes)test.describe(size.label,()=>{
   await expect(page.getByText('No unpaid rebates',{exact:true})).toBeVisible();await expect(page.getByText('No open referred loans')).toBeVisible();await expect(page.getByText('No settlements yet')).toBeVisible();
  });
 
+ test('Referred borrowers: one row each with the loans and the non-zero rebate parts, sorted; a row opens the Borrower record and an accruing row the loan, Back returns',async({page})=>{
+  await setup(page);await openReferrers(page);
+  await page.locator('.referrer-row').filter({hasText:'Mai'}).click();
+  const heading=page.getByRole('heading',{name:'Referred borrowers · 5',exact:true});await expect(heading).toBeVisible();
+  // After the tiles and terms, before Unpaid rebates.
+  const order=await page.locator('.referrer-tiles, h3').evaluateAll(nodes=>nodes.map(n=>n.classList.contains('referrer-tiles')?'tiles':n.textContent));
+  expect(order.slice(0,3)).toEqual(['tiles','Referred borrowers · 5','Unpaid rebates']);
+  const rows=page.locator('.referrer-referee');await expect(rows).toHaveCount(5);
+  // Unpaid descending (Nok ฿300, Kaew ฿100), then accruing (Fon), then the Thai name (ต้น before ลี).
+  const texts=await rows.allTextContents();
+  expect(texts).toEqual(['นก - Nok1 loan · Unpaid ฿300','แก้ว - Kaew1 loan · Unpaid ฿100 · Offset ฿200','ฝน - Fon2 loans · 2 open · Accruing ฿450','ต้น - Ton1 loan · Paid ฿450','ลี - Lee1 loan · Paid ฿300']);
+  for(let k=0;k<5;k++)expect((await rows.nth(k).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await noHorizontalScroll(page);
+  // A row opens that borrower's record in place; Back returns to this referrer.
+  await rows.first().click();
+  await expect(page.getByRole('button',{name:'Back to referrer',exact:true}).first()).toBeVisible();
+  await expect(page.locator('section[aria-label="Borrower record"]').getByRole('heading',{name:'นก - Nok'})).toBeVisible();await expect(heading).toHaveCount(0);
+  await page.getByRole('button',{name:'Back to referrer',exact:true}).first().click();
+  await expect(heading).toBeVisible();await expect(page.getByRole('heading',{name:/Mai/}).first()).toBeVisible();
+  // An accruing row opens the full loan record; Back returns to this referrer.
+  await page.locator('.referrer-line').filter({hasText:'received ฿3,000'}).click();
+  await expect(page.locator('section[aria-label="Full loan details"]')).toBeVisible();
+  await expect(page.getByText('ฝน - Fon').first()).toBeVisible();
+  await page.getByRole('button',{name:'Back to referrer',exact:true}).first().click();
+  await expect(page.getByRole('heading',{name:'Unsettled on open loans'})).toBeVisible();await expect(heading).toBeVisible();
+  // Pond's only referee has no rebates: "No rebates yet", muted.
+  await page.getByRole('button',{name:'Back to referrers',exact:true}).click();
+  await page.locator('.referrer-row').filter({hasText:'Pond'}).click();
+  await expect(page.getByRole('heading',{name:'Referred borrowers · 1',exact:true})).toBeVisible();
+  await expect(rows).toHaveCount(1);await expect(rows.first()).toContainText('พลอย - Ploy1 loan · ');await expect(rows.first().locator('.muted')).toHaveText('No rebates yet');
+  // Thai: the heading and the breakdown words.
+  await page.getByRole('button',{name:'Back to referrers',exact:true}).click();
+  await chooseLanguage(page,'ไทย');
+  await page.locator('.referrer-row').filter({hasText:'Mai'}).click();
+  await expect(page.getByRole('heading',{name:'ผู้ที่แนะนำ · 5',exact:true})).toBeVisible();
+  await expect(rows.nth(1)).toHaveText('แก้ว - Kaewสินเชื่อ 1 รายการ · ค้างจ่าย ฿100 · หัก ฿200');
+  await expect(rows.nth(2)).toHaveText('ฝน - Fonสินเชื่อ 2 รายการ · ยังไม่ปิด 2 · กำลังสะสม ฿450');
+  await noHorizontalScroll(page);
+  await page.getByRole('button',{name:'กลับรายชื่อผู้แนะนำ',exact:true}).click();
+  await page.locator('.referrer-row').filter({hasText:'Pond'}).click();
+  await expect(page.getByRole('heading',{name:'ผู้ที่แนะนำ · 1',exact:true})).toBeVisible();
+  await expect(rows).toHaveCount(1);await expect(rows.first().locator('.muted')).toHaveText('ยังไม่มีค่าแนะนำ');await noHorizontalScroll(page);
+ });
+
  test('Pay rebates with one rebate unticked: Review lists the ticked row, Confirm sends one command, the result names what stays unpaid',async({page})=>{
   const s=await setup(page);await openReferrers(page);
   await page.locator('.referrer-row').filter({hasText:'Mai'}).click();
@@ -154,7 +198,7 @@ for(const size of sizes)test.describe(size.label,()=>{
  test('Delete settlement: history opens the settlement, the destructive confirm names the effect, Confirm sends one delete with its version',async({page})=>{
   const s=await setup(page);await openReferrers(page);
   await page.locator('.referrer-row').filter({hasText:'Mai'}).click();
-  await page.locator('.referrer-line').filter({hasText:'Paid ฿450'}).click();
+  await page.locator('.referrer-line:not(.referrer-referee)').filter({hasText:'Paid ฿450'}).click();
   await expect(page.getByRole('heading',{name:'Rebate settlement'})).toBeVisible();
   const details=page.locator('dl');
   await expect(details).toContainText('฿450');await expect(details).toContainText('Lisa SCB');await expect(details).toContainText('Bank transfer');await expect(details).toContainText('1234');await expect(details).toContainText('owner@example.invalid');

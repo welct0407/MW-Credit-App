@@ -756,7 +756,7 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .referrer-row-name,.referrer-line>span{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
 .referrer-row-name small,.referrer-line small{font-size:13px;color:#4a5560}
 .referrer-row-figures{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-variant-numeric:tabular-nums;text-align:right}
-.referrer-unpaid{font-weight:700}.referrer-row-figures .muted{font-weight:400;color:#5f6b76}
+.referrer-unpaid{font-weight:700}.referrer-row-figures .muted{font-weight:400;color:#5f6b76}.referrer-referee small .muted{color:#5f6b76;font-style:italic}
 .referrer-terms{margin-bottom:2px}.referrer-terms-link{margin:0 0 8px}
 .referrer-line>strong{font-variant-numeric:tabular-nums;text-align:right}
 @media (max-width:600px){.live-shell .borrower-card.referrer-row{grid-template-columns:1fr}.referrer-row-figures{align-items:flex-start;text-align:left}}

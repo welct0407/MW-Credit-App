@@ -55,6 +55,13 @@ const deleteCommand=(id,version)=>({requestId:randomUUID(),operation:'rebate-set
 const paymentDelete=async paymentId=>{const record=(await store.paymentRecord(principal,paymentId,{preview:true})).item;return {requestId:randomUUID(),operation:'payment.delete',targetId:paymentId,expectedVersion:record.sourceVersion,predecessorRequestId:record.predecessorRequestId,receiptId:null,inputs:{}}};
 const closing=async loan=>(await admin.query('SELECT "Ref Closing Payment" AS id FROM "Loans" WHERE "Row ID"=$1',[loan])).rows[0].id;
 const owed=async referrer=>(await admin.query('SELECT public.pwa_rebates_owed_v1($1)::numeric(20,2)::text AS v',[referrer])).rows[0].v;
+const cents=value=>Math.round(Number(value)*100);
+/** The referred borrowers' figures add up to the referrer's four tiles. */
+function assertRefereesSum(detail){
+ const sum=key=>detail.referees.reduce((total,row)=>total+cents(row[key]),0);
+ assert.deepEqual([sum('unpaidAmount'),sum('accruingAmount'),sum('paidAmount'),sum('offsetAmount')],
+  [cents(detail.referrer.unpaidAmount),cents(detail.referrer.accruingAmount),cents(detail.referrer.paidToDate),cents(detail.referrer.offsetToDate)],'the referees add up to the tiles');
+}
 
 test('a close books a pending rebate: preview owedBefore, the result pending and owedTotal, the expense and payment states',async()=>{
  const s=await scenario({count:2});
@@ -127,11 +134,18 @@ test('Referrers list and detail: owed, accruing at custom terms (0 and 3,000 rec
  assert.deepEqual(detail.accruing.map(r=>[r.loanId,r.profitToDate,r.estimatedRebate]).sort(),[[t.loans[1],'3000.00','450.00'],[t.loans[2],'0.00','0.00']].sort());
  assert.ok(detail.unpaid[0].loanDisplayKey&&detail.accruing[0].loanDisplayKey,'loan keys');
  assert.deepEqual(detail.history.map(h=>[h.kind,h.amount,h.date,h.expenseId]),[['paid-at-close','300.00',today,'rr1:'+legacyLoan]],'the legacy row Lisa paid at close');
+ // Referred borrowers: one row each (the legacy borrower too), sorted unpaid, then accruing, then the Thai name; they add up to the tiles.
+ const refereeRows=d=>d.referees.map(r=>[r.borrowerId,r.loanCount,r.openLoanCount,r.unpaidAmount,r.paidAmount,r.offsetAmount,r.accruingAmount]);
+ assert.deepEqual(refereeRows(detail),[[t.borrowers[0],1,0,'450.00','0.00','0.00','0.00'],[t.borrowers[1],1,1,'0.00','0.00','0.00','450.00'],
+  [legacyBorrower,1,0,'0.00','300.00','0.00','0.00'],[t.borrowers[2],1,1,'0.00','0.00','0.00','0.00']]);
+ assert.equal(detail.referees[0].borrowerLabel,'SYNTHETIC REFERRED '+t.id+' 1');
+ assertRefereesSum(detail);
  assert.equal(detail.settleOptions.defaultAccountId,await lisaAccount());assert.ok(detail.settleOptions.accounts.length>=1);assert.equal(detail.settleOptions.businessDate,today);
  const settled=await store.operation(principal,await settleCommand(t.referrer,['rr1:'+t.loans[0]],{paymentMethod:'Cash',bankReference:null}));assert.equal(settled.originalOutcome?.status,'applied',JSON.stringify(settled));
  const later=await store.referrerRecord(principal,t.referrer);
  assert.deepEqual(later.history.map(h=>[h.kind,h.amount,h.rebateCount??null,h.paymentMethod??null]),[['settlement','450.00',1,'Cash'],['paid-at-close','300.00',null,null]],'newest first: the settlement, then the legacy row');
  assert.equal(later.referrer.paidToDate,'750.00');assert.equal(later.referrer.unpaidAmount,'0.00');
+ assert.deepEqual(later.referees.find(r=>r.borrowerId===t.borrowers[0]).paidAmount,'450.00','the settled rebate counts as paid');assertRefereesSum(later);
  // A borrower who referred nobody and has no rebate is not a referrer.
  assert.equal((await store.referrerRecord(principal,t.borrowers[0])).status,404);
  assert.equal((await store.referrerRecord(principal,'bad\nid')).status,400);
