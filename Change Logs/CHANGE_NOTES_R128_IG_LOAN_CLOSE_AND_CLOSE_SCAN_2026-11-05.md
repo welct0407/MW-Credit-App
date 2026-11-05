@@ -39,13 +39,25 @@ Files and objects (Byte to confirm names and counts at the final commit):
 | `PYTHONPATH=src python3 -m unittest discover -s tests` in `integration-agent/` and `ruff` (Byte) | 787 pass, 70 skipped; ruff pass |
 | `Test-AgentLoanClose.sql` and the full `Test-StatementBatch.sql` on a disposable V136 cluster (Byte) | Pass |
 | `Test-MigrationsCloud.py --sql-only` (Byte) | Pass (136 migrations) |
-| `<PENDING Echo: AG-13..23, LC-UX-1..9 evidence>` | Pending |
-| Chase review of the diff against Archie's plan | <PENDING Chase: evidence follows> |
+| Echo UI pass at 390 px in Chromium with fixtures, and the DM texts read in code (AG-13..23, LC-UX-1..9) | Pass after fixes: LC-UX-D1 (Thai double dot, fixed in Loan Close and Receive payment), AG-20a (the close-failure line only for the change, day-passed and rejected reasons) and AG-20b (a neutral line for switch off and for the new STALE detail `LOAN_CLOSE_QUOTE_UNAVAILABLE` on a quote 404) |
+| Byte fix batch after Chase (`close-recognition.ts`, `SelectedCharges.tsx`, `partner_review.py`, `receipt_api.py`, `review_proposal.py`, `review_cycle.py`, `test_review_close.py`, `close-recognition.test.mjs`) | 789 agent tests OK, ruff clean; focused node tests 16/16; typecheck and biome clean |
+| Chase verification on `4d513ad`: chain to V136 on a disposable PG 18.6 cluster, second run a no-op, full `Test-StatementBatch.sql` including `Test-AgentLoanClose`, Rebate offset, Late charge, Atomic Loan Close, Access matrix and Chat | Pass |
+| Chase: `database/current/public-functions.sql` drift check | Matches |
+| Chase: concurrency probe (4 parallel resubmits, then a different payload) | The resubmits returned `applied` as replays, the different payload returned conflict, one payment only |
+| Chase: real `readLoanCloseQuote` against `loan_close_calculation_v83` | `planHash` and `sourceVersion` equal; closed loan 422, unknown loan 404 |
+| Chase: cross-language request id and posting (Python and Node) | Ids equal; applied, then replay, then status recorded; Bank Reference and Created At written |
+| Chase: `npm test`, `tsc`, biome; agent unit tests | 1168 pass, 1 skip; tsc and biome clean; agent 787 OK, 70 skipped (before the fix batch) |
+| Chase: Playwright desktop and mobile Chromium (back-consumers receipt controls, restored close receipt, phase5 F6, phase5 F12 twice) | 5/5 each |
+| Chase verdict | PASS on `4d513ad` (before the fix batch; Chase's check of the fix batch follows if the orchestrator requests it) |
 | `<PENDING: pull request Development checks run and head commit>` | Pending |
-| `npm run check:docs` (Dewey) | <PENDING: run after the final text> |
+| `npm run check:docs` (Dewey) | Pass, 0 failures (before any later edit) |
 
 ## Not run
-<PENDING: filled after verification.> Expected: live Instagram (there is no DEV agent; the first real "Loan closed" exchange in PROD is the acceptance), WebKit. A skipped check is not a pass.
+- The wide Playwright suite, the `*Concurrency` scripts and the Flyway checksum-mutation step (its harness JSON parse error came after the build and SQL had passed): the pull request CI covers them.
+- A real-PostgreSQL proof of a referral-rebate close through the agent actor (mocks only; the SQL path is the same as the PWA's).
+- Real iOS Safari, and live Instagram (there is no DEV agent; the first real "Loan closed" exchange in PROD is the acceptance).
+- Not done by decision: AG-17 transfer-from-account (no data without a server change; deferred) and the AG-19 "paid through" date (optional, skipped).
+A skipped check is not a pass.
 
 ## Recovery
 - Agent: set `loan_close_execution_enabled` to false (configuration only) or `deploy-runtime.py rollback --commit <deployed>`; the agent note has the detail.
@@ -54,7 +66,7 @@ Files and objects (Byte to confirm names and counts at the final commit):
 - Git baseline: R127 `5f3bcaf`.
 
 ## Open questions
-None.
+None. Kept as is: with the switch off a payoff approval stays `MANUAL_REQUIRED`, and the bank reference is kept when the slip is replaced, as on Receive payment.
 
 ## Remaining work
 - Owner acceptance in PROD: the first real slip-matched loan close through Instagram, and the first Loan Close slip scan.
