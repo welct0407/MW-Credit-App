@@ -1,7 +1,7 @@
 # Change notes — R128 loan close through Instagram and slip recognition on Loan Close, 5 November 2026
 
 ## Purpose
-Owner instruction, 5 November 2026: "If payment could close the loan, give me the option to respond to close the loan through ig. I want to avoid manual work. In addition, when uploading the receipt in close loan page, there's no scanning and recognition … Add it similar to payment receiving page. Engage team … Move to dev, test and promote to prod". Status: In development (not merged, deployed or tagged). The integration agent half is in the [agent change note](../integration-agent/Change%20Logs/CHANGE_NOTES_R128_IG_LOAN_CLOSE_2026-11-05.md).
+Owner instruction, 5 November 2026: "If payment could close the loan, give me the option to respond to close the loan through ig. I want to avoid manual work. In addition, when uploading the receipt in close loan page, there's no scanning and recognition … Add it similar to payment receiving page. Engage team … Move to dev, test and promote to prod". Status: Released to DEV and PROD on 5 November 2026 (package `aaad6a87`, PR #249, tag `R128`); PROD acceptance is pending. The integration agent half is in the [agent change note](../integration-agent/Change%20Logs/CHANGE_NOTES_R128_IG_LOAN_CLOSE_2026-11-05.md).
 
 ## Changes
 Scope:
@@ -71,7 +71,8 @@ None. Kept as is: with the switch off a payoff approval stays `MANUAL_REQUIRED`,
 ## Remaining work
 - Owner acceptance in PROD: the first real slip-matched loan close through Instagram, and the first Loan Close slip scan.
 - The pay-forward "Remainder settles" note stays manual (deferred).
-- After V136 is applied to PROD: refresh the PostgreSQL routine definitions for `pwa_submit_operation_v2` and `pwa_apply_loan_close_v2` through the dictionary helper, and put the DEV and PROD apply times into the `database/README.md` V136 paragraph.
+- Refresh the PostgreSQL routine definitions for `pwa_submit_operation_v2` and `pwa_apply_loan_close_v2` in the Data Dictionary through the capture and reconcile helper. They still show the V135 bodies; a refresh needs a PROD metadata capture, which this closure did not make, and the dictionary records only `loan_manager_prod`.
+- Deferred: AG-17 transfer-from account (needs a server change) and the AG-19 paid-through date.
 
 ## DEV promotion record (Forge, 5 November 2026, UTC)
 Authority: the owner's instruction "Move to dev, test and promote to prod" (relayed by the orchestrator). DEV only here: no PROD action, merge or tag. There is no DEV agent, so the agent code is not deployed to DEV (see the [agent note](../integration-agent/Change%20Logs/CHANGE_NOTES_R128_IG_LOAN_CLOSE_2026-11-05.md#dev-promotion-record-forge-5-november-2026-utc)). No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
@@ -130,4 +131,7 @@ Authority: the owner's instruction "Move to dev, test and promote to prod" (5 No
 Tag `R128` on `aaad6a87ea04eb6545036177e9ac1cb5de403a9e` (annotated tag object `b124262df3adbf5f97565019a4ab4ae21dd8932e`) through Release tag workflow run 41993563262 (08:19:26Z, success), which also published the [GitHub Release](https://github.com/welct0407/MW-Credit-App/releases/tag/R128) at 08:19:42Z.
 
 ### Closure and prune record
-<PENDING: closure pull request contents and deletions (R125 leaves the three-release window at R128 closure; repoint its inbound links to a permalink first).>
+Closure pull request, records only: tracker (R128 Released, R129 opened, next unused number R130), Development Changes, Environment Inventory and this note and the agent note.
+- Deleted: `Change Logs/CHANGE_NOTES_R125_DCW_DATE_IOS_2026-11-05.md` (R125 left the three-release window). Its inbound links in the tracker, Development Changes and the Environment Inventory were first repointed to the permalink at `aaad6a8`.
+- Kept: the R126 and R127 notes (inside the window) and the R128 notes.
+- Not refreshed: the two PostgreSQL routine definitions (see Remaining work).

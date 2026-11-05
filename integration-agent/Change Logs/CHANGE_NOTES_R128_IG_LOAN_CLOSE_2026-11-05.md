@@ -65,7 +65,7 @@ Deviation, as in R127: the deploy engine needed an `mw_agent` operator connectio
 - PROD acceptance is pending: the first real "Loan close approval requested" exchange and the agent's close posting. Live Instagram was not exercised.
 
 ### Tag record
-See the root note.
+Tag `R128` on `aaad6a87ea04eb6545036177e9ac1cb5de403a9e`; see the [root note](../../Change%20Logs/CHANGE_NOTES_R128_IG_LOAN_CLOSE_AND_CLOSE_SCAN_2026-11-05.md#tag-record).
 
 ### Closure and prune record
-See the root note.
+See the [root note](../../Change%20Logs/CHANGE_NOTES_R128_IG_LOAN_CLOSE_AND_CLOSE_SCAN_2026-11-05.md#closure-and-prune-record).
