@@ -1,7 +1,7 @@
 # Change notes — R129 referral rebate pending payment, Referrers page and settlement, 5 November 2026
 
 ## Purpose
-Owner instruction, 5 November 2026: "I want the referral expenses (not offsetting open loans) to be recorded and marked as pending payment, and a way to settle those outstanding payment. Expense will still be recorded and recognized at the time of loan closure. Just the cash payment will be delayed", plus a Referrers page with each referrer's unpaid and accruing rebates, a detail page and the settlement history. Status: On DEV for owner review (applied 5 November 2026); PROD needs its own instruction with a verified backup. Design: Archie's R129 Referral Rebate Settlement design (decisions D1 to D9).
+Owner instruction, 5 November 2026: "I want the referral expenses (not offsetting open loans) to be recorded and marked as pending payment, and a way to settle those outstanding payment. Expense will still be recorded and recognized at the time of loan closure. Just the cash payment will be delayed", plus a Referrers page with each referrer's unpaid and accruing rebates, a detail page and the settlement history. Status: Released to DEV and PROD on 5 November 2026 (package `0f34203`, PR #251, tag `R129`) under the owner's instruction "Promote to prod and get everything done"; owner acceptance in PROD is pending. Design: Archie's R129 Referral Rebate Settlement design (decisions D1 to D9).
 
 ## Changes
 Scope:
@@ -89,11 +89,12 @@ Owner confirmations the design assumed (first option of each): D3 accruing = reb
 - Resolved (owner, 5 November 2026): the DEV notifications screen is back on. `docs/Development.md` says the DEV Hosting build carries nine settings including `VITE_NOTIFICATIONS`, but the live DEV bundle had been built without it (missing since R126 or earlier; the exact build was not identified). The first R129 Hosting deploy used the same eight keys, so a Hosting-only rebuild with all nine followed (see the DEV record). `docs/Development.md` needs no change.
 
 ## Remaining work
-- Owner review in DEV, then a separate promotion instruction (verified PROD backup, owner window, images, Hosting, tag).
-- At promotion, after V137 and its verification: run `pwa_convert_legacy_rebate_v1` once on PROD expense `rr1:4880c5c5-e3a5-40dc-a5cf-e2b2e5444aaa` (the owner-named 20 baht rebate, see Changes), read back the Rule Version, the removed ledger row, pending 20 and owed 20, and record it in the PROD promotion record. Not run on DEV data.
-- At promotion: repeat the optional chat read grant (`GRANT SELECT ON pwa_rebate_settlements TO mw_chat_read_<env>`), and refresh the Data Dictionary after the PROD capture.
+- Owner acceptance in PROD: the first real settlement of pending rebates from the Referrers page, the first close that books a pending rebate, and the first agent DM with the "pending to" wording. No settlement, test write or forced notification was made in PROD.
+- The owner-named legacy rebate was converted at promotion (see the PROD record); the owner can confirm it shows as pending on the Referrers page.
+- Chat read role: the optional grant `GRANT SELECT ON pwa_rebate_settlements TO mw_chat_read_<env>` was not done on DEV or PROD.
+- Data Dictionary: not refreshed in this closure (no PROD metadata capture was made; the dictionary records only `loan_manager_prod`). To add after a PROD capture: the table `pwa_rebate_settlements`; the columns `"Business Expenses"."Ref Rebate Settlement"` and `"Cash Ledger"."Ref Rebate Settlement"`; the new routines `pwa_apply_rebate_settlement_v1`, `pwa_rebate_settlement_version_v1`, `pwa_rebate_pending_v1`, `pwa_rebates_owed_v1`, `pwa_notify_content_v5`, `pwa_convert_legacy_rebate_v1` and `rebate_settlement_cash_source()`; the replaced routines (8, listed in `database/README.md`); and the pwa API entries for the three routes (`GET /api/referrers`, `GET /api/referrers/:id`, `GET /api/rebate-settlements/:id`) and two operations (`rebate-settlement.create`, `rebate-settlement.delete`).
 - Follow-up, not in R129: CI database labs run C collation while DEV and PROD are en_US.UTF8, which hid the V137 failure; a contained opt-in en_US collation for the migrations group (`Test-MigrationsCloud.py`) would catch it.
-- Deferred (D9): settlement push, slip upload on the settle page, chat-created settlements, a reminder for old pending rebates, a menu badge, owed balances on the Borrowers list.
+- Deferred (D9): settlement push, slip upload on the settle page, chat-created settlements, a reminder for old pending rebates, a menu badge, owed balances on the Borrowers list. Echo's deferred PAY-4, RF-4 and RF-5.
 
 ## DEV promotion record (Forge, UTC)
 Authority: the owner's 5 November 2026 instruction to implement, test and deploy to DEV for review; DEV only, no PROD action, merge or tag. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md). Attempt 1 (at `3c30f3b`) failed at V137's self-check and rolled back; attempt 2 succeeded. All times 5 November 2026 UTC.
@@ -120,3 +121,46 @@ Authority: the owner's 5 November 2026 instruction to implement, test and deploy
 | Synthetic test data (Forge, owner instruction "Create a few loans in dev and close them but don't settle the rebate") | Through the DEV command service as the DEV test Partner, governed operations only: 7 `borrower.create` ("R129 Test Referrer A" default terms; "R129 Test Referrer B" custom 15% and ฿2,000 with an open loan of its own; referees A1 to A3 and B1 to B2; synthetic, no contact details), 6 `loan.create` (฿200 at ฿20 per day; a first ฿10,000 attempt was refused because the DEV cash pool is ฿664, and no capital was added), 6 `loan.generate-charge`, 13 payments, and 3 `loan.close` with the expense path (A1, A2, B1). Read-back: A unpaid ฿20 (2 rebates), accruing ฿6; B unpaid ฿15 (1), accruing ฿9; three V3 pending expenses, no Cash Ledger row, 0 settlements. Left open for the owner to try: A3, B2 and B's own loan (for Offset). Request ids are in Forge's private operations log (not in Git) |
 | DEV update to `93af8f9` (Forge, Referred borrowers follow-up) | Evidence: `Development checks` run 42047433837, Database migrations run 42047424682 (`guards` green), GitGuardian green. Bounded diff against `7153aab`: 15 files, none under `database/` or `infrastructure/`, so no backup or owner window. The changed-services rule gives read, command and chat; notify and jobs stay on `211cb0d9…`. Cloud Build `fb46fd85-3323-4cd2-a217-9b5fc5f1a654` SUCCESS 15:01:40Z to 15:02:07Z, digest `sha256:ff493fbda7354e05fa68529a3686be523bf0ca1cf03e761c13b73711e8d702d8`. Terraform 0 add, 3 change, 0 destroy (image only), applied 15:03:15Z to 15:03:53Z, re-plan clean; settings generation `1793891067776814` (previous `1793887586576389`). Revisions read `00073-frr`, command `00090-5gh`, chat `00042-zs4`. Hosting with nine settings including `VITE_NOTIFICATIONS=enabled`: build-version R129 `81331097b2917f71b68fabb2`, entry `/assets/index-CEBkIJGO.js`, embeds `93af8f9`, `--check` 17 files, version `a0e8f49c48c2877f`, release `1793891154484000`, 15:05:47Z to 15:05:55Z. Smoke: `/health` 200, unauthenticated 401, CORS 204, three origins serve it, `sw.js` no-store, referrer A's referees are 3 rows summing to the tiles (unpaid ฿20, accruing ฿6), no ERROR logs 15:01Z to 15:06:36Z. Rollback: settings generation `1793887586576389`, then Hosting `da872b345ac72d6d` |
 | Rollback | Settings generation `1793865141900575`, then Hosting `172e9094f02fb9b9` (or `c6e5987387a2c67a` for the rebuild only); V137 stays (forward fix) or restore backup `dev-refresh-1a1641c4a5f8464aa67f9a191c4ba665` |
+
+## PROD promotion record (Forge, 5 November 2026, UTC)
+Authority: the owner's instruction "Promote to prod and get everything done" (5 November 2026, relayed by the orchestrator), covering V137, the verified backup, the standard owner window, the images, Hosting, the agent code and the one-row legacy conversion. No settlement, test write, forced notification or other legacy row was touched; live Instagram was not exercised. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in `gs://mw-credit-operator-private-737787224638/promotion-packages/r129/`.
+
+| Step | Result |
+| --- | --- |
+| Freeze (15:15:07Z) | `main` at `0f3420367a62b6d796d53ed656a52b7a74d2cdfb` (merge of PR #251; tree `75b731e6` equal to the tested head `27288c0`) |
+| Target | Project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017`, database `loan_manager_prod` |
+| Preflight | Head 136; V137 the only pending |
+| Backup at V136 | `prod-promotion-a034285d55974be1b7204d653b6d5ca8`, 15:17:40Z to 15:20:14Z, dump sha256 `8d2c3ac0f15ff4a24960eb3e69e789f14dbfe7edc448f90e2cd722973465af96`, restore passed, 38 table fingerprints |
+| SQL package | Manifest `release-r129-v137-0f342036.json` (sha256 `28088a43…2a26`, equal to the DEV manifest); V137 sha256 `b909a1d1…0f82`. Connect preflight 15:32:12Z (18 consumers, 0 DEV sessions); `check` 15:32:19Z: pending exactly `["137"]` |
+| Owner window | Six owners opened 15:33:37Z to 15:33:49Z, restored 15:36:50Z to 15:37:00Z (24 statements each) |
+| V137 | `Invoke-CloudFlyway.py apply` 15:33:55Z to 15:35:29Z, installed 15:34:38Z (14.8 s, checksum -746614450, equal to DEV); `verify --target prod` head 137, nothing pending (15:42:35Z) |
+| Legacy conversion (owner-named, 20.00) | Re-read expense `rr1:4880c5c5-e3a5-40dc-a5cf-e2b2e5444aaa` first: V2, 20.00, no offset, no link, one 20.00 ledger row. Then `pwa_convert_legacy_rebate_v1` as `postgres` in the ledger-owner window, 15:36:25Z to 15:36:27Z: ledger row 20.00 to none, pending 20.00, now V3. The 13 other legacy rows are unchanged |
+| SQL readback | The 8 replaced routines carry R129, owners and ACLs unchanged; the new functions have the designed ACLs and no PUBLIC; the conversion and trigger functions are `postgres`-only; table owner `postgres`, application role r, journal owner arwd, ledger owner r; 0 settlements, 1 V3 row |
+| Image | Cloud Build `7e301681-66c8-48dc-aae4-d99e6e0722e8` (`mw-credit-app-build-prod`, `cloudbuild-business.yaml`), 15:29:37Z to 15:30:21Z, digest `sha256:babc74809af5e87ed04705388c03a270cc51f8ea22fdcdd3f196f3142c99a837`; all five services change |
+| Terraform | Plan 0 add, 5 change, 0 destroy, image only (plan sha256 `3d2c4209…98d8`); applied 15:39:24Z to 15:40:03Z; re-plan clean; settings generation `1793893237750654` (previous `1793866043320442`) |
+| Revisions | read `00047-z5r`, command `00052-wx4`, chat `00031-s5t`, notify `00028-8cg`, jobs `00028-prj` |
+| Hosting | Generic runner `--check` 18 files, `--apply` 15:45:37Z to 15:46:25Z; version `3bca0392e607f70a`, release `1793893578462000`, build-version R129 `fb084ee464e30dfcb7fd69b2`, entry `/assets/index-DVEnN6sD.js`, embeds `0f34203` |
+| Agent | `vm-mw-credit-agent` `aaad6a87` to `0f34203` (only `partner_review.py` changed); freeze 15:50:07Z to 15:50:19Z (rollback `runtime-20261105T155012361755Z`), install 15:50:19Z to 15:50:28Z, activate 15:50:28Z to 15:50:37Z; catalogue revision 36, switches unchanged, `receiver-ready` (see the [agent note](../integration-agent/Change%20Logs/CHANGE_NOTES_R129_AGENT_REBATE_PENDING_WORDING_2026-11-05.md#prod-promotion-record-forge-5-november-2026-utc)) |
+| Smoke (read-only) | `/health` 200; notify and jobs Ready; unauthenticated 401; agent `loan-closes` POST 401; CORS 204 for `lm.mw-credit.com`; the three origins serve R129 `fb084ee4`; `sw.js` no-store; no ERROR logs 15:33Z to 15:51:43Z; four receipt cycles clean |
+| CI receipts | `Development checks` run 42047433837 (input-equivalent; 42051794683 reused), Database migrations run 42047424682, Terraform run 41203206026 |
+| Rollback | Settings generation `1793866043320442` (read, command and chat on `7f81a5a3…`, revisions `00046-6j2`, `00051-qc8`, `00030-9gb`; notify and jobs on `a66cbf29…`, `00027-mkt`, `00027-xch`), Hosting `dd257824b2924626`, agent `deploy-runtime.py rollback --commit 0f342036…`; the database by a forward fix, or the V136 backup (which would undo the conversion) |
+
+### Deviations
+- The Hosting apply refused once on the source-object JSON key order; it was reordered and rechecked.
+- The owner-window restore refused once for missing PROD arguments; nothing ran.
+- `npm ci` ran in the frozen clone, and the clone was unshallowed.
+- `gcloud compute ssh` exited 255; the operator key path was used and the temporary connection file was shredded.
+- PROD has no post-migrate reconcile, so the two settlement trigger functions are `postgres`-only (DEV's reconcile also granted `mw_app_dev` EXECUTE).
+
+### Limitations
+- PROD acceptance is pending (see Remaining work). No settlement was made on PROD data and live Instagram was not exercised.
+- No authenticated PROD read of the Referrers page was made.
+
+### Tag record
+Tag `R129` on `0f3420367a62b6d796d53ed656a52b7a74d2cdfb` (annotated tag object `c11b925c735c7ffedbf6c65d713a7f9a6089fbee`) through Release tag workflow run 42060051524 (15:56:29Z to 15:56:52Z, success), which also published the [GitHub Release](https://github.com/welct0407/MW-Credit-App/releases/tag/R129).
+
+### Closure and prune record
+Closure pull request, records only: tracker (R129 Released, R130 opened, next unused number R131), Development Changes, Environment Inventory, this note and the agent note, and the status words in Solution Design, the Data Model overview and `database/README.md`.
+- Deleted: `Change Logs/CHANGE_NOTES_R126_DCW_WHEN_DESIGN_2026-11-05.md` (R126 left the three-release window of R127, R128 and R129). Its inbound links in the tracker, Development Changes and the Environment Inventory were first repointed to the permalink at `0f34203`.
+- Kept: the R127 and R128 notes and the R129 notes (inside the window); `project/outputs/dictionary-r116-20261103/` and `project/outputs/dictionary-r120-20261104/`, still cited by Data Dictionary entries.
+- Not refreshed: the Data Dictionary (see Remaining work).
