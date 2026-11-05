@@ -123,8 +123,9 @@ def plan_digest(plans):
 def pay_forward_options(config,receipt,borrower_id,current,today):
     """The choices a slip above what is due offers, from the server's plans, or None when none can be offered.
     1 pay forward: the forward plan covers the whole remainder; 2 repay principal: per eligible daily-interest loan,
-    the remainder after its accrued interest, unless that settles the loan (then Loan Close); 3 split: a principal part
-    of the one principal loan, the rest pays forward (its plan is read when chosen)."""
+    the remainder after its accrued interest, unless that settles the loan (then Loan Close). The request shows that
+    accrued interest as the remainder less the principal amount (R127); 3 is the recheck, which needs no plan. The R112
+    split ("3 <amount>") is withdrawn (R127)."""
     amount=str(int(Decimal(receipt['amount'])))
     forward=pay_forward_plan(config,borrower_id,amount,today,{'forward':True,'principal':[],'loans':None})
     plans={'forward':forward}
@@ -175,22 +176,18 @@ def forward_offered(options):
 
 
 def chosen_purpose(options,choice):
-    """{'kind':'forward'|'principal'|'split','loan':n,'amount':text} -> the plan purpose, or None when not offered."""
+    """{'kind':'forward'|'principal','loan':n} -> the plan purpose, or None when not offered. R127: no split choice."""
     principal=options.get('principal') or []
     if choice['kind']=='forward':
         return {'forward':True,'principal':[],'loans':None} if forward_offered(options) else None
+    if choice['kind']!='principal':return None
     index=choice.get('loan')
     if index is None:
         if len(principal)!=1:return None
         index=1
     if not 1<=index<=len(principal):return None
     option=principal[index-1]
-    if choice['kind']=='principal':
-        return {'forward':False,'principal':[{'loanId':option['loanId'],'amount':option['amount']}],'loans':None}
-    amount=choice.get('amount')
-    if not forward_offered(options) or len(principal)!=1 or not isinstance(amount,str) or not amount.isdecimal() \
-            or amount.startswith('0') or int(amount)>=int(option['amount']):return None
-    return {'forward':True,'principal':[{'loanId':option['loanId'],'amount':amount}],'loans':None}
+    return {'forward':False,'principal':[{'loanId':option['loanId'],'amount':option['amount']}],'loans':None}
 
 
 def chosen_plan(config,proposal,purpose):

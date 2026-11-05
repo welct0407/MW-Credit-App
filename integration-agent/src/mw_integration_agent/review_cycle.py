@@ -177,7 +177,7 @@ class Run:
                 except ConfigurationError:continue
                 outcome=self.reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
                 if outcome==RECHECKED:
-                    # Owner request, 3 November 2026: acknowledge "4"; the new plan follows as its own message
+                    # Owner request, 3 November 2026: acknowledge the recheck ("3" since R127; legacy "4"); the new plan follows as its own message
                     # (or the automatic-payment result) once the receipt is planned again from the current charges.
                     row=db.execute('SELECT proposal FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
                     partner=next((p for p in live['partners'] if p['id']==notice['partner_id']),None)
@@ -343,16 +343,23 @@ class Run:
 
 def posted_purpose(proposal,detail,thai):
     """Echo AG-5: the use of the remainder the Reviewer chose, on the posted result."""
-    from .partner_review import baht,short_date
+    from .partner_review import baht,short_date,principal_split
     try:purpose=json.loads(detail)['purpose']
     except (ValueError,TypeError,KeyError):return ''
     amount=baht(proposal['receipt']['amount']);o=proposal['options'];through=(o.get('forward') or {}).get('through')
     if purpose['forward'] and not purpose['principal']:
         return f"บันทึก {amount} · ชำระล่วงหน้า"+(f" ชำระถึง {short_date(through,True)}" if through else '') if thai else \
             f"Recorded {amount} · pay forward"+(f", paid through {short_date(through,False)}" if through else '')
-    part=baht(purpose['principal'][0]['amount'])
+    chosen=purpose['principal'][0];part=baht(chosen['amount'])
     if purpose['forward']:
+        # Legacy R112 split ("3 <amount>", withdrawn in R127): a split approved before the R127 deploy may still post.
         return f"บันทึก {amount} · เงินต้น {part} ส่วนที่เหลือชำระล่วงหน้า" if thai else f"Recorded {amount} · principal {part}, the rest pays forward"
+    # R127 (Echo AG-12): the interest and principal split and the new daily interest, from the saved options.
+    offered=next((p for p in o.get('principal') or [] if p.get('loanId')==chosen['loanId'] and p.get('amount')==chosen['amount']),None)
+    if offered:
+        daily=baht(offered['dailyAfter'])
+        return f"บันทึก {amount} · {principal_split(o,offered,True)} ดอกเบี้ยใหม่ {daily}/วัน" if thai else \
+            f"Recorded {amount} · {principal_split(o,offered,False)}, new interest {daily}/day"
     return f"บันทึก {amount} · ชำระเงินต้น {part}" if thai else f"Recorded {amount} · repay principal {part}"
 
 
