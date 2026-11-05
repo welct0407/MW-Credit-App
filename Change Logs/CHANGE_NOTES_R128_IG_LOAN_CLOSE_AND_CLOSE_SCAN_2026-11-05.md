@@ -73,8 +73,30 @@ None. Kept as is: with the switch off a payoff approval stays `MANUAL_REQUIRED`,
 - The pay-forward "Remainder settles" note stays manual (deferred).
 - After V136 is applied to PROD: refresh the PostgreSQL routine definitions for `pwa_submit_operation_v2` and `pwa_apply_loan_close_v2` through the dictionary helper, and put the DEV and PROD apply times into the `database/README.md` V136 paragraph.
 
-## DEV promotion record
-<PENDING Forge: V136 on `loan_manager_dev`, DEV command image, Hosting DEV, DEV evidence. There is no DEV agent.>
+## DEV promotion record (Forge, 5 November 2026, UTC)
+Authority: the owner's instruction "Move to dev, test and promote to prod" (relayed by the orchestrator). DEV only here: no PROD action, merge or tag. There is no DEV agent, so the agent code is not deployed to DEV (see the [agent note](../integration-agent/Change%20Logs/CHANGE_NOTES_R128_IG_LOAN_CLOSE_2026-11-05.md#dev-promotion-record-forge-5-november-2026-utc)). No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Item | Result |
+| --- | --- |
+| Package | PR #249 head `832d908` (unmerged), from a clean clone; `Development checks` run 41987096715, Agent tests run 41987096724 (`test`, `lab`) and Database migrations run 41985211638 (on `4d513ad`; later commits touch no database path) green |
+| Scope | V136, the read, command and chat images and DEV Hosting labelled R128. The generic changed-services rule gives read, command and chat (chat for the schema digest); notify and jobs stay on `4bda921c…` |
+| Preflight | DEV at V135 (134 successful rows), V136 the only pending; neither routine patched; each of the four V136 replacement boundaries occurs once in the live DEV bodies; `pwa_submit_operation_v2` owned by `mw_app_dev_journal_owner`, `pwa_apply_loan_close_v2` by `postgres` |
+| Backup at V135 | 07:28:37Z, archive listing and restore passed, 38 table fingerprints matched, dump sha256 `a081e020…98d3`, folder `dev-refresh-5c369e4572584d17bbeeb49476dc75a5` (`dev-backups/`) |
+| Image | Cloud Build `4c0d5351` (`cloudbuild-command.yaml`, container smoke passed), 07:30:21Z to 07:30:59Z, digest `720d7cb6…b353` |
+| Owner window | The five DEV owners (notify, jobs, ledger, changes, journal), 20 statements, 07:38:08Z to 07:50:58Z. The post-migrate reconcile then needed `mw_chat_owner_dev` as well (below), opened 07:43:04Z and closed 07:50:48Z (4 statements). Readback: `postgres` holds every DEV owner with inherit and set false again |
+| V136 | Installed 07:38:35Z (3.2 s, checksum -1098120274) by `Invoke-Flyway.ps1 -Environment development -Command migrate` |
+| Reconcile | The runner's post-migrate reconcile failed on its first run (07:41:50Z, `permission denied for table pwa_chat_threads`, one transaction, rolled back, nothing written): the five-owner window lacked the chat owner. With the chat owner window open, `application-role-cli.mjs --action post-migrate --apply` alone was rerun (as R091): 547 statements, 0 violations, 07:43:08Z to 07:49:56Z |
+| Validate | `Invoke-CloudFlyway.py verify --target dev`: validation successful, head 136, nothing pending |
+| SQL readback | Both routines carry the R128 marker; owners unchanged; ACLs `pwa_apply_loan_close_v2` {postgres, `mw_app_dev_journal_owner`, `mw_app_dev`}, `pwa_submit_operation_v2` {`mw_app_dev_journal_owner`, `mw_app_dev`}, no PUBLIC |
+| Terraform | Plan with the R128 settings: 0 add, 3 change, 0 destroy (read, command and chat image only; the plan before the change was clean); applied 07:51:11Z to 07:51:46Z; re-plan no changes; settings generation `1793865141900575` (previous `1793806096697744`) |
+| Revisions | read `00071-ljm`, command `00088-sg9`, chat `00040-flw` (100%) |
+| Hosting | Build-version R128 `9a1c30728eebbf4e16b5fc35`, entry `/assets/index-DG8w5nqe.js`, embeds `832d908`; build settings identical to the live R126 bundle; `.env.live-dev` from Secret Manager, shredded after the build; `--check` passed (16 files); version `172e9094f02fb9b9`, release `1793865157386000`, 07:52:38Z |
+| Smoke | `/health` 200 on read, command and chat; unauthenticated command 401 and chat models 401; CORS preflight 204; `/internal/agent/loan-closes` (POST, status GET) and `/internal/agent/loan-closes/quote/…` answer 404 unauthenticated and with a non-agent Google identity (the DEV agent API is off by design, so every `/internal/agent/` route is 404); both DEV origins serve build R128, `sw.js` 200 `no-store`; the entry bundle that carries Loan Close is served byte-identical; Loan Close quote (`close-preview`) 200 for an open synthetic loan as the DEV test Partner; recognition on Loan Close's route: a synthetic slip image ("SYNTHETIC TEST IMAGE - NOT A REAL TRANSFER") uploaded for the R101 synthetic borrower and read: `recognized`, amount 1234, reference `R128DEVSMOKE0001`, 2026-11-05 14:05, Bank Transfer, warning `account_unmatched`, Gemini; no ERROR logs on the three services 07:38Z to 07:54Z |
+| DEV release manifest | `release-r128-v136-832d908.json` (private, sha256 `eb0c3051…a2b7`), commit `832d908`, 136 migrations, V136 sha256 `2ac2fe82…da72` |
+| Not done on DEV | No Loan Close or payment was posted; the browser UI was not driven (Echo's built-UI check covers it); the agent close path has no DEV route |
+| Rollback | Settings generation `1793806096697744` (image `c6609e5c…`) plus Hosting `cf0ed4a31026c97b` (R126); V136 stays (older commands remain valid), or restore the V135 backup |
+
+Synthetic DEV records left in place: one receipt image (receipt `9dbb7ca4…`, request `5cb4d45e…`, sha256 `1bd9f0b4…`) for the R101 synthetic borrower `21c2c949…`, not attached to any payment.
 
 ## PROD promotion record (Forge, 5 November 2026, UTC)
 <PENDING Forge: authority (the owner's instruction above), freeze package, baseline R127, verified backup at V135, V136, command image (read and chat if the shared image changes), Hosting, agent code on `vm-mw-credit-agent` with `loan_close_execution_enabled` on, readback, smoke, rollback, not deployed. No secret value or borrower data appears here.>

@@ -39,8 +39,8 @@ None.
 - Owner acceptance in PROD: the first real "Loan close approval requested" exchange.
 - The pay-forward "Remainder settles" note stays manual (deferred).
 
-## DEV promotion record
-There is no DEV agent. Evidence: Byte's unit tests (789 OK) and Chase's review (PASS on `4d513ad`); <PENDING: agent CI `test` and `lab` run and head commit>.
+## DEV promotion record (Forge, 5 November 2026, UTC)
+There is no DEV agent (the VM serves PROD slips only), so no agent code was deployed for DEV. Evidence before PROD: Byte's unit tests (789 OK), Chase's review (PASS on `4d513ad`) and the agent CI `test` and `lab` (Agent tests run 41987096724 on PR #249 head `832d908`, green). The command service side the agent calls (`/internal/agent/loan-closes`, its status and `/internal/agent/loan-closes/quote/…`) is on DEV in image `720d7cb6…` with V136; on DEV the agent API is off by design, so those routes answer 404 to every caller, which the DEV smoke confirmed. See the [application DEV promotion record](../../Change%20Logs/CHANGE_NOTES_R128_IG_LOAN_CLOSE_AND_CLOSE_SCAN_2026-11-05.md#dev-promotion-record-forge-5-november-2026-utc).
 
 ## PROD promotion record (Forge, 5 November 2026, UTC)
 <PENDING Forge: agent steps on `vm-mw-credit-agent` after V136, the command image and Hosting are in PROD: package, baseline, checkout, dry run, freeze, install, activate, switch on, readback, smoke, rollback, not deployed. No secret value or borrower data appears here.>
