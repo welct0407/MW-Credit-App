@@ -1,0 +1,69 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_convert_legacy_rebate_v1(p_expense_id text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_convert_legacy_rebate_v1"
+    "arguments": "p_expense_id text"
+    "kind": "f"
+    "arguments_with_defaults": "p_expense_id text"
+    "result": "jsonb"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_convert_legacy_rebate_v1(p_expense_id text)
+       RETURNS jsonb
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE x public."Business Expenses"%ROWTYPE; payee text; offset_amount numeric; ledger_before numeric; ledger_after numeric;
+      BEGIN
+       IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') THEN RAISE EXCEPTION 'Unsupported application database'; END IF;
+       IF NOT has_function_privilege(current_user,'public.sync_cash_ledger(text,text)','EXECUTE') THEN
+        RAISE EXCEPTION 'Run the conversion as a role that executes sync_cash_ledger (postgres inside the ledger owner window)'; END IF;
+       SELECT "Ref Payee Borrower" INTO payee FROM public."Business Expenses" WHERE "Row ID"=p_expense_id;
+       IF NOT FOUND THEN RAISE EXCEPTION 'Unknown expense %',p_expense_id; END IF;
+       IF payee IS NOT NULL THEN PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',payee)); END IF;
+       SELECT * INTO x FROM public."Business Expenses" WHERE "Row ID"=p_expense_id FOR UPDATE;
+       IF x."Source Type" IS DISTINCT FROM 'Referral Rebate' THEN RAISE EXCEPTION 'Only a referral rebate expense can be converted'; END IF;
+       IF x."Rule Version"='REFERRAL_REBATE_V3' THEN RAISE EXCEPTION 'This rebate is already pending payment (REFERRAL_REBATE_V3)'; END IF;
+       IF x."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'This rebate is paid by a settlement'; END IF;
+       IF x."Rule Version" IS DISTINCT FROM 'REFERRAL_REBATE_V2' OR x."Rebate Rate" IS NULL OR x."Rebate Cap" IS NULL THEN
+        RAISE EXCEPTION 'Only a REFERRAL_REBATE_V2 rebate with its terms can be converted (a V1 row carries no terms)'; END IF;
+       IF EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=p_expense_id) THEN
+        RAISE EXCEPTION 'A cash cutover source cannot be converted'; END IF;
+       offset_amount:=coalesce((SELECT o."Amount Received"::numeric FROM public."Payments" o WHERE o."Row ID"=x."Ref Offset Payment" AND o."Status"='Posted'),0);
+       IF x."Amount"::numeric-offset_amount<=0 THEN RAISE EXCEPTION 'Nothing is unpaid on this rebate (settled by offset)'; END IF;
+       SELECT "Amount" INTO ledger_before FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Business Expense' AND "Source Key"='EXPENSE:'||p_expense_id;
+       -- The rule change re-projects the expense through its own cash trigger (UPDATE OF "Amount", same value; nothing disabled).
+       PERFORM set_config('pwa.rebate_convert',p_expense_id,true);
+       UPDATE public."Business Expenses" SET "Rule Version"='REFERRAL_REBATE_V3',"Amount"="Amount" WHERE "Row ID"=p_expense_id;
+       PERFORM set_config('pwa.rebate_convert','',true);
+       SELECT "Amount" INTO ledger_after FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Business Expense' AND "Source Key"='EXPENSE:'||p_expense_id;
+       IF ledger_after IS DISTINCT FROM nullif(offset_amount,0) OR public.pwa_rebate_pending_v1(p_expense_id) IS DISTINCT FROM x."Amount"::numeric-offset_amount THEN
+        RAISE EXCEPTION 'Converted rebate differs from the rule'; END IF;
+       RETURN jsonb_build_object('expenseId',p_expense_id,'amount',x."Amount"::numeric,'offsetAmount',offset_amount,'pendingAmount',public.pwa_rebate_pending_v1(p_expense_id),
+        'ledgerBefore',ledger_before,'ledgerAfter',ledger_after);
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres}"
+    "comment": "mw-access:governance R129 D1 owner-authorized one-off: a REFERRAL_REBATE_V2 rebate never paid at close becomes\
+      \ pending (V3); its cash entry becomes the offset amount or goes. postgres only."
+    "extension": null

@@ -1,0 +1,41 @@
+# Change notes — R131 follow-ups, 5 November 2026
+
+## Purpose
+Owner instruction, 5 November 2026: "Finish the remaining work". R131 collects the open follow-ups left by R129 and R130 so they close in one release. Status: items (a) to (d) are done; the pull request checks are pending. No deployment in R131: the `store.mjs` change is unreachable on V137 databases, so it rides the next product release's images. R131 stays Open after this pull request (no tag or closure now).
+
+## Changes
+Items:
+- **(a) Read 503 "Cannot read properties of null (reading 'kind')".** A pre-existing command-service read 503 that the R130 logging surfaced in the receiving run (R130 Remaining work). Done (Byte). Cause: the error is reachable only on a database before V121 (test U2 in `unified-receiving-independent` runs at V82). There `store.remainderPreview` returned `{ok:true,value:null}` when `pwa_pay_forward_plan_v1` is absent, and `run()` read `value.kind` after COMMIT, which threw a TypeError, discarded the connection and logged the 503. It is not reachable on DEV or PROD (V137). Fix: `services/payment-command/store.mjs` returns `{}` (no preview). Regression `tests/unit/remainder-preview-empty.test.mjs` fails before the fix and passes after; `unified-receiving` on a fresh V82 database passes 19/19 with no log line. The DEV and PROD command logs for 7 days show no `command_store_unavailable`, `command_handler_unavailable` or `offline_dataset_unavailable`.
+- **(b) CI en_US collation guard for the migrations group.** CI database labs run C collation while DEV and PROD are en_US.UTF8, which hid the R129 V137 self-check failure (R129 follow-up). Done (Byte). `Test-MigrationsCloud.py` gains the opt-in `MW_DB_COLLATION=en_US.UTF-8` (`lc_collate` and `lc_ctype` only; `lc_monetary` stays C; after `createdb` it verifies the collation, ctype, `lc_monetary` and an ACL-like ordering; other values are refused; the result line reports the collation; `LOCPATH` is passed through). `database.yml`: the migrations group on Linux installs or generates `en_US.UTF-8` if missing and sets `MW_DB_COLLATION`. Proof: the pre-fix V137 (`3c30f3b`, scratch copy) fails under en_US with the DEV error and passes under C; the current V137 `mw-db-ci` migrations run exits 0 under en_US; the default C run passes. The first CI exercise of the workflow change is this pull request.
+- **(c) Data Dictionary refresh from a PROD capture.** Forge captures PROD metadata into `project/outputs/dictionary-r131-20261105/`; Dewey reconciles the dictionary with the dictionary helper ([README](../project/scripts/dictionary/README.md)), validates and rebuilds the index. Covers the R129 / V137 objects (table `pwa_rebate_settlements`; columns `"Business Expenses"."Ref Rebate Settlement"` and `"Cash Ledger"."Ref Rebate Settlement"`; new routines `pwa_apply_rebate_settlement_v1`, `pwa_rebate_settlement_version_v1`, `pwa_rebate_pending_v1`, `pwa_rebates_owed_v1`, `pwa_notify_content_v5`, `pwa_convert_legacy_rebate_v1`, `rebate_settlement_cash_source()`; the replaced routines; the three routes and two operations) and the V136 bodies of `pwa_submit_operation_v2` and `pwa_apply_loan_close_v2` that R128 left at V135. Done: Forge's read-only capture (`codex-cloud-read`, `loan_manager_prod` at Flyway 137, 18:08:34Z, metadata hash `5814f21fe30d…`; no borrower data, scanned) is in `project/outputs/dictionary-r131-20261105/` (`production-postgresql-observations.json`, `plan.json`, `coverage.json`). The plan wrote 19 documents, applied with `reconcile_captures.py apply`: 9 new (the relation `pwa_rebate_settlements` and 8 routines: `pwa_apply_rebate_settlement_v1`, `pwa_rebate_settlement_version_v1`, `pwa_rebate_pending_v1`, `pwa_rebates_owed_v1`, `pwa_notify_content_v5`, `pwa_convert_legacy_rebate_v1`, `rebate_settlement_cash_source`, `rebate_settlement_row_guard`) and 10 updated (the `business-expenses` and `cash-ledger` relations; `sync_cash_ledger`, `guard_cash_ledger`, `calculate_business_expense`, `create_referral_rebate`, `pwa_referral_rebate_projection_v1`, `pwa_submit_operation_v2`, `pwa_apply_loan_close_v2` and `pwa_apply_payment_v2`; the loan close and payment bodies were stale from R128). `dictionary.py index` rebuilt the index and `dictionary.py validate` reports 489 documents, 0 errors. The pwa API entries (`human-api.yaml`) were not changed: it lists route families only and has carried no per-release routes since 14 October 2026 (it has no `/api/expense-records`), so the three new routes and two operations are described in the R129 change note and the source contracts.
+- **(d) Old-note prune.** Done: the five October 2026 change notes that nothing current linked (`Change Logs/CHANGE_NOTES_DEV_REFRESH_PLAN_2026-10-21.md`, `CHANGE_NOTES_DEV_REFRESH_REVIEW_2026-10-21.md`, `CHANGE_NOTES_VERSION_AGNOSTIC_TESTS_2026-10-21.md`, `integration-agent/Change Logs/CHANGE_NOTES_CONVERSATION_BUSINESS_RULES_2026-10-21.md`, `CHANGE_NOTES_RECOGNIZER_RESTART_2026-10-21.md`) are deleted. The links to the two that other notes cited (the DEV refresh review and the conversation business rules notes) were first repointed to the permalink at `0f2fc44`. `npm run check:docs` now ends with 0 warnings.
+- Moved here from earlier releases: the R130 items (the `reading 'kind'` 503), and the R129 items (CI collation follow-up and the Data Dictionary entries). The remaining R129 and R130 notes still list them with a pointer to this note.
+
+Owner acceptance of R130 (done, recorded here as the next release's records): the owner's first PROD records sync on the R130 revision worked ("Result looks good"). command-prod logs since 16:45Z show records offline-dataset 23 × 200 and 1 × 409 (a restart), collection 12 × 200, management 8 × 200, notifications 8 × 200 and cash 2 × 200, with no ERROR and no `command_*_unavailable` lines. The "Borrowers not updated" error is gone.
+
+Stays owner-side (not part of this release):
+- PROD acceptance: the first real rebate settlement from the Referrers page, the first agent DM with the "pending to" wording, and the first close that books a pending rebate.
+- The optional chat read-role grant on `pwa_rebate_settlements` (not requested).
+- Known limitation: two mutually referring borrowers closing at the same instant can hit a deadlock (40P01); it is safe to retry.
+
+## Checks
+| Command | Result |
+| --- | --- |
+| `npm run check:docs` after item (d) (Dewey) | Pass, 0 failures, 0 warnings |
+| Items (a) and (b) (Byte): biome; `npm run typecheck`; `npm test`; Python compile; `database.yml` parse | 0 errors; pass; 1192 tests, 1191 pass, 1 skipped; pass; parses (`actionlint` not available) |
+| Item (a): `remainder-preview-empty` regression and `unified-receiving` on a fresh V82 database | Fails before, passes after; 19/19 |
+| Item (b): `mw-db-ci` migrations under en_US, pre-fix V137 under en_US and C | Current V137 exit 0 under en_US; pre-fix fails under en_US, passes under C; default C run passes |
+| Item (c): `dictionary.py index` and `validate` after applying the capture plan (Dewey) | Pass: 489 documents, 0 errors |
+| Pull request checks | Pending |
+
+## Not run
+`actionlint` on `database.yml` (not available); the first CI run of the en_US migrations group is this pull request. A skipped check is not a pass.
+
+## Recovery
+Git holds the deleted notes. (a) is a one-line `store.mjs` revert and (b) is a CI and test-script revert; neither changes a deployed service or data, and nothing is deployed in R131.
+
+## Open questions
+None.
+
+## Remaining work
+- None open beyond the pull request checks. The `store.mjs` fix is deployed with the next product release's images; R131 closes with that release's records or when the owner closes it.

@@ -412,7 +412,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async remainderPreview(principal,borrowerId,amountReceived){
       const result=await run(principal,async client=>{
         const forward=await readPayForwardPlan(client,borrowerId,amountReceived,{forward:true,principal:[],loans:null});
-        if(!forward)return {ok:true,value:null};
+        // No plan function (before V121): an empty value, which the unwrap below reads as no preview (run() reads value.kind).
+        if(!forward)return {ok:true,value:{}};
         const options=[];
         for(const option of (forward.options??[]).slice(0,PRINCIPAL_PREVIEW_LIMIT)){
           // R113: a loan only a settle can take (kind null) is offered with its payoff remainder; settles: the request reaches

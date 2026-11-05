@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
   "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "0f2fc4461cb7c8a6fab82a9339a174589f1a01de"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-sync-cash-ledger-p-type-text-p-id-text-0f498503.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.sync_cash_ledger(p_type text, p_id text)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -26,6 +35,7 @@
       AS $function$
       DECLARE d date; amount numeric; from_holder text; to_holder text; movement text; source_key text; actor text;
        payment_id text; loan_id text; expense_id text; settlement_id text; from_account text; to_account text;
+       rebate_settlement_id text; rule text; offset_amount numeric; -- R129
       BEGIN
        IF pg_trigger_depth()<1 THEN RAISE EXCEPTION 'Cash synchronization requires a source trigger'; END IF;
        IF EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type=p_type AND source_row_id=p_id) THEN RETURN; END IF;
@@ -40,12 +50,21 @@
        WHEN 'Business Expense' THEN
         SELECT "Expense Date",abs("Amount"::numeric),CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Holder" END,
          CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Holder" END,"Created By",
-         CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END INTO d,amount,from_holder,to_holder,actor,from_account,to_account FROM public."Business Expenses" WHERE "Row ID"=p_id;
+         CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END,
+         "Rule Version",(SELECT o."Amount Received"::numeric FROM public."Payments" o WHERE o."Row ID"=x."Ref Offset Payment" AND o."Status"='Posted')
+         INTO d,amount,from_holder,to_holder,actor,from_account,to_account,rule,offset_amount FROM public."Business Expenses" x WHERE "Row ID"=p_id;
         IF coalesce(from_holder,to_holder) IS NULL THEN amount:=NULL; END IF;
+        -- R129: a REFERRAL_REBATE_V3 rebate moves cash only for its offset (the offset receipt nets it on Lisa's account); the
+        -- pending rest moves on its settlement. Without an offset there is no movement.
+        IF rule='REFERRAL_REBATE_V3' AND amount IS NOT NULL THEN amount:=CASE WHEN offset_amount>0 THEN offset_amount END; END IF;
         movement:='Business Expense'; source_key:='EXPENSE:'||p_id; expense_id:=p_id;
        WHEN 'Settlement' THEN
         SELECT "Transfer Date","Amount"::numeric,"Ref Paid From Cash Account" INTO d,amount,from_account FROM public."Settlements" WHERE "Row ID"=p_id AND "Status"='Completed';
         movement:='Partner Settlement'; source_key:='SETTLEMENT:'||p_id; settlement_id:=p_id; from_holder:='ch:lisa';
+       WHEN 'Rebate Settlement' THEN
+        -- R129: the settlement of pending referral rebates, out of Lisa's chosen account on the settlement date.
+        SELECT s.settlement_date,s.amount,s.created_by,s.paid_by_cash_account INTO d,amount,actor,from_account FROM public.pwa_rebate_settlements s WHERE s.id=p_id;
+        movement:='Rebate Settlement'; source_key:='REBATESETTLEMENT:'||p_id; rebate_settlement_id:=p_id; from_holder:='ch:lisa';
        ELSE RAISE EXCEPTION 'Unsupported cash source';
        END CASE;
        IF amount IS NULL THEN
@@ -55,8 +74,8 @@
        END IF;
        IF d IS NULL THEN RAISE EXCEPTION 'Qualifying cash source requires its effective movement date'; END IF;
        INSERT INTO public."Cash Ledger"("Row ID","Movement Date","Movement Type","Amount","Ref From Cash Holder","Ref To Cash Holder",
-        "Ref Payment","Ref Loan","Ref Business Expense","Ref Settlement","Entry Origin","Source Type","Source Key","Created By","Ref From Cash Account","Ref To Cash Account")
-       VALUES('cash:'||source_key,d,movement,amount,from_holder,to_holder,payment_id,loan_id,expense_id,settlement_id,'System',p_type,source_key,coalesce(nullif(actor,''),'SQL'),from_account,to_account)
+        "Ref Payment","Ref Loan","Ref Business Expense","Ref Settlement","Entry Origin","Source Type","Source Key","Created By","Ref From Cash Account","Ref To Cash Account","Ref Rebate Settlement")
+       VALUES('cash:'||source_key,d,movement,amount,from_holder,to_holder,payment_id,loan_id,expense_id,settlement_id,'System',p_type,source_key,coalesce(nullif(actor,''),'SQL'),from_account,to_account,rebate_settlement_id)
        ON CONFLICT ("Source Type","Source Key") WHERE "Entry Origin"='System' DO UPDATE SET
         "Movement Date"=EXCLUDED."Movement Date","Amount"=EXCLUDED."Amount",
         "Ref From Cash Holder"=EXCLUDED."Ref From Cash Holder","Ref To Cash Holder"=EXCLUDED."Ref To Cash Holder","Ref From Cash Account"=EXCLUDED."Ref From Cash Account","Ref To Cash Account"=EXCLUDED."Ref To Cash Account"
@@ -77,32 +96,3 @@
     "acl": "{mw_ledger_owner_prod=X/mw_ledger_owner_prod,mw_app_prod=X/mw_ledger_owner_prod,mw_reviewer_dml=X/mw_ledger_owner_prod}"
     "comment": null
     "extension": null
-"evidence":
-  "/content/definition/acl":
-    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
-      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); PROD readback of 16 October\
-      \ 2026 confirms the owner (mw_ledger_owner_prod) and SECURITY DEFINER; the EXECUTE ACL is the migration value (not read\
-      \ back)"
-    "state": "value"
-  "/content/definition/definition":
-    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
-      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); PROD readback of 16 October\
-      \ 2026 confirms the owner (mw_ledger_owner_prod) and SECURITY DEFINER; the EXECUTE ACL is the migration value (not read\
-      \ back)"
-    "state": "value"
-  "/content/definition/owner":
-    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
-      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); PROD readback of 16 October\
-      \ 2026 confirms the owner (mw_ledger_owner_prod) and SECURITY DEFINER; the EXECUTE ACL is the migration value (not read\
-      \ back)"
-    "state": "value"
-  "/content/definition/security_definer":
-    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-ACCESS-08: V93 makes the ledger projection a definer function owned by the ledger owner, search_path pinned,\
-      \ the four row locks removed (the AFTER ROW trigger already holds the source row lock); PROD readback of 16 October\
-      \ 2026 confirms the owner (mw_ledger_owner_prod) and SECURITY DEFINER; the EXECUTE ACL is the migration value (not read\
-      \ back)"
-    "state": "value"

@@ -1,0 +1,40 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.rebate_settlement_cash_source()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "rebate_settlement_cash_source"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.rebate_settlement_cash_source()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN PERFORM public.sync_cash_ledger('Rebate Settlement',NEW.id); RETURN NULL; END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres}"
+    "comment": "R129: projects a rebate settlement into \"Cash Ledger\" (sync_cash_ledger, the ledger owner's definer)."
+    "extension": null

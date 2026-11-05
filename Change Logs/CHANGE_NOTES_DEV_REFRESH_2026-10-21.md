@@ -41,4 +41,4 @@ None beyond the plan's defaults: no receipt objects copied (restored receipts do
 
 ## Remaining work
 - Owner: open the DEV PWA on each DEV device and re-enable notifications.
-- Lessons-learned review: done the same day ([review change note](CHANGE_NOTES_DEV_REFRESH_REVIEW_2026-10-21.md)); the eight lessons listed by this run are now in the [runbook](../project/Documents/Rules/Development_Refresh_Runbook.md) and the tool. Still open outside the refresh: the stale `configure-dev-read-role.py` allowlist.
+- Lessons-learned review: done the same day ([review change note](https://github.com/welct0407/MW-Credit-App/blob/0f2fc44/Change%20Logs/CHANGE_NOTES_DEV_REFRESH_REVIEW_2026-10-21.md)); the eight lessons listed by this run are now in the [runbook](../project/Documents/Rules/Development_Refresh_Runbook.md) and the tool. Still open outside the refresh: the stale `configure-dev-read-role.py` allowlist.
