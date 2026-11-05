@@ -70,3 +70,83 @@ test('route-local workload auth never bypasses human routes; committed result su
   assert.equal((await fetch(origin+'/api/operations',{headers:{Authorization:'Bearer test'}})).status,401);
  }finally{await new Promise(r=>server.close(r));}
 });
+// R128: the Instagram-approved Loan Close (reviewed mode only): the quote, the close and its status on the agent route.
+import {agentCloseIdentity,canonicalAgentClose,loanCloseRequestId,loanCloseNotes} from '../../services/agent-receipts/contract.mjs';
+import {canonicalOperation} from '../../services/contracts/operation-command.mjs';
+const closeReview='f'.repeat(64),closeId=loanCloseRequestId('dev',closeReview);
+const closeCommand={requestId:closeId,targetId:'L-1',expectedVersion:'b'.repeat(64),reviewId:closeReview,environment:'dev',
+ inputs:{paymentDate:'2026-11-05',cashAccountId:'account',paymentMethod:'Bank Transfer',notes:loanCloseNotes(closeReview),expectedAmount:'1100',expectedPlanHash:'a'.repeat(64),bankReference:'SLIPREF123',transferTime:'13:16'}};
+const closeActor={issuer:'https://accounts.google.com',subject:'123456789',partnerId:'reviewer',loginEmail:'reviewer@example.invalid'};
+test('R128 close request id: its own namespace, the agent derivation (same value as receipt_api.close_request_id)',()=>{
+ assert.equal(loanCloseRequestId('dev','synthetic-review-1'),'8b6f217a-418f-4139-875e-71a5adfde4ff');
+ assert.notEqual(loanCloseRequestId('dev',closeReview),receiptRequestId('dev',closeReview));assert.notEqual(loanCloseRequestId('prod',closeReview),closeId);
+ assert.equal(loanCloseNotes(closeReview),'Approved Instagram receipt review igr:'+'f'.repeat(48));
+});
+test('R128 the agent close is the PWA contract-2 loan.close with the slip facts; fixed method and note; a request id of this review',()=>{
+ const {operation}=canonicalAgentClose(closeCommand);
+ assert.deepEqual(Object.keys(operation.inputs),['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash','bankReference','transferTime']);
+ const withRebate=canonicalAgentClose({...closeCommand,inputs:{...closeCommand.inputs,rebatePath:'offset'}}).operation;
+ assert.deepEqual(Object.keys(withRebate.inputs).slice(-3),['rebatePath','bankReference','transferTime'],'the canonical order puts the slip facts after rebatePath');
+ const json=JSON.parse(agentCloseIdentity(closeCommand,closeActor).canonicalJson);
+ assert.deepEqual(Object.keys(json),['contractVersion','requestId','actor','command','receipt']);assert.equal(json.contractVersion,2);assert.equal(json.receipt,null);
+ assert.equal(json.command.operation,'loan.close');assert.equal(json.command.targetType,'loan');assert.deepEqual(json.actor,closeActor);
+ assert.equal(agentCloseIdentity(closeCommand,closeActor).canonicalJson,agentCloseIdentity({...closeCommand,inputs:Object.fromEntries(Object.entries(closeCommand.inputs).reverse())},closeActor).canonicalJson);
+ for(const patch of [{requestId:receiptRequestId('dev',closeReview)},{requestId:loanCloseRequestId('dev','other')},{environment:'prod'},{targetId:''},{expectedVersion:'x'},{extra:1},
+  {inputs:{...closeCommand.inputs,paymentMethod:'Cash'}},{inputs:{...closeCommand.inputs,notes:'other'}},{inputs:{...closeCommand.inputs,expectedAmount:'1100.50'}},
+  {inputs:{...closeCommand.inputs,transferTime:'24:00'}},{inputs:{...closeCommand.inputs,bankReference:'a\nb'}},{inputs:{...closeCommand.inputs,bankReference:' '}},
+  {inputs:{...closeCommand.inputs,rebatePath:'x'}},{inputs:(({bankReference:_,...rest})=>rest)(closeCommand.inputs)}])
+  assert.throws(()=>canonicalAgentClose({...closeCommand,...patch}),JSON.stringify(patch));
+ assert.throws(()=>agentCloseIdentity(closeCommand,{...closeActor,issuer:'https://securetoken.google.com/x'}));
+});
+test('R128 (V136) the PWA loan.close takes optional bankReference and transferTime after rebatePath, bank transfers only',()=>{
+ const base={requestId:'11111111-1111-4111-8111-111111111111',operation:'loan.close',targetId:'L-1',expectedVersion:'b'.repeat(64),predecessorRequestId:null,receiptId:null,
+  inputs:{paymentDate:'2026-11-05',cashAccountId:'account',paymentMethod:'Bank Transfer',notes:null,expectedAmount:'1100',expectedPlanHash:'a'.repeat(64)}};
+ assert.deepEqual(Object.keys(canonicalOperation(base).inputs),['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash'],'an older command is unchanged');
+ assert.deepEqual(Object.keys(canonicalOperation({...base,inputs:{transferTime:'09:05',bankReference:'ABC123',rebatePath:'expense',...base.inputs}}).inputs).slice(-3),['rebatePath','bankReference','transferTime']);
+ assert.deepEqual(Object.keys(canonicalOperation({...base,inputs:{...base.inputs,transferTime:'09:05'}}).inputs).slice(-1),['transferTime'],'each key is optional');
+ for(const inputs of [{bankReference:''},{bankReference:'x'.repeat(257)},{bankReference:'a\rb'},{transferTime:'9:05'},{transferTime:null},{bankReference:'ABC123',paymentMethod:'Cash'},{transferTime:'09:05',paymentMethod:'Cash'}])
+  assert.throws(()=>canonicalOperation({...base,inputs:{...base.inputs,...inputs}}),JSON.stringify(inputs));
+});
+test('R128 close routes: quote, close and status under the route-local workload auth; policy off is 404; mapping of conflict, rejection and actor denial',async()=>{
+ const policy={environment:'dev',audience:'https://command.invalid',callerEmail:'agent@example.invalid',callerSubject:closeActor.subject,automaticPartnerId:'auto',reviewerPartnerIds:['reviewer']};
+ const calls=[];let partner={id:'reviewer',email:closeActor.loginEmail,reviewer:true,enabled:true,matches:'1'},submitted=null,outcome={status:'applied',code:null,result:{operation:'loan.close',targetId:'L-1',paymentId:'pwa:'+closeId}},kind='recorded',wakes=0,quoteError=null;
+ const calc={sourceVersion:'b'.repeat(64),businessDate:'2026-11-05',amount:'1100',planHash:'a'.repeat(64),borrowerId:'B-1',targetChargeId:'c1',
+  allocations:[{chargeId:'c1',principal:'1000',interest:'100',lateCharge:'0',expectedPrincipalRemaining:'1000',expectedInterestRemaining:'100',chargeDate:'2026-11-05'}]};
+ const pool={connect:async()=>({query:async(sql,params)=>{calls.push(sql);
+  if(sql.includes('FROM public."Partners"'))return{rows:[partner]};
+  if(sql.includes('FROM public."Loans" WHERE "Row ID"=$1'))return{rows:params[0]==='L-1'?[{borrowerId:'B-1'}]:[],rowCount:params[0]==='L-1'?1:0};
+  if(sql.includes('loan_close_calculation_v83')){if(quoteError)throw quoteError;return{rows:[{value:calc}]};}
+  if(sql.includes('to_regprocedure'))return{rows:[{present:false}]};
+  if(sql.includes('pwa_submit_operation_v2')){submitted=params[0];return{rows:[{value:kind==='conflict'?{kind}:{kind,originalOutcome:outcome}}]};}
+  if(sql.includes('pwa_operation_status_v2'))return{rows:[{value:{kind:'recorded',originalOutcome:outcome,args:params}}]};
+  return{rows:[]};},release(){calls.push('release');}})};
+ let current=policy;
+ const handler=(req,res)=>createAgentReceiptHandler({next:(_req,r)=>{r.writeHead(401);r.end('human gate');},policy:current,pool,guardConnection:async()=>{},afterCommit:async()=>{wakes++;},
+  verifyOidc:async()=>({aud:policy.audience,iss:'https://accounts.google.com',email:policy.callerEmail,sub:closeActor.subject,email_verified:true,exp:Date.now()/1000+60,iat:Date.now()/1000})})(req,res);
+ const server=createServer(handler);await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
+ const get=path=>fetch(origin+path,{headers:{Authorization:'Bearer test'}});
+ const post=(body={actorPartnerId:'reviewer',command:closeCommand})=>fetch(origin+'/internal/agent/loan-closes',{method:'POST',headers:{Authorization:'Bearer test','Content-Type':'application/json'},body:JSON.stringify(body)});
+ try{
+  let response=await get('/internal/agent/loan-closes/quote/L-1');assert.equal(response.status,200);
+  assert.deepEqual(await response.json(),{loanId:'L-1',borrowerId:'B-1',sourceVersion:calc.sourceVersion,businessDate:'2026-11-05',amount:'1100',planHash:calc.planHash,principalAmount:'1000.00',interestAmount:'100.00',lateChargeAmount:'0.00',rebate:null});
+  assert.ok(calls.includes('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY'));
+  assert.equal((await get('/internal/agent/loan-closes/quote/L-2')).status,404);
+  quoteError=Object.assign(Error('Loan has no outstanding principal to close'),{code:'P0001'});response=await get('/internal/agent/loan-closes/quote/L-1');
+  assert.equal(response.status,422);assert.deepEqual(await response.json(),{error:'record_requires_reconciliation'});quoteError=null;
+  assert.equal((await get('/internal/agent/loan-closes/quote/%E0%A4%A')).status,404,'a malformed loan id is no route');
+  response=await post();assert.equal(response.status,200);assert.equal((await response.json()).originalOutcome.result.paymentId,'pwa:'+closeId);assert.equal(wakes,1);
+  assert.equal(submitted,agentCloseIdentity(closeCommand,closeActor).canonicalJson,'the canonical text is the PWA operation under the agent actor');
+  response=await get('/internal/agent/loan-closes/'+closeId);assert.equal(response.status,200);assert.deepEqual((await response.json()).args,[closeId,'https://accounts.google.com',closeActor.subject]);
+  kind='conflict';assert.equal((await post()).status,409);kind='recorded';
+  outcome={status:'rejected',code:'plan_changed',result:null};assert.equal((await post()).status,422);assert.equal(wakes,1,'no wake without an applied close');
+  partner={...partner,reviewer:false};const before=submitted;assert.equal((await post()).status,403);assert.equal(submitted,before);partner={...partner,reviewer:true,enabled:false};assert.equal((await post()).status,403);
+  partner={...partner,enabled:true};
+  for(const body of [{actorPartnerId:'auto',command:closeCommand},{actorPartnerId:'reviewer',command:{...closeCommand,environment:'prod',requestId:loanCloseRequestId('prod',closeReview)}},{actorPartnerId:'reviewer',command:{...closeCommand,requestId:receiptRequestId('dev',closeReview)}},{actorPartnerId:'reviewer'}]){
+   response=await post(body);assert.equal(response.status,400);assert.deepEqual(await response.json(),{error:'invalid_close_command'});}
+  for(const [path,method] of [['/internal/agent/loan-closes/quote/L-1','POST'],['/internal/agent/loan-closes','GET'],['/internal/agent/loan-closes/'+closeId,'POST'],['/internal/agent/loan-closes/not-a-uuid','GET']])
+   assert.equal((await fetch(origin+path,{method,headers:{Authorization:'Bearer test'},...(method==='POST'?{body:'{}'}:{})})).status,404,path+' '+method);
+  current=null;const count=calls.length;
+  for(const path of ['/internal/agent/loan-closes/quote/L-1','/internal/agent/loan-closes/'+closeId])assert.equal((await get(path)).status,404);
+  assert.equal((await post()).status,404);assert.equal(calls.length,count,'policy off: no SQL');
+ }finally{await new Promise(r=>server.close(r));}
+});

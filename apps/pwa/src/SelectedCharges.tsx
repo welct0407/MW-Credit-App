@@ -12,6 +12,7 @@ import {PaymentResult} from './PaymentResult';
 import {confirmOwnPayment,verifiedOwnReceipt,type OwnReceipt} from './own-write-apply';
 import {useOnline} from './online-status';
 import {RECOGNITION_DEADLINE_MS} from './recognition-timing';
+import {endSentence} from './close-recognition';
 import type {OwnerOfflineRepository} from './owner-offline';
 import {useEffect,useRef,useState} from 'react';
 import {shortDate,dateRange,whole,forwardRuns,runAmount,type ForwardRow} from './pay-forward-text';
@@ -573,7 +574,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  {recognition?.phase==='failed'&&<p className="field-help" role="status">{t('Slip not read — enter details manually.','อ่านสลิปไม่ได้ — กรุณากรอกรายละเอียดเอง')}</p>}
  {recognition?.phase==='unconfirmed'&&<p className="field-help" role="status">{t('The slip does not show a completed transfer — enter details manually.','สลิปไม่แสดงการโอนที่สำเร็จ — กรุณากรอกรายละเอียดเอง')}</p>}
  {recognized&&<p className="field-help recognition-note" role="status">{recognized.filled?.length?<>{t('From slip','จากสลิป')}{recognized.provider?` (${recognized.provider})`:''}: {recognized.filled.map(field=>({amount:t('amount','ยอด'),account:t('account','บัญชี'),reference:t('reference','เลขอ้างอิง'),date:t('date','วันที่')})[field]).join(', ')}. {t('Check before review.','ตรวจสอบก่อนกดตรวจสอบรายการ')}</>:t('Slip read; no empty fields to fill. Check before review.','อ่านสลิปแล้ว ไม่มีช่องว่างให้กรอก ตรวจสอบก่อนกดตรวจสอบรายการ')}{recognized.autoSkipped?' '+t('Auto-assign skipped: allocations already entered.','ไม่ได้จัดสรรอัตโนมัติ เพราะมีการจัดสรรอยู่แล้ว'):''}{recognized.autoOutcome==='empty'?' '+t('Auto-assign found no charges due by today — allocate below.','ไม่มีรายการครบกำหนดภายในวันนี้ให้จัดสรรอัตโนมัติ — กรุณาจัดสรรด้านล่าง'):recognized.autoOutcome==='failed'?' '+t('Auto-assign did not run — use Auto-assign or allocate below.','จัดสรรอัตโนมัติไม่สำเร็จ — กด จัดสรรอัตโนมัติ หรือจัดสรรด้านล่าง'):''}</p>}
- {typeof recognized?.dateNotUsed==='string'&&<p className="field-help" role="status">{recognized.dateNotUsed?`${t('Slip date not used: ','ไม่ได้ใช้วันที่ตามสลิป: ')}${displayValue(recognized.dateNotUsed)}.`:t('Slip date not used.','ไม่ได้ใช้วันที่ตามสลิป')}</p>}
+ {typeof recognized?.dateNotUsed==='string'&&<p className="field-help" role="status">{recognized.dateNotUsed?endSentence(`${t('Slip date not used: ','ไม่ได้ใช้วันที่ตามสลิป: ')}${displayValue(recognized.dateNotUsed)}`):t('Slip date not used.','ไม่ได้ใช้วันที่ตามสลิป')}</p>}
  <ReceiptPicker thai={thai} attached={!!(receipt||localImage||uploadFailed||uploading)} preview={preview} busy={uploading} onPreparing={setPreparingReceipt} onPick={file=>void upload(file)} onRemove={()=>{uploadGeneration.current++;setReceipt(null);setLocalImage(null);setPreview(null);setUploadFailed(false);setUploading(false);setError('');setRecognition(null);setSlipDate(null);setTransferTime('')}}/>
  {localImage&&!receipt&&!access.offlineOnly&&<button type="button" className="secondary-button" disabled={uploading} onClick={()=>void upload(new File([localImage],'receipt',{type:localImage.type}))}>{t('Upload saved receipt','อัปโหลดหลักฐานที่บันทึกไว้')}</button>}
 

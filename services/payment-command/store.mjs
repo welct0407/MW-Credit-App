@@ -95,6 +95,23 @@ async function readCloseRebate(client,loanId,calculation,businessDate){
   return {amount:projection.amount,referrer:{id:projection.referrerId,displayName:borrowerDisplayName(projection.referrerName,projection.referrerDescription)},hasOpenLoan:offerable,
    previousPath:['offset','expense'].includes(previousPath)?previousPath:null,offset,businessDate,...basis};
 }
+/** Loan Close calculation refusals (loan_close_calculation_v83, P0001) that mean the loan cannot close as it stands. */
+const CLOSE_UNAVAILABLE=['Loan Close requires an open auto-enabled daily-interest loan','Loan Close requires valid loan date, principal and daily interest','Loan charge components require reconciliation before closing','Loan has no outstanding principal to close','Principal already due exceeds outstanding loan principal','Multiple charges today require reconciliation before closing','Final receipt must be a positive whole-baht amount'];
+/**
+ * R128: the Loan Close quote an Instagram-approved close is planned and posted against (the agent's quote route): the close
+ * preview's figures for today (Bangkok) without the accounts and plan, the R118 parts and the referral rebate. Read only.
+ */
+export async function readLoanCloseQuote(client,id){
+  const loan=(await client.query('SELECT "Ref Borrowers" AS "borrowerId" FROM public."Loans" WHERE "Row ID"=$1',[id])).rows[0];
+  if(!loan)return failure(404,'not_found');
+  let calculation;try{calculation=(await client.query("SELECT public.loan_close_calculation_v83($1,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date) value",[id])).rows[0].value;}catch(error){
+    if(error.code==='P0001'&&CLOSE_UNAVAILABLE.includes(error.message))return failure(422,'record_requires_reconciliation');throw error;
+  }
+  const {sourceVersion,businessDate,amount,planHash}=calculation,rebate=await readCloseRebate(client,id,calculation,businessDate);
+  return {ok:true,value:{loanId:id,borrowerId:loan.borrowerId,sourceVersion,businessDate,amount,planHash,...closeSummary(calculation),
+    rebate:rebate&&{amount:rebate.amount,hasOpenLoan:rebate.hasOpenLoan,previousPath:rebate.previousPath,referrer:rebate.referrer,
+      offset:rebate.offset&&{covered:rebate.offset.covered,payable:rebate.offset.payable}}}};
+}
 /** R110: the purpose a v10 command carries, as the command derives it: its principal entries, and forward for the loans of
  * the lines dated after the business date (a materialize entry names its loan; a recorded charge's loan is read). */
 async function commandPurpose(client,businessDate,allocations,materialize,principal){
@@ -241,7 +258,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       return run(principal,async client=>{
         if(!(await client.query('SELECT 1 FROM public."Loans" WHERE "Row ID"=$1',[id])).rowCount)return failure(404,'not_found');
         let calculation;try{calculation=(await client.query("SELECT public.loan_close_calculation_v83($1,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date) value",[id])).rows[0].value;}catch(error){
-          if(error.code==='P0001'&&['Loan Close requires an open auto-enabled daily-interest loan','Loan Close requires valid loan date, principal and daily interest','Loan charge components require reconciliation before closing','Loan has no outstanding principal to close','Principal already due exceeds outstanding loan principal','Multiple charges today require reconciliation before closing','Final receipt must be a positive whole-baht amount'].includes(error.message))return failure(422,'record_requires_reconciliation');throw error;
+          if(error.code==='P0001'&&CLOSE_UNAVAILABLE.includes(error.message))return failure(422,'record_requires_reconciliation');throw error;
         }
         const accounts=(await client.query(`SELECT a."Row ID" id,a."Account Label" label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
         const {sourceVersion,businessDate,amount,planHash}=calculation;
