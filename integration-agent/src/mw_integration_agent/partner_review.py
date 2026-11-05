@@ -7,29 +7,30 @@ from .config import ConfigurationError
 from .receipt_rules import username
 
 APPROVE={'yes','approve','approved','อนุมัติ'}
-# R112: the options reply. 1 pay forward; 2 (or "2 <n>" with several loans) repay principal; "3 <amount>" split.
+# R112, R127 (owner decision 5 November 2026: three options): the options reply. 1 pay forward; 2 (or "2 <n>" with
+# several loans) repay principal; 3 recheck (below). The R112 split ("3 <amount>") is withdrawn: it now asks again.
 # Reject words drop the slip; anything else asks again (OPTIONS_REQUIRED) and decides nothing (D7: no default).
 REJECT={'reject','rejected','ปฏิเสธ'}
-# Owner request, 3 November 2026: "4" rechecks the slip. The Reviewer edits the charges in the app first (for example a
-# late fee), then replies 4; this review is superseded and the receipt is planned again from the current charges. Within
-# what is due it is then an ordinary payment (posted under the automatic-payment policy); otherwise a new options request.
-RECHECK={'4','recheck','ตรวจใหม่'}
+# Owner request, 3 November 2026 (option 3 since R127): recheck the slip. The Reviewer edits the charges in the app first
+# (for example a late fee), then replies 3; this review is superseded and the receipt is planned again from the current
+# charges. Within what is due it is then an ordinary payment (posted under the automatic-payment policy); otherwise a new
+# options request. '4' is the pre-R127 number, kept for requests sent before the deploy; remove it in a later release.
+RECHECK={'3','4','recheck','ตรวจใหม่'}
 RECHECKED='RECHECK_QUEUED'
-# 3 November 2026: editing the charges can make the open review STALE before the 4 arrives (a pending notice for it is
-# checked against the current charges before it is sent, for example after a "Review" resend). A 4 on a review that is
-# stale only because the charges changed still rechecks; other stale reasons (day passed, account changed) do not.
+# 3 November 2026: editing the charges can make the open review STALE before the recheck arrives (a pending notice for it
+# is checked against the current charges before it is sent, for example after a "Review" resend). A recheck on a review
+# that is stale only because the charges changed still rechecks; other stale reasons (day passed, account changed) do not.
 RECHECK_STALE=('PROPOSAL_FACTS_CHANGED','PAY_FORWARD_PLAN_CHANGED')
 OPTIONS_REQUIRED='OPTIONS_REQUIRED'
-CHOICE=re.compile(r'(1)|(2)(?:\s+([1-9]))?|(3)\s+([1-9][0-9]{0,16})')
+CHOICE=re.compile(r'(1)|(2)(?:\s+([1-9]))?')
 
 
 def options_choice(text):
-    """The numbered reply as {'kind', 'loan', 'amount'}, or None when it is not one of the three forms."""
+    """The numbered reply as {'kind', 'loan'}, or None when it is not 1, 2 or "2 <n>" (the recheck is matched first)."""
     match=CHOICE.fullmatch((text or '').strip())
     if not match:return None
     if match.group(1):return {'kind':'forward'}
-    if match.group(2):return {'kind':'principal','loan':int(match.group(3)) if match.group(3) else None}
-    return {'kind':'split','loan':None,'amount':match.group(5)}
+    return {'kind':'principal','loan':int(match.group(3)) if match.group(3) else None}
 
 
 def authorize_reply(event,notice,partners,identity,reviewer_ids):
@@ -177,30 +178,60 @@ def due_parts(options,thai):
     return ' ('+' + '.join(f'{w} {baht(v)}' for w,v in parts if Decimal(str(v or 0))>0)+')'
 
 
+def principal_split(options,entry,thai):
+    """R127 (Echo AG-8, AG-9): 'interest ฿90 + principal ฿410' for a principal choice; the interest part is the
+    remainder less the principal (the loan's accrued interest is paid first) and is left out when it is 0."""
+    from decimal import Decimal
+    interest=Decimal(str(options['remainder']))-Decimal(str(entry['amount']))
+    words=('ดอกเบี้ย','เงินต้น') if thai else ('interest','principal')
+    return (f'{words[0]} {baht(interest)} + ' if interest>0 else '')+f"{words[1]} {baht(entry['amount'])}"
+
+
+def offered_numbers(options):
+    """R127 (Echo AG-6): the replies the request offers, in order: '1', '2' or '2 1', '2 2', ..., and '3'."""
+    from .review_proposal import forward_offered
+    principal=options.get('principal') or []
+    numbers=['1'] if forward_offered(options) else []
+    numbers+=['2 '+str(n) for n in range(1,len(principal)+1)] if len(principal)>1 else (['2'] if principal else [])
+    return numbers+['3']
+
+
 def options_lines(proposal,thai):
-    """Echo AG-1/AG-4: the remainder and the numbered choices; a refused choice is left out with its reason."""
+    """Echo AG-1/AG-4, R127 AG-7/AG-8/AG-10: the remainder and the numbered choices; a refused choice is left out with
+    its reason and the others keep their numbers. With several loans each "2 <n>" choice is on its own line."""
     o=proposal['options'];receipt=proposal['receipt'];borrower=proposal['borrower']
+    from decimal import Decimal
     from .review_proposal import forward_offered
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
-    keys=', '.join(proposal.get('loan_keys') or [p['loanKey'] for p in o['principal'] if p.get('loanKey')])
-    f=o.get('forward');choices=[]
+    keys=proposal.get('loan_keys') or [p['loanKey'] for p in o['principal'] if p.get('loanKey')]
+    several=len(o['principal'])>1
+    if several:
+        # R127: each "2 <n>" line names its loan, so the head names only the other loans (keeps five loans within 1000).
+        keys=[k for k in keys if k not in {p.get('loanKey') for p in o['principal']}]
+    keys=', '.join(keys)
+    f=o.get('forward');choices=[]   # (text, on its own line)
     if forward_offered(o):
         span=date_range(f['first'],f.get('last') or f['first'],thai)+(((' ชำระถึง ' if thai else ', paid through ')+short_date(f['through'],thai)) if f.get('through') else '')
-        choices.append(('1 ชำระล่วงหน้า (' if thai else '1 pay forward (')+span+')')
-    several=len(o['principal'])>1
+        choices.append((('1 ชำระล่วงหน้า (' if thai else '1 pay forward (')+span+')',False))
     for n,p in enumerate(o['principal'],1):
-        label=('2 '+str(n)+' ' if several else '2 ')+('ชำระเงินต้น' if thai else 'repay principal')
-        detail=((p.get('loanKey')+' ') if several and p.get('loanKey') else '')+('ดอกเบี้ยใหม่ ' if thai else 'new interest ')+baht(p['dailyAfter'])+('/วัน' if thai else '/day')
-        choices.append(label+' ('+detail+')')
-    if forward_offered(o) and len(o['principal'])==1:choices.append('3 + จำนวน เพื่อแบ่งชำระ' if thai else '3 + amount to split')
-    choices.append('4 ตรวจใหม่หลังแก้ยอดในแอป' if thai else '4 recheck after editing charges in the app')
-    due=due_parts(o,thai)
+        daily=' ('+('ดอกเบี้ยใหม่ ' if thai else 'new interest ')+baht(p['dailyAfter'])+('/วัน' if thai else '/day')+')'
+        label='2 '+str(n)+' '+((p.get('loanKey') or p['loanId'])+': ') if several else '2 '
+        choices.append((label+principal_split(o,p,thai)+daily,several))
+    choices.append(('3 ตรวจใหม่หลังแก้ยอดในแอป' if thai else '3 recheck after editing charges in the app',False))
+    due=due_parts(o,thai);paid_first=Decimal(str(o['dueTotal'] or 0))>0
     if thai:
-        head=f"สลิป {baht(receipt['amount'])} จาก {name}"+(f", {keys}" if keys else '')+f" ครบกำหนดวันนี้ {baht(o['dueTotal'])}{due} ยอดคงเหลือ {baht(o['remainder'])} ตอบ: "
+        # R127 (Echo AG-7): the due part is paid first; the choices are for the remainder.
+        stated=f"หักยอดครบกำหนดวันนี้ {baht(o['dueTotal'])}{due} ก่อน" if paid_first else f"ครบกำหนดวันนี้ {baht(o['dueTotal'])}{due}"
+        head=f"สลิป {baht(receipt['amount'])} จาก {name}"+(f", {keys}" if keys else '')+f" {stated} ยอดคงเหลือ {baht(o['remainder'])} ตอบ: "
         tail=' · ปฏิเสธ เพื่อยกเลิก'
     else:
-        head=f"Slip {baht(receipt['amount'])} from {name}"+(f", {keys}" if keys else '')+f". Due today {baht(o['dueTotal'])}{due}. Remainder {baht(o['remainder'])}, reply: "
+        head=f"Slip {baht(receipt['amount'])} from {name}"+(f", {keys}" if keys else '')+f". Due today {baht(o['dueTotal'])}{due}"+(' is paid first' if paid_first else '')+f". Remainder {baht(o['remainder'])}, reply: "
         tail='. Reject to drop.'
+    listed=''
+    for i,(text,own) in enumerate(choices):
+        if i:listed+='\n' if own or choices[i-1][1] else ' · '
+        elif own:head=head.rstrip()+'\n'
+        listed+=text
     notes=[]
     settled=[b.get('loanKey') or b['loanId'] for b in o.get('blocked') or [] if b.get('reason')=='settles']
     if settled:
@@ -209,7 +240,7 @@ def options_lines(proposal,thai):
         notes.append(f'ยอดคงเหลือปิด {keys} ได้: กรุณาบันทึกในแอป' if thai else f'Remainder settles {keys}: record in the app.')
     if f and f.get('uncovered') not in (None,'0'):
         notes.append(f"ยอด {baht(f['uncovered'])} เกินช่วง 93 วันข้างหน้า ไม่สามารถจัดสรรได้" if thai else f"{baht(f['uncovered'])} is beyond the next 93 days and cannot be allocated.")
-    return head+' · '.join(choices)+tail+''.join('\n'+n for n in notes)
+    return head+listed+tail+''.join('\n'+n for n in notes)
 
 
 def request_text(proposal,language,unclear=False):
@@ -218,9 +249,12 @@ def request_text(proposal,language,unclear=False):
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
     if proposal.get('action')=='Pay forward options':
         # R112 (Echo AG-1, AG-2): reply with a number; an unclear reply gets the prompt, then the options again.
+        # R127 (Echo AG-6): the prompt names the replies this request offers.
         receipt=proposal['receipt']
         subject='สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'
-        body=(('ตอบ 1, 2, 3 ตามด้วยจำนวน หรือ 4\n' if thai else 'Reply 1, 2, 3 and an amount, or 4.\n') if unclear else '')+options_lines(proposal,thai)
+        numbers=offered_numbers(proposal['options'])
+        listed=', '.join(numbers[:-1])+(' หรือ ' if thai else ' or ')+numbers[-1] if len(numbers)>1 else numbers[0]
+        body=((f'ตอบ {listed}\n' if thai else f'Reply {listed}.\n') if unclear else '')+options_lines(proposal,thai)
         body+=(f"\nเวลาโอน: {receipt['date']} {receipt['time'][:5]} · บัญชีรับ: {receipt['account_label']}\nใช้ Reply ตอบข้อความนี้ ยังไม่ได้บันทึกรายการ" if thai else
                f"\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok) · Account: {receipt['account_label']}\nUse Reply on THIS message. Nothing has been posted.")
         if len(body)>1000:raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
