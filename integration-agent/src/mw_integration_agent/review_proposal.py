@@ -4,7 +4,12 @@ R112 (Pay Forward Release 3): with `pay_forward_options_enabled` (default off, f
 what is due, or with nothing due, that is not a loan payoff becomes 'Pay forward options': the numbers come from the
 server's own plan function (pwa_pay_forward_plan_v1, read only) and the proposal keeps planSha256, the hash of the plans
 it shows, so a changed plan is detected before anything posts. With the switch off the proposal is today's
-'Overpayment review' hold."""
+'Overpayment review' hold.
+
+R128 (owner, 5 November 2026: close the loan through IG): with `loan_close_execution_enabled` (default off, fail closed) a
+slip that is a loan payoff asks the Reviewer to approve the Loan Close. The proposal keeps the server's quote
+(proposal['close']: planHash, sourceVersion, amount, parts, rebate path) and only when the quote equals the slip amount and
+is for the slip's date (today); otherwise, or with the switch off, it is today's manual Loan Close proposal."""
 import hashlib
 import json
 from datetime import date,datetime
@@ -87,6 +92,11 @@ def same_posting_outcome(saved, fresh, automatic):
     def full(proposal):
         return proposal.get('action')=='Lump Sum' or (not automatic and review_posts_overpayment(proposal))
     try:
+        if review_posts_close(saved) or review_posts_close(fresh):
+            # R128: an approved close keeps its approval only for the same slip, borrower and loan and the same server plan.
+            return (not automatic and review_posts_close(saved) and review_posts_close(fresh) and saved['receipt']==fresh['receipt']
+                    and saved['borrower']['id']==fresh['borrower']['id'] and saved.get('loan_id')==fresh.get('loan_id')
+                    and saved['close']['planHash']==fresh['close']['planHash'])
         if saved.get('action')==OPTIONS or fresh.get('action')==OPTIONS:
             # R112: the options keep their approval only while the server's plans are unchanged.
             return (not automatic and saved['receipt']==fresh['receipt'] and saved['borrower']['id']==fresh['borrower']['id']
@@ -99,6 +109,7 @@ def same_posting_outcome(saved, fresh, automatic):
 
 
 OPTIONS='Pay forward options'
+LOAN_CLOSE_CHANGED='LOAN_CLOSE_QUOTE_CHANGED'
 # One read-only call of the server's plan; every value goes in as a psql variable.
 PLAN_SQL="SELECT public.pwa_pay_forward_plan_v1(:'borrower',:'amount'::numeric,:'day'::date,:'purpose'::jsonb);"
 MAX_PRINCIPAL_OPTIONS=5
@@ -200,7 +211,41 @@ def chosen_plan(config,proposal,purpose):
     return read
 
 
-def plan(receipt,borrower,current,today=None,config=None):
+def close_enabled(config):
+    return isinstance(config,dict) and config.get('loan_close_execution_enabled') is True
+
+
+def close_rebate_path(rebate):
+    """The PWA's default rebate path (LoanClose.tsx): offset when the referrer has an open loan the rebate can pay
+    (covered > 0), the loan's previous close path first; else expense. None when the close creates no rebate."""
+    if not isinstance(rebate,dict) or not rebate.get('amount'):return None
+    offset=rebate.get('offset') if isinstance(rebate.get('offset'),dict) else {}
+    if rebate.get('hasOpenLoan') is True and Decimal(str(offset.get('covered') or 0))>0:
+        return rebate.get('previousPath') if rebate.get('previousPath') in ('offset','expense') else 'offset'
+    return 'expense'
+
+
+def close_terms(config,receipt,loan_id):
+    """R128: (proposal['close'], quote) from the server's quote of today; the first is None when the quote is not the slip's
+    amount on the slip's date. Raises what the quote raises (receipt_api.QuoteRefused when the server refuses one)."""
+    from . import receipt_api
+    quote=receipt_api.close_quote(config,loan_id)
+    if Decimal(quote['amount'])!=Decimal(receipt['amount']) or quote['businessDate']!=receipt['date']:return None,quote
+    rebate=quote.get('rebate') if isinstance(quote.get('rebate'),dict) else None
+    path=close_rebate_path(rebate)
+    offset=rebate.get('offset') if rebate and isinstance(rebate.get('offset'),dict) else {}
+    referrer=(rebate or {}).get('referrer')
+    return {'planHash':quote['planHash'],'sourceVersion':quote['sourceVersion'],'amount':quote['amount'],'businessDate':quote['businessDate'],
+            'principal':quote.get('principalAmount'),'interest':quote.get('interestAmount'),'late':quote.get('lateChargeAmount'),
+            'rebatePath':path,'rebateAmount':str(rebate['amount']) if path else None,
+            'rebateCovered':str(offset.get('covered')) if path=='offset' and offset.get('covered') is not None else None,
+            'referrer':referrer.get('displayName') if isinstance(referrer,dict) else None},quote
+
+
+def plan(receipt,borrower,current,today=None,config=None,strict=False):
+    """strict (R128, execution and the pending-request check of a close): the quote's faults propagate and a quote that no
+    longer equals the slip is ReceiptInvalid('LOAN_CLOSE_QUOTE_CHANGED[:<quote amount>]'); otherwise a close without a
+    usable quote stays the manual Loan Close proposal."""
     today=today or datetime.now(BANGKOK).date().isoformat()
     amount=Decimal(receipt['amount'])
     if amount!=amount.to_integral_value():raise ReceiptInvalid('WHOLE_BAHT_REQUIRED')
@@ -234,6 +279,22 @@ def plan(receipt,borrower,current,today=None,config=None):
     relevant={c['loan'] for c in dated}
     loan_keys=[l['loan_key'] for l in current['loans'] if l.get('loan_key') and (l['id']==loan_id if loan_id else l['id'] in relevant)]
     proposal={'receipt':receipt,'borrower':borrower,'action':action,'loan_id':loan_id,'loan_keys':loan_keys,'facts':current,'planned_on':today}
+    # R128: with the switch on, a payoff of today asks to approve the close itself, against the server's quote.
+    # The close carries the slip's reference and transfer time (the receipt evidence link checks both); without them it is manual.
+    if action=='Loan Close' and close_enabled(config) and receipt['date']==today and str(receipt.get('reference') or '').strip() and receipt.get('time'):
+        from . import receipt_api
+        try:terms,quote=close_terms(config,receipt,loan_id)
+        except receipt_api.QuoteRefused:
+            if strict:raise ReceiptInvalid(LOAN_CLOSE_CHANGED) from None
+            terms=quote=None
+        except Exception:
+            if strict:raise
+            terms=quote=None
+        if terms:proposal['close']=terms
+        elif strict:
+            # Echo AG-20: the result names the current closing amount when it differs from the slip.
+            amount=quote['amount']
+            raise ReceiptInvalid(LOAN_CLOSE_CHANGED+(':'+amount if Decimal(amount)!=Decimal(receipt['amount']) else ''))
     # R112: with the switch on, a slip of today above what is due asks which use of the remainder to post.
     if action=='Overpayment review' and options_enabled(config) and receipt['date']==today:
         choices=pay_forward_options(config,receipt,borrower['id'],current,today)
@@ -247,3 +308,9 @@ def plan(receipt,borrower,current,today=None,config=None):
 def review_posts_overpayment(proposal):
     # Earlier requests explicitly promised manual handling; do not reinterpret their replies.
     return proposal.get('action')=='Overpayment review' and proposal.get('approved_allocation_method')=='Lump Sum'
+
+
+def review_posts_close(proposal):
+    """R128: the Reviewer approves the Loan Close itself. A close proposed before the R128 deploy has no 'close' and stays
+    manual, with its own wording (Echo AG-18)."""
+    return proposal.get('action')=='Loan Close' and isinstance(proposal.get('close'),dict)

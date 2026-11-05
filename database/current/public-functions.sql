@@ -3085,8 +3085,10 @@ BEGIN
   PERFORM set_config('pwa.rebate_offset',payment,true);
   SET CONSTRAINTS public.referral_loan_closed DEFERRED;
  END IF;
- INSERT INTO public."Payments"("Row ID","Ref Borrower","Payment Date","Amount Received","Payment Method","Allocation Method","Ref Target Charge","Ref Target Loan","Ref Received By Cash Account","Notes","Uploaded Receipt","Created By","Status")
- VALUES(payment,parent,day,(calculation->>'amount')::numeric::money,i->>'paymentMethod','Loan Close',calculation->>'targetChargeId',target,i->>'cashAccountId',i->>'notes',e#>>'{receipt,storageReference}',a->>'loginEmail','Processing');
+ INSERT INTO public."Payments"("Row ID","Ref Borrower","Payment Date","Amount Received","Payment Method","Allocation Method","Ref Target Charge","Ref Target Loan","Ref Received By Cash Account","Notes","Uploaded Receipt","Created By","Status","Bank Reference","Created At")
+ VALUES(payment,parent,day,(calculation->>'amount')::numeric::money,i->>'paymentMethod','Loan Close',calculation->>'targetChargeId',target,i->>'cashAccountId',i->>'notes',e#>>'{receipt,storageReference}',a->>'loginEmail','Processing',
+  -- R128: the slip's reference and transfer time on the business day (the receipt evidence link verifies both).
+  i->>'bankReference',CASE WHEN i ? 'transferTime' THEN ((i->>'paymentDate')||' '||(i->>'transferTime')||':00')::timestamp END);
  SELECT * INTO actual FROM public."Payments" WHERE "Row ID"=payment;
  IF NOT FOUND OR actual."Status" IS DISTINCT FROM 'Posted' OR actual."Amount Received"::numeric IS DISTINCT FROM (calculation->>'amount')::numeric THEN RAISE EXCEPTION 'Close receipt differs from immutable plan';END IF;
  -- R111: run the deferred referral trigger now (its own function; nothing disabled), so the rebate and any offset are made
@@ -6346,13 +6348,18 @@ BEGIN
  END LOOP;input_text:=input_text||'}';
  IF octet_length(i->>'loanId') NOT BETWEEN 1 AND 256 OR i->>'loanId'~'[[:cntrl:]]' OR i->>'chargeDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'chargeDate')::date)::text<>i->>'chargeDate' OR i->>'principalDue'!~'^-?(0|[1-9][0-9]*)(\.[0-9]{1,2})?$' OR i->>'interestDue'!~'^-?(0|[1-9][0-9]*)(\.[0-9]{1,2})?$' OR abs((i->>'principalDue')::numeric)>92233720368547758.07 OR abs((i->>'interestDue')::numeric)>92233720368547758.07 OR (i ? 'lateChargeDue' AND (i->>'lateChargeDue'!~'^(0|[1-9][0-9]{0,16})$' OR (i->>'lateChargeDue')::numeric>92233720368547758)) THEN RAISE EXCEPTION 'charge input';END IF;
  ELSIF op='loan.close' THEN
- keys:=ARRAY['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash']||CASE WHEN i ? 'rebatePath' THEN ARRAY['rebatePath'] ELSE ARRAY[]::text[] END;
+ keys:=ARRAY['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash']||CASE WHEN i ? 'rebatePath' THEN ARRAY['rebatePath'] ELSE ARRAY[]::text[] END
+  -- R128: the slip's bank reference and transfer time, each only when present (an older PWA's command stays canonical).
+  ||CASE WHEN i ? 'bankReference' THEN ARRAY['bankReference'] ELSE ARRAY[]::text[] END||CASE WHEN i ? 'transferTime' THEN ARRAY['transferTime'] ELSE ARRAY[]::text[] END;
  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT array_agg(key ORDER BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION 'close keys';END IF;
  input_text:='{';FOREACH k IN ARRAY keys LOOP
   IF (k='notes' AND jsonb_typeof(i->k) NOT IN('string','null')) OR (k<>'notes' AND jsonb_typeof(i->k) IS DISTINCT FROM 'string') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION 'close input';END IF;
   input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||coalesce(to_json(i->>k)::text,'null');
  END LOOP;input_text:=input_text||'}';
- IF i->>'paymentDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paymentDate')::date)::text<>i->>'paymentDate' OR octet_length(i->>'cashAccountId') NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]' OR i->>'paymentMethod' NOT IN('Bank Transfer','Cash','Net-off at Disbursement') OR i->>'expectedAmount'!~'^[1-9][0-9]*$' OR (i->>'expectedAmount')::numeric>92233720368547758 OR i->>'expectedPlanHash'!~'^[a-f0-9]{64}$' OR (i ? 'rebatePath' AND i->>'rebatePath' NOT IN('offset','expense')) THEN RAISE EXCEPTION 'close input';END IF;
+ IF i->>'paymentDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paymentDate')::date)::text<>i->>'paymentDate' OR octet_length(i->>'cashAccountId') NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]' OR i->>'paymentMethod' NOT IN('Bank Transfer','Cash','Net-off at Disbursement') OR i->>'expectedAmount'!~'^[1-9][0-9]*$' OR (i->>'expectedAmount')::numeric>92233720368547758 OR i->>'expectedPlanHash'!~'^[a-f0-9]{64}$' OR (i ? 'rebatePath' AND i->>'rebatePath' NOT IN('offset','expense'))
+  OR (i ? 'bankReference' AND (octet_length(i->>'bankReference') NOT BETWEEN 1 AND 256 OR btrim(i->>'bankReference')='' OR i->>'bankReference'~'[\r\n]'))
+  OR (i ? 'transferTime' AND i->>'transferTime'!~'^([01][0-9]|2[0-3]):[0-5][0-9]$')
+  OR ((i ? 'bankReference' OR i ? 'transferTime') AND i->>'paymentMethod'<>'Bank Transfer') /* R128 */ THEN RAISE EXCEPTION 'close input';END IF;
  ELSIF op='loan.default' AND (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['businessDate'] THEN
  -- R109 (V120): the loss amount (whole baht, 0 only for a fully lost loan, which SQL decides) and the keep-charges choice.
  -- The one-key form {businessDate} stays valid (requests saved by an earlier PWA): write off and close the whole principal.

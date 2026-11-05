@@ -243,10 +243,99 @@ def options_lines(proposal,thai):
     return head+listed+tail+''.join('\n'+n for n in notes)
 
 
+def close_amount_line(close,thai):
+    """R128 (Echo AG-15): the closing amount and its parts in R118 order (principal, interest, then a late charge above 0),
+    or the amount alone when the parts are unavailable."""
+    from decimal import Decimal, InvalidOperation
+    words=('เงินต้น','ดอกเบี้ย','ค่าปรับล่าช้า') if thai else ('principal','interest','late charge')
+    try:
+        principal,interest=Decimal(str(close['principal'])),Decimal(str(close['interest']))
+        late=Decimal(str(close.get('late') or 0))
+        if not (principal.is_finite() and interest.is_finite() and late.is_finite()) or close['principal'] is None or close['interest'] is None:raise ValueError()
+        listed=f'{words[0]} {baht(principal)} + {words[1]} {baht(interest)}'+(f' + {words[2]} {baht(late)}' if late>0 else '')
+    except (KeyError,ValueError,InvalidOperation,TypeError):listed=''
+    amount=baht(close['amount'])
+    if thai:return f'ยอดปิด {amount}'+(f' ({listed})' if listed else '')+' ตรงกับสลิป'
+    return f'Closing amount {amount}'+(f' ({listed})' if listed else '')+' matches this slip.'
+
+
+def rebate_lines(offset,payable,referrer,thai):
+    """R128 (Echo AG-17): the referral rebate, offset to the referrer's loan and/or paid out; nothing without one."""
+    from decimal import Decimal, InvalidOperation
+    name=referrer or ('ผู้แนะนำ' if thai else 'the referrer');lines=[]
+    try:offset,payable=Decimal(str(offset or 0)),Decimal(str(payable or 0))
+    except InvalidOperation:return []
+    if offset>0:lines.append(f'ค่าแนะนำ {baht(offset)}: หักกับสินเชื่อของ {name}' if thai else f"Referral rebate {baht(offset)}: offset to {name}'s loan")
+    if payable>0:lines.append(f'ค่าแนะนำ {baht(payable)}: จ่ายให้ {name}' if thai else f'Referral rebate {baht(payable)}: pay out to {name}')
+    return lines
+
+
+def close_request_text(proposal,thai):
+    """R128 (Echo AG-13..AG-17): the close approval request; the approval words are the usual ones (AG-16)."""
+    from decimal import Decimal
+    receipt=proposal['receipt'];close=proposal['close'];borrower=proposal['borrower']
+    name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
+    keys='; '.join(proposal.get('loan_keys') or [])
+    rebate=[]
+    if close.get('rebatePath') and close.get('rebateAmount'):
+        total=Decimal(str(close['rebateAmount']))
+        covered=min(total,Decimal(str(close.get('rebateCovered') or total))) if close['rebatePath']=='offset' else Decimal(0)
+        rebate=rebate_lines(covered,total-covered,close.get('referrer'),thai)
+    if thai:
+        subject='ขออนุมัติปิดสัญญา'
+        lines=[subject,f'ผู้กู้: {name}',f"ยอด: {receipt['amount']} บาท",f"เวลาโอน: {receipt['date']} {receipt['time'][:5]}",f"บัญชีรับ: {receipt['account_label']}"]
+        lines+=[f'สัญญา: {keys}'] if keys else []
+        lines+=[close_amount_line(close,True)]+rebate+['รายการที่เสนอ: ปิดสัญญา ระบบจะบันทึกการปิดให้',
+               'กรุณาใช้ Reply ตอบข้อความนี้ว่า อนุมัติ เพื่อปิดสัญญา คำตอบอื่นถือว่าปฏิเสธ ยังไม่ได้บันทึกรายการ']
+    else:
+        subject='Loan close approval requested'
+        lines=[subject,f'Borrower: {name}',f"Amount: {receipt['amount']} baht",f"Transferred: {receipt['date']} {receipt['time'][:5]} (Bangkok)",f"Account: {receipt['account_label']}"]
+        lines+=[f'Loan: {keys}'] if keys else []
+        lines+=[close_amount_line(close,False)]+rebate+['Proposed: Close the loan; agent records the Loan Close',
+               'Use Reply on THIS message: Yes / Approve / Approved (any case) to close the loan. Other direct replies reject. Nothing has been posted.']
+    body='\n'.join(lines)
+    if len(body)>1000:raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
+    return subject,body
+
+
+def close_notice(proposal,language,payment_id,detail):
+    """R128 (Echo AG-19): the posted close: the payment notice's lines under 'Loan closed', the loan and the rebate as the
+    server recorded it (the review detail closeRebate)."""
+    from .partner_notice import receipt_notice
+    thai=language=='ไทย'
+    subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],language,payment_id)
+    title='ปิดสัญญาสำเร็จ' if thai else 'Loan closed'
+    key=(proposal.get('loan_keys') or [proposal.get('loan_id')])[0]
+    lines=[title+body[len(subject):],('ปิดสัญญาแล้ว: ' if thai else 'Loan closed: ')+str(key)]
+    try:rebate=json.loads(detail or '{}').get('closeRebate')
+    except (ValueError,AttributeError):rebate=None
+    if isinstance(rebate,dict):
+        lines+=rebate_lines(rebate.get('offsetAmount'),rebate.get('payable'),proposal['close'].get('referrer'),thai)
+    body='\n'.join(lines)
+    if len(body)>1000:raise ConfigurationError('NOTICE_TOO_LONG')
+    return title,body
+
+
+def close_failure_line(state,detail,proposal,thai):
+    """R128 (Echo AG-20): the last line of a close that did not post; '' for a rejection or an expiry."""
+    detail=detail or ''
+    if state=='STALE' and detail.startswith('LOAN_CLOSE_QUOTE_CHANGED:'):
+        now,slip=baht(detail.split(':',1)[1]),baht(proposal['receipt']['amount'])
+        return (f'ยอดปิดตอนนี้ {now} สลิป {slip} ยังไม่ได้ปิดสัญญาและยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else
+                f'Closing amount is now {now}; slip {slip}. Loan not closed; nothing posted. Close it in the app.')
+    if state in ('STALE','MANUAL_REQUIRED'):
+        return ('ยังไม่ได้ปิดสัญญา: ข้อมูลการปิดเปลี่ยน ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else
+                'Loan not closed: closing details changed. Nothing posted. Close it in the app.')
+    if state=='UNKNOWN':
+        return 'ตรวจสอบสัญญาในแอปก่อนปิดอีกครั้ง' if thai else 'Check the loan in the app before closing it again.'
+    return ''
+
+
 def request_text(proposal,language,unclear=False):
-    from .review_proposal import review_posts_overpayment
+    from .review_proposal import review_posts_close,review_posts_overpayment
     thai=language=='ไทย'
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
+    if review_posts_close(proposal):return close_request_text(proposal,thai)
     if proposal.get('action')=='Pay forward options':
         # R112 (Echo AG-1, AG-2): reply with a number; an unclear reply gets the prompt, then the options again.
         # R127 (Echo AG-6): the prompt names the replies this request offers.

@@ -56,6 +56,7 @@
   "receipt_projector_password_file": "/etc/mw-integration-agent/secrets/receipt-projector-password.txt",
   "receipt_payment_api_enabled": false,
   "pay_forward_options_enabled": false,
+  "loan_close_execution_enabled": false,
   "receipt_payment_api_origin": null,
   "receipt_payment_api_audience": null,
   "receipt_payment_api_cutoff": null,

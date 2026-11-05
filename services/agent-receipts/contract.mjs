@@ -1,14 +1,41 @@
 import {createHash} from 'node:crypto';
 import {validPayerLines} from '../receipts/payer-name.mjs';
+import {canonicalOperation,operationIdentity} from '../contracts/operation-command.mjs';
 const fail=()=>{throw Error('invalid_receipt_command');};
 const exact=(value,keys)=>{if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!==[...keys].sort().join(','))fail();};
 const text=(value,max=256)=>{if(typeof value!=='string'||!value.isWellFormed()||!value.trim()||value!==value.trim()||Buffer.byteLength(value)>max||/[\0\r\n]/.test(value))fail();return value;};
 const hash=value=>createHash('sha256').update(value,'utf8').digest('hex');
-export function receiptRequestId(environment,reviewId){
+/** ALL-STD-03 request id: the agent's uuid_from_sha256([salt, environment, reviewId]) (integration-agent http.py). */
+function agentRequestId(salt,environment,reviewId){
  if(!['dev','prod'].includes(environment))fail();text(reviewId);
- const bytes=createHash('sha256').update(JSON.stringify(['mw-credit-agent-receipt-v1',environment,reviewId])).digest().subarray(0,16);
+ const bytes=createHash('sha256').update(JSON.stringify([salt,environment,reviewId])).digest().subarray(0,16);
  bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
  const hex=bytes.toString('hex');return`${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+export const receiptRequestId=(environment,reviewId)=>agentRequestId('mw-credit-agent-receipt-v1',environment,reviewId);
+/** R128: the Loan Close an approved Instagram receipt review posts has its own namespace (never a receipt payment's id). */
+export const loanCloseRequestId=(environment,reviewId)=>agentRequestId('mw-credit-agent-loan-close-v1',environment,reviewId);
+export const loanCloseNotes=reviewId=>`Approved Instagram receipt review igr:${reviewId.slice(0,48)}`;
+/**
+ * R128: the agent's Loan Close, {requestId, targetId, expectedVersion, inputs, reviewId, environment}, as the human close
+ * path's contract-2 loan.close operation (canonicalOperation): a bank transfer with the slip's bankReference and
+ * transferTime, the fixed review note and the reviewed quote (expectedAmount, expectedPlanHash, rebatePath when the close
+ * creates a rebate). SQL (pwa_apply_loan_close_v2) checks the version, business day, plan hash and rebate.
+ */
+export function canonicalAgentClose(input){
+ exact(input,['requestId','targetId','expectedVersion','inputs','reviewId','environment']);
+ if(input.requestId!==loanCloseRequestId(input.environment,input.reviewId))fail();
+ const i=input.inputs,rebate=!!i&&typeof i==='object'&&Object.hasOwn(i,'rebatePath');
+ exact(i,['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash','bankReference','transferTime',...(rebate?['rebatePath']:[])]);
+ if(i.paymentMethod!=='Bank Transfer'||i.notes!==loanCloseNotes(input.reviewId))fail();
+ let operation;try{operation=canonicalOperation({requestId:input.requestId,operation:'loan.close',targetId:input.targetId,expectedVersion:input.expectedVersion,predecessorRequestId:null,inputs:i,receiptId:null});}catch{fail();}
+ return {environment:input.environment,reviewId:input.reviewId,operation};
+}
+export function agentCloseIdentity(input,actor){
+ const {operation}=canonicalAgentClose(input);
+ exact(actor,['issuer','subject','partnerId','loginEmail']);
+ if(actor.issuer!=='https://accounts.google.com'||!/^\d{1,128}$/.test(actor.subject))fail();
+ try{return operationIdentity(operation,actor,null);}catch{fail();}
 }
 const whole=value=>{if(typeof value!=='string'||!/^(?:0|[1-9][0-9]{0,16})$/.test(value)||BigInt(value)>92233720368547758n)fail();return value;};
 const day=value=>{if(typeof value!=='string'||value<'0001-01-01'||!/^\d{4}-\d{2}-\d{2}$/.test(value)||!Number.isFinite(Date.parse(value+'T00:00:00Z'))||new Date(value+'T00:00:00Z').toISOString().slice(0,10)!==value)fail();return value;};

@@ -682,6 +682,9 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:650px){.about-record dl>div{flex-direction:column;align-items:stretch;gap:4px}.about-record dt,.about-record dd{flex:none}.about-record dd{justify-content:flex-start;text-align:left}.about-record .secondary-button,.about-troubleshooting .about-copy>button{width:100%}}
 /* R075 slip recognition notes: wrap long references and labels, 44px targets. */
 .selected-payment .recognition-note{overflow-wrap:anywhere}.selected-payment .recognition-note .secondary-button{min-height:44px;margin-top:4px;white-space:normal}
+.loan-close-form .recognition-note{overflow-wrap:anywhere}.loan-close-form .recognition-note .secondary-button{min-height:44px;margin-top:4px;white-space:normal}
+.loan-close-form .slip-reference{overflow-wrap:anywhere}
+.loan-close-form input.slip-reference{display:block;width:100%;max-width:640px;min-width:0;min-height:44px;box-sizing:border-box;font:inherit;padding:10px}
 .selected-payment .slip-reference{overflow-wrap:anywhere}
 .selected-payment input.slip-reference{display:block;width:100%;max-width:640px;min-width:0;min-height:44px;box-sizing:border-box;font:inherit;padding:10px}
 /* Receiving page on iPhone: form controls and notes never exceed the column, and the page itself never pans or

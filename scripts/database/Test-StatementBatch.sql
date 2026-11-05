@@ -192,6 +192,8 @@ END $$;
 \ir Test-WriteOffSegregationEdges.sql
 -- V132 (R118, Chase): late charges (columns, both engines, v11 and agent v10, Loan Close, pay forward, default, income, push content), rolled back.
 \ir Test-LateCharges.sql
+-- V136 (R128): Loan Close slip facts (bank reference and transfer time on the closing payment; the agent's Instagram-approved close as the agent actor; receipt evidence link; refused facts), rolled back.
+\ir Test-AgentLoanClose.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).
