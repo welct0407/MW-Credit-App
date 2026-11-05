@@ -24,4 +24,24 @@ Live Instagram: there is no DEV agent, so the first real close after the agent d
 None. Whether the agent is deployed with the R129 PROD promotion is for that instruction; until the SQL side is live the command service still answers with the old rebate path.
 
 ## Remaining work
-- Deploy the agent code with the R129 PROD promotion (a separate owner instruction); there is no DEV agent.
+- Owner acceptance in PROD: the first real agent DM with the "pending to" wording (a loan close approval or a posted "Loan closed" notice that books a pending rebate). No forced DM or close was made.
+
+## DEV promotion record (Forge, 5 November 2026, UTC)
+There is no DEV agent, so no agent code was deployed for DEV. Evidence before PROD: Byte's unit tests (789 OK, 70 skipped, ruff clean), and Agent tests run 42038154232 green on re-run (`test_chat_relay` `BrokenPipeError` once, an unrelated oversized-body race).
+
+## PROD promotion record (Forge, 5 November 2026, UTC)
+Authority: the owner's instruction "Promote to prod and get everything done" (5 November 2026), including the agent code. Target: `vm-mw-credit-agent`. The main record is in the [R129 change note](../../Change%20Logs/CHANGE_NOTES_R129_REFERRAL_REBATE_SETTLEMENT_2026-11-05.md#prod-promotion-record-forge-5-november-2026-utc). No secret value appears here.
+
+| Step | Result |
+| --- | --- |
+| Package | `0f3420367a62b6d796d53ed656a52b7a74d2cdfb` (merge of PR #251); only `partner_review.py` changed since `aaad6a87` |
+| Baseline | Live `aaad6a87` (R128), catalogue revision 36, switches unchanged |
+| Freeze | 15:50:07Z to 15:50:19Z; rollback directory `runtime-20261105T155012361755Z` |
+| Install | 15:50:19Z to 15:50:28Z; no file removed, no unit change |
+| Activate | 15:50:28Z to 15:50:37Z; catalogue revision 36, switches unchanged |
+| Readback | `receiver-ready`; four receipt cycles clean; no ERROR logs 15:33Z to 15:51:43Z |
+| Access | `gcloud compute ssh` exited 255; the operator key path was used and the temporary connection file was shredded |
+| Not deployed | SQL on `mw_agent`, migrations, units, configuration |
+| Rollback | `sudo python3 integration-agent/scripts/deploy-runtime.py rollback --commit 0f342036…` (no configuration change to undo) |
+
+Limitations: live Instagram was not exercised; the first real "pending to" DM is the acceptance.
