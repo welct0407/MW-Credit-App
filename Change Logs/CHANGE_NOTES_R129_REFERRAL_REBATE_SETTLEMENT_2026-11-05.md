@@ -65,7 +65,9 @@ Pull request checks and DEV evidence are still pending (a row marked Pending is 
 | `PYTHONPATH=src python3 -m unittest discover -s tests` and `ruff` in `integration-agent/` (Byte) | 789 OK, 70 skipped; ruff clean |
 | Chase verification: spec 8/8 on its first run, typecheck, biome on the spec, code review of V137 and the services and PWA changes; reused Byte's database and unit evidence | PASS, 3 low defects (fixed or recorded in the fix round above) |
 | Echo UI pass, Chromium 390×844 and 1280×900, English and Thai | Pass after fixes (findings above) |
-| Pull request `Development checks`, Database migrations and e2e shards | Pending |
+| PR #251 first `Development checks` run 42030489214 on `89a9091` | Partly green: DB groups (migrations, receiving, phase5, phase8), check, lint, unit test, lab, GitGuardian and e2e shard 1 pass; e2e shards 2 and 3 failed. Cause 1: `rebate-offset-independent.spec.ts` (7 tests, both projects) still expected "transfer from Lisa" and "Pay out as expense". Cause 2: the `w5-ux-independent` desktop sidebar overflowed by 4px at 1280×800 with the new Referrers item |
+| Fix for those two failures (Byte) | Spec updated to the R129 wording (pre-R129 rows keep the legacy sentence); sidebar items 44px (was 48), gaps 2px, list padding 8px. Local: those two specs plus `referrers-independent` 75 passed, 1 skipped; biome and typecheck pass |
+| PR #251 second `Development checks` run, Database migrations workflow and e2e shards on the fix | Pending |
 | `npm run check:docs` (Dewey) | Pass at this record (final run after any later edit) |
 
 ## Not run
