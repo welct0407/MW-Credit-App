@@ -1,3 +1,4 @@
+import {logUnavailable} from '../lib/log.mjs';
 import {BUSINESS_TODAY_QUERY} from '../lib/business-date.mjs';
 import {WAKE_MS} from '../notifications/postcommit.mjs';
 import {offlineDomains} from '../business/offline-dataset.mjs';
@@ -200,6 +201,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       // Nothing is applied before COMMIT: a confirmed ROLLBACK is a known non-outcome even after the
       // write was attempted. Only a started COMMIT, or a failed ROLLBACK after the write was attempted,
       // leaves the outcome unknown (APP-PAY-06).
+      logUnavailable('command_store_unavailable',error,{readonly});
       return failure(503, !readonly && (commitStarted || (attempted && quarantine)) ? 'command_outcome_unknown' : 'command_unavailable');
     } finally {
       try { client?.release(quarantine); } catch { /* Cleanup must not mask the intended unavailable/unknown outcome. */ }
@@ -223,7 +225,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       if(!ownerTesting)return failure(403,'access_denied');
       if(!principalAllowed(principal))return failure(403,'access_denied');
       if(!offlineDomains.includes(domain)||![2,3].includes(options.protocol))return failure(400,'invalid_request');
-      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===3?await readOfflineDatasetDelta(offlineReadClient(client,signal),actor,domain,options.input):await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true))}catch{return failure(503,'command_unavailable')}
+      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===3?await readOfflineDatasetDelta(offlineReadClient(client,signal),actor,domain,options.input):await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true))}catch(error){logUnavailable('offline_dataset_unavailable',error,{domain,protocol:options.protocol});return failure(503,'command_unavailable')}
     },
     async management(principal,kind,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{const value=kind==='cash-position'?await readManagementPosition(client):kind==='cash-withdrawal'?await readCashWithdrawal(client,options):kind==='analytics-overview'?await readAnalyticsOverview(client):kind==='analytics-chart'?await readAnalyticsChart(client,options):kind==='analytics-validation'?await readManagementAnalytics(client,options):kind==='assessments'?await readManagementAssessments(client,options):kind==='openings'?await readManagementOpenings(client,options):await (['contributions','settlements','cash-movements'].includes(kind)?readManagementFinancial:readManagement)(client,kind,options);return options?.id&&!value.item?failure(404,'not_found'):{ok:true,value}},true)},
     async upcoming(principal,options={}){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readStandaloneUpcoming(client,options)}}catch(error){if(error.message==='business_date_changed')return failure(409,'business_date_changed');throw error}},true)},

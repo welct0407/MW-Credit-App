@@ -63,6 +63,30 @@ function assertRefereesSum(detail){
   [cents(detail.referrer.unpaidAmount),cents(detail.referrer.accruingAmount),cents(detail.referrer.paidToDate),cents(detail.referrer.offsetToDate)],'the referees add up to the tiles');
 }
 
+/** A legacy (V2) rebate of s.referrer, paid at close: its borrower is referred only after the close (no rebate then), and the row
+ * is written the way the V135 trigger wrote it (from inside a trigger, as the referral rule requires; nothing disabled). */
+async function legacyRebate(s){
+ const legacyBorrower=s.id+'-LB',legacyLoan=s.id+'-LEGACY';
+ await admin.query('INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES($1,$2)',[legacyBorrower,'SYNTHETIC LEGACY '+s.id]);
+ await admin.query(loanSql,[legacyLoan,legacyBorrower,fixture.lendingAccountId]);await admin.query(chargeSql,[legacyLoan+'-today',legacyLoan,3000]);
+ await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"=$1`,[legacyLoan]);
+ const legacyPreview=await store.loanClosePreview(principal,legacyLoan);assert.equal(legacyPreview.rebate,null,'no referrer yet: no rebate');
+ assert.equal((await store.operation(principal,closeCommand(legacyLoan,legacyPreview))).originalOutcome?.status,'applied');
+ await admin.query('UPDATE "Borrowers" SET "Ref Referrer"=$1 WHERE "Row ID"=$2',[s.referrer,legacyBorrower]);
+ const c=await admin.connect();
+ try{
+  await c.query('CREATE TEMP TABLE r129_legacy(j jsonb)');
+  await c.query(`CREATE FUNCTION pg_temp.r129_legacy() RETURNS trigger LANGUAGE plpgsql AS $f$ BEGIN
+   INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name","Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By","Rebate Rate","Rebate Cap")
+   SELECT r."Row ID",r."Expense Date",r."Expense Category",r."Amount",r."Payee Name",r."Ref Payee Borrower",r."Ref Related Borrower",r."Ref Related Loan",r."Source Type",r."Source Key",r."Gross Profit Basis",r."Rule Version",r."Created By",r."Rebate Rate",r."Rebate Cap"
+   FROM jsonb_populate_record(NULL::public."Business Expenses",NEW.j) r; RETURN NULL; END $f$`);
+  await c.query('CREATE TRIGGER r129_legacy AFTER INSERT ON r129_legacy FOR EACH ROW EXECUTE FUNCTION pg_temp.r129_legacy()');
+  await c.query('INSERT INTO r129_legacy VALUES($1::jsonb)',[JSON.stringify({'Row ID':'rr1:'+legacyLoan,'Expense Date':today,'Expense Category':'Referral Rebate / เงินคืนค่าแนะนำลูกค้า','Amount':300,'Payee Name':'SYNTHETIC REFERRER '+s.id,
+   'Ref Payee Borrower':s.referrer,'Ref Related Borrower':legacyBorrower,'Ref Related Loan':legacyLoan,'Source Type':'Referral Rebate','Source Key':'REFERRAL_REBATE:'+legacyLoan,'Gross Profit Basis':3000,'Rule Version':'REFERRAL_REBATE_V2','Created By':'SQL:loan-close','Rebate Rate':10,'Rebate Cap':1000})]);
+ }finally{c.release(true)}
+ return {legacyBorrower,legacyLoan};
+}
+
 test('a close books a pending rebate: preview owedBefore, the result pending and owedTotal, the expense and payment states',async()=>{
  const s=await scenario({count:2});
  const first=await close(s.loans[0]);assert.equal(first.preview.rebate.owedBefore,'0');
@@ -102,26 +126,8 @@ test('Referrers list and detail: owed, accruing at custom terms (0 and 3,000 rec
  const posted=await store.submit(principal,{schemaVersion:7,requestId:randomUUID(),borrowerId:t.borrowers[1],allocations:assigned.allocations,cashAccountId:fixture.receivingAccountId,paymentDate:today,amountReceived:'3000',paymentMethod:'Bank Transfer',notes:null,receiptId:null,bankReference:null,transferTime:null});
  assert.equal(posted.originalOutcome?.status,'posted',JSON.stringify(posted));
  await admin.query(`DELETE FROM "Charges" WHERE "Row ID"=$1`,[t.loans[2]+'-today']);
- // A legacy (V2) rebate of T, paid at close: its borrower is referred only after the close (no rebate then), and the row is
- // written the way the V135 trigger wrote it (from inside a trigger, as the referral rule requires; nothing disabled).
- const legacyBorrower=t.id+'-LB',legacyLoan=t.id+'-LEGACY';
- await admin.query('INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES($1,$2)',[legacyBorrower,'SYNTHETIC LEGACY '+t.id]);
- await admin.query(loanSql,[legacyLoan,legacyBorrower,fixture.lendingAccountId]);await admin.query(chargeSql,[legacyLoan+'-today',legacyLoan,3000]);
- await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"=$1`,[legacyLoan]);
- const legacyPreview=await store.loanClosePreview(principal,legacyLoan);assert.equal(legacyPreview.rebate,null,'no referrer yet: no rebate');
- assert.equal((await store.operation(principal,closeCommand(legacyLoan,legacyPreview))).originalOutcome?.status,'applied');
- await admin.query('UPDATE "Borrowers" SET "Ref Referrer"=$1 WHERE "Row ID"=$2',[t.referrer,legacyBorrower]);
- const c=await admin.connect();
- try{
-  await c.query('CREATE TEMP TABLE r129_legacy(j jsonb)');
-  await c.query(`CREATE FUNCTION pg_temp.r129_legacy() RETURNS trigger LANGUAGE plpgsql AS $f$ BEGIN
-   INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name","Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By","Rebate Rate","Rebate Cap")
-   SELECT r."Row ID",r."Expense Date",r."Expense Category",r."Amount",r."Payee Name",r."Ref Payee Borrower",r."Ref Related Borrower",r."Ref Related Loan",r."Source Type",r."Source Key",r."Gross Profit Basis",r."Rule Version",r."Created By",r."Rebate Rate",r."Rebate Cap"
-   FROM jsonb_populate_record(NULL::public."Business Expenses",NEW.j) r; RETURN NULL; END $f$`);
-  await c.query('CREATE TRIGGER r129_legacy AFTER INSERT ON r129_legacy FOR EACH ROW EXECUTE FUNCTION pg_temp.r129_legacy()');
-  await c.query('INSERT INTO r129_legacy VALUES($1::jsonb)',[JSON.stringify({'Row ID':'rr1:'+legacyLoan,'Expense Date':today,'Expense Category':'Referral Rebate / เงินคืนค่าแนะนำลูกค้า','Amount':300,'Payee Name':'SYNTHETIC REFERRER '+t.id,
-   'Ref Payee Borrower':t.referrer,'Ref Related Borrower':legacyBorrower,'Ref Related Loan':legacyLoan,'Source Type':'Referral Rebate','Source Key':'REFERRAL_REBATE:'+legacyLoan,'Gross Profit Basis':3000,'Rule Version':'REFERRAL_REBATE_V2','Created By':'SQL:loan-close','Rebate Rate':10,'Rebate Cap':1000})]);
- }finally{c.release(true)}
+ // A legacy (V2) rebate of T, paid at close (legacyRebate).
+ const {legacyBorrower,legacyLoan}=await legacyRebate(t);
  const legacy=await store.expenseRecord(principal,'rr1:'+legacyLoan);assert.deepEqual([legacy.item.rebateState,legacy.item.pendingAmount,legacy.item.reimbursements.length],['paid-at-close','0.00',1],'a legacy row moved its cash at close and is never pending');
  const list=await store.referrers(principal);assert.equal(list.status,200,JSON.stringify(list).slice(0,300));
  const row=list.items.find(r=>r.id===t.referrer);assert.ok(row,'the referrer is listed');
@@ -184,4 +190,28 @@ test('a closing payment whose rebate is paid cannot be deleted until the settlem
  assert.equal((await store.operation(principal,deleteCommand(record.item.id,record.item.version))).originalOutcome?.status,'applied');
  assert.equal((await store.operation(principal,await paymentDelete(await closing(s.loans[0])))).originalOutcome?.status,'applied');
  assert.equal((await store.expenseRecord(principal,'rr1:'+s.loans[0])).status,404);
+});
+
+/** The records bundle as the PWA reads it through the command store (protocol 3): a full walk, then deltas since its cursor. */
+const recordsRead=async(input,label,domain='records')=>{const r=await store.offlineDataset(principal,domain,undefined,{protocol:3,input:{cursor:null,need:[],sourceVersion:null,acceptChanged:true,...input}});assert.equal(r.status,200,label+': '+JSON.stringify(r).slice(0,300));return r};
+async function recordsWalk(label,domain='records'){let cursor=null,changes=null;for(let k=0;k<500;k++){const r=await recordsRead({cursor},label+' ('+domain+' walk)',domain);changes??=r.changes??null;if(r.complete)return {sourceVersion:r.sourceVersion,changes};cursor=r.nextCursor}throw Error('walk did not complete')}
+async function recordsAfter(state,label){await recordsRead({sourceVersion:state.sourceVersion,since:state.changes},label+' (delta)');return recordsWalk(label)}
+test('PROD defect: the records offline dataset still reads after a close with a pending rebate, a settlement and its delete',async()=>{
+ // The records dashboard reads olap_portfolio_summary, one row per Statistics row (DEV and PROD have one).
+ if(!(await admin.query('SELECT 1 FROM public."Statistics"')).rowCount)await admin.query(`INSERT INTO "Statistics"("Row ID","Statistics ID") VALUES ('r129-statistics','r129')`);
+ const s=await scenario({count:2});let state=await recordsWalk('start');
+ await close(s.loans[0]);state=await recordsAfter(state,'pending V3 rebate');
+ const settle=await store.operation(principal,await settleCommand(s.referrer,['rr1:'+s.loans[0]]));assert.equal(settle.originalOutcome?.status,'applied',JSON.stringify(settle));
+ state=await recordsAfter(state,'settlement');
+ const record=await store.rebateSettlementRecord(principal,settle.originalOutcome.result.targetId);
+ assert.equal((await store.operation(principal,deleteCommand(record.item.id,record.item.version))).originalOutcome?.status,'applied');
+ state=await recordsAfter(state,'settlement deleted');
+ // Pond's case on PROD: a legacy (V2) row paid at close, then the owner-authorized conversion to a pending V3 rebate (D1).
+ const {legacyLoan}=await legacyRebate(s);state=await recordsAfter(state,'legacy rebate');
+ await admin.query('SELECT public.pwa_convert_legacy_rebate_v1($1)',['rr1:'+legacyLoan]);
+ assert.equal((await store.expenseRecord(principal,'rr1:'+legacyLoan)).item.rebateState,'pending','converted to a pending V3 rebate');
+ state=await recordsAfter(state,'legacy conversion');
+ // A second settlement stays: its Cash Ledger row (Source Type 'Rebate Settlement') is in the records and cash bundles.
+ assert.equal((await store.operation(principal,await settleCommand(s.referrer,['rr1:'+legacyLoan]))).originalOutcome?.status,'applied');
+ await recordsAfter(state,'second settlement');await recordsWalk('second settlement','cash');
 });

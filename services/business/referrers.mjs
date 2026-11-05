@@ -13,11 +13,12 @@ export async function rebateSettlementSchema(client){
  try{return (await client.query(`SELECT to_regclass('public.pwa_rebate_settlements') IS NOT NULL AS present`))?.rows?.[0]?.present===true;}catch{return false;}
 }
 export {rebatePendingSql,rebateStateSql} from './rebate-state.mjs';
-/** The date and paying account of each linked settlement id (one read, only when a row links one). */
+/** The date and paying account of each linked settlement id (one read, only when a row links one). The ids travel as one JSON
+ * text parameter, not a text[]: the offline records walk reads through bulkReadClient, which takes scalar parameters only. */
 export async function settlementDates(client,ids){
  const wanted=[...new Set(ids.filter(id=>typeof id==='string'&&id))];
  if(!wanted.length)return new Map();
- return new Map((await client.query('SELECT s.id,s.settlement_date::text AS date,a."Account Label" AS "accountLabel" FROM public.pwa_rebate_settlements s LEFT JOIN public."Cash Accounts" a ON a."Row ID"=s.paid_by_cash_account WHERE s.id=ANY($1::text[])',[wanted])).rows.map(r=>[r.id,{date:r.date,accountLabel:r.accountLabel}]));
+ return new Map((await client.query('SELECT s.id,s.settlement_date::text AS date,a."Account Label" AS "accountLabel" FROM public.pwa_rebate_settlements s LEFT JOIN public."Cash Accounts" a ON a."Row ID"=s.paid_by_cash_account WHERE s.id IN (SELECT jsonb_array_elements_text($1::jsonb))',[JSON.stringify(wanted)])).rows.map(r=>[r.id,{date:r.date,accountLabel:r.accountLabel}]));
 }
 /** The version of a settlement for rebate-settlement.delete: the SQL text of pwa_rebate_settlement_version_v1. */
 export const settlementVersionSql=`SELECT encode(sha256(convert_to(((to_jsonb(s)-'created_at')||jsonb_build_object('created_at',to_char(s.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"')))::text,'UTF8')),'hex')

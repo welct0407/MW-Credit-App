@@ -29,7 +29,7 @@ export async function readCashStatement(client,{accountId,date,limit=25,cursor=n
  // REBATE_SETTLEMENT and the referrer it paid (a settlement row exists only from V137 on, so this read runs only then).
  const settlements=[...new Set(items.filter(r=>r.sourceType==='Rebate Settlement'&&typeof r.sourceKey==='string'&&r.sourceKey.startsWith('REBATESETTLEMENT:')).map(r=>r.sourceKey.slice(17)))];
  if(settlements.length){
-  const payees=new Map((await client.query('SELECT s.id,s.payee_borrower_id AS "borrowerId",b."Borrower Name" AS "borrowerLabel",b."Description" AS "borrowerDescription" FROM public.pwa_rebate_settlements s LEFT JOIN public."Borrowers" b ON b."Row ID"=s.payee_borrower_id WHERE s.id=ANY($1::text[])',[settlements])).rows.map(r=>[r.id,r]));
+  const payees=new Map((await client.query('SELECT s.id,s.payee_borrower_id AS "borrowerId",b."Borrower Name" AS "borrowerLabel",b."Description" AS "borrowerDescription" FROM public.pwa_rebate_settlements s LEFT JOIN public."Borrowers" b ON b."Row ID"=s.payee_borrower_id WHERE s.id IN (SELECT jsonb_array_elements_text($1::jsonb))',[JSON.stringify(settlements)])).rows.map(r=>[r.id,r]));
   for(const row of items)if(row.sourceType==='Rebate Settlement'){const payee=payees.get(row.sourceKey.slice(17));row.transactionType='REBATE_SETTLEMENT';if(payee){row.counterpartyKind='BORROWER';row.borrowerId=payee.borrowerId;row.borrowerLabel=payee.borrowerLabel;row.borrowerDescription=payee.borrowerDescription;}}
  }
  return {accountId,date,summary,items,nextCursor:rows.length>limit?Buffer.from(JSON.stringify({version:1,accountId,date,timestamp:last.timestamp,ledgerId:last.ledgerId,direction:last.direction})).toString('base64url'):null};
