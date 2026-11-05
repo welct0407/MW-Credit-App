@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r120-20261104/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "a36046cfdac29ff84ab43e97a886936571674503"
+    "commit": "0f2fc4461cb7c8a6fab82a9339a174589f1a01de"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-referral-rebate-projection-v1-p-loan-text-p-calculation-jsonb-11d6997c.yaml"
     "identity":
       "system": "postgresql"
@@ -52,6 +52,8 @@
        RETURN jsonb_build_object('amount',trunc(rebate)::text,'referrerId',referrer."Row ID",'referrerName',referrer."Borrower Name",'referrerDescription',referrer."Description",
         'selfReferral',referrer."Row ID"=l."Ref Borrowers",
         'profit',round(profit)::text,'rate',terms->'rate','cap',terms->'cap','custom',terms->'custom',
+        -- R129: the referrer's pending rebates before this close (whole baht).
+        'owedBefore',trunc(public.pwa_rebates_owed_v1(referrer."Row ID"))::text,
         'hasOpenLoan',EXISTS(SELECT 1 FROM public."Loans" x WHERE x."Ref Borrowers"=referrer."Row ID" AND x."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(x."Defaulted",false)));
       END $function$
     "owner": "postgres"
@@ -66,7 +68,8 @@
     "settings":
     - "search_path=pg_catalog, public"
     "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
-    "comment": "R111/R118/R120: the referral rebate a Loan Close with this calculation creates (create_referral_rebate rule:\
-      \ the referrer's rate of interest and late charges, at most the referrer's cap), its referrer, whether the referrer\
-      \ has an open loan, the profit base and the terms (rate, cap, custom); null when none. Read only."
+    "comment": "R111/R118/R120/R129: the referral rebate a Loan Close with this calculation creates (create_referral_rebate\
+      \ rule: the referrer's rate of interest and late charges, at most the referrer's cap), its referrer, whether the referrer\
+      \ has an open loan, the profit base, the terms (rate, cap, custom) and owedBefore (the referrer's pending rebates now);\
+      \ null when none. Read only."
     "extension": null

@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r120-20261104/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "a36046cfdac29ff84ab43e97a886936571674503"
+    "commit": "0f2fc4461cb7c8a6fab82a9339a174589f1a01de"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-create-referral-rebate-p-loan-text-dc831aa4.yaml"
     "identity":
       "system": "postgresql"
@@ -125,7 +125,7 @@
        INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name",
         "Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By","Ref Offset Payment","Rebate Rate","Rebate Cap")
        VALUES('rr1:'||p_loan,l."Close Date",'Referral Rebate / เงินคืนค่าแนะนำลูกค้า',rebate::money,payee,referrer,l."Ref Borrowers",p_loan,
-        'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V2','SQL:loan-close',offset_id,(terms->>'rate')::numeric,(terms->>'cap')::numeric)
+        'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V3' /* R129: cash moves on settlement */,'SQL:loan-close',offset_id,(terms->>'rate')::numeric,(terms->>'cap')::numeric)
        ON CONFLICT ("Source Key") WHERE nullif(btrim("Source Key"),'') IS NOT NULL DO NOTHING;
       END $function$
     "owner": "postgres"
@@ -140,7 +140,8 @@
     "settings":
     - "search_path=pg_catalog, public"
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
-    "comment": "R111/R118/R120: the referral rebate of a closed referred loan, the referrer's rate (default 10%) of the interest\
-      \ and late charges received, at most the referrer's cap (default 1,000), as an expense or offset to the referrer's open\
-      \ loan; the applied terms are stored on the expense."
+    "comment": "R111/R118/R120/R129: the referral rebate of a closed referred loan, the referrer's rate (default 10%) of the\
+      \ interest and late charges received, at most the referrer's cap (default 1,000), offset to the referrer's open loan\
+      \ where possible; the rest is pending payment until a rebate settlement (REFERRAL_REBATE_V3). The applied terms are\
+      \ stored on the expense."
     "extension": null

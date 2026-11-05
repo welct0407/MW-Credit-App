@@ -131,6 +131,18 @@ jobs:
           fi
           "$MW_DB_TOOL_ROOT/flyway-$version/flyway" -v | grep -q "Flyway.*$version"
           /usr/lib/postgresql/18/bin/pg_ctl --version
+      # R131: the migrations group rebuilds with DEV/PROD's en_US.UTF8 collation (lc_collate and lc_ctype only), so a
+      # collation-sensitive self-check fails here, not on DEV (V137). The other groups keep their C clusters.
+      - name: en_US.UTF-8 collation for the migrations group (Linux)
+        if: runner.os == 'Linux' && matrix.group == 'migrations'
+        run: |
+          set -euo pipefail
+          if ! locale -a | grep -qix 'en_US\.utf8'; then
+            sudo apt-get install -y -q locales
+            sudo locale-gen en_US.UTF-8
+          fi
+          locale -a | grep -qix 'en_US\.utf8'
+          echo "MW_DB_COLLATION=en_US.UTF-8" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc

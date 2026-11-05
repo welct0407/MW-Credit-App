@@ -24,6 +24,24 @@ PWSH=SETUP/'powershell-7.5.4/pwsh' if (SETUP/'powershell-7.5.4/pwsh').exists() e
 # so migration self-checks see PROD-like defaults (R089: V103 passed here and failed in PROD). Recorded history only.
 # R095: (107,'r091') replays R091's revoke, so V110 meets PROD's remaining public SELECT ON TABLES default.
 PROD_DEFAULTS=((101,'apply'),(102,'pause'),(103,'resume'),(107,'r091'))
+# R131: DEV and PROD databases collate en_US.UTF8, which ignores punctuation ('mw_app_dev:SELECT' sorts after
+# 'mw_app_dev_journal_owner:*'); a C cluster hides an ordering a self-check depends on (V137 passed here, failed on DEV).
+# MW_DB_COLLATION=en_US.UTF-8 (opt-in; CI sets it for the migrations group) sets lc_collate and lc_ctype only: lc_monetary
+# and the rest stay C, as Test-StatementBatch.sql's money text expects. Unset or C keeps the C cluster. A locale built
+# outside the system (localedef into a directory) is found through LOCPATH, which the server inherits.
+COLLATION=os.environ.get('MW_DB_COLLATION') or 'C'
+
+def initdb_locale(collation=COLLATION):
+ """initdb locale arguments for the cluster collation."""
+ if collation=='C':return ['--locale=C']
+ if collation!='en_US.UTF-8':raise ValueError('MW_DB_COLLATION must be C or en_US.UTF-8')
+ return ['--locale=C','--lc-collate=en_US.UTF-8','--lc-ctype=en_US.UTF-8']
+
+# One probe: the database's collation and ctype, lc_monetary, and the order of two ACL-like strings (C: ':' before '_';
+# en_US.UTF8 ignores the punctuation and compares 'S' with 'j').
+COLLATION_PROBE="SELECT datcollate||'|'||datctype||'|'||current_setting('lc_monetary')||'|'||(SELECT string_agg(x,',' ORDER BY x) FROM unnest(ARRAY['ab:S','ab_j:I']) x) FROM pg_database WHERE datname=current_database()"
+def expected_probe(collation=COLLATION):
+ return f"{collation}|{collation}|C|{'ab:S,ab_j:I' if collation=='C' else 'ab_j:I,ab:S'}"
 
 def migration_plan(latest,pre_target=None):
  """(target version, step) pairs: migrate to the target, then run the step; a final None target migrates the rest."""
@@ -44,10 +62,12 @@ def main():
  with socket.socket() as s:s.bind(('127.0.0.1',0));port=s.getsockname()[1]
  psql=[PG/'psql','-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',port,'-U','postgres','-d','loan_manager_dev']
  flyway=[FLYWAY,f'-url=jdbc:postgresql://127.0.0.1:{port}/loan_manager_dev','-user=postgres','-configFiles='+str(REPO/'database/flyway.conf'),'-locations=filesystem:'+str(migrations),'-outputType=json']
- run([PG/'initdb','-D',data,'-U','postgres','--auth=trust','--encoding=UTF8','--locale=C'],stdout=subprocess.DEVNULL)
+ run([PG/'initdb','-D',data,'-U','postgres','--auth=trust','--encoding=UTF8',*initdb_locale()],stdout=subprocess.DEVNULL)
  run([PG/'pg_ctl','-D',data,'-l',root/'postgres.log','-o',f'-h 127.0.0.1 -p {port} -k {root}','-w','start'],stdout=subprocess.DEVNULL)
  try:
   run([PG/'createdb','-h','127.0.0.1','-p',port,'-U','postgres','loan_manager_dev'],stdout=subprocess.DEVNULL)
+  probe=run(psql+['-At','-c',COLLATION_PROBE],capture_output=True,text=True).stdout.strip()
+  if probe!=expected_probe():raise RuntimeError(f'Cluster collation differs from MW_DB_COLLATION={COLLATION}: {probe}')
   run(psql+['-f',REPO/'scripts/database/Test-AgentAuditPrerequisites.sql'],stdout=subprocess.DEVNULL)
   run(psql+['-f',REPO/'scripts/database/Test-AppRolePrerequisites.sql'],stdout=subprocess.DEVNULL)
   run(psql+['-f',REPO/'scripts/database/Test-IamRolePrerequisites.sql'],stdout=subprocess.DEVNULL)
@@ -92,7 +112,7 @@ def main():
   mutation=subprocess.run([str(x) for x in flyway if not str(x).startswith('-locations=')]+['-locations=filesystem:'+str(copies),'validate'],env=env,cwd=REPO,capture_output=True,text=True)
   outcome=json.loads(mutation.stdout)
   assert not outcome['validationSuccessful'] and sum(m['errorDetails']['errorCode']=='CHECKSUM_MISMATCH' for m in outcome['invalidMigrations'])==1
-  result=dict(migrations=first['migrationsExecuted'],pre_migration_target=args.pre_target,second_run=0,sql='passed',concurrency=checks,checksum_tampering_rejected=True,logs=str(root))
+  result=dict(migrations=first['migrationsExecuted'],pre_migration_target=args.pre_target,second_run=0,sql='passed',concurrency=checks,checksum_tampering_rejected=True,collation=COLLATION,logs=str(root))
   print(json.dumps(result))
  finally:run([PG/'pg_ctl','-D',data,'-m','fast','-w','stop'],stdout=subprocess.DEVNULL)
 

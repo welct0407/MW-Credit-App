@@ -7,7 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r052/dictionary-production-closure.json"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "0f2fc4461cb7c8a6fab82a9339a174589f1a01de"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-apply-payment-v2-canonical-text-61771881.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.pwa_apply_payment_v2(canonical text)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -35,15 +45,16 @@
       \n SELECT * INTO old FROM public.\"Payments\" WHERE \"Row ID\"=target FOR UPDATE;IF NOT FOUND THEN RAISE EXCEPTION USING\
       \ ERRCODE='P5B02';END IF;\r\n IF public.pwa_payment_version_v2(target) IS DISTINCT FROM c->>'expectedVersion' THEN RAISE\
       \ EXCEPTION USING ERRCODE='P5B01';END IF;\r\n head:=public.pwa_payment_head_v2(target);IF head::text IS DISTINCT FROM\
-      \ c->>'predecessorRequestId' THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;\r\n provenance:=public.pwa_effective_payment_plan_v2(target);\r\
-      \n IF op='payment.correct' THEN\r\n IF (provenance IS NOT NULL) IS DISTINCT FROM (i->>'kind'='pwa-plan') THEN RAISE\
-      \ EXCEPTION USING ERRCODE='P5B06';END IF;\r\n IF (f->>'paymentDate')::date>(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date\
-      \ THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;\r\n IF NOT EXISTS(SELECT 1 FROM public.\"Borrowers\" WHERE \"Row\
-      \ ID\"=f->>'borrowerId') THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;\r\n IF NOT EXISTS(SELECT 1 FROM public.\"\
-      Cash Accounts\" ca JOIN public.\"Cash Holders\" h ON h.\"Row ID\"=ca.\"Ref Cash Holder\" WHERE ca.\"Row ID\"=f->>'cashAccountId'\
-      \ AND ca.\"Active\" IS TRUE AND h.\"Active\" IS TRUE) THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\n IF provenance\
-      \ IS NOT NULL THEN\r\n enter_close:=f->>'allocationMethod'='Loan Close' AND (old.\"Allocation Method\" IS DISTINCT FROM\
-      \ 'Loan Close' OR old.\"Ref Target Loan\" IS DISTINCT FROM f->>'targetLoanId');\r\n IF enter_close THEN\r\n  IF (f->>'paymentDate')::date<>(CURRENT_TIMESTAMP\
+      \ c->>'predecessorRequestId' THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;\r\n provenance:=public.pwa_effective_payment_plan_v2(target);IF\
+      \ old.\"Payment Method\"='Referral Rebate Offset' THEN RAISE EXCEPTION USING ERRCODE='P5B05';END IF;\r\n IF op='payment.correct'\
+      \ THEN\r\n IF (provenance IS NOT NULL) IS DISTINCT FROM (i->>'kind'='pwa-plan') THEN RAISE EXCEPTION USING ERRCODE='P5B06';END\
+      \ IF;\r\n IF (f->>'paymentDate')::date>(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date THEN RAISE EXCEPTION USING\
+      \ ERRCODE='P5B08';END IF;\r\n IF NOT EXISTS(SELECT 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=f->>'borrowerId') THEN\
+      \ RAISE EXCEPTION USING ERRCODE='P5B04';END IF;\r\n IF NOT EXISTS(SELECT 1 FROM public.\"Cash Accounts\" ca JOIN public.\"\
+      Cash Holders\" h ON h.\"Row ID\"=ca.\"Ref Cash Holder\" WHERE ca.\"Row ID\"=f->>'cashAccountId' AND ca.\"Active\" IS\
+      \ TRUE AND h.\"Active\" IS TRUE) THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\n IF provenance IS NOT NULL THEN\r\
+      \n enter_close:=f->>'allocationMethod'='Loan Close' AND (old.\"Allocation Method\" IS DISTINCT FROM 'Loan Close' OR\
+      \ old.\"Ref Target Loan\" IS DISTINCT FROM f->>'targetLoanId');\r\n IF enter_close THEN\r\n  IF (f->>'paymentDate')::date<>(CURRENT_TIMESTAMP\
       \ AT TIME ZONE 'Asia/Bangkok')::date OR i->>'closePreparationHash' IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B08';END\
       \ IF;\r\n  SELECT * INTO destination FROM public.\"Loans\" WHERE \"Row ID\"=f->>'targetLoanId';\r\n  IF NOT FOUND OR\
       \ destination.\"Ref Borrowers\" IS DISTINCT FROM f->>'borrowerId' OR destination.\"Defaulted\" IS TRUE OR (destination.\"\
@@ -59,14 +70,16 @@
       \ FROM f->>'targetChargeId' THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;\r\n ELSE\r\n  IF i->>'closePreparationHash'\
       \ IS NOT NULL THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;\r\n IF EXISTS(WITH lines AS(SELECT value line FROM\
       \ jsonb_array_elements(f->'allocations')),paid AS(SELECT \"Ref Charges\" id,sum(\"Principal Paid\"::numeric) p,sum(\"\
-      Interest Paid\"::numeric) i FROM public.\"Repayments\" WHERE \"Ref Payment\" IS DISTINCT FROM target GROUP BY \"Ref\
-      \ Charges\") SELECT 1 FROM lines LEFT JOIN public.\"Charges\" ch ON ch.\"Row ID\"=line->>'chargeId' LEFT JOIN public.\"\
-      Loans\" l ON l.\"Row ID\"=ch.\"Ref Loans\" LEFT JOIN paid ON paid.id=ch.\"Row ID\" WHERE ch.\"Row ID\" IS NULL OR l.\"\
-      Ref Borrowers\" IS DISTINCT FROM f->>'borrowerId' OR ch.\"Charge Date\" IS DISTINCT FROM (line->>'chargeDate')::date\
-      \ OR ch.\"Principal Due\"::numeric-coalesce(paid.p,0) IS DISTINCT FROM (line->>'expectedPrincipalRemaining')::numeric\
+      Interest Paid\"::numeric) i,sum(\"Late Charge Paid\"::numeric) l FROM public.\"Repayments\" WHERE \"Ref Payment\" IS\
+      \ DISTINCT FROM target GROUP BY \"Ref Charges\") SELECT 1 FROM lines LEFT JOIN public.\"Charges\" ch ON ch.\"Row ID\"\
+      =line->>'chargeId' LEFT JOIN public.\"Loans\" l ON l.\"Row ID\"=ch.\"Ref Loans\" LEFT JOIN paid ON paid.id=ch.\"Row\
+      \ ID\" WHERE ch.\"Row ID\" IS NULL OR l.\"Ref Borrowers\" IS DISTINCT FROM f->>'borrowerId' OR ch.\"Charge Date\" IS\
+      \ DISTINCT FROM (line->>'chargeDate')::date OR ch.\"Principal Due\"::numeric-coalesce(paid.p,0) IS DISTINCT FROM (line->>'expectedPrincipalRemaining')::numeric\
       \ OR ch.\"Interest Due\"::numeric-coalesce(paid.i,0) IS DISTINCT FROM (line->>'expectedInterestRemaining')::numeric\
       \ OR (line->>'principal')::numeric>ch.\"Principal Due\"::numeric-coalesce(paid.p,0) OR (line->>'interest')::numeric>ch.\"\
-      Interest Due\"::numeric-coalesce(paid.i,0)) THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;\r\n END IF;\r\n plan:=jsonb_build_object('borrowerId',f->'borrowerId','amountReceived',f->'amountReceived','allocations',f->'allocations','allocationMethod',f->'allocationMethod','targetChargeId',f->'targetChargeId','targetLoanId',f->'targetLoanId','cashAccountId',f->'cashAccountId','paymentDate',f->'paymentDate','paymentMethod',f->'paymentMethod');\r\
+      Interest Due\"::numeric-coalesce(paid.i,0) /* R118 */ OR (line ? 'expectedLateChargeRemaining' AND ch.\"Late Charge\
+      \ Due\"::numeric-coalesce(paid.l,0) IS DISTINCT FROM (line->>'expectedLateChargeRemaining')::numeric) OR coalesce(line->>'lateCharge','0')::numeric>ch.\"\
+      Late Charge Due\"::numeric-coalesce(paid.l,0)) THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;\r\n END IF;\r\n plan:=jsonb_build_object('borrowerId',f->'borrowerId','amountReceived',f->'amountReceived','allocations',f->'allocations','allocationMethod',f->'allocationMethod','targetChargeId',f->'targetChargeId','targetLoanId',f->'targetLoanId','cashAccountId',f->'cashAccountId','paymentDate',f->'paymentDate','paymentMethod',f->'paymentMethod');\r\
       \n SELECT string_agg(value->>'chargeId',',' ORDER BY (value->>'chargeId') COLLATE \"C\") INTO ids FROM jsonb_array_elements(f->'allocations');\r\
       \n IF f->>'allocationMethod'<>'Selected Charges' THEN ids:=NULL;END IF;\r\n ELSE SELECT string_agg(value#>>'{}',','\
       \ ORDER BY (value#>>'{}') COLLATE \"C\") INTO ids FROM jsonb_array_elements(CASE WHEN f->'selectedChargeIds'='null'::jsonb\
@@ -86,22 +99,25 @@
       \ IS DISTINCT FROM (f->>'paymentDate')::date OR f->>'paymentMethod'<>'Net-off at Disbursement' OR f->>'targetLoanId'\
       \ IS NOT NULL OR jsonb_array_length(f->'allocations')<>1 OR f#>>'{allocations,0,chargeId}' IS DISTINCT FROM f->>'targetChargeId'\
       \ OR (f#>>'{allocations,0,principal}')::numeric<>(f#>>'{allocations,0,expectedPrincipalRemaining}')::numeric OR (f#>>'{allocations,0,interest}')::numeric<>(f#>>'{allocations,0,expectedInterestRemaining}')::numeric\
-      \ THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;\r\n   IF public.cash_account_holder(f->>'cashAccountId',true)<>'ch:lisa'\
-      \ THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\n  ELSIF repost AND f->>'allocationMethod'='Loan Close' AND NOT\
-      \ enter_close THEN\r\n   IF NOT EXISTS(SELECT 1 FROM public.\"Loans\" WHERE \"Row ID\"=f->>'targetLoanId' AND \"Ref\
-      \ Borrowers\"=f->>'borrowerId') OR NOT EXISTS(SELECT 1 FROM public.\"Charges\" WHERE \"Row ID\"=f->>'targetChargeId'\
-      \ AND \"Ref Loans\"=f->>'targetLoanId') THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;\r\n   IF EXISTS(WITH paid\
-      \ AS(SELECT \"Ref Charges\" id,sum(\"Principal Paid\"::numeric) p,sum(\"Interest Paid\"::numeric) i FROM public.\"Repayments\"\
-      \ WHERE \"Ref Payment\" IS DISTINCT FROM target GROUP BY \"Ref Charges\"),lines AS(SELECT value FROM jsonb_array_elements(f->'allocations'))\
+      \ OR coalesce(f#>>'{allocations,0,lateCharge}','0')<>'0' THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;\r\n   IF\
+      \ public.cash_account_holder(f->>'cashAccountId',true)<>'ch:lisa' THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\
+      \n  ELSIF repost AND f->>'allocationMethod'='Loan Close' AND NOT enter_close THEN\r\n   IF NOT EXISTS(SELECT 1 FROM\
+      \ public.\"Loans\" WHERE \"Row ID\"=f->>'targetLoanId' AND \"Ref Borrowers\"=f->>'borrowerId') OR NOT EXISTS(SELECT\
+      \ 1 FROM public.\"Charges\" WHERE \"Row ID\"=f->>'targetChargeId' AND \"Ref Loans\"=f->>'targetLoanId') THEN RAISE EXCEPTION\
+      \ USING ERRCODE='P5B04';END IF;\r\n   IF EXISTS(WITH paid AS(SELECT \"Ref Charges\" id,sum(\"Principal Paid\"::numeric)\
+      \ p,sum(\"Interest Paid\"::numeric) i,sum(\"Late Charge Paid\"::numeric) l FROM public.\"Repayments\" WHERE \"Ref Payment\"\
+      \ IS DISTINCT FROM target GROUP BY \"Ref Charges\"),lines AS(SELECT value FROM jsonb_array_elements(f->'allocations'))\
       \ SELECT 1 FROM public.\"Charges\" ch LEFT JOIN paid ON paid.id=ch.\"Row ID\" FULL JOIN lines ON lines.value->>'chargeId'=ch.\"\
       Row ID\" WHERE (ch.\"Ref Loans\"=f->>'targetLoanId' OR lines.value IS NOT NULL) AND (ch.\"Ref Loans\" IS DISTINCT FROM\
-      \ f->>'targetLoanId' OR (ch.\"Principal Due\"::numeric-coalesce(paid.p,0)>0 OR ch.\"Interest Due\"::numeric-coalesce(paid.i,0)>0)\
-      \ AND (lines.value IS NULL OR (lines.value->>'principal')::numeric IS DISTINCT FROM ch.\"Principal Due\"::numeric-coalesce(paid.p,0)\
-      \ OR (lines.value->>'interest')::numeric IS DISTINCT FROM ch.\"Interest Due\"::numeric-coalesce(paid.i,0)))) THEN RAISE\
-      \ EXCEPTION USING ERRCODE='P5B09';END IF;\r\n  END IF;\r\n END IF;\r\n explicit_inverse:=provenance IS NOT NULL AND\
-      \ public.payment_inputs(desired)=public.payment_inputs(old) AND public.pwa_plan_effects_v83(provenance#>'{plan,allocations}')\
-      \ IS DISTINCT FROM public.pwa_plan_effects_v83(f->'allocations');\r\n explicit_finish:=explicit_inverse AND desired.\"\
-      Ref Received By Cash Account\" IS NOT DISTINCT FROM old.\"Ref Received By Cash Account\";\r\n END IF;\r\n result_value:=jsonb_build_object('operation',op,'targetType','payment','targetId',target,'paymentId',CASE\
+      \ f->>'targetLoanId' OR (ch.\"Principal Due\"::numeric-coalesce(paid.p,0)>0 OR ch.\"Interest Due\"::numeric-coalesce(paid.i,0)>0\
+      \ OR ch.\"Late Charge Due\"::numeric-coalesce(paid.l,0)>0) AND (lines.value IS NULL OR (lines.value->>'principal')::numeric\
+      \ IS DISTINCT FROM ch.\"Principal Due\"::numeric-coalesce(paid.p,0) OR (lines.value->>'interest')::numeric IS DISTINCT\
+      \ FROM ch.\"Interest Due\"::numeric-coalesce(paid.i,0) OR coalesce(lines.value->>'lateCharge','0')::numeric IS DISTINCT\
+      \ FROM ch.\"Late Charge Due\"::numeric-coalesce(paid.l,0)))) THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;\r\n\
+      \  END IF;\r\n END IF;\r\n explicit_inverse:=provenance IS NOT NULL AND public.payment_inputs(desired)=public.payment_inputs(old)\
+      \ AND public.pwa_plan_effects_v83(provenance#>'{plan,allocations}') IS DISTINCT FROM public.pwa_plan_effects_v83(f->'allocations');\r\
+      \n explicit_finish:=explicit_inverse AND desired.\"Ref Received By Cash Account\" IS NOT DISTINCT FROM old.\"Ref Received\
+      \ By Cash Account\";\r\n END IF;\r\n result_value:=jsonb_build_object('operation',op,'targetType','payment','targetId',target,'paymentId',CASE\
       \ WHEN op='payment.correct' THEN target ELSE NULL END,'plan',plan,'predecessorRequestId',head,'sourceCreatedBy',CASE\
       \ WHEN op='payment.correct' THEN old.\"Created By\" ELSE NULL END);\r\n INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code,result_json)\
       \ VALUES((e->>'requestId')::uuid,2,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,encode(sha256(convert_to(canonical,'UTF8')),'hex'),'applied',NULL,NULL,result_value);\r\
@@ -127,9 +143,10 @@
       \ AND message IN('Only a posted Lump Sum whole-interest allocation can move','Change receipt amounts through Payments;\
       \ allocation move only changes Ref Charge') THEN RAISE EXCEPTION USING ERRCODE='P5B06';\r\n ELSIF message IN('Payment\
       \ has a later loan default/write-off; reconcile that default first','Manually closed loan must be reopened explicitly\
-      \ before its receipt changes','Corrected payment has a default dependency; undo default first') THEN RAISE EXCEPTION\
-      \ USING ERRCODE='P5B05';ELSE RAISE;END IF;END;\r\n RETURN result_value;\r\nEXCEPTION WHEN OTHERS THEN PERFORM set_config('pwa.native_inverse_request','',true);RAISE;\r\
-      \nEND $function$\n"
+      \ before its receipt changes','Corrected payment has a default dependency; undo default first','Remove through the closing\
+      \ payment','Remove through the closing payment: delete it and close again','Remove the settlement first' /* R129 */)\
+      \ THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSE RAISE;END IF;END;\r\n RETURN result_value;\r\nEXCEPTION WHEN OTHERS\
+      \ THEN PERFORM set_config('pwa.native_inverse_request','',true);RAISE;\r\nEND $function$\n"
     "owner": "postgres"
     "language": "plpgsql"
     "volatility": "v"
