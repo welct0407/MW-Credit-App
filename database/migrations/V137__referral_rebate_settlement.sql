@@ -336,7 +336,7 @@ SELECT pg_temp.v137_patch('public.pwa_submit_operation_v2(text)',ARRAY[
  $n$ ELSIF op='rebate-settlement.create' THEN
  -- R129: whole pending rebates of one referrer (1 to 200 distinct expense ids, ascending), date, Lisa's account, method,
  -- optional bank reference (Bank Transfer only) and notes.
- IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['bankReference','cashAccountId','expenseIds','notes','paymentMethod','referrerId','settlementDate'] THEN RAISE EXCEPTION 'settlement keys';END IF;
+ IF (SELECT array_agg(key ORDER BY key COLLATE "C") FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['bankReference','cashAccountId','expenseIds','notes','paymentMethod','referrerId','settlementDate'] THEN RAISE EXCEPTION 'settlement keys';END IF;
  IF jsonb_typeof(i->'referrerId') IS DISTINCT FROM 'string' OR octet_length(i->>'referrerId') NOT BETWEEN 1 AND 256 OR i->>'referrerId'~'[[:cntrl:]]'
   OR jsonb_typeof(i->'cashAccountId') IS DISTINCT FROM 'string' OR octet_length(i->>'cashAccountId') NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]'
   OR jsonb_typeof(i->'settlementDate') IS DISTINCT FROM 'string' OR i->>'settlementDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'settlementDate')::date)::text<>i->>'settlementDate'
@@ -579,8 +579,8 @@ BEGIN
  SELECT string_agg(o.routine,', ') INTO bad FROM v137_routines o JOIN pg_proc p ON p.oid=o.routine::regprocedure
   WHERE pg_get_userbyid(p.proowner)<>o.owner OR p.prosecdef<>o.definer OR p.provolatile<>o.volatile OR p.proconfig IS DISTINCT FROM o.config
    OR (o.routine NOT IN ('public.create_referral_rebate(text)','public.pwa_referral_rebate_projection_v1(text,jsonb)') AND obj_description(p.oid,'pg_proc') IS DISTINCT FROM o.comment)
-   OR (SELECT array_agg(a.grantee::text||':'||a.privilege_type ORDER BY a.grantee,a.privilege_type) FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE a.grantee<>p.proowner)
-    IS DISTINCT FROM (SELECT array_agg(a.grantee::text||':'||a.privilege_type ORDER BY a.grantee,a.privilege_type) FROM aclexplode(o.effective) a WHERE a.grantee<>p.proowner);
+   OR (SELECT array_agg(a.grantee::text||':'||a.privilege_type ORDER BY (a.grantee::text||':'||a.privilege_type) COLLATE "C") FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE a.grantee<>p.proowner)
+    IS DISTINCT FROM (SELECT array_agg(a.grantee::text||':'||a.privilege_type ORDER BY (a.grantee::text||':'||a.privilege_type) COLLATE "C") FROM aclexplode(o.effective) a WHERE a.grantee<>p.proowner);
  IF bad IS NOT NULL OR (SELECT count(*) FROM v137_routines)<>8 THEN RAISE EXCEPTION 'V137 changed the owner, privileges, attributes or comment of %',coalesce(bad,'an unexpected routine set'); END IF;
  SELECT string_agg(r,', ') INTO bad FROM unnest(ARRAY['public.calculate_business_expense()','public.create_referral_rebate(text)','public.pwa_referral_rebate_projection_v1(text,jsonb)',
    'public.sync_cash_ledger(text,text)','public.guard_cash_ledger()','public.pwa_submit_operation_v2(text)','public.pwa_apply_payment_v2(text)','public.pwa_apply_loan_close_v2(text)']) r
@@ -604,10 +604,10 @@ BEGIN
   OR NOT EXISTS(SELECT 1 FROM pg_constraint c JOIN pg_attribute a ON a.attrelid=c.conrelid AND a.attnum=ANY(c.conkey) WHERE c.conrelid='public."Cash Ledger"'::regclass AND c.contype='f'
    AND c.confrelid='public.pwa_rebate_settlements'::regclass AND a.attname='Ref Rebate Settlement' AND c.confdeltype='r') THEN RAISE EXCEPTION 'V137: the settlement links differ from the design'; END IF;
  -- Table ACL, exactly.
- IF (SELECT array_agg(pg_get_userbyid(a.grantee)||':'||a.privilege_type ORDER BY pg_get_userbyid(a.grantee),a.privilege_type) FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) a
+ IF (SELECT array_agg(pg_get_userbyid(a.grantee)||':'||a.privilege_type ORDER BY (pg_get_userbyid(a.grantee)||':'||a.privilege_type) COLLATE "C") FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) a
    WHERE c.oid='public.pwa_rebate_settlements'::regclass AND a.grantee<>c.relowner)
-  IS DISTINCT FROM (SELECT array_agg(x ORDER BY x) FROM unnest(ARRAY[app||':SELECT',journal||':DELETE',journal||':INSERT',journal||':SELECT',journal||':UPDATE',ledger||':SELECT']) x)
-  OR (SELECT array_agg(a.attname::text ORDER BY a.attname) FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_rebate_settlements'::regclass AND x.grantee=notify_owner::regrole)
+  IS DISTINCT FROM (SELECT array_agg(x ORDER BY x COLLATE "C") FROM unnest(ARRAY[app||':SELECT',journal||':DELETE',journal||':INSERT',journal||':SELECT',journal||':UPDATE',ledger||':SELECT']) x)
+  OR (SELECT array_agg(a.attname::text ORDER BY a.attname::text COLLATE "C") FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_rebate_settlements'::regclass AND x.grantee=notify_owner::regrole)
    IS DISTINCT FROM ARRAY['amount','id','payee_borrower_id','settlement_date'] THEN RAISE EXCEPTION 'V137: unexpected access to pwa_rebate_settlements'; END IF;
  -- Function ACLs, exactly; v5 is the notify owner's pinned definer; the rest run with the caller's rights.
  SELECT string_agg(f.routine,', ') INTO bad FROM (VALUES
@@ -615,8 +615,8 @@ BEGIN
    ('public.pwa_rebate_settlement_version_v1(text)',ARRAY[app||':EXECUTE']),('public.pwa_apply_rebate_settlement_v1(text)',ARRAY[journal||':EXECUTE']),
    ('public.pwa_notify_content_v5(uuid,bigint)',ARRAY[dispatcher||':EXECUTE']),('public.pwa_convert_legacy_rebate_v1(text)',NULL::text[]),
    ('public.rebate_settlement_cash_source()',NULL::text[]),('public.rebate_settlement_row_guard()',NULL::text[])) f(routine,expected)
-  WHERE (SELECT array_agg(CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END||':'||a.privilege_type ORDER BY 1) FROM pg_proc p CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
-    WHERE p.oid=f.routine::regprocedure AND a.grantee<>p.proowner) IS DISTINCT FROM (SELECT array_agg(x ORDER BY x) FROM unnest(f.expected) x);
+  WHERE (SELECT array_agg(CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END||':'||a.privilege_type ORDER BY (CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END||':'||a.privilege_type) COLLATE "C") FROM pg_proc p CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+    WHERE p.oid=f.routine::regprocedure AND a.grantee<>p.proowner) IS DISTINCT FROM (SELECT array_agg(x ORDER BY x COLLATE "C") FROM unnest(f.expected) x);
  IF bad IS NOT NULL THEN RAISE EXCEPTION 'V137: unexpected access to %',bad; END IF;
  IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)=notify_owner AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_content_v5(uuid,bigint)'::regprocedure)
   OR EXISTS(SELECT 1 FROM pg_proc WHERE prosecdef AND oid IN ('public.pwa_rebate_pending_v1(text)'::regprocedure,'public.pwa_rebates_owed_v1(text)'::regprocedure,'public.pwa_rebate_settlement_version_v1(text)'::regprocedure,
@@ -630,6 +630,6 @@ BEGIN
  IF NOT has_column_privilege(notify_owner,'public."Business Expenses"','Rule Version','SELECT') OR NOT has_column_privilege(notify_owner,'public."Business Expenses"','Ref Rebate Settlement','SELECT')
   OR has_table_privilege(notify_owner,'public."Business Expenses"','SELECT') THEN RAISE EXCEPTION 'V137: the notify owner reads the expense by its columns only'; END IF;
  -- The triggers on the new table.
- IF (SELECT array_agg(tgname::text ORDER BY tgname) FROM pg_trigger WHERE tgrelid='public.pwa_rebate_settlements'::regclass AND NOT tgisinternal) IS DISTINCT FROM ARRAY['a0_rebate_settlement_guard','zz_cash_source'] THEN
+ IF (SELECT array_agg(tgname::text ORDER BY tgname::text COLLATE "C") FROM pg_trigger WHERE tgrelid='public.pwa_rebate_settlements'::regclass AND NOT tgisinternal) IS DISTINCT FROM ARRAY['a0_rebate_settlement_guard','zz_cash_source'] THEN
   RAISE EXCEPTION 'V137: the settlement triggers differ from the design'; END IF;
 END $check$;

@@ -67,7 +67,8 @@ Pull request checks and DEV evidence are still pending (a row marked Pending is 
 | Echo UI pass, Chromium 390×844 and 1280×900, English and Thai | Pass after fixes (findings above) |
 | PR #251 first `Development checks` run 42030489214 on `89a9091` | Partly green: DB groups (migrations, receiving, phase5, phase8), check, lint, unit test, lab, GitGuardian and e2e shard 1 pass; e2e shards 2 and 3 failed. Cause 1: `rebate-offset-independent.spec.ts` (7 tests, both projects) still expected "transfer from Lisa" and "Pay out as expense". Cause 2: the `w5-ux-independent` desktop sidebar overflowed by 4px at 1280×800 with the new Referrers item |
 | Fix for those two failures (Byte) | Spec updated to the R129 wording (pre-R129 rows keep the legacy sentence); sidebar items 44px (was 48), gaps 2px, list padding 8px. Local: those two specs plus `referrers-independent` 75 passed, 1 skipped; biome and typecheck pass |
-| PR #251 second `Development checks` run, Database migrations workflow and e2e shards on the fix | Pending |
+| PR #251 second `Development checks` run 42033590990 on `3c30f3b` | Pass: Development checks result, e2e shards 1 to 3, check, lint, GitGuardian. The database inputs are identical to `89a9091`, whose Database migrations run 42030436293 is green |
+| V137 self-check ACL ordering (found by DEV attempt 1, fixed by Byte) | Every ordered comparison in V137's self-checks uses one expression with `COLLATE "C"` on both sides; an aggregate `ORDER BY 1` in the function ACL check is fixed; the `pwa_submit_operation_v2` settlement key check uses `COLLATE "C"`; `public-functions.sql` regenerated and verified. Proof: an en_US.UTF-8 lab (V136 with PROD default privileges) reproduced the DEV failure with the old V137 and passed with the fix (Flyway migrate, `Test-RebateSettlement`, `Test-StatementBatch`); the C lab passes; `mw-db-ci` migrations exit 0; the 8 affected unit files 193 pass; biome clean. The fix commit's own CI run is Pending |
 | `npm run check:docs` (Dewey) | Pass at this record (final run after any later edit) |
 
 ## Not run
@@ -85,6 +86,7 @@ Owner confirmations the design assumed (first option of each): D3 accruing = reb
 - Owner review in DEV, then a separate promotion instruction (verified PROD backup, owner window, images, Hosting, tag).
 - At promotion, after V137 and its verification: run `pwa_convert_legacy_rebate_v1` once on PROD expense `rr1:4880c5c5-e3a5-40dc-a5cf-e2b2e5444aaa` (the owner-named 20 baht rebate, see Changes), read back the Rule Version, the removed ledger row, pending 20 and owed 20, and record it in the PROD promotion record. Not run on DEV data.
 - At promotion: repeat the optional chat read grant (`GRANT SELECT ON pwa_rebate_settlements TO mw_chat_read_<env>`), and refresh the Data Dictionary after the PROD capture.
+- Follow-up, not in R129: CI database labs run C collation while DEV and PROD are en_US.UTF8, which hid the V137 failure; a contained opt-in en_US collation for the migrations group (`Test-MigrationsCloud.py`) would catch it.
 - Deferred (D9): settlement push, slip upload on the settle page, chat-created settlements, a reminder for old pending rebates, a menu badge, owed balances on the Borrowers list.
 
 ## DEV promotion record (Forge, UTC)
@@ -92,13 +94,13 @@ Placeholders for Forge's evidence. Authority: the owner's 5 November 2026 instru
 
 | Item | Result |
 | --- | --- |
-| Package | Pending (PR number, head commit, `Development checks`, Database migrations and e2e run results) |
+| Package | Attempt 1: PR #251 head `3c30f3b`, `Development checks` run 42033590990 green. Attempt 2: Pending (head with the collation fix and its runs) |
 | Scope | Pending (expected: V137, read, command, chat, notify and jobs images, DEV Hosting labelled R129) |
-| Preflight | Pending (DEV at V136; V137 the only pending; each counted boundary occurs once; routine owners) |
-| Backup at V136 | Pending (`Backup-ProductionPromotion.py --environment development --expected-version 136`, restore verified) |
-| Image | Pending (Cloud Build, container smoke, digest) |
-| Owner window | Pending (all six DEV owners: notify, jobs, ledger, changes, journal, chat; open and restore times) |
-| V137 | Pending (installed time, duration, checksum) |
+| Preflight | Attempt 1 run at `3c30f3b`. Attempt 2: Pending |
+| Backup at V136 | Attempt 1: 13:22:23Z to 13:24:52Z, restore verified, 38 table fingerprints, dump sha256 `0725d799d20bf156ec3974ff81416b32012ded36aedb75a4867d93c94cf884f5`, folder `dev-refresh-7d34fd34db3647acbacc0e087ccee308`. Attempt 2: Pending |
+| Image | Attempt 1: Cloud Build `6556604f-a774-4e9b-b110-58b801900c84` SUCCESS, digest `sha256:c9ab98bd…388bca9`; built, not deployed. Attempt 2: Pending |
+| Owner window | Attempt 1: all six DEV owners open 13:25:51Z to 13:26:03Z; closed 13:28:22Z to 13:28:33Z. Attempt 2: Pending |
+| V137 | Attempt 1: `Invoke-Flyway.ps1 migrate` 13:26:14Z to 13:26:44Z FAILED and rolled back with "V137: unexpected access to pwa_rebate_settlements". Cause: V137's self-check compared ACL arrays ordered differently, which diverge under DEV and PROD's en_US.UTF8 collation (CI labs use C). Readback: head 136, no V137 objects, nothing written. Terraform, Hosting and smoke were not run and the pins are unchanged. Attempt 2 (after Byte's fix): Pending |
 | Reconcile | Pending (post-migrate application-role reconcile: expected 0 violations with the new table read-only) |
 | Validate | Pending (`Invoke-CloudFlyway.py verify --target dev`: head 137, nothing pending) |
 | SQL readback | Pending (owners, ACLs, R129 marker on every replaced routine, the ledger CHECK text; no synthetic settlement written on DEV unless the owner asks) |
