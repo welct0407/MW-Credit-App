@@ -1,7 +1,7 @@
 # Change notes — R129 referral rebate pending payment, Referrers page and settlement, 5 November 2026
 
 ## Purpose
-Owner instruction, 5 November 2026: "I want the referral expenses (not offsetting open loans) to be recorded and marked as pending payment, and a way to settle those outstanding payment. Expense will still be recorded and recognized at the time of loan closure. Just the cash payment will be delayed", plus a Referrers page with each referrer's unpaid and accruing rebates, a detail page and the settlement history. Status: built and tested for DEV review; DEV deployment is covered by the owner's instruction and PROD needs its own instruction with a verified backup. Design: Archie's R129 Referral Rebate Settlement design (decisions D1 to D9).
+Owner instruction, 5 November 2026: "I want the referral expenses (not offsetting open loans) to be recorded and marked as pending payment, and a way to settle those outstanding payment. Expense will still be recorded and recognized at the time of loan closure. Just the cash payment will be delayed", plus a Referrers page with each referrer's unpaid and accruing rebates, a detail page and the settlement history. Status: On DEV for owner review (applied 5 November 2026); PROD needs its own instruction with a verified backup. Design: Archie's R129 Referral Rebate Settlement design (decisions D1 to D9).
 
 ## Changes
 Scope:
@@ -49,7 +49,7 @@ Files and objects (Byte to confirm names and counts at the final commit):
 - Known behaviour: every expense version hash changes once at V137 (the hash covers the whole row), so a queued phone edit of an expense hits `source_conflict` once in a short window, as recorded for R120.
 
 ## Checks
-Pull request checks and DEV evidence are still pending (a row marked Pending is not a pass).
+Pull request checks on `7153aab` are recorded below; the DEV evidence is in the DEV promotion record.
 
 | Command | Result |
 | --- | --- |
@@ -67,20 +67,24 @@ Pull request checks and DEV evidence are still pending (a row marked Pending is 
 | Echo UI pass, Chromium 390×844 and 1280×900, English and Thai | Pass after fixes (findings above) |
 | PR #251 first `Development checks` run 42030489214 on `89a9091` | Partly green: DB groups (migrations, receiving, phase5, phase8), check, lint, unit test, lab, GitGuardian and e2e shard 1 pass; e2e shards 2 and 3 failed. Cause 1: `rebate-offset-independent.spec.ts` (7 tests, both projects) still expected "transfer from Lisa" and "Pay out as expense". Cause 2: the `w5-ux-independent` desktop sidebar overflowed by 4px at 1280×800 with the new Referrers item |
 | Fix for those two failures (Byte) | Spec updated to the R129 wording (pre-R129 rows keep the legacy sentence); sidebar items 44px (was 48), gaps 2px, list padding 8px. Local: those two specs plus `referrers-independent` 75 passed, 1 skipped; biome and typecheck pass |
+| PR #251 on `7153aab`: Database migrations `guards` job (run 42038143779) | Failed: "Existing migrations are immutable; add a new version", because `7153aab` edits V137 that was first pushed in `89a9091`. **Owner-approved exception, 5 November 2026:** the owner chose to accept this on PR #251. V137 has never been applied anywhere: DEV rolled back at its self-check (no Flyway history row or checksum), PROD is at 136 and the branch is unmerged. A higher migration cannot fix a V137 that cannot be applied, and deleting or renaming it is also a change. Decision recorded in the [PR comment](https://github.com/welct0407/MW-Credit-App/pull/251#issuecomment-6659593983). The rebuild groups run in full on the fixed V137 (green in Database migrations run 42038143779; only `guards` is red) |
+| PR #251 on `7153aab`: `Development checks` run 42038154651 | Pass |
+| PR #251 on `7153aab`: Agent tests `test` | Failed in `test_chat_relay` with `BrokenPipeError` (an oversized-body race). Not caused by this PR: the chat relay is untouched and `integration-agent` is unchanged since `89a9091`, where it passed. The failed job was re-run once and is green (Agent tests run 42038154232) |
 | PR #251 second `Development checks` run 42033590990 on `3c30f3b` | Pass: Development checks result, e2e shards 1 to 3, check, lint, GitGuardian. The database inputs are identical to `89a9091`, whose Database migrations run 42030436293 is green |
-| V137 self-check ACL ordering (found by DEV attempt 1, fixed by Byte) | Every ordered comparison in V137's self-checks uses one expression with `COLLATE "C"` on both sides; an aggregate `ORDER BY 1` in the function ACL check is fixed; the `pwa_submit_operation_v2` settlement key check uses `COLLATE "C"`; `public-functions.sql` regenerated and verified. Proof: an en_US.UTF-8 lab (V136 with PROD default privileges) reproduced the DEV failure with the old V137 and passed with the fix (Flyway migrate, `Test-RebateSettlement`, `Test-StatementBatch`); the C lab passes; `mw-db-ci` migrations exit 0; the 8 affected unit files 193 pass; biome clean. The fix commit's own CI run is Pending |
+| V137 self-check ACL ordering (found by DEV attempt 1, fixed by Byte) | Every ordered comparison in V137's self-checks uses one expression with `COLLATE "C"` on both sides; an aggregate `ORDER BY 1` in the function ACL check is fixed; the `pwa_submit_operation_v2` settlement key check uses `COLLATE "C"`; `public-functions.sql` regenerated and verified. Proof: an en_US.UTF-8 lab (V136 with PROD default privileges) reproduced the DEV failure with the old V137 and passed with the fix (Flyway migrate, `Test-RebateSettlement`, `Test-StatementBatch`); the C lab passes; `mw-db-ci` migrations exit 0; the 8 affected unit files 193 pass; biome clean. The fix commit `7153aab` ran in the runs above |
 | `npm run check:docs` (Dewey) | Pass at this record (final run after any later edit) |
 
 ## Not run
 The wide Playwright suite locally (the pull request CI is the one broad run); real iOS Safari (the owner's DEV review); the push on a device; a settlement on PROD data. A skipped check is not a pass.
 
 ## Recovery
-- Placeholder until Forge reports: DEV before R129 is settings generation `1793865141900575` (read `00071-ljm`, command `00088-sg9`, chat `00040-flw`, notify `00029-njw`, jobs `00029-9k6`) and Hosting `172e9094f02fb9b9` (R128); the backup reference at V136 comes from the DEV record below.
+- DEV before R129 (see the DEV record below) is settings generation `1793865141900575` (read `00071-ljm`, command `00088-sg9`, chat `00040-flw`, notify `00029-njw`, jobs `00029-9k6`) and Hosting `172e9094f02fb9b9` (R128). The backup reference at V136 is `dev-refresh-1a1641c4a5f8464aa67f9a191c4ba665`.
 - V137 is additive and immutable; roll forward with a later migration restoring the V136 bodies of the replaced routines and keeping the table and columns. Rebates already booked as V3 would then never move cash, so prefer a forward fix. Settlements already made remain correct ledger history.
 - Git baseline: R128 `57a7855` (origin/main when R129 was started).
 
 ## Open questions
 Owner confirmations the design assumed (first option of each): D3 accruing = rebate on interest and late charges received so far at today's terms, not a projection to the loan's end; D1 no conversion of rebates booked before V137, except the one owner-named legacy rebate above (if some others were in fact never paid, the owner sends the list for a separate authorized correction); D9 deferrals accepted; the menu item name "Referrers" / "ผู้แนะนำ".
+- Owner to decide: `docs/Development.md` says the DEV Hosting build carries nine settings including `VITE_NOTIFICATIONS`, but the live R128 bundle did not carry it. Forge built R129 with the same eight keys, so DEV behaves as before. Should the DEV notifications screen be on (a Hosting-only rebuild) or the docs line corrected?
 
 ## Remaining work
 - Owner review in DEV, then a separate promotion instruction (verified PROD backup, owner window, images, Hosting, tag).
@@ -90,24 +94,24 @@ Owner confirmations the design assumed (first option of each): D3 accruing = reb
 - Deferred (D9): settlement push, slip upload on the settle page, chat-created settlements, a reminder for old pending rebates, a menu badge, owed balances on the Borrowers list.
 
 ## DEV promotion record (Forge, UTC)
-Placeholders for Forge's evidence. Authority: the owner's 5 November 2026 instruction to implement, test and deploy to DEV for review; DEV only, no PROD action, merge or tag. No secret value, token or borrower data appears here. Pins go only in the [environment inventory](../project/Documents/Environment_Inventory.md).
+Authority: the owner's 5 November 2026 instruction to implement, test and deploy to DEV for review; DEV only, no PROD action, merge or tag. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md). Attempt 1 (at `3c30f3b`) failed at V137's self-check and rolled back; attempt 2 succeeded. All times 5 November 2026 UTC.
 
 | Item | Result |
 | --- | --- |
-| Package | Attempt 1: PR #251 head `3c30f3b`, `Development checks` run 42033590990 green. Attempt 2: Pending (head with the collation fix and its runs) |
-| Scope | Pending (expected: V137, read, command, chat, notify and jobs images, DEV Hosting labelled R129) |
-| Preflight | Attempt 1 run at `3c30f3b`. Attempt 2: Pending |
-| Backup at V136 | Attempt 1: 13:22:23Z to 13:24:52Z, restore verified, 38 table fingerprints, dump sha256 `0725d799d20bf156ec3974ff81416b32012ded36aedb75a4867d93c94cf884f5`, folder `dev-refresh-7d34fd34db3647acbacc0e087ccee308`. Attempt 2: Pending |
-| Image | Attempt 1: Cloud Build `6556604f-a774-4e9b-b110-58b801900c84` SUCCESS, digest `sha256:c9ab98bd…388bca9`; built, not deployed. Attempt 2: Pending |
-| Owner window | Attempt 1: all six DEV owners open 13:25:51Z to 13:26:03Z; closed 13:28:22Z to 13:28:33Z. Attempt 2: Pending |
-| V137 | Attempt 1: `Invoke-Flyway.ps1 migrate` 13:26:14Z to 13:26:44Z FAILED and rolled back with "V137: unexpected access to pwa_rebate_settlements". Cause: V137's self-check compared ACL arrays ordered differently, which diverge under DEV and PROD's en_US.UTF8 collation (CI labs use C). Readback: head 136, no V137 objects, nothing written. Terraform, Hosting and smoke were not run and the pins are unchanged. Attempt 2 (after Byte's fix): Pending |
-| Reconcile | Pending (post-migrate application-role reconcile: expected 0 violations with the new table read-only) |
-| Validate | Pending (`Invoke-CloudFlyway.py verify --target dev`: head 137, nothing pending) |
-| SQL readback | Pending (owners, ACLs, R129 marker on every replaced routine, the ledger CHECK text; no synthetic settlement written on DEV unless the owner asks) |
-| Terraform | Pending (plan, apply, re-plan clean, settings generation) |
-| Revisions | Pending |
-| Hosting | Pending (build-version, embeds the source commit, `--check`, version) |
-| Smoke | Pending (`/health`, 401 unauthenticated, CORS 204, `/api/referrers` 200 as the DEV test Partner with the expected shape, both origins on the new build, `sw.js` no-store, no ERROR logs) |
-| Chat read role | Pending (optional operator grant on `pwa_rebate_settlements` to `mw_chat_read_dev`) |
-| Not done on DEV | Pending |
-| Rollback | Pending |
+| Package | Attempt 1: PR #251 head `3c30f3b`, `Development checks` run 42033590990 green. Attempt 2: PR #251 (unmerged) head `7153aabead36a5b2787c9c1eeaaf9c9e9c918ca8`; `Development checks` run 42038154651 green; Database migrations run 42038143779 rebuild groups green and `guards` red under the owner-approved exception; Agent tests run 42038154232 green on re-run. The diff against `3c30f3b` is the V137 `COLLATE "C"` fix, `public-functions.sql` and this note. V137 sha256 `b909a1d1569eca97697e91aa9032b84b32e9a2888b11a1df7caba31cb3470f82` |
+| Scope | V137, read, command, chat, notify and jobs images, DEV Hosting labelled R129 |
+| Preflight | Attempt 1 run at `3c30f3b`. Attempt 2: DEV at head 136, no V137 row, 0 of 8 routines patched |
+| Backup at V136 | Attempt 1: 13:22:23Z to 13:24:52Z, restore verified, 38 table fingerprints, dump sha256 `0725d799d20bf156ec3974ff81416b32012ded36aedb75a4867d93c94cf884f5`, folder `dev-refresh-7d34fd34db3647acbacc0e087ccee308`. Attempt 2: 13:50:45Z to 13:53:16Z, restore passed, 38 fingerprints, dump sha256 `ea5d5d7dfd4b08c52a26ffeb848d9bf3d5851d3d3b00a6caf8979522c9af31e7`, folder `dev-refresh-1a1641c4a5f8464aa67f9a191c4ba665` |
+| Image | Attempt 1: Cloud Build `6556604f-a774-4e9b-b110-58b801900c84` SUCCESS, digest `sha256:c9ab98bd…388bca9`; built, not deployed. Attempt 2: Cloud Build `a1325326-1106-4264-aabd-f16a1c1b93ac` SUCCESS, 13:53:33Z to 13:54:11Z, digest `sha256:211cb0d917898bf36d26bd751f45ee7f46c819c1f496a4e5e1fe8df2368c2930` |
+| Owner window | Attempt 1: all six DEV owners open 13:25:51Z to 13:26:03Z; closed 13:28:22Z to 13:28:33Z. Attempt 2: opened 13:54:04Z to 13:54:16Z, closed 14:02:03Z to 14:02:14Z (24 statements each); readback inherit and set false, no CREATE on public |
+| V137 | Attempt 1: `Invoke-Flyway.ps1 migrate` 13:26:14Z to 13:26:44Z FAILED and rolled back with "V137: unexpected access to pwa_rebate_settlements". Cause: V137's self-check compared ACL arrays ordered differently, which diverge under DEV and PROD's en_US.UTF8 collation (CI labs use C). Readback: head 136, no V137 objects, nothing written. Terraform, Hosting and smoke were not run and the pins are unchanged. Attempt 2 (after Byte's fix): installed 13:54:33Z (14.5 s, checksum -746614450); runner done 14:01:48Z |
+| Reconcile | Post-migrate application-role reconcile: 562 statements, 0 violations |
+| Validate | `Invoke-CloudFlyway.py verify --target dev`: head 137, 136 applied, nothing pending |
+| SQL readback | The 8 replaced routines carry the R129 marker, owners, security and ACLs unchanged. New functions have no PUBLIC execute: pending and owed (application role and notify owner), version (application role), apply (journal owner), notify v5 (notify-owner definer, dispatcher execute), convert legacy (`postgres` only). `pwa_rebate_settlements` owner `postgres`, journal owner arwd, ledger owner and application role r. `cash_ledger_source` has the fifth branch; `"Business Expenses_check2"` accepts V2 and V3. Data: 0 settlements, 0 V3 rows, 0 linked. DEV release manifest `release-r129-v137-7153aab.json` (sha256 `2b6047b7…8d03`) |
+| Terraform | Plan 0 add, 5 change, 0 destroy (image only); applied 14:05:09Z to 14:05:47Z; re-plan clean; settings generation `1793887586576389` (previous `1793865141900575`) |
+| Revisions | read `00072-qdx`, command `00089-c7v`, chat `00041-jjd`, notify `00030-b8b`, jobs `00030-75c`, all on image `211cb0d9…` |
+| Hosting | Version `c6e5987387a2c67a`, release `1793887762721000`, build-version R129 `8a738345328014d112585b10`, embeds `7153aab`, deployed 14:09:14Z to 14:09:23Z; `.env.live-dev` shredded |
+| Smoke | `/health` 200 on read, command and chat; notify and jobs Ready; unauthenticated 401; CORS 204 on both origins; the three origins serve R129; `sw.js` no-store; `/api/referrers` 200 as the DEV test Partner with `{ok, items[14], businessDate}`; no ERROR logs 13:54Z to 14:10:41Z |
+| Chat read role | Not done (optional operator grant on `pwa_rebate_settlements` to `mw_chat_read_dev`) |
+| Not done on DEV | The chat grant, the legacy rebate conversion (PROD step only), and any settlement (no synthetic settlement written) |
+| Rollback | Settings generation `1793865141900575`, then Hosting `172e9094f02fb9b9`; V137 stays (forward fix) or restore backup `dev-refresh-1a1641c4a5f8464aa67f9a191c4ba665` |
