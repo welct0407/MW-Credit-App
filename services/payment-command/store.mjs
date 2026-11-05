@@ -19,6 +19,7 @@ import {readLoanRelated} from '../business/loan-related.mjs';
 import {readPreferences} from '../business/preferences.mjs';
 import {readCashOverview,readCashStatement} from '../business/cash.mjs';
 import {readExpenseRecord,readExpenseOptions,readExpensePage} from '../business/expenses.mjs';
+import {readReferrers,readReferrerRecord,readRebateSettlement} from '../business/referrers.mjs';
 import {readPaymentRecord,readPaymentCorrectionPreview} from '../business/payments.mjs';
 import {readChargeRecord} from '../business/charges.mjs';
 import {canonicalOperation,operationIdentity} from '../contracts/operation-command.mjs';
@@ -61,7 +62,8 @@ async function settleCloses(client,plan,businessDate){
     if((await client.query(`SELECT to_regprocedure('public.pwa_referral_rebate_projection_v1(text,jsonb)') IS NOT NULL AS present`)).rows[0].present){
       const calculation=(await client.query('SELECT public.loan_close_calculation_v83($1,$2::date) AS value',[entry.loanId,businessDate])).rows[0].value;
       const projection=(await client.query('SELECT public.pwa_referral_rebate_projection_v1($1,$2::jsonb) AS value',[entry.loanId,JSON.stringify(calculation)])).rows[0].value;
-      if(projection)rebate={amount:projection.amount,referrer:borrowerDisplayName(projection.referrerName,projection.referrerDescription),offset:projection.hasOpenLoan===true&&projection.selfReferral!==true};
+      // R129 (V137): the referrer's id and pending total before this payment (owedBefore; null before V137).
+      if(projection)rebate={amount:projection.amount,referrer:borrowerDisplayName(projection.referrerName,projection.referrerDescription),offset:projection.hasOpenLoan===true&&projection.selfReferral!==true,referrerId:projection.referrerId,owedBefore:projection.owedBefore??null};
     }
     closes[entry.loanId]={payoff:entry.payoff,gapInterest:entry.accruedInterest,charges:entry.charges,rebate};
   }
@@ -92,8 +94,9 @@ async function readCloseRebate(client,loanId,calculation,businessDate){
   }
   // R120 (V135): the basis of the amount, the profit base and the referrer's terms; null from a projection before V135.
   const basis={profit:projection.profit??null,rate:projection.rate??null,cap:projection.cap??null,custom:typeof projection.custom==='boolean'?projection.custom:null};
+  // R129 (V137): what the referrer is owed before this close (pending rebates); null from a projection before V137.
   return {amount:projection.amount,referrer:{id:projection.referrerId,displayName:borrowerDisplayName(projection.referrerName,projection.referrerDescription)},hasOpenLoan:offerable,
-   previousPath:['offset','expense'].includes(previousPath)?previousPath:null,offset,businessDate,...basis};
+   previousPath:['offset','expense'].includes(previousPath)?previousPath:null,offset,businessDate,...basis,owedBefore:projection.owedBefore??null};
 }
 /** Loan Close calculation refusals (loan_close_calculation_v83, P0001) that mean the loan cannot close as it stands. */
 const CLOSE_UNAVAILABLE=['Loan Close requires an open auto-enabled daily-interest loan','Loan Close requires valid loan date, principal and daily interest','Loan charge components require reconciliation before closing','Loan has no outstanding principal to close','Principal already due exceeds outstanding loan principal','Multiple charges today require reconciliation before closing','Final receipt must be a positive whole-baht amount'];
@@ -109,7 +112,7 @@ export async function readLoanCloseQuote(client,id){
   }
   const {sourceVersion,businessDate,amount,planHash}=calculation,rebate=await readCloseRebate(client,id,calculation,businessDate);
   return {ok:true,value:{loanId:id,borrowerId:loan.borrowerId,sourceVersion,businessDate,amount,planHash,...closeSummary(calculation),
-    rebate:rebate&&{amount:rebate.amount,hasOpenLoan:rebate.hasOpenLoan,previousPath:rebate.previousPath,referrer:rebate.referrer,
+    rebate:rebate&&{amount:rebate.amount,hasOpenLoan:rebate.hasOpenLoan,previousPath:rebate.previousPath,referrer:rebate.referrer,owedBefore:rebate.owedBefore,
       offset:rebate.offset&&{covered:rebate.offset.covered,payable:rebate.offset.payable}}}};
 }
 /** R110: the purpose a v10 command carries, as the command derives it: its principal entries, and forward for the loans of
@@ -272,6 +275,10 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async expenseRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const item=await readExpenseRecord(client,id);return item?{ok:true,value:{item}}:failure(404,'not_found')},true)},
     async expenseOptions(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpenseOptions(client)}),true)},
     async expenses(principal,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpensePage(client,options)}),true)},
+    // R129 (V137): the Referrers page, a referrer's detail and one rebate settlement (the expense reads' access gate).
+    async referrers(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readReferrers(client)}),true)},
+    async referrerRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const value=await readReferrerRecord(client,id);return value?{ok:true,value}:failure(404,'not_found')},true)},
+    async rebateSettlementRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const value=await readRebateSettlement(client,id);return value?{ok:true,value}:failure(404,'not_found')},true)},
     async paymentImage(principal,id,source='preferred'){
       if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id)||!['preferred','manual','agent'].includes(source))return failure(400,'invalid_request');
       const sql='SELECT "Uploaded Receipt" manual,"Receipt Image" agent,"IG Receipt ID" AS "agentReceiptId","Receipt Received At"::text AS "agentReceivedAt" FROM public."Payments" WHERE "Row ID"=$1';

@@ -5,6 +5,41 @@ import {confirmOwnPayment,seedOperationReceipt,type OwnReceipt} from './own-writ
 /** The server's descriptor of each receipt this session uploaded (sha256, sizeBytes), by request. */
 const uploaded=new Map<string,OwnReceipt['descriptor']>();
 
+/** R129 (V137): operations that are never queued: a rebate settlement is a cash payout, so it is sent only while connected
+ * and never stored in the offline queue (sendOnlineOnly). */
+export const onlineOnlyOperation=(operation:unknown)=>typeof operation==='string'&&operation.startsWith('rebate-settlement.');
+export type OnlineOnlyResult={kind:'synced'|'blocked'|'busy'|'unknown'|'offline';data?:any;status?:number;code?:string};
+/**
+ * R129: send one online-only operation directly (POST /api/operations), never through the offline queue. An unknown outcome
+ * (no answer, a lost response, 5xx) is reconciled by the status read under the same request id: with check=true the status is
+ * read first, and the identical command is sent again only when the server never recorded it ("unresolved"); a request id is
+ * never replaced. 409 command_busy applied nothing (busy); a recorded rejection or a refused request is blocked.
+ */
+export async function sendOnlineOnly(access:CommandAccess,command:any,{check=false}:{check?:boolean}={}):Promise<OnlineOnlyResult>{
+ if(!navigator.onLine||access.offlineOnly||!allowedOrigin(access))return {kind:'offline'};
+ if(!onlineOnlyOperation(command?.operation)||!uuid.test(command?.requestId??''))return {kind:'blocked',code:'unsupported_saved_request'};
+ const request=async(path:string,init:RequestInit={})=>{
+  const controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
+  try{const token=await access.token();
+   const response=await fetch(access.origin+path,{...init,signal:controller.signal,headers:{Authorization:'Bearer '+token,'X-MW-Wake-Deadline':String(deadline),...init.headers},cache:'no-store',credentials:'omit',redirect:'error'});
+   if(response.status===401||response.status===403){access.authFailure(response.status);throw Error('Authentication required')}
+   return {response,data:await response.json().catch(()=>null)};
+  }finally{clearTimeout(timer)}
+ };
+ const known=(response:Response,data:any):OnlineOnlyResult|null=>{
+  if(data?.kind==='recorded'){if(['applied','posted'].includes(data.originalOutcome?.status))return {kind:'synced',data,status:response.status};
+   if(data.originalOutcome?.status==='rejected')return {kind:'blocked',data,status:response.status,code:data.originalOutcome.code??'request_rejected'};}
+  if(response.status===409&&data?.code==='command_busy')return {kind:'busy',data,status:response.status,code:'command_busy'};
+  if([400,409,413,415,422].includes(response.status)||data?.kind==='conflict')return {kind:'blocked',data,status:response.status,code:data?.code??'request_requires_review'};
+  return null;
+ };
+ try{
+  if(check){const status=await request('/api/operations/'+command.requestId);const result=known(status.response,status.data);if(result)return result;
+   if(!status.response.ok||status.data?.kind!=='unresolved')return {kind:'unknown',status:status.response.status,code:'status_unavailable'};}
+  const sent=await request('/api/operations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(command)});
+  return known(sent.response,sent.data)??{kind:'unknown',data:sent.data,status:sent.response.status,code:sent.data?.code??'operation_outcome_unknown'};
+ }catch{return {kind:'unknown',code:'operation_outcome_unknown'}}
+}
 export type SavedSyncResult={kind:'queued'|'synced'|'blocked';data?:any;status?:number;code?:string};
 /** Busy (409 command_busy): nothing applied, same request id retried automatically. Distinct from outcome unknown and from a rejection. */
 export const isBusyOutcome=(result:{kind?:string;code?:string;data?:any}|null|undefined)=>!!result&&result.kind!=='synced'&&result.kind!=='blocked'&&(result.code==='command_busy'||result.data?.code==='command_busy');

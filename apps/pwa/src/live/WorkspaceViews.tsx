@@ -1,4 +1,4 @@
-import {Suspense,use} from 'react';
+import React,{Suspense,use} from 'react';
 import type {ManagementSection} from '../ManagementWorkspace';
 import type {CommandAccess} from '../SelectedCharges';
 import {StandaloneRecords} from '../StandaloneRecords';
@@ -7,6 +7,8 @@ import {Dashboard} from '../Dashboard';
 import {CashWorkspace} from '../CashWorkspace';
 import {ExpenseRecords} from '../ExpenseRecords';
 import type {LiveView} from './LiveHeader';
+// R129: the Referrers page loads on first use (the ExpenseRecords lazy pattern of the chat records).
+const ReferrerRecords=React.lazy(()=>import('../ReferrerRecords').then(module=>({default:module.ReferrerRecords})));
 // APP-PERF-01: the management workspace (and ManagementCash, which imports it) loads on first use or on idle.
 // One shared import promise for both components; marking it fulfilled lets `use` render synchronously once loaded,
 // so switching Cash Accounts <-> other sections never shows a second fallback (W3-UX-PERF-01).
@@ -32,5 +34,5 @@ function ManagementView({section,access,thai}:{section:ManagementSection;access:
  */
 export function businessWorkspaceView({view,managementSection,access,thai,query,readOrigin,onLanguage}:{view:LiveView;managementSection:ManagementSection;access:CommandAccess;thai:boolean;query:string;readOrigin:string|undefined;onLanguage:(thai:boolean)=>void}){
  const t=(en:string,th:string)=>thai?th:en;
- return view==='management' ? <Suspense fallback={<p className="live-empty" role="status">{t('Loading…','กำลังโหลด…')}</p>}><ManagementView section={managementSection} access={access} thai={thai}/></Suspense> : view==='payments' ? <StandaloneRecords key={view} access={access} kind="payments" query={query} thai={thai}/> : view==='upcoming' ? <StandaloneUpcoming access={access} thai={thai}/> : view==='dashboard' ? <Dashboard access={access} thai={thai}/> : view==='cash' ? <CashWorkspace access={access} thai={thai} onLanguage={onLanguage}/> : view==='expenses' ? <ExpenseRecords access={access} thai={thai} readOrigin={readOrigin}/> : null;
+ return view==='management' ? <Suspense fallback={<p className="live-empty" role="status">{t('Loading…','กำลังโหลด…')}</p>}><ManagementView section={managementSection} access={access} thai={thai}/></Suspense> : view==='payments' ? <StandaloneRecords key={view} access={access} kind="payments" query={query} thai={thai}/> : view==='upcoming' ? <StandaloneUpcoming access={access} thai={thai}/> : view==='dashboard' ? <Dashboard access={access} thai={thai}/> : view==='cash' ? <CashWorkspace access={access} thai={thai} onLanguage={onLanguage}/> : view==='expenses' ? <ExpenseRecords access={access} thai={thai} readOrigin={readOrigin}/> : view==='referrers' ? <Suspense fallback={<p className="live-empty" role="status">{t('Loading…','กำลังโหลด…')}</p>}><ReferrerRecords access={access} thai={thai} readOrigin={readOrigin}/></Suspense> : null;
 }

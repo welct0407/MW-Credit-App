@@ -282,6 +282,9 @@ CREATE FUNCTION public.calculate_business_expense() RETURNS trigger
     AS $$
 DECLARE allocation_date date;
 BEGIN
+ -- R129: a rebate paid by a settlement goes only after the settlement (every path: a closing-payment delete or
+ -- correction, a direct delete).
+ IF TG_OP='DELETE' AND OLD."Source Type"='Referral Rebate' AND OLD."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'Remove the settlement first'; END IF;
  IF TG_OP='DELETE' AND OLD."Source Type"='Referral Rebate' AND pg_trigger_depth()>=2
   AND EXISTS(SELECT 1 FROM public."Loans" l WHERE l."Row ID"=OLD."Ref Related Loan"
    AND l."Ref Closing Payment" IS NOT NULL AND (l."Ref Closing Payment"=nullif(current_setting('payment_crud.id',true),'')
@@ -295,12 +298,32 @@ BEGIN
      OR NEW."Created At" IS DISTINCT FROM OLD."Created At" OR NEW."Created By" IS DISTINCT FROM OLD."Created By" THEN
      RAISE EXCEPTION 'Expense identity, source and creation audit are immutable';
    END IF;
-   IF OLD."Source Type"='Referral Rebate' AND
-     (to_jsonb(NEW)-ARRAY['Partner A Share','Partner B Share','Partner A Expense','Partner B Expense','Allocation Basis'])
-       IS DISTINCT FROM (to_jsonb(OLD)-ARRAY['Partner A Share','Partner B Share','Partner A Expense','Partner B Expense','Allocation Basis']) THEN
+   -- R129: "Ref Rebate Settlement" is set (to the new value) or cleared (the old value) only while pwa.rebate_settlement
+   -- names that settlement (pwa_apply_rebate_settlement_v1), never moved from one settlement to another, never on a manual row.
+   IF NEW."Ref Rebate Settlement" IS DISTINCT FROM OLD."Ref Rebate Settlement" AND (OLD."Source Type" IS DISTINCT FROM 'Referral Rebate'
+     OR (NEW."Ref Rebate Settlement" IS NOT NULL AND OLD."Ref Rebate Settlement" IS NOT NULL)
+     OR nullif(current_setting('pwa.rebate_settlement',true),'') IS DISTINCT FROM coalesce(NEW."Ref Rebate Settlement",OLD."Ref Rebate Settlement")) THEN
+     RAISE EXCEPTION 'Rebate settlement links change only through a rebate settlement';
+   END IF;
+   -- R129 D1: the owner-authorized legacy conversion (V1/V2 to V3) of one row, only while pwa.rebate_convert names it.
+   IF OLD."Source Type"='Referral Rebate' AND NEW."Rule Version" IS DISTINCT FROM OLD."Rule Version" AND (OLD."Rule Version" NOT IN ('REFERRAL_REBATE_V1','REFERRAL_REBATE_V2')
+     OR NEW."Rule Version" IS DISTINCT FROM 'REFERRAL_REBATE_V3' OR nullif(current_setting('pwa.rebate_convert',true),'') IS DISTINCT FROM OLD."Row ID") THEN
      RAISE EXCEPTION 'Automatic referral expenses are system-managed';
    END IF;
+   IF OLD."Source Type"='Referral Rebate' AND
+     (to_jsonb(NEW)-ARRAY['Partner A Share','Partner B Share','Partner A Expense','Partner B Expense','Allocation Basis','Ref Rebate Settlement','Rule Version'])
+       IS DISTINCT FROM (to_jsonb(OLD)-ARRAY['Partner A Share','Partner B Share','Partner A Expense','Partner B Expense','Allocation Basis','Ref Rebate Settlement','Rule Version']) THEN
+     RAISE EXCEPTION 'Automatic referral expenses are system-managed';
+   END IF;
+   -- R129: the expense, its date and the Partner split stay as booked at the close.
+   IF OLD."Source Type"='Referral Rebate' AND (NEW."Ref Rebate Settlement" IS DISTINCT FROM OLD."Ref Rebate Settlement" OR NEW."Rule Version" IS DISTINCT FROM OLD."Rule Version") THEN
+     NEW."Partner A Share":=OLD."Partner A Share"; NEW."Partner B Share":=OLD."Partner B Share";
+     NEW."Partner A Expense":=OLD."Partner A Expense"; NEW."Partner B Expense":=OLD."Partner B Expense"; NEW."Allocation Basis":=OLD."Allocation Basis";
+     RETURN NEW;
+   END IF;
  END IF;
+ -- R129: a new row never starts settled.
+ IF TG_OP='INSERT' AND NEW."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'Rebate settlement links change only through a rebate settlement'; END IF;
  IF NEW."Source Type"='Referral Rebate' THEN
    IF TG_OP='INSERT' AND pg_trigger_depth()<2 THEN RAISE EXCEPTION 'Referral expenses require a qualifying loan-close event'; END IF;
    SELECT "Close Date" INTO allocation_date FROM public."Loans" WHERE "Row ID"=NEW."Ref Related Loan";
@@ -564,7 +587,7 @@ BEGIN
  INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name",
   "Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By","Ref Offset Payment","Rebate Rate","Rebate Cap")
  VALUES('rr1:'||p_loan,l."Close Date",'Referral Rebate / เงินคืนค่าแนะนำลูกค้า',rebate::money,payee,referrer,l."Ref Borrowers",p_loan,
-  'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V2','SQL:loan-close',offset_id,(terms->>'rate')::numeric,(terms->>'cap')::numeric)
+  'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V3' /* R129: cash moves on settlement */,'SQL:loan-close',offset_id,(terms->>'rate')::numeric,(terms->>'cap')::numeric)
  ON CONFLICT ("Source Key") WHERE nullif(btrim("Source Key"),'') IS NOT NULL DO NOTHING;
 END $$;
 
@@ -573,7 +596,7 @@ END $$;
 -- Name: FUNCTION create_referral_rebate(p_loan text); Type: COMMENT
 --
 
-COMMENT ON FUNCTION public.create_referral_rebate(p_loan text) IS 'R111/R118/R120: the referral rebate of a closed referred loan, the referrer''s rate (default 10%) of the interest and late charges received, at most the referrer''s cap (default 1,000), as an expense or offset to the referrer''s open loan; the applied terms are stored on the expense.';
+COMMENT ON FUNCTION public.create_referral_rebate(p_loan text) IS 'R111/R118/R120/R129: the referral rebate of a closed referred loan, the referrer''s rate (default 10%) of the interest and late charges received, at most the referrer''s cap (default 1,000), offset to the referrer''s open loan where possible; the rest is pending payment until a rebate settlement (REFERRAL_REBATE_V3). The applied terms are stored on the expense.';
 
 
 --
@@ -1253,6 +1276,7 @@ BEGIN
  NEW."Ref Loan":=nullif(btrim(NEW."Ref Loan"),'');
  NEW."Ref Business Expense":=nullif(btrim(NEW."Ref Business Expense"),'');
  NEW."Ref Settlement":=nullif(btrim(NEW."Ref Settlement"),'');
+ NEW."Ref Rebate Settlement":=nullif(btrim(NEW."Ref Rebate Settlement"),''); -- R129
  IF TG_OP='UPDATE' THEN
   IF NEW."Row ID" IS DISTINCT FROM OLD."Row ID" OR NEW."Entry Origin" IS DISTINCT FROM OLD."Entry Origin"
    OR NEW."Source Type" IS DISTINCT FROM OLD."Source Type" OR NEW."Source Key" IS DISTINCT FROM OLD."Source Key"
@@ -1265,6 +1289,8 @@ BEGIN
  ELSE
   NEW."Source Type":='Manual';
   NEW."Source Key":='MANUAL:'||NEW."Row ID";
+  -- R129: only the settlement's own projection links a rebate settlement.
+  IF NEW."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'Only a rebate settlement may link a rebate settlement'; END IF;
   IF NEW."Movement Type"='Cash Handover' THEN
    IF (NEW."Ref From Cash Holder"=NEW."Ref To Cash Holder" AND NEW."Ref From Cash Account" IS DISTINCT FROM NEW."Ref To Cash Account" AND NEW."Ref From Cash Account" IS NOT NULL AND NEW."Ref To Cash Account" IS NOT NULL) IS NOT TRUE AND (NEW."Ref From Cash Holder"='ch:dad' AND NEW."Ref To Cash Holder"='ch:lisa') IS NOT TRUE
     AND (NEW."Ref From Cash Holder"='ch:lisa' AND NEW."Ref To Cash Holder"='ch:dad') IS NOT TRUE THEN
@@ -3036,6 +3062,7 @@ DECLARE e jsonb:=canonical::jsonb;i jsonb:=e#>'{command,inputs}';a jsonb:=e->'ac
  parent text;day date:=(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date;calculation jsonb;plan jsonb;result_value jsonb;payment text:='pwa:'||(e->>'requestId');message text;actual public."Payments"%ROWTYPE;
  -- R111: the projected rebate, the chosen path and, for an offset, the referrer's plan.
  rebate jsonb;path text:=coalesce(i->>'rebatePath','expense');forward jsonb;covered numeric:=0;offset_id text;offset_plan jsonb;expense public."Business Expenses"%ROWTYPE;
+ owed numeric:=0; -- R129: the referrer's pending rebates before this close
 BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR e#>>'{command,operation}'<>'loan.close' THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
  SELECT "Ref Borrowers" INTO parent FROM public."Loans" WHERE "Row ID"=target;
@@ -3055,6 +3082,11 @@ BEGIN
  -- R111: the rebate this close creates, and for a chosen offset on a referrer with an open loan the pay-forward plan
  -- (forward only, amount = rebate) under the referrer's borrower -> loans -> charges locks, taken after this borrower's.
  rebate:=public.pwa_referral_rebate_projection_v1(target,calculation);
+ -- R129: the referrer lock of rebate-settlement.create, so owedTotal is exact when the command commits.
+ IF rebate IS NOT NULL THEN
+  PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',rebate->>'referrerId'));
+  owed:=public.pwa_rebates_owed_v1(rebate->>'referrerId');
+ END IF;
  IF rebate IS NOT NULL AND path='offset' AND (rebate->>'hasOpenLoan')::boolean AND NOT (rebate->>'selfReferral')::boolean THEN
   PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=rebate->>'referrerId' FOR UPDATE;
   PERFORM 1 FROM public."Loans" WHERE "Ref Borrowers"=rebate->>'referrerId' ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
@@ -3075,7 +3107,9 @@ BEGIN
  IF rebate IS NOT NULL THEN
   result_value:=result_value||jsonb_build_object('rebate',jsonb_build_object('path',path,'amount',rebate->>'amount','referrerId',rebate->>'referrerId',
    'offsetPaymentId',offset_id,'offsetAmount',trunc(covered)::text,'payable',trunc((rebate->>'amount')::numeric-covered)::text,'offsetPlan',offset_plan,
-   'materialize',CASE WHEN offset_id IS NULL THEN '[]'::jsonb ELSE forward->'materialize' END,'paidThrough',CASE WHEN offset_id IS NULL THEN '{}'::jsonb ELSE forward->'paidThrough' END));
+   'materialize',CASE WHEN offset_id IS NULL THEN '[]'::jsonb ELSE forward->'materialize' END,'paidThrough',CASE WHEN offset_id IS NULL THEN '{}'::jsonb ELSE forward->'paidThrough' END,
+   -- R129: the part not offset is pending payment; owedTotal is the referrer's pending total after this close.
+   'pending',trunc((rebate->>'amount')::numeric-covered)::text,'owedTotal',trunc(owed+(rebate->>'amount')::numeric-covered)::text));
  END IF;
  INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code,result_json)
  VALUES((e->>'requestId')::uuid,2,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,encode(sha256(convert_to(canonical,'UTF8')),'hex'),'applied',NULL,NULL,result_value);
@@ -3523,7 +3557,7 @@ BEGIN
  IF op='payment.move-interest' AND message='Interest move requires an eligible charge on the same open loan' THEN RAISE EXCEPTION USING ERRCODE='P5B04';
  ELSIF op='payment.move-interest' AND message='Target charge capacity conflict' THEN RAISE EXCEPTION USING ERRCODE='P5B09';
  ELSIF op='payment.move-interest' AND message IN('Only a posted Lump Sum whole-interest allocation can move','Change receipt amounts through Payments; allocation move only changes Ref Charge') THEN RAISE EXCEPTION USING ERRCODE='P5B06';
- ELSIF message IN('Payment has a later loan default/write-off; reconcile that default first','Manually closed loan must be reopened explicitly before its receipt changes','Corrected payment has a default dependency; undo default first','Remove through the closing payment','Remove through the closing payment: delete it and close again') THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSE RAISE;END IF;END;
+ ELSIF message IN('Payment has a later loan default/write-off; reconcile that default first','Manually closed loan must be reopened explicitly before its receipt changes','Corrected payment has a default dependency; undo default first','Remove through the closing payment','Remove through the closing payment: delete it and close again','Remove the settlement first' /* R129 */) THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSE RAISE;END IF;END;
  RETURN result_value;
 EXCEPTION WHEN OTHERS THEN PERFORM set_config('pwa.native_inverse_request','',true);RAISE;
 END $$;
@@ -3549,6 +3583,75 @@ BEGIN
  INSERT INTO public."Cash Statement Context"("Ref Partner","Ref Cash Account","Statement Date") VALUES(target,i->>'statementAccountId',(i->>'statementDate')::date) ON CONFLICT("Ref Partner") DO UPDATE SET "Ref Cash Account"=EXCLUDED."Ref Cash Account","Statement Date"=EXCLUDED."Statement Date";
  RETURN jsonb_build_object('operation','preference.update','targetType','preference','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);
 END $$;
+
+
+--
+-- Name: pwa_apply_rebate_settlement_v1(text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_apply_rebate_settlement_v1(canonical text) RETURNS jsonb
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE e jsonb:=canonical::jsonb;c jsonb:=e->'command';i jsonb:=c->'inputs';a jsonb:=e->'actor';op text:=c->>'operation';target text:=c->>'targetId';
+ day date:=(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date;s public.pwa_rebate_settlements%ROWTYPE;ids text[];referrer text;total numeric;
+ settle_date date;newest date;changed integer;creator text;
+BEGIN
+ IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END)
+  OR op NOT IN('rebate-settlement.create','rebate-settlement.delete') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
+ IF op='rebate-settlement.create' THEN
+  referrer:=i->>'referrerId';settle_date:=(i->>'settlementDate')::date;creator:=a->>'loginEmail';
+  SELECT array_agg(x.v ORDER BY x.n) INTO ids FROM jsonb_array_elements_text(i->'expenseIds') WITH ORDINALITY x(v,n);
+  -- Locks: the referrer, then the chosen expenses in key order (no loan or charge changes).
+  PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',referrer));
+  PERFORM 1 FROM public."Business Expenses" WHERE "Row ID"=ANY(ids) ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
+  IF EXISTS(SELECT 1 FROM public.pwa_rebate_settlements WHERE id=target) THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
+  IF NOT EXISTS(SELECT 1 FROM public."Borrowers" WHERE "Row ID"=referrer) THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;
+  IF NOT EXISTS(SELECT 1 FROM public."Cash Accounts" ca JOIN public."Cash Holders" ch ON ch."Row ID"=ca."Ref Cash Holder"
+    WHERE ca."Row ID"=i->>'cashAccountId' AND ca."Ref Cash Holder"='ch:lisa' AND ca."Active" IS TRUE AND ch."Active" IS TRUE) THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
+  SELECT max(coalesce(l."Close Date",x."Expense Date")) INTO newest FROM public."Business Expenses" x LEFT JOIN public."Loans" l ON l."Row ID"=x."Ref Related Loan" WHERE x."Row ID"=ANY(ids);
+  IF settle_date>day OR settle_date<newest THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;
+  -- Every chosen row is a pending V3 rebate of this referrer (a legacy row, another payee's, a settled or offset-only one is not).
+  IF (SELECT count(*) FROM public."Business Expenses" x WHERE x."Row ID"=ANY(ids) AND x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3'
+    AND x."Ref Payee Borrower"=referrer AND x."Ref Rebate Settlement" IS NULL AND public.pwa_rebate_pending_v1(x."Row ID")>0)<>cardinality(ids) THEN RAISE EXCEPTION USING ERRCODE='P5B06';END IF;
+  SELECT sum(public.pwa_rebate_pending_v1(v)) INTO total FROM unnest(ids) v;
+  INSERT INTO public.pwa_rebate_settlements(id,payee_borrower_id,settlement_date,amount,paid_by_cash_holder,paid_by_cash_account,payment_method,bank_reference,notes,created_by)
+   VALUES(target,referrer,settle_date,total,'ch:lisa',i->>'cashAccountId',i->>'paymentMethod',i->>'bankReference',i->>'notes',creator);
+  PERFORM set_config('pwa.rebate_settlement',target,true);
+  UPDATE public."Business Expenses" SET "Ref Rebate Settlement"=target WHERE "Row ID"=ANY(ids);
+  GET DIAGNOSTICS changed=ROW_COUNT;
+  PERFORM set_config('pwa.rebate_settlement','',true);
+  IF changed<>cardinality(ids) OR (SELECT count(*) FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Rebate Settlement' AND "Ref Rebate Settlement"=target
+    AND "Movement Type"='Rebate Settlement' AND "Amount"=total AND "Movement Date"=settle_date AND "Ref From Cash Holder"='ch:lisa' AND "Ref From Cash Account"=i->>'cashAccountId')<>1 THEN
+   RAISE EXCEPTION 'Rebate settlement cash entry differs from the settlement';
+  END IF;
+ ELSE
+  SELECT payee_borrower_id INTO referrer FROM public.pwa_rebate_settlements WHERE id=target;
+  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;
+  PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',referrer));
+  SELECT * INTO s FROM public.pwa_rebate_settlements WHERE id=target FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;
+  PERFORM 1 FROM public."Business Expenses" WHERE "Ref Rebate Settlement"=target ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
+  IF public.pwa_rebate_settlement_version_v1(target) IS DISTINCT FROM c->>'expectedVersion' THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
+  creator:=s.created_by;
+  -- The rebates return to pending, then the settlement and (its delete trigger) its cash entry go.
+  PERFORM set_config('pwa.rebate_settlement',target,true);
+  UPDATE public."Business Expenses" SET "Ref Rebate Settlement"=NULL WHERE "Ref Rebate Settlement"=target;
+  PERFORM set_config('pwa.rebate_settlement','',true);
+  DELETE FROM public.pwa_rebate_settlements WHERE id=target;
+  IF EXISTS(SELECT 1 FROM public."Cash Ledger" WHERE "Ref Rebate Settlement"=target OR ("Source Type"='Rebate Settlement' AND "Source Key"='REBATESETTLEMENT:'||target)) THEN
+   RAISE EXCEPTION 'Rebate settlement cash entry was not removed';
+  END IF;
+ END IF;
+ RETURN jsonb_build_object('operation',op,'targetType','rebate-settlement','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',creator);
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_apply_rebate_settlement_v1(canonical text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_apply_rebate_settlement_v1(canonical text) IS 'mw-access:governance R129 rebate-settlement.create and .delete for pwa_submit_operation_v2; journal owner only.';
 
 
 --
@@ -4424,6 +4527,52 @@ END $_$;
 
 
 --
+-- Name: pwa_convert_legacy_rebate_v1(text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_convert_legacy_rebate_v1(p_expense_id text) RETURNS jsonb
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE x public."Business Expenses"%ROWTYPE; payee text; offset_amount numeric; ledger_before numeric; ledger_after numeric;
+BEGIN
+ IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') THEN RAISE EXCEPTION 'Unsupported application database'; END IF;
+ IF NOT has_function_privilege(current_user,'public.sync_cash_ledger(text,text)','EXECUTE') THEN
+  RAISE EXCEPTION 'Run the conversion as a role that executes sync_cash_ledger (postgres inside the ledger owner window)'; END IF;
+ SELECT "Ref Payee Borrower" INTO payee FROM public."Business Expenses" WHERE "Row ID"=p_expense_id;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Unknown expense %',p_expense_id; END IF;
+ IF payee IS NOT NULL THEN PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',payee)); END IF;
+ SELECT * INTO x FROM public."Business Expenses" WHERE "Row ID"=p_expense_id FOR UPDATE;
+ IF x."Source Type" IS DISTINCT FROM 'Referral Rebate' THEN RAISE EXCEPTION 'Only a referral rebate expense can be converted'; END IF;
+ IF x."Rule Version"='REFERRAL_REBATE_V3' THEN RAISE EXCEPTION 'This rebate is already pending payment (REFERRAL_REBATE_V3)'; END IF;
+ IF x."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'This rebate is paid by a settlement'; END IF;
+ IF x."Rule Version" IS DISTINCT FROM 'REFERRAL_REBATE_V2' OR x."Rebate Rate" IS NULL OR x."Rebate Cap" IS NULL THEN
+  RAISE EXCEPTION 'Only a REFERRAL_REBATE_V2 rebate with its terms can be converted (a V1 row carries no terms)'; END IF;
+ IF EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=p_expense_id) THEN
+  RAISE EXCEPTION 'A cash cutover source cannot be converted'; END IF;
+ offset_amount:=coalesce((SELECT o."Amount Received"::numeric FROM public."Payments" o WHERE o."Row ID"=x."Ref Offset Payment" AND o."Status"='Posted'),0);
+ IF x."Amount"::numeric-offset_amount<=0 THEN RAISE EXCEPTION 'Nothing is unpaid on this rebate (settled by offset)'; END IF;
+ SELECT "Amount" INTO ledger_before FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Business Expense' AND "Source Key"='EXPENSE:'||p_expense_id;
+ -- The rule change re-projects the expense through its own cash trigger (UPDATE OF "Amount", same value; nothing disabled).
+ PERFORM set_config('pwa.rebate_convert',p_expense_id,true);
+ UPDATE public."Business Expenses" SET "Rule Version"='REFERRAL_REBATE_V3',"Amount"="Amount" WHERE "Row ID"=p_expense_id;
+ PERFORM set_config('pwa.rebate_convert','',true);
+ SELECT "Amount" INTO ledger_after FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Business Expense' AND "Source Key"='EXPENSE:'||p_expense_id;
+ IF ledger_after IS DISTINCT FROM nullif(offset_amount,0) OR public.pwa_rebate_pending_v1(p_expense_id) IS DISTINCT FROM x."Amount"::numeric-offset_amount THEN
+  RAISE EXCEPTION 'Converted rebate differs from the rule'; END IF;
+ RETURN jsonb_build_object('expenseId',p_expense_id,'amount',x."Amount"::numeric,'offsetAmount',offset_amount,'pendingAmount',public.pwa_rebate_pending_v1(p_expense_id),
+  'ledgerBefore',ledger_before,'ledgerAfter',ledger_after);
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_convert_legacy_rebate_v1(p_expense_id text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_convert_legacy_rebate_v1(p_expense_id text) IS 'mw-access:governance R129 D1 owner-authorized one-off: a REFERRAL_REBATE_V2 rebate never paid at close becomes pending (V3); its cash entry becomes the offset amount or goes. postgres only.';
+
+
+--
 -- Name: pwa_effective_payment_plan_v2(text); Type: FUNCTION
 --
 
@@ -5195,6 +5344,72 @@ COMMENT ON FUNCTION public.pwa_notify_content_v4(delivery uuid, generation bigin
 
 
 --
+-- Name: pwa_notify_content_v5(uuid, bigint); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_notify_content_v5(delivery uuid, generation bigint) RETURNS TABLE(found boolean, event_type text, language text, borrower_name text, amount numeric, rebate_amount numeric, rebate_payee text, rebate_payable numeric, payment_method text, rebate_loan text, late_charge_amount numeric, rebates jsonb)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+BEGIN
+ PERFORM public.pwa_worker_guard_v1('dispatch');
+ RETURN QUERY SELECT src.source_found,
+  -- A chat reply carries its outcome ('chat.reply:ok' / 'chat.reply:failed', from source_version 'ok:<message>').
+  CASE WHEN e.event_type='chat.reply' THEN 'chat.reply:'||split_part(e.source_version,':',1) ELSE e.event_type END,
+  CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
+  -- Chat: the thread title. Thai: the Thai name. English: the English name only ("Description"); none when blank.
+  CASE WHEN e.source_kind='chat' THEN src.source_title WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+  src.source_amount,
+  rb.rebate_amount,
+  CASE WHEN rb.rebate_amount IS NULL THEN NULL WHEN recipient."Language Preference"='ไทย' THEN pb."Borrower Name" ELSE coalesce(nullif(btrim(pb."Description",E' \t\r\n\f\v'),''),pb."Borrower Name") END,
+  rb.rebate_payable,
+  src.payment_method,
+  (SELECT x."Ref Related Loan" FROM public."Business Expenses" x WHERE e.source_kind='payment' AND x."Ref Offset Payment"=e.source_id ORDER BY x."Row ID" COLLATE "C" LIMIT 1),
+  CASE WHEN e.source_kind='payment' THEN (SELECT coalesce(sum(y."Late Charge Paid"::numeric),0) FROM public."Repayments" y WHERE y."Ref Payment"=e.source_id) END,
+  -- R129: every rebate (R119 order) with its state, pending amount and the payee's owed total; [] when none; NULL on chat.
+  CASE WHEN e.source_kind='chat' THEN NULL ELSE (
+   SELECT coalesce(jsonb_agg(jsonb_build_object('amount',x."Amount"::numeric,
+     'payee',CASE WHEN recipient."Language Preference"='ไทย' THEN xb."Borrower Name" ELSE coalesce(nullif(btrim(xb."Description",E' \t\r\n\f\v'),''),xb."Borrower Name") END,
+     'payable',x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0),
+     'state',CASE WHEN x."Rule Version"='REFERRAL_REBATE_V3' AND x."Ref Rebate Settlement" IS NOT NULL THEN 'paid' WHEN coalesce(o."Amount Received"::numeric,0)>0 THEN 'offset'
+      WHEN x."Rule Version"='REFERRAL_REBATE_V3' THEN 'pending' ELSE 'paid-at-close' END,
+     'ruleVersion',x."Rule Version",
+     'pending',public.pwa_rebate_pending_v1(x."Row ID"),
+     'owed',public.pwa_rebates_owed_v1(x."Ref Payee Borrower")) ORDER BY x."Row ID" COLLATE "C"),'[]'::jsonb)
+   FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment" LEFT JOIN public."Borrowers" xb ON xb."Row ID"=x."Ref Payee Borrower"
+   WHERE x."Source Type"='Referral Rebate' AND ((e.event_type='loan.closed' AND e.source_kind='loan' AND x."Ref Related Loan"=e.source_id)
+    OR (e.event_type='payment.posted' AND e.source_kind='payment' AND x."Ref Related Loan" IN (SELECT y."Row ID" FROM public."Loans" y WHERE y."Ref Closing Payment"=e.source_id)))) END
+ FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e ON e.event_id=d.event_id
+ LEFT JOIN public."Partners" recipient ON recipient."Row ID"=d.recipient_partner_id
+ LEFT JOIN LATERAL (
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount,NULL::text AS source_title,p."Payment Method" AS payment_method FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric,NULL::text,NULL::text FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,NULL::text,NULL::numeric,t.title,NULL::text FROM public.pwa_chat_threads t WHERE e.source_kind='chat' AND t.id::text=e.source_id AND t.partner_id=d.recipient_partner_id
+ ) source_row ON true
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount,source_row.source_title,source_row.payment_method) src
+ LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
+ LEFT JOIN LATERAL (
+  SELECT x."Amount"::numeric AS rebate_amount,x."Ref Payee Borrower" AS payee_id,x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0) AS rebate_payable
+  FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment"
+  WHERE x."Source Type"='Referral Rebate' AND ((e.event_type='loan.closed' AND e.source_kind='loan' AND x."Ref Related Loan"=e.source_id)
+   OR (e.event_type='payment.posted' AND e.source_kind='payment' AND x."Ref Related Loan" IN (SELECT y."Row ID" FROM public."Loans" y WHERE y."Ref Closing Payment"=e.source_id)))
+  ORDER BY x."Row ID" COLLATE "C" LIMIT 1
+ ) rb ON true
+ LEFT JOIN public."Borrowers" pb ON pb."Row ID"=rb.payee_id
+ WHERE d.delivery_id=$1 AND d.lease_generation=$2 AND d.state='leased' AND d.lease_expires_at>clock_timestamp();
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_notify_content_v5(delivery uuid, generation bigint); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_notify_content_v5(delivery uuid, generation bigint) IS 'mw-access:governance fixed notification boundary; explicit capability only';
+
+
+--
 -- Name: pwa_notify_eligible_v1(uuid, uuid); Type: FUNCTION
 --
 
@@ -5956,6 +6171,69 @@ $_$;
 
 
 --
+-- Name: pwa_rebate_pending_v1(text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_rebate_pending_v1(p_expense text) RETURNS numeric
+    LANGUAGE sql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+ SELECT CASE WHEN x."Rule Version"='REFERRAL_REBATE_V3' AND x."Ref Rebate Settlement" IS NULL
+   THEN greatest(x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0),0) ELSE 0 END
+ FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment"
+ WHERE x."Row ID"=p_expense AND x."Source Type"='Referral Rebate';
+$$;
+
+
+--
+-- Name: FUNCTION pwa_rebate_pending_v1(p_expense text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_rebate_pending_v1(p_expense text) IS 'R129: the pending (unpaid) amount of a referral rebate expense: REFERRAL_REBATE_V3, not linked to a settlement, Amount less its offset payment; 0 for offset-only, paid and legacy rows; null for an unknown or non-referral expense. Read only.';
+
+
+--
+-- Name: pwa_rebate_settlement_version_v1(text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_rebate_settlement_version_v1(p_id text) RETURNS text
+    LANGUAGE sql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+ SELECT encode(sha256(convert_to(((to_jsonb(s)-'created_at')||jsonb_build_object('created_at',to_char(s.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"')))::text,'UTF8')),'hex')
+ FROM public.pwa_rebate_settlements s WHERE s.id=p_id;
+$$;
+
+
+--
+-- Name: FUNCTION pwa_rebate_settlement_version_v1(p_id text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_rebate_settlement_version_v1(p_id text) IS 'R129: version of a rebate settlement for rebate-settlement.delete (sha256 of the row as JSON, created_at in UTC); null for an unknown id. services/business/referrers.mjs uses the identical SQL text.';
+
+
+--
+-- Name: pwa_rebates_owed_v1(text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_rebates_owed_v1(p_referrer text) RETURNS numeric
+    LANGUAGE sql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+ SELECT coalesce(sum(greatest(x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0),0)),0)
+ FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment"
+ WHERE x."Ref Payee Borrower"=p_referrer AND x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3' AND x."Ref Rebate Settlement" IS NULL;
+$$;
+
+
+--
+-- Name: FUNCTION pwa_rebates_owed_v1(p_referrer text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_rebates_owed_v1(p_referrer text) IS 'R129: what a referrer is owed: the sum of pwa_rebate_pending_v1 over the referrer''s referral rebate expenses. Read only.';
+
+
+--
 -- Name: pwa_referral_rebate_projection_v1(text, jsonb); Type: FUNCTION
 --
 
@@ -5982,6 +6260,8 @@ BEGIN
  RETURN jsonb_build_object('amount',trunc(rebate)::text,'referrerId',referrer."Row ID",'referrerName',referrer."Borrower Name",'referrerDescription',referrer."Description",
   'selfReferral',referrer."Row ID"=l."Ref Borrowers",
   'profit',round(profit)::text,'rate',terms->'rate','cap',terms->'cap','custom',terms->'custom',
+  -- R129: the referrer's pending rebates before this close (whole baht).
+  'owedBefore',trunc(public.pwa_rebates_owed_v1(referrer."Row ID"))::text,
   'hasOpenLoan',EXISTS(SELECT 1 FROM public."Loans" x WHERE x."Ref Borrowers"=referrer."Row ID" AND x."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(x."Defaulted",false)));
 END $$;
 
@@ -5990,7 +6270,7 @@ END $$;
 -- Name: FUNCTION pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb); Type: COMMENT
 --
 
-COMMENT ON FUNCTION public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb) IS 'R111/R118/R120: the referral rebate a Loan Close with this calculation creates (create_referral_rebate rule: the referrer''s rate of interest and late charges, at most the referrer''s cap), its referrer, whether the referrer has an open loan, the profit base and the terms (rate, cap, custom); null when none. Read only.';
+COMMENT ON FUNCTION public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb) IS 'R111/R118/R120/R129: the referral rebate a Loan Close with this calculation creates (create_referral_rebate rule: the referrer''s rate of interest and late charges, at most the referrer''s cap), its referrer, whether the referrer has an open loan, the profit base, the terms (rate, cap, custom) and owedBefore (the referrer''s pending rebates now); null when none. Read only.';
 
 
 --
@@ -6289,9 +6569,9 @@ BEGIN
  IF jsonb_typeof(c) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c) key) IS DISTINCT FROM ARRAY['expectedVersion','inputs','operation','predecessorRequestId','schemaVersion','targetId','targetType'] OR c->'schemaVersion'<>'1'::jsonb OR c->>'targetType' IS DISTINCT FROM split_part(c->>'operation','.',1) THEN RAISE EXCEPTION 'command';END IF;
  IF e->>'requestId' !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$' THEN RAISE EXCEPTION 'id';END IF;request:=(e->>'requestId')::uuid;
  target:=c->>'targetId';op:=c->>'operation';expected:=c->>'expectedVersion';
- IF jsonb_typeof(c->'targetId') IS DISTINCT FROM 'string' OR octet_length(target) NOT BETWEEN 1 AND 256 OR target~'[[:cntrl:]]' OR op NOT IN('borrower.create','borrower.update','borrower.delete','loan.create','loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.book-projected-charge','loan.close','charge.create','charge.update','charge.delete','payment.correct','payment.delete','payment.move-interest','expense.create','expense.update','expense.delete','preference.update','cash-holder.create','cash-holder.update','cash-holder.delete','cash-account.create','cash-account.update','cash-account.delete','partner.create','partner.update','partner.delete','capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-withdrawal.create','cash-openings.initialize','assessment.create','assessment.update','assessment.refresh','assessment.delete','analytics.refresh') THEN RAISE EXCEPTION 'target';END IF;
+ IF jsonb_typeof(c->'targetId') IS DISTINCT FROM 'string' OR octet_length(target) NOT BETWEEN 1 AND 256 OR target~'[[:cntrl:]]' OR op NOT IN('borrower.create','borrower.update','borrower.delete','loan.create','loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.book-projected-charge','loan.close','charge.create','charge.update','charge.delete','payment.correct','payment.delete','payment.move-interest','expense.create','expense.update','expense.delete','preference.update','cash-holder.create','cash-holder.update','cash-holder.delete','cash-account.create','cash-account.update','cash-account.delete','partner.create','partner.update','partner.delete','capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-withdrawal.create','cash-openings.initialize','assessment.create','assessment.update','assessment.refresh','assessment.delete','analytics.refresh','rebate-settlement.create','rebate-settlement.delete') THEN RAISE EXCEPTION 'target';END IF;
  IF split_part(op,'.',1)='payment' THEN IF c->'predecessorRequestId'<>'null'::jsonb AND (jsonb_typeof(c->'predecessorRequestId') IS DISTINCT FROM 'string' OR c->>'predecessorRequestId'!~'^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$') THEN RAISE EXCEPTION 'predecessor';END IF;ELSIF c->'predecessorRequestId'<>'null'::jsonb THEN RAISE EXCEPTION 'predecessor';END IF;
- IF op IN('borrower.create','loan.create','charge.create','expense.create','cash-holder.create','cash-account.create','partner.create','capital-contribution.create','settlement.create','settlement.settle-all','cash-movement.create','cash-withdrawal.create','assessment.create') THEN IF c->'expectedVersion'<>'null'::jsonb OR target !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$' THEN RAISE EXCEPTION 'create';END IF;
+ IF op IN('borrower.create','loan.create','charge.create','expense.create','cash-holder.create','cash-account.create','partner.create','capital-contribution.create','settlement.create','settlement.settle-all','cash-movement.create','cash-withdrawal.create','assessment.create','rebate-settlement.create') THEN IF c->'expectedVersion'<>'null'::jsonb OR target !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$' THEN RAISE EXCEPTION 'create';END IF;
  ELSE IF jsonb_typeof(c->'expectedVersion') IS DISTINCT FROM 'string' OR expected !~ '^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'version';END IF;END IF;
  IF jsonb_typeof(a) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(a) key) IS DISTINCT FROM ARRAY['issuer','loginEmail','partnerId','subject'] THEN RAISE EXCEPTION 'actor';END IF;
  FOREACH k IN ARRAY ARRAY['issuer','subject','partnerId','loginEmail'] LOOP v:=a->>k;IF jsonb_typeof(a->k) IS DISTINCT FROM 'string' OR btrim(v)='' OR v~'[[:cntrl:]]' OR octet_length(v)>(CASE k WHEN 'issuer' THEN 1024 WHEN 'subject' THEN 128 WHEN 'partnerId' THEN 256 ELSE 320 END) THEN RAISE EXCEPTION 'actor';END IF;END LOOP;
@@ -6319,6 +6599,23 @@ BEGIN
  IF k IN('relatedBorrowerId','relatedLoanId','paidByAccountId') AND i->k<>'null'::jsonb AND (octet_length(i->>k) NOT BETWEEN 1 AND 256 OR i->>k~'[[:cntrl:]]') THEN RAISE EXCEPTION 'expense reference';END IF;
  input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||coalesce(to_json(i->>k)::text,'null');END LOOP;input_text:=input_text||'}';
  IF i->>'expenseDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'expenseDate')::date)::text<>i->>'expenseDate' OR btrim(i->>'category')='' OR i->>'amount'!~'^-?[1-9][0-9]*$' OR abs((i->>'amount')::numeric)>92233720368547758 THEN RAISE EXCEPTION 'expense input';END IF;
+ ELSIF op='rebate-settlement.create' THEN
+ -- R129: whole pending rebates of one referrer (1 to 200 distinct expense ids, ascending), date, Lisa's account, method,
+ -- optional bank reference (Bank Transfer only) and notes.
+ IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['bankReference','cashAccountId','expenseIds','notes','paymentMethod','referrerId','settlementDate'] THEN RAISE EXCEPTION 'settlement keys';END IF;
+ IF jsonb_typeof(i->'referrerId') IS DISTINCT FROM 'string' OR octet_length(i->>'referrerId') NOT BETWEEN 1 AND 256 OR i->>'referrerId'~'[[:cntrl:]]'
+  OR jsonb_typeof(i->'cashAccountId') IS DISTINCT FROM 'string' OR octet_length(i->>'cashAccountId') NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]'
+  OR jsonb_typeof(i->'settlementDate') IS DISTINCT FROM 'string' OR i->>'settlementDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'settlementDate')::date)::text<>i->>'settlementDate'
+  OR jsonb_typeof(i->'paymentMethod') IS DISTINCT FROM 'string' OR i->>'paymentMethod' NOT IN('Bank Transfer','Cash')
+  OR jsonb_typeof(i->'bankReference') NOT IN('string','null') OR (i->'bankReference'<>'null'::jsonb AND (octet_length(i->>'bankReference') NOT BETWEEN 1 AND 256 OR btrim(i->>'bankReference')='' OR i->>'bankReference'~'[\r\n]' OR i->>'paymentMethod'<>'Bank Transfer'))
+  OR jsonb_typeof(i->'notes') NOT IN('string','null') OR coalesce(octet_length(i->>'notes'),0)>65536
+  OR jsonb_typeof(i->'expenseIds') IS DISTINCT FROM 'array' OR jsonb_array_length(i->'expenseIds') NOT BETWEEN 1 AND 200
+  OR EXISTS(SELECT 1 FROM jsonb_array_elements(i->'expenseIds') x WHERE jsonb_typeof(x) IS DISTINCT FROM 'string' OR octet_length(x#>>'{}') NOT BETWEEN 1 AND 256 OR x#>>'{}'~'[[:cntrl:]]')
+  OR EXISTS(SELECT 1 FROM jsonb_array_elements_text(i->'expenseIds') WITH ORDINALITY x(v,n) JOIN jsonb_array_elements_text(i->'expenseIds') WITH ORDINALITY y(v,n) ON y.n=x.n+1 WHERE NOT (x.v COLLATE "C"<y.v COLLATE "C"))
+ THEN RAISE EXCEPTION 'settlement input';END IF;
+ input_text:='{"referrerId":'||to_json(i->>'referrerId')::text||',"expenseIds":['||(SELECT string_agg(to_json(x.v)::text,',' ORDER BY x.n) FROM jsonb_array_elements_text(i->'expenseIds') WITH ORDINALITY x(v,n))
+  ||'],"settlementDate":'||to_json(i->>'settlementDate')::text||',"cashAccountId":'||to_json(i->>'cashAccountId')::text||',"paymentMethod":'||to_json(i->>'paymentMethod')::text
+  ||',"bankReference":'||coalesce(to_json(i->>'bankReference')::text,'null')||',"notes":'||coalesce(to_json(i->>'notes')::text,'null')||'}';
  ELSIF op='payment.correct' THEN input_text:=public.pwa_payment_correction_text_v2(i);IF (i->>'receiptMode'='replace') IS DISTINCT FROM (r<>'null'::jsonb) THEN RAISE EXCEPTION 'receipt mode';END IF;
  ELSIF op='payment.move-interest' THEN IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['allocationId','targetChargeId'] THEN RAISE EXCEPTION 'move keys';END IF;FOREACH k IN ARRAY ARRAY['allocationId','targetChargeId'] LOOP IF jsonb_typeof(i->k) IS DISTINCT FROM 'string' OR octet_length(i->>k) NOT BETWEEN 1 AND 256 OR i->>k~'[[:cntrl:]]' THEN RAISE EXCEPTION 'move reference';END IF;END LOOP;input_text:='{"allocationId":'||to_json(i->>'allocationId')::text||',"targetChargeId":'||to_json(i->>'targetChargeId')::text||'}';
  ELSIF op IN('loan.create','loan.update') THEN
@@ -6373,7 +6670,7 @@ BEGIN
  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['chargeDate','interestDue','principalDue'] OR jsonb_typeof(i->'chargeDate') IS DISTINCT FROM 'string' OR jsonb_typeof(i->'principalDue') IS DISTINCT FROM 'string' OR jsonb_typeof(i->'interestDue') IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'projected charge keys';END IF;
  IF i->>'chargeDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'chargeDate')::date)::text<>i->>'chargeDate' OR i->>'principalDue'!~'^(0|[1-9][0-9]{0,16})$' OR i->>'interestDue'!~'^(0|[1-9][0-9]{0,16})$' OR (i->>'principalDue')::numeric>92233720368547758 OR (i->>'interestDue')::numeric>92233720368547758 OR (i->>'principalDue')::numeric+(i->>'interestDue')::numeric<=0 THEN RAISE EXCEPTION 'projected charge input';END IF;
  input_text:='{"chargeDate":'||to_json(i->>'chargeDate')::text||',"principalDue":'||to_json(i->>'principalDue')::text||',"interestDue":'||to_json(i->>'interestDue')::text||'}';
- ELSIF op IN('borrower.delete','loan.delete','loan.undo-default','charge.delete','payment.delete','expense.delete') THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION 'delete';END IF;input_text:='{}';
+ ELSIF op IN('borrower.delete','loan.delete','loan.undo-default','charge.delete','payment.delete','expense.delete','rebate-settlement.delete') THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION 'delete';END IF;input_text:='{}';
  ELSE
  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i-'aiCollectionEnabled'-'referralRebateRate'-'referralRebateCap') key) IS DISTINCT FROM ARRAY['address','city','communicationName','description','hidden','instagramUsername','name','note','preferredReceivingAccountId','referrerId','workingLocation'] THEN RAISE EXCEPTION 'inputs';END IF;
  input_text:='{';FOREACH k IN ARRAY ARRAY['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note']||CASE WHEN i?'aiCollectionEnabled' THEN ARRAY['aiCollectionEnabled'] ELSE ARRAY[]::text[] END||CASE WHEN i?'referralRebateRate' THEN ARRAY['referralRebateRate'] ELSE ARRAY[]::text[] END||CASE WHEN i?'referralRebateCap' THEN ARRAY['referralRebateCap'] ELSE ARRAY[]::text[] END LOOP
@@ -6397,7 +6694,7 @@ BEGIN
   RETURN public.pwa_operation_status_v2(request,a->>'issuer',a->>'subject');
  END IF;
  BEGIN
- IF split_part(op,'.',1)='analytics' THEN result_value:=public.pwa_apply_analytics_v2($1);ELSIF split_part(op,'.',1)='cash-openings' THEN result_value:=public.pwa_apply_cash_opening_v2($1);ELSIF split_part(op,'.',1)='assessment' THEN result_value:=public.pwa_apply_assessment_v2($1);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement','cash-withdrawal') THEN result_value:=public.pwa_apply_management_financial_v2($1);ELSIF split_part(op,'.',1) IN('cash-holder','cash-account','partner') THEN result_value:=public.pwa_apply_management_v2($1);ELSIF op='preference.update' THEN result_value:=public.pwa_apply_preference_v2($1);ELSIF split_part(op,'.',1)='expense' THEN result_value:=public.pwa_apply_expense_v2($1);ELSIF split_part(op,'.',1)='payment' THEN result_value:=public.pwa_apply_payment_v2($1);ELSIF op='loan.create' THEN result_value:=public.pwa_apply_loan_create_v2($1);ELSIF op='loan.close' THEN result_value:=public.pwa_apply_loan_close_v2($1);ELSIF split_part(op,'.',1)='loan' THEN result_value:=public.pwa_apply_loan_source_v2($1);ELSIF split_part(op,'.',1)='charge' THEN result_value:=public.pwa_apply_charge_v2($1);ELSE
+ IF split_part(op,'.',1)='analytics' THEN result_value:=public.pwa_apply_analytics_v2($1);ELSIF split_part(op,'.',1)='cash-openings' THEN result_value:=public.pwa_apply_cash_opening_v2($1);ELSIF split_part(op,'.',1)='assessment' THEN result_value:=public.pwa_apply_assessment_v2($1);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement','cash-withdrawal') THEN result_value:=public.pwa_apply_management_financial_v2($1);ELSIF split_part(op,'.',1) IN('cash-holder','cash-account','partner') THEN result_value:=public.pwa_apply_management_v2($1);ELSIF op='preference.update' THEN result_value:=public.pwa_apply_preference_v2($1);ELSIF split_part(op,'.',1)='rebate-settlement' THEN result_value:=public.pwa_apply_rebate_settlement_v1($1);ELSIF split_part(op,'.',1)='expense' THEN result_value:=public.pwa_apply_expense_v2($1);ELSIF split_part(op,'.',1)='payment' THEN result_value:=public.pwa_apply_payment_v2($1);ELSIF op='loan.create' THEN result_value:=public.pwa_apply_loan_create_v2($1);ELSIF op='loan.close' THEN result_value:=public.pwa_apply_loan_close_v2($1);ELSIF split_part(op,'.',1)='loan' THEN result_value:=public.pwa_apply_loan_source_v2($1);ELSIF split_part(op,'.',1)='charge' THEN result_value:=public.pwa_apply_charge_v2($1);ELSE
  PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',target));
  PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=target FOR UPDATE;
  source_version:=public.pwa_borrower_version_v2(target);
@@ -7252,6 +7549,47 @@ COMMENT ON FUNCTION public.reallocate_payment_interest_audited(p_operation uuid,
 
 
 --
+-- Name: rebate_settlement_cash_source(); Type: FUNCTION
+--
+
+CREATE FUNCTION public.rebate_settlement_cash_source() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+BEGIN PERFORM public.sync_cash_ledger('Rebate Settlement',NEW.id); RETURN NULL; END $$;
+
+
+--
+-- Name: FUNCTION rebate_settlement_cash_source(); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.rebate_settlement_cash_source() IS 'R129: projects a rebate settlement into "Cash Ledger" (sync_cash_ledger, the ledger owner''s definer).';
+
+
+--
+-- Name: rebate_settlement_row_guard(); Type: FUNCTION
+--
+
+CREATE FUNCTION public.rebate_settlement_row_guard() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+BEGIN
+ IF TG_OP='UPDATE' THEN RAISE EXCEPTION 'Rebate settlements are immutable; delete the settlement and record it again'; END IF;
+ -- The projection goes with its source (the business_source_delete pattern; the ledger guard allows it at depth 2).
+ DELETE FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Rebate Settlement' AND "Source Key"='REBATESETTLEMENT:'||OLD.id;
+ RETURN OLD;
+END $$;
+
+
+--
+-- Name: FUNCTION rebate_settlement_row_guard(); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.rebate_settlement_row_guard() IS 'R129: a rebate settlement never changes after insert; its delete removes its cash projection first.';
+
+
+--
 -- Name: recalculate_business_expenses_from_date(date); Type: FUNCTION
 --
 
@@ -7751,6 +8089,7 @@ CREATE FUNCTION public.sync_cash_ledger(p_type text, p_id text) RETURNS void
     AS $$
 DECLARE d date; amount numeric; from_holder text; to_holder text; movement text; source_key text; actor text;
  payment_id text; loan_id text; expense_id text; settlement_id text; from_account text; to_account text;
+ rebate_settlement_id text; rule text; offset_amount numeric; -- R129
 BEGIN
  IF pg_trigger_depth()<1 THEN RAISE EXCEPTION 'Cash synchronization requires a source trigger'; END IF;
  IF EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type=p_type AND source_row_id=p_id) THEN RETURN; END IF;
@@ -7765,12 +8104,21 @@ BEGIN
  WHEN 'Business Expense' THEN
   SELECT "Expense Date",abs("Amount"::numeric),CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Holder" END,
    CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Holder" END,"Created By",
-   CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END INTO d,amount,from_holder,to_holder,actor,from_account,to_account FROM public."Business Expenses" WHERE "Row ID"=p_id;
+   CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END,
+   "Rule Version",(SELECT o."Amount Received"::numeric FROM public."Payments" o WHERE o."Row ID"=x."Ref Offset Payment" AND o."Status"='Posted')
+   INTO d,amount,from_holder,to_holder,actor,from_account,to_account,rule,offset_amount FROM public."Business Expenses" x WHERE "Row ID"=p_id;
   IF coalesce(from_holder,to_holder) IS NULL THEN amount:=NULL; END IF;
+  -- R129: a REFERRAL_REBATE_V3 rebate moves cash only for its offset (the offset receipt nets it on Lisa's account); the
+  -- pending rest moves on its settlement. Without an offset there is no movement.
+  IF rule='REFERRAL_REBATE_V3' AND amount IS NOT NULL THEN amount:=CASE WHEN offset_amount>0 THEN offset_amount END; END IF;
   movement:='Business Expense'; source_key:='EXPENSE:'||p_id; expense_id:=p_id;
  WHEN 'Settlement' THEN
   SELECT "Transfer Date","Amount"::numeric,"Ref Paid From Cash Account" INTO d,amount,from_account FROM public."Settlements" WHERE "Row ID"=p_id AND "Status"='Completed';
   movement:='Partner Settlement'; source_key:='SETTLEMENT:'||p_id; settlement_id:=p_id; from_holder:='ch:lisa';
+ WHEN 'Rebate Settlement' THEN
+  -- R129: the settlement of pending referral rebates, out of Lisa's chosen account on the settlement date.
+  SELECT s.settlement_date,s.amount,s.created_by,s.paid_by_cash_account INTO d,amount,actor,from_account FROM public.pwa_rebate_settlements s WHERE s.id=p_id;
+  movement:='Rebate Settlement'; source_key:='REBATESETTLEMENT:'||p_id; rebate_settlement_id:=p_id; from_holder:='ch:lisa';
  ELSE RAISE EXCEPTION 'Unsupported cash source';
  END CASE;
  IF amount IS NULL THEN
@@ -7780,8 +8128,8 @@ BEGIN
  END IF;
  IF d IS NULL THEN RAISE EXCEPTION 'Qualifying cash source requires its effective movement date'; END IF;
  INSERT INTO public."Cash Ledger"("Row ID","Movement Date","Movement Type","Amount","Ref From Cash Holder","Ref To Cash Holder",
-  "Ref Payment","Ref Loan","Ref Business Expense","Ref Settlement","Entry Origin","Source Type","Source Key","Created By","Ref From Cash Account","Ref To Cash Account")
- VALUES('cash:'||source_key,d,movement,amount,from_holder,to_holder,payment_id,loan_id,expense_id,settlement_id,'System',p_type,source_key,coalesce(nullif(actor,''),'SQL'),from_account,to_account)
+  "Ref Payment","Ref Loan","Ref Business Expense","Ref Settlement","Entry Origin","Source Type","Source Key","Created By","Ref From Cash Account","Ref To Cash Account","Ref Rebate Settlement")
+ VALUES('cash:'||source_key,d,movement,amount,from_holder,to_holder,payment_id,loan_id,expense_id,settlement_id,'System',p_type,source_key,coalesce(nullif(actor,''),'SQL'),from_account,to_account,rebate_settlement_id)
  ON CONFLICT ("Source Type","Source Key") WHERE "Entry Origin"='System' DO UPDATE SET
   "Movement Date"=EXCLUDED."Movement Date","Amount"=EXCLUDED."Amount",
   "Ref From Cash Holder"=EXCLUDED."Ref From Cash Holder","Ref To Cash Holder"=EXCLUDED."Ref To Cash Holder","Ref From Cash Account"=EXCLUDED."Ref From Cash Account","Ref To Cash Account"=EXCLUDED."Ref To Cash Account"

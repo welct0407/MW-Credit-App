@@ -146,10 +146,10 @@ class TextTests(unittest.TestCase):
         self.assertIn("matches this slip.\nReferral rebate ฿30: offset to Ann's loan\nProposed:", request_text(offset, 'English')[1])
         self.assertIn('ตรงกับสลิป\nค่าแนะนำ ฿30: หักกับสินเชื่อของ Ann\nรายการที่เสนอ', request_text(offset, 'ไทย')[1])
         payout = dict(self.proposal, close=close(rebatePath='expense', rebateAmount='30', referrer='Ann'))
-        self.assertIn('\nReferral rebate ฿30: pay out to Ann\n', request_text(payout, 'English')[1])
-        self.assertIn('\nค่าแนะนำ ฿30: จ่ายให้ Ann\n', request_text(payout, 'ไทย')[1])
+        self.assertIn('\nReferral rebate ฿30: pending to Ann\n', request_text(payout, 'English')[1])
+        self.assertIn('\nค่าแนะนำ ฿30: ค้างจ่ายให้ Ann\n', request_text(payout, 'ไทย')[1])
         partial = dict(self.proposal, close=close(rebatePath='offset', rebateAmount='30', rebateCovered='20', referrer='Ann'))
-        self.assertIn("\nReferral rebate ฿20: offset to Ann's loan\nReferral rebate ฿10: pay out to Ann\n", request_text(partial, 'English')[1])
+        self.assertIn("\nReferral rebate ฿20: offset to Ann's loan\nReferral rebate ฿10: pending to Ann\n", request_text(partial, 'English')[1])
         self.assertNotIn('Referral', request_text(self.proposal, 'English')[1], 'no rebate line without a rebate')
 
     def test_a_proposal_from_before_the_deploy_keeps_its_wording(self):
@@ -185,7 +185,7 @@ class TextTests(unittest.TestCase):
                                          'Payment ID: pwa:x', 'Loan closed: Cha - -฿1,000-26/10-1.5%', "Referral rebate ฿30: offset to Ann's loan"]))
         subject, body = close_notice(dict(self.proposal, close=close(referrer='Ann')), 'ไทย', 'pwa:x', json.dumps({'closeRebate': {'path': 'expense', 'amount': '30', 'offsetAmount': '0', 'payable': '30'}}))
         self.assertEqual(subject, 'ปิดสัญญาสำเร็จ');self.assertTrue(body.startswith('ปิดสัญญาสำเร็จ\nผู้ชำระ: ชา\n'))
-        self.assertTrue(body.endswith('\nรายการชำระเงิน: pwa:x\nปิดสัญญาแล้ว: Cha - -฿1,000-26/10-1.5%\nค่าแนะนำ ฿30: จ่ายให้ Ann'))
+        self.assertTrue(body.endswith('\nรายการชำระเงิน: pwa:x\nปิดสัญญาแล้ว: Cha - -฿1,000-26/10-1.5%\nค่าแนะนำ ฿30: ค้างจ่ายให้ Ann'))
         self.assertNotIn('Referral', close_notice(self.proposal, 'English', 'pwa:x', json.dumps({'closeRebate': None}))[1])
         p = self.proposal
         self.assertEqual(close_failure_line('STALE', 'LOAN_CLOSE_QUOTE_CHANGED:1150', p, False), 'Closing amount is now ฿1,150; slip ฿1,100. Loan not closed; nothing posted. Close it in the app.')

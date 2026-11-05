@@ -30,7 +30,7 @@ type Materialize={loanId:string;chargeId:string;chargeDate:string;principalDue:s
 /** R110 Pay Forward: a v10 principal entry (the plan read adds its effect fields), the server plan and Auto-assign's remainder previews. */
 type PrincipalEntry={loanId:string;kind:'raise'|'book'|'settle';chargeId:string;chargeDate:string;amount:string;accruedInterest:string;principalDue:string;outstandingBefore?:string;outstandingAfter?:string;dailyAfter?:string;nextChargeDate?:string;nextChargeAmount?:string;payoff?:string;charges?:string};
 /** R113: a loan the plan settles: its Loan Close payoff and the referral rebate its close creates (V124 default offset). */
-type Close={payoff?:string;gapInterest?:string;charges?:string;rebate:{amount:string;referrer:string;offset:boolean}|null};
+type Close={payoff?:string;gapInterest?:string;charges?:string;rebate:{amount:string;referrer:string;offset:boolean;referrerId?:string;owedBefore?:string|null}|null};
 type Plan={allocations:Allocation[];materialize:Materialize[];principal:PrincipalEntry[];forward:ForwardRow[];paidThrough:Record<string,string>;settles:string[];uncovered:string;blocked:{loanId:string;reason:string;more?:string}[];closes:Record<string,Close>};
 type PlanPurpose={forward:boolean;principal:{loanId:string;amount:string}[];loans:string[]|null};
 type PrincipalOption={loanId:string;amount:string;settles:boolean;entry:PrincipalEntry|null;payoffRemainder?:string|null;settleOnly?:boolean};
@@ -492,9 +492,15 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   ...Object.entries(plan.paidThrough).sort(([a],[b])=>a.localeCompare(b)).map(([loan,day])=>(planLoanCount>1?loanLabel(loan)+': ':'')+t('Paid through ','ชำระถึง ')+shortDate(day,thai))].join(' · '):'';
  // R113 (Archie D3): one line per loan the payment closes, with its payoff and the referral rebate its close creates.
  const settledEntries=plan?plan.principal.filter(entry=>entry.kind==='settle'):[];
+ const owedSoFar=new Map<string,bigint>();
  const closeLines=settledEntries.map(entry=>{const close=plan?.closes[entry.loanId];const payoff=close?.payoff??entry.payoff;
   const parts=[whole(entry.accruedInterest)&&entry.accruedInterest!=='0'?t('gap interest ','ดอกเบี้ยค้าง ')+money(entry.accruedInterest):'',whole(entry.charges)&&entry.charges!=='0'?t('charges ','รายการเรียกเก็บ ')+money(entry.charges as string):''].filter(Boolean);
-  const rebate=close?.rebate&&whole(close.rebate.amount)?(t('Rebate ','ค่าแนะนำ ')+money(close.rebate.amount)+t(' to ',' ให้ ')+close.rebate.referrer+' — '+(close.rebate.offset?t('offset to their loan','หักกับสัญญาของผู้แนะนำ'):t('transfer from Lisa','โอนจาก Lisa'))):'';
+  // R129 (V137): a rebate not offset is pending payment, "Rebate ฿300 pending to Mai (฿900 owed)" (owed: the referrer's pending
+  // total before this payment plus every pending rebate of this payment to them so far); no total from a server before V137.
+  const r=close?.rebate;let owed:bigint|null=null;
+  if(r&&!r.offset&&whole(r.amount)&&whole(r.owedBefore)){const key=r.referrerId??r.referrer;owed=(owedSoFar.get(key)??BigInt(r.owedBefore as string))+BigInt(r.amount);owedSoFar.set(key,owed);}
+  const rebate=r&&whole(r.amount)?(r.offset?t('Rebate ','ค่าแนะนำ ')+money(r.amount)+t(' to ',' ให้ ')+r.referrer+' — '+t('offset to their loan','หักกับสัญญาของผู้แนะนำ')
+   :t('Rebate '+money(r.amount)+' pending to '+r.referrer+(owed!=null?' ('+money(String(owed))+' owed)':''),'ค่าแนะนำ '+money(r.amount)+' ค้างจ่ายให้ '+r.referrer+(owed!=null?' (รวมค้างจ่าย '+money(String(owed))+')':''))):'';
   return {loanId:entry.loanId,text:t('Closes ','ปิด ')+loanLabel(entry.loanId)+(whole(payoff)?' · '+t('payoff ','ยอดปิด ')+money(payoff as string):'')+(parts.length?' ('+parts.join(', ')+')':''),rebate};});
  const openLoans=remainder?Object.keys(remainder.loans).length:0;
  const closesSummary=settledEntries.length>1||(settledEntries.length>0&&openLoans>0&&settledEntries.length===openLoans)?t('Closes '+settledEntries.length+(settledEntries.length===1?' loan':' loans'),'ปิด '+settledEntries.length+' สัญญา')+(settledEntries.length===openLoans?' · '+t('outstanding ','เงินต้นคงเหลือ ')+money('0'):''):'';

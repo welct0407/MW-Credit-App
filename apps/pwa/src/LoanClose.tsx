@@ -65,13 +65,23 @@ export function LoanClose({access,item,savedDraft,thai,onBack,onApplied}:{access
  const offsetLoans=[...new Set(offsetRows.map(row=>row.loanId))].map(id=>offset?.loans?.[id]??id).join(', ');
  const through=Object.values((offset?.paidThrough??{}) as Record<string,string>).sort().at(-1);
  const offsetPreview=offsetRows.length?[offsetLoans,forwardRuns(offsetRows).map(run=>dateRange(run[0].chargeDate,run.at(-1)!.chargeDate,thai)+' ('+(run[0].partial?wholeBaht(String(BigInt(run[0].principal)+BigInt(run[0].interest)))+', '+t('partial','ชำระบางส่วน'):wholeBaht(runAmount(run[0]))+' × '+run.length)+')').join(', ')].filter(Boolean).join(' · ')+(through?', '+t('paid through ','ชำระถึง ')+shortDate(through,thai):''):'';
- const payoutLine=rebate?t(wholeBaht(rebate.amount)+' to '+referrer+', transfer from Lisa',wholeBaht(rebate.amount)+' ให้ '+referrer+' โอนจาก Lisa'):'';
- const rebateResult=!rebate?null:rebatePath==='offset'&&offset?t('Offset to ','หักกับ ')+(offsetLoans||referrer)+(through?', '+t('paid through ','ชำระถึง ')+shortDate(through,thai):'')+(whole(offset.payable)&&BigInt(offset.payable)>0n?' · '+t(wholeBaht(offset.payable)+' stays payable to '+referrer,'ค้างจ่าย '+wholeBaht(offset.payable)+' ให้ '+referrer):''):payoutLine;
+ // R129 (V137): a rebate not offset is pending payment (the Referrers page settles it later; nothing moves from Lisa at the
+ // close); owedBefore is the referrer's pending total before this close (absent from a server before V137: no total shown).
+ const owedBefore=whole(rebate?.owedBefore)?BigInt(rebate.owedBefore):null;
+ const pendingLine=(amount:string,owedAfter:bigint|null)=>t(wholeBaht(amount)+' pending to '+referrer+(owedAfter!=null?' ('+wholeBaht(String(owedAfter))+' owed after this close)':''),
+  wholeBaht(amount)+' ค้างจ่ายให้ '+referrer+(owedAfter!=null?' (รวมค้างจ่าย '+wholeBaht(String(owedAfter))+')':''));
+ const offsetRemainder=(covered:string,payable:string,day:string|undefined)=>t(wholeBaht(covered)+' offset to '+(offsetLoans||referrer)+(day?', paid through '+shortDate(day,thai):'')+' · '+wholeBaht(payable)+' pending',
+  'หัก '+wholeBaht(covered)+' กับ '+(offsetLoans||referrer)+(day?' ชำระถึง '+shortDate(day,thai):'')+' · ค้างจ่าย '+wholeBaht(payable));
+ const payoutLine=rebate?pendingLine(rebate.amount,owedBefore==null?null:owedBefore+BigInt(rebate.amount)):'';
+ const offsetHasRest=!!offset&&whole(offset.payable)&&BigInt(offset.payable)>0n;
+ const rebateResult=!rebate?null:rebatePath==='offset'&&offset?(offsetHasRest?offsetRemainder(offset.covered,offset.payable,through):t('Offset to ','หักกับ ')+(offsetLoans||referrer)+(through?', '+t('paid through ','ชำระถึง ')+shortDate(through,thai):'')):payoutLine;
  // LC-3 result: the server's recorded outcome (result.rebate) when the confirm returns it, else the reviewed choice.
  const appliedLine=(result:any):string|undefined=>{const r=result?.rebate;if(!rebate)return undefined;if(!r||typeof r!=='object')return rebateResult??undefined;
-  if(r.offsetPaymentId){const day=Object.values((r.paidThrough??{}) as Record<string,string>).sort().at(-1);if(whole(r.payable)&&BigInt(r.payable)>0n)return t(wholeBaht(r.offsetAmount)+' offset; '+wholeBaht(r.payable)+' stays payable to '+referrer,'หัก '+wholeBaht(r.offsetAmount)+' ค้างจ่าย '+wholeBaht(r.payable)+' ให้ '+referrer);
+  // R129: the server's pending part and the referrer's owed total after the close (V137 result.rebate.pending, owedTotal).
+  const pending=whole(r.pending)?r.pending:whole(r.payable)?r.payable:null,owedTotal=whole(r.owedTotal)?BigInt(r.owedTotal):null;
+  if(r.offsetPaymentId){const day=Object.values((r.paidThrough??{}) as Record<string,string>).sort().at(-1);if(pending&&BigInt(pending)>0n)return offsetRemainder(r.offsetAmount,pending,day);
    return t('Offset to ','หักกับ ')+(offsetLoans||referrer)+(day?', '+t('paid through ','ชำระถึง ')+shortDate(day,thai):'');}
-  return whole(r.amount)?t(wholeBaht(r.amount)+' to '+referrer+', transfer from Lisa',wholeBaht(r.amount)+' ให้ '+referrer+' โอนจาก Lisa'):payoutLine;};
+  return whole(r.amount)?pendingLine(pending??r.amount,owedTotal):payoutLine;};
  // R120: the basis of the amount (profit base, the referrer's rate and cap); hidden when the preview predates V135.
  const termNumber=(value:unknown)=>typeof value==='number'&&Number.isInteger(value)&&value>=0;
  const rebateBasis=rebate&&whole(rebate.profit)&&termNumber(rebate.rate)&&termNumber(rebate.cap)?t(rebate.rate+'% of '+wholeBaht(rebate.profit)+' interest and late charges, maximum '+wholeBaht(rebate.cap)+(rebate.custom===true?' · custom terms for '+referrer:''),
@@ -79,8 +89,8 @@ export function LoanClose({access,item,savedDraft,thai,onBack,onApplied}:{access
  const basisLine=rebateBasis&&<p className="field-help rebate-basis">{rebateBasis}</p>;
  const rebateBlock=rebate&&(offset?<fieldset className="loan-type-options remainder-options rebate-options"><legend>{t('Referral rebate ','ค่าแนะนำ ')+wholeBaht(rebate.amount)}</legend>{basisLine}
   <label><input type="radio" name="rebate-path" value="offset" checked={rebatePath==='offset'} disabled={checking} onChange={()=>setRebateChoice('offset')}/><span>{t("Offset referrer's loan",'หักกับสินเชื่อผู้แนะนำ')}</span>{offsetPreview&&<small>{offsetPreview}</small>}</label>
-  <label><input type="radio" name="rebate-path" value="expense" checked={rebatePath==='expense'} disabled={checking} onChange={()=>setRebateChoice('expense')}/><span>{t('Pay out as expense','จ่ายเป็นค่าใช้จ่าย')}</span><small>{payoutLine}</small></label>
-  {rebatePath==='offset'&&whole(offset.payable)&&BigInt(offset.payable)>0n&&<p className="field-help">{t(wholeBaht(offset.covered)+' offset; '+wholeBaht(offset.payable)+' stays payable to '+referrer,'หัก '+wholeBaht(offset.covered)+' ค้างจ่าย '+wholeBaht(offset.payable)+' ให้ '+referrer)}</p>}
+  <label><input type="radio" name="rebate-path" value="expense" checked={rebatePath==='expense'} disabled={checking} onChange={()=>setRebateChoice('expense')}/><span>{t('Record as pending payment','บันทึกเป็นค้างจ่าย')}</span><small>{rebatePath==='expense'?payoutLine:pendingLine(rebate.amount,null)}</small></label>
+  {rebatePath==='offset'&&offsetHasRest&&<p className="field-help">{offsetRemainder(offset.covered,offset.payable,through)}{owedBefore!=null?t(' ('+wholeBaht(String(owedBefore+BigInt(offset.payable)))+' owed after this close)',' (รวมค้างจ่าย '+wholeBaht(String(owedBefore+BigInt(offset.payable)))+')'):''}</p>}
  </fieldset>:<><p className="field-summary">{t('Rebate ','ค่าแนะนำ ')+payoutLine}</p>{basisLine}</>);
  const closeMoney=(value:unknown)=>typeof value==='string'&&/^\d+(?:\.\d{1,2})?$/.test(value)?wholeBaht(value):t('Unavailable','ไม่มีข้อมูล');
  const closeSummary=preview&&<section className="close-summary" aria-label={t('Closing amount','ยอดปิด')}><h3>{t('Closing amount as of','ยอดปิด ณ วันที่')} {displayDate(preview.businessDate)}</h3><dl>{[['principalAmount','Principal','เงินต้น'],['interestAmount','Interest','ดอกเบี้ย'],['amount','Total','รวม']].map(([key,en,th])=><div key={key}><dt>{t(en,th)}</dt><dd>{closeMoney(preview[key])}</dd></div>)}</dl></section>;

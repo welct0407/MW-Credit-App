@@ -1,5 +1,6 @@
 import {genericNotification,renderNotification} from './content.mjs';
-/** R119: the only v4 errors that fall back to v3: undefined_function (a database before V134) and insufficient_privilege. */
+/** R119: the only v4 errors that fall back to v3: undefined_function (a database before V134) and insufficient_privilege.
+ * R129: the same two v5 errors fall back to v4 (a database before V137, or before its grant). */
 const V4_FALLBACK=new Set(['42883','42501']);
 /** Claim just before each send so a slow provider cannot expire an entire batch. */
 export function createNotificationDispatcher({pool,transport,eligible,guardConnection,enabled=false,shouldStop=()=>false,remainingMs=()=>Infinity,signal=()=>undefined}){
@@ -25,8 +26,9 @@ export function createNotificationDispatcher({pool,transport,eligible,guardConne
     // grant (42501) the v3 read answers (the first rebate). Any other v4 error is not hidden behind a first-rebate push:
     // it reaches the catch below, which sends the generic text.
     try{const args=[delivery.delivery_id,delivery.lease_generation];let facts;
-     for(const version of [4,3,2,1]){try{facts=(await query(`SELECT * FROM public.pwa_notify_content_v${version}($1::uuid,$2::bigint)`,args)).rows[0];break;}
-      catch(error){if(version===1||version===4&&!V4_FALLBACK.has(error?.code))throw error;}}
+     // R129 (V137): v5 adds each rebate's state, pending amount and the payee's owed total; v4 answers before V137.
+     for(const version of [5,4,3,2,1]){try{facts=(await query(`SELECT * FROM public.pwa_notify_content_v${version}($1::uuid,$2::bigint)`,args)).rows[0];break;}
+      catch(error){if(version===1||version>=4&&!V4_FALLBACK.has(error?.code))throw error;}}
      content=facts?renderNotification({found:facts.found,eventType:facts.event_type,language:facts.language,borrowerName:facts.borrower_name,amount:facts.amount,rebatePayee:facts.rebate_payee??null,rebatePayable:facts.rebate_payable??null,paymentMethod:facts.payment_method??null,rebateLoan:facts.rebate_loan??null,lateChargeAmount:facts.late_charge_amount??null,rebates:facts.rebates??null}):genericNotification();}
     catch{content=genericNotification();}
     const started=(await query('SELECT public.pwa_notify_start_send_v1($1::uuid,$2::bigint,$3::bigint) AS started',[delivery.delivery_id,delivery.lease_generation,row.version])).rows[0].started;

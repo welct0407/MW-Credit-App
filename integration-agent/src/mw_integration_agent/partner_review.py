@@ -260,13 +260,14 @@ def close_amount_line(close,thai):
 
 
 def rebate_lines(offset,payable,referrer,thai):
-    """R128 (Echo AG-17): the referral rebate, offset to the referrer's loan and/or paid out; nothing without one."""
+    """R128 (Echo AG-17): the referral rebate, offset to the referrer's loan and/or the rest; nothing without one.
+    R129 (V137): the rest is pending payment (the Referrers page settles it later), not paid out at close."""
     from decimal import Decimal, InvalidOperation
     name=referrer or ('ผู้แนะนำ' if thai else 'the referrer');lines=[]
     try:offset,payable=Decimal(str(offset or 0)),Decimal(str(payable or 0))
     except InvalidOperation:return []
     if offset>0:lines.append(f'ค่าแนะนำ {baht(offset)}: หักกับสินเชื่อของ {name}' if thai else f"Referral rebate {baht(offset)}: offset to {name}'s loan")
-    if payable>0:lines.append(f'ค่าแนะนำ {baht(payable)}: จ่ายให้ {name}' if thai else f'Referral rebate {baht(payable)}: pay out to {name}')
+    if payable>0:lines.append(f'ค่าแนะนำ {baht(payable)}: ค้างจ่ายให้ {name}' if thai else f'Referral rebate {baht(payable)}: pending to {name}')
     return lines
 
 

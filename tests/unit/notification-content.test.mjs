@@ -180,3 +180,46 @@ test('R119 fit: the borrower name is shortened first, then every payee (at least
  const thai=renderNotification(facts({language:'th',...late,borrowerName:'สมชาย ใจดี',rebates:three.map((r,i)=>({...r,payee:'ผู้แนะนำชื่อยาวมากคนที่ '+(i+1)}))}));
  withinBudgets(thai);assert.equal(thai.body,'ค่าแนะนำรวม ฿70 ให้ผู้แนะนำ 4 ราย โอนจาก Lisa · ค่าปรับล่าช้า ฿50 · สมชาย ใจดี');
 });
+// R129 (V137 pwa_notify_content_v5): each rebate carries its state, pending amount and the payee's owed total. A pending
+// rebate reads "pending to … (… owed)"; an offset with a pending rest names that rest; a rebate booked before V137 (paid at
+// close) keeps "transfer from Lisa". Both languages; within the budgets.
+test('R129: pending, offset remainder and paid-at-close rebates in English and Thai',()=>{
+ const one=(state,pending,payable,owed)=>[{amount:300,payee:'Mai',payable,state,pending,owed}];
+ const cases=[
+  ['en',one('pending',300,300,900),'Rebate ฿300 pending to Mai (฿900 owed) · Somchai Jaidee'],
+  ['th',one('pending',300,300,900),'ค่าแนะนำ ฿300 ค้างจ่ายให้ Mai (รวมค้างจ่าย ฿900) · สมชาย ใจดี'],
+  ['en',one('offset',100,100,400),'Rebate ฿100 pending to Mai (฿400 owed) · Somchai Jaidee'],
+  ['th',one('offset',100,100,400),'ค่าแนะนำ ฿100 ค้างจ่ายให้ Mai (รวมค้างจ่าย ฿400) · สมชาย ใจดี'],
+  ['en',one('paid-at-close',0,300,0),'Rebate ฿300 to Mai, transfer from Lisa · Somchai Jaidee'],
+  ['th',one('paid-at-close',0,300,0),'ค่าแนะนำ ฿300 ให้ Mai โอนจาก Lisa · สมชาย ใจดี'],
+ ];
+ for(const [language,rebates,body] of cases){
+  const n=renderNotification(facts({language,borrowerName:language==='th'?'สมชาย ใจดี':'Somchai Jaidee',amount:'4000',rebatePayee:'Mai',rebatePayable:'300',rebates}));
+  assert.equal(n.body,body,language);withinBudgets(n);assert.doesNotMatch(rebates[0].state==='paid-at-close'?'':n.body,/Lisa/);
+ }
+ // Fully offset and already settled rebates have no line (nothing pending, nothing for Lisa to transfer).
+ for(const state of ['offset','paid'])assert.equal(renderNotification(facts({rebatePayee:'Mai',rebatePayable:'300',rebates:one(state,0,state==='offset'?0:300,0)})).body,'Somchai Jaidee',state);
+ // The Loan closed push words it the same way.
+ assert.equal(renderNotification(facts({eventType:'loan.closed',amount:'10000',rebates:one('pending',300,300,300)})).body,'Rebate ฿300 pending to Mai (฿300 owed) · Somchai Jaidee');
+});
+test('R129: pending rebates of two referrers share one line, each with its owed total, and collapse to the total',()=>{
+ const two=[{amount:30,payee:'Mai',payable:30,state:'pending',pending:30,owed:90},{amount:20,payee:'Pond',payable:20,state:'pending',pending:20,owed:20}];
+ const en=renderNotification(facts({rebates:two,amount:'2500'})),th=renderNotification(facts({language:'th',borrowerName:'สมชาย',rebates:two,amount:'2500'}));
+ assert.match(en.body,/^Rebates pending ฿30 to Mai \(฿90 owed\) and ฿20 to Pond \(฿20 owed\) · Somchai/,'the borrower name is shortened first');withinBudgets(en);
+ assert.match(th.body,/^ค่าแนะนำค้างจ่าย ฿30 ให้ Mai \(รวมค้างจ่าย ฿90\) และ ฿20 ให้ Pond \(รวมค้างจ่าย ฿20\)/);withinBudgets(th);
+ const long=[1,2,3].map(k=>({amount:100,payee:'Referrer with a long English name '+k,payable:100,state:'pending',pending:100,owed:100*k}));
+ const collapsed=renderNotification(facts({rebates:long}));withinBudgets(collapsed);assert.doesNotMatch(collapsed.body,/Lisa/);assert.match(collapsed.body,/฿300/);
+});
+// R129 (Chase): a partly offset V3 rebate whose rest a settlement paid (a delayed or retried close push) is not Lisa's
+// transfer at close: v5 reads it 'paid' and the renderer never words a REFERRAL_REBATE_V3 rebate as "transfer from Lisa",
+// even from an entry that still says 'offset'. A legacy (V2) partial offset keeps its wording.
+test('R129: a settled V3 partial offset has no "transfer from Lisa" line in English and Thai; a legacy partial offset keeps it',()=>{
+ const v3=state=>[{amount:300,payee:'Mai',payable:100,state,pending:0,owed:0,ruleVersion:'REFERRAL_REBATE_V3'}];
+ for(const language of ['en','th'])for(const state of ['paid','offset']){
+  const borrowerName=language==='th'?'สมชาย ใจดี':'Somchai Jaidee',n=renderNotification(facts({language,borrowerName,rebatePayee:'Mai',rebatePayable:'100',rebates:v3(state)}));
+  assert.equal(n.body,borrowerName,language+' '+state);assert.doesNotMatch(n.body,/Lisa/);withinBudgets(n);
+ }
+ const legacy=[{amount:300,payee:'Mai',payable:100,state:'offset',pending:0,owed:0,ruleVersion:'REFERRAL_REBATE_V2'}];
+ assert.equal(renderNotification(facts({rebates:legacy})).body,'Rebate ฿100 to Mai, transfer from Lisa · Somchai Jaidee');
+ assert.equal(renderNotification(facts({language:'th',borrowerName:'สมชาย ใจดี',rebates:legacy})).body,'ค่าแนะนำ ฿100 ให้ Mai โอนจาก Lisa · สมชาย ใจดี');
+});
