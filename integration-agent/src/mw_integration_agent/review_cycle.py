@@ -402,6 +402,7 @@ def close_changed(config,proposal):
     (Echo AG-20); best effort, a quote that cannot be read gives the plain detail."""
     from decimal import Decimal
     try:amount=receipt_api.close_quote(config,proposal['loan_id'])['amount']
+    except receipt_api.QuoteRefused as exc:return str(exc) if str(exc)=='LOAN_CLOSE_QUOTE_UNAVAILABLE' else LOAN_CLOSE_CHANGED
     except Exception:return LOAN_CLOSE_CHANGED
     return LOAN_CLOSE_CHANGED+(':'+amount if Decimal(amount)!=Decimal(proposal['receipt']['amount']) else '')
 

@@ -110,6 +110,8 @@ def same_posting_outcome(saved, fresh, automatic):
 
 OPTIONS='Pay forward options'
 LOAN_CLOSE_CHANGED='LOAN_CLOSE_QUOTE_CHANGED'
+# R128 (Chase): no quote at execution (404: the loan is not found or the agent route is off) is not a change of the close.
+LOAN_CLOSE_UNAVAILABLE='LOAN_CLOSE_QUOTE_UNAVAILABLE'
 # One read-only call of the server's plan; every value goes in as a psql variable.
 PLAN_SQL="SELECT public.pwa_pay_forward_plan_v1(:'borrower',:'amount'::numeric,:'day'::date,:'purpose'::jsonb);"
 MAX_PRINCIPAL_OPTIONS=5
@@ -284,8 +286,8 @@ def plan(receipt,borrower,current,today=None,config=None,strict=False):
     if action=='Loan Close' and close_enabled(config) and receipt['date']==today and str(receipt.get('reference') or '').strip() and receipt.get('time'):
         from . import receipt_api
         try:terms,quote=close_terms(config,receipt,loan_id)
-        except receipt_api.QuoteRefused:
-            if strict:raise ReceiptInvalid(LOAN_CLOSE_CHANGED) from None
+        except receipt_api.QuoteRefused as exc:
+            if strict:raise ReceiptInvalid(LOAN_CLOSE_UNAVAILABLE if str(exc)==LOAN_CLOSE_UNAVAILABLE else LOAN_CLOSE_CHANGED) from None
             terms=quote=None
         except Exception:
             if strict:raise

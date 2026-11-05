@@ -19,6 +19,8 @@ export const normalizedCloseReference=(value:string)=>value.replace(/[\s-]/g,'')
 export const validCloseReference=(value:string)=>/^[A-Z0-9]{6,100}$/.test(value);
 const validTime=(value:string)=>/^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 const text=(value:unknown)=>typeof value==='string'?value:null;
+/** LC-UX-D1: a sentence ends in one full stop, also after a Thai month abbreviation ("08-ต.ค."). */
+export const endSentence=(value:string)=>value.endsWith('.')?value:value+'.';
 
 /** The recognition response (status 200 or not, its JSON) as the recognition state and the fields it fills. */
 export function readCloseSlip(receiptId:string,ok:boolean,data:any,context:{businessDate:string;accounts:{id:string}[]},form:CloseSlipForm):{recognition:CloseRecognition;fill:CloseSlipFill|null}{
@@ -76,7 +78,7 @@ export function closeSlipNotes(r:CloseRecognition|null,form:{amount:string|null;
  const account=r.slipAccountId&&form.account!==''&&form.account!==r.slipAccountId?`${t('Slip shows a different account: ','สลิปแสดงบัญชีที่ต่างกัน: ')}${form.accountLabel(r.slipAccountId)??r.slipAccountId}.`:null;
  const accountNote=r.accountNote==='ambiguous'?t('Slip account matches more than one account — check the receiving account.','บัญชีในสลิปตรงกับหลายบัญชี — กรุณาตรวจสอบบัญชีรับชำระ')
   :r.accountNote==='unmatched'?t('Slip account not matched — check the receiving account.','บัญชีในสลิปไม่ตรงกับบัญชีรับชำระ — กรุณาตรวจสอบบัญชีรับชำระ'):null;
- const date=typeof r.dateNotUsed==='string'?(r.dateNotUsed?`${t('Slip date not used: ','ไม่ได้ใช้วันที่ตามสลิป: ')}${format.day(r.dateNotUsed)}.`:t('Slip date not used.','ไม่ได้ใช้วันที่ตามสลิป')):null;
+ const date=typeof r.dateNotUsed==='string'?(r.dateNotUsed?endSentence(`${t('Slip date not used: ','ไม่ได้ใช้วันที่ตามสลิป: ')}${format.day(r.dateNotUsed)}`):t('Slip date not used.','ไม่ได้ใช้วันที่ตามสลิป')):null;
  const reference=normalizedCloseReference(form.bankReference);
  const duplicate=r.referenceExists&&form.method==='Bank Transfer'&&reference!==''&&reference===r.slipReference?t('This reference is already on a recorded payment.','เลขอ้างอิงนี้มีอยู่ในรายการรับชำระที่บันทึกแล้ว'):null;
  return {status:null,summary,amount,account,accountNote,date,reference:duplicate};

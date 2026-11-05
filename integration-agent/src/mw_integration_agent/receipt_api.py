@@ -193,7 +193,8 @@ def close_notes(review_id):
 
 
 class QuoteRefused(ConfigurationError):
-    """The server answered that this loan has no Loan Close quote now (404 not found, 422 the loan cannot close)."""
+    """The server answered that this loan has no Loan Close quote now: LOAN_CLOSE_QUOTE_UNAVAILABLE for 404 (the loan is not
+    found or the route is off), LOAN_CLOSE_QUOTE_REFUSED for 422 (the loan cannot close as it stands)."""
 
 
 def close_quote(config, loan_id):
@@ -209,7 +210,7 @@ def close_quote(config, loan_id):
     except ConfigurationError:
         raise ConfigurationError('LOAN_CLOSE_QUOTE_UNAVAILABLE') from None
     if isinstance(quote, dict) and set(quote) == {'error'}:
-        raise QuoteRefused('LOAN_CLOSE_QUOTE_REFUSED')
+        raise QuoteRefused('LOAN_CLOSE_QUOTE_UNAVAILABLE' if quote['error'] == 'not_found' else 'LOAN_CLOSE_QUOTE_REFUSED')
     try:
         valid = (quote['loanId'] == loan_id and HEX64.fullmatch(quote['sourceVersion']) and HEX64.fullmatch(quote['planHash'])
                  and WHOLE.fullmatch(quote['amount']) and re.fullmatch(r'\d{4}-\d{2}-\d{2}', quote['businessDate'])

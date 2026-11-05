@@ -316,14 +316,23 @@ def close_notice(proposal,language,payment_id,detail):
     return title,body
 
 
+# R128 (Echo AG-20a/b): the close-change reasons, and the reasons that close nothing without a change of the close.
+CLOSE_CHANGE_DETAILS=('LOAN_CLOSE_DAY_PASSED','LOAN_CLOSE_REJECTED')
+CLOSE_NEUTRAL_DETAILS=('LOAN_CLOSE_EXECUTION_OFF','LOAN_CLOSE_QUOTE_UNAVAILABLE')
+
+
 def close_failure_line(state,detail,proposal,thai):
-    """R128 (Echo AG-20): the last line of a close that did not post; '' for a rejection or an expiry."""
+    """R128 (Echo AG-20): the last line of a close that did not post. A changed close (the quote or another fact changed, the
+    day passed, the server refused it) says so; the switch off or no quote (404) gets the neutral line; any other STALE or
+    MANUAL_REQUIRED reason (for example the payment already recorded) keeps only its own line; '' for a rejection or an expiry."""
     detail=detail or ''
     if state=='STALE' and detail.startswith('LOAN_CLOSE_QUOTE_CHANGED:'):
         now,slip=baht(detail.split(':',1)[1]),baht(proposal['receipt']['amount'])
         return (f'ยอดปิดตอนนี้ {now} สลิป {slip} ยังไม่ได้ปิดสัญญาและยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else
                 f'Closing amount is now {now}; slip {slip}. Loan not closed; nothing posted. Close it in the app.')
-    if state in ('STALE','MANUAL_REQUIRED'):
+    if state in ('STALE','MANUAL_REQUIRED') and detail.split(':',1)[0] in CLOSE_NEUTRAL_DETAILS:
+        return 'ยังไม่ได้ปิดสัญญา ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else 'Loan not closed. Nothing posted. Close it in the app.'
+    if state in ('STALE','MANUAL_REQUIRED') and ('CHANGED' in detail or detail.split(':',1)[0] in CLOSE_CHANGE_DETAILS):
         return ('ยังไม่ได้ปิดสัญญา: ข้อมูลการปิดเปลี่ยน ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else
                 'Loan not closed: closing details changed. Nothing posted. Close it in the app.')
     if state=='UNKNOWN':

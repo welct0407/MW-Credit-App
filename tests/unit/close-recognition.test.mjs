@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import ts from 'typescript';
 // R128 (owner, 5 November 2026): slip recognition on the Close Loan page (pure module, transpiled as the PWA build does).
 const source=ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/close-recognition.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
-const {readCloseSlip,closeSlipInputs,closeSlipNotes,closeConfirmNotes,normalizedCloseReference}=await import('data:text/javascript,'+encodeURIComponent(source));
+const {readCloseSlip,closeSlipInputs,closeSlipNotes,closeConfirmNotes,normalizedCloseReference,endSentence}=await import('data:text/javascript,'+encodeURIComponent(source));
 const context={businessDate:'2026-11-05',accounts:[{id:'dad'},{id:'lisa'}]};
 const empty={account:'',method:'Bank Transfer',bankReference:'',accountChosen:false,touched:new Set()};
 const read=(suggestion,warnings=[],form=empty,extra={})=>readCloseSlip('r1',true,{status:'recognized',provider:'gemini',suggestion,warnings,...extra},context,form);
@@ -59,6 +59,9 @@ test('Echo LC-UX notes: status lines, amount match and mismatch (recompared with
  assert.equal(notes({...recognition,accountNote:'unmatched'}).accountNote,'Slip account not matched — check the receiving account.');
  assert.equal(notes({...recognition,dateNotUsed:'2026-11-04'}).date,'Slip date not used: 04-Nov.');
  assert.equal(notes({...recognition,dateNotUsed:''},{},true).date,'ไม่ได้ใช้วันที่ตามสลิป');
+ // LC-UX-D1: a Thai month abbreviation already ends in a full stop; no second one.
+ assert.equal(closeSlipNotes({...recognition,dateNotUsed:'2026-10-08'},{amount:'1100',account:'dad',accountLabel:()=>undefined,method:'Bank Transfer',bankReference:''},true,{money,day:()=>'08-ต.ค.'}).date,'ไม่ได้ใช้วันที่ตามสลิป: 08-ต.ค.');
+ assert.equal(endSentence('Slip date not used: 08-Oct'),'Slip date not used: 08-Oct.');assert.equal(endSentence('x.'),'x.');
  const duplicate={...recognition,referenceExists:true};
  assert.equal(notes(duplicate,{bankReference:'slipref-123'}).reference,'This reference is already on a recorded payment.');
  assert.equal(notes(duplicate,{bankReference:'OTHER1'}).reference,null);assert.equal(notes(duplicate,{bankReference:'SLIPREF123',method:'Cash'}).reference,null);

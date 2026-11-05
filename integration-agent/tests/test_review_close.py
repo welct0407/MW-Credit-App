@@ -76,8 +76,11 @@ class PlanTests(unittest.TestCase):
             with self.assertRaisesRegex(ReceiptInvalid, '^LOAN_CLOSE_QUOTE_CHANGED:1150$'):self.plan(strict=True)
         with patch('mw_integration_agent.receipt_api.close_quote', return_value=quote(businessDate='2026-01-01')):
             with self.assertRaisesRegex(ReceiptInvalid, '^LOAN_CLOSE_QUOTE_CHANGED$'):self.plan(strict=True)
-        with patch('mw_integration_agent.receipt_api.close_quote', side_effect=receipt_api.QuoteRefused('x')):
+        with patch('mw_integration_agent.receipt_api.close_quote', side_effect=receipt_api.QuoteRefused('LOAN_CLOSE_QUOTE_REFUSED')):
             with self.assertRaisesRegex(ReceiptInvalid, '^LOAN_CLOSE_QUOTE_CHANGED$'):self.plan(strict=True)
+        # Chase: a 404 (the loan not found or the agent route off) is no quote, not a change of the close.
+        with patch('mw_integration_agent.receipt_api.close_quote', side_effect=receipt_api.QuoteRefused('LOAN_CLOSE_QUOTE_UNAVAILABLE')):
+            with self.assertRaisesRegex(ReceiptInvalid, '^LOAN_CLOSE_QUOTE_UNAVAILABLE$'):self.plan(strict=True)
         with patch('mw_integration_agent.receipt_api.close_quote', side_effect=TimeoutError()):
             with self.assertRaises(TimeoutError):self.plan(strict=True)
 
@@ -187,9 +190,18 @@ class TextTests(unittest.TestCase):
         p = self.proposal
         self.assertEqual(close_failure_line('STALE', 'LOAN_CLOSE_QUOTE_CHANGED:1150', p, False), 'Closing amount is now ฿1,150; slip ฿1,100. Loan not closed; nothing posted. Close it in the app.')
         self.assertEqual(close_failure_line('STALE', 'LOAN_CLOSE_QUOTE_CHANGED:1150', p, True), 'ยอดปิดตอนนี้ ฿1,150 สลิป ฿1,100 ยังไม่ได้ปิดสัญญาและยังไม่ได้บันทึกรายการ กรุณาปิดในแอป')
-        for state, detail in (('STALE', 'LOAN_CLOSE_QUOTE_CHANGED'), ('STALE', 'LOAN_CLOSE_DAY_PASSED'), ('MANUAL_REQUIRED', 'LOAN_CLOSE_EXECUTION_OFF'), ('MANUAL_REQUIRED', 'LOAN_CLOSE_REJECTED:plan_changed')):
+        # AG-20a: only a change of the close says "closing details changed".
+        for state, detail in (('STALE', 'LOAN_CLOSE_QUOTE_CHANGED'), ('STALE', 'PROPOSAL_FACTS_CHANGED'), ('STALE', 'RECEIVING_ACCOUNT_CHANGED'), ('STALE', 'LOAN_CLOSE_DAY_PASSED'),
+                              ('MANUAL_REQUIRED', 'LOAN_CLOSE_REJECTED:plan_changed'), ('MANUAL_REQUIRED', 'LOAN_CLOSE_REJECTED')):
             self.assertEqual(close_failure_line(state, detail, p, False), 'Loan not closed: closing details changed. Nothing posted. Close it in the app.')
             self.assertEqual(close_failure_line(state, detail, p, True), 'ยังไม่ได้ปิดสัญญา: ข้อมูลการปิดเปลี่ยน ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป')
+        # AG-20b: the switch off and no quote (404) get the neutral line.
+        for state, detail in (('MANUAL_REQUIRED', 'LOAN_CLOSE_EXECUTION_OFF'), ('STALE', 'LOAN_CLOSE_QUOTE_UNAVAILABLE')):
+            self.assertEqual(close_failure_line(state, detail, p, False), 'Loan not closed. Nothing posted. Close it in the app.')
+            self.assertEqual(close_failure_line(state, detail, p, True), 'ยังไม่ได้ปิดสัญญา ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป')
+        # Other reasons (the duplicate check: the payment already recorded) keep only their own line.
+        for state, detail in (('STALE', 'PAYMENT_ALREADY_RECORDED'), ('STALE', 'POSSIBLE_EXISTING_PAYMENT_REVIEW'), ('STALE', 'REFERENCE_UNREADABLE'), ('MANUAL_REQUIRED', ''), ('STALE', '')):
+            self.assertEqual(close_failure_line(state, detail, p, False), '', detail);self.assertEqual(close_failure_line(state, detail, p, True), '', detail)
         self.assertEqual(close_failure_line('UNKNOWN', '', p, False), 'Check the loan in the app before closing it again.')
         self.assertEqual(close_failure_line('UNKNOWN', '', p, True), 'ตรวจสอบสัญญาในแอปก่อนปิดอีกครั้ง')
         self.assertEqual(close_failure_line('REJECTED', '', p, False), '');self.assertEqual(close_failure_line('EXPIRED', '', p, False), '')
@@ -246,7 +258,9 @@ class TransportTests(unittest.TestCase):
             receipt_api.close_quote(self.config, 'L 1/x')
         self.assertEqual(c.call_args.kwargs['route'], 'loan-closes/quote/L%201%2Fx')
         with patch('mw_integration_agent.receipt_api.call', return_value={'error': 'record_requires_reconciliation'}):
-            with self.assertRaises(receipt_api.QuoteRefused):receipt_api.close_quote(self.config, 'L1')
+            with self.assertRaisesRegex(receipt_api.QuoteRefused, '^LOAN_CLOSE_QUOTE_REFUSED$'):receipt_api.close_quote(self.config, 'L1')
+        with patch('mw_integration_agent.receipt_api.call', return_value={'error': 'not_found'}):
+            with self.assertRaisesRegex(receipt_api.QuoteRefused, '^LOAN_CLOSE_QUOTE_UNAVAILABLE$'):receipt_api.close_quote(self.config, 'L1')
         for bad in (quote(loanId='L2'), quote(planHash='x'), quote(amount='1100.50'), [], quote(sourceVersion=None)):
             with self.subTest(bad=bad), patch('mw_integration_agent.receipt_api.call', return_value=bad):
                 with self.assertRaisesRegex(ConfigurationError, 'LOAN_CLOSE_QUOTE_UNAVAILABLE'):receipt_api.close_quote(self.config, 'L1')
@@ -376,7 +390,21 @@ class CloseCycleTests(unittest.TestCase):
         self.config['loan_close_execution_enabled'] = False;self.run_cycle()
         row = self.review();self.assertEqual((row['state'], row['detail']), ('MANUAL_REQUIRED', 'LOAN_CLOSE_EXECUTION_OFF'))
         self.submit_close.assert_not_called()
-        self.assertTrue(self.result_body().endswith('\nLoan not closed: closing details changed. Nothing posted. Close it in the app.'))
+        self.assertTrue(self.result_body().endswith('\nPartner must record this manually. Agent has not posted it.\nLoan not closed. Nothing posted. Close it in the app.'))
+
+    def test_no_quote_at_execution_is_stale_with_the_neutral_line(self):
+        self.current = ReceiptInvalid('LOAN_CLOSE_QUOTE_UNAVAILABLE');self.run_cycle()
+        row = self.review();self.assertEqual((row['state'], row['detail']), ('STALE', 'LOAN_CLOSE_QUOTE_UNAVAILABLE'));self.submit_close.assert_not_called()
+        self.assertTrue(self.result_body().endswith('\nLoan not closed. Nothing posted. Close it in the app.'))
+        # The best-effort re-quote of a changed plan also names a 404 as no quote.
+        self.reserve(self.proposal);self.current = dict(self.proposal, close=close(planHash='c' * 64))
+        self.close_quote.side_effect = receipt_api.QuoteRefused('LOAN_CLOSE_QUOTE_UNAVAILABLE');self.run_cycle()
+        self.assertEqual(self.review()['detail'], 'LOAN_CLOSE_QUOTE_UNAVAILABLE')
+
+    def test_a_close_already_recorded_keeps_only_the_duplicate_line(self):
+        self.check.side_effect = ReceiptInvalid('PAYMENT_ALREADY_RECORDED');self.run_cycle()
+        row = self.review();self.assertEqual((row['state'], row['detail']), ('STALE', 'PAYMENT_ALREADY_RECORDED'))
+        self.assertTrue(self.result_body().endswith('\nFacts changed or payment already exists. Check manually; no agent posting.'))
 
     def test_a_proposal_from_before_the_deploy_stays_manual_with_its_old_result(self):
         manual = {k: v for k, v in self.proposal.items() if k != 'close'}
