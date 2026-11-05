@@ -38,8 +38,9 @@ export async function readPaymentRecord(client,id){
  // R119 (Echo PR-1/PR-2): every referred loan this payment closed, in the Payment Allocations order (then loan id), with the
  // closed loan's display key as the allocations show it; closeRebate stays the first for a phone on an older bundle.
  const dates=await settlementDates(client,rebates.map(r=>r.settlementId));
+ // The payees travel as one JSON text parameter (the offline records walk's bulkReadClient takes scalar parameters only).
  const v3=[...new Set(rebates.filter(r=>r.ruleVersion==='REFERRAL_REBATE_V3'&&r.payeeId).map(r=>r.payeeId))];
- const owed=new Map(v3.length?(await client.query('SELECT p AS id,public.pwa_rebates_owed_v1(p)::numeric(20,2)::text AS owed FROM unnest($1::text[]) p',[v3])).rows.map(r=>[r.id,r.owed]):[]);
+ const owed=new Map(v3.length?(await client.query('SELECT p.id,public.pwa_rebates_owed_v1(p.id)::numeric(20,2)::text AS owed FROM jsonb_array_elements_text($1::jsonb) p(id)',[JSON.stringify(v3)])).rows.map(r=>[r.id,r.owed]):[]);
  item.closeRebates=rebates.map(rebate=>({loanId:rebate.loanId,loanDisplayKey:rebate.loanPrincipal==null?null:paymentLoanDisplayKey({principal:rebate.loanPrincipal,loanDate:rebate.loanDay,rate:rebate.loanRate,name:borrowerDisplayName(rebate.loanBorrowerName,rebate.loanBorrowerDescription)}),amount:rebate.amount,referrerLabel:rebate.referrerLabel,offsetPaymentId:rebate.offsetPaymentId??null,offsetAmount:rebate.offsetAmount??null,
   payableAmount:rebate.offsetAmount==null?rebate.amount:(Number(rebate.amount)-Number(rebate.offsetAmount)).toString(),offsetLoanId:rebate.offsetLoanId??null,
   offsetLoanLabel:rebate.offsetLoanId?paymentLoanDisplayKey({name:rebate.referrerLabel,principal:rebate.principal,loanDate:rebate.loanDate,rate:rebate.rate}):null,paidThrough:rebate.paidThrough??null,

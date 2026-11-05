@@ -2,6 +2,7 @@ import {wakeContext} from '../notifications/postcommit.mjs';
 import { canonicalCommand } from '../contracts/payment-command.mjs';
 import { beginRequest } from '../lib/http-boundary.mjs';
 import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
+import { logUnavailable } from '../lib/log.mjs';
 const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','selection_changed','plan_changed','selection_limit_exceeded','business_date_changed','payment_requires_reconciliation','source_changed','metadata_conflict','borrower_name_exists','borrower_name_required','operation_outcome_unknown','record_conflict','invalid_reference','record_requires_reconciliation','record_outcome_unknown','metadata_outcome_unknown','command_outcome_unknown','command_busy','command_unavailable','session_check_unavailable','body_timeout']);
 const MAX_BODY = 524288;
 codes.add('dataset_changed');
@@ -228,7 +229,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       } else if (target.operation === 'command_status') result = await store.status(principal, target.requestId);
       else return reject(404, 'not_found');
       const { status, ...value } = result;return send(status, value);
-    } catch { return reject(503, target.operation === 'command_submit' ? 'command_outcome_unknown' : 'command_unavailable'); }
+    } catch (error) { logUnavailable('command_handler_unavailable',error,{operation:target.operation}); return reject(503, target.operation === 'command_submit' ? 'command_outcome_unknown' : 'command_unavailable'); }
   };
 }
 

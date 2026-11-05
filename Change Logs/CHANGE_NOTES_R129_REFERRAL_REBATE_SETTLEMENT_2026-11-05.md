@@ -164,3 +164,6 @@ Closure pull request, records only: tracker (R129 Released, R130 opened, next un
 - Deleted: `Change Logs/CHANGE_NOTES_R126_DCW_WHEN_DESIGN_2026-11-05.md` (R126 left the three-release window of R127, R128 and R129). Its inbound links in the tracker, Development Changes and the Environment Inventory were first repointed to the permalink at `0f34203`.
 - Kept: the R127 and R128 notes and the R129 notes (inside the window); `project/outputs/dictionary-r116-20261103/` and `project/outputs/dictionary-r120-20261104/`, still cited by Data Dictionary entries.
 - Not refreshed: the Data Dictionary (see Remaining work).
+
+### Post-release defect
+Three R129 queries passed a JavaScript array as a text array parameter, which the offline records walk rejects, so the offline records refresh failed on DEV and PROD ("Borrowers not updated") from 15:57:56Z on PROD, after the legacy conversion. Fixed in R130: see the [R130 change note](CHANGE_NOTES_R130_RECORDS_SYNC_HOTFIX_2026-11-05.md).

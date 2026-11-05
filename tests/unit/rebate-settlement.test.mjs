@@ -7,6 +7,9 @@ import {compareReferrers,compareReferees,settlementVersionSql,rebateStateSql,reb
 import {readRebateSettlement,readReferrerRecord,readReferrers} from '../../services/business/referrers.mjs';
 import {createPaymentCommandHandler,isReadRoute} from '../../services/payment-command/handler.mjs';
 import {readFileSync} from 'node:fs';
+import {bulkReadClient} from '../../services/business/offline-dataset.mjs';
+import {settlementDates} from '../../services/business/referrers.mjs';
+import {logUnavailable} from '../../services/lib/log.mjs';
 // R129 (V137): the rebate settlement contract (the canonical text pwa_submit_operation_v2 checks byte for byte), the
 // derived-state SQL shared by the reads, the Referrers sort and the three read routes.
 const actor={issuer:'https://securetoken.google.com/x',subject:'s',partnerId:'P-1',loginEmail:'owner@example.invalid'};
@@ -85,4 +88,20 @@ test('routes: GET /api/referrers, /api/referrers/:id and /api/rebate-settlements
   assert.equal((await call('/api/referrers','POST')).status,405);assert.equal((await call('/api/rebate-settlements/x','DELETE')).status,405);
   assert.equal((await call('/api/referrers?q=Mai')).status,400);
  }finally{await new Promise(resolve=>server.close(resolve))}
+});
+test('PROD defect (R129): the record builders read through the offline bulk client, which takes scalar parameters only',async()=>{
+ // Before the fix settlementDates (and the payments and cash reads) passed a text[] and the records walk failed with
+ // "Invalid internal bulk read" (503 command_unavailable) once a V3 rebate or a settlement existed.
+ const sent=[],fake={query:async(sql,params)=>{sent.push({sql,params});return {rows:[{batchIndex:1,values:[{id:'s1',date:'2026-11-05',accountLabel:'Lisa SCB'}]}],rowCount:1}}};
+ const dates=await settlementDates(bulkReadClient(fake),['s1',null,'s1']);
+ assert.deepEqual(dates.get('s1'),{date:'2026-11-05',accountLabel:'Lisa SCB'});
+ assert.equal(sent.length,1);assert.match(sent[0].sql,/jsonb_array_elements_text\(\(batch\.args->>0\)::jsonb\)/);assert.deepEqual(JSON.parse(sent[0].params[0]),[['["s1"]']]);
+ for(const file of ['payments','cash','expenses','borrowers','referrers'])
+  assert.doesNotMatch(readFileSync(new URL('../../services/business/'+file+'.mjs',import.meta.url),'utf8'),/\$\d+::text\[\]/,file+' passes no array parameter');
+});
+test('a 503 names its cause in the log: error class, SQLSTATE, the first message line only; a cancelled offline read is quiet',()=>{
+ const lines=[],write=line=>lines.push(JSON.parse(line));
+ logUnavailable('command_store_unavailable',Object.assign(Error('Invalid internal bulk read\nsecond line'),{code:'P0001'}),{readonly:true},write);
+ logUnavailable('command_store_unavailable',Error('offline_read_cancelled'),{},write);
+ assert.deepEqual(lines,[{readonly:true,error:'Error',sqlState:'P0001',message:'Invalid internal bulk read',severity:'ERROR',event:'command_store_unavailable'}]);
 });
