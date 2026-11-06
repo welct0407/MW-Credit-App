@@ -26,7 +26,7 @@ Troubleshooting files from the About screen are encrypted to a key whose private
 node scripts/troubleshooting/decrypt.mjs <file> --out <path outside the repo> [--key-file <pem>] [--secret mw-credit-app-troubleshooting-private-key] [--project clever-oasis-508610-n7] [--force]
 ```
 
-Decrypted output contains borrower data: never commit, share or paste it; delete it after use.
+The decrypt command reads schema 1 and 2 files (R133) and prints the schema, each offline domain's last status, code and ages, and the startup timing marks, with "unknown" for a field an older file lacks. Decrypted output contains borrower data: never commit, share or paste it; delete it after use.
 
 ## Delivery process and validation
 
