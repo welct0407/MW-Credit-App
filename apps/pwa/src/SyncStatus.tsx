@@ -1,7 +1,7 @@
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import type {OfflinePreparation} from './offline-dataset';
 import {pausedSections,shortSectionName} from './paused-sections';
-import {ACTIVITY_SETTLE_IDLE,activityLabel,settleActivity,type HeaderActivity} from './header-activity';
+import {ACTIVITY_SETTLE_IDLE,activityLabelParts,settleActivity,type HeaderActivity} from './header-activity';
 
 const STALE_MS=10*60*1000,NOT_STARTED_MS=2000,ANNOUNCE_MS=5000;
 const clock=(thai:boolean,at:number)=>new Intl.DateTimeFormat(thai?'th-TH':'en-GB',{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(at));
@@ -47,7 +47,9 @@ export function SyncStatus({preparation,thai,visible,activity=null}:{preparation
  useEffect(()=>()=>clearTimeout(clearTimer.current),[]);
  const region=<span className="visually-hidden sync-announcement" role="status" aria-live="polite">{announcement}</span>;
  // Text only (no role): the hidden region above keeps the only announcements; the refresh button carries the same text.
- const activityText=shownActivity&&<>{region}<span className="live-sync-status activity">{activityLabel(shownActivity,thai)}</span></>;
+ // SYNC-ACT-UX-16: the Thai object word (ใบเสร็จ, ระบบ) stays on one line, as a failed section name does.
+ const [activityLead,activityObject]=shownActivity?activityLabelParts(shownActivity,thai):['',''];
+ const activityText=shownActivity&&<>{region}<span className="live-sync-status activity">{activityLead}{activityObject&&<span className="sync-section">{activityObject}</span>}</span></>;
  if(!visible)return activityText||region;
  // HDR-SYNC-PCT-01: the percentage sits above the bar (owner, 17 October 2026), so it comes first in the DOM.
  if(syncing){const percent=Math.floor(preparation.progress);

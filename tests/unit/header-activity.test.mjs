@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
-const {headerActivity,activityLabel,settleActivity,ACTIVITY_SETTLE_IDLE}=await load('header-activity.ts');
+const {headerActivity,activityLabel,activityLabelParts,settleActivity,ACTIVITY_SETTLE_IDLE}=await load('header-activity.ts');
 
 // R133 SYNC-ACT-UX-1: the header names what the spinning refresh icon waits for; it is derived from the spinner's own inputs.
 const base={awaitingSession:false,status:'ready',requestKind:null,headerState:'loading'};
@@ -23,6 +23,14 @@ test('labels in English and Thai',()=>{
  const expected={connecting:['Connecting…','กำลังเชื่อมต่อ…'],'signing-in':['Signing in…','กำลังเข้าสู่ระบบ…'],'signing-out':['Signing out…','กำลังออกจากระบบ…'],saving:['Saving…','กำลังบันทึก…'],receipt:['Reading receipt…','กำลังอ่านใบเสร็จ…'],loading:['Loading…','กำลังโหลด…']};
  for(const [activity,[en,th]] of Object.entries(expected)){assert.equal(activityLabel(activity,false),en);assert.equal(activityLabel(activity,true),th)}
  assert.equal(activityLabel(null,false),'Loading…');
+});
+test('SYNC-ACT-UX-16: the Thai object word is split off to stay on one line; the parts always join to the label',()=>{
+ assert.deepEqual(activityLabelParts('receipt',true),['กำลังอ่าน','ใบเสร็จ…']);
+ assert.deepEqual(activityLabelParts('signing-in',true),['กำลังเข้าสู่','ระบบ…']);
+ assert.deepEqual(activityLabelParts('signing-out',true),['กำลังออกจาก','ระบบ…']);
+ for(const activity of ['connecting','saving','loading'])assert.deepEqual(activityLabelParts(activity,true),[activityLabel(activity,true),'']);
+ for(const activity of ['connecting','signing-in','signing-out','saving','receipt','loading',null])for(const thai of [false,true]){
+  const [lead,object]=activityLabelParts(activity,thai);assert.equal(lead+object,activityLabel(activity,thai));if(!thai)assert.equal(object,'')}
 });
 /** Runs the reducer over [time, input] steps; returns what is shown after each step and the last wake time. */
 function run(steps){let state=ACTIVITY_SETTLE_IDLE,wakeAt=null;const shown=[];for(const [now,next] of steps){({state,wakeAt}=settleActivity(state,next,now));shown.push(state.shown)}return {shown,wakeAt,state}}

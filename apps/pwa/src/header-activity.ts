@@ -23,6 +23,13 @@ const labels:Record<HeaderActivity,[string,string]>={
  loading:['Loading…','กำลังโหลด…'],
 };
 export const activityLabel=(activity:HeaderActivity|null,thai:boolean)=>labels[activity??'loading'][thai?1:0];
+/** SYNC-ACT-UX-16 (HDR-SYNC-01/09 pattern): the label as [lead, object]; the shown cell keeps the Thai object word on one line
+ * (.sync-section), e.g. กำลังอ่าน + ใบเสร็จ…. lead + object is always activityLabel (object '' when nothing must stay whole). */
+const thaiObjects:Partial<Record<HeaderActivity,string>>={receipt:'ใบเสร็จ…','signing-in':'ระบบ…','signing-out':'ระบบ…'};
+export function activityLabelParts(activity:HeaderActivity|null,thai:boolean):[string,string]{
+ const label=activityLabel(activity,thai),object=thai?thaiObjects[activity??'loading']:undefined;
+ return object&&label.endsWith(object)?[label.slice(0,-object.length),object]:[label,''];
+}
 /** shown: the activity the cell names (null: the time or failure shows). startedAt: when the current spin began; shownAt: when
  * the label appeared. */
 export type ActivitySettle={shown:HeaderActivity|null;startedAt:number|null;shownAt:number|null};
