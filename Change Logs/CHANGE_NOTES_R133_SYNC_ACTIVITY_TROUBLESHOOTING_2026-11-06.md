@@ -5,12 +5,12 @@ Two items: (a) show the ongoing sync or load activity in the header last-update 
 
 Owner scope, 6 November 2026: "When the app is loading/syncing data, or whenever the sync icon is spinning, I want the ongoing activity to be reflected in the area where it shows last update time when it's not spinning, so I know why it's spinning. I also want you to review the troubleshooting file at client side and enhance it to include information helpful for troubleshooting based on recent troubleshooting experience. Engage the team to work on this in the next release".
 
-Status: In development, not deployed. No production approval has been given. Expected delivery: PWA Hosting only, no SQL, images, Terraform or VM change.
+Status: In development, not deployed; no DEV or PROD deploy is authorized. No production approval has been given. Expected delivery: PWA Hosting only, no SQL, images, Terraform or VM change.
 
 Team: Archie, Byte, Chase, Dewey, Echo. Forge is not applicable: no infrastructure change.
 
 ## Changes
-Code commit `b27202a` (Byte, local, not pushed).
+Code commits `b27202a` (Byte), `8a77234` (SYNC-ACT-UX-16 fix), `2f3dd51` (Chase, spec lint) and `9dfd7c6` (Chase's Shoulds), local, not pushed.
 
 Item (a), header sync activity label:
 - The cell beside the refresh icon shows the activity only while the icon spins (`headerState==='loading'`); the label is derived from the spinner's own inputs, so it cannot disagree with the spin (SYNC-ACT-UX-1). The first-download bar wins over any label (UX-8).
@@ -21,8 +21,8 @@ Item (a), header sync activity label:
 
 Item (b), troubleshooting file schema 2 (additive; schema 1 readers keep working). Each addition and the incident it serves:
 - Per-domain last request status, code, duration, attempts and failures. Serves R130 (a 503 on the records domain was visible only in server logs) and R121 (a refused receipt showed only as repeated requests).
-- `dataset-failed` events for background failures, one per domain per distinct failure until a success, recorded in the coordinator; the old listener is removed; with no lease the failure is `not_authorized`. Serves R130 and R121.
-- `recentCycles` (up to 10) with their triggers, including `screen` (a repair becomes a `full` check). Serves R121 (what the open, poll and focus triggers requested).
+- `dataset-failed` events for background failures, one per domain and code (distinct failure) until a success, with eviction protecting session and startup events (Chase Should 2, `9dfd7c6`), recorded in the coordinator; the old listener is removed; with no lease the failure is `not_authorized`. Serves R130 and R121.
+- `recentCycles` (up to 10) with their triggers, including `screen` and `repair` (a repair has its own trigger, Chase Should 1, `9dfd7c6`). Serves R121 (what the open, poll and focus triggers requested).
 - `preparation.activity`. Serves R130 and R132 (what the preparation was doing).
 - `offline.receiptCounts` (`offline.receipts` stays the schema 1 number) and `receiptSample` (the 3 newest, with unreadable blobs); `describeBlobs` keeps an unreadable blob as `readable:false`. Serves R132 item (b) (the WebKit unreadable receipt blob).
 - Session and sync-outcome events, the latter from the new in-tab event `mw-offline-sync-attempt`. Serves R132 (what the queued save did).
@@ -51,21 +51,29 @@ Echo findings (SYNC-ACT-UX-1 to 15, priority in brackets):
 - 13 (Must): the live region keeps its two announcements only; the refresh button hidden text matches the label.
 - 14 (Should): `aria-busy` is kept and nothing is announced twice.
 - 15 (Could): the troubleshooting activity history uses the same labels.
+- 16 (found in review): the Thai object word of a label such as กำลังตรวจ เงินสด must stay on one line; fixed with `.sync-section` in `8a77234`.
+- 17: at 320px the header title shrinks; pre-existing, recorded only.
+
+Chase review (b27202a): no Must-fix. Should 1 (repair trigger) and Should 2 (dataset-failed deduped per domain and code, eviction protects session and startup events) were applied in `9dfd7c6`. Should 3 (a label may hold up to 600 ms before the failure text shows) is accepted as designed. The item (b) incident mapping above was checked against this review, the R130 and R132 notes, and R121's recorded diagnosis (a refused receipt re-requested on open, poll and focus; its note is out of the retention window).
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| `npm run typecheck` | Pass, commit `b27202a` (Byte) |
-| `npm run build` | Pass, commit `b27202a` (Byte) |
-| `vite build --mode live-dev` | Pass, commit `b27202a` (Byte) |
-| `npm test` | Pass, 1235 pass, 0 fail, 1 skip, commit `b27202a` (Byte) |
-| `npm run lint` | Pending (Chase spec fix) |
-| Chase review | Pending |
-| Echo smoke | Pending |
-| CI `Development checks` | Pending |
+| `npm test` | Pass, 1235 pass, 0 fail, 1 skip, `b27202a` (Byte) |
+| `biome lint apps scripts tests/unit` | Pass, `8a77234` and `9dfd7c6` (Byte) |
+| `npm run typecheck` | Pass, `8a77234` and `9dfd7c6` (Byte) |
+| `npm run build` | Pass, `8a77234` and `9dfd7c6` (Byte) |
+| `vite build --mode live-dev` | Pass, `8a77234` and `9dfd7c6` (Byte) |
+| Focused `node --test` | 74 pass, 0 fail, `9dfd7c6` (Byte) |
+| Spec lint, `header-activity-independent.spec.ts` | Lint pass; 5 of 5 on the mobile-webkit project (runs Chromium with Pixel 7 emulation, not the WebKit engine), `2f3dd51` (Chase) |
+| Echo smoke, real WebKit iPhone 17 Pro Max, 440 and 320 px, EN and TH | Pass on UX-7, 11 and 13, `b27202a` (the receipt label text was injected, not triggered) |
+| CI `Development checks` | Pending: no pull request is open; that run is the broad run |
 
 ## Not run
-WebKit for the Connecting… e2e case (it runs in Chromium with phone emulation). Real-device iPhone run: pending.
+- Real-device iPhone run.
+- The real "Updated HH:MM" return in the spec (its fixture never completes the dataset).
+- Connecting, Signing and Saving labels were not visually rendered by Echo.
+- The Connecting… e2e case and the mobile-webkit project run in Chromium with phone emulation, not the WebKit engine.
 
 ## Recovery
 Git baseline: R132 `ede185f` (PROD package). Nothing is deployed for R133 yet; before release, revert the code commit(s) of this release.
