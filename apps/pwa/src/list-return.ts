@@ -77,7 +77,7 @@ export function createListReturn():ListReturn{
  function restore(){
   const snapshot=saved;saved=null;stopRestore();if(!snapshot)return;snapshot.release();
   const root=scope();if(!root)return;
-  const started=now(),deadline=started+RESTORE_WINDOW_MS,cap=started+RESTORE_CAP_MS;let focused=false,seen:Element|null=null,ready=0;
+  const started=now(),deadline=started+RESTORE_WINDOW_MS,cap=started+RESTORE_CAP_MS;let focused=false,seen:Element|null=null,ready=0,observer:ResizeObserver|null=null;
   const resolve=(container:Container):Element|null=>{if(container.node.isConnected)return container.node;if(!container.key)return null;const list=byClass(root,container.key);return list[container.index]??list[0]??null};
   const rowElement=():HTMLElement|null=>{const row=snapshot.focusKey!==null?byRecord(root,snapshot.focusKey):null;return row as HTMLElement|null};
   // The scroller that moves the row: its nearest overflowing ancestor, else the window.
@@ -117,6 +117,9 @@ export function createListReturn():ListReturn{
     if(seen&&!seen.isConnected&&!row){stopRestore();return}
     apply(row);
     if(row)seen=row;
+    // Content that grows or shrinks around the row (a header still loading) is corrected in the same frame, before paint,
+    // instead of one frame later (LRP-BOR-5).
+    if(row&&!observer&&typeof ResizeObserver!=='undefined'){observer=new ResizeObserver(()=>{try{if(frame)apply(rowElement())}catch{}});for(let node:Element|null=row.parentElement;node&&node!==document.body;node=node.parentElement){observer.observe(node);if(node===root)break}}
     if(!focused&&focusable(row)){row!.focus({preventScroll:true});focused=true}
     if(focusable(row))ready++;
     const time=now();
@@ -134,7 +137,7 @@ export function createListReturn():ListReturn{
    ['touchend',event=>{const at=point(event,'changedTouches');if(touch&&at&&Math.abs(at.x-touch.x)<TAP&&Math.abs(at.y-touch.y)<TAP)interrupt();touch=null}],
   ];
   for(const [type,handler] of handlers)root.addEventListener(type,handler,{capture:true,passive:true});
-  stopRun=()=>{for(const [type,handler] of handlers)root.removeEventListener(type,handler,{capture:true})};
+  stopRun=()=>{for(const [type,handler] of handlers)root.removeEventListener(type,handler,{capture:true});observer?.disconnect();observer=null};
   frame=requestAnimationFrame(step);
  }
  return {leave,restore,cancel:()=>{stopRestore();drop()}};

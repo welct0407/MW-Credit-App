@@ -187,6 +187,18 @@ test('the opened row keeps its place on screen when content above it grows after
  assert.equal(section2.children[25].getBoundingClientRect().top,before);assert.equal(win.scrollY,1000);
 });
 
+test('growth around the row is corrected in the resize callback, before the next frame',()=>{
+ const observers=[];globalThis.ResizeObserver=class{constructor(callback){this.callback=callback;this.nodes=[];observers.push(this)}observe(node){this.nodes.push(node)}disconnect(){this.nodes=[]}};
+ try{
+  const main=page();const header=new El('header',{cls:'record-heading',h:300}),section=new El('section',{cls:'related',y:300}).append(...rows(40));main.append(header,section);win.scrollTo(0,1000);
+  const before=section.children[25].getBoundingClientRect().top;const position=createListReturn();position.leave(section.children[25]);
+  header.remove();section.remove();const header2=new El('header',{cls:'record-heading',h:254}),section2=new El('section',{cls:'related',y:254}).append(...rows(40));main.append(header2,section2);position.restore();runFrames(1);
+  assert.equal(section2.children[25].getBoundingClientRect().top,before);assert.equal(observers.length,1);assert.ok(observers[0].nodes.includes(section2));
+  header2.h=300;section2.y=300;observers[0].callback([]);assert.equal(section2.children[25].getBoundingClientRect().top,before,'corrected without waiting for a frame');
+  position.cancel();assert.deepEqual(observers[0].nodes,[],'disconnected when the restore ends');
+ }finally{delete globalThis.ResizeObserver}
+});
+
 test('restore without a saved position, a missing row and a missing main never throw',()=>{
  const main=page();const position=createListReturn();assert.doesNotThrow(()=>position.restore());assert.equal(frames.length,0);
  const panel=list({scroll:true,height:600,tabindex:true});main.append(panel);panel.scrollTop=300;
