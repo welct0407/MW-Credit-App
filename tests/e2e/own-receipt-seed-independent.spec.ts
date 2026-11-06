@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './fixtures/test';
 import {createHash} from 'node:crypto';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
 

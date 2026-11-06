@@ -1,5 +1,5 @@
 import {chooseLanguagePreservingForm} from './live-controls';
-import {test,expect} from '@playwright/test';
+import {test,expect,touchSession} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
@@ -21,7 +21,7 @@ const rows=Array.from({length:27},(_,i)=>({id:'private-board-'+i,displayName:'�
 const charges=Array.from({length:27},(_,i)=>({id:'private-charge-'+i,loanId:'private-loan',loanDisplayKey:'ผู้กู้ตัวอย่างชื่อยาว - Long synthetic borrower English name-฿12,000-07/10-2%',chargeDate:'2026-10-07',paymentStatus:'ชำระบางส่วน',paymentDate:null,amountRemaining:i===0?null:'10.50',totalPaid:'0',receivedToday:'-2.50'}));
 async function backFromUpcoming(page:import('@playwright/test').Page,mobile:boolean){
  if(!mobile){await page.getByRole('button',{name:'Back to borrower summary',exact:true}).click();return}
- const shell=page.locator('.live-shell').first(),heading=shell.locator('.upcoming-charges h3').first();await heading.scrollIntoViewIfNeeded();const box=await heading.boundingBox();const x=box!.x+45,y=box!.y+box!.height/2,session=await page.context().newCDPSession(page);
+ const shell=page.locator('.live-shell').first(),heading=shell.locator('.upcoming-charges h3').first();await heading.scrollIntoViewIfNeeded();const box=await heading.boundingBox();const x=box!.x+45,y=box!.y+box!.height/2,session=await touchSession(page);
  const start=async(startX:number)=>session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:startX,y}]});
  const move=async(startX:number,dx:number)=>{for(let step=1;step<=5;step++)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:startX+dx*step/5,y}]})};
  const release=async()=>session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});

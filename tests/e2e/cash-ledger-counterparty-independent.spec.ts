@@ -1,4 +1,4 @@
-import{test,expect,type Page}from'@playwright/test';
+import{test,expect,type Page}from './fixtures/test';
 // R116: Cash Ledger Recent names the borrower counterparty (viewer language, other language as fallback) on both sides.
 const html='<meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module" src="/tests/e2e/fixtures/daily-cash-withdrawal-harness.tsx"></script>';
 const items=[

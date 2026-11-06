@@ -1,5 +1,5 @@
 import {chooseLanguage,signOut} from './live-controls';
-import {test,expect} from '@playwright/test';
+import {test,expect} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{

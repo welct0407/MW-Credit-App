@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './fixtures/test';
 // Owner decision 2026-10-16 (APP-OFFLINE-02 follow-up): a blocked saved change may be discarded after a confirmation; an attempted row
 // without a recorded rejection gets the stronger "result is unknown" warning; read-only access shows no remove button.
 const unknownText='This change was already sent and its result is unknown. It may or may not have been applied. Check the payment or record before entering it again. Remove it from this device?';

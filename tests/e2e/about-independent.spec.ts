@@ -1,5 +1,5 @@
 import {chooseLanguage} from './live-controls';
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,grantClipboard,type Page} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {generateKeyPairSync} from 'node:crypto';
 import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
@@ -49,7 +49,7 @@ async function openFromMenu(page:Page,name:RegExp){
  await page.getByRole('button',{name}).filter({visible:true}).click();
 }
 test('About is a signed-in view with release, environment and commit in English and Thai',async({page},info)=>{
- await page.context().grantPermissions(['clipboard-read','clipboard-write']);
+ await grantClipboard(page.context());
  const external:string[]=[];
  await page.route('**/deps/firebase_app.js*',route=>route.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));
  await page.route('**/deps/firebase_auth.js*',route=>route.fulfill({contentType:'text/javascript',body:authMock}));
@@ -134,7 +134,7 @@ test('Signed in, the file carries a blocked saved change in full with the receip
  expect(external).toEqual([]);
 });
 test('A file failure and Copy details share one status: the newest wins, and Retry clears it',async({page})=>{
- const external:string[]=[];await page.context().grantPermissions(['clipboard-read','clipboard-write']);
+ const external:string[]=[];await grantClipboard(page.context());
  await page.addInitScript(()=>{let failures=1;const importKey=SubtleCrypto.prototype.importKey;SubtleCrypto.prototype.importKey=function(this:SubtleCrypto,...args:any[]){if(failures-->0)return Promise.reject(Error('synthetic failure'));return (importKey as any).apply(this,args)} as any});
  await routeApp(page,external);
  await page.goto(base);await page.locator('.access-blocked').getByRole('button',{name:'About',exact:true}).click();

@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './fixtures/test';
 import {chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess,base:string;

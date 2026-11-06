@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './fixtures/test';
 import {chooseLanguage} from './live-controls';
 import {referrerRoute,settlementS1} from './fixtures/referrers-fixture';
 import {spawn,type ChildProcess} from 'node:child_process';

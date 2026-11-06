@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page,emitSyntheticUser} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
 const dashboard={collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]};
@@ -35,7 +35,7 @@ async function routes(page:Page,differs:()=>boolean){
 const indicator=(page:Page)=>page.getByRole('button',{name:'Data check found a difference',exact:true});
 test('a persistent mismatch shows the line, indicator, dot and one toast; it survives a reload and clears after Full sync and a match',async({page})=>{
  let differs=true;const calls=await routes(page,()=>differs);
- await page.goto(base);await seedDue(page);await page.evaluate(()=>(window as any).emitUser());
+ await page.goto(base);await seedDue(page);await emitSyntheticUser(page);
  await expect(indicator(page)).toBeVisible({timeout:20000});
  expect(calls.filter(call=>call.startsWith('cash:'))).toEqual(expect.arrayContaining(['cash:mismatch','cash:walk']));
  expect(calls.filter(call=>call==='cash:mismatch')).toHaveLength(2);expect(calls.filter(call=>call==='cash:walk').length).toBeGreaterThanOrEqual(1);
@@ -51,7 +51,7 @@ test('a persistent mismatch shows the line, indicator, dot and one toast; it sur
  expect(await page.locator('.full-sync-section > *').evaluateAll(es=>es.map(e=>e.id||e.className))).toEqual(['data-check-warning','secondary-button full-sync-button']);
  await expect(line).toBeInViewport();
  // A reload: the indicator stays (IndexedDB), the toast does not repeat.
- await page.reload();await page.evaluate(()=>(window as any).emitUser());
+ await page.reload();await emitSyntheticUser(page);
  await expect(indicator(page)).toBeVisible({timeout:20000});await page.waitForTimeout(2000);
  await expect(page.locator('.data-check-toast')).toHaveText('');expect(calls.filter(call=>call==='cash:mismatch')).toHaveLength(2);
  // UX-RECON-04: Full sync, then a matching check of the flagged area only, clears everything silently.
@@ -64,7 +64,7 @@ test('a persistent mismatch shows the line, indicator, dot and one toast; it sur
 });
 test('a mismatch the heal resolves shows nothing',async({page})=>{
  let mismatches=0;const calls=await routes(page,()=>mismatches++===0);
- await page.goto(base);await seedDue(page);await page.evaluate(()=>(window as any).emitUser());
+ await page.goto(base);await seedDue(page);await emitSyntheticUser(page);
  await expect.poll(()=>calls.filter(call=>call.startsWith('cash:')&&call!=='cash:walk'),{timeout:20000}).toEqual(['cash:mismatch','cash:match']);
  await page.waitForTimeout(500);
  await expect(indicator(page)).toHaveCount(0);await expect(page.locator('.data-check-toast')).toHaveText('');expect(await flags(page)).toEqual([]);
