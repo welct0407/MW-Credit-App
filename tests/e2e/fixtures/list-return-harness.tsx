@@ -4,14 +4,15 @@ import {useListReturn} from '../../../apps/pwa/src/list-return';
 // R131 harness: one list (a scrolling panel inside a scrolling window) that opens a short detail and comes back in the ways
 // the real pages do: rows already there, rows arriving a few frames later, a shorter list, a removed row, a reordered row.
 const full=Array.from({length:60},(_,i)=>'r'+i);
-type Mode='plain'|'late'|'slow'|'shrunk'|'removed'|'reordered'|'interrupt';
+type Mode='plain'|'late'|'slow'|'toolate'|'shrunk'|'removed'|'reordered'|'interrupt';
 function App(){
  const [view,setView]=useState<'list'|'detail'>('list'),[ids,setIds]=useState<string[]>(full),[mounted,setMounted]=useState(true),ret=useListReturn();
  useEffect(()=>{if(view==='detail')window.scrollTo(0,0)},[view]);
  function back(mode:Mode){
   setView('list');
   if(mode==='shrunk')setIds(full.slice(0,8));else if(mode==='removed')setIds(full.filter(id=>id!=='r18'));else if(mode==='reordered')setIds([...full.filter(id=>id!=='r18'),'r18']);
-  else if(mode==='late'||mode==='slow'||mode==='interrupt'){setIds([]);const frames=mode==='slow'?90:mode==='interrupt'?12:2;let n=0;const tick=()=>{if(++n>=frames)setIds(full);else requestAnimationFrame(tick)};requestAnimationFrame(tick)}
+  else if(mode==='slow'||mode==='toolate'){setIds([]);window.setTimeout(()=>setIds(full),mode==='slow'?1100:2600)}
+  else if(mode==='late'||mode==='interrupt'){setIds([]);const frames=mode==='interrupt'?12:2;let n=0;const tick=()=>{if(++n>=frames)setIds(full);else requestAnimationFrame(tick)};requestAnimationFrame(tick)}
   else setIds(full);
   ret.restore();
   if(mode==='interrupt')document.querySelector('main')!.dispatchEvent(new Event('wheel',{bubbles:true}));
@@ -26,8 +27,9 @@ function App(){
    :<section aria-label="Detail"><h2>Detail</h2><div style={{height:300}}>Short detail</div></section>}
   </main>}
   <footer style={{position:'fixed',bottom:0,left:0,right:0,background:'#ddd',display:'flex',flexWrap:'wrap',gap:4}}>
-   {(['plain','late','slow','shrunk','removed','reordered','interrupt'] as Mode[]).map(mode=><button key={mode} type="button" onClick={()=>back(mode)}>Back {mode}</button>)}
+   {(['plain','late','slow','toolate','shrunk','removed','reordered','interrupt'] as Mode[]).map(mode=><button key={mode} type="button" onClick={()=>back(mode)}>Back {mode}</button>)}
    <button type="button" onClick={away}>Away</button>
+   <button type="button" onClick={()=>{(document.activeElement as HTMLElement|null)?.blur();ret.leave(null);setView('detail')}}>Open nokey</button>
    <button type="button" onClick={()=>setMounted(false)}>Unmount</button>
    <output data-testid="view">{view}</output>
   </footer>

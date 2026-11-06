@@ -88,10 +88,46 @@ test.describe('list-return safety',()=>{
   await page.getByRole('button',{name:'Back interrupt',exact:true}).click();
   await page.waitForTimeout(800);const after=await where(page);expect(after.panel,'rows arrived after the interrupt; nothing may pull the list back').toBeLessThan(5);near(after.scrollY,0,300);
  });
- test('rows that arrive after the 500 ms window are left alone',async({page})=>{
+ test('a row that arrives within 2 s is restored and focused',async({page})=>{
+  await harness(page);const saved=await openRow(page,'r30',100,1400);
+  await page.getByRole('button',{name:'Back slow',exact:true}).click();
+  await expect.poll(async()=>(await where(page)).focus,{timeout:4000}).toBe('r30');
+  await page.waitForTimeout(400);const after=await where(page);near(after.panel,saved.panel);near(after.scrollY,saved.scrollY);near(after.rowTop!,saved.rowTop,2);
+ });
+ test('a row that arrives after the 2 s cap is left alone',async({page})=>{
+  await harness(page);await openRow(page,'r30',100,1400);
+  await page.getByRole('button',{name:'Back toolate',exact:true}).click();
+  await page.waitForTimeout(3300);const after=await where(page);expect(after.panel).toBeLessThan(5);expect(after.focus).not.toBe('r30');
+ });
+ test('a restore with no row key ends at 500 ms: rows after that are left alone',async({page})=>{
+  await harness(page);
+  await page.evaluate(()=>{window.scrollTo(0,100);document.querySelector('.lr-panel')!.scrollTop=1400});
+  await page.getByRole('button',{name:'Open nokey',exact:true}).click();await expect(page.getByTestId('view')).toHaveText('detail');
+  await page.getByRole('button',{name:'Back slow',exact:true}).click();
+  await page.waitForTimeout(1800);expect((await where(page)).panel,'no key, rows came at 1.1 s').toBeLessThan(5);
+ });
+ test('the restore ends once the row is anchored: a later user scroll is not undone',async({page})=>{
   await harness(page);await openRow(page,'r30',100,1400);
   await page.getByRole('button',{name:'Back slow',exact:true}).click();
-  await page.waitForTimeout(2200);const after=await where(page);expect(after.panel).toBeLessThan(5);
+  await expect.poll(async()=>(await where(page)).focus,{timeout:4000}).toBe('r30');await page.waitForTimeout(500);
+  await page.evaluate(()=>{document.querySelector('.lr-panel')!.scrollTop=300});await page.waitForTimeout(500);
+  expect((await where(page)).panel).toBe(300);
+ });
+ test('touch: a sideways swipe or a first touchstart does not cancel; a vertical scroll or a tap does',async({page})=>{
+  const touch=(type:string,x:number,y:number)=>page.evaluate(([type,x,y])=>{const target=document.querySelector('main')!;const data={identifier:1,target,clientX:x as number,clientY:y as number};let t:Touch|typeof data;try{t=new Touch(data)}catch{t=data}const touches=type==='touchend'?[]:[t];let event:Event;try{event=new TouchEvent(type as string,{bubbles:true,cancelable:true,touches:touches as Touch[],changedTouches:[t as Touch]})}catch{event=new Event(type as string,{bubbles:true,cancelable:true});Object.defineProperties(event,{touches:{value:touches},changedTouches:{value:[t]}})}target.dispatchEvent(event)},[type,x,y] as const);
+  const settled=async(expectRestored:boolean)=>{await page.waitForTimeout(1900);const after=await where(page);if(expectRestored){expect(after.focus).toBe('r30');near(after.panel,1400)}else expect(after.panel).toBeLessThan(5)};
+  // Sideways swipe (a swipe-back in progress): the restore carries on.
+  await harness(page);await openRow(page,'r30',100,1400);await page.getByRole('button',{name:'Back slow',exact:true}).click();
+  await touch('touchstart',100,300);await touch('touchmove',160,303);await touch('touchmove',260,306);await touch('touchend',260,306);await settled(true);
+  // A press that never moves far but is still down (touchstart only): not a cancel.
+  await openRow(page,'r30',100,1400);await page.getByRole('button',{name:'Back slow',exact:true}).click();
+  await touch('touchstart',100,300);await settled(true);
+  // Vertical scroll: cancels.
+  await openRow(page,'r30',100,1400);await page.getByRole('button',{name:'Back slow',exact:true}).click();
+  await touch('touchstart',100,300);await touch('touchmove',102,360);await touch('touchend',102,360);await settled(false);
+  // Tap: cancels.
+  await openRow(page,'r30',100,1400);await page.getByRole('button',{name:'Back slow',exact:true}).click();
+  await touch('touchstart',100,300);await touch('touchend',101,301);await settled(false);
  });
  test('no restore without Back: leaving by another route keeps a fresh list at the top',async({page})=>{
   await harness(page);await openRow(page,'r18',150,700);
@@ -120,12 +156,12 @@ import {referrerRoute,referrerMai,rebateExpenses,refereeBorrowers,accruingLoans}
 import {spawn,type ChildProcess} from 'node:child_process';
 const BD='2026-11-05',ASOF='2026-11-05T05:00:00Z';
 const auth=`let listener;const user={uid:'list-return-owner',getIdToken:async()=>'synthetic-bearer'};export const browserLocalPersistence='local',inMemoryPersistence='memory',browserPopupRedirectResolver={};export function initializeAuth(){return {}};export function onAuthStateChanged(a,fn){listener=fn;fn(localStorage.getItem('list-return-owner')?user:null);return()=>{}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){localStorage.setItem('list-return-owner','1');listener(user)};export async function signOut(){localStorage.removeItem('list-return-owner');listener(null)};`;
-type Handler=(path:string,url:URL,method:string)=>any|undefined;
+type Handler=(path:string,url:URL,method:string)=>any|undefined|Promise<any>;
 async function signIn(page:Page,base:string,read:Handler,command:Handler){
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));
  await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:auth}));
  const answer=(handler:Handler,fallback:(path:string,method:string)=>any)=>async(r:import('@playwright/test').Route)=>{
-  const url=new URL(r.request().url()),method=r.request().method();let body=handler(url.pathname,url,method);
+  const url=new URL(r.request().url()),method=r.request().method();let body=await handler(url.pathname,url,method);
   if(body===undefined)body=fallback(url.pathname,method);
   const status=body?.__status??200;if(body?.__status)delete body.__status;
   return r.fulfill({status,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(body)}).catch(()=>{});
@@ -407,6 +443,47 @@ test.describe('list return on the real pages',()=>{
   const after=await track(page,sel);near(after.rowTop!,before.rowTop!,3);near(after.scrollerTops[0],before.scrollerTops[0],3);
  });
 
+ test('LRP-BOR-1 (owner): a loan opened from the borrower returns to its row although the borrower page rebuilds about 700 ms after Back',async({page},info)=>{
+  test.skip(info.project.name.startsWith('mobile'),'Desktop two-pane layout.');
+  const loans=Array.from({length:25},(_,i)=>({id:'ol-'+i,borrowerId:'BX',borrowerDisplayName:'ผู้กู้ Synthetic',originalDailyInterestRate:'2',loanDate:'2026-10-'+String(1+(i%28)).padStart(2,'0'),dueDate:null,closeDate:null,status:'ยังไม่ปิดยอด',loanType:'ดอกเบี้ยรายวัน',principalAmount:String(10000+i),outstandingPrincipal:'100',totalPrincipalReceived:'0',totalInterestReceived:'0',totalAmountReceived:'0',defaulted:false,autoChargeEnabled:false}));
+  let recordReads=0;
+  await signIn(page,base,(path)=>{
+   if(path==='/api/borrowers')return {ok:true,source:'dev',asOf:ASOF,businessDate:BD,items:[{id:'BX',name:'ผู้กู้',borrowerDisplayName:'ผู้กู้ Synthetic',totalProfitEarned:'10',createdDate:'2026-10-07',hasActiveLoan:true,outstandingPrincipal:'100',note:null}],nextCursor:null};
+   if(path==='/api/borrowers/BX')return {ok:true,source:'dev',asOf:ASOF,businessDate:BD,item:{...refereeBorrowers['B-NOK'],id:'BX',name:'ผู้กู้',borrowerDisplayName:'ผู้กู้ Synthetic',displayName:'ผู้กู้ Synthetic',outstandingPrincipal:'100',totalProfitEarned:'10',hasActiveLoan:true}};
+   if(path==='/api/borrowers/BX/loans')return {ok:true,source:'dev',asOf:ASOF,businessDate:BD,items:loans,nextCursor:null};
+   return undefined;
+  },async(path,_u,method)=>{
+   if(method!=='GET')return undefined;
+   if(path==='/api/borrower-options')return {ok:true,accounts:[{id:'ca:a',label:'Synthetic account'}],referrers:[{id:'R-MAI',label:'มาย - Mai'}]};
+   if(path==='/api/borrower-records/BX'){recordReads++;if(recordReads>1)await new Promise(done=>setTimeout(done,700));return {ok:true,asOf:ASOF,businessDate:BD,item:{...refereeBorrowers['B-NOK'],id:'BX',name:'ผู้กู้'}}}
+   const loan=/^\/api\/loan-records\/([^/]+)$/.exec(path);if(loan)return {ok:true,asOf:ASOF,businessDate:BD,item:{...accruingLoans['L-OPEN1'],id:decodeURIComponent(loan[1]),borrowerId:'BX'}};
+   if(/^\/api\/loan-records\/[^/]+\/(charges|payments)$/.test(path))return {ok:true,asOf:ASOF,businessDate:BD,items:[],nextCursor:null};
+   return undefined;
+  });
+  await menu(page,'Borrowers');await page.locator('.borrower-tile-main').first().click();
+  await expect(page.locator('.loan-record')).toHaveCount(25);
+  const sel='.loan-record[data-record-id="ol-20"]';await scrollTo(page,sel);await page.waitForTimeout(100);const before=await track(page,sel);
+  await page.locator(sel).evaluate(node=>(node as HTMLElement).click());await expect(page.getByRole('button',{name:'Back to loans'})).toBeVisible();
+  await page.getByRole('button',{name:'Back to loans'}).click();
+  await expect.poll(async()=>(await track(page,sel)).focus,{timeout:4000}).toBe('ol-20');await settleBack(page);
+  near((await track(page,sel)).rowTop!,before.rowTop!,3);expect(recordReads,'the borrower record was fetched again after Back').toBeGreaterThan(1);
+ });
+
+ test('LRP-LAY-2: at 1280 Cash Accounts keeps its heading and scrolls the holders and the accounts panes separately',async({page},info)=>{
+  test.skip(info.project.name.startsWith('mobile'),'The fixed desktop shell (>= 1200px).');
+  await page.setViewportSize({width:1280,height:720});
+  const rows=Array.from({length:40},(_,i)=>({id:'ch-'+i,label:'Holder '+i,name:'Holder '+i,holderId:'ch-0',currentBalance:'10',cashIn:'1',cashOut:'1',active:true,isDefault:false}));
+  await signIn(page,base,()=>undefined,(path,_u,method)=>{if(method!=='GET')return undefined;if(path.startsWith('/api/management/'))return {ok:true,source:'dev',asOf:ASOF,businessDate:BD,items:rows,nextCursor:null};return undefined});
+  await menu(page,'Management');await page.getByRole('button',{name:'Cash Accounts',exact:true}).filter({visible:true}).first().click();
+  await expect(page.locator('.cash-accounts-layout')).toBeVisible();await page.waitForTimeout(500);
+  const shape=await page.evaluate(()=>{const layout=document.querySelector('.cash-accounts-layout') as HTMLElement,panes=Array.from(layout.children) as HTMLElement[],cash=document.querySelector('main>.management-cash') as HTMLElement,heading=cash.querySelector('header') as HTMLElement;
+   return {panes:panes.map(p=>({overflow:getComputedStyle(p).overflowY,scrolls:p.scrollHeight>p.clientHeight+1,h:p.clientHeight})),winScrolls:document.documentElement.scrollHeight>innerHeight+1,cashScrolls:cash.scrollHeight>cash.clientHeight+1,headingTop:heading.getBoundingClientRect().top,mainTop:(document.querySelector('main') as HTMLElement).getBoundingClientRect().top}});
+  expect(shape.panes.length).toBe(2);for(const pane of shape.panes)expect(pane.overflow).toBe('auto');
+  expect(shape.panes[0].scrolls,'the holders pane scrolls on its own').toBe(true);expect(shape.winScrolls).toBe(false);expect(shape.cashScrolls,'the panel itself does not scroll while panes do').toBe(false);
+  await page.locator('.cash-accounts-layout>section').first().evaluate(node=>{node.scrollTop=400});
+  expect(await page.evaluate(()=>(document.querySelector('main>.management-cash header') as HTMLElement).getBoundingClientRect().top),'the heading stays put when a pane scrolls').toBe(shape.headingTop);
+ });
+
 });
 
 // ---- Legacy (read-only) Borrowers: no command service, the page lists loans itself. ----
@@ -450,4 +527,30 @@ test.describe('list return on the legacy read-only Borrowers',()=>{
   await expect.poll(async()=>(await track(page,tile)).focus).toBe('lb-50');await settleBack(page);
   const after=await track(page,tile);near(after.rowTop!,before.rowTop!,3);near(after.scrollY,before.scrollY,3);
  });
+ test('pager: Back then an immediate page change is not dragged back; opening a borrower and paging closes the detail cleanly',async({page},info)=>{
+  const records=Array.from({length:150},(_,i)=>({id:'pg-'+i,name:'ผู้กู้ '+i,borrowerDisplayName:'ผู้กู้ '+i+' - English '+i,totalProfitEarned:'10',createdDate:'2026-10-07',hasActiveLoan:true,outstandingPrincipal:'9000',note:null}));
+  await signIn(page,base,(path,url)=>{
+   const env={ok:true,source:'dev',businessDate:BD,asOf:ASOF};
+   if(path==='/api/borrowers'){const start=url.searchParams.get('cursor')==='pg-page-2'?100:0;return {...env,items:records.slice(start,start+100),nextCursor:start===0?'pg-page-2':null}}
+   const one=/^\/api\/borrowers\/(pg-\d+)$/.exec(path);if(one)return {...env,item:records.find(r=>r.id===one[1])};
+   return undefined;
+  },()=>undefined);
+  const next=page.getByRole('button',{name:'Next borrowers page',exact:true}),previous=page.getByRole('button',{name:'Previous borrowers page',exact:true});
+  await expect(page.locator('.borrower-tile-main')).toHaveCount(100);
+  // Desktop: a borrower is open on page 1; Next replaces the list and closes the detail.
+  if(!info.project.name.startsWith('mobile')){
+   await page.locator('.borrower-tile-main[data-record-id="pg-3"]').click();await expect(page.locator('.detail-panel')).toContainText('English 3');
+   await next.scrollIntoViewIfNeeded();await next.click();await expect(page.locator('.borrower-tile-main')).toHaveCount(50);
+   await expect(page.locator('.detail-panel.unselected')).toHaveCount(1);
+  }else{await next.scrollIntoViewIfNeeded();await next.click();await expect(page.locator('.borrower-tile-main')).toHaveCount(50)}
+  // Page 2: open a row, Back, and change page at once.
+  const tile='.borrower-tile-main[data-record-id="pg-140"]';await scrollTo(page,tile);await page.locator(tile).evaluate(node=>(node as HTMLElement).click());await expect(page.locator('.detail-panel')).toContainText('English 140');
+  await page.getByRole('button',{name:/^Back to (list|Borrowers)/}).first().click();
+  await previous.scrollIntoViewIfNeeded();await previous.click();await expect(page.locator('.borrower-tile-main')).toHaveCount(100);
+  await page.waitForTimeout(2300);
+  const top=await page.evaluate(()=>window.scrollY+((document.querySelector('.list-panel') as HTMLElement)?.scrollTop??0));
+  expect(top,'the list stays near the top of page 1, nothing pulled it back to the old row').toBeLessThan(200);
+  expect(await page.evaluate(()=>document.activeElement?.getAttribute('data-record-id')),'no stale focus on the page-2 row').not.toBe('pg-140');
+ });
+
 });
