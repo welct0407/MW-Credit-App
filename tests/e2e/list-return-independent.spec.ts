@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,touchSession,type Page} from './fixtures/test';
 // R131 (e): after opening an item from a list and pressing Back, the list is where it was. Part 1 runs the list-return
 // contract on a harness (nested panel + window); the rest drives the real pages with synthetic auth and HTTP seams.
 // It does not claim live authentication, the durable operation journal or any financial rule.
@@ -112,6 +112,13 @@ test.describe('list-return safety',()=>{
   await expect.poll(async()=>(await where(page)).focus,{timeout:4000}).toBe('r30');await page.waitForTimeout(500);
   await page.evaluate(()=>{document.querySelector('.lr-panel')!.scrollTop=300});await page.waitForTimeout(500);
   expect((await where(page)).panel).toBe(300);
+ });
+ test('a real touch tap inside main (browser-generated, hasTouch) cancels the restore',async({page},info)=>{
+  test.skip(!info.project.name.startsWith('mobile'),'Touch is the phone projects.');
+  await harness(page);await openRow(page,'r30',100,1400);
+  await page.getByRole('button',{name:'Back slow',exact:true}).click();
+  const box=(await page.locator('main').boundingBox())!;await page.touchscreen.tap(box.x+20,Math.max(box.y,0)+30);
+  await page.waitForTimeout(1900);expect((await where(page)).panel).toBeLessThan(5);
  });
  test('touch: a sideways swipe or a first touchstart does not cancel; a vertical scroll or a tap does',async({page})=>{
   const touch=(type:string,x:number,y:number)=>page.evaluate(([type,x,y])=>{const target=document.querySelector('main')!;const data={identifier:1,target,clientX:x as number,clientY:y as number};let t:Touch|typeof data;try{t=new Touch(data)}catch{t=data}const touches=type==='touchend'?[]:[t];let event:Event;try{event=new TouchEvent(type as string,{bubbles:true,cancelable:true,touches:touches as Touch[],changedTouches:[t as Touch]})}catch{event=new Event(type as string,{bubbles:true,cancelable:true});Object.defineProperties(event,{touches:{value:touches},changedTouches:{value:[t]}})}target.dispatchEvent(event)},[type,x,y] as const);
@@ -304,7 +311,7 @@ test.describe('list return on the real pages',()=>{
    let after=await track(page,tile);near(after.rowTop!,board0.rowTop!,2);near(after.scrollY,board0.scrollY,2);
    // The same through the edge swipe (native touch).
    await page.locator(tile).evaluate(node=>(node as HTMLElement).click());await expect(page.locator('.collection-charge-row')).toHaveCount(30);await page.waitForTimeout(300);
-   const session=await page.context().newCDPSession(page);const y=Math.round(page.viewportSize()!.height/2),w=page.viewportSize()!.width;
+   const session=await touchSession(page);const y=Math.round(page.viewportSize()!.height/2),w=page.viewportSize()!.width;
    await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:1,y}]});for(let i=1;i<=6;i++)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:1+w*.7*i/6,y}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
    await expect(page.locator('.collection-charge-row')).toHaveCount(0);
    await expect.poll(async()=>(await track(page,tile)).focus).toBe('cb-30');await settleBack(page);
