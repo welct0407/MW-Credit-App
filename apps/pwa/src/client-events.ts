@@ -17,7 +17,11 @@ let events:ClientEvent[]=(()=>{try{const saved=JSON.parse(storage()?.getItem(sto
 export function recordClientEvent(event:Omit<ClientEvent,'at'>&{at?:string}){
  const entry:ClientEvent={at:event.at??new Date().toISOString(),kind:event.kind};
  for(const key of ['code','ref','message','stack'] as const){const value=clipText(event[key]);if(value!==undefined)entry[key]=value}
- events=[...events,entry].slice(-CLIENT_EVENT_LIMIT);
+ // R133: at the limit the oldest event that is not a session or startup event goes first, so the early diagnosis of a
+ // long outage stays; the log never holds more than CLIENT_EVENT_LIMIT.
+ const next=[...events,entry];
+ while(next.length>CLIENT_EVENT_LIMIT){const index=next.findIndex(item=>item.kind!=='session'&&item.kind!=='startup');next.splice(index>=0?index:0,1)}
+ events=next;
  try{storage()?.setItem(storageKey,JSON.stringify(events))}catch{/* The in-memory log still holds it. */}
 }
 export const clientEvents=():ClientEvent[]=>events.map(event=>({...event}));

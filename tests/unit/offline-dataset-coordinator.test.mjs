@@ -226,6 +226,9 @@ test('a corrupted stored domain is named, logged and healed by a forced walk',as
   assert.ok(h.requests.some(request=>request.domain==='cash'&&!request.need&&request.sourceVersion===null),'the domain walked');
   assert.deepEqual(JSON.parse(JSON.stringify(h.repo.rows.get('dataset:cash').data)),{items:[{id:'old'}]});
   assert.equal(h.reconciles.filter(entry=>entry.domain==='cash').at(-1).result,'match','reconciled again after healing');
+  // R133: the heal's cycle is recorded as a repair (not a Full sync).
+  assert.ok(h.diagnostics().recentCycles.some(cycle=>cycle.trigger==='repair'),JSON.stringify(h.diagnostics().recentCycles.map(cycle=>cycle.trigger)));
+  assert.ok(h.diagnostics().recentCycles.every(cycle=>cycle.trigger!=='full'));
  }finally{h.stop()}
 });
 // Chase on 35bdda2: a failed pass is not retried at every poll, a future stored time does not switch reconciliation off,
@@ -417,6 +420,9 @@ test('a 503 command_unavailable is recorded with its status, code and duration, 
   // Another status or code is a new event.
   Object.assign(failing,{status:500,code:'internal'});h.window.dispatchEvent(new Event('focus'));
   await until(()=>failedEvents().length===2);assert.match(failedEvents()[1].message,/^500 internal \d+ms$/);
+  // Codes already logged for the domain are not logged again, whatever the status alternates to.
+  for(const [status,code] of [[503,'command_unavailable'],[502,'internal'],[503,'command_unavailable']]){Object.assign(failing,{status,code});const before=h.diagnostics().domains.records.failures;h.window.dispatchEvent(new Event('focus'));await until(()=>h.diagnostics().domains.records.failures>before&&!h.state().activity.includes('records'))}
+  assert.equal(failedEvents().length,2,'no churn while an outage alternates');assert.equal(h.diagnostics().domains.records.lastStatus,503);
   // A success clears it: the status is the answer's, the code null, and the next failure is logged again.
   failing.times=0;h.window.dispatchEvent(new Event('focus'));await settled(h);
   records=h.diagnostics().domains.records;assert.equal(records.lastStatus,200);assert.equal(records.lastCode,null);assert.equal(typeof records.lastSuccessAt,'number');

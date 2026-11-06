@@ -26,11 +26,12 @@ function publish(scope:string,value:OfflinePreparation){const prior=states.get(s
  * memory only. lastStatus is the HTTP status (0: timeout or lost connection), lastCode the error code a non-ok answer named
  * (or 'timeout', 'network', 'client' for a local failure); no response text is kept. */
 export type DatasetDomainDiagnostics={lastAttemptAt:number|null;lastSuccessAt:number|null;lastFailureAt:number|null;lastStatus:number|null;lastCode:string|null;lastDurationMs:number|null;attempts:number;failures:number};
-export type DatasetCycleTrigger='first'|'tap'|'full'|'poll'|'focus'|'invalidate'|'screen';
+/** repair: a reconciliation mismatch heals its domain by a forced walk. */
+export type DatasetCycleTrigger='first'|'tap'|'full'|'poll'|'focus'|'invalidate'|'screen'|'repair';
 export type DatasetCycle={startedAt:number;trigger:DatasetCycleTrigger;durationMs:number|null;failedDomains:string[]};
 export type DatasetReceiptCounts={downloaded:number;queued:number;failed:number;refused:number;lastRefusalAt:number|null};
 export const DATASET_RECENT_CYCLES=10;
-type ScopeDiagnostics={domains:Map<string,DatasetDomainDiagnostics>;cycles:DatasetCycle[];open:DatasetCycle|null;reported:Map<string,string>;receipts:(()=>DatasetReceiptCounts)|null};
+type ScopeDiagnostics={domains:Map<string,DatasetDomainDiagnostics>;cycles:DatasetCycle[];open:DatasetCycle|null;reported:Map<string,Set<string>>;receipts:(()=>DatasetReceiptCounts)|null};
 const diagnostics=new Map<string,ScopeDiagnostics>();
 const scopeDiagnostics=(scopeName:string)=>{let value=diagnostics.get(scopeName);if(!value){value={domains:new Map(),cycles:[],open:null,reported:new Map(),receipts:null};diagnostics.set(scopeName,value)}return value};
 const domainDiagnostics=(scope:ScopeDiagnostics,domain:string)=>{let value=scope.domains.get(domain);if(!value){value={lastAttemptAt:null,lastSuccessAt:null,lastFailureAt:null,lastStatus:null,lastCode:null,lastDurationMs:null,attempts:0,failures:0};scope.domains.set(domain,value)}return value};
@@ -230,9 +231,10 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // Back-off bookkeeping: a failed task is waiting until its next retry time.
  const waiting=(task:string)=>failed.has(task)&&(backoff.get(task)?.next??0)>Date.now();
  const succeeded=(task:string)=>{failed.delete(task);backoff.delete(task);quietMedia.delete(task);if(!isMediaTask(task)){diag.reported.delete(task);const value=domainDiagnostics(diag,task);value.lastSuccessAt=Date.now()}};
- // R133: one dataset-failed client event per domain and distinct (status, code) until the domain succeeds; background
- // failures included, never a receipt or the offline path.
- const reportFailure=(task:string,status:number,code:string|null,durationMs:number|null)=>{const key=status+' '+(code??'');if(diag.reported.get(task)===key)return;diag.reported.set(task,key);recordClientEvent({kind:'dataset-failed',code:task,message:status+(code?' '+code:'')+(durationMs!==null?' '+durationMs+'ms':'')})};
+ // R133: one dataset-failed client event per domain and distinct code (the status when there is none) until the domain
+ // succeeds, so a long outage alternating statuses does not fill the log; background failures included, never a receipt
+ // or the offline path.
+ const reportFailure=(task:string,status:number,code:string|null,durationMs:number|null)=>{const key=code??'status '+status,seen=diag.reported.get(task)??new Set<string>();if(seen.has(key))return;seen.add(key);diag.reported.set(task,seen);recordClientEvent({kind:'dataset-failed',code:task,message:status+(code?' '+code:'')+(durationMs!==null?' '+durationMs+'ms':'')})};
  const fail=(task:string,failure?:{status:number;code:string|null;durationMs:number})=>{failed.add(task);if(isMediaTask(task))quietMedia.add(task);const attempts=(backoff.get(task)?.attempts??0)+1;backoff.set(task,{attempts,next:Date.now()+DATASET_RETRY_BACKOFF_MS[Math.min(attempts,DATASET_RETRY_BACKOFF_MS.length)-1]});
   if(!isMediaTask(task)&&failure){const value=domainDiagnostics(diag,task);value.lastFailureAt=Date.now();value.failures++;value.lastStatus=failure.status;value.lastCode=failure.code;reportFailure(task,failure.status,failure.code,failure.durationMs)}};
  const resetBackoff=()=>{backoff.clear();if(retryTimer){clearTimeout(retryTimer);retryTimer=undefined}};
@@ -579,7 +581,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   // needsWalk marker that forces the walk again after a reload; the walk's commit writes a bundle without it.
   const {cacheStale:_stale,changes:_changes,...stored}=bundle;
   if(!await repo.saveDataset(domain,{...stored,sourceVersion:null,needsWalk:true},revision,null,datasetBase(bundle),false))return 'skipped';
-  forceWalk.add(domain);if(!active.size&&!queue.length)beginCycle([domain],'full');else{cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain)}enqueue(domain);status();schedule();
+  forceWalk.add(domain);if(!active.size&&!queue.length)beginCycle([domain],'repair');else{cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain)}enqueue(domain);status();schedule();
   return 'mismatch';
  }
  async function checkReceipts(){

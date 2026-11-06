@@ -75,6 +75,18 @@ test('the client event log keeps the last 40 events and cuts message and stack t
  const encoder=new TextEncoder();assert.ok(encoder.encode(log.at(-1).message).length<=2048);assert.ok(encoder.encode(log.at(-1).stack).length<=2048);assert.match(log.at(-1).stack,/…\[truncated\]$/);
  assert.match(log.at(-1).at,/^\d{4}-\d{2}-\d{2}T/);assert.equal(events.clipText('short'),'short');assert.equal(events.clipText(''),undefined);
 });
+test('at the limit the oldest event that is not session or startup is dropped first; the log stays bounded',()=>{
+ events.clearClientEvents();
+ events.recordClientEvent({kind:'session',code:'provisional',message:'120ms'});events.recordClientEvent({kind:'dataset-failed',code:'records',message:'503 command_unavailable 1890ms'});
+ events.recordClientEvent({kind:'startup',code:'error'});events.recordClientEvent({kind:'session',code:'confirmed',message:'812ms'});
+ for(let i=0;i<60;i++)events.recordClientEvent({kind:'error',code:'e'+i});
+ let log=events.clientEvents();assert.equal(log.length,40);
+ assert.deepEqual(log.slice(0,3).map(event=>event.kind+':'+event.code),['session:provisional','startup:error','session:confirmed']);
+ assert.equal(log[3].code,'e23');assert.equal(log.at(-1).code,'e59');assert.equal(log.some(event=>event.kind==='dataset-failed'),false,'other kinds age out oldest first');
+ // Only session and startup events: the oldest of them goes.
+ events.clearClientEvents();for(let i=0;i<45;i++)events.recordClientEvent({kind:'session',code:'s'+i});
+ log=events.clientEvents();assert.equal(log.length,40);assert.equal(log[0].code,'s5');assert.equal(log.at(-1).code,'s44');
+});
 test('the file name uses Bangkok time',()=>{
  assert.equal(report.troubleshootingFileName('dev',new Date('2026-10-18T17:30:00Z')),'mw-credit-troubleshooting-dev-20261019-0030.txt');
  assert.equal(report.troubleshootingFileName('prod',new Date('2026-01-01T00:05:00Z')),'mw-credit-troubleshooting-prod-20260101-0705.txt');
