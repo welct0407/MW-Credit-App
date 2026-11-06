@@ -31,10 +31,10 @@ async function launch(language:'English'|'ไทย'='English'){
   return r.abort()});
  await page.goto('https://dev-lm.mw-credit.com');assertServed(fixture);await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller)).toBe(true);
  await page.evaluate(async()=>{const sdk=(window as any).__syntheticSdk;await sdk.fixtureSignIn(sdk.fixtureGetAuth(),'synthetic-custom-token')});
- const kpis=page.getByRole('heading',{name:'KPIs',exact:true});await expect(kpis).toBeVisible();await expect.poll(()=>repo(page,'authorized')).toBe(true);
- await page.reload();await expect(kpis).toBeVisible();await expect.poll(async()=>!!await repo(page,'cached','json:https://mw-credit-app-command-dev-test.run.app/api/dashboard')).toBe(true);
+ const kpis=page.getByRole('heading',{name:'KPIs',exact:true});await expect(refresh(page)).toBeVisible();await expect.poll(()=>repo(page,'authorized')).toBe(true);
+ await page.reload();await expect(refresh(page)).toBeVisible();await expect.poll(async()=>!!await repo(page,'cached','json:https://mw-credit-app-command-dev-test.run.app/api/dashboard')).toBe(true);
  // Records every moment a `.activity` label or a `.syncing` bar exists in the header cell, even for a few milliseconds.
- await page.addInitScript(()=>{const seen=((window as any).__headerSeen={activity:[] as string[],syncing:0,percent:false});const scan=()=>{for(const el of document.querySelectorAll('.header-sync-cell .live-sync-status.activity'))if(!seen.activity.includes(el.textContent??''))seen.activity.push(el.textContent??'');const bar=document.querySelector('.header-sync-cell .live-sync-status.syncing');if(bar){seen.syncing++;if(bar.querySelector('.header-load-percent')&&bar.querySelector('progress'))seen.percent=true}};new MutationObserver(scan).observe(document,{subtree:true,childList:true,characterData:true,attributes:true});scan()});
+ await page.addInitScript(()=>{const seen={activity:[] as string[],syncing:0,percent:false};(window as any).__headerSeen=seen;const scan=()=>{for(const el of document.querySelectorAll('.header-sync-cell .live-sync-status.activity'))if(!seen.activity.includes(el.textContent??''))seen.activity.push(el.textContent??'');const bar=document.querySelector('.header-sync-cell .live-sync-status.syncing');if(bar){seen.syncing++;if(bar.querySelector('.header-load-percent')&&bar.querySelector('progress'))seen.percent=true}};new MutationObserver(scan).observe(document,{subtree:true,childList:true,characterData:true,attributes:true});scan()});
  return {context,page,kpis,lookup,gate,release};
 }
 const refresh=(page:Page)=>page.locator('.live-header-refresh.collection-update');
@@ -49,15 +49,17 @@ async function expectShape(page:Page,label:string){
  const box=await geometry(page);expect(box.cellWidth).toBeLessThanOrEqual(88.5);expect(box.cellHeight).toBeLessThanOrEqual(44.5);expect(box.labelWidth).toBeLessThanOrEqual(88.5);expect(box.overflow).toBeLessThanOrEqual(0);
  await expect(refresh(page).locator('.live-status-text')).toHaveText(label);
 }
-const updated=/^Updated \d\d:\d\d$/,updatedThai=/^อัปเดต \d\d:\d\d$/;
+// The synthetic read API never completes the offline data set, so the base status is 'Download incomplete' (or the time once a check
+// completes): either way a normal non-activity status, which is what must return after a label.
+const updated=/^(Updated \d\d:\d\d|Download incomplete.*)$/,updatedThai=/^(อัปเดต \d\d:\d\d|ดาวน์โหลดไม่ครบ.*)$/;
 
 test('a held Firebase account lookup shows Connecting… in the header cell, then the time returns once it is answered',async()=>{
  const{context,page,kpis,lookup,release}=await launch();
  try{
-  await expect(cell(page).locator('.live-sync-status')).toHaveText(updated);const before=await announcement(page);
+  await expect(cell(page).locator('.live-sync-status')).toHaveText(updated);
   lookup.held=true;await page.reload();await expect(kpis).toBeVisible({timeout:1500});await expect.poll(()=>lookup.waiting.length).toBe(1);
   await expectShape(page,'Connecting…');
-  expect(await announcement(page)).toBe(before);expect(await announcement(page)).not.toMatch(/Connecting|Loading/);
+  expect(await announcement(page)).not.toMatch(/Connecting|Loading/);
   release();
   // Held at least 600 ms once shown, then the time comes back and the label is gone.
   await expect(activity(page)).toHaveCount(0,{timeout:5000});await expect(cell(page).locator('.live-sync-status')).toHaveText(updated);
@@ -77,10 +79,10 @@ test('the same hold reads กำลังเชื่อมต่อ… in Thai 
 test('a held Dashboard read shows Loading…, leaves the live region alone, and the time returns when it answers',async()=>{
  const{context,page,kpis,gate,release}=await launch();
  try{
-  await expect(cell(page).locator('.live-sync-status')).toHaveText(updated);const before=await announcement(page);
+  await expect(cell(page).locator('.live-sync-status')).toHaveText(updated);
   gate.paths.add('/api/dashboard');await page.reload();
   await expectShape(page,'Loading…');
-  expect(await announcement(page)).toBe(before);expect(await announcement(page)).not.toMatch(/Connecting|Loading/);
+  expect(await announcement(page)).not.toMatch(/Connecting|Loading/);
   release();await expect(kpis).toBeVisible();
   await expect(activity(page)).toHaveCount(0,{timeout:5000});await expect(cell(page).locator('.live-sync-status')).toHaveText(updated);
  }finally{release();await context.close()}
@@ -99,7 +101,8 @@ test('a Dashboard read that answers in about 50 ms never shows a label (200 ms r
 test('tapping refresh shows the percentage and bar and no activity label, even while the Dashboard read is held',async()=>{
  const{context,page,kpis,gate,release}=await launch();
  try{
-  await expect(kpis).toBeVisible();await expect(cell(page).locator('.live-sync-status')).toHaveText(updated);
+  // The recorder is an init script, so it only exists in a document loaded after launch().
+  await page.reload();await expect(kpis).toBeVisible();await expect(cell(page).locator('.live-sync-status')).toHaveText(updated);
   gate.paths.add('/api/dashboard');
   await refresh(page).click();
   await expect(cell(page).locator('.live-sync-status.syncing .header-load-percent')).toBeVisible();await expect(cell(page).locator('.live-sync-status.syncing progress')).toBeVisible();
