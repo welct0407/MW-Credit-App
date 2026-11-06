@@ -42,8 +42,9 @@ const win={scrollY:0,innerHeight:800,maxScroll:5000,scrollTo(x,y){if(typeof x===
 let frames=[],clock=0,nextFrame=1;
 Object.assign(globalThis,{document:doc,window:win,getComputedStyle:node=>({overflowY:node.scroll?'auto':'visible'}),performance:{now:()=>clock},
  requestAnimationFrame:callback=>{const id=nextFrame++;frames.push({id,callback});return id},cancelAnimationFrame:id=>{frames=frames.filter(frame=>frame.id!==id)}});
+const fire=(target,type,fields={})=>target.dispatchEvent(Object.assign(new Event(type),fields));
 const runFrames=(count=40)=>{for(let index=0;index<count&&frames.length;index++){const due=frames;frames=[];clock+=16;for(const frame of due)frame.callback(clock)}};
-const {createListReturn,RESTORE_WINDOW_MS}=await import('../../apps/pwa/src/list-return.ts');
+const {createListReturn,RESTORE_WINDOW_MS,RESTORE_CAP_MS}=await import('../../apps/pwa/src/list-return.ts');
 
 function page(){doc.body.children.slice().forEach(node=>{node.remove()});const main=new El('main');doc.body.append(main);win.scrollY=0;doc.activeElement=null;frames=[];return main}
 const rows=(count,start=0)=>Array.from({length:count},(_,index)=>new El('button',{cls:'borrower-card',record:'row-'+(index+start),y:(index+start)*50,h:44}));
@@ -108,6 +109,23 @@ test('a list that loads after Back is waited for, then focused; positions are re
  assert.equal(win.scrollY,800);assert.equal(doc.activeElement,empty.children[20]);
 });
 
+test('a row that arrives after the half-second window is still waited for (up to the cap), anchored and focused',()=>{
+ const main=page();const section=list({});main.append(section);win.scrollTo(0,1200);const before=section.children[30].getBoundingClientRect().top;
+ const position=createListReturn();position.leave(section.children[30]);
+ section.remove();const later=new El('section',{cls:'list-panel'});main.append(later);position.restore();
+ runFrames(55);assert.ok(clock>RESTORE_WINDOW_MS+500,'past the window');assert.ok(frames.length>0,'still waiting for the row');assert.equal(doc.activeElement,null);
+ later.append(...rows(60));runFrames(5);assert.equal(doc.activeElement,later.children[30]);assert.ok(frames.length>0,'anchoring frames still run');
+ runFrames(20);assert.equal(frames.length,0,'finished after the anchoring frames');assert.equal(later.children[30].getBoundingClientRect().top,before);assert.equal(win.scrollY,1200);
+});
+
+test('a row that never arrives ends at the cap; a restore without a row key ends at the half-second window',()=>{
+ const main=page();const section=list({});main.append(section);win.scrollTo(0,600);
+ const position=createListReturn();position.leave(section.children[10]);section.remove();main.append(new El('section',{cls:'list-panel'}));
+ const start=clock;position.restore();runFrames(500);assert.equal(frames.length,0);assert.ok(clock-start>=RESTORE_CAP_MS&&clock-start<RESTORE_CAP_MS+50,'ended at the cap');
+ doc.activeElement=null;const plain=createListReturn();plain.leave(null);const from=clock;plain.restore();runFrames(500);
+ assert.ok(clock-from>=RESTORE_WINDOW_MS&&clock-from<RESTORE_WINDOW_MS+50,'no row key: half a second');
+});
+
 test('a disabled row (the list still busy) is focused once it is enabled',()=>{
  const main=page();const section=list({});main.append(section);win.scrollTo(0,500);
  const position=createListReturn();position.leave(section.children[12]);
@@ -116,12 +134,30 @@ test('a disabled row (the list still busy) is focused once it is enabled',()=>{
  again.children.forEach(row=>{row.disabled=false});runFrames();assert.equal(doc.activeElement,again.children[12]);
 });
 
-test('touch, wheel or a key inside main stops the restore',()=>{
+test('a tap, wheel or a key inside main stops the restore',()=>{
  const main=page();const section=list({});main.append(section);win.scrollTo(0,900);
  const position=createListReturn();position.leave(section.children[20]);
  section.remove();main.append(new El('section',{cls:'list-panel'}));position.restore();runFrames(2);
- main.dispatchEvent(new Event('touchstart'));win.scrollTo(0,50);main.children[0].append(...rows(60));runFrames();
+ fire(main,'touchstart',{touches:[{clientX:100,clientY:300}]});fire(main,'touchend',{changedTouches:[{clientX:102,clientY:301}]});win.scrollTo(0,50);main.children[0].append(...rows(60));runFrames();
  assert.equal(win.scrollY,50);assert.equal(doc.activeElement,null);assert.equal(frames.length,0);
+});
+
+test('a sideways touch (a swipe-back) never stops the restore; a vertical touch scroll does',()=>{
+ const main=page();const section=list({});main.append(section);win.scrollTo(0,900);
+ const position=createListReturn();position.leave(section.children[20]);
+ section.remove();main.append(new El('section',{cls:'list-panel'}));position.restore();runFrames(2);
+ fire(main,'pointerdown',{pointerType:'touch'});fire(main,'touchstart',{touches:[{clientX:5,clientY:400}]});fire(main,'touchmove',{touches:[{clientX:150,clientY:404}]});fire(main,'touchend',{changedTouches:[{clientX:200,clientY:404}]});
+ main.children[0].append(...rows(60));runFrames();assert.equal(win.scrollY,900);
+ const again=createListReturn();again.leave(main.children[0].children[20]);main.children[0].remove();main.append(new El('section',{cls:'list-panel'}));again.restore();runFrames(2);
+ fire(main,'touchstart',{touches:[{clientX:100,clientY:400}]});fire(main,'touchmove',{touches:[{clientX:102,clientY:330}]});assert.equal(frames.length,0);again.cancel();
+});
+
+test('a restore stops once its row is replaced by another page',()=>{
+ const main=page();const section=list({});main.append(section);win.scrollTo(0,900);
+ const position=createListReturn();position.leave(section.children[20]);
+ section.remove();const back=list({});main.append(back);position.restore();runFrames(2);assert.equal(win.scrollY,900);
+ back.remove();main.append(new El('article',{cls:'borrower-record',h:4000}));win.scrollTo(0,10);runFrames(2);
+ assert.equal(win.scrollY,10);assert.equal(frames.length,0);
 });
 
 test('a press inside main (a pager tap) stops the restore',()=>{
@@ -155,7 +191,7 @@ test('restore without a saved position, a missing row and a missing main never t
  const main=page();const position=createListReturn();assert.doesNotThrow(()=>position.restore());assert.equal(frames.length,0);
  const panel=list({scroll:true,height:600,tabindex:true});main.append(panel);panel.scrollTop=300;
  position.leave(panel.children[10]);panel.children.slice().forEach(node=>{node.remove()});position.restore();
- clock+=RESTORE_WINDOW_MS;runFrames();assert.equal(doc.activeElement,panel,'the focusable list takes focus when its row is gone');
+ clock+=RESTORE_CAP_MS;runFrames();assert.equal(doc.activeElement,panel,'the focusable list takes focus when its row is gone');
  main.remove();assert.doesNotThrow(()=>{position.leave('row-1');position.restore();runFrames()});
  position.cancel();assert.equal(frames.length,0);
 });

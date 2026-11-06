@@ -26,7 +26,12 @@ export function StandaloneRecords({access,kind,query,thai}:{access:CommandAccess
  // biome-ignore lint/correctness/useExhaustiveDependencies: live standalone list subscription; access is rebuilt every render, so access.offline (the signed-in offline repository) is the identity that resubscribes
  useEffect(()=>{if(selected||adding||busy)return;const cursor=cursors.current[page];return subscribeOfflineDataset<any>(access,'/api/'+endpoint+'?limit=25&q='+encodeURIComponent(query)+(cursor?'&cursor='+encodeURIComponent(cursor):''),data=>{setItems(data.items);setNext(data.nextCursor)},undefined,{hold:()=>panel.current});},[access.offline,endpoint,query,page,selected,adding,busy]);
  useContextRefresh(!selected&&!adding,kind==='loans'?t('First loans page / refresh','หน้าแรกของสินเชื่อ / รีเฟรช'):t('First payments page / refresh','หน้าแรกของการรับชำระ / รีเฟรช'),()=>void load());
- const back=()=>{setSelected(null);setAdding(false);setBorrower(null);void load(cursors.current[page],page,true)};
+ // LRP-PAY-1: Back renders the kept rows at once, so their position is applied in that same commit, before paint; the refresh
+ // that follows applies it again when its rows arrive.
+ const returning=useRef(false);
+ const back=()=>{returning.current=true;setSelected(null);setAdding(false);setBorrower(null);void load(cursors.current[page],page,true)};
+ // biome-ignore lint/correctness/useExhaustiveDependencies: closing the record (selected, adding, borrower) is the trigger; the position is read from refs
+ useLayoutEffect(()=>{if(!returning.current||selected||adding)return;returning.current=false;window.scrollTo(0,scroll.current.window);if(panel.current)panel.current.scrollTop=scroll.current.panel},[selected,adding,borrower]);
  if(selected)return kind==='loans'?<LoanRecord access={access} id={selected} thai={thai} onBack={back}/>:<PaymentRecord access={access} id={selected} thai={thai} onBack={back}/>;
  if(adding&&borrower)return kind==='loans'?<LoanForm access={access} borrowerId={borrower.id} borrowerLabel={borrower.label} thai={thai} onBack={()=>setBorrower(null)} onSaved={id=>{replaceBackTransition("root");setAdding(false);setBorrower(null);setSelected(id)}}/>:<SelectedCharges access={access} borrowerId={borrower.id} thai={thai} onBack={back}/>;
  const money=(value:string|null)=>value===null?'—':new Intl.NumberFormat(thai?'th-TH':'en-US',{style:'currency',currency:'THB',currencyDisplay:'narrowSymbol',maximumFractionDigits:0}).format(Number(value));

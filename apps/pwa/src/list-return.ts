@@ -5,13 +5,17 @@ import {useEffect,useRef} from 'react';
  * leave() runs in the open handler, before the state change: it records the window position, every scrolling ancestor of
  * the opened control (by its first class token and its place among matches in <main>, so a remounted list is found again),
  * the row's data-record-id and where the row sat on screen, then starts the opened page at its top (unless top:false).
- * restore() runs in the Back handler, after the state change: for about half a second it re-applies those positions each
- * frame (the list may still be loading or its header may still be growing), keeps the opened row where it was on screen once
- * it exists, then focuses it without scrolling. A press, touch, wheel or key inside <main> stops it at once. A list that
+ * restore() runs in the Back handler, after the state change: it re-applies those positions each frame for about half a
+ * second (the list may still be loading or its header may still be growing), and for up to 2 s while the opened row is not
+ * there yet; it keeps that row where it was on screen once it exists, then focuses it without scrolling. A wheel, a key, a
+ * mouse or pen press, a tap or a vertical touch scroll inside <main> stops it at once; a sideways swipe does not. A list that
  * stayed visible and was scrolled meanwhile is left where the user put it.
  * It never throws: a missing row, container or API only means less is restored.
  */
 export const RESTORE_WINDOW_MS=500;
+/** A row still loading at the window's end (a record page that fetches its header first) is waited for up to this long; once it
+ * is there and usable, ANCHOR_FRAMES more frames keep it in place before the restore ends. */
+export const RESTORE_CAP_MS=2000,ANCHOR_FRAMES=10;
 export type LeaveOptions={
  /** Start the opened page at its top (the scrolling sections around the opened control, and the window). The default; false
   * where the list stays on screen beside what it opened, or the page places the opened item itself. */
@@ -36,8 +40,10 @@ const now=()=>performance.now();
 // The two-argument form: an options object with behavior 'instant' throws on Safari versions that predate it, and nothing here
 // sets a smooth scroll-behavior, so this jump is immediate everywhere.
 const windowTo=(top:number)=>window.scrollTo(0,top);
-// Any press, wheel or key inside <main> is the user taking over (a pager tap, a scroll, another row): restoring stops.
-const INTERRUPTS=['pointerdown','touchstart','wheel','keydown'] as const;
+// The user taking over inside <main> stops a restore: a wheel, a key, a mouse or pen press, a tap, or a touch that starts to
+// scroll vertically. A sideways touch (a swipe-back) does not: it is never counted against the restore, and these listeners
+// are passive, so the gesture itself is untouched.
+const TAP=10;
 const MOVES=['pointerdown','touchstart','wheel','keydown'] as const;
 
 export function createListReturn():ListReturn{
@@ -71,7 +77,7 @@ export function createListReturn():ListReturn{
  function restore(){
   const snapshot=saved;saved=null;stopRestore();if(!snapshot)return;snapshot.release();
   const root=scope();if(!root)return;
-  const deadline=now()+RESTORE_WINDOW_MS;let focused=false;
+  const started=now(),deadline=started+RESTORE_WINDOW_MS,cap=started+RESTORE_CAP_MS;let focused=false,seen:Element|null=null,ready=0;
   const resolve=(container:Container):Element|null=>{if(container.node.isConnected)return container.node;if(!container.key)return null;const list=byClass(root,container.key);return list[container.index]??list[0]??null};
   const rowElement=():HTMLElement|null=>{const row=snapshot.focusKey!==null?byRecord(root,snapshot.focusKey):null;return row as HTMLElement|null};
   // The scroller that moves the row: its nearest overflowing ancestor, else the window.
@@ -106,15 +112,29 @@ export function createListReturn():ListReturn{
   const step=()=>{
    frame=0;
    try{
-    const row=rowElement();apply(row);
+    const row=rowElement();
+    // The restored row went away for good (a swipe-back or another Back replaced the page): stop moving that page.
+    if(seen&&!seen.isConnected&&!row){stopRestore();return}
+    apply(row);
+    if(row)seen=row;
     if(!focused&&focusable(row)){row!.focus({preventScroll:true});focused=true}
-    if(now()>=deadline){finish();return}
+    if(focusable(row))ready++;
+    const time=now();
+    if(time>=cap||time>=deadline&&(snapshot.focusKey===null||ready>ANCHOR_FRAMES)){finish();return}
    }catch{stopRestore();return}
    frame=requestAnimationFrame(step);
   };
-  const interrupt=()=>stopRestore();
-  for(const type of INTERRUPTS)root.addEventListener(type,interrupt,{capture:true,passive:true});
-  stopRun=()=>{for(const type of INTERRUPTS)root.removeEventListener(type,interrupt,{capture:true})};
+  const interrupt=()=>stopRestore();let touch:{x:number;y:number}|null=null;
+  const point=(event:Event,list:'touches'|'changedTouches')=>{const item=(event as TouchEvent)[list]?.[0];return item?{x:item.clientX,y:item.clientY}:null};
+  const handlers:[string,(event:Event)=>void][]=[
+   ['wheel',interrupt],['keydown',interrupt],
+   ['pointerdown',event=>{if((event as PointerEvent).pointerType!=='touch')interrupt()}],
+   ['touchstart',event=>{touch=point(event,'touches')}],
+   ['touchmove',event=>{const at=point(event,'touches');if(!touch||!at)return;const dx=Math.abs(at.x-touch.x),dy=Math.abs(at.y-touch.y);if(dy>TAP&&dy>dx)interrupt()}],
+   ['touchend',event=>{const at=point(event,'changedTouches');if(touch&&at&&Math.abs(at.x-touch.x)<TAP&&Math.abs(at.y-touch.y)<TAP)interrupt();touch=null}],
+  ];
+  for(const [type,handler] of handlers)root.addEventListener(type,handler,{capture:true,passive:true});
+  stopRun=()=>{for(const [type,handler] of handlers)root.removeEventListener(type,handler,{capture:true})};
   frame=requestAnimationFrame(step);
  }
  return {leave,restore,cancel:()=>{stopRestore();drop()}};
