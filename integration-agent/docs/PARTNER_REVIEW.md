@@ -83,7 +83,7 @@ With `conversation_poll_recheck_enabled` on, the conversation poll requeues a `R
 - **Readback.** The agent readback counts Late Charge Paid for all payments, which fixes a latent R118 gap.
 - **Not covered.** The pay-forward note "Remainder settles … record in the app" stays manual (a different write path).
 
-See the [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_R128_IG_LOAN_CLOSE_2026-11-05.md).
+See the [change note](https://github.com/welct0407/MW-Credit-App/blob/39fe4303/integration-agent/Change%20Logs/CHANGE_NOTES_R128_IG_LOAN_CLOSE_2026-11-05.md).
 
 ## Unattended recovery — revision 21
 
