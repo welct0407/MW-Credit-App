@@ -11,13 +11,41 @@ const domains=['records','collection','cash','management','notifications'] as co
 export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';dataReady:boolean;completed:number;total:number;progress:number;chunks:number;syncActive:boolean;domainsPending:boolean;updating:boolean;updateFailed:boolean;failedDomains:string;lastChecked:number|null;foreground:boolean;fullSync:boolean;
  /** UX-RECON-01..07: domains with a persistent reconciliation mismatch (comma list, reconcile order), the latest
   * check time, and a new occurrence to announce once ('checkedAt|domain', '' when none). */
- dataCheckDomains:string;dataCheckAt:number|null;dataCheckNotice:string};
-const idle:OfflinePreparation={state:'idle',dataReady:false,completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,domainsPending:false,updating:false,updateFailed:false,failedDomains:'',lastChecked:null,foreground:false,fullSync:false,dataCheckDomains:'',dataCheckAt:null,dataCheckNotice:''};
+ dataCheckDomains:string;dataCheckAt:number|null;dataCheckNotice:string;
+ /** R133 troubleshooting only (never the header): what preparation is doing now, comma-joined: the data domains in flight,
+  * then 'receipts' (a receipt download) and 'reconcile' ('' when idle). */
+ activity:string};
+const idle:OfflinePreparation={state:'idle',dataReady:false,completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,domainsPending:false,updating:false,updateFailed:false,failedDomains:'',lastChecked:null,foreground:false,fullSync:false,dataCheckDomains:'',dataCheckAt:null,dataCheckNotice:'',activity:''};
 const states=new Map<string,OfflinePreparation>(),listeners=new Set<()=>void>();
 export const getOfflinePreparation=(scopeName?:string)=>scopeName?states.get(scopeName)??idle:idle;
 export const subscribeOfflinePreparation=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
 // UX-REFRESH-03: an unchanged status keeps its snapshot and does not wake listeners (the app shell).
 function publish(scope:string,value:OfflinePreparation){const prior=states.get(scope);if(prior&&(Object.keys(value) as (keyof OfflinePreparation)[]).every(key=>prior[key]===value[key]))return;states.set(scope,value);listeners.forEach(listener=>{listener()})}
+
+/** R133 troubleshooting (R130 records 503): the last request of each data domain and the recent check cycles, per scope, in
+ * memory only. lastStatus is the HTTP status (0: timeout or lost connection), lastCode the error code a non-ok answer named
+ * (or 'timeout', 'network', 'client' for a local failure); no response text is kept. */
+export type DatasetDomainDiagnostics={lastAttemptAt:number|null;lastSuccessAt:number|null;lastFailureAt:number|null;lastStatus:number|null;lastCode:string|null;lastDurationMs:number|null;attempts:number;failures:number};
+export type DatasetCycleTrigger='first'|'tap'|'full'|'poll'|'focus'|'invalidate'|'screen';
+export type DatasetCycle={startedAt:number;trigger:DatasetCycleTrigger;durationMs:number|null;failedDomains:string[]};
+export type DatasetReceiptCounts={downloaded:number;queued:number;failed:number;refused:number;lastRefusalAt:number|null};
+export const DATASET_RECENT_CYCLES=10;
+type ScopeDiagnostics={domains:Map<string,DatasetDomainDiagnostics>;cycles:DatasetCycle[];open:DatasetCycle|null;reported:Map<string,string>;receipts:(()=>DatasetReceiptCounts)|null};
+const diagnostics=new Map<string,ScopeDiagnostics>();
+const scopeDiagnostics=(scopeName:string)=>{let value=diagnostics.get(scopeName);if(!value){value={domains:new Map(),cycles:[],open:null,reported:new Map(),receipts:null};diagnostics.set(scopeName,value)}return value};
+const domainDiagnostics=(scope:ScopeDiagnostics,domain:string)=>{let value=scope.domains.get(domain);if(!value){value={lastAttemptAt:null,lastSuccessAt:null,lastFailureAt:null,lastStatus:null,lastCode:null,lastDurationMs:null,attempts:0,failures:0};scope.domains.set(domain,value)}return value};
+/** Copies for the troubleshooting file (read-only). recentCycles ends with the cycle still running (durationMs null). */
+export function datasetDiagnostics(scopeName?:string){
+ const scope=scopeName?diagnostics.get(scopeName):undefined;
+ return {domains:Object.fromEntries(domains.map(domain=>[domain,scope?.domains.get(domain)?{...scope.domains.get(domain)!}:null])) as Record<string,DatasetDomainDiagnostics|null>,
+  recentCycles:scope?[...scope.cycles,...(scope.open?[scope.open]:[])].slice(-DATASET_RECENT_CYCLES).map(cycle=>({...cycle,failedDomains:[...cycle.failedDomains]})):[],
+  receipts:scope?.receipts?.()??null};
+}
+/** A failed dataset request with its HTTP status and error code (status 0: no answer). */
+type DatasetFailure=Error&{status:number;code:string|null};
+const datasetFailure=(status:number,code:unknown):DatasetFailure=>Object.assign(Error('Dataset request failed'),{status,code:typeof code==='string'&&/^[a-z][a-z0-9_]{0,63}$/.test(code)?code:null});
+/** The error code of a non-ok JSON answer, read from a copy of the response (the body stays unread). */
+const failureOf=async(response:Response)=>{let code:unknown=null;try{code=(await response.clone().json())?.code}catch{/* Not JSON. */}return datasetFailure(response.status,code)};
 
 // Stable content references let a later check reuse committed display data.
 const canonicalValue=(value:any):any=>Array.isArray(value)?value.map(canonicalValue):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,key==='asOf'&&typeof value[key]==='string'?null:canonicalValue(value[key])])):value;
@@ -146,7 +174,10 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  let progressFloor=0;
  // Own-write invalidations seen in this tab; a walk that then notices the read revision move needs only its own recheck.
  let invalidations=0;
- const beginCycle=(targets:readonly string[]=domains)=>{if(targets.length===domains.length)armPoll();progressFloor=0;cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();for(const domain of targets)cycleDomains.add(domain)};
+ // R133 troubleshooting: each check cycle with its trigger, closed when no data domain runs or waits (or a new cycle begins).
+ const diag=scopeDiagnostics(repo.scopeName);let reconcileRunning=false;
+ const closeCycle=()=>{const cycle=diag.open;if(!cycle)return;diag.open=null;cycle.durationMs=Date.now()-cycle.startedAt;cycle.failedDomains=domains.filter(domain=>failed.has(domain)&&cycleDomains.has(domain));diag.cycles=[...diag.cycles,cycle].slice(-DATASET_RECENT_CYCLES)};
+ const beginCycle=(targets:readonly string[]=domains,trigger:DatasetCycleTrigger='first')=>{closeCycle();diag.open={startedAt:Date.now(),trigger,durationMs:null,failedDomains:[]};if(targets.length===domains.length)armPoll();progressFloor=0;cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();for(const domain of targets)cycleDomains.add(domain)};
  const valueIndexes=new Map<string,{base:string|null,values:Record<string,any>}>();
  const completed=new Set<string>(),failed=new Set<string>(),backoff=new Map<string,{attempts:number;next:number}>(),fractions=new Map<string,number>(),chunkCounts=new Map<string,number>(),changedRetries=new Map<string,number>(),mediaVersion=new Map<string,number>();
  // A receipt's version is its receipt time; one that does not parse is 0, so any stored blob counts and a recheck
@@ -192,14 +223,18 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // refresh triggers: a poll or focus landing in that gap joins the cycle like one landing during a request.
  const walking=()=>domainRunning()||queue.some(task=>!isMediaTask(task)&&partials.has(task));
  const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(active.size>0||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
- const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path)||refusedNow(path))?'ready':paused?'incomplete':queue.length||active.size?'preparing':'incomplete',dataReady:domains.every(domain=>completed.has(domain)),completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,fullSync:forceWalk.size>0,dataCheckDomains:DATASET_RECONCILE_DOMAINS.filter(domain=>dataCheck.some(flag=>flag.domain===domain)).join(','),dataCheckAt:dataCheck.length?Math.max(...dataCheck.map(flag=>flag.checkedAt)):null,dataCheckNotice,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path)||refusedNow(path))?'ready':paused?'incomplete':queue.length||active.size?'preparing':'incomplete',dataReady:domains.every(domain=>completed.has(domain)),completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,fullSync:forceWalk.size>0,dataCheckDomains:DATASET_RECONCILE_DOMAINS.filter(domain=>dataCheck.some(flag=>flag.domain===domain)).join(','),dataCheckAt:dataCheck.length?Math.max(...dataCheck.map(flag=>flag.checkedAt)):null,dataCheckNotice,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0),activity:[...[...active.keys()].filter(task=>!isMediaTask(task)).sort(),...([...active.keys()].some(isMediaTask)?['receipts']:[]),...(reconcileRunning?['reconcile']:[])].join(',')});
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
  const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
  const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
  // Back-off bookkeeping: a failed task is waiting until its next retry time.
  const waiting=(task:string)=>failed.has(task)&&(backoff.get(task)?.next??0)>Date.now();
- const succeeded=(task:string)=>{failed.delete(task);backoff.delete(task);quietMedia.delete(task)};
- const fail=(task:string)=>{failed.add(task);if(isMediaTask(task))quietMedia.add(task);const attempts=(backoff.get(task)?.attempts??0)+1;backoff.set(task,{attempts,next:Date.now()+DATASET_RETRY_BACKOFF_MS[Math.min(attempts,DATASET_RETRY_BACKOFF_MS.length)-1]})};
+ const succeeded=(task:string)=>{failed.delete(task);backoff.delete(task);quietMedia.delete(task);if(!isMediaTask(task)){diag.reported.delete(task);const value=domainDiagnostics(diag,task);value.lastSuccessAt=Date.now()}};
+ // R133: one dataset-failed client event per domain and distinct (status, code) until the domain succeeds; background
+ // failures included, never a receipt or the offline path.
+ const reportFailure=(task:string,status:number,code:string|null,durationMs:number|null)=>{const key=status+' '+(code??'');if(diag.reported.get(task)===key)return;diag.reported.set(task,key);recordClientEvent({kind:'dataset-failed',code:task,message:status+(code?' '+code:'')+(durationMs!==null?' '+durationMs+'ms':'')})};
+ const fail=(task:string,failure?:{status:number;code:string|null;durationMs:number})=>{failed.add(task);if(isMediaTask(task))quietMedia.add(task);const attempts=(backoff.get(task)?.attempts??0)+1;backoff.set(task,{attempts,next:Date.now()+DATASET_RETRY_BACKOFF_MS[Math.min(attempts,DATASET_RETRY_BACKOFF_MS.length)-1]});
+  if(!isMediaTask(task)&&failure){const value=domainDiagnostics(diag,task);value.lastFailureAt=Date.now();value.failures++;value.lastStatus=failure.status;value.lastCode=failure.code;reportFailure(task,failure.status,failure.code,failure.durationMs)}};
  const resetBackoff=()=>{backoff.clear();if(retryTimer){clearTimeout(retryTimer);retryTimer=undefined}};
  // One timer for the earliest due failed task; resume() then re-queues only the due ones.
  const retryLater=()=>{if(stopped||!navigator.onLine||paused||!failed.size)return;const due=Math.min(...[...failed].map(task=>backoff.get(task)?.next??0));if(retryTimer)clearTimeout(retryTimer);retryTimer=setTimeout(()=>{retryTimer=undefined;resume()},Math.max(0,due-Date.now()))};
@@ -266,13 +301,15 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(!navigator.onLine||access.offlineOnly){paused=true;status();return}
   if((activitySnapshot()>0||document.visibilityState==='hidden')&&!requestedDomain){status();return;}
   addMedia();if(!queue.length){status();return}
-  if(!await repo.syncAuthorized()){paused=true;if(requestedDomain&&!active.has(requestedDomain))failedEvent(requestedDomain);status();return}if(stopped)return;paused=false;
+  if(!await repo.syncAuthorized()){paused=true;if(requestedDomain&&!active.has(requestedDomain)){reportFailure(requestedDomain,0,'not_authorized',null);failedEvent(requestedDomain)}status();return}if(stopped)return;paused=false;
   // Picking is synchronous: overlapping pumps never start the same task twice or exceed the limits.
   for(let task=pick();task!==undefined;task=pick())void run(task);
   status();
  }
  async function run(task:string){
   const isMedia=isMediaTask(task),flight=new AbortController(),mediaAt=isMedia?mediaVersion.get(task):undefined;active.set(task,flight);
+  const startedAt=Date.now(),record=isMedia?null:domainDiagnostics(diag,task);if(record){record.attempts++;record.lastAttemptAt=startedAt}
+  let lastResponse:Response|null=null;
   // A starting records check also asks for the other domains' versions (applyVersions).
   const forced=forceWalk.has(task);
   let ownsVersions=false;if(task==='records'&&!forced&&!versionsPending&&queue.some(queued=>versionPeer(queued)&&!active.has(queued))){versionsPending=true;ownsVersions=true}
@@ -308,12 +345,14 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const since=delta&&!partial&&!forced&&!walkNext.has(task)&&(task==='records'&&level>=3||dates&&DATASET_DAY_DOMAINS.includes(task)||rowDeltas)&&validChangeCursor(bundle?.changes)?bundle.changes:null;
    if(!askVersions)releaseVersions();
    const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
-   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:forced||localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{}),...(dates?{dates:true}:{}),...(rowDeltas?{rowDeltas:true}:{}),...(inlineValues?{inlineValues:true}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
+   // R133: a request that got no answer (not the timeout) is a network failure, status 0.
+   const answered=(request:Promise<Response>)=>request.catch(error=>{throw flight.signal.aborted?error:datasetFailure(0,'network')});
+   const fetchSegment=(need:string[]=[])=>answered(fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:forced||localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{}),...(dates?{dates:true}:{}),...(rowDeltas?{rowDeltas:true}:{}),...(inlineValues?{inlineValues:true}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'}));
    // Legacy 409: the final chunk is lost, so the walk restarts once; a repeat is
    // not a failure (saved data stays available, the next check walks again).
    const changedOnServer=async()=>{await forget(task);fractions.delete(task);chunkCounts.delete(task);const retries=changedRetries.get(task)??0;if(retries<1){changedRetries.set(task,retries+1);enqueue(task);return}softGiveUp=true;cycleDone.add(task);if(bundle?.complete)ready(task,false);else giveUp(task)};
-   let response=await fetchSegment();
-   if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
+   let response=await fetchSegment();lastResponse=response;
+   if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw datasetFailure(response.status,null)}
    // Only a definitive refusal is remembered: 422 with the code receipt_reference_unsupported, for the receipt time
    // asked for. Any other answer (503, another 4xx, a timeout, a lost connection) retries on the usual back-off.
    if(isMedia&&response.status===422&&(await response.json().catch(()=>null))?.code==='receipt_reference_unsupported'){
@@ -322,9 +361,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     if(!await repo.saveDatasetMediaRefusal('blob:'+url.href,mediaAt))throw Error('Receipt refusal not saved');
     if(stopped)return;refused.set(task,{version:mediaAt,at:Date.now()});succeeded(task);return;
    }
-   if(response.status===400&&delta&&level>0){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){pathLevels.set(url.pathname,inlineValues?5:rowDeltas?4:level>=4?3:since?2:askVersions?1:0);enqueue(task,true);continued=true;return}throw Error()}
-   if(response.status===409&&!isMedia){const error=await response.json().catch(()=>({}));if(error?.code==='dataset_changed'){await changedOnServer();return}throw Error()}
-   if(!response.ok)throw Error();let value=isMedia?await response.blob():await response.json();
+   if(response.status===400&&delta&&level>0){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){pathLevels.set(url.pathname,inlineValues?5:rowDeltas?4:level>=4?3:since?2:askVersions?1:0);enqueue(task,true);continued=true;return}throw datasetFailure(400,error?.code)}
+   if(response.status===409&&!isMedia){const error=await response.json().catch(()=>({}));if(error?.code==='dataset_changed'){await changedOnServer();return}throw datasetFailure(409,error?.code)}
+   if(!response.ok)throw isMedia?datasetFailure(response.status,null):await failureOf(response);let value=isMedia?await response.blob():await response.json();
    if(stopped||flight.signal.aborted||!await repo.syncAuthorized())throw Error();
    await refreshRevision();
    if(askVersions){try{if(value?.schemaVersion===3)await applyVersions(value.versions)}catch{/* The peers then check on their own. */}releaseVersions()}
@@ -358,10 +397,10 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
      // server caps one need list at NEED_BATCH hashes; batch as defence in depth.
      for(let offset=0;offset<missing.length;offset+=NEED_BATCH){
       clearTimeout(timeout);timeout=setTimeout(()=>flight.abort(),REQUEST_TIMEOUT_MS);
-      response=await fetchSegment(missing.slice(offset,offset+NEED_BATCH));
-      if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
+      response=await fetchSegment(missing.slice(offset,offset+NEED_BATCH));lastResponse=response;
+      if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw datasetFailure(response.status,null)}
       if(response.status===409){await changedOnServer();return}
-      if(!response.ok)throw Error();const batch=await response.json();
+      if(!response.ok)throw await failureOf(response);const batch=await response.json();
       if(partial&&batch.generation!==generation||JSON.stringify(batch.patches)!==manifest)throw Error('Delta manifest changed');
       for(const [hash,item] of Object.entries(batch.values??{})){if(await valueHash(item)!==hash)throw Error('Invalid delta content');values[hash]=item}
       value=batch;
@@ -430,18 +469,23 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     if(torn){const retries=changedRetries.get(task)??0;if(retries<2){changedRetries.set(task,retries+1);recheckDomains.add(task)}}else changedRetries.delete(task);
     ready(task,dataChanged);
    }
-  }catch{if(!stopped){
+  }catch(error){if(!stopped){
    // Keep the chunks this walk applied in memory: a failed segment resumes after them.
    const kept=partials.get(task);partials.delete(task);
    if(kept?.unsaved){try{const current=await repo.readRevision();if(current!==null&&await repo.saveDatasetProgress(task,kept.partial,current,kept.saved)&&current!==kept.revision)recheckDomains.add(task)}catch{/* The durable row stays at its earlier cursor. */}}
-   if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task);if(!isMedia)giveUp(task)}}}finally{
+   // R133: the status and code of the failure; an abort is the request timeout here (offline and stop are handled apart).
+   const tagged=error instanceof Error&&typeof (error as DatasetFailure).status==='number'?error as DatasetFailure:null;
+   const failure={status:tagged?tagged.status:flight.signal.aborted?0:lastResponse?.status??0,code:tagged?tagged.code:flight.signal.aborted?'timeout':'client',durationMs:Date.now()-startedAt};
+   if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task,failure);if(!isMedia)giveUp(task)}}}finally{
    clearTimeout(timeout);if(active.get(task)===flight)active.delete(task);releaseVersions();
+   if(record&&!stopped){record.lastDurationMs=Date.now()-startedAt;if(lastResponse&&!failed.has(task)){record.lastStatus=lastResponse.status;record.lastCode=null}}
    // A full sync requested while this check ran walks the domain next; a forced walk that failed ends its part of the full sync.
    if(!stopped&&forceWalk.has(task)){if(forced&&failed.has(task))forceWalk.delete(task);else if(!forced&&!queue.includes(task)&&!failed.has(task))enqueue(task,true)}if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}
    if(!stopped){
     addMedia();const dataBusy=domainRunning();
-    if(!queue.length&&!dataBusy&&(recheck||recheckDomains.size)){const targets=recheck?[...new Set([...DATASET_CONFIRM_DOMAINS,...recheckDomains])]:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets);for(const domain of targets)enqueue(domain)}
+    if(!queue.length&&!dataBusy&&(recheck||recheckDomains.size)){const targets=recheck?[...new Set([...DATASET_CONFIRM_DOMAINS,...recheckDomains])]:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets,'invalidate');for(const domain of targets)enqueue(domain)}
     if(!isMedia&&!dataBusy&&!queue.some(queued=>!isMediaTask(queued))&&!failedDomains().length&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();
+    if(!isMedia&&!dataBusy&&!queue.some(queued=>!isMediaTask(queued)))closeCycle();
     status();if(queue.length&&!paused){if(continued)void pump();else schedule()}else if(failed.size)retryLater();else if(!active.size)void maybeReconcile()
    }
   }
@@ -449,7 +493,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const request=(event?:Event)=>{if(stopped)return;const detail=(event as CustomEvent|undefined)?.detail;const priority=domains.includes(detail?.domain)?detail.domain:undefined;
   // A background prepare (a page served from the local bundle) is throttled like focus and
   // waits for a failed domain's back-off; an explicit request retries failed work at once.
-  const background=!!detail?.background;
+  const background=!!detail?.background,trigger:DatasetCycleTrigger=detail?.full?'full':detail?.all?'tap':'screen';
   if(background&&priority&&(waiting(priority)||completed.has(priority)&&!failed.has(priority)&&!stale(priority)))return;
   if(!background&&retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}
   if(detail?.foreground)requestedDomain=priority;
@@ -461,15 +505,15 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   // full cycle; management follows on the regular poll. A domain already walking is confirmed after its walk.
   if(event?.type==='mw-read-invalidated'){
    failed.clear();invalidations++;
-   if(!active.size&&!queue.length){beginCycle(DATASET_CONFIRM_DOMAINS);for(const domain of DATASET_CONFIRM_DOMAINS)enqueue(domain)}
+   if(!active.size&&!queue.length){beginCycle(DATASET_CONFIRM_DOMAINS,'invalidate');for(const domain of DATASET_CONFIRM_DOMAINS)enqueue(domain)}
    else for(const domain of DATASET_CONFIRM_DOMAINS){if(active.has(domain)||partials.has(domain))recheckDomains.add(domain);else if(!queue.includes(domain)){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}}
   }
   else{
    // A receipt still downloading or retrying does not block a sync of the data domains (pump takes them first).
-   if(!domainRunning()&&!queue.some(task=>!isMediaTask(task))&&event?.type==='mw-offline-prepare'&&!failedDomains().length){beginCycle(priority?[priority]:domains);for(const domain of cycleDomains)enqueue(domain)}
+   if(!domainRunning()&&!queue.some(task=>!isMediaTask(task))&&event?.type==='mw-offline-prepare'&&!failedDomains().length){beginCycle(priority?[priority]:domains,trigger);for(const domain of cycleDomains)enqueue(domain)}
    // A manual sync of everything (header refresh: detail.all) also checks the domains that did not fail; a domain already
    // queued or in flight is joined rather than fetched twice. A plain mw-offline-prepare (read-cache background prepare) still retries only failed work.
-   else if(detail?.all&&!priority&&event?.type==='mw-offline-prepare'){const targets=domains.filter(domain=>!active.has(domain)&&!queue.includes(domain));if(targets.length){if(domainRunning()||queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}
+   else if(detail?.all&&!priority&&event?.type==='mw-offline-prepare'){const targets=domains.filter(domain=>!active.has(domain)&&!queue.includes(domain));if(targets.length){if(domainRunning()||queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets,trigger);for(const domain of targets)enqueue(domain)}}}
    for(const task of [...failed])if(!background||!waiting(task)){failed.delete(task);enqueue(task)}
   }
   if(priority){cycleDomains.add(priority);cycleDone.delete(priority);fractions.delete(priority);queue=queue.filter(task=>task!==priority);enqueue(priority,true)}
@@ -481,14 +525,14 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // A failed domain still in its back-off is left out of the cycle; the other domains refresh.
  // Work queued while hidden (a due retry) is joined by the rest rather than replacing the refresh;
  // a receipt downloading or queued never delays the data domains.
- const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!walking()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}resume()};
+ const check=(force=false,trigger:DatasetCycleTrigger='focus')=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!walking()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets,trigger);for(const domain of targets)enqueue(domain)}}}resume()};
  // A real return to the app (focus, visible again) or reconnecting resets every back-off.
  const focused=()=>{resetBackoff();check(true)},online=()=>{resetBackoff();check()};
  const visible=()=>{if(document.visibilityState!=='hidden'){resetBackoff();check(true)}status()};
  // APP-OFFLINE-03: background poll every 30 seconds while visible and online; every focus,
  // visible-again and own-write invalidation (mw-read-invalidated) also refresh. Any full cycle
  // re-arms the poll, so a focus refresh is not followed by a redundant poll moments later.
- function armPoll(){if(pollTimer)clearTimeout(pollTimer);if(!stopped)pollTimer=setTimeout(()=>{pollTimer=undefined;check(true);if(!pollTimer)armPoll()},DATASET_POLL_MS)}
+ function armPoll(){if(pollTimer)clearTimeout(pollTimer);if(!stopped)pollTimer=setTimeout(()=>{pollTimer=undefined;check(true,'poll');if(!pollTimer)armPoll()},DATASET_POLL_MS)}
  armPoll();
  // Re-queues failed work whose back-off has passed (a successful live read, own queued
  // command and the poll land here) and arms the timer for the rest.
@@ -535,7 +579,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   // needsWalk marker that forces the walk again after a reload; the walk's commit writes a bundle without it.
   const {cacheStale:_stale,changes:_changes,...stored}=bundle;
   if(!await repo.saveDataset(domain,{...stored,sourceVersion:null,needsWalk:true},revision,null,datasetBase(bundle),false))return 'skipped';
-  forceWalk.add(domain);if(!active.size&&!queue.length)beginCycle([domain]);else{cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain)}enqueue(domain);status();schedule();
+  forceWalk.add(domain);if(!active.size&&!queue.length)beginCycle([domain],'full');else{cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain)}enqueue(domain);status();schedule();
   return 'mismatch';
  }
  async function checkReceipts(){
@@ -546,7 +590,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  async function maybeReconcile(){
   // An idle moment while a pass runs (a healed domain finished its walk) is taken once that pass ends.
   if(reconciling){reconcileAgain=true;return}
-  if(reconcileUnsupported||!reconcileIdle())return;reconciling=true;reconcileAgain=false;
+  if(reconcileUnsupported||!reconcileIdle())return;reconciling=true;reconcileAgain=false;reconcileRunning=true;status();
   try{
    // UX-RECON-04: after a Full sync, the flagged areas only, whatever the slot or back-off; no second heal.
    // A local reason (not idle, a bundle still settling) tries again at the next idle moment; a server failure leaves
@@ -573,13 +617,16 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(complete){await repo.saveReconciledAt(Date.now());await repo.saveReconcileAttempt(null)}
    else if(failedPass)await repo.saveReconcileAttempt({at:Date.now(),slot,done:[...done]});
    else if(done.size)await repo.saveReconcileAttempt({at:attempt?.at??0,slot,done:[...done]});
-  }catch{/* The next idle moment tries again. */}finally{reconciling=false;if(reconcileAgain){reconcileAgain=false;setTimeout(()=>void maybeReconcile(),0)}}
+  }catch{/* The next idle moment tries again. */}finally{reconciling=false;reconcileRunning=false;if(!stopped)status();if(reconcileAgain){reconcileAgain=false;setTimeout(()=>void maybeReconcile(),0)}}
  }
  const offline=()=>{paused=true;for(const flight of active.values())flight.abort('offline');status()};
  const unsubscribe=subscribeActivity(()=>{status();if(activitySnapshot()===0)schedule()});
  window.addEventListener('mw-offline-queued',resume);window.addEventListener('online',online);window.addEventListener('offline',offline);window.addEventListener('focus',focused);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-read-invalidated',request);window.addEventListener('mw-offline-prepare',request);
+ // R133 troubleshooting: receipt counts of this preparation (read when the file is made).
+ const receiptCounts=()=>{const markers=[...refused.values()];return {downloaded:media.filter(path=>completed.has(path)).length,queued:queue.filter(isMediaTask).length+[...active.keys()].filter(isMediaTask).length,failed:[...failed].filter(isMediaTask).length,refused:media.filter(refusedNow).length,lastRefusalAt:markers.length?Math.max(...markers.map(marker=>marker.at)):null}};
+ diag.receipts=receiptCounts;
  void initialize();
- return()=>{stopped=true;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);for(const flight of active.values())flight.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
+ return()=>{stopped=true;closeCycle();if(diag.receipts===receiptCounts)diag.receipts=null;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);for(const flight of active.values())flight.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
 }
 
 export const routeDomain=(route:string)=>route.startsWith('/api/management')?'management':route.startsWith('/api/cash-')||route==='/api/preferences'?'cash':route.startsWith('/api/notifications')?'notifications':route.startsWith('/api/collection')||route.includes('/upcoming')||route.includes('/collection-receipts')?'collection':'records';

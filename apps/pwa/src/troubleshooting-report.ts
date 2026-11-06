@@ -1,5 +1,5 @@
 // Self-contained (no relative imports) so unit tests can load it directly.
-/** R072 troubleshooting payload (schemaVersion 1): pure helpers. The payload is only ever written encrypted (troubleshooting-envelope.ts). */
+/** R072 troubleshooting payload (schemaVersion 2 since R133; additive over 1): pure helpers. The payload is only ever written encrypted (troubleshooting-envelope.ts). */
 export type PendingRowInput={key:string;savedAt:number;value?:any;sync?:{state?:string;code?:string;outcome?:any;attempted?:boolean;deferred?:boolean;status?:number}};
 const hex=(bytes:ArrayBuffer)=>Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');
 export const sha256Hex=async(value:string|ArrayBuffer)=>hex(await globalThis.crypto.subtle.digest('SHA-256',typeof value==='string'?new TextEncoder().encode(value):value));
@@ -11,9 +11,13 @@ export function troubleshootingFileName(environment:string,date=new Date()){cons
 export const failedSave=(row:PendingRowInput)=>row.sync?.state==='blocked'||!!row.sync?.code;
 const operationOf=(value:any)=>typeof value?.command?.operation==='string'?value.command.operation:typeof value?.domain==='string'?value.domain:typeof value?.operation==='string'?value.operation:'unknown';
 const iso=(time:number)=>Number.isFinite(time)?new Date(time).toISOString():null;
-/** Receipt images and any other Blob become {type,size,sha256}; the bytes are never included. */
+/** Receipt images and any other Blob become {type,size,sha256}; the bytes are never included. R133 (R132b): a Blob that cannot
+ * be read (WebKit after its source record changed) becomes {type,size,sha256:null,readable:false,error} and its row stays. */
 export async function describeBlobs(value:unknown):Promise<unknown>{
- if(typeof Blob!=='undefined'&&value instanceof Blob)return {type:value.type,size:value.size,sha256:await sha256Hex(await value.arrayBuffer())};
+ if(typeof Blob!=='undefined'&&value instanceof Blob){
+  let bytes:ArrayBuffer;try{bytes=await value.arrayBuffer()}catch(error){return {type:value.type,size:value.size,sha256:null,readable:false,error:error instanceof Error&&error.name?error.name:'Error'}}
+  return {type:value.type,size:value.size,sha256:await sha256Hex(bytes)};
+ }
  if(value instanceof ArrayBuffer||ArrayBuffer.isView(value))return {type:'binary',size:value.byteLength};
  if(Array.isArray(value))return Promise.all(value.map(describeBlobs));
  if(value&&typeof value==='object'){const entries=await Promise.all(Object.entries(value).map(async([key,item])=>[key,await describeBlobs(item)] as const));return Object.fromEntries(entries)}
@@ -52,8 +56,9 @@ export function scrubTroubleshooting<T>(value:T,secrets:(string|null|undefined)[
  const visit=(item:unknown):unknown=>typeof item==='string'?text(item):Array.isArray(item)?item.map(visit):item&&typeof item==='object'?Object.fromEntries(Object.entries(item).map(([key,child])=>[text(key),sensitiveKey(key)&&child!==null&&child!==undefined?'[redacted]':visit(child)])):item;
  return visit(value) as T;
 }
+export const TROUBLESHOOTING_SCHEMA_VERSION=2;
 export type TroubleshootingSections={app:unknown;device:unknown;serviceWorker:unknown;session:unknown;events:unknown[];offline?:unknown;pending?:{failed:unknown[];queued:unknown[]};signedOutStorage?:unknown;notes?:string[]};
 /** The whole payload passes the scrubber last. */
 export function buildTroubleshootingPayload(sections:TroubleshootingSections,{createdAt=new Date(),secrets=[]}:{createdAt?:Date;secrets?:(string|null|undefined)[]}={}){
- return scrubTroubleshooting({schemaVersion:1,createdAt:createdAt.toISOString(),...sections},secrets);
+ return scrubTroubleshooting({schemaVersion:TROUBLESHOOTING_SCHEMA_VERSION,createdAt:createdAt.toISOString(),...sections},secrets);
 }

@@ -29,7 +29,7 @@ export async function sendOnlineOnly(access:CommandAccess,command:any,{check=fal
  const known=(response:Response,data:any):OnlineOnlyResult|null=>{
   if(data?.kind==='recorded'){if(['applied','posted'].includes(data.originalOutcome?.status))return {kind:'synced',data,status:response.status};
    if(data.originalOutcome?.status==='rejected')return {kind:'blocked',data,status:response.status,code:data.originalOutcome.code??'request_rejected'};}
-  if(response.status===409&&data?.code==='command_busy')return {kind:'busy',data,status:response.status,code:'command_busy'};
+  if(response.status===409&&data?.code==='command_busy'){attemptOutcome({requestId:command.requestId,kind:'busy',status:response.status,code:'command_busy'});return {kind:'busy',data,status:response.status,code:'command_busy'}}
   if([400,409,413,415,422].includes(response.status)||data?.kind==='conflict')return {kind:'blocked',data,status:response.status,code:data?.code??'request_requires_review'};
   return null;
  };
@@ -86,6 +86,9 @@ const outcome=(scopeName:string,requestId:string,result:SavedSyncResult)=>{
  const detail={requestId,...result};window.dispatchEvent(new CustomEvent('mw-offline-sync-outcome',{detail}));
  if(typeof BroadcastChannel!=='undefined'){const channel=new BroadcastChannel('mw-credit-sync:'+scopeName);channel.postMessage(detail);channel.close();}
 };
+/** R133 troubleshooting: a busy or queued result (nothing applied; the request is retried) for the client event log
+ * (client-events.ts 'sync-outcome'). It is not a sync outcome: forms keep waiting on mw-offline-sync-outcome. */
+const attemptOutcome=(detail:{requestId:string;kind:'busy'|'queued';status?:number;code:string})=>{try{window.dispatchEvent(new CustomEvent('mw-offline-sync-attempt',{detail}))}catch{/* The log is optional. */}};
 function allowedOrigin(access:CommandAccess){
  const repository=access.offline;if(!repository)return false;
  if(repository.environment==='synthetic'){try{return new URL(access.origin||location.origin).origin===location.origin}catch{return false}}
@@ -121,7 +124,7 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false,fre
   const preference=row.value?.command;
   if(result.kind==='synced'&&preference?.operation==='preference.update'&&['English','ไทย'].includes(preference.inputs?.language))await repository.saveSnapshot('preference-language',{charges:[],language:preference.inputs.language});
   await repository.settlePending(requestId,owner,sync);
-  if(result.kind!=='queued')outcome(repository.scopeName,requestId,result);
+  if(result.kind!=='queued')outcome(repository.scopeName,requestId,result);else if(result.code)attemptOutcome({requestId,kind:'queued',status:result.status,code:result.code});
   // R078 item 6 (UX-PAY-03): a payment the server posted is applied to the offline bundles at once; the
   // confirming check (mw-read-invalidated from settlePending) then replaces it with the server's rows.
   const command=row.value?.command??row.value;

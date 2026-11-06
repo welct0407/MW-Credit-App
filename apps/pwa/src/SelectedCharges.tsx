@@ -140,7 +140,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const money=(value:string)=>{if(typeof value!=='string'||!/^-?[0-9]+$/.test(value))return t('Unavailable','ไม่มีข้อมูล');const n=BigInt(value),abs=n<0n?-n:n;return (n<0n?'-':'')+'฿'+abs.toLocaleString(thai?'th-TH':'en-US')};
  async function call(path:string,init:RequestInit={}) {
   if(access.offlineOnly||!navigator.onLine)throw Error('Offline');
-  const done=beginRequest(),controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
+  const done=beginRequest(init.method&&init.method!=='GET'?'save':'read'),controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
   try {
    const token=await access.token();
    const response=await fetch(access.origin+path,{...init,signal:controller.signal,headers:{'X-MW-Wake-Deadline':String(deadline),...init.headers,Authorization:'Bearer '+token}});
@@ -353,7 +353,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  async function recognize(id:string,seq:number){
   const current=generation.current;recognitionTouched.current=new Set();setRecognition({receiptId:id,phase:'reading'});
   const stale=()=>seq!==uploadGeneration.current||current!==generation.current||!!command.current;
-  const done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),RECOGNITION_DEADLINE_MS);
+  const done=beginRequest('receipt'),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),RECOGNITION_DEADLINE_MS);
   try{
    if(access.offlineOnly||!navigator.onLine)throw Error('Offline');
    const token=await access.token();

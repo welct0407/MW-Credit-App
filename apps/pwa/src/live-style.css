@@ -558,6 +558,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 /* HDR-SYNC-02: text never exceeds two lines; Thai keeps the section name whole (.sync-section). */
 .live-sync-status { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-width: 88px; padding: 2px 4px; font-size: 13px; line-height: 1.15; text-align: right; font-variant-numeric: tabular-nums; }
 .live-sync-status.failed { font-weight: 700; padding: 2px 0; }
+/* R133 SYNC-ACT-UX-1: the activity beside a spinning refresh icon reads in the normal colour and weight (never stale or failed). */
+.live-sync-status.activity { color: inherit; font-weight: 400; }
 .sync-section { display: inline-block; }
 /* HDR-SYNC-PCT-01: the percentage stacks above the bar, both right-aligned. */
 .live-sync-status.syncing { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 3px; padding: 0 4px; }

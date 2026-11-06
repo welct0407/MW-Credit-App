@@ -3,7 +3,8 @@ import {releaseNumber} from './release';
 import {readRunningBuildVersion} from './build-version';
 import {clientEvents} from './client-events';
 import type {OwnerOfflineRepository} from './owner-offline';
-import type {OfflinePreparation} from './offline-dataset';
+import {datasetDiagnostics,type OfflinePreparation} from './offline-dataset';
+import {startupTimingSnapshot} from './startup-timing';
 import {accountHash,buildTroubleshootingPayload,describePendingRows,sha256Hex,signedOutPendingRow,troubleshootingFileName,type PendingRowInput} from './troubleshooting-report';
 import {encryptTroubleshooting,troubleshootingFileText,troubleshootingSupported} from './troubleshooting-envelope';
 /** R072 troubleshooting: browser reads for the encrypted file. Each section fails on its own; nothing here writes. */
@@ -12,6 +13,7 @@ export const troubleshootingAvailable=()=>troubleshootingSupported(__TROUBLESHOO
 const domains=['records','collection','cash','management','notifications'];
 const minutes=(time:number|null|undefined)=>typeof time==='number'?Math.round((Date.now()-time)/60000):null;
 const megabytes=(bytes:number|undefined)=>typeof bytes==='number'?Math.round(bytes/104857.6)/10:null;
+const isoTime=(time:number|null|undefined)=>typeof time==='number'&&Number.isFinite(time)?new Date(time).toISOString():null;
 async function section<T>(read:()=>Promise<T>,timeoutMs=4000):Promise<T|{unavailable:string}>{
  let timer:ReturnType<typeof setTimeout>|undefined;
  try{return await Promise.race([read(),new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(Error('timed out')),timeoutMs)})])}
@@ -20,7 +22,9 @@ async function section<T>(read:()=>Promise<T>,timeoutMs=4000):Promise<T|{unavail
 }
 async function device(){
  const storage=navigator.storage,estimate=await storage?.estimate?.().catch(()=>null),connection=(navigator as Navigator&{connection?:{effectiveType?:string}}).connection;
- return {userAgent:navigator.userAgent,platform:navigator.platform,language:navigator.language,viewport:{width:innerWidth,height:innerHeight},devicePixelRatio,displayMode:['standalone','minimal-ui','fullscreen','browser'].find(mode=>matchMedia('(display-mode: '+mode+')').matches)??'unknown',timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,online:navigator.onLine,connection:connection?.effectiveType??null,storage:estimate?{usageMB:megabytes(estimate.usage),quotaMB:megabytes(estimate.quota)}:null,persisted:await storage?.persisted?.().catch(()=>null)??null};
+ // R133: memory and cores (slow startup), and whether the browser discarded this tab before it was shown again.
+ const hints={deviceMemory:(navigator as Navigator&{deviceMemory?:number}).deviceMemory??null,hardwareConcurrency:navigator.hardwareConcurrency??null,visibilityState:document.visibilityState,wasDiscarded:(document as Document&{wasDiscarded?:boolean}).wasDiscarded??null};
+ return {...hints,userAgent:navigator.userAgent,platform:navigator.platform,language:navigator.language,viewport:{width:innerWidth,height:innerHeight},devicePixelRatio,displayMode:['standalone','minimal-ui','fullscreen','browser'].find(mode=>matchMedia('(display-mode: '+mode+')').matches)??'unknown',timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,online:navigator.onLine,connection:connection?.effectiveType??null,storage:estimate?{usageMB:megabytes(estimate.usage),quotaMB:megabytes(estimate.quota)}:null,persisted:await storage?.persisted?.().catch(()=>null)??null};
 }
 async function serviceWorker(){
  if(!('serviceWorker' in navigator))return {supported:false};
@@ -49,15 +53,29 @@ async function signedOutStorage(names:string[]){
  return {supported:true,owners};
 }
 async function offline(repository:OwnerOfflineRepository,preparation:OfflinePreparation|null){
- const counts=await repository.diagnosticCounts();
- return {preparation:preparation&&{state:preparation.state,completed:preparation.completed,total:preparation.total,updating:preparation.updating,updateFailed:preparation.updateFailed,failedDomains:preparation.failedDomains?preparation.failedDomains.split(','):[],lastCheckedAgeMinutes:minutes(preparation.lastChecked)},
-  domains:domains.map(domain=>({domain,complete:counts.datasets.includes(domain),partial:counts.progress.includes(domain)})),leaseAgeMinutes:minutes(counts.leaseVerifiedAt),kinds:counts.kinds,
+ const counts=await repository.diagnosticCounts(),diagnostics=datasetDiagnostics(repository.scopeName);
+ // R133 (R130 records 503): each domain's last request, status and error code; the recent check cycles; the receipt
+ // counts and a read of a few stored receipts (R132 unreadable blob).
+ const domainRequests=(domain:string)=>{const value=diagnostics.domains[domain];return {lastAttemptAt:isoTime(value?.lastAttemptAt),lastSuccessAt:isoTime(value?.lastSuccessAt),lastFailureAt:isoTime(value?.lastFailureAt),lastStatus:value?.lastStatus??null,lastCode:value?.lastCode??null,lastDurationMs:value?.lastDurationMs??null,attempts:value?.attempts??0,failures:value?.failures??0}};
+ const receipts=diagnostics.receipts;
+ return {preparation:preparation&&{state:preparation.state,completed:preparation.completed,total:preparation.total,updating:preparation.updating,updateFailed:preparation.updateFailed,failedDomains:preparation.failedDomains?preparation.failedDomains.split(','):[],lastCheckedAgeMinutes:minutes(preparation.lastChecked),activity:preparation.activity??''},
+  domains:domains.map(domain=>({domain,complete:counts.datasets.includes(domain),partial:counts.progress.includes(domain),...domainRequests(domain)})),leaseAgeMinutes:minutes(counts.leaseVerifiedAt),kinds:counts.kinds,
+  recentCycles:diagnostics.recentCycles.map(cycle=>({startedAt:isoTime(cycle.startedAt),trigger:cycle.trigger,durationMs:cycle.durationMs,failedDomains:cycle.failedDomains})),
+  receiptCounts:receipts&&{downloaded:receipts.downloaded,queued:receipts.queued,failed:receipts.failed,refused:receipts.refused,lastRefusalAt:isoTime(receipts.lastRefusalAt)},
+  receiptSample:await section(()=>repository.sampleDatasetMedia(3)),
   drafts:counts.kinds.draft??0,snapshots:counts.kinds.snapshot??0,receipts:counts.kinds['dataset-media']??0,pending:counts.kinds.pending??0};
+}
+/** R133: the build the server offers now, next to the running one (an app left on an old build). */
+async function latestBuild(){
+ const response=await fetch('/build-version.json',{cache:'no-store',credentials:'omit'});if(!response.ok)return {unavailable:'status '+response.status};
+ const marker=await response.json();return {version:typeof marker?.version==='string'?marker.version:null,release:typeof marker?.release==='string'?marker.release:null};
 }
 /** Reads everything for the payload, then scrubs it (troubleshooting-report.ts). */
 export async function collectTroubleshooting(context:TroubleshootingContext,createdAt=new Date()){
  const {pwa,repository,uid}=context,signedIn=!!uid,names:string[]=[];
- const app={release:releaseNumber,commit:__SOURCE_COMMIT__,build:await readRunningBuildVersion().catch(()=>null),environment:applicationEnvironment,pwa:{startup:pwa.startup,standalone:pwa.standalone,waiting:pwa.waiting,reloadAvailable:pwa.reloadAvailable,unavailable:pwa.unavailable,canonical:pwa.canonical}};
+ const build=await readRunningBuildVersion().catch(()=>null),latest=await section(latestBuild,3000);
+ const app={release:releaseNumber,commit:__SOURCE_COMMIT__,build,environment:applicationEnvironment,pwa:{startup:pwa.startup,standalone:pwa.standalone,waiting:pwa.waiting,reloadAvailable:pwa.reloadAvailable,unavailable:pwa.unavailable,canonical:pwa.canonical},
+  latestBuild:latest,buildMismatch:build&&'version' in latest&&latest.version?build!==latest.version:null,startup:startupTimingSnapshot()};
  const codes={status:context.status,rootError:context.rootError?{code:context.rootError.code??null,reference:context.rootError.reference??null}:null,signInError:context.signInErrorCode};
  const pending=signedIn&&repository?await section(async()=>describePendingRows(await repository.list('pending'))):undefined;
  const failedSaves=pending&&'failed' in pending?pending.failed.length:0;

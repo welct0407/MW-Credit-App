@@ -239,6 +239,15 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     for(const key of keys.result as string[]){const kind=String(key).split(':')[0];kinds[kind]=(kinds[kind]??0)+1;if(kind==='dataset')datasets.push(String(key).slice(8));if(kind==='dataset-progress')progress.push(String(key).slice(17))}
     const lease=store.get('lease:owner');lease.onsuccess=()=>{const verifiedAt=lease.result?.value?.verifiedAt;done({kinds,datasets:datasets.sort(),progress:progress.sort(),leaseVerifiedAt:typeof verifiedAt==='number'?verifiedAt:null})}}});
   },
+  /** R133 troubleshooting (R132 WebKit unreadable blob): reads the bytes of up to `limit` stored receipts, read-only, and
+   * counts those that cannot be read (error names only; no key, type or bytes leave this method). */
+  async sampleDatasetMedia(limit=3){
+   const rows=await transaction<{value?:unknown}[]>('readonly',(store,done)=>{const request=store.getAll(kindRange('dataset-media'),Math.max(1,Math.floor(limit)));request.onsuccess=()=>done(request.result)});
+   let unreadable=0;const errors:string[]=[];
+   for(const row of rows){const blob=row?.value;if(!(blob instanceof Blob)){unreadable++;errors.push('NotABlob');continue}
+    try{await blob.arrayBuffer()}catch(error){unreadable++;errors.push(error instanceof Error&&error.name?error.name:'Error')}}
+   return {checked:rows.length,unreadable,errors};
+  },
   async saveViewedSnapshot(value:ViewedSnapshot){validateViewedSnapshot(value);const lease=await read<{verifiedAt:number}>('lease','owner');if(!lease||Date.now()-lease.value.verifiedAt>=expiry)throw Error('Offline owner lease expired');await save('snapshot',value.domain+':'+value.recordId,value,Date.parse(value.asOf))},
   async saveSnapshot(id:string,value:{charges:unknown[];[key:string]:unknown}){if(value.charges.length>100)throw Error('Offline snapshot exceeds 100 charges');await save('snapshot',id,value)},
   snapshot:<T,>(id:string)=>read<T>('snapshot',id),

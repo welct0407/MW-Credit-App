@@ -39,12 +39,12 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags,rowDelta=null,rejectInline=false,tamperInline=false}={}){
+function harness({failing=null,walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags,rowDelta=null,rejectInline=false,tamperInline=false}={}){
  const navigator={onLine:true};
  const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
  const repo=repository(Object.fromEntries(all.map(domain=>[domain,corrupt.includes(domain)?{...complete(domain),data:{items:[{id:'old',corrupted:true}]}}:cursors&&domain==='records'?{...complete(domain),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old'},{id:'gone'}],paymentMonths:[{borrowerId:'b1',month:'2026-10'},{borrowerId:'b2',month:'2026-10'}]}}:patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:stored[domain]??complete(domain)])));
- const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null});
+ const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null,clone:()=>reply(status,json)});
  async function fetch(url,init){
   const target=new URL(url),domain=target.searchParams.get('domain')??'notifications',body=JSON.parse(init.body??'{}');
   requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,since:body.since??null,dates:body.dates===true,rowDeltas:body.rowDeltas===true,inlineValues:body.inlineValues===true,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
@@ -69,6 +69,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
    }
    if(v4&&body.since&&domain==='records')return reply(200,{...encodeDeltaChunk({domain,generation:'v4:20',startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),delta:true,patches:v4.patches,complete:true,nextCursor:null,progress:{completed:1,total:1},changes:{seq:'20',xmin:'600',businessDate:stamp.businessDate}},body.need??[]),schemaVersion:4});
    const step=body.cursor?Number(body.cursor):0;
+   if(failing&&failing.domain===domain&&failing.times>0){failing.times--;return failing.status===0?(()=>{throw TypeError('Failed to fetch')})():reply(failing.status,failing.code?{code:failing.code,message:'SYNTHETIC SERVER TEXT'}:{})}
    if(failOnce&&failOnce.domain===domain&&failOnce.step===step&&!failOnce.done){failOnce.done=true;return reply(503,{code:'temporary'})}
    const versions=body.versions&&!body.cursor?{versions:Object.fromEntries(data.map(name=>[name,walks[name]?changed(name):version(name)]))}:{};
    if(!walks[domain]&&body.sourceVersion===version(domain))return reply(200,{schemaVersion:3,domain,...stamp,sourceVersion:version(domain),unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...versions});
@@ -88,7 +89,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
  if(reconciledAt!==undefined)repo.rows.set('meta:reconciled-at',reconciledAt);
  if(attempt!==undefined)repo.rows.set('meta:reconcile-tried-at',attempt);
  if(flags!==undefined)repo.rows.set('meta:reconcile-flags',flags);
- return {navigator,advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
+ return {navigator,advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,diagnostics:()=>sandbox.exports.datasetDiagnostics(repo.scopeName),subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
 }
 const settled=async h=>{await until(()=>h.state().state==='ready'&&!h.state().domainsPending&&h.state().lastChecked!==null)};
 
@@ -397,4 +398,58 @@ test('a server without inlineValues is asked again at level 5 (row deltas withou
   const level5=collection.filter(request=>!request.inlineValues);assert.ok(level5.length>=1&&level5.every(request=>request.rowDeltas),'level 5 keeps row deltas');
   assert.ok(level5.some(request=>request.need>0),'values then come by need');
  }finally{h.stop()}
+});
+
+// R133 troubleshooting (R130 records 503): each data domain's last request, one client event per distinct failure until the
+// domain succeeds, the recent check cycles and what preparation is doing (troubleshooting only).
+test('a 503 command_unavailable is recorded with its status, code and duration, and logged once across the back-off',async()=>{
+ const failing={domain:'records',status:503,code:'command_unavailable',times:Infinity};const h=harness({failing});try{
+  await until(()=>h.state().failedDomains==='records'&&!h.state().activity.includes('records'));
+  let records=h.diagnostics().domains.records;
+  assert.equal(records.lastStatus,503);assert.equal(records.lastCode,'command_unavailable');assert.ok(records.failures>=1&&records.attempts>=records.failures);
+  assert.equal(typeof records.lastFailureAt,'number');assert.equal(records.lastSuccessAt,null);assert.equal(typeof records.lastDurationMs,'number');
+  const failedEvents=()=>h.clientEvents.filter(event=>event.kind==='dataset-failed');
+  assert.equal(failedEvents().length,1);assert.equal(failedEvents()[0].code,'records');assert.match(failedEvents()[0].message,/^503 command_unavailable \d+ms$/);
+  assert.equal(JSON.stringify(h.clientEvents).includes('SYNTHETIC SERVER TEXT'),false,'no response text is kept');
+  // Retries (focus resets the back-off) fail the same way: still one event.
+  for(let attempt=0;attempt<2;attempt++){const before=h.diagnostics().domains.records.failures;h.window.dispatchEvent(new Event('focus'));await until(()=>h.diagnostics().domains.records.failures>before&&!h.state().activity.includes('records'))}
+  assert.equal(failedEvents().length,1,'the same failure is not logged again');
+  // Another status or code is a new event.
+  Object.assign(failing,{status:500,code:'internal'});h.window.dispatchEvent(new Event('focus'));
+  await until(()=>failedEvents().length===2);assert.match(failedEvents()[1].message,/^500 internal \d+ms$/);
+  // A success clears it: the status is the answer's, the code null, and the next failure is logged again.
+  failing.times=0;h.window.dispatchEvent(new Event('focus'));await settled(h);
+  records=h.diagnostics().domains.records;assert.equal(records.lastStatus,200);assert.equal(records.lastCode,null);assert.equal(typeof records.lastSuccessAt,'number');
+  Object.assign(failing,{status:500,code:'internal',times:Infinity});h.window.dispatchEvent(new Event('focus'));
+  await until(()=>failedEvents().length===3);
+ }finally{h.stop()}
+});
+test('a lost connection is status 0 network; the other domains keep their own records',async()=>{
+ const h=harness({failing:{domain:'cash',status:0,times:Infinity},walks:{cash:1}});try{
+  await until(()=>h.state().failedDomains==='cash'&&!h.state().activity.includes('cash'));
+  const {domains}=h.diagnostics();assert.equal(domains.cash.lastStatus,0);assert.equal(domains.cash.lastCode,'network');
+  assert.equal(domains.records.lastStatus,200);assert.equal(domains.records.failures,0);
+  assert.match(h.clientEvents.find(event=>event.kind==='dataset-failed').message,/^0 network \d+ms$/);
+ }finally{h.stop()}
+});
+test('cycles record their trigger and duration; the activity names the domains in flight and ends empty',async()=>{
+ const h=harness({walks:{records:3}});const seen=[];const stop=h.subscribe(()=>seen.push(h.state().activity));try{
+  await settled(h);
+  assert.ok(seen.some(activity=>activity.split(',').includes('records')),'records was in flight: '+JSON.stringify(seen));
+  assert.ok(seen.every(activity=>/^[a-z,]*$/.test(activity)));assert.equal(h.state().activity,'');
+  let cycles=h.diagnostics().recentCycles;assert.equal(cycles.length,1);assert.equal(cycles[0].trigger,'first');assert.equal(typeof cycles[0].durationMs,'number');assert.deepEqual([...cycles[0].failedDomains],[]);
+  h.window.dispatchEvent(new Event('focus'));await until(()=>h.diagnostics().recentCycles.length===2&&h.diagnostics().recentCycles[1].durationMs!==null);
+  h.window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true}}));await until(()=>h.diagnostics().recentCycles.length===3&&h.diagnostics().recentCycles[2].durationMs!==null);
+  cycles=h.diagnostics().recentCycles;assert.deepEqual([...cycles.map(cycle=>cycle.trigger)],['first','focus','tap']);
+  for(let i=0;i<12;i++){h.window.dispatchEvent(new Event('focus'));await until(()=>h.diagnostics().recentCycles.at(-1).durationMs!==null&&!h.state().domainsPending)}
+  assert.equal(h.diagnostics().recentCycles.length,10,'at most 10 cycles are kept');
+  const receipts=h.diagnostics().receipts;assert.deepEqual({...receipts},{downloaded:0,queued:0,failed:0,refused:0,lastRefusalAt:null});
+ }finally{stop();h.stop()}
+});
+test('an unchanged status keeps its snapshot and wakes no listener (activity included)',async()=>{
+ const h=harness();let calls=0;const stop=h.subscribe(()=>{calls++});try{
+  await settled(h);const snapshot=h.state(),before=calls;
+  h.window.dispatchEvent(new Event('mw-offline-queued'));await new Promise(resolve=>setTimeout(resolve,300));
+  assert.equal(calls,before);assert.equal(h.state(),snapshot);assert.equal(snapshot.activity,'');
+ }finally{stop();h.stop()}
 });
