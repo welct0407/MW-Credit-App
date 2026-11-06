@@ -12,6 +12,7 @@ Owner requests of 6 November 2026: make Playwright WebKit with an iPhone profile
   - full-page screenshots default to CSS pixels: at 3× a long page passes WebKit's 32767-pixel limit.
   - helpers `touchSession` (CDP touch in Chromium, dispatched touch events in WebKit, which has no CDP), `grantClipboard` (WebKit has no `clipboard-write` permission) and `emitSyntheticUser` (waits until the synthetic auth module is imported before signing in; WebKit can import it after the load event).
 - Spec adaptations: `payment-command` and `upcoming-read` use `touchSession`; `about-independent` uses `grantClipboard`; the receipt downscale case in `payment-command` reads the upload body from a page-side copy when WebKit does not report Blob request bodies; `w5-ux-independent` stands in a `Notification` object, which iPhone WebKit exposes only to a Home Screen app; six auth-harness specs use `emitSyntheticUser`.
+- `chat`, `phase5-final-ui-independent`, `startup-back-independent` and `startup-generations-independent` launch Chromium themselves (the live-dev static fixture relies on Chromium's `--host-resolver-rules`), so they skip in the WebKit project instead of repeating a Chromium run there; the WebKit CI job has no Chromium. Locally they had appeared to pass in WebKit only because Chromium was installed.
 - Two Chromium races that the first CI run on this branch exposed: `phase5-final-ui-independent` R102 cases register their preference routes before the first load (the start-up read could return the default account), and `chat.spec.ts` R122 waits until the held translation request reaches the route before releasing it.
 - `.claude/agents/echo.md`, `project/Documents/Rules/PWA_Orchestration.md`, `docs/Development.md`: iPhone views are reviewed in WebKit on the iPhone 17 Pro Max profile; CI description.
 - No application code changed. Unlike the first local run suggested, none of the 37 initial WebKit failures was an app defect: the iPhone-width receiving layout case passes once the harness issues are handled.
@@ -22,6 +23,7 @@ Owner requests of 6 November 2026: make Playwright WebKit with an iPhone profile
 | First full WebKit run, before the fixture (local, WebKit 2359) | 369 passed, 37 failed, 13 skipped |
 | Development checks run 42172924829 (first push) | WebKit shards red as expected; Chromium shard 1: R102 race (fails twice) and R122 flaky, both fixed here |
 | Full WebKit run after the fixes (local, 3 workers) | 405 passed, 1 failed (receipt downscale upload poll timed out under load; poll raised to 15 s, then 4 of 4 repeats pass), 13 skipped (Chromium-only cases) |
+| Development checks run 42179121251 (second push) | WebKit shard w3: the self-launching Chromium specs found no Chromium; now skipped in WebKit |
 | Changed specs in `desktop-chromium` and `mobile-chromium` (about, payment-command, upcoming-read, w5-ux, pending-flash, data-check, persistence, live-signout-blocked, live-expired-session, full-sync, chat R122, phase5 R102) | 90 passed, 2 skipped |
 | `node --test tests/unit/ci-reuse-evidence.test.mjs` and the CI/config unit tests | Pass |
 | `npm run typecheck`, `npm run lint`, `npm run check:docs` | Pass |

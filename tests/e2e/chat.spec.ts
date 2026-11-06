@@ -2,6 +2,8 @@ import {test,expect,chromium,devices,type BrowserContext,type Page} from './fixt
 import {spawnSync} from 'node:child_process';import {mkdtempSync,rmSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';
 import {startCanonicalFixture,fixtureLaunchArgs,assertServed} from './fixtures/canonical-server';
 import {chooseLanguage as chooseLiveLanguage} from './live-controls';
+// These specs launch Chromium themselves (the live-dev fixture needs --host-resolver-rules), so the WebKit project would only repeat a Chromium run.
+test.skip(({browserName})=>browserName==='webkit','Launches Chromium directly; covered by the Chromium projects');
 
 // R090 in-app chat (design §6, §10): the live-dev bundle with a stubbed chat origin. Reads, thread writes and outcome
 // polls go through context.route; the streamed turn POST is served in the page by a fetch shim the test feeds event by
