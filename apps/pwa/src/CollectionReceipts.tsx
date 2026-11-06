@@ -37,7 +37,7 @@ export function CollectionReceipts({access,borrowerId,businessDate,chargeIds,tha
  if(!error&&!items.length)return null;
  return <section aria-label={t('Collection receipts','หลักฐานรับชำระงานติดตาม')}><h3>{t('Receipts','หลักฐานรับชำระ')}</h3>
  <div className="collection-receipt-gallery" onScroll={event=>{const node=event.currentTarget;if(next&&!busy&&!error&&node.scrollWidth-node.clientWidth-node.scrollLeft<80)void load(next)}}>
- {items.flatMap(row=>(['manual','agent'] as const).filter(source=>source==='manual'?row.manualReceiptPresent:row.agentReceiptPresent).map(source=><button type="button" className="collection-receipt-card" key={row.id+':'+source} aria-label={source==='manual'?t('Open uploaded receipt','เปิดหลักฐานที่อัปโหลด'):t('Open agent receipt','เปิดหลักฐานจากระบบ')} onClick={()=>onOpen(row.id)}><ReceiptThumbnail access={access} row={row} source={source} thai={thai}/></button>))}
+ {items.flatMap(row=>(['manual','agent'] as const).filter(source=>source==='manual'?row.manualReceiptPresent:row.agentReceiptPresent).map(source=><button type="button" className="collection-receipt-card" key={row.id+':'+source} aria-label={source==='manual'?t('Open uploaded receipt','เปิดหลักฐานที่อัปโหลด'):t('Open agent receipt','เปิดหลักฐานจากระบบ')} data-record-id={row.id} onClick={()=>onOpen(row.id)}><ReceiptThumbnail access={access} row={row} source={source} thai={thai}/></button>))}
  </div>
  {error?<p role="alert">{t('Receipts unavailable.','ไม่สามารถโหลดหลักฐาน')}<button type="button" onClick={()=>void load(retryCursor.current)}>{t('Retry receipts','ลองโหลดหลักฐานอีกครั้ง')}</button></p>:next&&<button type="button" disabled={busy} onClick={()=>void load(next)}>{t('Load more receipts','โหลดหลักฐานเพิ่มเติม')}</button>}
  </section>;
