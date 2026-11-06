@@ -4,15 +4,17 @@ import {useEffect,useRef} from 'react';
  * R131 (owner, 6 November 2026): after opening an item from a list, Back returns to the same place in that list.
  * leave() runs in the open handler, before the state change: it records the window position, every scrolling ancestor of
  * the opened control (by its first class token and its place among matches in <main>, so a remounted list is found again),
- * the row's data-record-id and where the row sat on screen. restore() runs in the Back handler, after the state change: for
- * about half a second it re-applies those positions each frame (the list may still be loading or its header may still be
- * growing), keeps the opened row where it was on screen once it exists, then focuses it without scrolling. Touch, wheel or a
- * key inside <main> stops it at once. A list that stayed visible and was scrolled meanwhile is left where the user put it.
+ * the row's data-record-id and where the row sat on screen, then starts the opened page at its top (unless top:false).
+ * restore() runs in the Back handler, after the state change: for about half a second it re-applies those positions each
+ * frame (the list may still be loading or its header may still be growing), keeps the opened row where it was on screen once
+ * it exists, then focuses it without scrolling. A press, touch, wheel or key inside <main> stops it at once. A list that
+ * stayed visible and was scrolled meanwhile is left where the user put it.
  * It never throws: a missing row, container or API only means less is restored.
  */
 export const RESTORE_WINDOW_MS=500;
 export type LeaveOptions={
- /** The opened detail reuses the list's own page or section: start it at the top (that section and the window). */
+ /** Start the opened page at its top (the scrolling sections around the opened control, and the window). The default; false
+  * where the list stays on screen beside what it opened, or the page places the opened item itself. */
  top?:boolean;
  /** Other scrolling elements to keep (for example a sibling list panel that unmounts with the page). */
  keep?:(Element|null|undefined)[];
@@ -31,7 +33,11 @@ const byClass=(root:Element,key:string)=>Array.from(root.querySelectorAll('[clas
 const byRecord=(root:Element,key:string)=>root.querySelector('[data-record-id='+quote(key)+']');
 const recordKey=(node:Element|null)=>node?.closest('[data-record-id]')?.getAttribute('data-record-id')??null;
 const now=()=>performance.now();
-const INTERRUPTS=['touchstart','wheel','keydown'] as const;
+// The two-argument form: an options object with behavior 'instant' throws on Safari versions that predate it, and nothing here
+// sets a smooth scroll-behavior, so this jump is immediate everywhere.
+const windowTo=(top:number)=>window.scrollTo(0,top);
+// Any press, wheel or key inside <main> is the user taking over (a pager tap, a scroll, another row): restoring stops.
+const INTERRUPTS=['pointerdown','touchstart','wheel','keydown'] as const;
 const MOVES=['pointerdown','touchstart','wheel','keydown'] as const;
 
 export function createListReturn():ListReturn{
@@ -39,9 +45,11 @@ export function createListReturn():ListReturn{
  const stopRestore=()=>{if(frame)cancelAnimationFrame(frame);frame=0;stopRun?.();stopRun=null};
  const drop=()=>{saved?.release();saved=null};
  function leave(target?:EventTarget|string|null,options:LeaveOptions={}){
+  let top=false;
   try{
    stopRestore();drop();
    const root=scope();if(!root)return;
+   top=options.top!==false;
    let opened:Element|null=null;
    if(typeof target==='string')opened=byRecord(root,target);else if(isElement(target))opened=target;
    if(!opened&&isElement(document.activeElement)&&root.contains(document.activeElement)&&document.activeElement!==root)opened=document.activeElement;
@@ -54,10 +62,11 @@ export function createListReturn():ListReturn{
    const rowTop=row?row.getBoundingClientRect().top:null;
    // A scroll the user makes in a list that stays on screen (the desktop board beside its detail) wins over the saved one.
    const marks:[Element,()=>void][]=[];
-   for(const container of containers){if(options.top&&ancestors.includes(container.node))continue;const mark=()=>{container.moved=true};marks.push([container.node,mark]);for(const type of MOVES)container.node.addEventListener(type,mark,{passive:true})}
+   for(const container of containers){if(top&&ancestors.includes(container.node))continue;const mark=()=>{container.moved=true};marks.push([container.node,mark]);for(const type of MOVES)container.node.addEventListener(type,mark,{passive:true})}
    saved={pageY:window.scrollY,containers,focusKey,opened,rowTop,release:()=>{for(const [node,mark] of marks)for(const type of MOVES)node.removeEventListener(type,mark)}};
-   if(options.top){for(const node of ancestors)node.scrollTop=0;if(window.scrollY!==0)window.scrollTo({top:0,behavior:'instant'})}
-  }catch{drop()}
+  }catch{drop();return}
+  // Starting the opened page at its top never costs the saved position.
+  if(top)try{for(const container of saved?.containers??[])if(container.node.contains(saved!.opened))container.node.scrollTop=0;if(window.scrollY!==0)windowTo(0)}catch{}
  }
  function restore(){
   const snapshot=saved;saved=null;stopRestore();if(!snapshot)return;snapshot.release();
@@ -73,11 +82,11 @@ export function createListReturn():ListReturn{
   const apply=(row:HTMLElement|null)=>{
    const anchor=row&&snapshot.rowTop!==null&&row.getClientRects().length>0?rowScroller(row):undefined;
    for(const container of snapshot.containers){if(held(container))continue;const node=resolve(container);if(node&&node!==anchor&&node.scrollTop!==container.top)node.scrollTop=container.top}
-   if(anchor!==null&&window.scrollY!==snapshot.pageY)window.scrollTo({top:snapshot.pageY,behavior:'instant'});
+   if(anchor!==null&&window.scrollY!==snapshot.pageY)windowTo(snapshot.pageY);
    if(row&&snapshot.rowTop!==null&&anchor!==undefined){
     if(anchor&&snapshot.containers.some(container=>container.node===anchor&&held(container)))return;
     const delta=row.getBoundingClientRect().top-snapshot.rowTop;
-    if(Math.abs(delta)>1){if(anchor)anchor.scrollTop+=delta;else window.scrollTo({top:window.scrollY+delta,behavior:'instant'})}
+    if(Math.abs(delta)>1){if(anchor)anchor.scrollTop+=delta;else windowTo(window.scrollY+delta)}
    }
   };
   const focusable=(row:HTMLElement|null)=>!!row&&!(row as HTMLButtonElement).disabled&&row.getClientRects().length>0;

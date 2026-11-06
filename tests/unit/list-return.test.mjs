@@ -38,7 +38,7 @@ class El extends EventTarget{
 }
 const doc={root:new El('html'),body:null,activeElement:null,querySelector(selector){return this.root.querySelector(selector)}};
 doc.body=new El('body');doc.root.append(doc.body);
-const win={scrollY:0,innerHeight:800,maxScroll:5000,scrollTo({top}){this.scrollY=Math.max(0,Math.min(top,this.maxScroll))}};
+const win={scrollY:0,innerHeight:800,maxScroll:5000,scrollTo(x,y){if(typeof x==='object')throw TypeError('the app uses scrollTo(x, y)');this.scrollY=Math.max(0,Math.min(y,this.maxScroll))}};
 let frames=[],clock=0,nextFrame=1;
 Object.assign(globalThis,{document:doc,window:win,getComputedStyle:node=>({overflowY:node.scroll?'auto':'visible'}),performance:{now:()=>clock},
  requestAnimationFrame:callback=>{const id=nextFrame++;frames.push({id,callback});return id},cancelAnimationFrame:id=>{frames=frames.filter(frame=>frame.id!==id)}});
@@ -51,10 +51,10 @@ const list=(options,count=60)=>new El('section',{cls:'list-panel',...options}).a
 
 test('phone: the window returns to the opened row and the row takes focus',()=>{
  const main=page();win.innerHeight=800;const section=list({});main.append(section);
- win.scrollTo({top:1200});const opened=section.children[30];const before=opened.getBoundingClientRect().top;
+ win.scrollTo(0,1200);const opened=section.children[30];const before=opened.getBoundingClientRect().top;
  const position=createListReturn();position.leave(opened);
  // The detail replaces the list and starts at the top.
- section.remove();main.append(new El('article',{cls:'borrower-record',h:300}));win.scrollTo({top:0});
+ section.remove();main.append(new El('article',{cls:'borrower-record',h:300}));win.scrollTo(0,0);
  // Back: the list mounts again (new elements, same records) and restore runs after the state change.
  main.children.slice().forEach(node=>{node.remove()});const again=list({});main.append(again);position.restore();
  assert.equal(win.scrollY,0,'nothing moves before the next frame');
@@ -83,7 +83,7 @@ test('top: the section that also hosts the detail starts at the top, and Back re
 });
 
 test('top on a phone: the opened detail starts at the top of the window, and Back returns to the row',()=>{
- const main=page();const section=list({cls:'borrower-record'},45);main.append(section);win.scrollTo({top:901});
+ const main=page();const section=list({cls:'borrower-record'},45);main.append(section);win.scrollTo(0,901);
  const opened=section.children[30],before=opened.getBoundingClientRect().top;
  const position=createListReturn();position.leave(opened,{top:true});
  assert.equal(win.scrollY,0,'the detail starts at the top');
@@ -92,17 +92,24 @@ test('top on a phone: the opened detail starts at the top of the window, and Bac
  assert.equal(win.scrollY,901);assert.equal(section.children[30].getBoundingClientRect().top,before);assert.equal(doc.activeElement,section.children[30]);
 });
 
+test('opening starts at the top by default; top:false leaves a list that stays on screen where it is',()=>{
+ const main=page();const panel=list({scroll:true,height:600});main.append(panel);panel.scrollTop=800;win.scrollTo(0,300);
+ const position=createListReturn();position.leave(panel.children[20]);assert.equal(panel.scrollTop,0);assert.equal(win.scrollY,0);
+ position.restore();runFrames();assert.equal(panel.scrollTop,800);assert.equal(win.scrollY,300);
+ position.leave(panel.children[20],{top:false});assert.equal(panel.scrollTop,800);assert.equal(win.scrollY,300);position.cancel();
+});
+
 test('a list that loads after Back is waited for, then focused; positions are re-applied while it grows',()=>{
- const main=page();const section=list({});main.append(section);win.scrollTo({top:800});
+ const main=page();const section=list({});main.append(section);win.scrollTo(0,800);
  const position=createListReturn();position.leave('row-20');
- section.remove();win.scrollTo({top:0});const empty=new El('section',{cls:'list-panel'});main.append(empty);position.restore();
+ section.remove();win.scrollTo(0,0);const empty=new El('section',{cls:'list-panel'});main.append(empty);position.restore();
  runFrames(3);assert.equal(doc.activeElement,null);
  empty.append(...rows(60));runFrames();
  assert.equal(win.scrollY,800);assert.equal(doc.activeElement,empty.children[20]);
 });
 
 test('a disabled row (the list still busy) is focused once it is enabled',()=>{
- const main=page();const section=list({});main.append(section);win.scrollTo({top:500});
+ const main=page();const section=list({});main.append(section);win.scrollTo(0,500);
  const position=createListReturn();position.leave(section.children[12]);
  section.remove();const again=list({});again.children.forEach(row=>{row.disabled=true});main.append(again);position.restore();
  runFrames(4);assert.equal(doc.activeElement,null);
@@ -110,16 +117,24 @@ test('a disabled row (the list still busy) is focused once it is enabled',()=>{
 });
 
 test('touch, wheel or a key inside main stops the restore',()=>{
- const main=page();const section=list({});main.append(section);win.scrollTo({top:900});
+ const main=page();const section=list({});main.append(section);win.scrollTo(0,900);
  const position=createListReturn();position.leave(section.children[20]);
  section.remove();main.append(new El('section',{cls:'list-panel'}));position.restore();runFrames(2);
- main.dispatchEvent(new Event('touchstart'));win.scrollTo({top:50});main.children[0].append(...rows(60));runFrames();
+ main.dispatchEvent(new Event('touchstart'));win.scrollTo(0,50);main.children[0].append(...rows(60));runFrames();
  assert.equal(win.scrollY,50);assert.equal(doc.activeElement,null);assert.equal(frames.length,0);
+});
+
+test('a press inside main (a pager tap) stops the restore',()=>{
+ const main=page();const section=list({});main.append(section);win.scrollTo(0,900);
+ const position=createListReturn();position.leave(section.children[20]);
+ section.remove();main.append(new El('section',{cls:'list-panel'}));position.restore();runFrames(2);
+ main.dispatchEvent(new Event('pointerdown'));win.scrollTo(0,120);main.children[0].append(...rows(60));runFrames();
+ assert.equal(win.scrollY,120);assert.equal(frames.length,0);
 });
 
 test('a list that stayed on screen keeps the scroll the user made meanwhile',()=>{
  const main=page();const panel=list({scroll:true,height:600});main.append(panel);panel.scrollTop=700;
- const position=createListReturn();position.leave(panel.children[16]);
+ const position=createListReturn();position.leave(panel.children[16],{top:false});
  panel.dispatchEvent(new Event('pointerdown'));panel.scrollTop=1500;
  position.restore();runFrames();
  assert.equal(panel.scrollTop,1500);assert.equal(doc.activeElement,panel.children[16]);assert.equal(panel.children[16].scrolledIntoView,undefined,'not scrolled back into view');
@@ -127,9 +142,9 @@ test('a list that stayed on screen keeps the scroll the user made meanwhile',()=
 
 test('the opened row keeps its place on screen when content above it grows after Back',()=>{
  const main=page();const header=new El('header',{cls:'record-heading',h:300});const section=new El('section',{cls:'related',y:300}).append(...rows(40));
- main.append(header,section);win.scrollTo({top:1000});const opened=section.children[25],before=opened.getBoundingClientRect().top;
+ main.append(header,section);win.scrollTo(0,1000);const opened=section.children[25],before=opened.getBoundingClientRect().top;
  const position=createListReturn();position.leave(opened);
- header.remove();section.remove();win.scrollTo({top:0});
+ header.remove();section.remove();win.scrollTo(0,0);
  // Back: the record heading is still loading (shorter); it grows two frames later.
  const header2=new El('header',{cls:'record-heading',h:80}),section2=new El('section',{cls:'related',y:80}).append(...rows(40));main.append(header2,section2);position.restore();
  runFrames(2);header2.h=300;section2.y=300;runFrames();

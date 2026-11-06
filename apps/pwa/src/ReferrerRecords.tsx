@@ -54,7 +54,8 @@ export function ReferrerRecords({access,thai,initialReferrerId,initialSettlement
  const openReferrer=(id:string,target:EventTarget)=>{listReturn.leave(target,{top:true});setEntry(false);setDetail(null);setReferrerId(id)};
  const closeReferrer=()=>{if(exit){exit();return;}generation.current++;setDetail(null);setReferrerId(null);setError(null);listReturn.restore()};
  const openSettlement=(id:string,target:EventTarget)=>{detailReturn.leave(target,{top:true});setEntry(false);setSettlement(null);setSettlementId(id)};
- const closeSettlement=()=>{if(exit){exit();return;}generation.current++;const back=settlement?.referrerId??null;setSettlement(null);setSettlementId(null);setError(null);if(back&&back!==referrerId){detailReturn.cancel();setDetail(null);setReferrerId(back)}else detailReturn.restore()};
+ // A settlement opened from a referrer's page returns to that page (and its row); one opened on its own goes to its referrer.
+ const closeSettlement=()=>{if(exit){exit();return;}generation.current++;const back=settlement?.referrerId??null;setSettlement(null);setSettlementId(null);setError(null);if(back&&!referrerId){detailReturn.cancel();setDetail(null);setReferrerId(back)}else detailReturn.restore()};
  // A related record replaces the page; Back returns to the row it was opened from (a settlement's or a referrer's).
  const openRelated=(value:Related,target:EventTarget)=>{(settlementId?settlementReturn:detailReturn).leave(target);setRelated(value)};
  const closeRelated=()=>{setRelated(null);(settlementId?settlementReturn:detailReturn).restore()};

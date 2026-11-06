@@ -782,3 +782,6 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .destructive-note{font-weight:600;color:#a50e0e}
 .cash-rebates-payable{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:2px 12px;margin:10px 0 0;padding:8px 10px;border-top:1px solid #d5dbe0}
 .cash-rebates-payable strong{font-variant-numeric:tabular-nums}.cash-rebates-payable small{grid-column:1/-1;font-size:13px;color:#4a5560}
+/* R131 LRP-LAY-1: on the fixed desktop shell (main clips its overflow), the Management and Notifications workspace roots are
+   the scrolling content area, like .standalone-records and the record pages; narrower layouts keep the window scroll. */
+@media(min-width:1200px){.live-shell main>.management-workspace,.live-shell main>.management-cash,.live-shell main>.notifications-view{min-height:0;overflow-y:auto;scrollbar-gutter:stable}}
