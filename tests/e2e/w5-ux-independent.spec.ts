@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './fixtures/test';
 import {chooseLanguage,routeSyntheticPreferences} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 // Wave 5 UX states (APP-UX-RECEIVE-01/03/04/05/06, SETTINGS-01/02/03, NAV-02, APP-OFFLINE-05) on the live-dev shell with synthetic data.
@@ -79,7 +79,8 @@ test('W5 a notification tap waits while a form is open and opens in place otherw
 });
 
 test('W5 Notifications shows its state on open without a tap and never prompts',async({page})=>{
- await page.addInitScript(()=>{(window as any).permissionRequests=0;Notification.requestPermission=async()=>{(window as any).permissionRequests++;return 'default'};Object.defineProperty(Notification,'permission',{configurable:true,get:()=>(window as any).__permission??'default'})});
+ // iPhone WebKit exposes Notification only to a Home Screen app, not a browser tab: stand one in so the page sees the installed-app API.
+ await page.addInitScript(()=>{if(typeof Notification==='undefined')(window as any).Notification=class Notification{};(window as any).permissionRequests=0;Notification.requestPermission=async()=>{(window as any).permissionRequests++;return 'default'};Object.defineProperty(Notification,'permission',{configurable:true,get:()=>(window as any).__permission??'default'})});
  const state=await setup(page);if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:'Open navigation',exact:true}).click();
  await page.getByRole('button',{name:'Notifications',exact:true}).filter({visible:true}).click();
  await expect(page.locator('.notification-state')).toHaveText('On for your account, not on this device.');await expect(page.getByRole('button',{name:'Check notification status',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Enable on this device',exact:true})).toBeVisible();

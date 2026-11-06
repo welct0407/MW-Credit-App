@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect,emitSyntheticUser} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 // APP-OFFLINE-01 in the live shell: a 401 from the read API expires the session and purges caches, but unsynced pending rows survive for the same UID.
 let server:ChildProcess,base:string;
@@ -12,7 +12,7 @@ test('expired session keeps unsynced pending rows while clearing snapshots and t
  await page.goto(base);
  const seeded=await page.evaluate(async(identity:{issuer:string;uid:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository(identity);await repo.authorize();const id='33333333-3333-4333-8333-333333333333';await repo.savePending(id,{domain:'borrower',command:{requestId:id,operation:'borrower.update',targetId:'synthetic-target',expectedVersion:'a'.repeat(64),predecessorRequestId:null,receiptId:null,inputs:{note:'unsynced'}}});await repo.saveSnapshot('synthetic-snapshot',{charges:[]});return {pending:(await repo.list('pending')).length,authorized:await repo.authorized()}},identity);
  expect(seeded).toEqual({pending:1,authorized:true});
- await page.evaluate(()=>(window as any).emitUser());
+ await emitSyntheticUser(page);
  await expect(page.getByRole('heading',{name:'Please sign in again'})).toBeVisible();
  await expect.poll(()=>page.evaluate(()=>(window as any).signouts)).toBe(1);
  const after=await page.evaluate(async(identity:{issuer:string;uid:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository(identity);const rows=await repo.list('pending');return {pending:rows.length,note:rows[0]?.value?.command?.inputs?.note,state:rows[0]?.sync?.state,authorized:await repo.authorized(),snapshot:await repo.snapshot('synthetic-snapshot')}},identity);

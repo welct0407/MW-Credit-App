@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './fixtures/test';
 import {borrowers,sampleDate} from '../../apps/pwa/src/fixtures';
 const cards=(page:Page)=>page.locator('.borrower-card');
 const nav=(page:Page)=>page.getByRole('navigation',{name: page.viewportSize()!.width<900?'Quick navigation':'Main navigation'});

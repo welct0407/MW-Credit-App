@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page,emitSyntheticUser} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
 const dashboard={collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]};
@@ -29,7 +29,7 @@ test('Full sync on the Saved changes page confirms, sends saved changes first, t
   if(path==='/api/preferences')return r.fulfill({contentType:'application/json',body:'{"ok":true,"item":{"language":null}}'});
   if(path==='/api/dashboard')return r.fulfill({json:dashboard});
   return r.fulfill({contentType:'application/json',body:'{"ok":true,"items":[],"nextCursor":null}'})});
- await page.goto(base);await seedPending(page);await page.evaluate(()=>(window as any).emitUser());
+ await page.goto(base);await seedPending(page);await emitSyntheticUser(page);
  // The shell settles after sign-in (a status change closes the mobile drawer): retry until the page shows.
  const savedPage=page.getByRole('region',{name:'Saved unsynced changes'}),full=savedPage.getByRole('button',{name:'Full sync',exact:true});
  const open=async()=>expect(async()=>{if(!await savedPage.isVisible()){await account(page);await page.locator('.waiting-sync-button').filter({visible:true}).first().click({timeout:1000})}await expect(full).toBeVisible({timeout:1000})}).toPass({timeout:15000});

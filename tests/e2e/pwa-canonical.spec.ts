@@ -1,4 +1,4 @@
-import {test,expect,chromium} from '@playwright/test';
+import {test,expect,chromium} from './fixtures/test';
 import {startCanonicalFixture,fixtureLaunchArgs,assertServed} from './fixtures/canonical-server';
 
 test('built canonical update is announced, retries failed activation and reloads tabs only on request',async({},info)=>{

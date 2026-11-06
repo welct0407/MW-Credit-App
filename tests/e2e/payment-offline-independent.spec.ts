@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './fixtures/test';
 test('P4-10/11 IndexedDB owner partition, durable drafts, limits and expiry',async({page})=>{
  await page.goto('/');
  const result=await page.evaluate(async()=>{

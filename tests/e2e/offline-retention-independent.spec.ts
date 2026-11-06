@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './fixtures/test';
 // APP-OFFLINE-04: offline datasets, receipt media, caches and viewed snapshots are deleted after 7 days without a
 // successful online check (lease:owner.verifiedAt). Unsynced pending:* rows, drafts, the lease and meta rows stay.
 const issuer='https://securetoken.google.com/clever-oasis-508610-n7';

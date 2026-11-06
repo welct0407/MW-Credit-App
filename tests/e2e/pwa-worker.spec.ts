@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './fixtures/test';
 import {resolve} from 'node:path';
 import {readFileSync} from 'node:fs';
 import {startWorkerFixture} from './fixtures/worker-server';
