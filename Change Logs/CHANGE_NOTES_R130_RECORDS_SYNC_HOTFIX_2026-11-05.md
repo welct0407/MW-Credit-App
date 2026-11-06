@@ -45,7 +45,7 @@ None.
 ## Remaining work
 - Owner acceptance in PROD: the owner's first records sync on the new revision (the "Borrowers not updated" header gone). Not yet observed; Forge's watch is running.
 - Noted, not investigated: one pre-existing read 503 "Cannot read properties of null (reading 'kind')" surfaced by the new logging in the receiving run.
-- The R129 items stay open in the [R129 change note](CHANGE_NOTES_R129_REFERRAL_REBATE_SETTLEMENT_2026-11-05.md#remaining-work): PROD acceptance of the first settlement, the first pending-rebate close and the first agent "pending to" DM; the chat read-role grant; the Data Dictionary entries; the CI en_US collation follow-up.
+- The R129 items stay open in the [R129 change note](https://github.com/welct0407/MW-Credit-App/blob/ede185fa/Change%20Logs/CHANGE_NOTES_R129_REFERRAL_REBATE_SETTLEMENT_2026-11-05.md#remaining-work): PROD acceptance of the first settlement, the first pending-rebate close and the first agent "pending to" DM; the chat read-role grant; the Data Dictionary entries; the CI en_US collation follow-up.
 
 ## DEV promotion record (Forge, 5 November 2026, UTC)
 Authority: the owner's 5 November 2026 instruction to build and deploy fixes to DEV first; DEV only here. No SQL, no backup. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).

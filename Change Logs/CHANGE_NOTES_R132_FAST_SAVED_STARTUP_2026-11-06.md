@@ -3,7 +3,7 @@
 ## Purpose
 Two items: (a) fast saved-workspace startup (below); (b) a WebKit offline receipt fix found by CI on the pull request.
 
-(a) Owner report, 6 November 2026: "Why is the app loading slow again when I open it? Is the offline mechanism having issues again?" with an encrypted PROD troubleshooting file, then "blank white screen (header is there) and spinner, several seconds… I designed the app that … show offline copy immediately". Status: Open; PWA Hosting only; owner instruction of 6 November 2026, "Yes, go ahead go and do it, push all the way to prod" (scoped PROD approval for this fix).
+(a) Owner report, 6 November 2026: "Why is the app loading slow again when I open it? Is the offline mechanism having issues again?" with an encrypted PROD troubleshooting file, then "blank white screen (header is there) and spinner, several seconds… I designed the app that … show offline copy immediately". Status: Released to DEV and PROD on 6 November 2026 (package `ede185f`, PR #259, tag `R132`); owner acceptance pending; PWA Hosting only; owner instruction of 6 November 2026, "Yes, go ahead go and do it, push all the way to prod" (scoped PROD approval for this fix).
 
 ## Changes
 Item (a), diagnosis:
@@ -47,19 +47,51 @@ Item (b), WebKit offline receipt fix:
 | Item (b): offline-retention, offline-delta and phase5-final-ui, desktop Chromium and mobile-webkit | 98 passed, 40 skipped (browser or viewport specific) |
 | Item (b): Chase review | Done: no must-fix, three should-fix fixed |
 | PR #259 run 42227919508 | `check`, `lint`, Chromium e2e 1 to 3 and WebKit w3 green; WebKit w1 failed (item b); WebKit w2 cancelled after `playwright install --with-deps webkit` hung 30 minutes before any test (runner stall). The next push's run is the acceptance run |
-| PR `Development checks` acceptance run | Pending |
-| `npm run check:docs` (Dewey) | Pending final run |
+| PR #259 acceptance run 42233784406 (head `8ccbce7`) | All green, including iPhone WebKit w1 to w3 |
+| `npm run check:docs` (Dewey) | Pass (0 failures, 0 warnings) at the closure records |
 
 ## Not run
 The wide Playwright suite locally (the pull request CI is the broad run); the new spec on mobile-webkit (Chromium launch harness; the PR's WebKit shards skip it); real iPhone timing (the owner's check after deploy). A skipped check is not a pass.
 
 ## Recovery
-Git baseline `cf73390` (R131 closure). The previous Hosting version stays available in the [Environment Inventory](../project/Documents/Environment_Inventory.md) (pins recorded at deployment). No SQL, so nothing else to undo; rolling back restores the slow startup after more than an hour away.
+Git baseline R131 `39fe430` (code) and `cf73390` (records). Hosting only: redeploy the previous Hosting version, PROD `df2cf46e61d5281d` (release `1793961609063000`, R131) or DEV `07c925a025925609` (release `1793961018998000`, R131); see the [Environment Inventory](../project/Documents/Environment_Inventory.md). No SQL, image or Terraform change, so there is nothing else to undo. Rolling back restores the slow startup after more than an hour away and the WebKit offline receipt defect.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Pending: the acceptance CI run, DEV deploy and smoke, owner-authorized PROD promotion, closure pull request, tag `R132`, owner acceptance on the phone (open after more than an hour: saved copy at once, "Connecting…" in the header).
+- Owner acceptance in PROD on the owner's iPhone (open after being idle: the saved workspace appears at once, "Connecting…" in the header). Not yet observed.
 - Echo later items: STARTUP-UX-L1 (account switch or post-login first load still blank with the header spinner), L2 (expired wording), L3 (Save waits silently while confirming; a hint), L4 (offline-at-launch WebKit check).
 - Chase item 3: forms start a 15 s timeout before awaiting the token, so a confirm slower than 15 s shows "unavailable"; it fails safe and is the same as during the version check.
+
+## DEV promotion record (Forge, 6 November 2026, UTC)
+Authority: the owner's instruction of 6 November 2026, "Yes, go ahead go and do it, push all the way to prod" (DEV first). Freeze: package `ede185fa150850ee512b6bc29e83732ebe826e15` pinned at promotion start (about 14:45Z; first DEV step 14:46:03Z), baseline R131 `39fe430`. PWA Hosting only: no SQL, image, Terraform, notify, jobs, VM or Metabase change, so no backup; nothing forced. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Step | Result |
+| --- | --- |
+| Package | `main` `ede185fa150850ee512b6bc29e83732ebe826e15` (merge of PR #259, head `8ccbce7`). Acceptance CI: PR run 42233784406 (all green, including iPhone WebKit w1 to w3). Earlier run 42227919508: w1 failed (item (b)), w2 a runner stall |
+| Build | `npm run build:live-dev` in a scratch worktree of the package; the same nine settings as R131; the Firebase web configuration from Secret Manager `mw-credit-app-dev-firebase-web` (file shredded). Build-version R132 `5c5de3cbc8d8741e4b7fa7bc`, entry `/assets/index-CVl4ZXKP.js`, embeds `ede185f` |
+| Hosting | `--check` 17 files; deployed 14:46:03Z to 14:46:10Z: version `884a425a44b01c48`, release `1793976369491000` (previous `07c925a025925609`, release `1793961018998000`, R131) |
+| Smoke (read-only) | 14:46:16Z to 14:47:10Z: the three origins serve R132 and the entry (200); `sw.js` and `build-version.json` no-store; `/health` 200 on read, command and chat; unauthenticated 401 (read and command `/api/session`, chat models and threads); CORS 204; no ERROR logs from 14:40Z |
+| Rollback | Redeploy DEV Hosting version `07c925a025925609` (R131) |
+
+## PROD promotion record (Forge, 6 November 2026, UTC)
+Authority: the owner's instruction of 6 November 2026, "Yes, go ahead go and do it, push all the way to prod", the scoped PROD approval for this fix. No SQL, image, Terraform or VM change, so no backup and no owner window; no authenticated PROD read, financial write, forced notification or job run. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in `gs://mw-credit-operator-private-737787224638/promotion-packages/r132/` and the receipt in `promotion-receipts/R132-HOSTING-RECEIPT.json` of the same bucket.
+
+| Step | Result |
+| --- | --- |
+| Package | `main` `ede185fa150850ee512b6bc29e83732ebe826e15` (merge of PR #259); baseline R131 `39fe430` |
+| Database | `Invoke-CloudFlyway.py verify --target prod` as `codex-cloud-read` 14:47:14Z to 14:48:03Z: schema 137, 136 applied, nothing pending, 0 writes |
+| Hosting | Candidate live-prod build, release R132, pinned public configuration (sha256 `6eea01ac…`, the same as R131). Build-version R132 `50f6d9688b45fc675198052d`, entry `/assets/index-iG68q_E4.js`, embeds `ede185f`. Generic runner frontend-only package sha256 `c9203461…dbef`. CI evidence cited: `check` and e2e from run 42233784406; `terraform` and database from the runs R131 cited. `--check` 18 files; `--apply` as `mw-credit-unattended-admin` 14:48:30Z to 14:49:03Z: version `77db38bf4fcb7e80`, release `1793976536948000` (previous `df2cf46e61d5281d`, release `1793961609063000`, R131) |
+| Smoke (read-only) | 14:49:07Z to 14:49:42Z: the three origins serve R132 and the entry (200); `sw.js` no-store; CSP `connect-src` names only the three PROD service origins; `/health` 200, unauthenticated 401, CORS 204; the five Cloud Run revisions are unchanged (read `00049-jph`, command `00054-mfx`, chat `00033-zwx`, notify `00029-2nb`, jobs `00029-9dp`); no ERROR or `*_unavailable` logs from 14:40Z |
+| Rollback | Redeploy Hosting `df2cf46e61d5281d` (R131) |
+
+### Limitations
+- No authenticated PROD read was made. The owner's first open of the app on the iPhone after being idle is the acceptance: the saved workspace should appear at once with "Connecting…" in the header. Real iPhone timing has not been measured.
+- Open items are listed under Remaining work.
+
+### Tag record
+Tag `R132` on `ede185fa150850ee512b6bc29e83732ebe826e15` through the Release tag workflow run 42237521323 (success), which also published the [GitHub Release](https://github.com/welct0407/MW-Credit-App/releases/tag/R132).
+
+### Prune (closure)
+Deleted after repointing every inbound link to commit `ede185fa` (the last commit where they exist): `Change Logs/CHANGE_NOTES_R129_REFERRAL_REBATE_SETTLEMENT_2026-11-05.md` and `integration-agent/Change Logs/CHANGE_NOTES_R129_AGENT_REBATE_PENDING_WORDING_2026-11-05.md` (R129 left the three-release window), and the evidence directories `project/outputs/dictionary-r116-20261103` and `project/outputs/dictionary-r120-20261104`, which nothing current cites any more (Git keeps them). The R132 section in Development Changes does not exist, so none was removed. R131, R130 and the non-release notes stay.
