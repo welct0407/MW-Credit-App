@@ -58,6 +58,31 @@ for(const query of ['','?strict=1'])test.describe('list-return contract'+(query?
 });
 
 test.describe('list-return safety',()=>{
+ test('leave() keeps the saved position when scrollTo rejects an options object (older Safari)',async({page})=>{
+  await harness(page);
+  await page.evaluate(()=>{const original=window.scrollTo.bind(window);(window as any).scrollTo=(a:any,b?:number)=>{if(typeof a==='object')throw new TypeError('options object not supported');return original(a,b as number)}});
+  const saved=await openRow(page,'r18',150,700);
+  expect((await where(page)).scrollY,'the opened page starts at the top').toBe(0);
+  await page.getByRole('button',{name:'Back plain',exact:true}).click();
+  await expect.poll(async()=>(await where(page)).focus).toBe('r18');
+  const after=await where(page);near(after.scrollY,saved.scrollY);near(after.panel,saved.panel);near(after.rowTop!,saved.rowTop,2);
+ });
+ test('a press inside main after Back stops the restore; a press outside main does not',async({page})=>{
+  await harness(page);await openRow(page,'r30',100,1400);
+  await page.getByRole('button',{name:'Back interrupt',exact:true}).click();
+  // Back interrupt already sent a wheel; use the late variant for the pointer cases.
+  await page.waitForTimeout(700);
+  await openRow(page,'r30',100,1400);
+  await page.evaluate(()=>{document.querySelector('footer')!.dispatchEvent(new Event('pointerdown',{bubbles:true}))});
+  await page.getByRole('button',{name:'Back late',exact:true}).click();
+  await page.evaluate(()=>document.querySelector('footer')!.dispatchEvent(new Event('pointerdown',{bubbles:true})));
+  await expect.poll(async()=>(await where(page)).focus).toBe('r30');
+  await openRow(page,'r30',100,1400);
+  await page.getByRole('button',{name:'Back slow',exact:true}).click();
+  await page.evaluate(()=>document.querySelector('main')!.dispatchEvent(new Event('pointerdown',{bubbles:true})));
+  await page.waitForTimeout(2200);expect((await where(page)).panel).toBeLessThan(5);
+ });
+
  test('a touch or wheel after Back stops the restore for good',async({page})=>{
   await harness(page);await openRow(page,'r30',100,1400);
   await page.getByRole('button',{name:'Back interrupt',exact:true}).click();
@@ -345,5 +370,84 @@ test.describe('list return on the real pages',()=>{
   await expect.poll(async()=>(await track(page,rebate)).focus).toBe('rr1:L-PAID');await settleBack(page);near((await track(page,rebate)).rowTop!,inSettlement.rowTop!,3);
   await page.getByRole('button',{name:/^Back/}).first().click();
   await expect.poll(async()=>(await track(page,sel)).focus).toBe(key);await settleBack(page);near((await track(page,sel)).rowTop!,inDetail.rowTop!,3);
+ });
+ const assessments=Array.from({length:60},(_,i)=>({id:'as-'+i,assessmentId:'ASSESS-'+i,borrowerId:'B-NOK',borrowerLabel:'ผู้กู้ Assess '+i,proposedLoanAmount:'10000'}));
+ const assessmentCommand:Handler=(path,_u,method)=>{
+  if(method!=='GET')return undefined;
+  if(path==='/api/management/assessments')return {ok:true,source:'dev',asOf:ASOF,businessDate:BD,items:assessments,nextCursor:null};
+  const one=/^\/api\/management\/assessments\/(.+)$/.exec(path);if(one){const row=assessments.find(a=>a.id===decodeURIComponent(one[1]));if(row)return {ok:true,source:'dev',asOf:ASOF,businessDate:BD,item:{...row,version:'f'.repeat(64),calculatedAt:'2026-11-05T05:00:00Z',forecastEnd:'2027-02-05',freshness:'current',isFinite:true,minimumDailyProfitRate:'0.01',onLine:false,recommendation:'Approve'}}}
+  return undefined;
+ };
+ async function openAssessments(page:Page){
+  await signIn(page,base,()=>undefined,assessmentCommand);
+  await menu(page,'Management');
+  const section=page.getByRole('button',{name:'Loan Assessments',exact:true}).filter({visible:true});
+  if(await section.count()===0&&page.viewportSize()!.width<=1050)await page.getByRole('button',{name:'Open navigation',exact:true}).click();
+  await section.first().click();
+  await expect(page.locator('[data-record-id="as-30"]')).toBeVisible();
+ }
+ test('LRP-MGT-2: Loan Assessments returns to the opened assessment',async({page})=>{
+  await openAssessments(page);const sel='[data-record-id="as-40"]';
+  await scrollTo(page,sel);await page.waitForTimeout(100);const before=await track(page,sel);expect(before.scrollY+before.scrollerTops.reduce((a,b)=>a+b,0)).toBeGreaterThan(300);
+  await page.locator(sel).evaluate(node=>(node as HTMLElement).click());await expect(page.getByRole('heading',{name:'ASSESS-40'})).toBeVisible();
+  await page.getByRole('button',{name:'Back to assessments'}).first().click();
+  await expect.poll(async()=>(await track(page,sel)).focus).toBe('as-40');await settleBack(page);
+  const after=await track(page,sel);near(after.rowTop!,before.rowTop!,3);
+ });
+ test('LRP-LAY-1: at 1280 the Management list scrolls in one container and restores',async({page},info)=>{
+  test.skip(info.project.name.startsWith('mobile'),'The fixed desktop shell is the layout under test (>= 1200px).');
+  await page.setViewportSize({width:1280,height:720});
+  await openAssessments(page);const sel='[data-record-id="as-40"]';
+  const shape=await page.evaluate(()=>{const row=document.querySelector('[data-record-id="as-40"]')!;const scrollers:string[]=[];for(let n:HTMLElement|null=row.parentElement;n&&n!==document.documentElement;n=n.parentElement)if(/^(auto|scroll)$/.test(getComputedStyle(n).overflowY)&&n.scrollHeight>n.clientHeight+1)scrollers.push(n.tagName.toLowerCase()+'.'+n.className.split(' ')[0]);return {scrollers,windowScrolls:document.documentElement.scrollHeight>innerHeight+1}});
+  expect(shape.scrollers.length,'exactly one scrolling container around the rows: '+shape.scrollers.join(' > ')).toBe(1);expect(shape.scrollers[0]).toContain('management-workspace');expect(shape.windowScrolls,'the window itself must not scroll').toBe(false);
+  await scrollTo(page,sel);await page.waitForTimeout(100);const before=await track(page,sel);expect(before.scrollerTops[0]).toBeGreaterThan(300);
+  await page.locator(sel).evaluate(node=>(node as HTMLElement).click());await expect(page.getByRole('heading',{name:'ASSESS-40'})).toBeVisible();
+  await page.getByRole('button',{name:'Back to assessments'}).first().click();
+  await expect.poll(async()=>(await track(page,sel)).focus).toBe('as-40');await settleBack(page);
+  const after=await track(page,sel);near(after.rowTop!,before.rowTop!,3);near(after.scrollerTops[0],before.scrollerTops[0],3);
+ });
+
+});
+
+// ---- Legacy (read-only) Borrowers: no command service, the page lists loans itself. ----
+test.describe('list return on the legacy read-only Borrowers',()=>{
+ let server:ChildProcess,base:string;
+ test.beforeAll(async({},info)=>{const port=8450+info.workerIndex;base=`http://127.0.0.1:${port}`;server=spawn(process.execPath,['--input-type=module','-e',`import {createServer} from 'vite';const s=await createServer({mode:'live-dev',cacheDir:'node_modules/.cache/list-return-legacy-${port}',server:{host:'127.0.0.1',port:${port},strictPort:true}});await s.listen();`],{env:{...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-key',VITE_FIREBASE_APP_ID:'synthetic-app',VITE_API_ORIGIN:'https://mw-credit-app-read-dev-test.run.app'},stdio:'pipe'});await expect.poll(async()=>{try{return(await fetch(base)).status}catch{return 0}},{timeout:30000}).toBe(200)});
+ test.afterAll(()=>server?.kill());test.setTimeout(90000);test.use({actionTimeout:8000});
+ const borrowers=Array.from({length:60},(_,i)=>({id:'lb-'+i,name:'ชื่อ '+i,borrowerDisplayName:'ชื่อ '+i+' - English '+i,totalProfitEarned:'10',createdDate:'2026-10-07',hasActiveLoan:true,outstandingPrincipal:'9000',note:null}));
+ const loans=Array.from({length:25},(_,i)=>({id:'ll-'+i,borrowerId:'lb-50',borrowerDisplayName:'ชื่อ 50 - English 50',originalDailyInterestRate:'2',loanDate:'2026-10-'+String(1+(i%28)).padStart(2,'0'),dueDate:null,closeDate:null,status:'ยังไม่ปิดยอด',loanType:'ดอกเบี้ยรายวัน',principalAmount:String(12000+i),outstandingPrincipal:'123',totalPrincipalReceived:'0',totalInterestReceived:'0',totalAmountReceived:'0',defaulted:false,autoChargeEnabled:false}));
+ const read:Handler=(path)=>{
+  const env={ok:true,source:'dev',businessDate:BD,asOf:ASOF};
+  if(path==='/api/borrowers')return {...env,items:borrowers,nextCursor:null};
+  const loan=/^\/api\/borrowers\/([^/]+)\/loans\/([^/]+)$/.exec(path);if(loan)return {...env,item:loans.find(l=>l.id===loan[2])};
+  const list=/^\/api\/borrowers\/([^/]+)\/loans$/.exec(path);if(list)return {...env,items:loans,nextCursor:null};
+  const one=/^\/api\/borrowers\/([^/]+)$/.exec(path);if(one)return {...env,item:borrowers.find(b=>b.id===decodeURIComponent(one[1]))};
+  return undefined;
+ };
+ const tops=(page:Page)=>page.evaluate(()=>({y:scrollY,list:(document.querySelector('.list-panel') as HTMLElement|null)?.scrollTop??null,detail:(document.querySelector('.detail-panel') as HTMLElement|null)?.scrollTop??null}));
+
+ test('LRP-BOR-1: a legacy loan opened from the borrower returns to its row',async({page})=>{
+  await signIn(page,base,read,()=>undefined);
+  await expect(page.locator('.borrower-tile-main').first()).toBeVisible();
+  await page.locator('.borrower-tile-main').nth(50).scrollIntoViewIfNeeded();await page.locator('.borrower-tile-main').nth(50).click();
+  await expect(page.locator('.loan-record')).toHaveCount(25);
+  const sel='.loan-record[data-record-id="ll-20"]';await scrollTo(page,sel);await page.waitForTimeout(100);const before=await track(page,sel);
+  await page.locator(sel).evaluate(node=>(node as HTMLElement).click());await expect(page.getByRole('article',{name:'Loan details'})).toBeVisible();
+  await page.getByRole('button',{name:'Back to loans'}).click();
+  await expect.poll(async()=>(await track(page,sel)).focus).toBe('ll-20');await settleBack(page);
+  near((await track(page,sel)).rowTop!,before.rowTop!,3);await expect(page.locator('.loan-record')).toHaveCount(25);
+ });
+
+ test('LRP-BOR-2: a borrower opened from a deep list lands at the top and stays there; Back returns to its tile',async({page})=>{
+  await signIn(page,base,read,()=>undefined);
+  const tile='.borrower-tile-main[data-record-id="lb-50"]';await expect(page.locator(tile)).toBeVisible();
+  await scrollTo(page,tile);await page.waitForTimeout(100);
+  const before=await track(page,tile),listBefore=await tops(page);expect(listBefore.y+(listBefore.list??0)).toBeGreaterThan(500);
+  await page.locator(tile).evaluate(node=>(node as HTMLElement).click());await expect(page.locator('.loan-record')).toHaveCount(25);await page.waitForTimeout(600);
+  const open=await tops(page);expect(open.y,'window at the top').toBe(0);expect(open.detail??0,'detail panel at the top').toBe(0);
+  if(open.list!==null&&page.viewportSize()!.width>1050)near(open.list,listBefore.list!,2);// two panes: the list stays where it was
+  await page.getByRole('button',{name:/^Back to (list|Borrowers)/}).first().click();
+  await expect.poll(async()=>(await track(page,tile)).focus).toBe('lb-50');await settleBack(page);
+  const after=await track(page,tile);near(after.rowTop!,before.rowTop!,3);near(after.scrollY,before.scrollY,3);
  });
 });
