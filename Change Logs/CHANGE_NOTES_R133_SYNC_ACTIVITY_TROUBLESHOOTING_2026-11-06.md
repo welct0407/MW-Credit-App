@@ -5,12 +5,12 @@ Two items: (a) show the ongoing sync or load activity in the header last-update 
 
 Owner scope, 6 November 2026: "When the app is loading/syncing data, or whenever the sync icon is spinning, I want the ongoing activity to be reflected in the area where it shows last update time when it's not spinning, so I know why it's spinning. I also want you to review the troubleshooting file at client side and enhance it to include information helpful for troubleshooting based on recent troubleshooting experience. Engage the team to work on this in the next release".
 
-Status: In development, not deployed; no DEV or PROD deploy is authorized. No production approval has been given. Expected delivery: PWA Hosting only, no SQL, images, Terraform or VM change.
+Status: Released to DEV on 6 November 2026 (PR #261, head `bc0146b`) under the owner's instruction "Move to dev and test it"; not in PROD, no PROD approval has been given; owner acceptance on DEV pending. No production approval has been given. Expected delivery: PWA Hosting only, no SQL, images, Terraform or VM change.
 
 Team: Archie, Byte, Chase, Dewey, Echo. Forge is not applicable: no infrastructure change.
 
 ## Changes
-Code commits `b27202a` (Byte), `8a77234` (SYNC-ACT-UX-16 fix), `2f3dd51` (Chase, spec lint) and `9dfd7c6` (Chase's Shoulds), pushed to branch `claude/gracious-volta-ekq1q5` (no pull request yet).
+Code commits `b27202a` (Byte), `8a77234` (SYNC-ACT-UX-16 fix), `2f3dd51` (Chase, spec lint), `9dfd7c6` (Chase's Shoulds), `3d44056` (Byte, CI fixes), `2c0f710` and `bc0146b` (Chase, spec guards); PR #261.
 
 Item (a), header sync activity label:
 - The cell beside the refresh icon shows the activity only while the icon spins (`headerState==='loading'`); the label is derived from the spinner's own inputs, so it cannot disagree with the spin (SYNC-ACT-UX-1). The first-download bar wins over any label (UX-8).
@@ -53,6 +53,7 @@ Echo findings (SYNC-ACT-UX-1 to 15, priority in brackets):
 - 15 (Could): the troubleshooting activity history uses the same labels.
 - 16 (found in review): the Thai object word of a label such as กำลังตรวจ เงินสด must stay on one line; fixed with `.sync-section` in `8a77234`.
 - 17: at 320px the header title shrinks; pre-existing, recorded only.
+- 18 (Could, pre-existing, DEV): after the Google popup is closed unanswered, Signing in… and the spinner can stay over 1.5 s (2 of 4 runs) while Firebase notices; the blank body below the header is pre-existing.
 
 Chase review (b27202a): no Must-fix. Should 1 (repair trigger) and Should 2 (dataset-failed deduped per domain and code, eviction protects session and startup events) were applied in `9dfd7c6`. Should 3 (a label may hold up to 600 ms before the failure text shows) is accepted as designed. The item (b) incident mapping above was checked against this review, the R130 and R132 notes, and R121's recorded diagnosis (a refused receipt re-requested on open, poll and focus; its note is out of the retention window).
 
@@ -67,19 +68,31 @@ Chase review (b27202a): no Must-fix. Should 1 (repair trigger) and Should 2 (dat
 | Focused `node --test` | 74 pass, 0 fail, `9dfd7c6` (Byte) |
 | Spec lint, `header-activity-independent.spec.ts` | Lint pass; 5 of 5 on the mobile-webkit project (runs Chromium with Pixel 7 emulation, not the WebKit engine), `2f3dd51` (Chase) |
 | Echo smoke, real WebKit iPhone 17 Pro Max, 440 and 320 px, EN and TH | Pass on UX-7, 11 and 13, `b27202a` (the receipt label text was injected, not triggered) |
-| CI `Development checks` | Pending: no pull request is open; that run is the broad run |
+| CI run 42280061062 on `308ba9d` | Fail, ours: the payment review POST was labelled Saving…, the about spec used schemaVersion 1, the startup-timing key stayed after sign-out; fixed in `3d44056` (Byte) and `2c0f710` (Chase, startup-session `afterAll` guard, pre-existing) |
+| CI run 42283290447 on `3d44056` | All green except WebKit w1, cancelled at the 30-minute timeout in `apt install` (mirror stall); its single re-run was a real failure (the header-activity spec launched Chromium in the WebKit job), fixed in `bc0146b` (Chase: the spec skips under WebKit, `chat.spec` `afterAll` guard) |
+| CI `Development checks` run 42289161377 on `bc0146b` | Pass; WebKit w3 was cancelled by an apt mirror stall and passed on its single re-run |
+| DEV smoke (Chase, DEV test Partner) | Pass: Connecting… then Loading… then Updated HH:MM after a real DEV sync on mobile Chromium EN, real WebKit iPhone 17 Pro Max EN and desktop Chromium TH; cell 88x44, no role, live region empty, button text matches; troubleshooting file signed out and signed in is schema 2 with no uid, email, token or API key in plaintext; decrypted output shredded |
+| DEV Echo (real WebKit iPhone 17 Pro Max, 440 and 320 px, EN and TH) | Pass on the signed-out card and Signing in… (UX-7, 11, 13); UX-16 fix confirmed; UX-18 new |
 
 ## Not run
 - Real-device iPhone run.
+- Reading receipt…, Saving… and Signing out… were not exercised on DEV.
+- Pre-existing flakes seen, not ours: `upcoming-read.spec.ts:41` request count and `back-consumers-independent.spec.ts:195`.
 - The real "Updated HH:MM" return in the spec (its fixture never completes the dataset).
 - Connecting, Signing and Saving labels were not visually rendered by Echo.
 - The Connecting… e2e case and the mobile-webkit project run in Chromium with phone emulation, not the WebKit engine.
 
 ## Recovery
-Git baseline: R132 `ede185f` (PROD package). Nothing is deployed for R133 yet; before release, revert the code commit(s) of this release.
+Git baseline: R132 `ede185f` (PROD package). DEV: redeploy the previous R132 Hosting version recorded in the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments). Nothing is in PROD.
 
 ## Open questions
-None yet. Owner approval is needed before any PROD promotion.
+An owner instruction is needed before any PROD promotion.
 
 ## Remaining work
-Pending checks above, push, DEV deployment and owner review.
+Owner acceptance on DEV (the owner's own iPhone use); PROD only on the owner's instruction.
+
+## DEV promotion record (Forge, 6 November 2026, UTC)
+- Owner instruction, 6 November 2026: "Move to dev and test it" (DEV only). Executed by Forge as `codex-cloud` in project `clever-oasis-508610-n7`, Hosting site `mw-credit-app-dev-737787224638`; PR #261 head `bc0146b`. The Hosting version, release and rollback pins are in the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments).
+- Scope: PWA Hosting only; no SQL, images, Terraform, notify, jobs, VM or Metabase. Build R133, 17 files, live 21:13:26Z; only DEV origins in the bundle.
+- Read-back: three origins 200, no-store, build R133; `sw.js` no-store; `/health` 200 on read, command and chat; unauthenticated 401; CORS 204; no DEV ERROR logs.
+- Open: owner acceptance on DEV. Known limitations: no real device run; Reading receipt…, Saving… and Signing out… not exercised on DEV.
