@@ -10,7 +10,7 @@ Status: In development, not deployed; no DEV or PROD deploy is authorized. No pr
 Team: Archie, Byte, Chase, Dewey, Echo. Forge is not applicable: no infrastructure change.
 
 ## Changes
-Code commits `b27202a` (Byte), `8a77234` (SYNC-ACT-UX-16 fix), `2f3dd51` (Chase, spec lint) and `9dfd7c6` (Chase's Shoulds), local, not pushed.
+Code commits `b27202a` (Byte), `8a77234` (SYNC-ACT-UX-16 fix), `2f3dd51` (Chase, spec lint) and `9dfd7c6` (Chase's Shoulds), pushed to branch `claude/gracious-volta-ekq1q5` (no pull request yet).
 
 Item (a), header sync activity label:
 - The cell beside the refresh icon shows the activity only while the icon spins (`headerState==='loading'`); the label is derived from the spinner's own inputs, so it cannot disagree with the spin (SYNC-ACT-UX-1). The first-download bar wins over any label (UX-8).
