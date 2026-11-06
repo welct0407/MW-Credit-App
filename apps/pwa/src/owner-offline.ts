@@ -39,7 +39,12 @@ async function pendingIdentity(value:any){
  const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await image.arrayBuffer())),byte=>byte.toString(16).padStart(2,'0')).join('');
  return JSON.stringify({...value,receipt:{...value.receipt,image:{type:image.type,size:image.size,hash}}});
 }
-/** Caller must supply the currently verified owner session. No authentication is inferred here. */
+/**
+ * Caller supplies the owner session. No authentication is inferred here. R132: the scope may be opened for the persisted
+ * (provisional) uid before Firebase confirms it; until then the only writes are uid-independent expiry cleanup and the
+ * user's own drafts and saved changes, which stay in this scope and are kept (purge keepPending) if Firebase confirms a
+ * different uid.
+ */
 export function ownerOfflineRepository(identity:{issuer:string;uid:string},environment:ApplicationEnvironment=applicationEnvironment) {
  const name=offlineNamespace(identity,environment);
  const instanceEpoch=namespaceEpochs.get(name)??0;
