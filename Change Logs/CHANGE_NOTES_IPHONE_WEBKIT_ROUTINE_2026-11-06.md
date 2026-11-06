@@ -1,34 +1,39 @@
 # Change notes — iPhone WebKit check routine, 6 November 2026
 
 ## Purpose
-Owner request of 6 November 2026: make Playwright WebKit with an iPhone profile part of the development routine, on iPhone 16/17/18 Pro Max class phones rather than iPhone 13. Until now every run, including Echo's iPhone views, used Chromium; the `mobile-webkit` project existed but nothing enabled it.
+Owner requests of 6 November 2026: make Playwright WebKit with an iPhone profile part of the development routine, on iPhone 16/17/18 Pro Max class phones rather than iPhone 13, then make it development ready (every WebKit failure cleared, app changes only with the owner's say-so) and merge it. Until now every run, including Echo's iPhone views, used Chromium; the `mobile-webkit` project existed but nothing enabled it.
 
 ## Changes
 - `playwright.config.ts`: `mobile-webkit` uses `devices["iPhone 17 Pro Max"]` (WebKit by default) instead of iPhone 13 Pro Max. Playwright 1.63.0 ships iPhone 16 Pro Max and 17 Pro Max profiles with identical viewport (440×763, screen 440×956, scale 3) and user agent, so one project covers both; it has no iPhone 18 profile yet. Still enabled only with `PLAYWRIGHT_WEBKIT=1`.
-- `.github/workflows/ci.yml`: new advisory job `e2e iPhone WebKit (shard N of 3)`, running every spec on `mobile-webkit` whenever the e2e stage runs. It is `continue-on-error` and outside `Development checks result`, so WebKit-only failures are visible but do not block a merge or the e2e evidence reuse. WebKit browser cache key `playwright-webkit-…`.
-- `.claude/agents/echo.md`, `project/Documents/Rules/PWA_Orchestration.md`: iPhone views are reviewed in WebKit on the iPhone 17 Pro Max profile, not Chromium at a phone width.
+- `.github/workflows/ci.yml`: new job `e2e iPhone WebKit (shard wN of 3)`, running every spec on `mobile-webkit` whenever the e2e stage runs. It gates `Development checks result` like the Chromium shards, leaves the checkout clean, and uploads e2e stage evidence; `scripts/ci/stages.json` lists the three WebKit checks in the e2e stage (variants `w1`–`w3`, so their evidence names differ from the Chromium shards'), and `tests/unit/ci-reuse-evidence.test.mjs` covers six shards. WebKit browser cache key `playwright-webkit-…`.
+- `tests/e2e/fixtures/test.ts` (new): every spec imports `test`/`expect` from it instead of `@playwright/test` (re-exported unchanged for Chromium). In WebKit only:
+  - each test gets a fresh persistent context in an ASCII temporary profile. Playwright's ephemeral WebKit contexts behave like private browsing and abort IndexedDB transactions that store a Blob, which an iPhone Home Screen app does not; WebKit also rejects a profile path with Thai or dash characters.
+  - `context.setOffline` is emulated (requests abort as disconnected, `navigator.onLine` false, offline/online events). WebKit's own offline mode makes every Blob and File read fail with `NotReadableError`, which an iPhone in airplane mode does not.
+  - full-page screenshots default to CSS pixels: at 3× a long page passes WebKit's 32767-pixel limit.
+  - helpers `touchSession` (CDP touch in Chromium, dispatched touch events in WebKit, which has no CDP), `grantClipboard` (WebKit has no `clipboard-write` permission) and `emitSyntheticUser` (waits until the synthetic auth module is imported before signing in; WebKit can import it after the load event).
+- Spec adaptations: `payment-command` and `upcoming-read` use `touchSession`; `about-independent` uses `grantClipboard`; the receipt downscale case in `payment-command` reads the upload body from a page-side copy when WebKit does not report Blob request bodies; `w5-ux-independent` stands in a `Notification` object, which iPhone WebKit exposes only to a Home Screen app; six auth-harness specs use `emitSyntheticUser`.
+- Two Chromium races that the first CI run on this branch exposed: `phase5-final-ui-independent` R102 cases register their preference routes before the first load (the start-up read could return the default account), and `chat.spec.ts` R122 waits until the held translation request reaches the route before releasing it.
+- `.claude/agents/echo.md`, `project/Documents/Rules/PWA_Orchestration.md`, `docs/Development.md`: iPhone views are reviewed in WebKit on the iPhone 17 Pro Max profile; CI description.
+- No application code changed. Unlike the first local run suggested, none of the 37 initial WebKit failures was an app defect: the iPhone-width receiving layout case passes once the harness issues are handled.
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| `PLAYWRIGHT_WEBKIT=1 npx playwright test --project=mobile-webkit` (local, WebKit 2359, 4 workers) | 369 passed, 37 failed, 13 skipped of 419 |
-| `node --test` on the six unit tests that read `ci.yml` or the Playwright config | Pass, 170 of 170 |
-| `npm run typecheck`, `biome lint playwright.config.ts`, `npm run check:docs` | Pass (docs: 0 failures) |
-
-Known WebKit failures (37), by cause:
-- Test harness only (Chromium-only APIs): `newCDPSession` (3, payment-command swipe, upcoming-read), `grantPermissions('clipboard-write')` (2, about), full-page screenshots over 32767 px (3, payment-command).
-- IndexedDB writes rejected, "Offline storage unavailable" or a null `page.evaluate` error (about 19: offline-retention, offline-purge, offline-delta, own-receipt-seed, back-consumers, payment-offline, payment-command 138, about 116). Likely Playwright WebKit's ephemeral contexts refusing Blob values in IndexedDB rather than iPhone Safari behavior; needs confirming before any product change.
-- `window.emitUser` test hook missing (3, pending-flash, data-check).
-- Other assertions to triage (7): pay-forward 95, phase5-borrower 79/94, refresh-hold 137, unified-receiving 100 (iPhone width overflow or sticky summary), w5-ux 81, back-consumers 220/290, payment-command 287.
+| First full WebKit run, before the fixture (local, WebKit 2359) | 369 passed, 37 failed, 13 skipped |
+| Development checks run 42172924829 (first push) | WebKit shards red as expected; Chromium shard 1: R102 race (fails twice) and R122 flaky, both fixed here |
+| Full WebKit run after the fixes (local, 3 workers) | 405 passed, 1 failed (receipt downscale upload poll timed out under load; poll raised to 15 s, then 4 of 4 repeats pass), 13 skipped (Chromium-only cases) |
+| Changed specs in `desktop-chromium` and `mobile-chromium` (about, payment-command, upcoming-read, w5-ux, pending-flash, data-check, persistence, live-signout-blocked, live-expired-session, full-sync, chat R122, phase5 R102) | 90 passed, 2 skipped |
+| `node --test tests/unit/ci-reuse-evidence.test.mjs` and the CI/config unit tests | Pass |
+| `npm run typecheck`, `npm run lint`, `npm run check:docs` | Pass |
 
 ## Not run
-The pull request's Development checks are the broad run, including the first CI WebKit shards.
+The broad run is the pull request's Development checks (Chromium and WebKit shards).
 
 ## Recovery
-Revert this commit; test configuration, CI and documentation only.
+Revert the merge; test harness, CI and documentation only.
 
 ## Open questions
 None.
 
 ## Remaining work
-Triage the 37 WebKit failures (harness adaptations versus real Safari defects); once the advisory shards are green, decide whether to make them gating.
+None. Playwright adds an iPhone 18 Pro Max profile in a later release; switch `mobile-webkit` to it then if its screen differs.

@@ -1,7 +1,7 @@
 import {chooseLanguage,chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
 function preparedWire(value:any){const{data,...metadata}=value;return{...metadata,schemaVersion:2,generation:'fixture-'+value.domain,nextCursor:null,patches:Object.entries(data??{}).map(([key,value])=>({key,mode:'replace',value}))}}
 
-import {test,expect} from '@playwright/test';
+import {test,expect,touchSession} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import sharp from 'sharp';
 import {randomBytes,createHash} from 'node:crypto';
@@ -250,9 +250,9 @@ test('Current refresh clears errors from multiple offline pages and keeps a new 
 
 
 
-test('Native root left swipe reveals navigation at phone tablet and collapsed desktop widths',async({page,context})=>{
+test('Native root left swipe reveals navigation at phone tablet and collapsed desktop widths',async({page})=>{
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',r=>r.fulfill({json:{item:{language:'English'}}}));await setup(page);
- const session=await context.newCDPSession(page);await session.send('Emulation.setTouchEmulationEnabled',{enabled:true});
+ const session=await touchSession(page);await session.send('Emulation.setTouchEmulationEnabled',{enabled:true});
  for(const width of [390,900,1440]){
   await page.setViewportSize({width,height:844});await page.waitForTimeout(450);
   if(width===1440&&await page.getByRole('button',{name:'Collapse navigation',exact:true}).count())await page.getByRole('button',{name:'Collapse navigation',exact:true}).click();
@@ -286,11 +286,13 @@ test('Full app preparation keeps current page usable with header progress then o
 
 test('G07 receipt downscale shows a preparing state and keeps review disabled until the prepared file is attached',async({page})=>{
  const uploads:{type:string;width:number|undefined}[]=[];
+ await page.addInitScript(()=>{const fetch=window.fetch.bind(window);(window as any).__receiptBodies=[];window.fetch=(input:any,init?:RequestInit)=>{if(init?.method==='POST'&&String(input).includes('/receipts/')&&init.body instanceof Blob)(window as any).__receiptBodies.push(init.body);return fetch(input,init)}});
  await page.addInitScript(()=>{const original=window.createImageBitmap.bind(window);(window as any).createImageBitmap=async(...args:any[])=>{await new Promise<void>(resolve=>{(window as any).__releaseBitmap=resolve});return (original as any)(...args)}});
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
   const path=new URL(r.request().url()).pathname;if(path.includes('payment-drafts'))return replyDraft(r);
   if(path.endsWith('/recognition'))return r.fulfill({json:{ok:true,status:'unavailable',reason:'disabled',suggestion:null,warnings:[]}});
-  if(path.includes('/receipts/')&&r.request().method()==='POST'){const body=r.request().postDataBuffer()!;uploads.push({type:r.request().headers()['content-type'],width:(await sharp(body).metadata()).width});return r.fulfill({json:{ok:true,receipt:{receiptId:path.split('/').at(-1)}}})}
+  // WebKit does not report Blob request bodies to Playwright; the page-side copy below stands in there.
+  if(path.includes('/receipts/')&&r.request().method()==='POST'){const body=r.request().postDataBuffer()??Buffer.from(await page.evaluate(async()=>Array.from(new Uint8Array(await (window as any).__receiptBodies.at(-1).arrayBuffer()))));uploads.push({type:r.request().headers()['content-type'],width:(await sharp(body).metadata()).width});return r.fulfill({json:{ok:true,receipt:{receiptId:path.split('/').at(-1)}}})}
   await r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
  });
  await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
@@ -300,7 +302,8 @@ test('G07 receipt downscale shows a preparing state and keeps review disabled un
  await page.locator('input[type=file]').setInputFiles({name:'synthetic-photo.png',mimeType:'image/png',buffer:photo});
  await expect(page.getByText('Preparing receipt…',{exact:true})).toBeVisible();await expect(review).toBeDisabled();expect(uploads).toHaveLength(0);
  await expect.poll(()=>page.evaluate(()=>typeof (window as any).__releaseBitmap)).toBe('function');await page.evaluate(()=>(window as any).__releaseBitmap());
- await expect.poll(()=>uploads.length).toBe(1);await expect(review).toBeEnabled();await expect(page.getByText('Preparing receipt…',{exact:true})).toHaveCount(0);
+ // Encoding the 1700×1275 noise photo is CPU-bound; WebKit's software canvas can take several seconds on a loaded runner.
+ await expect.poll(()=>uploads.length,{timeout:15000}).toBe(1);await expect(review).toBeEnabled();await expect(page.getByText('Preparing receipt…',{exact:true})).toHaveCount(0);
  expect(uploads[0]).toEqual({type:'image/jpeg',width:1600});
 });
 

@@ -280,27 +280,29 @@ jobs:
           if-no-files-found: error
           overwrite: true
 
-  # Advisory iPhone run: the same specs in WebKit on the iPhone 17 Pro Max
-  # profile (PLAYWRIGHT_WEBKIT=1 adds the mobile-webkit project). Not part of
-  # `Development checks result` and continue-on-error, so a WebKit-only
-  # failure is reported without blocking the merge; see the change note of
-  # 6 November 2026 for the known failures.
+  # iPhone run: the same specs in WebKit on the iPhone 17 Pro Max profile
+  # (PLAYWRIGHT_WEBKIT=1 adds the mobile-webkit project), part of
+  # `Development checks result`. WebKit test-harness differences are handled
+  # in tests/e2e/fixtures/test.ts.
   e2e-webkit:
     needs: changes
     if: needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
         shard: [1, 2, 3]
-    name: e2e iPhone WebKit (shard ${{ matrix.shard }} of 3)
+    # The `w` keeps each shard's evidence name distinct from the Chromium shards'.
+    name: e2e iPhone WebKit (shard w${{ matrix.shard }} of 3)
     env:
       PLAYWRIGHT_WEBKIT: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false }
+      - name: Evidence key
+        id: evidence
+        run: node scripts/ci/reuse-evidence.mjs --hash --workflow ci --stage e2e --check "e2e iPhone WebKit (shard w${{ matrix.shard }} of 3)" --out "$RUNNER_TEMP/evidence/{name}.json"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
@@ -323,6 +325,8 @@ jobs:
       - if: steps.pw-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps webkit
       - run: npx playwright test --project=mobile-webkit --shard=${{ matrix.shard }}/3
+      - name: Specs leave the checkout clean
+        run: git diff --exit-code --stat && test -z "$(git status --porcelain)"
       - name: Keep traces and report for failed or flaky tests
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -333,13 +337,22 @@ jobs:
             playwright-report/
           if-no-files-found: ignore
           retention-days: 7
+      # Last step, so it runs only when every step above passed.
+      - name: Keep stage evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.evidence.outputs.name }}
+          path: ${{ steps.evidence.outputs.path }}
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: true
 
   result:
     # Single status for branch protection: fails when any selected stage failed
     # or was cancelled, passes when stages were skipped as not applicable or as
     # covered by an earlier run (named in `evidence`).
     name: Development checks result
-    needs: [changes, check, lint, terraform, e2e]
+    needs: [changes, check, lint, terraform, e2e, e2e-webkit]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -347,8 +360,8 @@ jobs:
       - env:
           EVIDENCE: ${{ needs.changes.outputs.evidence }}
         run: |
-          echo "changes=${{ needs.changes.result }} check=${{ needs.check.result }} lint=${{ needs.lint.result }} terraform=${{ needs.terraform.result }} e2e=${{ needs.e2e.result }}"
+          echo "changes=${{ needs.changes.result }} check=${{ needs.check.result }} lint=${{ needs.lint.result }} terraform=${{ needs.terraform.result }} e2e=${{ needs.e2e.result }} e2e-webkit=${{ needs.e2e-webkit.result }}"
           [ -z "$EVIDENCE" ] || echo "reused: $EVIDENCE"
-          case "${{ needs.changes.result }} ${{ needs.check.result }} ${{ needs.lint.result }} ${{ needs.terraform.result }} ${{ needs.e2e.result }}" in
+          case "${{ needs.changes.result }} ${{ needs.check.result }} ${{ needs.lint.result }} ${{ needs.terraform.result }} ${{ needs.e2e.result }} ${{ needs.e2e-webkit.result }}" in
             *failure*|*cancelled*) echo 'A selected stage failed'; exit 1 ;;
           esac

@@ -1,4 +1,4 @@
-import{test,expect,type Page}from'@playwright/test';
+import{test,expect,type Page}from './fixtures/test';
 // R115 Daily cash withdrawal: header action, as-of reload, remaining and overdraw, one atomic command, return to Cash Position.
 const html='<meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module" src="/tests/e2e/fixtures/daily-cash-withdrawal-harness.tsx"></script>';
 async function fixture(page:Page){

@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page,emitSyntheticUser} from './fixtures/test';
 import {signOut} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 // APP-OFFLINE-02 / APP-UX-SETTINGS-05: while unsynced saved requests exist the Sign out button is disabled and described by a note
@@ -29,7 +29,7 @@ async function setup(page:Page):Promise<Routes>{
 }
 test('sign-out is blocked with sync and review affordances until the saved request is gone',async({page,context})=>{
  const routes=await setup(page);await seedPending(page);
- await page.evaluate(()=>(window as any).emitUser());
+ await emitSyntheticUser(page);
  await account(page);
  const blocked=page.getByRole('button',{name:'Sign out',exact:true}).filter({visible:true});
  await expect(blocked).toBeVisible();await expect(blocked).toBeDisabled();await expect(blocked).toHaveAttribute('aria-disabled','true');
@@ -60,7 +60,7 @@ test('sign-out is blocked with sync and review affordances until the saved reque
 });
 test('denied session keeps saved changes reviewable and a same-UID re-sign-in syncs them without a reload',async({page})=>{
  const routes=await setup(page);routes.status=403;await seedPending(page);
- await page.evaluate(()=>(window as any).emitUser());
+ await emitSyntheticUser(page);
  await expect(page.getByRole('heading',{name:'This account does not have access',exact:true})).toBeVisible();
  await expect.poll(async()=>(await pendingRows(page)).length).toBe(1);
  await account(page);
@@ -78,7 +78,7 @@ test('denied session keeps saved changes reviewable and a same-UID re-sign-in sy
 });
 test('sign-out fails closed when the pending list cannot be read',async({page})=>{
  await setup(page);
- await page.evaluate(()=>(window as any).emitUser());
+ await emitSyntheticUser(page);
  await account(page);await expect(page.getByRole('button',{name:'Sign out',exact:true}).filter({visible:true})).toBeEnabled();await closeAccount(page);
  await page.evaluate(()=>{IDBObjectStore.prototype.getAll=()=> {throw new DOMException('synthetic storage failure','InvalidStateError')}});
  await signOut(page);
@@ -91,7 +91,7 @@ test('the header refresh also wakes the saved-change sync while changes are save
  // Counted only while the tap is being handled, so a lease renewal after a later screen read does not satisfy it.
  // The all-domain prepare is dispatched before the wake, so the wake joins that cycle rather than starting a partial one.
  await page.evaluate(()=>{const w=window as any;w.__inTap=[];window.addEventListener('click',()=>{w.__tap=true;setTimeout(()=>{w.__tap=false})},true);window.addEventListener('mw-offline-queued',()=>{if(w.__tap)w.__inTap.push('queued')});window.addEventListener('mw-offline-prepare',e=>{if(w.__tap&&(e as CustomEvent).detail?.all)w.__inTap.push('prepare-all')})});
- await page.evaluate(()=>(window as any).emitUser());
+ await emitSyntheticUser(page);
  const refresh=page.locator('button.collection-update');await expect(refresh).toBeEnabled();
  await refresh.click();expect(await page.evaluate(()=>(window as any).__inTap)).toEqual(['prepare-all','queued']);
 });

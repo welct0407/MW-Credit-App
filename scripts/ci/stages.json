@@ -13,7 +13,7 @@
       "include": "^(infrastructure/|\\.github/workflows/ci\\.yml$|scripts/ci/)"
     },
     "e2e": {
-      "checks": ["e2e (shard 1 of 3)", "e2e (shard 2 of 3)", "e2e (shard 3 of 3)"],
+      "checks": ["e2e (shard 1 of 3)", "e2e (shard 2 of 3)", "e2e (shard 3 of 3)", "e2e iPhone WebKit (shard w1 of 3)", "e2e iPhone WebKit (shard w2 of 3)", "e2e iPhone WebKit (shard w3 of 3)"],
       "include": "^(apps/pwa/|tests/e2e/|playwright\\.config\\.ts$|package(-lock)?\\.json$|vite\\.config\\.ts$|tsconfig\\.json$|index\\.html$|\\.nvmrc$|\\.github/workflows/ci\\.yml$|scripts/ci/)"
     }
   },

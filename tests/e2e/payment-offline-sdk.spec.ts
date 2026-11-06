@@ -1,4 +1,4 @@
-import {test,expect,chromium} from '@playwright/test';
+import {test,expect,chromium} from './fixtures/test';
 import {spawnSync} from 'node:child_process';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';

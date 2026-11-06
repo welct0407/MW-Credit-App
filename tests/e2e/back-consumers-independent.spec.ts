@@ -1,4 +1,4 @@
-import{test,expect}from'@playwright/test';
+import{test,expect}from './fixtures/test';
 import sharp from 'sharp';
 function preparedWire(value:any){const{data,...metadata}=value;return{...metadata,schemaVersion:2,generation:'fixture-'+value.domain,nextCursor:null,patches:Object.entries(data??{}).map(([key,value])=>({key,mode:'replace',value}))}}
 

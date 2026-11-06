@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './fixtures/test';
 
 // R069 refresh UX: UX-REFRESH-06 (lists hold background swaps during touch/scroll),
 // UX-REFRESH-07 (Cash keeps an open filter undisturbed) and the failed-domain retry back-off.

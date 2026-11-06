@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './fixtures/test';
 import {createServer} from 'node:http';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';

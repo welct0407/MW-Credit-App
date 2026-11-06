@@ -1,4 +1,4 @@
-import {test,expect,chromium,devices,type Page} from '@playwright/test';
+import {test,expect,chromium,devices,type Page} from './fixtures/test';
 import sharp from 'sharp';import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
 const fixtureEnvironment=process.env.PWA_TEST_MODE==='live-prod'?'prod':'dev',fixtureMode=fixtureEnvironment==='prod'?'live-prod':'live-dev',fixtureHost=fixtureEnvironment==='prod'?'lm.mw-credit.com':'dev-lm.mw-credit.com',fixtureReadHost='mw-credit-app-read-'+fixtureEnvironment+'-test.run.app',fixtureCommandHost='mw-credit-app-command-'+fixtureEnvironment+'-test.run.app';
 import {spawnSync} from 'node:child_process';import{mkdtempSync,rmSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';import{startCanonicalFixture,fixtureLaunchArgs,assertServed}from'./fixtures/canonical-server';import{chooseLanguage,chooseLanguagePreservingForm}from'./live-controls';
@@ -21,9 +21,10 @@ const preferenceA={item:{id:'C-partner',version:v,language:'English',statementAc
 test('R102 Cash Statement Date opens on yesterday (Bangkok) over a saved date; the account default applies and the prompt ignores the date',async()=>{
  const day=(offset:number)=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),g=(t:string)=>p.find(x=>x.type===t)!.value;return new Date(Date.UTC(+g('year'),+g('month')-1,+g('day'))-offset*86400000).toISOString().slice(0,10)};
  const yesterday=day(1),twoAgo=day(2),writes:any[]=[];
- const {context,page}=await launch();let current={...structuredClone(preferenceA),item:{...preferenceA.item,statementAccountId:'C-account-2',statementDate:twoAgo},accounts:[...accounts,{id:'C-account-2',label:'Second synthetic account',holderId:'ch:lisa',holderLabel:'Lisa'}],dates:[yesterday,twoAgo,day(3)]};
+ let current={...structuredClone(preferenceA),item:{...preferenceA.item,statementAccountId:'C-account-2',statementDate:twoAgo},accounts:[...accounts,{id:'C-account-2',label:'Second synthetic account',holderId:'ch:lisa',holderLabel:'Lisa'}],dates:[yesterday,twoAgo,day(3)]};
+ // The routes are in place before the first load, so the start-up preference read already returns the saved account.
+ const {context,page}=await launch(false,async context=>{await context.route('https://'+fixtureCommandHost+'/api/preferences',r=>r.fulfill({json:current}));await context.route('https://'+fixtureCommandHost+'/api/operations/**',r=>r.fulfill({json:{kind:'unresolved'}}));await context.route('https://'+fixtureCommandHost+'/api/operations',r=>{const command=r.request().postDataJSON();writes.push(command);current={...current,item:{...current.item,...command.inputs,version:v2}};return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})})});
  try{
-  await context.route('https://'+fixtureCommandHost+'/api/preferences',r=>r.fulfill({json:current}));await context.route('https://'+fixtureCommandHost+'/api/operations/**',r=>r.fulfill({json:{kind:'unresolved'}}));await context.route('https://'+fixtureCommandHost+'/api/operations',r=>{const command=r.request().postDataJSON();writes.push(command);current={...current,item:{...current.item,...command.inputs,version:v2}};return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})});
   await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name:'Cash',exact:true}).filter({visible:true}).click();
   const account=page.getByRole('combobox',{name:'Account',exact:true}),date=page.getByLabel('Statement Date',{exact:true}),note=page.getByText('This account is not your default.',{exact:true});
   await expect(account).toHaveValue('C-account-2');await expect(date).toHaveValue(yesterday);await expect(note).toHaveCount(0);
@@ -35,9 +36,9 @@ test('R102 Cash Statement Date opens on yesterday (Bangkok) over a saved date; t
 test('R102 Cash Statement Date returns to yesterday (Bangkok) after choosing another date, leaving Cash and reopening it',async()=>{
  const day=(offset:number)=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),g=(t:string)=>p.find(x=>x.type===t)!.value;return new Date(Date.UTC(+g('year'),+g('month')-1,+g('day'))-offset*86400000).toISOString().slice(0,10)};
  const yesterday=day(1);
- const {context,page}=await launch();const current={...structuredClone(preferenceA),item:{...preferenceA.item,statementDate:day(2)},dates:[yesterday,day(2),day(3)]};
+ const current={...structuredClone(preferenceA),item:{...preferenceA.item,statementDate:day(2)},dates:[yesterday,day(2),day(3)]};
+ const {context,page}=await launch(false,async context=>{await context.route('https://'+fixtureCommandHost+'/api/preferences',r=>r.fulfill({json:current}));await context.route('https://'+fixtureCommandHost+'/api/operations/**',r=>r.fulfill({json:{kind:'unresolved'}}))});
  try{
-  await context.route('https://'+fixtureCommandHost+'/api/preferences',r=>r.fulfill({json:current}));await context.route('https://'+fixtureCommandHost+'/api/operations/**',r=>r.fulfill({json:{kind:'unresolved'}}));
   const open=async(name:string)=>{await expect(page.locator('dialog.live-menu-dialog[open]')).toHaveCount(0);await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name,exact:true}).filter({visible:true}).click()};
   const date=page.getByLabel('Statement Date',{exact:true});
   await open('Cash');await expect(date).toHaveValue(yesterday);

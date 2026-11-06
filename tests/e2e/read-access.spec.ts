@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './fixtures/test';
 test('synthetic access states hide prior records totals and selected detail in English and Thai',async({page},info)=>{
  const unexpected:string[]=[];page.on('request',r=>{const u=new URL(r.url());if(u.hostname!=='127.0.0.1'||r.method()!=='GET'||u.pathname.startsWith('/api'))unexpected.push(r.url())});
  await page.goto('/');
