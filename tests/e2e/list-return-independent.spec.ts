@@ -553,4 +553,43 @@ test.describe('list return on the legacy read-only Borrowers',()=>{
   expect(await page.evaluate(()=>document.activeElement?.getAttribute('data-record-id')),'no stale focus on the page-2 row').not.toBe('pg-140');
  });
 
+ test('LRP-BOR-4: Back while the detail read is pending does not reopen the borrower, and a late read does not replace the next one',async({page})=>{
+  let detailReads=0;
+  await signIn(page,base,async(path)=>{
+   const env={ok:true,source:'dev',businessDate:BD,asOf:ASOF};
+   if(path==='/api/borrowers')return {...env,items:borrowers,nextCursor:null};
+   const loans=/^\/api\/borrowers\/([^/]+)\/loans$/.exec(path);if(loans)return {...env,items:[],nextCursor:null};
+   const one=/^\/api\/borrowers\/(lb-\d+)$/.exec(path);if(one){detailReads++;await new Promise(done=>setTimeout(done,900));return {...env,item:borrowers.find(b=>b.id===one[1])}}
+   return undefined;
+  },()=>undefined);
+  const tile='.borrower-tile-main[data-record-id="lb-5"]';await expect(page.locator(tile)).toBeVisible();
+  await page.locator(tile).evaluate(node=>(node as HTMLElement).click());
+  // Shown at once, from the row: the name, the list values and no empty or error state.
+  const panel=page.locator('.detail-panel');await expect(panel).toContainText('English 5');await expect(panel).toContainText('9,000');
+  await expect.poll(()=>detailReads).toBeGreaterThan(0);
+  // Back while the read is pending, then let it land: the list stays, the borrower does not reopen.
+  await page.getByRole('button',{name:/^Back to (list|Borrowers)/}).first().click();
+  await expect(page.locator('.detail-panel.unselected, .list-panel').first()).toBeVisible();
+  const frames:string[]=[];for(let i=0;i<14;i++){frames.push(await page.evaluate(()=>String(!!document.querySelector('.detail-panel:not(.unselected) h2')||/English 5/.test((document.querySelector('.detail-panel')as HTMLElement)?.innerText??'')&&innerWidth<=1050&&!!document.querySelector('.loan-record-list')))); await page.waitForTimeout(100)}
+  expect(frames.filter(f=>f==='true').length,'borrower page reappeared after Back').toBe(0);
+  await expect(page.locator('.borrower-tile-main').first()).toBeVisible();
+  // Open another borrower: the first one's late read must not replace it.
+  await page.locator('.borrower-tile-main[data-record-id="lb-6"]').evaluate(node=>(node as HTMLElement).click());
+  await page.waitForTimeout(1300);await expect(page.locator('.detail-panel')).toContainText('English 6');await expect(page.locator('.detail-panel')).not.toContainText('English 5 ');
+ });
+
+ test('LRP-BOR-4: while the detail read is pending the page shows the row, not a false "No loans" state',async({page})=>{
+  await signIn(page,base,async(path)=>{
+   const env={ok:true,source:'dev',businessDate:BD,asOf:ASOF};
+   if(path==='/api/borrowers')return {...env,items:borrowers,nextCursor:null};
+   if(/^\/api\/borrowers\/[^/]+\/loans$/.test(path))return {...env,items:loans.slice(0,3),nextCursor:null};
+   const one=/^\/api\/borrowers\/(lb-\d+)$/.exec(path);if(one){await new Promise(done=>setTimeout(done,900));return {...env,item:borrowers.find(b=>b.id===one[1])}}
+   return undefined;
+  },()=>undefined);
+  await page.locator('.borrower-tile-main[data-record-id="lb-5"]').evaluate(node=>(node as HTMLElement).click());
+  const panel=page.locator('.detail-panel');await expect(panel).toContainText('English 5');
+  const text=await panel.innerText();expect(text,'borrower has loans; nothing may claim otherwise while they load').not.toMatch(/No loans|unavailable|ไม่มี|ไม่สามารถ/i);
+  await expect(page.locator('.loan-record')).toHaveCount(3);
+ });
+
 });

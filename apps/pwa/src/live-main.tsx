@@ -368,12 +368,13 @@ function App() {
   async function openBorrower(row: Borrower) {
     if (!user) return;
     // R131 LRP-BOR-4: the borrower page (and its Back, header or swipe) opens at once from the list row, which has the detail's
-    // shape; the detail read then refreshes it, and a failed read closes it again as before.
-    cancelPending(); clearLoans(); setSelected(row);
+    // shape; the detail read then refreshes it, and a failed read closes it again as before. Its loans show as loading (not "No
+    // loans") until loadLoans answers.
+    cancelPending(); clearLoans(); setSelected(row); setLoanLoading(true);
     const revision = generation.current;
     const detail = await request<DetailResult>(user, '/api/borrowers/' + encodeURIComponent(row.id),undefined,undefined,value=>{if(revision===generation.current)setSelected(value.item)});
     if (detail) { setSelected(detail.item); requestAnimationFrame(() => resetScroll(detailPanel.current)); await loadLoans(user, detail.item.id); }
-    else if (revision === generation.current) setSelected(null);
+    else if (revision === generation.current) { setSelected(null); setLoanLoading(false); }
   }
   async function openLoan(id: string) {
     if (!user || !selected) return;
