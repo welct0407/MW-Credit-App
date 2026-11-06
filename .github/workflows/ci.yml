@@ -324,6 +324,15 @@ jobs:
         run: npx playwright install --with-deps webkit
       - if: steps.pw-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps webkit
+      # The app's font stack (Inter, Segoe UI, Tahoma, sans-serif) falls back to
+      # the generic sans-serif, which is Helvetica on an iPhone. Map it to the
+      # Helvetica-metric Liberation Sans so iPhone text widths are measured,
+      # not the much wider DejaVu Sans the runner picks by default.
+      - name: iPhone sans-serif metrics
+        run: |
+          mkdir -p ~/.config/fontconfig
+          printf '%s\n' '<?xml version="1.0"?>' '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">' '<fontconfig>' '<alias binding="strong"><family>sans-serif</family><prefer><family>Liberation Sans</family></prefer></alias>' '<alias binding="strong"><family>Helvetica</family><prefer><family>Liberation Sans</family></prefer></alias>' '</fontconfig>' > ~/.config/fontconfig/fonts.conf
+          fc-match sans-serif
       - run: npx playwright test --project=mobile-webkit --shard=${{ matrix.shard }}/3
       - name: Specs leave the checkout clean
         run: git diff --exit-code --stat && test -z "$(git status --porcelain)"
