@@ -1,7 +1,7 @@
 # Change notes — R131 follow-ups, 5 November 2026
 
 ## Purpose
-Owner instruction, 5 November 2026: "Finish the remaining work". R131 collects the open follow-ups left by R129 and R130 so they close in one release. Status: items (a) to (d) are done; item (e), added 6 November 2026, is implemented and pushed; the pull request checks are pending. No deployment in R131: the `store.mjs` change is unreachable on V137 databases, so it rides the next product release's images. R131 stays Open after this pull request (no tag or closure now).
+Owner instruction, 5 November 2026: "Finish the remaining work". R131 collects the open follow-ups left by R129 and R130 so they close in one release. Status: items (a) to (d) are done; item (e), added 6 November 2026, is implemented and pushed; the pull request checks passed. Item (e) is deployed to DEV Hosting only (version d843af7381d930cb, under the owner's instruction "Go ahead and push to dev and test it in dev", 6 November 2026; PR #257 opened for the CI gate and not merged); PROD is unchanged. Items (a) to (d) have no deployment in R131: the `store.mjs` change is unreachable on V137 databases, so it rides the next product release's images. R131 stays Open after this pull request (no tag or closure now).
 
 ## Changes
 Items:
@@ -39,17 +39,29 @@ Stays owner-side (not part of this release):
 | Item (e) (Chase), on mobile-webkit (iPhone 17 Pro Max, WebKit 26.6, local Liberation Sans fontconfig as in CI): `list-return-independent`; borrower-search, collection-read, grouped-read, back-consumers-independent, referrers-independent, header-back-independent, collection-loading-shift, late-charge-independent and phase5-borrower-independent | 33 pass, 4 skipped (desktop-only); 135 pass, 2 fail, 2 skipped. The 2 failures are phase5 R120 rebate-terms Thai-label timeouts under parallel load, unrelated to this batch; re-run in isolation they passed 10/10 |
 | Item (e) (Chase), `list-return-independent` on desktop-chromium and mobile-chromium after the import switch; lint; `tsc` e2e | 71 pass, 5 skipped; clean |
 | Item (e) (Echo), real WebKit iPhone 17 Pro Max: every list-return code on Back and on swipe, 40 opens, BOR-4 swipe-back, BOR-6, both pagers in English and Thai | All restored exactly; all opens at the top; 25/25; no new findings |
-| Pull request `Development checks` | Pending: no pull request is opened yet, at the owner's instruction |
+| Pull request `Development checks`, PR #257, run 42191246770 on head 1eff50d | Pass: check, lint, e2e Chromium shards 1 to 3 and e2e iPhone WebKit w1 to w3 succeeded; GitGuardian success; terraform skipped |
 
 ## Not run
 Item (e): a real-device iPhone swipe, and specs for Management, Cash, Saved changes and Notifications. `actionlint` on `database.yml` (not available); the first CI run of the en_US migrations group is this pull request. A skipped check is not a pass.
 
 ## Recovery
-Item (e) is PWA Hosting code only: revert the pull request and redeploy the previous Hosting version; no data or server effect. Git holds the deleted notes. (a) is a one-line `store.mjs` revert and (b) is a CI and test-script revert; neither changes a deployed service or data, and nothing is deployed in R131.
+Item (e) is PWA Hosting code only: revert the pull request and redeploy the previous Hosting version; no data or server effect. Git holds the deleted notes. (a) is a one-line `store.mjs` revert and (b) is a CI and test-script revert; neither changes a deployed service or data. Item (e) is on DEV Hosting only: roll DEV back to the Hosting rollback point 9dad7533660115e2 (see the DEV promotion record below); PROD is unchanged and no data or server is affected.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Item (e): open the pull request when the owner says, then its `Development checks`. Item (e) deploys to Hosting only with the owner's scoped approval; none is given yet.
+- Item (e): DEV smoke by Echo pending. PROD needs the owner's instruction. PR #257 is open for the CI gate and is not merged.
 - None else open beyond the pull request and its checks. The `store.mjs` fix is deployed with the next product release's images; R131 closes with that release's records or when the owner closes it.
+
+## DEV promotion record (Forge, 6 November 2026, UTC)
+Authority: the owner's instruction of 6 November 2026, "Go ahead and push to dev and test it in dev", for item (e); DEV Hosting only. No SQL, image, Terraform, notify, jobs, VM or Metabase change, so no backup; no financial or test write, no forced notification; PROD not touched. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Step | Result |
+| --- | --- |
+| Package | PR #257 head `1eff50d5e395a91917770345408853e54b4b41e9` (unmerged); `Development checks` run 42191246770 success on that head (check, lint, e2e shards 1 to 3, e2e iPhone WebKit w1 to w3, GitGuardian; Terraform skipped). The PR diff touches no `services/`, `database/`, `infrastructure/`, `scripts/`, build configuration or package files. `main`'s `store.mjs` change (item (a)) stays off the DEV command service (on the R130 image), as planned |
+| Baseline | DEV Hosting version `9dad7533660115e2` (R130, release `1793896380073000`), build-version R130 `49f02e1a784c49b44ca4bc34` on all three origins; PROD Hosting `f30d46ce330f69e3` (R130), unchanged after the deploy |
+| Build | `npm ci` and `npm run build:live-dev` in a detached scratch worktree of `1eff50d` as `codex-cloud`; `.env.live-dev` (0600) written from Secret Manager `mw-credit-app-dev-firebase-web` (its `appId`, `projectId` and `authDomain` checked against the DEV web app) plus the DEV read, command and chat origins, `VITE_COMMAND_MODE=dev-owner-testing` and `VITE_NOTIFICATIONS=enabled` (nine settings, as in R130), shredded after the build; worktree removed. Build-version R131 `a4d56edde3fcdc14ce7b8403`, entry `/assets/index-BgFbhcaq.js`, embeds `1eff50d`; only the three DEV service origins appear; `sw.js` carries the version |
+| Hosting | `deploy-hosting.mjs --live-dev --check` (site `mw-credit-app-dev-737787224638`, live-dev, 17 files), then deploy 09:10:38Z to 09:10:45Z: version `d843af7381d930cb`, release `1793956245033000`, FINALIZED |
+| Smoke (read-only) | `dev-lm.mw-credit.com`, the web.app and the firebaseapp.com origins serve build-version R131 `a4d56edd…` and the new entry (200); `sw.js` and `build-version.json` `no-store`; CSP `connect-src` unchanged (the three DEV origins); `/health` 200 on read, command and chat; unauthenticated read and command API calls 401; CORS preflight 204; no ERROR logs on the DEV Cloud Run services 09:05Z to 09:11:15Z |
+| Rollback | Redeploy DEV Hosting version `9dad7533660115e2` (R130) |
