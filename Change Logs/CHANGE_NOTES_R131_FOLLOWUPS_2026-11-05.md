@@ -39,6 +39,7 @@ Stays owner-side (not part of this release):
 | Item (e) (Chase), on mobile-webkit (iPhone 17 Pro Max, WebKit 26.6, local Liberation Sans fontconfig as in CI): `list-return-independent`; borrower-search, collection-read, grouped-read, back-consumers-independent, referrers-independent, header-back-independent, collection-loading-shift, late-charge-independent and phase5-borrower-independent | 33 pass, 4 skipped (desktop-only); 135 pass, 2 fail, 2 skipped. The 2 failures are phase5 R120 rebate-terms Thai-label timeouts under parallel load, unrelated to this batch; re-run in isolation they passed 10/10 |
 | Item (e) (Chase), `list-return-independent` on desktop-chromium and mobile-chromium after the import switch; lint; `tsc` e2e | 71 pass, 5 skipped; clean |
 | Item (e) (Echo), real WebKit iPhone 17 Pro Max: every list-return code on Back and on swipe, 40 opens, BOR-4 swipe-back, BOR-6, both pagers in English and Thai | All restored exactly; all opens at the top; 25/25; no new findings |
+| Item (e) DEV smoke (Echo, 6 November 2026), https://dev-lm.mw-credit.com, build R131 `a4d56edd…`, commit `1eff50d`, as the DEV test Partner; read-only, a network guard aborted every non-GET request to the DEV services | Pass, no findings. iPhone WebKit 17 Pro Max (scroll positions before and after Back): Borrowers list 2969 to 2969 with the row focused, swipe 2039 to 2039; the borrower opens at the top; "Loading borrower…" with disabled actions and no defaults; BOR-4 swipe at 150 to 1300 ms 5/5; borrower, loan, Back to loans 1720 to 1720; Collection, borrower, Back 2631 to 2631, swipe 1791 to 1791; Contributions 224 to 224; Expenses 997 to 997 with the detail at the top; pagers hidden (86 borrowers and 41 collection tiles, both under 100); About shows R131 in development, build `a4d56edd…`, commit `1eff50d`, DEV. Desktop Chromium 1440: Borrowers 2442 to 2442; loading state passes; loan Back 1618 to 1619 (1 px); Collection 2271 to 2271; Contributions 30 to 30 (one frame at 0, minor, noted only); Expenses 751 to 751; Management panes scroll; Notifications not exercised (the DEV history fits on screen) |
 | Pull request `Development checks`, PR #257, run 42191246770 on head 1eff50d | Pass: check, lint, e2e Chromium shards 1 to 3 and e2e iPhone WebKit w1 to w3 succeeded; GitGuardian success; terraform skipped |
 
 ## Not run
@@ -51,7 +52,7 @@ Item (e) is PWA Hosting code only: revert the pull request and redeploy the prev
 None.
 
 ## Remaining work
-- Item (e): DEV smoke by Echo pending. PROD needs the owner's instruction. PR #257 is open for the CI gate and is not merged.
+- Item (e): DEV smoke by Echo done (6 November 2026, no findings). PROD needs the owner's instruction. PR #257 is open for the CI gate and is not merged.
 - None else open beyond the pull request and its checks. The `store.mjs` fix is deployed with the next product release's images; R131 closes with that release's records or when the owner closes it.
 
 ## DEV promotion record (Forge, 6 November 2026, UTC)
