@@ -103,7 +103,7 @@ test('About is reachable signed out from the sign-in card; Back, Escape and brow
  const {text,payload}=await downloadTroubleshooting(page,about);
  expect(text).not.toContain('SYNTHETIC');
  expect(Object.keys(payload).sort()).toEqual(['app','createdAt','device','events','schemaVersion','serviceWorker','session','signedOutStorage']);
- expect(payload.schemaVersion).toBe(1);expect(payload.app.release).toBe(releaseNumber);expect(payload.session).toEqual({status:'signed_out',rootError:null,signInError:null});
+ expect(payload.schemaVersion).toBe(2);expect(payload.app.release).toBe(releaseNumber);expect(payload.session).toEqual({status:'signed_out',rootError:null,signInError:null});
  expect(payload.signedOutStorage.supported).toBe(true);const owner=payload.signedOutStorage.owners.find((item:any)=>item.pending?.length);
  expect(owner.namespace).toMatch(/^[0-9a-f]{16}$/);expect(owner.pending[0]).toMatchObject({operation:'borrower.update',state:'blocked',code:'stale_version',attempted:true,deferred:true});
  const plain=JSON.stringify(payload);for(const sentinel of ['SYNTHETIC SIGNED-OUT NOTE','synthetic-earlier-owner','"value"','inputs'])expect(plain).not.toContain(sentinel);

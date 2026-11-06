@@ -1,6 +1,6 @@
 // First: the troubleshooting event log listens before anything else can fail.
 import {recordClientEvent} from './client-events';
-import {recordStartupMark,sinceAppStart} from './startup-timing';
+import {recordStartupMark,setStartupTimingPersistence,sinceAppStart} from './startup-timing';
 import {usePreferenceSave} from './preference-save';
 import {Icon} from './Icon';
 import {useMenuDrawer} from './menu-drawer';
@@ -498,6 +498,9 @@ function App() {
   const activity=headerActivity({awaitingSession,status,requestKind,headerState});
   // R133 troubleshooting: startup steps of this launch (startup-timing.ts; each is recorded once).
   useEffect(()=>{if(pwa.startup!=='checking')recordStartupMark('startupCheckDone')},[pwa.startup]);
+  // Stored only while a user session exists; a signed-out app keeps no storage (sign-out removes the key).
+  const signedIn=!!user;
+  useEffect(()=>{if(signedIn)setStartupTimingPersistence(true);else if(!['initializing','loading','signing_in'].includes(status))setStartupTimingPersistence(false)},[signedIn,status]);
   useEffect(()=>{if(status!=='ready')return;recordStartupMark('workspaceFirstRender');if(awaitingSession)recordStartupMark('provisionalShown')},[status,awaitingSession]);
   useEffect(()=>{if(offlinePreparation.lastChecked!==null)recordStartupMark('firstSyncDone')},[offlinePreparation.lastChecked]);
   const refreshPull=useWorkspaceGestures(workspace,{refreshing:headerState==='loading',menuMotion:menuDrawer,scope:(user?.uid??'')+':'+view+':'+(activeBack?.navigationKey??'root')+':'+searchOpen+':'+status,canOpenMenu:status==='ready'&&!activeBack&&!searchOpen,onOpenMenu:()=>{if(matchMedia('(max-width:1050px)').matches){menuDrawer.open()}else setNavigationCollapsed(false)},refreshButtonRef:refreshButton,refreshIdentity:activeRefresh});

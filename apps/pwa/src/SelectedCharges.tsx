@@ -138,9 +138,11 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  // writes them only while the borrower's column still holds what the route read.
  const slipPayer=recognized?.slipPayer??null,payerLearns=!!slipPayer&&bankTransfer&&!!recognized?.payerAfter;
  const money=(value:string)=>{if(typeof value!=='string'||!/^-?[0-9]+$/.test(value))return t('Unavailable','ไม่มีข้อมูล');const n=BigInt(value),abs=n<0n?-n:n;return (n<0n?'-':'')+'฿'+abs.toLocaleString(thai?'th-TH':'en-US')};
- async function call(path:string,init:RequestInit={}) {
+ // R133: a write (the payment command, a receipt upload) is 'save'; the draft review, auto-assign and plan POSTs are previews
+ // and pass 'read', so the header says Loading, not Saving.
+ async function call(path:string,init:RequestInit={},kind:'read'|'save'=init.method&&init.method!=='GET'?'save':'read') {
   if(access.offlineOnly||!navigator.onLine)throw Error('Offline');
-  const done=beginRequest(init.method&&init.method!=='GET'?'save':'read'),controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
+  const done=beginRequest(kind),controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
   try {
    const token=await access.token();
    const response=await fetch(access.origin+path,{...init,signal:controller.signal,headers:{'X-MW-Wake-Deadline':String(deadline),...init.headers,Authorization:'Bearer '+token}});
@@ -179,7 +181,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
      setError(t('Saved selection needs conversion review with current component balances.','รายการที่บันทึกไว้ต้องตรวจสอบการแปลงด้วยยอดเงินต้นและดอกเบี้ยปัจจุบัน'));
      if(!access.offlineOnly&&navigator.onLine){
       const ids=saved.value.selectionRows.map((row:any)=>row.id),method=ids.length===1?'Single Full':'Selected Charges';
-      const refreshed=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selectedChargeIds:ids,allocationMethod:method})});
+      const refreshed=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selectedChargeIds:ids,allocationMethod:method})},'read');
       if(current!==generation.current)return;
       if(refreshed.response.ok&&refreshed.data.charges.every((row:any)=>integer(row.principalRemaining)&&integer(row.interestRemaining)&&integer(lateOf(row)))){
        const lines=refreshed.data.charges.map((row:any)=>({chargeId:row.id,principal:row.principalRemaining,interest:row.interestRemaining,lateCharge:lateOf(row),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:lateOf(row),chargeDate:row.chargeDate}));
@@ -219,7 +221,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   if(access.offlineOnly||!navigator.onLine){if(queueEnabled&&draft&&!legacyDraft.current&&validPlan&&draft.accounts.some(row=>row.id===account)&&!uploading&&!uploadFailed&&!changedBalances)return true;setState('edit');setError(t('A valid saved allocation plan is required before offline review.','ต้องมีแผนจัดสรรที่บันทึกและใช้ได้ก่อนตรวจสอบออฟไลน์'));return false;}
   if(localImage&&!receipt&&!queueEnabled){setError(t('Upload the saved receipt or explicitly remove it before review.','อัปโหลดหลักฐานที่บันทึกไว้หรือนำออกก่อนตรวจสอบ'));return false;}
   const current=generation.current;
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,allocations:allocations.map(line8),materialize,principal:principalEntries})});
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,allocations:allocations.map(line8),materialize,principal:principalEntries})},'read');
    if(current!==generation.current||operation!==reviewOperation.current)return false;
    if(!response.ok||data.businessDate!==draft?.businessDate||!data.accounts?.some((row:any)=>row.id===account)){
     if(data.code==='plan_changed'&&Array.isArray(data.charges))setChangedBalances({operation,generation:current,charges:data.charges,upcoming:Array.isArray(data.upcoming)?data.upcoming:[],businessDate:data.businessDate});
@@ -246,7 +248,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   if(slipAmount===undefined&&allocations.some(row=>part(row.principal)>0n||part(row.interest)>0n||part(row.lateCharge)>0n)&&!window.confirm(projectedAllocated?t('Replace the current allocation plan with Auto-assign? Next charges you ticked will be cleared.','แทนที่แผนจัดสรรปัจจุบันด้วยการจัดสรรอัตโนมัติหรือไม่ งวดถัดไปที่เลือกไว้จะถูกล้าง'):t('Replace the current allocation plan with Auto-assign?','แทนที่แผนจัดสรรปัจจุบันด้วยการจัดสรรอัตโนมัติหรือไม่')))return 'skipped';
   const amount=slipAmount??received;
   if(!integer(amount)||BigInt(amount)<=0n)return 'skipped';const current=generation.current,operation=++reviewOperation.current;setAutoEmpty(false);
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/auto-assign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:amount,lineVersion:11})});if(current!==generation.current||operation!==reviewOperation.current)return 'skipped';if(!response.ok||!Array.isArray(data?.allocations))throw Error();legacyDraft.current=false;setUnavailableLines([]);setChangedBalances(null);setAllocations(data.allocations);
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/auto-assign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:amount,lineVersion:11})},'read');if(current!==generation.current||operation!==reviewOperation.current)return 'skipped';if(!response.ok||!Array.isArray(data?.allocations))throw Error();legacyDraft.current=false;setUnavailableLines([]);setChangedBalances(null);setAllocations(data.allocations);
    // R110: money beyond what is due opens the Remainder block (nothing chosen); its previews come with the answer.
    planOperation.current++;setPlan(null);setPurpose(null);setPlanBusy(false);setChoosing(true);setSplitAmount('');lastPurpose.current=null;
    if(typeof data.allocated==='string')setDueInfo({total:data.allocated,allocations:data.allocations});
@@ -271,7 +273,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  /** R110: the server's plan for the chosen use of the remainder (POST /plan); a usable plan collapses the choice. */
  async function loadPlan(body:PlanPurpose){
   const operation=++planOperation.current,current=generation.current;lastPurpose.current=body;setPlanBusy(true);setPlan(null);setError('');
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,purpose:body})});
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,purpose:body})},'read');
    if(operation!==planOperation.current||current!==generation.current)return;
    const value=data?.plan;
    if(!response.ok||!value||!Array.isArray(value.allocations)||!value.allocations.every((line:any)=>typeof line?.chargeId==='string'&&[line.principal,line.interest,line.lateCharge??'0',line.expectedPrincipalRemaining,line.expectedInterestRemaining,line.expectedLateChargeRemaining??'0'].every(whole)&&typeof line.chargeDate==='string'))throw Error();

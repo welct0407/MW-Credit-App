@@ -132,24 +132,31 @@ test('the scrubber keeps the new section fields and still redacts sensitive name
  assert.equal(built.app.startup.current.sessionConfirmedMs,812);
  for(const key of ['auth','firebase','idToken'])assert.equal(built.session[key],'[redacted]',key);
 });
-function memoryStorage(initial){const values=new Map(initial?[['mw-credit-startup-timing',initial]]:[]);return {values,getItem:key=>values.get(key)??null,setItem:(key,value)=>{values.set(key,String(value))}}}
+function memoryStorage(initial){const values=new Map(initial?[['mw-credit-startup-timing',initial]]:[]);return {values,getItem:key=>values.get(key)??null,setItem:(key,value)=>{values.set(key,String(value))},removeItem:key=>{values.delete(key)}}}
 test('startup timing rotates the previous launch, records each mark once and keeps numbers only',()=>{
  const storage=memoryStorage(JSON.stringify({current:{appStart:100,startupCheckDone:900,note:'text',firstSyncDone:'x'},previous:{appStart:1}}));let now=50;
- const first=timing.createStartupTiming({storage:()=>storage,now:()=>now,wallClock:()=>2000,navigation:{type:'reload',responseEnd:120.4}});
+ const first=timing.createStartupTiming({storage:()=>storage,now:()=>now,wallClock:()=>2000,navigation:{type:'reload',responseEnd:120.4},persist:true});
  assert.deepEqual(first.snapshot(),{current:{appStart:2000,navigationType:1,responseEnd:120},previous:{appStart:100,startupCheckDone:900}});
  now=310.6;assert.equal(first.mark('startupCheckDone'),311);now=900;assert.equal(first.mark('startupCheckDone'),311,'the first time is kept');first.mark('sessionConfirmedMs',812);first.mark('unknownMark');
  const saved=JSON.parse(storage.values.get('mw-credit-startup-timing'));assert.deepEqual(saved.current,{appStart:2000,navigationType:1,responseEnd:120,startupCheckDone:311,sessionConfirmedMs:812,unknownMark:900});
  // The next launch keeps only known numeric marks of this one as previous.
- const second=timing.createStartupTiming({storage:()=>storage,now:()=>0,wallClock:()=>3000,navigation:null});
+ const second=timing.createStartupTiming({storage:()=>storage,now:()=>0,wallClock:()=>3000,navigation:null,persist:true});
  assert.deepEqual(second.snapshot(),{current:{appStart:3000},previous:{appStart:2000,navigationType:1,responseEnd:120,startupCheckDone:311,sessionConfirmedMs:812}});
  assert.deepEqual(timing.STARTUP_MARKS,['appStart','navigationType','responseEnd','startupCheckDone','provisionalShown','sessionConfirmedMs','workspaceFirstRender','firstSyncDone']);
 });
+test('startup timing stores nothing until a session exists and removes its key when signed out; memory keeps the launch',()=>{
+ const storage=memoryStorage(JSON.stringify({current:{appStart:100},previous:null})),value=timing.createStartupTiming({storage:()=>storage,now:()=>5,wallClock:()=>2000});
+ value.mark('startupCheckDone');assert.equal(JSON.parse(storage.values.get('mw-credit-startup-timing')).current.appStart,100,'a signed-out launch writes nothing');
+ value.setPersistence(true);assert.deepEqual(JSON.parse(storage.values.get('mw-credit-startup-timing')),{current:{appStart:2000,startupCheckDone:5},previous:{appStart:100}});
+ value.setPersistence(false);assert.equal(storage.values.size,0,'sign-out removes the key');value.mark('firstSyncDone');assert.equal(storage.values.size,0);
+ assert.deepEqual(value.snapshot().current,{appStart:2000,startupCheckDone:5,firstSyncDone:5});
+});
 test('a broken or blocked startup-timing storage loses only the record',()=>{
- for(const storage of [()=>null,()=>{throw Error('SecurityError')},()=>({getItem:()=>'{not json',setItem:()=>{throw Error('QuotaExceededError')}})]){
-  const value=timing.createStartupTiming({storage,now:()=>42,wallClock:()=>7});
-  assert.deepEqual(value.snapshot(),{current:{appStart:7},previous:null});assert.equal(value.mark('workspaceFirstRender'),42);
+ for(const storage of [()=>null,()=>{throw Error('SecurityError')},()=>({getItem:()=>'{not json',setItem:()=>{throw Error('QuotaExceededError')},removeItem:()=>{throw Error('SecurityError')}})]){
+  const value=timing.createStartupTiming({storage,now:()=>42,wallClock:()=>7,persist:true});
+  assert.deepEqual(value.snapshot(),{current:{appStart:7},previous:null});assert.equal(value.mark('workspaceFirstRender'),42);value.setPersistence(false);value.setPersistence(true);
  }
- assert.deepEqual(timing.startupTimingSnapshot(),{current:{},previous:null},'no window: an empty record');assert.equal(timing.recordStartupMark('appStart'),undefined);
+ assert.deepEqual(timing.startupTimingSnapshot(),{current:{},previous:null},'no window: an empty record');assert.equal(timing.recordStartupMark('appStart'),undefined);assert.equal(timing.setStartupTimingPersistence(true),undefined);
 });
 test('busy and queued sync results are logged once per request id and code',()=>{
  events.clearClientEvents();
