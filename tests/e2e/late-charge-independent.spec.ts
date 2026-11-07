@@ -155,6 +155,7 @@ test('Collection row: a refusal shows the refusal text in the toast (class refus
  await expect(toast(page)).toHaveClass(/idle/,{timeout:10000});
  s.drop=99;await recordToasts(page);await increase(chargeRow(page,'Late loan A')).click();
  await expect(toast(page)).toHaveText('Saved on this device. Still checking…');expect(await toastsSeen(page)).toContain('Checking late charge…');
+ await expect(chargeRow(page,'Late loan A').locator('.payment-status-processing')).toHaveText(/฿50 · Checking…$/);
  await expect(chargeRow(page,'Late loan A').locator('.charge-late-line')).toHaveAttribute('aria-busy','true');await expect(increase(chargeRow(page,'Late loan A'))).toBeDisabled();
  // R134 held release: the coordinator later applies it; the toast states the result and the row shows it (LC-SYNC-2/6).
  s.drop=0;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
@@ -180,7 +181,7 @@ test('Collection row: a tap from a stale figure sends nothing, names the server 
  // The charge changed elsewhere after the list loaded: the row still shows no late charge.
  s.late['lc-c0'].due=50;s.late['lc-c0'].version+=1;
  await increase(chargeRow(page,'Late loan A')).click();
- await expect(toast(page)).toHaveText('Late charge is now ฿50');expect(s.operations).toHaveLength(0);
+ await expect(toast(page)).toHaveText('Not changed: late charge is already ฿50');await expect(toast(page)).toHaveClass(/refused/);expect(s.operations).toHaveLength(0);
  await expect(chargeRow(page,'Late loan A').locator('.charge-late-note')).toHaveText('Late charge ฿50');
  await expect(increase(chargeRow(page,'Late loan A'))).toBeEnabled();await increase(chargeRow(page,'Late loan A')).click();
  await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿100');expect(s.operations).toHaveLength(1);expect(s.operations[0]).toMatchObject({expectedVersion:'ver-lc-c0-1',inputs:{lateChargeDue:'100'}});
@@ -194,6 +195,22 @@ test('Collection row: buttons are hidden offline and return online',async({page}
  await page.context().setOffline(false);
  await expect(page.locator('.charge-late-line')).toHaveCount(3);
  expect(s.operations).toHaveLength(0);
+});
+
+test('Charge details: a +50 the server applied but whose answer was lost never shows the old figure again and the next tap sends 150 from 100 (LC-SYNC-6)',async({page})=>{
+ const s=await setup(page);
+ await openDetails(page,'Late loan B');
+ const value=page.locator('dd.late-charge-value');await expect(value).toContainText('฿50');
+ // Every text the value showed from the tap on: the pending text (฿50 → ฿100) and then ฿100 only; a text without ฿100 would be the old figure flashing back.
+ await page.evaluate(()=>{const w=window as any;w.__values=[];const node=document.querySelector('dd.late-charge-value')!;new MutationObserver(()=>{const text=(node.textContent??'').replace(/\s+/g,' ').trim();if(text&&w.__values.at(-1)!==text)w.__values.push(text)}).observe(node,{childList:true,characterData:true,subtree:true})});
+ s.applyDrop=true;await recordToasts(page);await increase(value).click();
+ await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿100');expect(await toastsSeen(page)).toContain('Checking late charge…');
+ await expect(page.locator('dd.late-charge-value')).toContainText('฿100');await expect(increase(page.locator('dd.late-charge-value'))).toBeEnabled();
+ const values=await page.evaluate(()=>(window as any).__values as string[]);
+ expect(values.length).toBeGreaterThan(0);expect(values.filter(text=>!text.includes('฿100'))).toEqual([]);
+ expect(s.operations).toHaveLength(1);expect(s.calls).toContain('GET /api/operations/<id>');
+ await increase(page.locator('dd.late-charge-value')).click();await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿150');
+ expect(s.operations.map(o=>o.inputs.lateChargeDue)).toEqual(['100','150']);expect(s.operations[1].expectedVersion).toBe('ver-lc-c1-1');
 });
 
 test('Charge details: the late charge sits with a stepper and shows paid and remaining; a tap applies at once with a toast; offline the buttons are disabled',async({page})=>{

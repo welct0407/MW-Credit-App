@@ -5,6 +5,7 @@ import {beginRequest} from './request-activity';
 import {syncSavedRequest,savedRejectionMessage,type SavedSyncResult} from './offline-sync';
 import type {CommandAccess} from './SelectedCharges';
 import {useEffect,useRef,useState} from 'react';
+import {useOnline} from './online-status';
 import {LATE_STEP,stepLate,lateAtFloor,lateRejection,lateNote} from './late-charge';
 export {LATE_STEP,stepLate,lateAtFloor,latePart,lateRejection,latePaidFloorText,lateNote} from './late-charge';
 /**
@@ -81,8 +82,11 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
  const release=(chargeId:string,result:SavedSyncResult)=>{
   const h=heldInfo.current[chargeId];if(!h)return;delete heldInfo.current[chargeId];forget(h.requestId);delete latest.current[chargeId];
   const outcome:LateStepOutcome=result.kind==='synced'?{result:'applied',before:h.before,paid:h.paid,after:h.after}:{result:'refused',before:h.before,paid:h.paid};
-  if(result.kind==='synced'){update(chargeId,{state:'saving'});show(appliedText(h.before,h.after,h.after));}else{update(chargeId,{state:'reverted'});show(rejectionText(result),{refused:true});}
-  const run=chain.current.then(async()=>{try{await h.screen.refresh?.(outcome)}catch{}}).finally(()=>{setHeld(old=>{const next={...old};delete next[chargeId];return next});mark(chargeId,null)});
+  if(result.kind==='synced')update(chargeId,{state:'saving'});else{update(chargeId,{state:'reverted'});show(rejectionText(result),{refused:true});}
+  // LC-SYNC-2: an applied release reads the charge once (own timeout) and the toast states that figure; the computed target
+  // only when the read fails. A screen that patches from a read-back (reread) gets it as outcome.item.
+  const applied=async()=>{let fresh:any;if(access){try{fresh=await reread(access,chargeId);if(h.screen.reread){latest.current[chargeId]=fresh;outcome.item=fresh}}catch{}}show(appliedText(h.before,h.after,(fresh&&wholeText(fresh.lateChargeDue??'0'))||h.after));};
+  const run=chain.current.then(async()=>{if(result.kind==='synced')await applied();try{await h.screen.refresh?.(outcome)}catch{}}).finally(()=>{setHeld(old=>{const next={...old};delete next[chargeId];return next});mark(chargeId,null)});
   chain.current=run.catch(()=>undefined);
  };
  const onOutcome=useRef<(detail:any)=>void>(()=>{});
@@ -139,7 +143,7 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
    // R134 stale base: a remembered record that disagrees with the figure the step starts from is confirmed by a live read.
    if(known&&(wholeText(item.lateChargeDue??'0')??'0')!==base)item=await read(a,chargeId,controller.signal);
    before=wholeText(item.lateChargeDue??'0')??'0';paid=wholeText(item.lateChargePaid??'0')??'0';
-   if(before!==base){latest.current[chargeId]=item;update(chargeId,{state:'reverted'});show(t('Late charge is now '+wholeBaht(before),'ค่าปรับล่าช้าตอนนี้เป็น '+wholeBaht(before)));return {result:'stale',before,paid};}
+   if(before!==base){latest.current[chargeId]=item;update(chargeId,{state:'reverted'});show(t('Not changed: late charge is already '+wholeBaht(before),'ไม่ได้เปลี่ยน ค่าปรับล่าช้าเป็น '+wholeBaht(before)+' อยู่แล้ว'),{refused:true});return {result:'stale',before,paid};}
    after=stepLate(before,step,paid);
    // LC-BUSY-5: nothing to change is an ordinary status, not a refusal.
    if(after===before){update(chargeId,{state:'reverted'});show(lateNote(before,paid,thai)||lateNote(paid,paid,thai));return {result:'unchanged',before,paid};}
@@ -162,18 +166,22 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
   *  dimmed with the spinner on the tapped button, "฿50 → ฿100" from the screen) and the sticky "Saving late charge…" toast
   *  shows; the pending look stays through the outcome and screen.refresh, so the old figure never flashes back. */
  function step(chargeId:string,by:number,label:string,screen:LateStepScreen):Promise<LateStepOutcome>{
+  // R134 (Chase low #3): a held charge keeps its held figure; the tap only repeats the held status.
+  if(heldInfo.current[chargeId]){show(heldText());return Promise.resolve({result:'held'});}
   // R134: a tap chained behind a running step on the same charge starts from that step's target, else from the screen.
   const from=chained.current[chargeId]?.after??screen.due,to=stepLate(from,by,screen.paid),token={};chained.current[chargeId]={after:to,token};
   mark(chargeId,{before:from,after:to,direction:by>0?'increase':'decrease',state:'saving'});
   show(t('Saving late charge…','กำลังบันทึกค่าปรับล่าช้า…'),{sticky:true});
-  const run=chain.current.then(async()=>{let outcome:LateStepOutcome={result:'failed'};try{outcome=await once(chargeId,by,label,screen,from);try{await screen.refresh?.(outcome.result==='stale'?{...outcome,result:'unchanged'}:outcome)}catch{}return outcome}finally{if(chained.current[chargeId]?.token===token)delete chained.current[chargeId];if(outcome.result!=='queued')mark(chargeId,null)}});
+  const run=chain.current.then(async()=>{let outcome:LateStepOutcome={result:'failed'};try{outcome=await once(chargeId,by,label,screen,from);try{await screen.refresh?.(outcome.result==='stale'?{...outcome,result:'unchanged'}:outcome)}catch{}return outcome}finally{if(chained.current[chargeId]?.token===token)delete chained.current[chargeId];if(outcome.result!=='queued'&&outcome.result!=='held')mark(chargeId,null)}});
   chain.current=run.catch(()=>undefined);return run;
  }
  const busy=Object.keys(pending)[0]??null;
  const toastElement=<p role="status" aria-live="polite" className={'sync-toast late-charge-toast'+(toast?.refused?' refused':'')+(toast?'':' idle')}>{toast?.text??''}</p>;
  return {busy,pending,held,step,toastElement,show};
 }
-/** LC-BUSY-2/7: the pending figure while a step saves ("฿50 → ฿100", the old one struck), or held ("· Waiting to sync"). */
+/** LC-BUSY-2/7: the pending figure while a step saves ("฿50 → ฿100", the old one struck), or held: online " · Checking…"
+ *  (Echo LC-SYNC-4, the coordinator is still reconciling it), offline " · Waiting to sync". */
 export function LateChargeSaving({pending,thai}:{pending:LatePending;thai:boolean}){
- return <span className="payment-status-processing"><ChangedAmount before={pending.before} after={pending.after} thai={thai}/>{pending.state==='held'?(thai?' · รอซิงค์':' · Waiting to sync'):''}</span>;
+ const online=useOnline();
+ return <span className="payment-status-processing"><ChangedAmount before={pending.before} after={pending.after} thai={thai}/>{pending.state==='held'?(online?(thai?' · กำลังตรวจสอบ…':' · Checking…'):(thai?' · รอซิงค์':' · Waiting to sync')):''}</span>;
 }
