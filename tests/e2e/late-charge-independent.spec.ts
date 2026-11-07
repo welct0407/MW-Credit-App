@@ -14,7 +14,9 @@ const businessDate='2026-10-08',asOf='2026-10-08T05:00:00Z';
 const base3=[{id:'lc-c0',loan:'Late loan A',due:0,paid:0},{id:'lc-c1',loan:'Late loan B',due:50,paid:20},{id:'lc-c2',loan:'Late loan C',due:50,paid:50}];
 type Late={due:number,paid:number,version:number};
 let all=base3;
-type State={late:Record<string,Late>,posts:any[],operations:any[],reviews:any[],rejectNext:boolean,calls:string[],readFail:number,dropNext:boolean,hold:Promise<void>|null,release:(()=>void)|null};
+// drop: how many charge.update POSTs to lose before they apply; applyDrop: the next POST applies, then its answer is lost.
+// applied: the request ids the server recorded as applied (GET /api/operations/:id answers recorded/applied for them).
+type State={late:Record<string,Late>,posts:any[],operations:any[],reviews:any[],rejectNext:boolean,calls:string[],readFail:number,drop:number,applyDrop:boolean,applied:Set<string>,hold:Promise<void>|null,release:(()=>void)|null};
 const row=(s:State,c:typeof base3[number])=>{const l=s.late[c.id];return {id:c.id,loanId:'lc-L-'+c.id,loanDisplayKey:c.loan,chargeDate:businessDate,paymentStatus:'ยังไม่ชำระ',paymentDate:null,amountRemaining:String(110+l.due-l.paid),totalPaid:String(l.paid),receivedToday:'0',lateChargeDue:String(l.due),lateChargeRemaining:String(l.due-l.paid)}};
 const record=(s:State,id:string)=>{const c=all.find(x=>x.id===id)!,l=s.late[id];return {id,loanId:'lc-L-'+id,borrowerName:'LateCharge borrower',borrowerLabel:'LateCharge borrower',chargeDate:businessDate,principalDue:'100',interestDue:'10',lateChargeDue:String(l.due),lateChargePaid:String(l.paid),lateChargeRemaining:String(l.due-l.paid),totalPaid:String(l.paid),amountRemaining:String(110+l.due-l.paid),notes:null,version:`ver-${id}-${l.version}`,repayments:[],allocations:[],loanDisplayKey:c.loan}};
 // The payment draft for Receive payment: one charge that carries a late charge and one that does not (no lateChargeRemaining key).
@@ -22,7 +24,7 @@ const draftCharges=[{id:'lc-p1',chargeDate:businessDate,loanDisplayKey:'Late pay
 const draft={ok:true,mode:'dev-owner-testing',scope:'all',businessDate,asOf,borrower:{id:borrower.id,displayName:borrower.displayName},accounts:[{id:'lc-A',label:'Synthetic receiving account'}]};
 async function setup(page:Page,filler=0){
  all=[...base3,...Array.from({length:filler},(_,i)=>({id:'lc-f'+i,loan:'Filler loan '+i,due:0,paid:0}))];
- const s:State={late:Object.fromEntries(all.map(c=>[c.id,{due:c.due,paid:c.paid,version:0}])),posts:[],operations:[],reviews:[],rejectNext:false,calls:[],readFail:0,dropNext:false,hold:null,release:null};
+ const s:State={late:Object.fromEntries(all.map(c=>[c.id,{due:c.due,paid:c.paid,version:0}])),posts:[],operations:[],reviews:[],rejectNext:false,calls:[],readFail:0,drop:0,applyDrop:false,applied:new Set(),hold:null,release:null};
  page.on('dialog',dialog=>void dialog.accept());
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:auth}));
  await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>{const u=new URL(r.request().url()),charges=u.pathname.endsWith('/charges'),list=u.pathname.endsWith('/upcoming');return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,source:'dev',businessDate,timezone:'Asia/Bangkok',asOf,items:list?[]:charges?all.map(c=>row(s,c)):[borrower],borrower,nextCursor:null,horizonEnd:'2027-01-08',reviewRequired:false})})});
@@ -31,11 +33,12 @@ async function setup(page:Page,filler=0){
   if(path.startsWith('/api/charge-records/')||path.startsWith('/api/operations'))s.calls.push(method+' '+path.replace(/^\/api\/operations\/[0-9a-f-]{36}$/,'/api/operations/<id>'));
   if(path.startsWith('/api/charge-records/')){const id=decodeURIComponent(path.split('/').at(-1)!);if(!s.late[id])return json({ok:false},404);if(s.readFail>0){s.readFail--;return json({ok:false,code:'unavailable'},503)}return json({ok:true,source:'dev',asOf,businessDate,item:record(s,id)})}
   if(path==='/api/operations'&&method==='POST'){const body=r.request().postDataJSON();s.operations.push(body);
-   if(s.hold)await s.hold;if(s.dropNext){s.dropNext=false;return r.abort('failed')}
+   if(s.hold)await s.hold;if(s.drop>0){s.drop--;return r.abort('failed')}
    if(s.rejectNext){s.rejectNext=false;return json({ok:false,kind:'recorded',originalOutcome:{status:'rejected',code:'record_requires_reconciliation',result:null}},409)}
-   const l=s.late[body.targetId];l.due=Number(body.inputs.lateChargeDue);l.version+=1;
+   const l=s.late[body.targetId];l.due=Number(body.inputs.lateChargeDue);l.version+=1;s.applied.add(body.requestId);
+   if(s.applyDrop){s.applyDrop=false;return r.abort('failed')}
    return json({ok:true,kind:'recorded',originalOutcome:{status:'applied',code:null,result:{operation:body.operation,targetType:'charge',targetId:body.targetId,paymentId:null,plan:null,predecessorRequestId:null}}})}
-  if(path.startsWith('/api/operations/'))return json({ok:true,kind:'unresolved',safeToUseNewRequestId:false});
+  if(path.startsWith('/api/operations/')){const id=path.split('/').at(-1)!;if(s.applied.has(id))return json({ok:true,kind:'recorded',originalOutcome:{status:'applied',code:null,result:{operation:'charge.update',targetType:'charge',targetId:null,paymentId:null,plan:null,predecessorRequestId:null}}});return json({ok:true,kind:'unresolved',safeToUseNewRequestId:false})}
   if(path.includes('/payment-drafts/')){
    if(path.endsWith('/review')){const body=r.request().postDataJSON();s.reviews.push(body);return json({...draft,charges:draftCharges,upcoming:[],allocations:body.allocations,materialize:body.materialize??[],principal:body.principal??[],total:body.amountReceived,nextCursor:null})}
    return json({...draft,charges:draftCharges,upcoming:[],nextCursor:null});
@@ -58,6 +61,9 @@ const openDetails=async(page:Page,loan:string)=>{await chargeRow(page,loan).loca
 const toast=(page:Page)=>page.locator('p.sync-toast.late-charge-toast');
 const REFUSED='Late charge cannot be less than what was already paid on it. Refresh to see the current amount.';
 const holdWrites=(s:State)=>{s.hold=new Promise<void>(done=>{s.release=()=>{s.hold=null;done()}})};
+// Every text the toast showed, so a short-lived sticky one ("Checking late charge…") can be asserted afterwards.
+const recordToasts=(page:Page)=>page.evaluate(()=>{const w=window as any;w.__toasts=[];const node=document.querySelector('p.sync-toast.late-charge-toast')!;new MutationObserver(()=>{const text=node.textContent??'';if(text&&w.__toasts.at(-1)!==text)w.__toasts.push(text)}).observe(node,{childList:true,characterData:true,subtree:true})});
+const toastsSeen=(page:Page)=>page.evaluate(()=>(window as any).__toasts as string[]);
 
 test('Collection row: late charge line only for what the row carries; a tap applies at once (no Confirm) and the toast shows the change',async({page})=>{
  const s=await setup(page);
@@ -144,11 +150,40 @@ test('Collection row: a refusal shows the refusal text in the toast (class refus
  // Nothing to change: what was paid grew elsewhere to the whole late charge; the live read leaves nothing to step down, and the row-note wording shows.
  s.late['lc-c1'].paid=50;await decrease(chargeRow(page,'Late loan B')).click();await expect(toast(page)).toHaveText('Late charge ฿50 · ฿50 paid');await expect(toast(page)).not.toHaveClass(/refused/);expect(s.operations).toHaveLength(1);
  await expect(toast(page)).toHaveClass(/idle/,{timeout:6000});
- // The command cannot reach the server: saved on the device, the row's buttons wait for its outcome.
+ // The command cannot reach the server: checked once more (same request id), then saved on the device; online the toast
+ // says it is still checking (LC-SYNC-3/4), and the row's buttons wait for its outcome.
  await expect(toast(page)).toHaveClass(/idle/,{timeout:10000});
- s.dropNext=true;await increase(chargeRow(page,'Late loan A')).click();
- await expect(toast(page)).toHaveText('Saved on this device. Will sync when connected.');
+ s.drop=99;await recordToasts(page);await increase(chargeRow(page,'Late loan A')).click();
+ await expect(toast(page)).toHaveText('Saved on this device. Still checking…');expect(await toastsSeen(page)).toContain('Checking late charge…');
  await expect(chargeRow(page,'Late loan A').locator('.charge-late-line')).toHaveAttribute('aria-busy','true');await expect(increase(chargeRow(page,'Late loan A'))).toBeDisabled();
+ // R134 held release: the coordinator later applies it; the toast states the result and the row shows it (LC-SYNC-2/6).
+ s.drop=0;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+ await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿50',{timeout:20000});
+ await expect(chargeRow(page,'Late loan A').locator('.charge-late-note')).toHaveText('Late charge ฿50');await expect(increase(chargeRow(page,'Late loan A'))).toBeEnabled();
+ const sent=s.operations.slice(1);expect(new Set(sent.map(o=>o.requestId)).size).toBe(1);expect(sent.every(o=>o.inputs.lateChargeDue==='50')).toBe(true);expect(s.late['lc-c0'].due).toBe(50);
+});
+
+// R134 (owner, 7 November 2026): +50 applied on the server, the answer lost, the screen kept the old figure, the next tap added 100.
+test('Collection row: a +50 the server applied but whose answer was lost is reconciled at once and shown; the next tap sends 100 from 50',async({page})=>{
+ const s=await setup(page);
+ s.applyDrop=true;await recordToasts(page);await increase(chargeRow(page,'Late loan A')).click();
+ await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿50');expect(await toastsSeen(page)).toContain('Checking late charge…');
+ await expect(chargeRow(page,'Late loan A').locator('.charge-late-note')).toHaveText('Late charge ฿50');
+ expect(s.operations).toHaveLength(1);expect(s.calls).toContain('GET /api/operations/<id>');
+ await expect(increase(chargeRow(page,'Late loan A'))).toBeEnabled();await increase(chargeRow(page,'Late loan A')).click();
+ await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿100');
+ expect(s.operations.map(o=>o.inputs.lateChargeDue)).toEqual(['50','100']);expect(s.operations[1].expectedVersion).toBe('ver-lc-c0-1');
+});
+
+test('Collection row: a tap from a stale figure sends nothing, names the server figure and refreshes the row',async({page})=>{
+ const s=await setup(page);
+ // The charge changed elsewhere after the list loaded: the row still shows no late charge.
+ s.late['lc-c0'].due=50;s.late['lc-c0'].version+=1;
+ await increase(chargeRow(page,'Late loan A')).click();
+ await expect(toast(page)).toHaveText('Late charge is now ฿50');expect(s.operations).toHaveLength(0);
+ await expect(chargeRow(page,'Late loan A').locator('.charge-late-note')).toHaveText('Late charge ฿50');
+ await expect(increase(chargeRow(page,'Late loan A'))).toBeEnabled();await increase(chargeRow(page,'Late loan A')).click();
+ await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿100');expect(s.operations).toHaveLength(1);expect(s.operations[0]).toMatchObject({expectedVersion:'ver-lc-c0-1',inputs:{lateChargeDue:'100'}});
 });
 
 test('Collection row: buttons are hidden offline and return online',async({page})=>{
