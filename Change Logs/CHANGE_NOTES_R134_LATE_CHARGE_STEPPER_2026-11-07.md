@@ -27,13 +27,34 @@ Team: Archie (root cause), Byte (fix), Chase, Dewey, Echo. Forge for the DEV dep
 | late-charge e2e spec, desktop and mobile Chromium (Byte, `691962d`) | Pass, 28/28 |
 | `Test-MigrationsCloud.py --sql-only` on a fresh V137 cluster (Chase) | 14 PASS: same-request-id replay returns the recorded outcome with one apply; stale `expectedVersion` gives `source_conflict`; one change-log row per step |
 | LC-SYNC-6 e2e (Chase) | Pass 2/2, and fails on the pre-fix stepper |
+| lint, typecheck (Byte, `e1f39a5`) | Pass |
+| unit tests (Byte, `e1f39a5`) | Pass, 24/24 |
+| late-charge spec plus `back-consumers-independent.spec.ts:158`, desktop and mobile Chromium (Byte, `e1f39a5`) | 34 passed |
 | `npm run check:docs` | Pass |
 
-DEV evidence: placeholder until the deploy. Pins live only in the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments); the DEV smoke (repeated presses on one charge, amount and total after each) goes here.
+CI: PR #263 `Development checks` run 42354581503 on `10bd08f` is green after one re-run. iPhone WebKit shard w1 first failed on `tests/e2e/back-consumers-independent.spec.ts:158`, a pre-existing race (a one-shot pending-list read), not R134 code; it passed on re-run, and `e1f39a5` makes it poll.
+
+## DEV promotion record (Forge, 7 November 2026, UTC)
+- Scope: PWA Hosting only; no SQL, image or Terraform change. Target: project `clever-oasis-508610-n7`; Hosting site `mw-credit-app-dev-737787224638` (`dev-lm.mw-credit.com`); DEV web app appId `...b98872168121353cfbe76f`; the bundle holds only DEV origins. Pins are in the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments).
+- Build: `npm run build:live-dev` from `10bd08f`, release R134, build-version `ef863647fe8a59f9b39037c4`, entry `/assets/index-D89oN_L4.js`; `.env.live-dev` deleted after the build.
+- Deploy: `deploy-hosting --live-dev --check` passed (17 files); deployed as `codex-cloud`: Hosting version `b0c8e9cabe1c6ab6`, release `1794040457082000`, live 08:34:17Z. Rollback target `98ccf8104d2e516c` (R133).
+- Smoke: three origins 200, no-store, R134; `sw.js` no-store; `/health` 200 on read, command and chat; requests without a token 401; CORS 204; no DEV ERROR logs.
+
+## DEV feature pass (Chase)
+Test Partner, Chromium with the iPhone 17 Pro Max profile (WebKit not installed locally); one synthetic charge, ฿0 at the start and restored to ฿0.
+- Three quick +50 taps: PASS on Collection and Details.
+- Stale screen: PASS on Collection. On Details, a low defect: a remembered record with an old version and the same figure sent one POST; the server refused it (`source_conflict`) and the refusal text showed. Nothing was double-applied. Fixed in `e1f39a5`: on `source_conflict` it reads once and shows "Not changed: late charge is already ฿X", with a new e2e on Details and on Collection.
+- Lost answer: "Checking…", then the server figure; one POST plus one status GET under the same request id: PASS.
+- −50 back down: PASS.
+
+## Echo DEV review
+Clean. Follow-ups outside R134 scope, recorded and not fixed: LC-SYNC-7, the bottom toast covers the next row's +50 button while saving (that button is disabled); LC-SYNC-8, the header busy state shows "Saving…" inconsistently.
+
+DEV redeploy of `e1f39a5` and re-check: placeholder, pending (Forge deploy, Chase re-check).
 
 ## Not run
 - WebKit e2e: left to the pull request's `Development checks`.
-- DEV deploy and DEV smoke: pending.
+- DEV redeploy of `e1f39a5` and re-check: pending. `10bd08f` is on DEV; `e1f39a5` is local, not pushed.
 
 ## Recovery
 Revert the R134 commits; redeploy the previous DEV Hosting version listed as rollback in the Environment Inventory. No SQL change is expected.
