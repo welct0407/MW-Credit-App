@@ -5,13 +5,13 @@ import {runInNewContext} from 'node:vm';
 import ts from 'typescript';
 const source=ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/offline-sync.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const id='11111111-1111-4111-8111-111111111111';
-function fixture({invalid=false,reject=false,unknown=false,blocked=false,unrecorded=false,receiptUpload=null,busy=0,unavailable=false}={}){
- const exports={},events=[],calls=[];
+function fixture({invalid=false,reject=false,unknown=false,blocked=false,unrecorded=false,receiptUpload=null,busy=0,unavailable=false,appliedThenLost=false}={}){
+ const exports={},events=[],calls=[];let applied=false;
  const receiptId='22222222-2222-4222-8222-222222222222';
  let row={value:receiptUpload?{domain:'payment',command:{schemaVersion:6,requestId:id,borrowerId:'synthetic-borrower',allocations:[],cashAccountId:'account',paymentDate:'2026-10-15',amountReceived:'100',paymentMethod:null,notes:null,receiptId},receipt:{id:receiptId,image:new Blob([new Uint8Array(16)],{type:'image/jpeg'}),borrowerId:'synthetic-borrower'}}:{command:invalid?{requestId:id}:{requestId:id,operation:'loan.update',targetId:'loan',inputs:{principal:'100'}}},sync:{state:blocked?'blocked':'queued',attempted:false,...(blocked?{code:'dependency_conflict'}:{})}};
  const repository={environment:'synthetic',scopeName:'owner',syncAuthorized:async()=>true,claimPending:async()=>row?.sync.state==='blocked'?null:row,pending:async()=>row,markPendingDispatched:async()=>true,settlePending:async(_id,_owner,sync)=>{row=sync?{...row,sync}:null}};
  const window=new EventTarget();window.addEventListener('mw-offline-sync-outcome',event=>events.push(event.detail));
- runInNewContext(source,{exports,require:()=>({commandOriginAllowed:()=>true}),navigator:{onLine:true},location:{origin:'https://synthetic.invalid'},window,crypto,URL,Response,Blob,AbortController,CustomEvent,setTimeout,clearTimeout,fetch:async(url,init)=>{calls.push({url,method:init.method??'GET',body:init.body});if(init.method==='POST'&&url.includes('/receipts/'))return new Response(JSON.stringify(receiptUpload.body),{status:receiptUpload.status});if(init.method==='POST'){if(unknown)throw Error('lost response');if(busy>0){busy--;return new Response(JSON.stringify({ok:false,code:'command_busy'}),{status:409})}if(unavailable)return new Response(JSON.stringify({ok:false,code:'command_unavailable'}),{status:503});if(unrecorded)return new Response(JSON.stringify({code:'record_requires_reconciliation'}),{status:422});return new Response(JSON.stringify({kind:'recorded',originalOutcome:{status:reject?'rejected':'applied',code:reject?'dependency_conflict':undefined}}),{status:reject?422:200})}return new Response(JSON.stringify({kind:'unresolved'}))}});
+ runInNewContext(source,{exports,require:()=>({commandOriginAllowed:()=>true}),navigator:{onLine:true},location:{origin:'https://synthetic.invalid'},window,crypto,URL,Response,Blob,AbortController,CustomEvent,setTimeout,clearTimeout,fetch:async(url,init)=>{calls.push({url,method:init.method??'GET',body:init.body});if(init.method==='POST'&&url.includes('/receipts/'))return new Response(JSON.stringify(receiptUpload.body),{status:receiptUpload.status});if(init.method==='POST'){if(appliedThenLost){applied=true;throw Error('lost response')}if(unknown)throw Error('lost response');if(busy>0){busy--;return new Response(JSON.stringify({ok:false,code:'command_busy'}),{status:409})}if(unavailable)return new Response(JSON.stringify({ok:false,code:'command_unavailable'}),{status:503});if(unrecorded)return new Response(JSON.stringify({code:'record_requires_reconciliation'}),{status:422});return new Response(JSON.stringify({kind:'recorded',originalOutcome:{status:reject?'rejected':'applied',code:reject?'dependency_conflict':undefined}}),{status:reject?422:200})}if(applied)return new Response(JSON.stringify({kind:'recorded',originalOutcome:{status:'applied'}}));return new Response(JSON.stringify({kind:'unresolved'}))}});
  return {sync:options=>exports.syncSavedRequest({origin:'https://synthetic.invalid',offline:repository,token:async()=>'synthetic',authFailure:()=>{}},id,options),dispatched:()=>{row={...row,sync:{...row.sync,attempted:true}}},message:exports.savedRejectionMessage,isBusy:exports.isBusyOutcome,busyMessage:exports.busyMessage,events,calls,row:()=>row};
 }
 // DB-LOCK-01 / W4-UX-01: 409 command_busy applied nothing. The row stays queued under the same request id
@@ -79,4 +79,14 @@ test('fresh never-dispatched request skips the status read; dispatched-but-unset
  // A lost POST response leaves the row dispatched (attempted) and queued: even with fresh, the retry reads status first.
  const lost=fixture({unknown:true});const first=await lost.sync({fresh:true});assert.equal(first.kind,'queued');assert.equal(lost.row().sync.attempted,true);
  await lost.sync({fresh:true});assert.deepEqual(lost.calls.map(call=>call.method),['POST','GET','POST']);
+});
+
+// R134: the server applied the POST but its answer was lost (timeout, offline, pagehide). The first attempt is queued and
+// dispatched; the caller's second attempt (no fresh) reads status first, finds the recorded outcome and never POSTs again.
+test('a dispatched request whose answer was lost reconciles to synced on the second attempt without a second POST',async()=>{
+ const f=fixture({appliedThenLost:true}),first=await f.sync({fresh:true});
+ assert.equal(first.kind,'queued');assert.equal(first.code,'connection_unavailable');assert.equal(f.row().sync.attempted,true);assert.equal(f.events.length,0);
+ const second=await f.sync();
+ assert.equal(second.kind,'synced');assert.equal(f.row(),null);assert.equal(f.events.length,1);assert.equal(f.events[0].kind,'synced');assert.equal(f.events[0].requestId,id);
+ assert.deepEqual(f.calls.map(call=>call.method),['POST','GET']);assert.equal(f.calls.filter(call=>call.method==='POST').length,1);
 });
