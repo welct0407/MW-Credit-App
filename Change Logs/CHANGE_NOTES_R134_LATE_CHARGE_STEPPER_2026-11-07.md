@@ -10,26 +10,36 @@ Status: Open. Authority: fix, deploy to DEV, test in DEV, then owner review. No 
 Team: Archie (root cause), Byte (fix), Chase, Dewey, Echo. Forge for the DEV deploy.
 
 ## Changes
-- Root cause (Archie): to be recorded.
-- Fix (Byte): to be recorded, with files (starting point: `apps/pwa/src/LateChargeStepper.tsx` and its callers `ChargeRecord.tsx`, `CollectionRecords.tsx`, `ChargeForm.tsx`, `PaymentRecord.tsx`).
-- Tests (Byte, Echo): to be recorded (`tests/unit/late-charge-fields.test.mjs`, `tests/e2e/late-charge-independent.spec.ts`).
-- Documents updated: to be recorded.
+- Root cause (Archie): offline-sync resolves `queued` after a dispatched POST whose answer was lost (15 s abort, pagehide or offline, dropped response) although the server applied it. The stepper held the charge, toasted "Saved on this device", and on the later synced outcome only cleared held and pending without refreshing the screen. The next tap live-read the server's 50 and applied 100.
+- Fix (Byte, `dabbec6`, `691962d`), `apps/pwa/src/LateChargeStepper.tsx` only; no API or SQL change:
+  - Stale-base guard: nothing is sent, "Not changed: late charge is already ฿X", and the screen refreshes.
+  - Lost-answer re-check under the same request id ("Checking late charge…").
+  - A held step that is released refreshes the screen and toasts the server's read-back; " · Checking…" shows while online; the re-read has its own timeout.
+  - Known limitation: leaving the screen while a step is held gives no refresh on release; safe because of the version check (`source_conflict`).
+- Review: Chase adversarial review, no blocking defects; Echo UX review LC-SYNC-1 to 6, wording applied. Forge not applicable until the DEV deploy.
+- Documents updated: `project/Documents/Release_Tracker.md` (R134 scope), `project/Documents/Solution_Design.md` (R118 stepper paragraph), `project/Documents/Development_Changes.md` (R134 row).
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| to be recorded | to be recorded |
+| lint, typecheck (Byte, `691962d`) | Pass |
+| unit tests (Byte, `691962d`) | Pass, 24/24 |
+| late-charge e2e spec, desktop and mobile Chromium (Byte, `691962d`) | Pass, 28/28 |
+| `Test-MigrationsCloud.py --sql-only` on a fresh V137 cluster (Chase) | 14 PASS: same-request-id replay returns the recorded outcome with one apply; stale `expectedVersion` gives `source_conflict`; one change-log row per step |
+| LC-SYNC-6 e2e (Chase) | Pass 2/2, and fails on the pre-fix stepper |
+| `npm run check:docs` | Pass |
 
-DEV evidence (to be recorded): Hosting version and API revisions are pinned only in the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments); the DEV smoke (repeated presses on one charge, amount and total charge after each) goes here.
+DEV evidence: placeholder until the deploy. Pins live only in the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments); the DEV smoke (repeated presses on one charge, amount and total after each) goes here.
 
 ## Not run
-To be recorded.
+- WebKit e2e: left to the pull request's `Development checks`.
+- DEV deploy and DEV smoke: pending.
 
 ## Recovery
 Revert the R134 commits; redeploy the previous DEV Hosting version listed as rollback in the Environment Inventory. No SQL change is expected.
 
 ## Open questions
-None yet. Owner review of DEV is pending.
+None. Owner review of DEV is pending.
 
 ## Remaining work
-Root cause, fix, checks, DEV deploy and owner review.
+Push, CI, DEV deploy and smoke, owner review.
