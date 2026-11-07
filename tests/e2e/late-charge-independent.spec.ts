@@ -35,7 +35,9 @@ async function setup(page:Page,filler=0){
   if(path==='/api/operations'&&method==='POST'){const body=r.request().postDataJSON();s.operations.push(body);
    if(s.hold)await s.hold;if(s.drop>0){s.drop--;return r.abort('failed')}
    if(s.rejectNext){s.rejectNext=false;return json({ok:false,kind:'recorded',originalOutcome:{status:'rejected',code:'record_requires_reconciliation',result:null}},409)}
-   const l=s.late[body.targetId];l.due=Number(body.inputs.lateChargeDue);l.version+=1;s.applied.add(body.requestId);
+   const l=s.late[body.targetId];
+   // The version check: a command at an old version is refused and applies nothing.
+   if(body.expectedVersion!==`ver-${body.targetId}-${l.version}`)return json({ok:false,kind:'recorded',originalOutcome:{status:'rejected',code:'source_conflict',result:null}},409);l.due=Number(body.inputs.lateChargeDue);l.version+=1;s.applied.add(body.requestId);
    if(s.applyDrop){s.applyDrop=false;return r.abort('failed')}
    return json({ok:true,kind:'recorded',originalOutcome:{status:'applied',code:null,result:{operation:body.operation,targetType:'charge',targetId:body.targetId,paymentId:null,plan:null,predecessorRequestId:null}}})}
   if(path.startsWith('/api/operations/')){const id=path.split('/').at(-1)!;if(s.applied.has(id))return json({ok:true,kind:'recorded',originalOutcome:{status:'applied',code:null,result:{operation:'charge.update',targetType:'charge',targetId:null,paymentId:null,plan:null,predecessorRequestId:null}}});return json({ok:true,kind:'unresolved',safeToUseNewRequestId:false})}
@@ -187,6 +189,22 @@ test('Collection row: a tap from a stale figure sends nothing, names the server 
  await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿100');expect(s.operations).toHaveLength(1);expect(s.operations[0]).toMatchObject({expectedVersion:'ver-lc-c0-1',inputs:{lateChargeDue:'100'}});
 });
 
+// R134 (Chase, DEV): the remembered record has the screen's figure but an old version, so the stale-base guard passes and
+// the version check refuses the one POST; the outcome is the stale one with the server's figure, not "Could not apply".
+test('Collection row: a remembered read-back at an old version is refused once (source_conflict), shown as "Not changed" with the server figure, and the row refreshes',async({page})=>{
+ const s=await setup(page);
+ await increase(chargeRow(page,'Late loan A')).click();await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿50');
+ // Changed elsewhere: the read-back remembers ฿50 at version 1, the server now holds ฿100 at version 2.
+ s.late['lc-c0'].due=100;s.late['lc-c0'].version+=1;
+ await recordToasts(page);await increase(chargeRow(page,'Late loan A')).click();
+ await expect(toast(page)).toHaveText('Not changed: late charge is already ฿100');await expect(toast(page)).toHaveClass(/refused/);
+ await expect(chargeRow(page,'Late loan A').locator('.charge-late-note')).toHaveText('Late charge ฿100');
+ expect(s.operations.map(o=>o.expectedVersion)).toEqual(['ver-lc-c0-0','ver-lc-c0-1']);expect(s.late['lc-c0']).toMatchObject({due:100,version:2});
+ expect((await toastsSeen(page)).filter(text=>text.startsWith('Could not apply'))).toEqual([]);
+ await expect(increase(chargeRow(page,'Late loan A'))).toBeEnabled();await increase(chargeRow(page,'Late loan A')).click();
+ await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿150');expect(s.operations[2]).toMatchObject({expectedVersion:'ver-lc-c0-2',inputs:{lateChargeDue:'150'}});
+});
+
 test('Collection row: buttons are hidden offline and return online',async({page})=>{
  const s=await setup(page);
  await expect(page.locator('.charge-late-line')).toHaveCount(3);
@@ -211,6 +229,22 @@ test('Charge details: a +50 the server applied but whose answer was lost never s
  expect(s.operations).toHaveLength(1);expect(s.calls).toContain('GET /api/operations/<id>');
  await increase(page.locator('dd.late-charge-value')).click();await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿150');
  expect(s.operations.map(o=>o.inputs.lateChargeDue)).toEqual(['100','150']);expect(s.operations[1].expectedVersion).toBe('ver-lc-c1-1');
+});
+
+test('Charge details: a remembered record at an old version is refused once (source_conflict), shown as "Not changed" with the server figure, and the record refreshes',async({page})=>{
+ const s=await setup(page);
+ await openDetails(page,'Late loan B');
+ const value=()=>page.locator('dd.late-charge-value');await expect(value()).toContainText('฿50');
+ // Changed elsewhere after the page loaded: the page remembers ฿50 at version 0, the server holds ฿100 at version 1.
+ s.late['lc-c1'].due=100;s.late['lc-c1'].version+=1;
+ await recordToasts(page);await increase(value()).click();
+ await expect(toast(page)).toHaveText('Not changed: late charge is already ฿100');await expect(toast(page)).toHaveClass(/refused/);
+ await expect(value()).toContainText('฿100');await expect(value().locator('.payment-status-processing')).toHaveCount(0);
+ expect(s.operations).toHaveLength(1);expect(s.operations[0]).toMatchObject({expectedVersion:'ver-lc-c1-0',inputs:{lateChargeDue:'100'}});expect(s.late['lc-c1']).toMatchObject({due:100,version:1});
+ expect((await toastsSeen(page)).filter(text=>text.startsWith('Could not apply'))).toEqual([]);
+ // The reload gave the current version: the next tap applies from ฿100.
+ await expect(increase(value())).toBeEnabled();await increase(value()).click();
+ await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿150');expect(s.operations[1]).toMatchObject({expectedVersion:'ver-lc-c1-1',inputs:{lateChargeDue:'150'}});
 });
 
 test('Charge details: the late charge sits with a stepper and shows paid and remaining; a tap applies at once with a toast; offline the buttons are disabled',async({page})=>{

@@ -77,7 +77,10 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
  const heldText=()=>navigator.onLine?t('Saved on this device. Still checking…','บันทึกบนอุปกรณ์แล้ว ยังตรวจสอบอยู่…'):t('Saved on this device. Will sync when connected.','บันทึกบนอุปกรณ์แล้ว จะซิงค์เมื่อเชื่อมต่อ');
  // LC-SYNC-2: the "now" figure is the server's read-back when there is one.
  const appliedText=(before:string,after:string,now:string)=>{const diff=BigInt(after)-BigInt(before),sign=diff<0n?'−':'+',amount=wholeBaht((diff<0n?-diff:diff).toString());return t('Late charge '+sign+amount+' · now '+wholeBaht(now),'ค่าปรับล่าช้า '+sign+amount+' · ตอนนี้ '+wholeBaht(now));};
- const rejectionText=(outcome:SavedSyncResult)=>{const code=outcome.code??outcome.data?.originalOutcome?.code??outcome.data?.code??'request_rejected';return lateRejection(code,thai)??savedRejectionMessage(outcome,thai);};
+ const codeOf=(outcome:SavedSyncResult)=>outcome.code??outcome.data?.originalOutcome?.code??outcome.data?.code??'request_rejected';
+ const rejectionText=(outcome:SavedSyncResult)=>lateRejection(codeOf(outcome),thai)??savedRejectionMessage(outcome,thai);
+ /** R134 stale base: nothing changed; the toast names the server's figure (refused style, 6 s) and the screen refreshes. */
+ const stale=(chargeId:string,item:any):LateStepOutcome=>{const before=wholeText(item.lateChargeDue??'0')??'0',paid=wholeText(item.lateChargePaid??'0')??'0';latest.current[chargeId]=item;update(chargeId,{state:'reverted'});show(t('Not changed: late charge is already '+wholeBaht(before),'ไม่ได้เปลี่ยน ค่าปรับล่าช้าเป็น '+wholeBaht(before)+' อยู่แล้ว'),{refused:true});return {result:'stale',before,paid};};
  /** A held charge's outcome arrived: the toast states it, the screen refreshes with it, then the charge is released. */
  const release=(chargeId:string,result:SavedSyncResult)=>{
   const h=heldInfo.current[chargeId];if(!h)return;delete heldInfo.current[chargeId];forget(h.requestId);delete latest.current[chargeId];
@@ -127,7 +130,14 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
    return {result:'applied',before,paid,after,item:fresh};
   }
   delete latest.current[chargeId];
-  if(outcome.kind==='blocked'){forget(requestId);update(chargeId,{state:'reverted'});show(rejectionText(outcome),{refused:true});return {result:'refused',before,paid};}
+  if(outcome.kind==='blocked'){
+   forget(requestId);
+   // R134 (Chase, DEV): a remembered record with the screen's figure but an old version passes the stale-base guard and the
+   // version check refuses the send (source_conflict). Nothing applied: the charge is read once and the step ends as stale
+   // with the server's figure; the refusal text only when that read fails.
+   if(codeOf(outcome)==='source_conflict'){try{return stale(chargeId,await reread(a,chargeId))}catch{}}
+   update(chargeId,{state:'reverted'});show(rejectionText(outcome),{refused:true});return {result:'refused',before,paid};
+  }
   heldInfo.current[chargeId]={requestId,before,paid,after,screen};setHeld(old=>({...old,[chargeId]:requestId}));update(chargeId,{state:'held'});show(heldText());return {result:'queued',before,paid,after};
  }
  async function once(chargeId:string,step:number,label:string,screen:LateStepScreen,base:string):Promise<LateStepOutcome>{
@@ -137,13 +147,13 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
   try{
    const a=access;if(!a?.offline||a.offlineOnly||!navigator.onLine)throw Error('offline');const offline=a.offline;
    // The version comes from a read, never a guess: the screen's own latest record, else the previous step's read-back, else a
-   // live read. A stale one is refused by the version check (source_conflict) and the caller refreshes.
+   // live read. A stale one is refused by the version check (source_conflict) and shown as stale (conclude).
    const shown=screen.known?.(),known=shown&&shown.id===chargeId&&typeof shown.version==='string'?shown:latest.current[chargeId];
    let item=known??await read(a,chargeId,controller.signal);
    // R134 stale base: a remembered record that disagrees with the figure the step starts from is confirmed by a live read.
    if(known&&(wholeText(item.lateChargeDue??'0')??'0')!==base)item=await read(a,chargeId,controller.signal);
    before=wholeText(item.lateChargeDue??'0')??'0';paid=wholeText(item.lateChargePaid??'0')??'0';
-   if(before!==base){latest.current[chargeId]=item;update(chargeId,{state:'reverted'});show(t('Not changed: late charge is already '+wholeBaht(before),'ไม่ได้เปลี่ยน ค่าปรับล่าช้าเป็น '+wholeBaht(before)+' อยู่แล้ว'),{refused:true});return {result:'stale',before,paid};}
+   if(before!==base)return stale(chargeId,item);
    after=stepLate(before,step,paid);
    // LC-BUSY-5: nothing to change is an ordinary status, not a refusal.
    if(after===before){update(chargeId,{state:'reverted'});show(lateNote(before,paid,thai)||lateNote(paid,paid,thai));return {result:'unchanged',before,paid};}
