@@ -5,9 +5,9 @@ Fix the late charge −50 / +50 control so that repeated presses on the same cha
 
 Owner scope, 7 November 2026: "When I add late charge continuously several times on the same charge, there's a chance the latest late charge and total charge is not reflected in the app but already updated; I clicked add late 50, nothing happened, and clicking again resulted in adding 100. Engage the team to check it and fix the issue, test in dev, and let me review."
 
-Status: Open. Authority: fix, deploy to DEV, test in DEV, then owner review. No production approval has been given.
+Status: Released to DEV and PROD (DEV on 7 November 2026 under the fix-and-test-in-DEV scope; PROD on 7 November 2026 under the owner's instruction "Move to production"; package `7e71ae1`, PR #263, tag `R134`). Owner acceptance: none yet beyond the promotion instruction; PROD acceptance pending.
 
-Team: Archie (root cause), Byte (fix), Chase, Dewey, Echo. Forge for the DEV deploy.
+Team: Archie (root cause), Byte (fix), Chase, Dewey, Echo. Forge for the DEV deploy and the PROD promotion.
 
 ## Changes
 - Root cause (Archie): offline-sync resolves `queued` after a dispatched POST whose answer was lost (15 s abort, pagehide or offline, dropped response) although the server applied it. The stepper held the charge, toasted "Saved on this device", and on the later synced outcome only cleared held and pending without refreshing the screen. The next tap live-read the server's 50 and applied 100.
@@ -17,7 +17,8 @@ Team: Archie (root cause), Byte (fix), Chase, Dewey, Echo. Forge for the DEV dep
   - A held step that is released refreshes the screen and toasts the server's read-back; " · Checking…" shows while online; the re-read has its own timeout.
   - Known limitation: leaving the screen while a step is held gives no refresh on release; safe because of the version check (`source_conflict`).
 - Review: Chase adversarial review, no blocking defects; Echo UX review LC-SYNC-1 to 6, wording applied. Forge not applicable until the DEV deploy.
-- Documents updated: `project/Documents/Release_Tracker.md` (R134 scope), `project/Documents/Solution_Design.md` (R118 stepper paragraph), `project/Documents/Development_Changes.md` (R134 row).
+- Fix, second round (Byte, `e1f39a5`): a step refused with `source_conflict` reads once and shows "Not changed: late charge is already ฿X" (Chase's DEV low), with a new e2e on Details and Collection.
+- Documents updated: `project/Documents/Release_Tracker.md` (R134 scope, Released row, R135 opened), `project/Documents/Solution_Design.md` (R118 stepper paragraph), `project/Documents/Development_Changes.md` (R134 row removed at closure), `project/Documents/Environment_Inventory.md` (DEV and PROD Hosting pins).
 
 ## Checks
 | Command | Result |
@@ -58,13 +59,37 @@ Clean. Follow-ups outside R134 scope, recorded and not fixed: LC-SYNC-7, the bot
 
 ## Not run
 - WebKit e2e: left to the pull request's `Development checks`.
-- DEV redeploy of `e1f39a5` and re-check: pending. done, see above.
+- Nothing outstanding for DEV; PROD is read-only smoke only (below).
 
 ## Recovery
-Revert the R134 commits; redeploy the previous DEV Hosting version listed as rollback in the Environment Inventory. No SQL change is expected.
+Git baseline R133 `ac64c6848943c1be51b3983341eaaee9e02b8cb1`. Hosting only: redeploy the previous Hosting version, PROD `8865bcd2e35cb0c7` (release `1794021487660000`, R133) or DEV `98ccf8104d2e516c` (R133); see the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments). No SQL, image or Terraform change, so there is nothing else to undo; rolling back restores the earlier stepper behaviour.
 
 ## Open questions
-None. Owner review of DEV is pending.
+None.
 
 ## Remaining work
-Push, CI, DEV deploy and smoke, owner review.
+- Owner acceptance in PROD (first real use on the iPhone: repeated +50 taps on one charge). None given yet beyond the promotion instruction; it goes into the next closure or product pull request.
+- Follow-ups outside R134 scope, recorded and not fixed: LC-SYNC-7 (the bottom toast covers the next row's +50 button while saving; that button is disabled) and LC-SYNC-8 (the header busy state shows "Saving…" inconsistently).
+- Known limitation: leaving the screen while a step is held gives no refresh on release; the version check (`source_conflict`) keeps it safe. The held run's request-id journal status was not read in the DEV re-check.
+
+## PROD promotion record (Forge, 7 November 2026, UTC)
+Authority: the owner's instruction of 7 November 2026, "Move to production". PWA Hosting only: no SQL, image, Terraform, notify, jobs, VM or Metabase change, so no backup and no owner window; no authenticated PROD read, financial write, forced notification or job run. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in `gs://mw-credit-operator-private-737787224638/promotion-packages/r134/` and the receipt in `promotion-receipts/R134-HOSTING-RECEIPT.json` of the same bucket.
+
+| Step | Result |
+| --- | --- |
+| Package | `main` `7e71ae1` (merge of PR #263; tree matches `fe3627a`, docs-only since the tested `36ca7bc`); baseline R133 `ac64c6848943c1be51b3983341eaaee9e02b8cb1`; freeze 2026-11-07T09:42:51Z; next number R135 |
+| Database | Flyway verify as `codex-cloud-read` 09:44:03Z to 09:44:50Z: schema 137, nothing pending, 0 writes |
+| Target | Project `clever-oasis-508610-n7`, site `mw-credit-prod-737787224638` (`lm.mw-credit.com`), site appId "MW Credit Production" (`...web:0ed0ba9...`); the bundle holds only PROD origins |
+| Configuration | The PROD public configuration is the pinned R133 package configuration (sha256 `6eea01ac…a97e92`); there is no PROD web secret in Secret Manager, as in R133 |
+| Hosting | Build-version R134 `20c5f39fd45f7aaeceeaf256`, entry `/assets/index-25sXaTxR.js`, embeds `7e71ae1`, release R134. CI evidence cited: `Development checks` run 42358685942 on `36ca7bc` (green on the first attempt; 3 Chromium and 3 iPhone WebKit shards). `--apply` as `mw-credit-unattended-admin` 09:46:22Z to 09:46:56Z on the PROD site: version `1719ee72ca51d5b2`, release `1794044810848000`, live 09:46:50.848Z, 18 files (previous `8865bcd2e35cb0c7`, release `1794021487660000`, R133) |
+| Smoke (read-only) | The three origins serve R134 (200, no-store); `sw.js` no-store; `/health` 200 on read, command and chat; unauthenticated 401; CORS 204; the five Cloud Run services unchanged; no PROD ERROR logs since 09:40Z; no financial writes |
+| Rollback | Redeploy PROD Hosting `8865bcd2e35cb0c7` (R133) |
+
+### Limitations
+- No authenticated PROD read was made. The owner's first use on the iPhone is the acceptance. WebKit was not run locally; CI's iPhone WebKit shards passed.
+
+### Tag record
+Annotated tag `R134` (object `4d4480b4f4538f6b2adb4eb86658e89ca651b1f3`) on `7e71ae1` through the Release tag workflow run 42361260174 (succeeded 09:48:35Z), which also published the GitHub Release.
+
+### Prune (closure)
+Deleted after repointing every inbound link to commit `7e71ae1` (the last commit where it exists): `Change Logs/CHANGE_NOTES_R131_FOLLOWUPS_2026-11-05.md` (R131 left the three-release window). The R134 row in Development Changes was removed (the release is Released). R132, R133, the non-release notes and `project/outputs/dictionary-r131-20261105` (still cited by the Data Dictionary) stay.
