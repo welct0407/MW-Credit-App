@@ -5,12 +5,12 @@ Two items: (a) show the ongoing sync or load activity in the header last-update 
 
 Owner scope, 6 November 2026: "When the app is loading/syncing data, or whenever the sync icon is spinning, I want the ongoing activity to be reflected in the area where it shows last update time when it's not spinning, so I know why it's spinning. I also want you to review the troubleshooting file at client side and enhance it to include information helpful for troubleshooting based on recent troubleshooting experience. Engage the team to work on this in the next release".
 
-Status: Released to DEV on 6 November 2026 (PR #261, head `bc0146b`) under the owner's instruction "Move to dev and test it"; not in PROD, no PROD approval has been given; owner acceptance on DEV pending. No production approval has been given. Expected delivery: PWA Hosting only, no SQL, images, Terraform or VM change.
+Status: Released to DEV and PROD (DEV on 6 November 2026 under the owner's instruction "Move to dev and test it"; PROD on 7 November 2026 under "Promote R133 to production"; package `ac64c68`, PR #261, tag `R133`). The owner accepted DEV on 7 November 2026 ("Dev is fine"); PROD acceptance pending. No production approval has been given. Expected delivery: PWA Hosting only, no SQL, images, Terraform or VM change.
 
 Team: Archie, Byte, Chase, Dewey, Echo. Forge is not applicable: no infrastructure change.
 
 ## Changes
-Code commits `b27202a` (Byte), `8a77234` (SYNC-ACT-UX-16 fix), `2f3dd51` (Chase, spec lint), `9dfd7c6` (Chase's Shoulds), `3d44056` (Byte, CI fixes), `2c0f710` and `bc0146b` (Chase, spec guards); PR #261.
+Code commits (PR #261, merged as `ac64c68`) `b27202a` (Byte), `8a77234` (SYNC-ACT-UX-16 fix), `2f3dd51` (Chase, spec lint), `9dfd7c6` (Chase's Shoulds), `3d44056` (Byte, CI fixes), `2c0f710` and `bc0146b` (Chase, spec guards); PR #261.
 
 Item (a), header sync activity label:
 - The cell beside the refresh icon shows the activity only while the icon spins (`headerState==='loading'`); the label is derived from the spinner's own inputs, so it cannot disagree with the spin (SYNC-ACT-UX-1). The first-download bar wins over any label (UX-8).
@@ -83,16 +83,38 @@ Chase review (b27202a): no Must-fix. Should 1 (repair trigger) and Should 2 (dat
 - The Connecting… e2e case and the mobile-webkit project run in Chromium with phone emulation, not the WebKit engine.
 
 ## Recovery
-Git baseline: R132 `ede185f` (PROD package). DEV: redeploy the previous R132 Hosting version recorded in the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments). Nothing is in PROD.
+Git baseline: R132 `ede185f` (PROD package). Git baseline R132 `ede185f`. Hosting only: redeploy the previous Hosting version, PROD `77db38bf4fcb7e80` (release `1793976536948000`, R132) or DEV `884a425a44b01c48` (release `1793976369491000`, R132); see the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments). No SQL, image or Terraform change, so there is nothing else to undo; rolling back removes the header activity label and the schema 2 troubleshooting file.
 
 ## Open questions
-An owner instruction is needed before any PROD promotion.
+None.
 
 ## Remaining work
-Owner acceptance on DEV (the owner's own iPhone use); PROD only on the owner's instruction.
+- Owner acceptance in PROD (first real use on the iPhone): the header label while the icon spins, and an encrypted PROD troubleshooting file with schema 2.
+- Echo UX-17 (320px title shrink) and UX-18 (Signing in… can stay over 1.5 s after the Google popup is closed unanswered) are recorded only.
+- Observed in the owner's DEV file (not an R133 defect, for the next sync work): the first sync's records and collection failed with "0 network" after about 16 s while the DEV command service answered in about 6 s, and a refresh tap 2 s later completed all five domains in 14.5 s.
 
 ## DEV promotion record (Forge, 6 November 2026, UTC)
 - Owner instruction, 6 November 2026: "Move to dev and test it" (DEV only). Executed by Forge as `codex-cloud` in project `clever-oasis-508610-n7`, Hosting site `mw-credit-app-dev-737787224638`; PR #261 head `bc0146b`. The Hosting version, release and rollback pins are in the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments).
 - Scope: PWA Hosting only; no SQL, images, Terraform, notify, jobs, VM or Metabase. Build R133, 17 files, live 21:13:26Z; only DEV origins in the bundle.
 - Read-back: three origins 200, no-store, build R133; `sw.js` no-store; `/health` 200 on read, command and chat; unauthenticated 401; CORS 204; no DEV ERROR logs.
-- Open: owner acceptance on DEV. Known limitations: no real device run; Reading receipt…, Saving… and Signing out… not exercised on DEV.
+- Owner acceptance on DEV, 7 November 2026: "Dev is fine", with an encrypted DEV troubleshooting file from the installed iPhone app (iOS 18.7): R133 `bc0146b`, schema 2, `provisionalShown` 84 ms, `sessionConfirmedMs` 399 ms, 0 failed or queued saves, 79 DEV receipts refused 422 as designed; the decrypted copy was shredded.
+
+## PROD promotion record (Forge, 7 November 2026, UTC)
+Authority: the owner's instruction of 7 November 2026, "Promote R133 to production", after the DEV acceptance "Dev is fine". PWA Hosting only: no SQL, image, Terraform, notify, jobs, VM or Metabase change, so no backup and no owner window; no authenticated PROD read, financial write, forced notification or job run. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in `gs://mw-credit-operator-private-737787224638/promotion-packages/r133/` and the receipt in `promotion-receipts/R133-HOSTING-RECEIPT.json` of the same bucket.
+
+| Step | Result |
+| --- | --- |
+| Package | `main` `ac64c6848943c1be51b3983341eaaee9e02b8cb1` (merge of PR #261, tree identical to the tested head `52e23af`); baseline R132 `ede185fa150850ee512b6bc29e83732ebe826e15`; freeze 2026-11-07T03:15:14Z |
+| Database | Flyway verify as `codex-cloud-read` 03:15:14Z to 03:16:05Z: schema 137 unchanged, 0 writes |
+| Hosting | Generic package schemaVersion 36 `generic-v1`, frontend-only, sha256 `c76dec160a4537112c89171009230ba3e99d0e4c8f95d93ce61a9cd7f8dd6f63`; pinned public configuration sha256 `6eea01ac…a97e92` (as R131 and R132). CI evidence cited: `check` and e2e run 42289161377 (`bc0146b`); `terraform` run 42181245109; guards and database run 42179114186 (as R132). Build-version R133 `ea547bf1e2ff6640bfffb7e8`, entry `/assets/index-D7MIp6Vm.js`, live-prod, `MW_RELEASE_NUMBER=R133`. `--apply` as `mw-credit-unattended-admin` 03:17:40Z to 03:18:14Z on site `mw-credit-prod-737787224638`: version `8865bcd2e35cb0c7`, release `1794021487660000`, live 03:18:07.660Z, 18 files (previous `77db38bf4fcb7e80`, release `1793976536948000`, R132) |
+| Smoke (read-only) | 03:18:20Z to 03:19:02Z: the three origins serve R133 (200, no-store) and the entry contains `ac64c68`; `sw.js` no-store; CSP names only the PROD origins; `/health` 200 on read, command and chat; unauthenticated 401 (read and command session, chat models and threads); CORS 204; the five Cloud Run services unchanged (read `00049-jph`, command `00054-mfx`, notify `00029-2nb`, jobs `00029-9dp`, chat `00033-zwx`); no ERROR or `*_unavailable` logs since 03:10Z |
+| Rollback | Redeploy PROD Hosting `77db38bf4fcb7e80` (R132) |
+
+### Limitations
+- No authenticated PROD read was made. The owner's first use on the iPhone is the acceptance. There was no real-device run beyond the owner's DEV use; Saving…, Reading receipt… and Signing out… were not exercised on DEV.
+
+### Tag record
+Tag `R133` on `ac64c6848943c1be51b3983341eaaee9e02b8cb1` through the Release tag workflow run 42333502947 (queued 03:19:53Z), which also publishes the GitHub Release.
+
+### Prune (closure)
+Deleted after repointing every inbound link to commit `ac64c68` (the last commit where it exists): `Change Logs/CHANGE_NOTES_R130_RECORDS_SYNC_HOTFIX_2026-11-05.md` (R130 left the three-release window). R133 has no section in Development Changes, so none was removed. R132, R131, R129's retained links and the non-release notes stay; no evidence directory became uncited.
