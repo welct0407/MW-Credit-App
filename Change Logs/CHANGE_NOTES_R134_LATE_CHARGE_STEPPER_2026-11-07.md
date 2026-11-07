@@ -50,11 +50,15 @@ Test Partner, Chromium with the iPhone 17 Pro Max profile (WebKit not installed 
 ## Echo DEV review
 Clean. Follow-ups outside R134 scope, recorded and not fixed: LC-SYNC-7, the bottom toast covers the next row's +50 button while saving (that button is disabled); LC-SYNC-8, the header busy state shows "Saving…" inconsistently.
 
-DEV redeploy of `e1f39a5` and re-check: placeholder, pending (Forge deploy, Chase re-check).
+## DEV redeploy of `e1f39a5` and re-check
+- CI: PR #263 `Development checks` run 42358685942 on `36ca7bc` is green on the first attempt; all 3 Chromium and 3 iPhone WebKit shards pass.
+- Redeploy (Forge, 7 November 2026, UTC) from `36ca7bc`, to the verified DEV target (project `clever-oasis-508610-n7`, site `mw-credit-app-dev-737787224638`, DEV appId, DEV-only origins). Build-version R134 `708a5d4089e75f74de0b6a19`; the entry embeds `36ca7bc`. `.env.live-dev` written with 9 settings and deleted after the build. `--check` passed (17 files). Hosting version `5d0c076529cad602`, release `1794043543153000`, live 09:25:43Z. Rollback target `b0c8e9cabe1c6ab6`. Smoke as before: all pass, no DEV ERROR logs since 08:34Z.
+- Re-check (Chase, Test Partner, Chromium iPhone 17 Pro Max profile, same synthetic charge, restored to ฿0, version `57d40645`): Details with a stale remembered record and the same figure sent one POST, refused, toast "Not changed: late charge is already ฿250", screen and server ฿250: PASS. Captured: "Checking late charge…"; held "Saved on this device. Still checking…" with "฿200 → ฿250 · Checking…"; "Not changed…" on Collection and Details; the confirmation "+฿50 · now ฿X" on Collection and Details. The held run was a stale-version send: server ฿300 at version `491ff228` before and after, nothing applied; the screen settled on ฿300 on release. That request id's journal status was not read.
+- Status: awaiting owner review on DEV. PROD not touched.
 
 ## Not run
 - WebKit e2e: left to the pull request's `Development checks`.
-- DEV redeploy of `e1f39a5` and re-check: pending. `10bd08f` is on DEV; `e1f39a5` is local, not pushed.
+- DEV redeploy of `e1f39a5` and re-check: pending. done, see above.
 
 ## Recovery
 Revert the R134 commits; redeploy the previous DEV Hosting version listed as rollback in the Environment Inventory. No SQL change is expected.
