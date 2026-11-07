@@ -67,7 +67,7 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
  }
  async function once(chargeId:string,step:number,label:string,screen:LateStepScreen):Promise<LateStepOutcome>{
   if(heldRef.current[chargeId]){show(t('Saved on this device. Will sync when connected.','บันทึกบนอุปกรณ์แล้ว จะซิงค์เมื่อเชื่อมต่อ'));return {result:'held'};}
-  const done=beginRequest(),controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),15000);
+  const done=beginRequest('save'),controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),15000);
   try{
    const a=access;if(!a?.offline||a.offlineOnly||!navigator.onLine)throw Error('offline');const offline=a.offline;
    // The version comes from a read, never a guess: the screen's own latest record, else the previous step's read-back, else a

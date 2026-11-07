@@ -1,5 +1,6 @@
 // First: the troubleshooting event log listens before anything else can fail.
 import {recordClientEvent} from './client-events';
+import {recordStartupMark,setStartupTimingPersistence,sinceAppStart} from './startup-timing';
 import {usePreferenceSave} from './preference-save';
 import {Icon} from './Icon';
 import {useMenuDrawer} from './menu-drawer';
@@ -33,7 +34,8 @@ import {BorrowerRecord} from './BorrowerRecord';
 import {refreshSnapshot,subscribeRefresh,useContextRefresh} from './context-refresh';
 import {PaymentResult} from './PaymentResult';
 import {useSyncExternalStore} from 'react';
-import {activitySnapshot,subscribeActivity,beginRequest} from './request-activity';
+import {activitySnapshot,activityKindSnapshot,subscribeActivity,beginRequest} from './request-activity';
+import {activityLabel,headerActivity} from './header-activity';
 import {borrowerCount,borrowerRange} from './borrower-count';
 import {CompactPager} from './CompactPager';
 import {SelectedCharges,type CommandAccess} from './SelectedCharges';
@@ -118,7 +120,7 @@ function App() {
   const [postedNotice,setPostedNotice]=useState<string|null>(null),[postedDetails,setPostedDetails]=useState(false);
   const activeBack=useHeaderBack();
   const activeRefresh=useSyncExternalStore(subscribeRefresh,refreshSnapshot);
-  const pendingActivity=useSyncExternalStore(subscribeActivity,activitySnapshot);
+  const pendingActivity=useSyncExternalStore(subscribeActivity,activitySnapshot),requestKind=useSyncExternalStore(subscribeActivity,activityKindSnapshot);
   const borrowerCursors=useRef<(string|undefined)[]>([undefined]),loanCursors=useRef<(string|undefined)[]>([undefined]);
   const [collectionStatus, setCollectionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const menuDialog = useRef<HTMLDialogElement | null>(null);
@@ -419,19 +421,19 @@ function App() {
       // R132: Firebase reports a persisted user only after network calls; the saved identity starts a provisional session now
       // (saved workspace with a lease; reads and writes wait at awaitStartup until the observer confirms the same account).
       const identity=localAvailable?persistedSessionIdentity(config.current.firebase.apiKey??''):null;
-      if(identity){const session=provisionalUser(identity);currentUser.current=session;setUser(session);setSignInError(null);setStatus(offlineBlocked.current?'offline':'loading');}
+      if(identity){const session=provisionalUser(identity);currentUser.current=session;setUser(session);setSignInError(null);setStatus(offlineBlocked.current?'offline':'loading');recordClientEvent({kind:'session',code:'provisional',message:sinceAppStart()+'ms'});}
       unsubscribe = onAuthStateChanged(instance, next => {
         if (disposed || (signingOut.current && next)) return;
         // The same account confirms the provisional session in place (no reload); another account or none rejects it and
         // continues below as a switch or a sign-out.
         const session=unconfirmedSession(currentUser.current);
-        if(session){const confirmed=!!next&&session.confirm(next);if(!confirmed)session.reject(Error('Session unavailable'));sessionSettled();if(confirmed)return;}
+        if(session){const confirmed=!!next&&session.confirm(next);if(!confirmed)session.reject(Error('Session unavailable'));sessionSettled();const at=sinceAppStart();recordClientEvent({kind:'session',code:confirmed?'confirmed':'rejected',message:at+'ms'});if(confirmed){recordStartupMark('sessionConfirmedMs',at);return;}}
         if(!next||currentUser.current&&currentUser.current.uid!==next.uid)purgeKeepPending();
         if(next&&offlineRepositoryRef.current?.revoked())void purgeTask.current.then(()=>{if(!disposed)setRepositoryRevision(value=>value+1)});
         if (offlineBlocked.current) { clear();currentUser.current=next;setUser(next);setStatus('offline');return; }
         resetSearch(); clear(); currentUser.current = next; setUser(next);setAuthRevision(value=>value+1);
         if (next) { setSignInError(null); setView(businessWorkspace?'dashboard':'borrowers'); setStatus('loading'); } else setStatus('signed_out');
-      }, () => { const session=unconfirmedSession(currentUser.current);if(session){session.reject(Error('Session unavailable'));currentUser.current=null;setUser(null);sessionSettled();} if (!disposed && !offlineBlocked.current) { clear(); setStatus('auth_unavailable'); } });
+      }, () => { const session=unconfirmedSession(currentUser.current);if(session){session.reject(Error('Session unavailable'));currentUser.current=null;setUser(null);sessionSettled();recordClientEvent({kind:'session',code:'rejected',message:sinceAppStart()+'ms'});} if (!disposed && !offlineBlocked.current) { clear(); setStatus('auth_unavailable'); } });
     } catch { setStatus(offlineBlocked.current ? 'offline' : 'unavailable'); }
     return () => { disposed = true; unsubscribe?.(); generation.current++;for(const controller of pendingReads.current)controller.abort();pendingReads.current.clear();pending.current?.abort(); };
   }, []);
@@ -445,7 +447,7 @@ function App() {
     // R132: a provisional session shows the saved workspace at once when the device lease is valid; without one it stays
     // "Connecting…" until Firebase confirms the account. Its reads wait at awaitStartup either way.
     const session=unconfirmedSession(user);if(!session){proceed();return}
-    void(async()=>{const authorized=liveOfflineEnabled&&!!offlineRepository&&await offlineRepository.syncAuthorized().catch(()=>false);if(!active||currentUser.current!==user)return;if(!authorized)await session.ready;if(active&&currentUser.current===user)proceed()})().catch(()=>{});return()=>{active=false}},[user,pwa.startup,authRevision,offlineRepository]);
+    void(async()=>{const authorized=liveOfflineEnabled&&!!offlineRepository&&await offlineRepository.syncAuthorized().catch(()=>false);if(!active||currentUser.current!==user)return;if(!authorized){recordClientEvent({kind:'session',code:'no-lease',message:sinceAppStart()+'ms'});await session.ready}if(active&&currentUser.current===user)proceed()})().catch(()=>{});return()=>{active=false}},[user,pwa.startup,authRevision,offlineRepository]);
   async function login() {
     if (!auth || offlineBlocked.current) return;
     clear(); setSignInError(null); setStatus('signing_in');
@@ -492,6 +494,15 @@ function App() {
   // (read-cache.ts records no refresh failure for an offline read; a failure that persists shows again once online).
   const loadedState = awaitingSession ? 'loading' : pendingActivity>0 ? 'loading' : readRefreshFailed ? 'error' : ['loading', 'initializing', 'signing_in', 'signing_out'].includes(status) ? 'loading' : status !== 'ready' ? ['error', 'denied', 'sign_out_error', 'auth_unavailable', 'unavailable'].includes(status) ? 'error' : 'idle' : view === 'collection' ? collectionStatus : busy ? 'loading' : 'success';
   const headerState = loadedState==='error'&&!online ? 'idle' : loadedState;
+  // R133 SYNC-ACT-UX-1: what the spinning refresh icon waits for, from the same inputs as headerState (null unless it spins).
+  const activity=headerActivity({awaitingSession,status,requestKind,headerState});
+  // R133 troubleshooting: startup steps of this launch (startup-timing.ts; each is recorded once).
+  useEffect(()=>{if(pwa.startup!=='checking')recordStartupMark('startupCheckDone')},[pwa.startup]);
+  // Stored only while a user session exists; a signed-out app keeps no storage (sign-out removes the key).
+  const signedIn=!!user;
+  useEffect(()=>{if(signedIn)setStartupTimingPersistence(true);else if(!['initializing','loading','signing_in'].includes(status))setStartupTimingPersistence(false)},[signedIn,status]);
+  useEffect(()=>{if(status!=='ready')return;recordStartupMark('workspaceFirstRender');if(awaitingSession)recordStartupMark('provisionalShown')},[status,awaitingSession]);
+  useEffect(()=>{if(offlinePreparation.lastChecked!==null)recordStartupMark('firstSyncDone')},[offlinePreparation.lastChecked]);
   const refreshPull=useWorkspaceGestures(workspace,{refreshing:headerState==='loading',menuMotion:menuDrawer,scope:(user?.uid??'')+':'+view+':'+(activeBack?.navigationKey??'root')+':'+searchOpen+':'+status,canOpenMenu:status==='ready'&&!activeBack&&!searchOpen,onOpenMenu:()=>{if(matchMedia('(max-width:1050px)').matches){menuDrawer.open()}else setNavigationCollapsed(false)},refreshButtonRef:refreshButton,refreshIdentity:activeRefresh});
   const navigation = (location: 'desktop' | 'mobile-bottom' | 'drawer') => {
     if (status !== 'ready') return null;
@@ -679,7 +690,7 @@ function App() {
     </form> : <>
     {(!signedOutCard||activeBack||(pwa.canonical&&(!pwa.standalone||pwa.waiting||pwa.reloadAvailable||pwa.unavailable)))&&<button type="button" ref={menuToggle} className={"live-menu-toggle secondary-button"+(activeBack?" has-back":"")} disabled={activeBack?.disabled} aria-label={activeBack?.label??t('Open navigation', 'เปิดเมนู')} onClick={event => activeBack?activeBack.run(event):menuDrawer.open()}><Icon name={activeBack?"back":"menu"}/></button>}
     <LiveBrand logo={logo} alt={t('MW Credit','MW สินเชื่อ')} title={showAboutOverlay?t('About','เกี่ยวกับ'):user?liveTitle(view,managementSection,t):t('MW Credit','MW สินเชื่อ')} query={view==='chat'&&user&&!showAboutOverlay?chatTitle:appliedQuery}/>
-    <div className="live-header-actions">{(pwa.activating||pwa.reloading||pwa.startup==='upgrading'||pwa.startup==='checking'&&!workspaceVisible)&&<span className="app-update-status" role="status">{pwa.startup==='checking'?t('Checking app…','กำลังตรวจสอบแอป…'):pwa.activating||pwa.reloading?t('Updating app… you will return to this screen.','กำลังอัปเดตแอป… จะกลับมาที่หน้าจอนี้'):t('Updating app…','กำลังอัปเดตแอป…')}</span>}{status === 'ready' && !['expenses','cash','dashboard','upcoming','notifications','about','chat'].includes(view) && <button type="button" ref={searchToggle} className="live-header-refresh" aria-label={t('Search borrowers', 'ค้นหาผู้กู้')} title={t('Search borrowers', 'ค้นหาผู้กู้')} onClick={() => { setSearchDraft(searchQuery.current); setSearchOpen(true); }}><Icon name="search"/></button>}<span className="header-sync-cell"><SyncStatus preparation={offlinePreparation} thai={thai} visible={status==='ready'||offlinePreparation.syncActive}/></span>{status==='ready'&&user&&<DataCheckIndicator preparation={offlinePreparation} thai={thai} onOpen={openDataCheck}/>}{(user||headerState==='loading')&&<button type="button" ref={refreshButton} className={"live-header-refresh collection-update"+(headerState==='error'?' refresh-failed':'')} data-refresh-state={headerState} aria-busy={headerState==='loading'} disabled={status!=='ready'||startupHeld||headerState==='loading'} aria-label={activeRefresh?.label??(view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก'))} title={headerState==='error'?t('Refresh failed — tap to retry','รีเฟรชไม่สำเร็จ — แตะเพื่อลองอีกครั้ง'):activeRefresh?.label??(view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก'))} onClick={refreshCurrentScreen}><span aria-hidden="true" className={headerState==='loading'?'collection-spinner':''}>{headerState!=='loading'&&<Icon name="refresh"/>}</span>{headerState==='error'&&<span className="refresh-failure-badge" aria-hidden="true"><Icon name="warning"/></span>}<span className="live-status-text" role="status" aria-live="polite">{refreshFeedback||(headerState==='loading'?awaitingSession?t('Connecting…','กำลังเชื่อมต่อ…'):t('Loading…','กำลังโหลด…'):headerState==='error'?t('Could not update','อัปเดตไม่สำเร็จ'):t('Ready','พร้อม'))}</span></button>}</div>
+    <div className="live-header-actions">{(pwa.activating||pwa.reloading||pwa.startup==='upgrading'||pwa.startup==='checking'&&!workspaceVisible)&&<span className="app-update-status" role="status">{pwa.startup==='checking'?t('Checking app…','กำลังตรวจสอบแอป…'):pwa.activating||pwa.reloading?t('Updating app… you will return to this screen.','กำลังอัปเดตแอป… จะกลับมาที่หน้าจอนี้'):t('Updating app…','กำลังอัปเดตแอป…')}</span>}{status === 'ready' && !['expenses','cash','dashboard','upcoming','notifications','about','chat'].includes(view) && <button type="button" ref={searchToggle} className="live-header-refresh" aria-label={t('Search borrowers', 'ค้นหาผู้กู้')} title={t('Search borrowers', 'ค้นหาผู้กู้')} onClick={() => { setSearchDraft(searchQuery.current); setSearchOpen(true); }}><Icon name="search"/></button>}<span className="header-sync-cell"><SyncStatus preparation={offlinePreparation} thai={thai} visible={status==='ready'||offlinePreparation.syncActive} activity={activity}/></span>{status==='ready'&&user&&<DataCheckIndicator preparation={offlinePreparation} thai={thai} onOpen={openDataCheck}/>}{(user||headerState==='loading')&&<button type="button" ref={refreshButton} className={"live-header-refresh collection-update"+(headerState==='error'?' refresh-failed':'')} data-refresh-state={headerState} aria-busy={headerState==='loading'} disabled={status!=='ready'||startupHeld||headerState==='loading'} aria-label={activeRefresh?.label??(view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก'))} title={headerState==='error'?t('Refresh failed — tap to retry','รีเฟรชไม่สำเร็จ — แตะเพื่อลองอีกครั้ง'):activeRefresh?.label??(view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก'))} onClick={refreshCurrentScreen}><span aria-hidden="true" className={headerState==='loading'?'collection-spinner':''}>{headerState!=='loading'&&<Icon name="refresh"/>}</span>{headerState==='error'&&<span className="refresh-failure-badge" aria-hidden="true"><Icon name="warning"/></span>}<span className="live-status-text" role="status" aria-live="polite">{refreshFeedback||(headerState==='loading'?activityLabel(activity,thai):headerState==='error'?t('Could not update','อัปเดตไม่สำเร็จ'):t('Ready','พร้อม'))}</span></button>}</div>
     </>}
   </header><div className={'live-body ' + (navigationCollapsed ? 'nav-collapsed' : '')}><aside id="live-desktop-navigation" className="live-desktop-nav"><button type="button" className="live-nav-collapse" aria-expanded={!navigationCollapsed} aria-controls="live-desktop-navigation" aria-label={navigationCollapsed ? t('Expand navigation', 'ขยายเมนู') : t('Collapse navigation', 'ย่อเมนู')} title={navigationCollapsed ? t('Expand navigation', 'ขยายเมนู') : t('Collapse navigation', 'ย่อเมนู')} onClick={() => setNavigationCollapsed(value => !value)}><Icon name={navigationCollapsed?'panel-open':'panel-close'}/></button>{navigation('desktop')}{accountControls(navigationCollapsed,'sidebar')}</aside><main ref={workspace} data-workspace={view} data-management-section={managementSection} onClickCapture={event => { if (searchOpen && event.target instanceof Element && event.target.closest('button:not(:disabled)')) finishSearchNavigation(); }}>
     {refreshFeedback&&<p role="status" className="refresh-feedback">{refreshFeedback}</p>}

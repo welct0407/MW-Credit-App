@@ -22,7 +22,7 @@ function build(outDir:string,withChat:boolean,notifications=false){
  const result=spawnSync(process.execPath,['--input-type=module','-e',script],{encoding:'utf8',env});expect(result.status,result.stderr).toBe(0);
 }
 test.beforeAll(async()=>{root=mkdtempSync(join(tmpdir(),'mw-chat-e2e-'));build(join(root,'chat'),true);build(join(root,'plain'),false);build(join(root,'notify'),true,true);fixture=await startCanonicalFixture(join(root,'chat'))});
-test.afterAll(async()=>{await fixture?.close();rmSync(root,{recursive:true,force:true})});
+test.afterAll(async()=>{await fixture?.close();if(root)rmSync(root,{recursive:true,force:true})});
 test.setTimeout(60000);
 
 const iso=(minutesAgo:number)=>new Date(Date.now()-minutesAgo*60000).toISOString();
