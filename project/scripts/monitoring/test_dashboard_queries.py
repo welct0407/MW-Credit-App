@@ -447,7 +447,8 @@ class AnthropicCost(unittest.TestCase):
 
 
 class AnthropicCostMonth(unittest.TestCase):
-    """anthropic-cost-month.jq (owner, 8 November 2026): the current UTC calendar month against the US$200 limit."""
+    """anthropic-cost-month.jq (owner, 8 November 2026): the current UTC calendar month against the US$200 limit,
+    from a rolling 31 days of complete UTC days (the live report rounds the start up and the end down)."""
     LIMIT = 200
 
     def q(self, data):
@@ -458,32 +459,36 @@ class AnthropicCostMonth(unittest.TestCase):
         return {'starting_at': start.isoformat() + 'T00:00:00Z', 'ending_at': (start + dt.timedelta(days=1)).isoformat() + 'T00:00:00Z',
                 'results': [{'currency': 'USD', 'amount': c, 'model': None, 'cost_type': None, 'token_type': None, 'description': None} for c in cents]}
 
+    def previous(self, *cents):
+        """Buckets of the last days of the month before, as a rolling 31-day window returns them."""
+        last = dt.datetime.now(dt.timezone.utc).date().replace(day=1) - dt.timedelta(days=1)
+        return [self.bucket(last.day - i, c, month=last) for i, c in enumerate(cents)]
+
     def test_month_to_date_and_share_of_limit(self):
         rows = self.q({'data': [self.bucket(1, '123.5', '10'), self.bucket(1), self.bucket(1, '557.5')], 'has_more': False, 'next_page': None})
         self.assertEqual(len(rows), 1)
         self.assertAlmostEqual(rows[0]['USD'], 6.91)
         self.assertAlmostEqual(rows[0]['Share'], 6.91 / 200 * 100)
 
-    def test_empty_month_is_zero_not_no_data(self):
+    def test_previous_month_buckets_are_dropped(self):
+        rows = self.q({'data': self.previous('900', '4000', '12345') + [self.bucket(1, '100')], 'has_more': False})
+        self.assertEqual(rows, [{'USD': 1, 'Share': 0.5}])
+
+    def test_empty_current_month_is_zero_percent(self):
+        # On the 1st (UTC) the window holds only the month before: 0, never the previous month and never no data.
+        self.assertEqual(self.q({'data': self.previous('900', '4000'), 'has_more': False}), [{'USD': 0, 'Share': 0}])
         self.assertEqual(self.q({'data': [self.bucket(1)], 'has_more': False}), [{'USD': 0, 'Share': 0}])
         self.assertEqual(self.q({'data': [], 'has_more': False}), [{'USD': 0, 'Share': 0}])
 
     def test_over_limit_exceeds_100_percent(self):
-        row = self.q({'data': [self.bucket(1, '15000'), self.bucket(1, '10000.5')], 'has_more': False})[0]
+        row = self.q({'data': self.previous('99999') + [self.bucket(1, '15000'), self.bucket(1, '10000.5')], 'has_more': False})[0]
         self.assertAlmostEqual(row['USD'], 250.005)
         self.assertGreater(row['Share'], 100)
         self.assertAlmostEqual(row['Share'], 125.0025)
 
-    def test_previous_utc_month_bucket_is_left_out(self):
-        # The Bangkok month start (now/M) falls on the last UTC day of the month before.
-        first = dt.datetime.now(dt.timezone.utc).date().replace(day=1)
-        last = first - dt.timedelta(days=1)
-        rows = self.q({'data': [self.bucket(last.day, '900', month=last), self.bucket(1, '100')], 'has_more': False})
-        self.assertEqual(rows, [{'USD': 1, 'Share': 0.5}])
-
     def test_truncated_or_unreadable_report_fails_visibly(self):
         for bad in ({'data': [self.bucket(1, '5')], 'has_more': True, 'next_page': 'page_x'},
-                    {'type': 'error', 'error': {'type': 'permission_error', 'message': 'denied'}}):
+                    {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Invalid date range: ending date must be after starting date'}}):
             with self.assertRaises(ValueError, msg=bad):
                 self.q(bad)
 

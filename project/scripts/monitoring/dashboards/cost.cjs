@@ -179,9 +179,9 @@ function providerRow(id, title, y, oldRowId, ids) {
 
 function rules() {
   return L.text({id: 40, title: 'Unchanged rules of reading', gridPos: pos(0, 23, 24, 4),
-    description: 'How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile its current calendar month in UTC days, so the top rows are not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.',
+    description: 'How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile the current UTC calendar month in complete UTC days (up to yesterday, UTC), so the top rows are not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.',
     content: 'Cost data is delayed and provisional, no data is not zero spending, and the total combines provider periods (GCP Singapore dates, Railway cycle), so it is not an invoice. ' +
-      'The Claude API tile is USD against its US$' + ANTHROPIC_LIMIT_USD + ' monthly limit (calendar month, UTC days) and is not in the SGD total. ' +
+      'The Claude API tile is USD against its US$' + ANTHROPIC_LIMIT_USD + ' monthly limit (UTC calendar month, complete UTC days up to yesterday; today appears after 07:00 Bangkok) and is not in the SGD total. ' +
       'There is no forecast: the previous-month figure and the budget line are references; refresh hourly.'});
 }
 
@@ -293,10 +293,15 @@ function questions() {
  * Read live from the Admin API cost report (USD, UTC days, the whole Anthropic organization) through
  * datasource mw-anthropic-cost; its Admin key is the encrypted field, canonical copy in Secret Manager
  * mw-anthropic-admin-cost-key. limit=31 covers a month; a longer range errors rather than undercounting.
+ * Live read (8 November 2026): the report returns complete UTC days only (the start rounds up to the next UTC
+ * midnight, the end down), so today's cost appears after 00:00 UTC (07:00 Bangkok), and a range without one
+ * complete UTC day is refused (HTTP 400).
  * Owner, 8 November 2026: "Limit is 200 usd and keep it in USD. Don't include in total amount, but keep it separate
- * on the upper part of the dashboard." So the top tile 65 shows the current calendar month against the limit with
+ * on the upper part of the dashboard." So the top tile 65 shows the current UTC calendar month against the limit with
  * its own query (a collapsed row's panels do not run), in USD and never in the SGD total; the collapsed row 60
- * keeps the detail by model and type for the selected range (its table query; stat 61 sums it). */
+ * keeps the detail by model and type for the selected range (its table query; stat 61 sums it). The tile reads a
+ * rolling 31 days (now/M would hold no complete UTC day from the 1st, 00:00 Bangkok, to the 2nd, 07:00, and fail)
+ * and its selector keeps the current UTC month's days; the start rounds up, so at most 31 buckets. */
 const ANTHROPIC_LIMIT_USD = 200;
 // Limit used: orange from 80 % of the limit, red from 100 % (COLOUR-1 class limit).
 const ANTHROPIC_WARN_PERCENT = 80;
@@ -307,12 +312,15 @@ const ANTHROPIC_MONTH_FIELDS = ['Month to date', 'Limit used'];
 const ANTHROPIC_REPORT = 'https://api.anthropic.com/v1/organizations/cost_report?starting_at=' + L.FROM + '&ending_at=' + L.TO + '&bucket_width=1d&limit=31';
 const ANTHROPIC_URL = ANTHROPIC_REPORT + '&group_by%5B%5D=description';
 const ANTHROPIC_OPTIONS = {method: 'GET', headers: [{key: 'anthropic-version', value: '2023-06-01'}]};
-const ANTHROPIC_SOURCE = 'Anthropic\'s billed Claude API cost from the Admin API cost report, USD, UTC days, every API key and workspace of the organization';
+const ANTHROPIC_SOURCE = 'Anthropic\'s billed Claude API cost from the Admin API cost report, USD, every API key and workspace of the organization';
+// Live read, 8 November 2026: the report holds complete UTC days only.
+const ANTHROPIC_DAYS = 'complete UTC days only, so up to yesterday (UTC); today\'s cost appears after 07:00 Bangkok';
 function anthropicMonth() {
   const [usd, share] = ANTHROPIC_MONTH_FIELDS;
-  return L.stat({id: 65, title: 'Claude API · US$' + ANTHROPIC_LIMIT_USD + ' limit', gridPos: pos(16, 4, 8, 4), timeFrom: 'now/M', hideTimeOverride: true,
-    description: 'Anthropic\'s billed Claude API cost for the current calendar month (UTC days, whatever the selected range), every API key and workspace of the organization, against the owner\'s US$' + ANTHROPIC_LIMIT_USD +
-      ' monthly limit: Month to date in USD and Limit used (orange from ' + ANTHROPIC_WARN_PERCENT + ' %, red from 100 %). Not included in the SGD total. Admin API cost report; data usually appears within about five minutes. Detail by model in the collapsed Anthropic row.',
+  return L.stat({id: 65, title: 'Claude API · US$' + ANTHROPIC_LIMIT_USD + ' limit', gridPos: pos(16, 4, 8, 4), timeFrom: 'now-31d', hideTimeOverride: true,
+    description: 'Anthropic\'s billed Claude API cost for the current UTC calendar month, whatever the selected range: ' + ANTHROPIC_DAYS + ' (the figure runs through the end of yesterday, UTC; on the 1st it is 0). ' +
+      'Every API key and workspace of the organization, against the owner\'s US$' + ANTHROPIC_LIMIT_USD +
+      ' monthly limit: Month to date in USD and Limit used (orange from ' + ANTHROPIC_WARN_PERCENT + ' %, red from 100 %). Not included in the SGD total. Admin API cost report over the last 31 days, kept to this UTC month. Detail by model in the collapsed Anthropic row.',
     targets: [target('A', DS.anthropic, ANTHROPIC_REPORT, jq('anthropic-cost-month.jq', {LIMIT: ANTHROPIC_LIMIT_USD}),
       [col('USD', usd), col('Share', share)], {options: ANTHROPIC_OPTIONS})],
     defaults: {noValue: 'No data', mappings: [], color: {mode: 'fixed', fixedColor: COLOR.text}},
@@ -325,18 +333,19 @@ function anthropicMonth() {
 function anthropicRow(y) {
   const top = y + 1;
   const total = L.stat({id: 61, title: 'Claude API · selected range', gridPos: pos(0, top, 8, 4),
-    description: 'Sum of the table beside it: ' + ANTHROPIC_SOURCE + ', for the selected range (month to date by default). Data usually appears within about five minutes.',
+    description: 'Sum of the table beside it: ' + ANTHROPIC_SOURCE + ', for the selected range (month to date by default): ' + ANTHROPIC_DAYS + '.',
     datasource: DS.dashboard, targets: [{datasource: DS.dashboard, panelId: ANTHROPIC_DETAIL, refId: 'A', withTransforms: false}],
     transformations: [{id: 'filterFieldsByName', options: {include: {names: [ANTHROPIC_FIELD]}}}],
     defaults: {displayName: ANTHROPIC_FIELD, unit: 'currencyUSD', decimals: 2, noValue: 'No data'},
     options: {colorMode: 'value', textMode: 'value', reduceOptions: {calcs: ['sum'], fields: '', values: false}}});
   const note = L.text({id: 64, title: 'How to read Anthropic cost', gridPos: pos(0, top + 4, 8, ANTHROPIC_H - 4),
     description: 'What the Anthropic figures include.',
-    content: 'Billed **Claude API** cost in USD for every API key and workspace in the Anthropic organization, by UTC day. ' +
+    content: 'Billed **Claude API** cost in USD for every API key and workspace in the Anthropic organization, by UTC day: ' + ANTHROPIC_DAYS + '. ' +
+      'The limit tile at the top counts the UTC calendar month. ' +
       'Prepaid credit balance, invoice credits and taxes are not shown. The **In-app chat** row above is MW Credit\'s own token estimate ' +
       'for the PWA chat only. [Open Claude Console cost](https://platform.claude.com/cost).'});
   const detail = L.table({id: ANTHROPIC_DETAIL, title: 'Claude API · by model', gridPos: pos(8, top, 16, ANTHROPIC_H),
-    description: 'The selected range by model and cost type (input, cached and output tokens; web search; code execution), summed over the days: ' + ANTHROPIC_SOURCE + '. The footer sums the cost.',
+    description: 'The selected range by model and cost type (input, cached and output tokens; web search; code execution), summed over the days: ' + ANTHROPIC_SOURCE + '; ' + ANTHROPIC_DAYS + '. A range without one complete UTC day (month to date on the 1st, or before 07:00 Bangkok on the 2nd) returns an error from Anthropic. The footer sums the cost.',
     targets: [target('A', DS.anthropic, ANTHROPIC_URL, L.jq('anthropic-cost-detail.jq'),
       [col('Model', 'Model', 'string'), col('Type', 'Type', 'string'), col('USD', ANTHROPIC_FIELD)],
       {options: ANTHROPIC_OPTIONS})],
@@ -350,7 +359,7 @@ const PROVIDERS_Y = CHAT_Y + 1 + USAGE_H + TURNS_H;
 
 // Owner, 8 November 2026: Azure removed (no longer used); the Claude API month against its limit on the second row.
 function build() {
-  return L.dashboard({uid: 'mw-cost', description: 'Cloud spending month to date in SGD (GCP and Railway) with every provider detail in collapsed rows; the Claude API month in USD against its US$' + ANTHROPIC_LIMIT_USD + ' limit, kept out of the SGD total.',
+  return L.dashboard({uid: 'mw-cost', description: 'Cloud spending month to date in SGD (GCP and Railway) with every provider detail in collapsed rows; the Claude API UTC month (complete UTC days) in USD against its US$' + ANTHROPIC_LIMIT_USD + ' limit, kept out of the SGD total.',
     time: {from: 'now/M', to: 'now'}, refresh: '1h',
     timepicker: {refresh_intervals: ['1h', '2h', '1d']},
     panels: [total(), platform(6, 3, 8, 'GCP'), platform(7, 4, 16, 'Railway'), lastMonth(), budgetTile(), anthropicMonth(), dailyCost(), byService(),

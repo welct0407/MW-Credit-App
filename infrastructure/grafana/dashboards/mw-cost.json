@@ -18,7 +18,7 @@
         }
       ]
     },
-    "description": "Cloud spending month to date in SGD (GCP and Railway) with every provider detail in collapsed rows; the Claude API month in USD against its US$200 limit, kept out of the SGD total.",
+    "description": "Cloud spending month to date in SGD (GCP and Railway) with every provider detail in collapsed rows; the Claude API UTC month (complete UTC days) in USD against its US$200 limit, kept out of the SGD total.",
     "editable": false,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 1,
@@ -787,7 +787,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-anthropic-cost"
         },
-        "description": "Anthropic's billed Claude API cost for the current calendar month (UTC days, whatever the selected range), every API key and workspace of the organization, against the owner's US$200 monthly limit: Month to date in USD and Limit used (orange from 80 %, red from 100 %). Not included in the SGD total. Admin API cost report; data usually appears within about five minutes. Detail by model in the collapsed Anthropic row.",
+        "description": "Anthropic's billed Claude API cost for the current UTC calendar month, whatever the selected range: complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok (the figure runs through the end of yesterday, UTC; on the 1st it is 0). Every API key and workspace of the organization, against the owner's US$200 monthly limit: Month to date in USD and Limit used (orange from 80 %, red from 100 %). Not included in the SGD total. Admin API cost report over the last 31 days, kept to this UTC month. Detail by model in the collapsed Anthropic row.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -927,7 +927,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Anthropic Claude API billed cost of the current calendar month (UTC days) against the owner's monthly limit of\n# US$200 (cost_report without group_by over the month to date). Amounts are US cents as decimal strings.\n# A bucket outside the current UTC month (the Bangkok month start falls on the previous UTC day) is left out.\n# One row: Month to date in USD and Limit used in percent; a month without spending is 0, never no data.\n# A truncated report is an error, not an undercount.\nif .has_more then error(\"Anthropic cost report has more pages; the month needs more than 31 daily buckets\")\nelif (.data | type) != \"array\" then error(\"Anthropic cost report unavailable\")\nelse (now | strftime(\"%Y-%m\")) as $month\n  | (([.data[] | select((.starting_at // \"\")[0:7] == $month) | .results[]? | .amount | tonumber] | add // 0) / 100) as $usd\n  | {USD: $usd, Share: ($usd / 200 * 100)}\nend\n",
+            "root_selector": "# Anthropic Claude API billed cost of the current UTC calendar month against the owner's monthly limit of\n# US$200 (cost_report without group_by over a rolling 31 days). The report holds complete UTC days only\n# (start rounded up, end down), so the figure runs to the end of yesterday (UTC). Buckets of earlier months are\n# left out. One row: Month to date in USD and Limit used in percent; a month without a complete day or without\n# spending is 0, never no data. Amounts are US cents as decimal strings. A truncated report is an error, not an\n# undercount.\nif .has_more then error(\"Anthropic cost report has more pages; it needs more than 31 daily buckets\")\nelif (.data | type) != \"array\" then error(\"Anthropic cost report unavailable\")\nelse (now | strftime(\"%Y-%m\")) as $month\n  | (([.data[] | select((.starting_at // \"\")[0:7] == $month) | .results[]? | .amount | tonumber] | add // 0) / 100) as $usd\n  | {USD: $usd, Share: ($usd / 200 * 100)}\nend\n",
             "source": "url",
             "type": "json",
             "url": "https://api.anthropic.com/v1/organizations/cost_report?starting_at=${__timeFrom:date:iso}&ending_at=${__timeTo:date:iso}&bucket_width=1d&limit=31",
@@ -942,7 +942,7 @@
             }
           }
         ],
-        "timeFrom": "now/M",
+        "timeFrom": "now-31d",
         "title": "Claude API · US$200 limit",
         "type": "stat"
       },
@@ -1307,7 +1307,7 @@
         "type": "table"
       },
       {
-        "description": "How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile its current calendar month in UTC days, so the top rows are not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.",
+        "description": "How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile the current UTC calendar month in complete UTC days (up to yesterday, UTC), so the top rows are not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.",
         "gridPos": {
           "h": 4,
           "w": 24,
@@ -1321,7 +1321,7 @@
             "showLineNumbers": false,
             "showMiniMap": false
           },
-          "content": "Cost data is delayed and provisional, no data is not zero spending, and the total combines provider periods (GCP Singapore dates, Railway cycle), so it is not an invoice. The Claude API tile is USD against its US$200 monthly limit (calendar month, UTC days) and is not in the SGD total. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.",
+          "content": "Cost data is delayed and provisional, no data is not zero spending, and the total combines provider periods (GCP Singapore dates, Railway cycle), so it is not an invoice. The Claude API tile is USD against its US$200 monthly limit (UTC calendar month, complete UTC days up to yesterday; today appears after 07:00 Bangkok) and is not in the SGD total. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.",
           "mode": "markdown"
         },
         "title": "Unchanged rules of reading",
@@ -3502,7 +3502,7 @@
               "type": "datasource",
               "uid": "-- Dashboard --"
             },
-            "description": "Sum of the table beside it: Anthropic's billed Claude API cost from the Admin API cost report, USD, UTC days, every API key and workspace of the organization, for the selected range (month to date by default). Data usually appears within about five minutes.",
+            "description": "Sum of the table beside it: Anthropic's billed Claude API cost from the Admin API cost report, USD, every API key and workspace of the organization, for the selected range (month to date by default): complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok.",
             "fieldConfig": {
               "defaults": {
                 "color": {
@@ -3595,7 +3595,7 @@
                 "showLineNumbers": false,
                 "showMiniMap": false
               },
-              "content": "Billed **Claude API** cost in USD for every API key and workspace in the Anthropic organization, by UTC day. Prepaid credit balance, invoice credits and taxes are not shown. The **In-app chat** row above is MW Credit's own token estimate for the PWA chat only. [Open Claude Console cost](https://platform.claude.com/cost).",
+              "content": "Billed **Claude API** cost in USD for every API key and workspace in the Anthropic organization, by UTC day: complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok. The limit tile at the top counts the UTC calendar month. Prepaid credit balance, invoice credits and taxes are not shown. The **In-app chat** row above is MW Credit's own token estimate for the PWA chat only. [Open Claude Console cost](https://platform.claude.com/cost).",
               "mode": "markdown"
             },
             "title": "How to read Anthropic cost",
@@ -3606,7 +3606,7 @@
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-anthropic-cost"
             },
-            "description": "The selected range by model and cost type (input, cached and output tokens; web search; code execution), summed over the days: Anthropic's billed Claude API cost from the Admin API cost report, USD, UTC days, every API key and workspace of the organization. The footer sums the cost.",
+            "description": "The selected range by model and cost type (input, cached and output tokens; web search; code execution), summed over the days: Anthropic's billed Claude API cost from the Admin API cost report, USD, every API key and workspace of the organization; complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok. A range without one complete UTC day (month to date on the 1st, or before 07:00 Bangkok on the 2nd) returns an error from Anthropic. The footer sums the cost.",
             "fieldConfig": {
               "defaults": {
                 "color": {

@@ -204,7 +204,10 @@ for (const {panel: p} of allPanels(cost)) assert.ok(!/azure/i.test(p.title + ' '
 const {ANTHROPIC_LIMIT_USD} = require('./dashboards/cost.cjs');
 assert.equal(ANTHROPIC_LIMIT_USD, 200, 'owner limit US$200');
 const claude = cost.panels.find(p => p.id === 65);
-assert.deepEqual([claude.type, claude.title, claude.gridPos, claude.timeFrom, claude.hideTimeOverride], ['stat', 'Claude API · US$200 limit', {x: 16, y: 4, w: 8, h: 4}, 'now/M', true]);
+assert.deepEqual([claude.type, claude.title, claude.gridPos, claude.timeFrom, claude.hideTimeOverride], ['stat', 'Claude API · US$200 limit', {x: 16, y: 4, w: 8, h: 4}, 'now-31d', true]);
+// Live read (8 November 2026): complete UTC days only, so a rolling 31 days (never now/M, which holds no complete
+// day early in the month); the selector keeps the current UTC month.
+assert.ok(/complete UTC days/.test(claude.description) && !/five minutes/.test(costText), 'complete UTC days, no five-minute claim');
 assert.equal(claude.targets.length, 1, 'Claude API tile: one query of its own');
 const claudeQuery = claude.targets[0];
 assert.equal(claudeQuery.datasource.uid, 'mw-anthropic-cost');
