@@ -18,7 +18,7 @@
         }
       ]
     },
-    "description": "Cloud spending month to date in SGD with every provider detail in collapsed rows.",
+    "description": "Cloud spending month to date in SGD (GCP and Railway) with every provider detail in collapsed rows; the Claude API UTC month (complete UTC days) in USD against its US$200 limit, kept out of the SGD total.",
     "editable": false,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 1,
@@ -91,7 +91,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "SGD. Available costs only: the sum of the platforms that answered (Azure and GCP for the selected dates, Railway for its billing cycle), Azure and Railway converted from USD at the current ECB USD/SGD reference rate. When a platform cannot be read its tile shows the error and this total is incomplete (it then covers only the other platforms). Query host for the Azure, GCP and Railway tiles. The previous month's figure is below.",
+        "description": "SGD. Available costs only: the sum of the platforms that answered (GCP for the selected dates, Railway for its billing cycle), Railway converted from USD at the current ECB USD/SGD reference rate. When a platform cannot be read its tile shows the error and this total is incomplete (it then covers only the other platform). Query host for the GCP and Railway tiles. The Claude API · US$200 limit tile (USD) is not included. The previous month's figure is below.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -116,7 +116,7 @@
         },
         "gridPos": {
           "h": 4,
-          "w": 6,
+          "w": 8,
           "x": 0,
           "y": 0
         },
@@ -143,80 +143,6 @@
           "wideLayout": true
         },
         "targets": [
-          {
-            "columns": [
-              {
-                "selector": "Category",
-                "text": "Category",
-                "type": "string"
-              },
-              {
-                "selector": "amount",
-                "text": "Azure compute USD",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-azure-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else {Category:\"Reported costs\",amount:([.properties.rows[][0]]|add // 0)} end",
-            "source": "url",
-            "type": "json",
-            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-              "headers": [
-                {
-                  "key": "ClientType",
-                  "value": "MWCreditGrafanaMonitoring"
-                }
-              ],
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Category",
-                "text": "Category",
-                "type": "string"
-              },
-              {
-                "selector": "amount",
-                "text": "Azure backup USD",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-azure-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else {Category:\"Reported costs\",amount:([.properties.rows[][0]]|add // 0)} end",
-            "source": "url",
-            "type": "json",
-            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-              "headers": [
-                {
-                  "key": "ClientType",
-                  "value": "MWCreditGrafanaMonitoring"
-                }
-              ],
-              "method": "POST"
-            }
-          },
           {
             "columns": [
               {
@@ -332,32 +258,6 @@
           {
             "id": "calculateField",
             "options": {
-              "alias": "Azure USD",
-              "binary": {
-                "left": "Azure compute USD",
-                "operator": "+",
-                "right": "Azure backup USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure",
-              "binary": {
-                "left": "Azure USD",
-                "operator": "*",
-                "right": "SGD per USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
               "alias": "Railway",
               "binary": {
                 "left": "Railway USD",
@@ -375,7 +275,6 @@
               "mode": "reduceRow",
               "reduce": {
                 "include": [
-                  "Azure",
                   "GCP",
                   "Railway"
                 ],
@@ -402,7 +301,7 @@
           "type": "datasource",
           "uid": "-- Dashboard --"
         },
-        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Read through TOTAL's queries; a platform that cannot be read shows its error here.",
+        "description": "SGD amount from TOTAL's shared queries. Total sums available platforms only: if a platform shows No data, total is partial. GCP uses the selected dates; Railway uses its billing cycle. A platform that cannot be read shows its error here.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -429,172 +328,8 @@
         },
         "gridPos": {
           "h": 4,
-          "w": 6,
-          "x": 6,
-          "y": 0
-        },
-        "id": 2,
-        "options": {
-          "colorMode": "value",
-          "graphMode": "none",
-          "justifyMode": "auto",
-          "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
-            "placement": "bottom"
-          },
-          "orientation": "auto",
-          "percentChangeColorMode": "standard",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showPercentChange": false,
-          "text": {
-            "titleSize": 16,
-            "valueSize": 32
-          },
-          "textMode": "value",
-          "tooltip": {
-            "mode": "multi",
-            "sort": "desc"
-          },
-          "wideLayout": true
-        },
-        "pluginVersion": "13.3.0-35970853322",
-        "targets": [
-          {
-            "datasource": {
-              "type": "datasource",
-              "uid": "-- Dashboard --"
-            },
-            "panelId": 1,
-            "refId": "A",
-            "withTransforms": false
-          }
-        ],
-        "title": "Azure",
-        "transformations": [
-          {
-            "id": "merge",
-            "options": {}
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure USD",
-              "binary": {
-                "left": "Azure compute USD",
-                "operator": "+",
-                "right": "Azure backup USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure",
-              "binary": {
-                "left": "Azure USD",
-                "operator": "*",
-                "right": "SGD per USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Railway",
-              "binary": {
-                "left": "Railway USD",
-                "operator": "*",
-                "right": "SGD per USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "filterFieldsByName",
-            "options": {
-              "include": {
-                "names": [
-                  "Category",
-                  "Azure",
-                  "GCP",
-                  "Railway"
-                ]
-              }
-            }
-          },
-          {
-            "id": "organize",
-            "options": {
-              "indexByName": {
-                "Azure": 1,
-                "Category": 0,
-                "GCP": 2,
-                "Railway": 3
-              }
-            }
-          },
-          {
-            "id": "filterFieldsByName",
-            "options": {
-              "include": {
-                "names": [
-                  "Azure"
-                ]
-              }
-            }
-          }
-        ],
-        "type": "stat"
-      },
-      {
-        "datasource": {
-          "type": "datasource",
-          "uid": "-- Dashboard --"
-        },
-        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Read through TOTAL's queries; a platform that cannot be read shows its error here.",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "fixedColor": "text",
-              "mode": "fixed"
-            },
-            "decimals": 2,
-            "noValue": "No data",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "#2E7D32",
-                  "value": 0
-                },
-                {
-                  "color": "dark-red",
-                  "value": 80
-                }
-              ]
-            },
-            "unit": "prefix:S$"
-          }
-        },
-        "gridPos": {
-          "h": 4,
-          "w": 6,
-          "x": 12,
+          "w": 8,
+          "x": 8,
           "y": 0
         },
         "id": 3,
@@ -652,32 +387,6 @@
           {
             "id": "calculateField",
             "options": {
-              "alias": "Azure USD",
-              "binary": {
-                "left": "Azure compute USD",
-                "operator": "+",
-                "right": "Azure backup USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure",
-              "binary": {
-                "left": "Azure USD",
-                "operator": "*",
-                "right": "SGD per USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
               "alias": "Railway",
               "binary": {
                 "left": "Railway USD",
@@ -694,7 +403,6 @@
               "include": {
                 "names": [
                   "Category",
-                  "Azure",
                   "GCP",
                   "Railway"
                 ]
@@ -705,10 +413,9 @@
             "id": "organize",
             "options": {
               "indexByName": {
-                "Azure": 1,
                 "Category": 0,
-                "GCP": 2,
-                "Railway": 3
+                "GCP": 1,
+                "Railway": 2
               }
             }
           },
@@ -730,7 +437,7 @@
           "type": "datasource",
           "uid": "-- Dashboard --"
         },
-        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Read through TOTAL's queries; a platform that cannot be read shows its error here.",
+        "description": "SGD amount from TOTAL's shared queries. Total sums available platforms only: if a platform shows No data, total is partial. GCP uses the selected dates; Railway uses its billing cycle. A platform that cannot be read shows its error here.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -757,8 +464,8 @@
         },
         "gridPos": {
           "h": 4,
-          "w": 6,
-          "x": 18,
+          "w": 8,
+          "x": 16,
           "y": 0
         },
         "id": 4,
@@ -816,32 +523,6 @@
           {
             "id": "calculateField",
             "options": {
-              "alias": "Azure USD",
-              "binary": {
-                "left": "Azure compute USD",
-                "operator": "+",
-                "right": "Azure backup USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure",
-              "binary": {
-                "left": "Azure USD",
-                "operator": "*",
-                "right": "SGD per USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
               "alias": "Railway",
               "binary": {
                 "left": "Railway USD",
@@ -858,7 +539,6 @@
               "include": {
                 "names": [
                   "Category",
-                  "Azure",
                   "GCP",
                   "Railway"
                 ]
@@ -869,10 +549,9 @@
             "id": "organize",
             "options": {
               "indexByName": {
-                "Azure": 1,
                 "Category": 0,
-                "GCP": 2,
-                "Railway": 3
+                "GCP": 1,
+                "Railway": 2
               }
             }
           },
@@ -891,10 +570,10 @@
       },
       {
         "datasource": {
-          "type": "mixed",
-          "uid": "-- Mixed --"
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
         },
-        "description": "SGD. Azure and GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M), converted at the current ECB rate. Railway has no past-cycle figure (cycle only). A reference, not a forecast.",
+        "description": "SGD. GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M). Railway has no past-cycle figure (cycle only). A reference, not a forecast.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -902,8 +581,8 @@
               "mode": "fixed"
             },
             "decimals": 2,
-            "displayName": "Azure + GCP",
-            "noValue": "cycle only",
+            "displayName": "GCP",
+            "noValue": "No data",
             "thresholds": {
               "mode": "absolute",
               "steps": [
@@ -955,80 +634,6 @@
                 "type": "string"
               },
               {
-                "selector": "amount",
-                "text": "Azure compute USD",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-azure-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "# Azure Cost Management Custom query (Daily, grouped by ResourceId) over the previous month to the same\n# moment: a guard keeps only rows of the previous UTC month up to today's UTC day of month (Azure keeps\n# provider UTC days; the shifted Bangkok window can reach one day earlier). Same checks as the current query.\nif .properties.nextLink then error(\"Cost response truncated; shorten time range\")\nelif (.properties.rows | type) != \"array\" then error(\"Azure cost response unavailable\")\nelif any(.properties.rows[]; .[3] != \"USD\") then error(\"Unexpected Azure currency\")\nelse\n  (now | gmtime) as $g | $g[2] as $day |\n  ((if $g[1] == 0 then ($g[0] - 1) * 100 + 12 else $g[0] * 100 + $g[1] end) | tostring) as $month |\n  {Category: \"Reported costs\",\n   amount: ([.properties.rows[] | (.[1] | tostring) as $d | select($d[0:6] == $month and ($d[6:8] | tonumber) <= $day) | .[0]] | add // 0)}\nend\n",
-            "source": "url",
-            "type": "json",
-            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-              "headers": [
-                {
-                  "key": "ClientType",
-                  "value": "MWCreditGrafanaMonitoring"
-                }
-              ],
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Category",
-                "text": "Category",
-                "type": "string"
-              },
-              {
-                "selector": "amount",
-                "text": "Azure backup USD",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-azure-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "# Azure Cost Management Custom query (Daily, grouped by ResourceId) over the previous month to the same\n# moment: a guard keeps only rows of the previous UTC month up to today's UTC day of month (Azure keeps\n# provider UTC days; the shifted Bangkok window can reach one day earlier). Same checks as the current query.\nif .properties.nextLink then error(\"Cost response truncated; shorten time range\")\nelif (.properties.rows | type) != \"array\" then error(\"Azure cost response unavailable\")\nelif any(.properties.rows[]; .[3] != \"USD\") then error(\"Unexpected Azure currency\")\nelse\n  (now | gmtime) as $g | $g[2] as $day |\n  ((if $g[1] == 0 then ($g[0] - 1) * 100 + 12 else $g[0] * 100 + $g[1] end) | tostring) as $month |\n  {Category: \"Reported costs\",\n   amount: ([.properties.rows[] | (.[1] | tostring) as $d | select($d[0:6] == $month and ($d[6:8] | tonumber) <= $day) | .[0]] | add // 0)}\nend\n",
-            "source": "url",
-            "type": "json",
-            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-              "headers": [
-                {
-                  "key": "ClientType",
-                  "value": "MWCreditGrafanaMonitoring"
-                }
-              ],
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Category",
-                "text": "Category",
-                "type": "string"
-              },
-              {
                 "selector": "GCP",
                 "text": "GCP",
                 "type": "number"
@@ -1056,98 +661,18 @@
               "data": "{\"location\":\"US\",\"query\":\"DECLARE export_table STRING;\\nSET export_table=(SELECT table_name FROM `clever-oasis-508610-n7.mw_cloud_billing.INFORMATION_SCHEMA.TABLES` WHERE STARTS_WITH(table_name,'gcp_billing_export_resource_v1_') ORDER BY table_name LIMIT 1);\\nIF export_table IS NULL THEN\\n SELECT CAST(NULL AS TIMESTAMP) AS Date, CAST(NULL AS FLOAT64) AS Gross, CAST(NULL AS FLOAT64) AS Credits, CAST(NULL AS FLOAT64) AS Net, 'Awaiting first billing export' AS Service, '' AS Resource, 'SGD' AS Currency;\\nELSE\\n EXECUTE IMMEDIATE FORMAT('''SELECT TIMESTAMP(DATE(usage_start_time,'Asia/Singapore'),'Asia/Singapore') AS Date, SUM(cost) AS Gross, SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Credits, SUM(cost+IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Net, service.description AS Service, COALESCE(NULLIF(resource.name,''),'Unallocated / service-level') AS Resource, currency AS Currency FROM `clever-oasis-508610-n7.mw_cloud_billing.%s` WHERE project.id='clever-oasis-508610-n7' AND usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}') GROUP BY Date, Service, Resource, Currency ORDER BY Date''',export_table);\\nEND IF;\",\"useQueryCache\":true,\"useLegacySql\":false,\"maximumBytesBilled\":\"100000000\",\"timeoutMs\":20000,\"maxResults\":10000}",
               "method": "POST"
             }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Category",
-                "text": "Category",
-                "type": "string"
-              },
-              {
-                "selector": "FX",
-                "text": "SGD per USD",
-                "type": "number"
-              },
-              {
-                "selector": "FXDate",
-                "text": "FX reference date",
-                "type": "string"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "efz19dcu6cwzka"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "E",
-            "root_selector": "if .base!=\"USD\" or .quote!=\"SGD\" or (.rate|type)!=\"number\" or .rate<=0 then error(\"Invalid USD/SGD reference rate\") elif (now-(.date+\"T00:00:00Z\"|fromdateiso8601))>604800 then error(\"FX reference older than seven days\") else {Category:\"Reported costs\",FX:.rate,FXDate:.date} end",
-            "source": "url",
-            "type": "json",
-            "url": "https://api.frankfurter.dev/v2/providers/ecb/rate/USD/SGD",
-            "url_options": {
-              "method": "GET"
-            }
           }
         ],
         "timeFrom": "now/M",
         "timeShift": "1M",
-        "title": "Last month, same day",
+        "title": "Last month, same day · GCP",
         "transformations": [
-          {
-            "id": "merge",
-            "options": {}
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure USD",
-              "mode": "reduceRow",
-              "reduce": {
-                "include": [
-                  "Azure compute USD",
-                  "Azure backup USD"
-                ],
-                "reducer": "sum"
-              },
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure",
-              "binary": {
-                "left": "Azure USD",
-                "operator": "*",
-                "right": "SGD per USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure + GCP",
-              "mode": "reduceRow",
-              "reduce": {
-                "include": [
-                  "Azure",
-                  "GCP"
-                ],
-                "reducer": "sum"
-              },
-              "replaceFields": false
-            }
-          },
           {
             "id": "filterFieldsByName",
             "options": {
               "include": {
                 "names": [
-                  "Azure + GCP"
+                  "GCP"
                 ]
               }
             }
@@ -1198,7 +723,7 @@
         },
         "gridPos": {
           "h": 4,
-          "w": 16,
+          "w": 8,
           "x": 8,
           "y": 4
         },
@@ -1259,10 +784,174 @@
       },
       {
         "datasource": {
-          "type": "mixed",
-          "uid": "-- Mixed --"
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-anthropic-cost"
         },
-        "description": "SGD per date over the selected range (month to date by default, the billing month of Azure and GCP), stacked: Azure (blue, Cost Management, both resource groups, provider UTC days) and GCP (orange, BigQuery billing export, net = cost + credits per Singapore date, same 100 MB billed-query cap). Azure USD is converted at the current ECB USD/SGD reference rate, one rate for every day, as the month-to-date tiles do. Railway is not drawn: its estimate covers only its own billing cycle, which starts mid-month (see the Railway tile). A platform that cannot be read shows the panel error badge and draws no bars, never zero; a day a platform has not reported draws no bar. Red dashed line = the GCP budget Budget-GCP (Budget API, monthly SGD amount) ÷ the days of that month, drawn only when it has a fixed amount. The budget covers the whole billing account while the GCP bars are this project only (the export is filtered to clever-oasis-508610-n7), so the line is a reference, not like-for-like if another project bills to the account.",
+        "description": "Anthropic's billed Claude API cost for the current UTC calendar month, whatever the selected range, every API key and workspace of the organization, against the owner's US$200 monthly limit: To yesterday (UTC) in USD and Limit used (orange from 80 %, red from 100 %). Complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok. On the 1st it is 0. Not included in the SGD total. Admin API cost report over the last 31 days, kept to this UTC month; detail by model in the collapsed Anthropic row.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "text",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [],
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "To yesterday (UTC)"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "prefix:US$"
+                },
+                {
+                  "id": "decimals",
+                  "value": 2
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Limit used"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "decimals",
+                  "value": 0
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 80
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 100
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 8,
+          "x": 16,
+          "y": 4
+        },
+        "hideTimeOverride": true,
+        "id": 65,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 16,
+            "valueSize": 20
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "USD",
+                "text": "To yesterday (UTC)",
+                "type": "number"
+              },
+              {
+                "selector": "Share",
+                "text": "Limit used",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-anthropic-cost"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Anthropic Claude API billed cost of the current UTC calendar month against the owner's monthly limit of\n# US$200 (cost_report without group_by over a rolling 31 days). The report holds complete UTC days only\n# (start rounded up, end down), so the figure runs to the end of yesterday (UTC). Buckets of earlier months are\n# left out. One row: USD (field To yesterday (UTC)) and Share (field Limit used, percent); a month without a complete day or without\n# spending is 0, never no data. Amounts are US cents as decimal strings. A truncated report is an error, not an\n# undercount.\nif .has_more then error(\"Anthropic cost report has more pages; it needs more than 31 daily buckets\")\nelif (.data | type) != \"array\" then error(\"Anthropic cost report unavailable\")\nelse (now | strftime(\"%Y-%m\")) as $month\n  | (([.data[] | select((.starting_at // \"\")[0:7] == $month) | .results[]? | .amount | tonumber] | add // 0) / 100) as $usd\n  | {USD: $usd, Share: ($usd / 200 * 100)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://api.anthropic.com/v1/organizations/cost_report?starting_at=${__timeFrom:date:iso}&ending_at=${__timeTo:date:iso}&bucket_width=1d&limit=31",
+            "url_options": {
+              "headers": [
+                {
+                  "key": "anthropic-version",
+                  "value": "2023-06-01"
+                }
+              ],
+              "method": "GET"
+            }
+          }
+        ],
+        "timeFrom": "now-31d",
+        "title": "Claude API · US$200 limit",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "SGD per date over the selected range (month to date by default, the billing month of GCP): GCP (orange, BigQuery billing export, net = cost + credits per Singapore date, same 100 MB billed-query cap). Railway is not drawn: its estimate covers only its own billing cycle, which starts mid-month (see the Railway tile). An export that cannot be read shows the panel error badge and draws no bars, never zero; a day GCP has not reported draws no bar. Red dashed line = the GCP budget Budget-GCP (Budget API, monthly SGD amount) ÷ the days of that month, drawn only when it has a fixed amount. The budget covers the whole billing account while the GCP bars are this project only (the export is filtered to clever-oasis-508610-n7), so the line is a reference, not like-for-like if another project bills to the account.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1313,21 +1002,6 @@
             "unit": "prefix:S$"
           },
           "overrides": [
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Azure"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "fixedColor": "#5794F2",
-                    "mode": "fixed"
-                  }
-                }
-              ]
-            },
             {
               "matcher": {
                 "id": "byName",
@@ -1418,80 +1092,6 @@
                 "type": "timestamp_epoch"
               },
               {
-                "selector": "USD",
-                "text": "Azure compute USD",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-azure-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else\n  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\") | fromdateiso8601) + 14400) * 1000), USD: .[0]}] |\n  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end",
-            "source": "url",
-            "type": "json",
-            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-              "headers": [
-                {
-                  "key": "ClientType",
-                  "value": "MWCreditGrafanaMonitoring"
-                }
-              ],
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Time",
-                "text": "Time",
-                "type": "timestamp_epoch"
-              },
-              {
-                "selector": "USD",
-                "text": "Azure backup USD",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-azure-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else\n  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\") | fromdateiso8601) + 14400) * 1000), USD: .[0]}] |\n  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end",
-            "source": "url",
-            "type": "json",
-            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-              "headers": [
-                {
-                  "key": "ClientType",
-                  "value": "MWCreditGrafanaMonitoring"
-                }
-              ],
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Time",
-                "text": "Time",
-                "type": "timestamp_epoch"
-              },
-              {
                 "selector": "GCP",
                 "text": "GCP",
                 "type": "number"
@@ -1513,34 +1113,6 @@
               "body_type": "raw",
               "data": "{\"location\":\"US\",\"query\":\"DECLARE export_table STRING;\\nSET export_table=(SELECT table_name FROM `clever-oasis-508610-n7.mw_cloud_billing.INFORMATION_SCHEMA.TABLES` WHERE STARTS_WITH(table_name,'gcp_billing_export_resource_v1_') ORDER BY table_name LIMIT 1);\\nIF export_table IS NULL THEN\\n SELECT CAST(NULL AS TIMESTAMP) AS Date, CAST(NULL AS FLOAT64) AS Gross, CAST(NULL AS FLOAT64) AS Credits, CAST(NULL AS FLOAT64) AS Net, 'Awaiting first billing export' AS Service, '' AS Resource, 'SGD' AS Currency;\\nELSE\\n EXECUTE IMMEDIATE FORMAT('''SELECT TIMESTAMP(DATE(usage_start_time,'Asia/Singapore'),'Asia/Singapore') AS Date, SUM(cost) AS Gross, SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Credits, SUM(cost+IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Net, service.description AS Service, COALESCE(NULLIF(resource.name,''),'Unallocated / service-level') AS Resource, currency AS Currency FROM `clever-oasis-508610-n7.mw_cloud_billing.%s` WHERE project.id='clever-oasis-508610-n7' AND usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}') GROUP BY Date, Service, Resource, Currency ORDER BY Date''',export_table);\\nEND IF;\",\"useQueryCache\":true,\"useLegacySql\":false,\"maximumBytesBilled\":\"100000000\",\"timeoutMs\":20000,\"maxResults\":10000}",
               "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Time",
-                "text": "Time",
-                "type": "timestamp_epoch"
-              },
-              {
-                "selector": "FX",
-                "text": "SGD per USD",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "efz19dcu6cwzka"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "E",
-            "root_selector": "def sgtdays: (now | ((. + 28800) / 86400 | floor) * 86400 - 28800) as $t | range(0; 32) | $t - . * 86400;\n(\nif .base!=\"USD\" or .quote!=\"SGD\" or (.rate|type)!=\"number\" or .rate<=0 then error(\"Invalid USD/SGD reference rate\") elif (now-(.date+\"T00:00:00Z\"|fromdateiso8601))>604800 then error(\"FX reference older than seven days\") else {Category:\"Reported costs\",FX:.rate,FXDate:.date} end\n) | .FX as $fx | sgtdays | {Time: ((. + 43200) * 1000), FX: $fx}",
-            "source": "url",
-            "type": "json",
-            "url": "https://api.frankfurter.dev/v2/providers/ecb/rate/USD/SGD",
-            "url_options": {
-              "method": "GET"
             }
           },
           {
@@ -1579,38 +1151,11 @@
             "options": {}
           },
           {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure USD",
-              "binary": {
-                "left": "Azure compute USD",
-                "operator": "+",
-                "right": "Azure backup USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Azure",
-              "binary": {
-                "left": "Azure USD",
-                "operator": "*",
-                "right": "SGD per USD"
-              },
-              "mode": "binary",
-              "replaceFields": false
-            }
-          },
-          {
             "id": "filterFieldsByName",
             "options": {
               "include": {
                 "names": [
                   "Time",
-                  "Azure",
                   "GCP",
                   "GCP budget (billing account) / day"
                 ]
@@ -1621,9 +1166,8 @@
             "id": "organize",
             "options": {
               "indexByName": {
-                "Azure": 1,
-                "GCP": 2,
-                "GCP budget (billing account) / day": 3,
+                "GCP": 1,
+                "GCP budget (billing account) / day": 2,
                 "Time": 0
               }
             }
@@ -1763,7 +1307,7 @@
         "type": "table"
       },
       {
-        "description": "How to read every figure on this dashboard: Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date and Railway always shows its current cycle, so the top row is not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.",
+        "description": "How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile the current UTC calendar month in complete UTC days (up to yesterday, UTC; today appears after 07:00 Bangkok), so the top rows are not a common-period invoice. There is no forecast: the previous-month figure and the budget line are references. Refresh hourly; frequent manual refreshes can reach provider limits.",
         "gridPos": {
           "h": 4,
           "w": 24,
@@ -1777,7 +1321,7 @@
             "showLineNumbers": false,
             "showMiniMap": false
           },
-          "content": "Cost data is delayed and provisional, no data is not zero spending, and the top row combines provider periods (Azure UTC days, GCP Singapore dates, Railway cycle), so it is not an invoice. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.",
+          "content": "Delayed, provisional; no data is not zero; not an invoice. The Claude API tile is USD against its US$200 monthly limit (UTC month, to yesterday) and is not in the SGD total.",
           "mode": "markdown"
         },
         "title": "Unchanged rules of reading",
@@ -2562,580 +2106,6 @@
           "x": 0,
           "y": 51
         },
-        "id": 10,
-        "panels": [
-          {
-            "datasource": {
-              "type": "datasource",
-              "uid": "-- Dashboard --"
-            },
-            "description": "Sum of the Azure daily resource detail below (Cost Management, USD) for the selected dates.",
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "fixedColor": "text",
-                  "mode": "fixed"
-                },
-                "decimals": 2,
-                "noValue": "No data",
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#2E7D32",
-                      "value": 0
-                    },
-                    {
-                      "color": "dark-red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "currencyUSD"
-              }
-            },
-            "gridPos": {
-              "h": 4,
-              "w": 8,
-              "x": 0,
-              "y": 52
-            },
-            "id": 102,
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "justifyMode": "auto",
-              "legend": {
-                "calcs": [
-                  "lastNotNull",
-                  "max"
-                ],
-                "displayMode": "table",
-                "placement": "bottom"
-              },
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "text": {
-                "titleSize": 16,
-                "valueSize": 32
-              },
-              "textMode": "auto",
-              "tooltip": {
-                "mode": "multi",
-                "sort": "desc"
-              },
-              "wideLayout": true
-            },
-            "pluginVersion": "13.3.0-35970853322",
-            "targets": [
-              {
-                "datasource": {
-                  "type": "datasource",
-                  "uid": "-- Dashboard --"
-                },
-                "panelId": 101,
-                "refId": "A",
-                "withTransforms": false
-              }
-            ],
-            "title": "Azure · selected-range cost",
-            "transformations": [
-              {
-                "id": "merge",
-                "options": {}
-              },
-              {
-                "id": "groupBy",
-                "options": {
-                  "fields": {
-                    "Cost": {
-                      "aggregations": [
-                        "sum"
-                      ],
-                      "operation": "aggregate"
-                    },
-                    "Currency": {
-                      "aggregations": [],
-                      "operation": "groupby"
-                    }
-                  }
-                }
-              }
-            ],
-            "type": "stat"
-          },
-          {
-            "datasource": {
-              "type": "datasource",
-              "uid": "-- Dashboard --"
-            },
-            "description": "Azure Cost Management daily cost (USD) from the daily resource detail below, by provider UTC day.",
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "axisBorderShow": false,
-                  "axisCenteredZero": false,
-                  "axisColorMode": "text",
-                  "axisLabel": "",
-                  "axisPlacement": "auto",
-                  "barAlignment": 0,
-                  "barWidthFactor": 0.6,
-                  "drawStyle": "line",
-                  "fillOpacity": 12,
-                  "gradientMode": "none",
-                  "hideFrom": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": false
-                  },
-                  "insertNulls": false,
-                  "lineInterpolation": "smooth",
-                  "lineWidth": 2,
-                  "pointSize": 5,
-                  "scaleDistribution": {
-                    "type": "linear"
-                  },
-                  "showPoints": "never",
-                  "showValues": false,
-                  "spanNulls": false,
-                  "stacking": {
-                    "group": "A",
-                    "mode": "none"
-                  },
-                  "thresholdsStyle": {
-                    "mode": "off"
-                  }
-                },
-                "decimals": 0,
-                "noValue": "No data",
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "currencyUSD"
-              }
-            },
-            "gridPos": {
-              "h": 11,
-              "w": 16,
-              "x": 8,
-              "y": 52
-            },
-            "id": 103,
-            "options": {
-              "colorMode": "value",
-              "graphMode": "area",
-              "legend": {
-                "calcs": [
-                  "lastNotNull",
-                  "max"
-                ],
-                "displayMode": "table",
-                "placement": "bottom",
-                "showLegend": true
-              },
-              "orientation": "auto",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "textMode": "auto",
-              "tooltip": {
-                "hideZeros": false,
-                "mode": "multi",
-                "sort": "desc"
-              }
-            },
-            "pluginVersion": "13.3.0-35970853322",
-            "targets": [
-              {
-                "datasource": {
-                  "type": "datasource",
-                  "uid": "-- Dashboard --"
-                },
-                "panelId": 101,
-                "refId": "A",
-                "withTransforms": false
-              }
-            ],
-            "title": "Azure · daily cost",
-            "transformations": [
-              {
-                "id": "merge",
-                "options": {}
-              },
-              {
-                "id": "groupBy",
-                "options": {
-                  "fields": {
-                    "Cost": {
-                      "aggregations": [
-                        "sum"
-                      ],
-                      "operation": "aggregate"
-                    },
-                    "Date": {
-                      "aggregations": [],
-                      "operation": "groupby"
-                    }
-                  }
-                }
-              },
-              {
-                "id": "sortBy",
-                "options": {
-                  "sort": [
-                    {
-                      "field": "Date"
-                    }
-                  ]
-                }
-              }
-            ],
-            "type": "timeseries"
-          },
-          {
-            "datasource": {
-              "type": "datasource",
-              "uid": "-- Dashboard --"
-            },
-            "description": "Azure cost per resource (USD) for the selected dates, from the daily resource detail below.",
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "align": "auto",
-                  "cellOptions": {
-                    "type": "auto"
-                  },
-                  "footer": {
-                    "reducers": []
-                  },
-                  "inspect": false
-                },
-                "decimals": 2,
-                "noValue": "No data",
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#2E7D32",
-                      "value": 0
-                    },
-                    {
-                      "color": "dark-red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "currencyUSD"
-              },
-              "overrides": [
-                {
-                  "matcher": {
-                    "id": "byType",
-                    "options": "time"
-                  },
-                  "properties": [
-                    {
-                      "id": "unit",
-                      "value": "dateTimeAsIso"
-                    }
-                  ]
-                }
-              ]
-            },
-            "gridPos": {
-              "h": 7,
-              "w": 8,
-              "x": 0,
-              "y": 56
-            },
-            "id": 104,
-            "options": {
-              "cellHeight": "md",
-              "showHeader": true,
-              "zebraStriping": false
-            },
-            "pluginVersion": "13.3.0-35970853322",
-            "targets": [
-              {
-                "datasource": {
-                  "type": "datasource",
-                  "uid": "-- Dashboard --"
-                },
-                "panelId": 101,
-                "refId": "A",
-                "withTransforms": false
-              }
-            ],
-            "title": "Azure · cost by resource (USD)",
-            "transformations": [
-              {
-                "id": "merge",
-                "options": {}
-              },
-              {
-                "id": "groupBy",
-                "options": {
-                  "fields": {
-                    "Cost": {
-                      "aggregations": [
-                        "sum"
-                      ],
-                      "operation": "aggregate"
-                    },
-                    "Resource": {
-                      "aggregations": [],
-                      "operation": "groupby"
-                    }
-                  }
-                }
-              },
-              {
-                "id": "sortBy",
-                "options": {
-                  "sort": [
-                    {
-                      "desc": true,
-                      "field": "Cost (sum)"
-                    }
-                  ]
-                }
-              }
-            ],
-            "type": "table"
-          },
-          {
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-azure-monitoring"
-            },
-            "description": "Actual cost for rg-mwcredit and rg-backup. Includes retained disks, VM-related services and backup. Source cost data is not a final invoice.",
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "palette-classic"
-                },
-                "custom": {
-                  "align": "auto",
-                  "cellOptions": {
-                    "type": "auto"
-                  },
-                  "footer": {
-                    "reducers": []
-                  },
-                  "inspect": false
-                },
-                "decimals": 2,
-                "noValue": "No data",
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#2E7D32",
-                      "value": 0
-                    },
-                    {
-                      "color": "dark-red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "currencyUSD"
-              },
-              "overrides": [
-                {
-                  "matcher": {
-                    "id": "byType",
-                    "options": "time"
-                  },
-                  "properties": [
-                    {
-                      "id": "unit",
-                      "value": "dateTimeAsIso"
-                    }
-                  ]
-                }
-              ]
-            },
-            "gridPos": {
-              "h": 9,
-              "w": 24,
-              "x": 0,
-              "y": 63
-            },
-            "id": 101,
-            "options": {
-              "cellHeight": "md",
-              "showHeader": true,
-              "zebraStriping": false
-            },
-            "pluginVersion": "13.3.0-35970853322",
-            "targets": [
-              {
-                "columns": [
-                  {
-                    "selector": "Date",
-                    "text": "Date",
-                    "type": "timestamp"
-                  },
-                  {
-                    "selector": "Cost",
-                    "text": "Cost",
-                    "type": "number"
-                  },
-                  {
-                    "selector": "Resource",
-                    "text": "Resource",
-                    "type": "string"
-                  },
-                  {
-                    "selector": "Currency",
-                    "text": "Currency",
-                    "type": "string"
-                  }
-                ],
-                "datasource": {
-                  "type": "yesoreyeram-infinity-datasource",
-                  "uid": "mw-azure-monitoring"
-                },
-                "format": "table",
-                "parser": "jq-backend",
-                "refId": "A",
-                "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") else .properties.rows[] | {Date:((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\"),Cost:.[0],Resource:(.[2]|split(\"/\")|last),Currency:.[3]} end",
-                "source": "url",
-                "type": "json",
-                "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-                "url_options": {
-                  "body_content_type": "application/json",
-                  "body_type": "raw",
-                  "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-                  "headers": [
-                    {
-                      "key": "ClientType",
-                      "value": "MWCreditGrafanaMonitoring"
-                    }
-                  ],
-                  "method": "POST"
-                }
-              },
-              {
-                "columns": [
-                  {
-                    "selector": "Date",
-                    "text": "Date",
-                    "type": "timestamp"
-                  },
-                  {
-                    "selector": "Cost",
-                    "text": "Cost",
-                    "type": "number"
-                  },
-                  {
-                    "selector": "Resource",
-                    "text": "Resource",
-                    "type": "string"
-                  },
-                  {
-                    "selector": "Currency",
-                    "text": "Currency",
-                    "type": "string"
-                  }
-                ],
-                "datasource": {
-                  "type": "yesoreyeram-infinity-datasource",
-                  "uid": "mw-azure-monitoring"
-                },
-                "format": "table",
-                "parser": "jq-backend",
-                "refId": "B",
-                "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") else .properties.rows[] | {Date:((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\"),Cost:.[0],Resource:(.[2]|split(\"/\")|last),Currency:.[3]} end",
-                "source": "url",
-                "type": "json",
-                "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-                "url_options": {
-                  "body_content_type": "application/json",
-                  "body_type": "raw",
-                  "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-                  "headers": [
-                    {
-                      "key": "ClientType",
-                      "value": "MWCreditGrafanaMonitoring"
-                    }
-                  ],
-                  "method": "POST"
-                }
-              }
-            ],
-            "title": "Azure · daily detail (USD)",
-            "transformations": [
-              {
-                "id": "merge",
-                "options": {}
-              },
-              {
-                "id": "organize",
-                "options": {
-                  "indexByName": {
-                    "Cost": 2,
-                    "Currency": 3,
-                    "Date": 0,
-                    "Resource": 1
-                  }
-                }
-              },
-              {
-                "id": "sortBy",
-                "options": {
-                  "sort": [
-                    {
-                      "desc": true,
-                      "field": "Date"
-                    }
-                  ]
-                }
-              }
-            ],
-            "type": "table"
-          }
-        ],
-        "title": "Azure · residual cost (VM-01 deleted 8 November 2026)",
-        "type": "row"
-      },
-      {
-        "collapsed": true,
-        "gridPos": {
-          "h": 1,
-          "w": 24,
-          "x": 0,
-          "y": 52
-        },
         "id": 20,
         "panels": [
           {
@@ -3172,7 +2142,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 53
+              "y": 52
             },
             "id": 202,
             "options": {
@@ -3292,7 +2262,7 @@
               "h": 4,
               "w": 8,
               "x": 8,
-              "y": 53
+              "y": 52
             },
             "id": 203,
             "options": {
@@ -3412,7 +2382,7 @@
               "h": 4,
               "w": 8,
               "x": 16,
-              "y": 53
+              "y": 52
             },
             "id": 204,
             "options": {
@@ -3504,7 +2474,7 @@
               "h": 3,
               "w": 24,
               "x": 0,
-              "y": 57
+              "y": 56
             },
             "id": 205,
             "options": {
@@ -3578,7 +2548,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 60
+              "y": 59
             },
             "id": 207,
             "options": {
@@ -3731,7 +2701,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 60
+              "y": 59
             },
             "id": 206,
             "options": {
@@ -3838,7 +2808,7 @@
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-gcp-monitoring"
             },
-            "description": "Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Singapore. Restricted to the AppSheet project; query capped at 100 MB billed.",
+            "description": "Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Singapore. Restricted to project clever-oasis-508610-n7; query capped at 100 MB billed.",
             "fieldConfig": {
               "defaults": {
                 "color": {
@@ -3890,7 +2860,7 @@
               "h": 9,
               "w": 24,
               "x": 0,
-              "y": 71
+              "y": 70
             },
             "id": 201,
             "options": {
@@ -3997,7 +2967,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 53
+          "y": 52
         },
         "id": 30,
         "panels": [
@@ -4028,14 +2998,14 @@
                     }
                   ]
                 },
-                "unit": "currencyUSD"
+                "unit": "prefix:US$"
               }
             },
             "gridPos": {
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 54
+              "y": 53
             },
             "id": 302,
             "options": {
@@ -4134,7 +3104,7 @@
                     }
                   ]
                 },
-                "unit": "currencyUSD"
+                "unit": "prefix:US$"
               },
               "overrides": [
                 {
@@ -4155,7 +3125,7 @@
               "h": 4,
               "w": 16,
               "x": 8,
-              "y": 54
+              "y": 53
             },
             "id": 301,
             "options": {
@@ -4226,7 +3196,7 @@
               "h": 5,
               "w": 24,
               "x": 0,
-              "y": 58
+              "y": 57
             },
             "id": 303,
             "options": {
@@ -4279,7 +3249,7 @@
                     }
                   ]
                 },
-                "unit": "currencyUSD"
+                "unit": "prefix:US$"
               },
               "overrides": [
                 {
@@ -4300,7 +3270,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 63
+              "y": 62
             },
             "id": 304,
             "options": {
@@ -4439,14 +3409,14 @@
                     }
                   ]
                 },
-                "unit": "currencyUSD"
+                "unit": "prefix:US$"
               }
             },
             "gridPos": {
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 63
+              "y": 62
             },
             "id": 305,
             "options": {
@@ -4515,6 +3485,277 @@
           }
         ],
         "title": "Railway · workspace usage · current billing cycle",
+        "type": "row"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 53
+        },
+        "id": 60,
+        "panels": [
+          {
+            "datasource": {
+              "type": "datasource",
+              "uid": "-- Dashboard --"
+            },
+            "description": "Sum of the table beside it: Anthropic's billed Claude API cost from the Admin API cost report, USD, every API key and workspace of the organization, for the selected range (month to date by default): complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok.",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                },
+                "decimals": 2,
+                "displayName": "Claude API USD",
+                "mappings": [],
+                "noValue": "No data",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#2E7D32",
+                      "value": null
+                    }
+                  ]
+                },
+                "unit": "prefix:US$"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 4,
+              "w": 8,
+              "x": 0,
+              "y": 54
+            },
+            "id": 61,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "sum"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "text": {
+                "titleSize": 16,
+                "valueSize": 32
+              },
+              "textMode": "value",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "datasource",
+                  "uid": "-- Dashboard --"
+                },
+                "panelId": 62,
+                "refId": "A",
+                "withTransforms": false
+              }
+            ],
+            "title": "Claude API · selected range",
+            "transformations": [
+              {
+                "id": "filterFieldsByName",
+                "options": {
+                  "include": {
+                    "names": [
+                      "Claude API USD"
+                    ]
+                  }
+                }
+              }
+            ],
+            "type": "stat"
+          },
+          {
+            "description": "What the Anthropic figures include.",
+            "gridPos": {
+              "h": 6,
+              "w": 8,
+              "x": 0,
+              "y": 58
+            },
+            "id": 64,
+            "options": {
+              "code": {
+                "language": "plaintext",
+                "showLineNumbers": false,
+                "showMiniMap": false
+              },
+              "content": "Billed **Claude API** cost in USD for every API key and workspace in the Anthropic organization, by UTC day: complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok. The limit tile at the top counts the UTC calendar month. Prepaid credit balance, invoice credits and taxes are not shown. The **In-app chat** row above is MW Credit's own token estimate for the PWA chat only. [Open Claude Console cost](https://platform.claude.com/cost).",
+              "mode": "markdown"
+            },
+            "title": "How to read Anthropic cost",
+            "type": "text"
+          },
+          {
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-anthropic-cost"
+            },
+            "description": "The selected range by model and cost type (input, cached and output tokens; web search; code execution), summed over the days: Anthropic's billed Claude API cost from the Admin API cost report, USD, every API key and workspace of the organization; complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok. A range without one complete UTC day (month to date on the 1st, or before 07:00 Bangkok on the 2nd) returns an error from Anthropic. The footer sums the cost.",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto"
+                  },
+                  "inspect": false
+                },
+                "decimals": 2,
+                "displayName": "${__field.name}",
+                "mappings": [],
+                "noValue": "No cost",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#2E7D32",
+                      "value": null
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Model"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 120
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Type"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 130
+                    },
+                    {
+                      "id": "custom.cellOptions",
+                      "value": {
+                        "type": "auto",
+                        "wrapText": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Claude API USD"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "prefix:US$"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 2
+                    },
+                    {
+                      "id": "custom.width",
+                      "value": 90
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 10,
+              "w": 16,
+              "x": 8,
+              "y": 54
+            },
+            "id": 62,
+            "options": {
+              "cellHeight": "md",
+              "footer": {
+                "countRows": false,
+                "fields": [
+                  "Claude API USD"
+                ],
+                "reducer": [
+                  "sum"
+                ],
+                "show": true
+              },
+              "showHeader": true
+            },
+            "targets": [
+              {
+                "columns": [
+                  {
+                    "selector": "Model",
+                    "text": "Model",
+                    "type": "string"
+                  },
+                  {
+                    "selector": "Type",
+                    "text": "Type",
+                    "type": "string"
+                  },
+                  {
+                    "selector": "USD",
+                    "text": "Claude API USD",
+                    "type": "number"
+                  }
+                ],
+                "datasource": {
+                  "type": "yesoreyeram-infinity-datasource",
+                  "uid": "mw-anthropic-cost"
+                },
+                "format": "table",
+                "parser": "jq-backend",
+                "refId": "A",
+                "root_selector": "# Anthropic Claude API billed cost by model and cost type over the selected days (cost_report with\n# group_by[]=description). Amounts are US cents as decimal strings; rows without a model (web search,\n# code execution) show an em dash. Largest first; a truncated report is an error, not an undercount.\nif .has_more then error(\"Anthropic cost report has more pages; narrow the date range\")\nelse [.data[].results[]?]\n  | group_by([.model // \"\", .cost_type // \"\", .token_type // \"\"])\n  | map({Model: (.[0].model // \"—\"),\n         Type: ([.[0].cost_type, .[0].token_type] | map(select(. != null)) | join(\" · \")),\n         USD: ((map(.amount | tonumber) | add) / 100)})\n  | sort_by(-.USD) | .[]\nend\n",
+                "source": "url",
+                "type": "json",
+                "url": "https://api.anthropic.com/v1/organizations/cost_report?starting_at=${__timeFrom:date:iso}&ending_at=${__timeTo:date:iso}&bucket_width=1d&limit=31&group_by%5B%5D=description",
+                "url_options": {
+                  "headers": [
+                    {
+                      "key": "anthropic-version",
+                      "value": "2023-06-01"
+                    }
+                  ],
+                  "method": "GET"
+                }
+              }
+            ],
+            "title": "Claude API · by model",
+            "transformations": [],
+            "type": "table"
+          }
+        ],
+        "title": "Anthropic · Claude API · billed cost (USD)",
         "type": "row"
       }
     ],

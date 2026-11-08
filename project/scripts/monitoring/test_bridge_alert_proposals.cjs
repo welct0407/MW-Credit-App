@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),{execFileSync}=require('child_process'),{rules}=require('./build-bridge-alert-proposals');
+const assert=require('node:assert/strict'),{execFileSync}=require('child_process'),{rules}=require('./build-bridge-alert-proposals.cjs');
 const now=Math.floor(Date.now()/1000);
 function evaluate(id,value,age=0){const q=rules.find(r=>r.uid==='mw-dots-'+id).data[0].model;
  const input=value===null?{}:{timeSeries:[{points:[{interval:{endTime:new Date((now-age)*1000).toISOString()},value:{int64Value:String(value)}}]}]};

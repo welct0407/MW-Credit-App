@@ -42,7 +42,6 @@ const DASHBOARD_TITLES = {
 const INFINITY = 'yesoreyeram-infinity-datasource';
 const DS = {
   gcp: {type: INFINITY, uid: 'mw-gcp-monitoring'},
-  azure: {type: INFINITY, uid: 'mw-azure-monitoring'},
   railway: {type: INFINITY, uid: 'mw-railway-monitoring'},
   publicStatus: {type: INFINITY, uid: 'cfz10a9eaokjkd'}, // mw-public-status, credential-free
   fx: {type: INFINITY, uid: 'efz19dcu6cwzka'},
@@ -51,17 +50,23 @@ const DS = {
   // R093 V108: pwa_chat_recent_turns_v1 and pwa_chat_usage_v1). The uid is the one the R090 datasource was created
   // with, so the live datasource and its password are kept.
   chatQuestions: {type: 'grafana-postgresql-datasource', uid: 'mw-agent-questions'},
+  // Anthropic Admin API cost report; the Admin key (x-api-key) is the datasource's encrypted field, outside Terraform.
+  anthropic: {type: INFINITY, uid: 'mw-anthropic-cost'},
   dashboard: {type: 'datasource', uid: '-- Dashboard --'},
   mixed: {type: 'mixed', uid: '-- Mixed --'}
 };
+// Owner, 8 November 2026: the Azure datasources (mw-azure-monitoring, mw-azure-vm-control cfz1i3v9ruk1sb) are deleted;
+// no dashboard reads Azure (the builder strips the Azure targets of the retired Cost panel 2 it lifts from).
+const RETIRED_DATASOURCE_UIDS = ['mw-azure-monitoring', 'cfz1i3v9ruk1sb'];
+const RETIRED_URL_HOSTS = ['management.azure.com'];
 const ALLOWED_DATASOURCE_UIDS = [
-  'mw-gcp-monitoring', 'mw-azure-monitoring', 'mw-railway-monitoring', 'cfz10a9eaokjkd',
-  'efz19dcu6cwzka', 'mw-public-gcp-status', 'mw-agent-questions', '-- Dashboard --', '-- Mixed --', '-- Grafana --'
+  'mw-gcp-monitoring', 'mw-railway-monitoring', 'cfz10a9eaokjkd',
+  'efz19dcu6cwzka', 'mw-public-gcp-status', 'mw-agent-questions', 'mw-anthropic-cost', '-- Dashboard --', '-- Mixed --', '-- Grafana --'
 ];
 const ALLOWED_URL_HOSTS = [
-  'monitoring.googleapis.com', 'bigquery.googleapis.com', 'management.azure.com',
+  'monitoring.googleapis.com', 'bigquery.googleapis.com',
   'backboard.railway.com', 'api.frankfurter.dev', 'status.cloud.google.com', 'railway.instatus.com',
-  'billingbudgets.googleapis.com'
+  'billingbudgets.googleapis.com', 'api.anthropic.com'
 ];
 
 const FROM = '${__timeFrom:date:iso}';
@@ -106,7 +111,8 @@ function valueMap(entries, nullText) {
  *   problem  green at 0, red above when something is broken now, orange above for counts over a period
  *            that need attention (failures in 24 h, request errors in the range, open reviews);
  *   work     normal-work counts and volumes: neutral, coloured only through a documented age or limit;
- *   limit    normal-work counts with an owner-set limit (R090): green below, orange from the limit;
+ *   limit    normal-work counts with an owner-set limit (R090): green below, orange from the limit; the share of
+ *            the owner's Claude API spending limit (owner, 8 November 2026): orange from 80 %, red from 100 %;
  *   age      ages with a documented limit: green within, orange past the limit (the alert value or, without
  *            an alert, the owner-set limit in LIMITS), grey stale;
  *   money    neutral (the live budget comparison would need the budget in the same query; not done);
@@ -132,11 +138,12 @@ const POLICY = {
     '503 · body timeout', '5xx · all services', '3 · Validate · holds', 'Validation holds', '4 · Review · overdue', '5 · Post · unconfirmed',
     'Posting unconfirmed', '6 · Notify · failed', 'Notify failures'],
   work: ['Sent · 24 h', 'Turns', 'Turns · 24 h', 'Extractions', 'Valid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting'],
-  limit: ['Pending', '401 · session invalid', 'Median turn', 'Median rounds'],
+  limit: ['Pending', '401 · session invalid', 'Median turn', 'Median rounds', 'Limit used'],
   age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Last notification'],
   // Lifted Cost detail tiles without a named field are classed by their title.
-  money: ['This month', 'Azure', 'GCP', 'Railway', 'Azure + GCP', 'UsageUSD', 'Azure · selected-range cost', 'GCP · before credits (SGD)',
-    'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn'],
+  // Owner, 8 November 2026: Azure left the Cost page; To yesterday (UTC) is the Claude API tile's USD figure.
+  money: ['This month', 'GCP', 'Railway', 'UsageUSD', 'GCP · before credits (SGD)',
+    'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn', 'Claude API USD', 'To yesterday (UTC)'],
   info: ['Provider', 'Running for', 'Uptime', 'GCP budget', 'Last turn']
 };
 /* R090 owner decision: limits for tiles without an alert value (recommended by the team, set on 22 October
@@ -603,7 +610,7 @@ module.exports = {
   OLD_DASHBOARD_LINK, MONITORING_DIR, REPO_ROOT, DASHBOARD_DIR, PROJECT, INSTANCE_ID, SQL_INSTANCE, SQL_DATABASE_ID, WEBHOOK_CHECK_ID,
   UPTIME_SINGAPORE_LOCATION, SCHEDULER_ATTEMPT_METRIC, SCHEDULER_STATUS_LABEL, SCHEDULER_HTTP_LABEL,
   NUM_BACKENDS_DATABASE_LABEL, ALERT_FOLDER_UID, LOG_METRIC, STALE_SECONDS, ALIGNED_STALE_SECONDS, DASHBOARD_UIDS,
-  DASHBOARD_TITLES, DS, ALLOWED_DATASOURCE_UIDS, ALLOWED_URL_HOSTS, FROM, TO, CHART_PERIOD, COLOR, STATE_TEXT,
+  DASHBOARD_TITLES, DS, ALLOWED_DATASOURCE_UIDS, ALLOWED_URL_HOSTS, RETIRED_DATASOURCE_UIDS, RETIRED_URL_HOSTS, FROM, TO, CHART_PERIOD, COLOR, STATE_TEXT,
   stateMappings, valueMap, nullMap, steps, encodeFilter, monitoringUrl, customFilter, sqlFilter, labelClause, col, target,
   inlineTarget, jq, receiptFields, stateSelector, rowSelector, stateRow, lookbackVariable, LOOKBACK_FROM, LOOKBACK_SECONDS, RANGE_START, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,

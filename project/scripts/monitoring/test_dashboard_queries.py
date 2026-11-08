@@ -360,23 +360,6 @@ class CloudRunByService(unittest.TestCase):
 
 
 class CostQueries(unittest.TestCase):
-    def test_prior_azure_counts_days_up_to_today(self):
-        today = dt.datetime.now(dt.timezone.utc)
-        prev = (today.replace(day=1) - dt.timedelta(days=1))
-        def day(d):
-            return int(prev.strftime('%Y%m') + '%02d' % d)
-        rows = [[1.5, day(1), 'vm', 'USD'], [2.0, day(min(today.day, 28)), 'vm', 'USD'], [9.0, day(28) if today.day < 28 else day(1), 'disk', 'USD']]
-        expected = 1.5 + 2.0 + (0 if today.day < 28 else 9.0)
-        self.assertAlmostEqual(query('cost-prior-azure.jq', {'properties': {'rows': rows}})[0]['amount'], expected)
-        # The shifted Bangkok window can reach the last UTC day of the month before: never counted.
-        older = (prev.replace(day=1) - dt.timedelta(days=1))
-        stray = [[50.0, int(older.strftime('%Y%m%d')), 'vm', 'USD'], [60.0, int(today.strftime('%Y%m%d')), 'vm', 'USD']]
-        self.assertAlmostEqual(query('cost-prior-azure.jq', {'properties': {'rows': rows + stray}})[0]['amount'], expected)
-        self.assertEqual(query('cost-prior-azure.jq', {'properties': {'rows': []}})[0]['amount'], 0)
-        for bad in ({'properties': {'nextLink': 'x', 'rows': []}}, {'properties': {}}, {'properties': {'rows': [[1, day(1), 'vm', 'EUR']]}}):
-            with self.assertRaises(ValueError):
-                query('cost-prior-azure.jq', bad)
-
     def test_gcp_by_service(self):
         def row(*values):
             return {'f': [{'v': v} for v in values]}
@@ -433,6 +416,81 @@ class BudgetQuery(unittest.TestCase):
         for data in bad:
             with self.assertRaises(ValueError, msg=data):
                 self.q(data)
+
+
+class AnthropicCost(unittest.TestCase):
+    """anthropic-cost-detail.jq on the Admin API cost report: amounts are US cents as decimal strings."""
+    def q(self, data):
+        return query('anthropic-cost-detail.jq', data)
+
+    def bucket(self, day, *results):
+        return {'starting_at': '2026-11-%02dT00:00:00Z' % day, 'ending_at': '2026-11-%02dT00:00:00Z' % (day + 1), 'results': list(results)}
+
+    def cost(self, cents, model='claude-opus-5-5', cost_type='tokens', token_type='output_tokens'):
+        return {'currency': 'USD', 'amount': cents, 'model': model, 'cost_type': cost_type, 'token_type': token_type, 'description': 'x'}
+
+    def test_sums_days_per_model_and_type_largest_first_in_dollars(self):
+        rows = self.q({'data': [self.bucket(1, self.cost('123.5'), self.cost('10', token_type='cache_read_input_tokens')),
+                                self.bucket(2),
+                                self.bucket(3, self.cost('76.5'), self.cost('7', model=None, cost_type='web_search', token_type=None))],
+                       'has_more': False, 'next_page': None})
+        self.assertEqual(rows, [{'Model': 'claude-opus-5-5', 'Type': 'tokens · output_tokens', 'USD': 2},
+                                {'Model': 'claude-opus-5-5', 'Type': 'tokens · cache_read_input_tokens', 'USD': 0.1},
+                                {'Model': '—', 'Type': 'web_search', 'USD': 0.07}])
+
+    def test_no_spending_is_no_rows(self):
+        self.assertEqual(self.q({'data': [self.bucket(1), self.bucket(2)], 'has_more': False}), [])
+
+    def test_truncated_report_fails_visibly(self):
+        with self.assertRaises(ValueError):
+            self.q({'data': [self.bucket(1, self.cost('5'))], 'has_more': True, 'next_page': 'page_x'})
+
+
+class AnthropicCostMonth(unittest.TestCase):
+    """anthropic-cost-month.jq (owner, 8 November 2026): the current UTC calendar month against the US$200 limit,
+    from a rolling 31 days of complete UTC days (the live report rounds the start up and the end down)."""
+    LIMIT = 200
+
+    def q(self, data):
+        return query('anthropic-cost-month.jq', data, LIMIT=self.LIMIT)
+
+    def bucket(self, day, *cents, month=None):
+        start = (month or dt.datetime.now(dt.timezone.utc).date().replace(day=1)).replace(day=day)
+        return {'starting_at': start.isoformat() + 'T00:00:00Z', 'ending_at': (start + dt.timedelta(days=1)).isoformat() + 'T00:00:00Z',
+                'results': [{'currency': 'USD', 'amount': c, 'model': None, 'cost_type': None, 'token_type': None, 'description': None} for c in cents]}
+
+    def previous(self, *cents):
+        """Buckets of the last days of the month before, as a rolling 31-day window returns them."""
+        last = dt.datetime.now(dt.timezone.utc).date().replace(day=1) - dt.timedelta(days=1)
+        return [self.bucket(last.day - i, c, month=last) for i, c in enumerate(cents)]
+
+    def test_month_to_date_and_share_of_limit(self):
+        rows = self.q({'data': [self.bucket(1, '123.5', '10'), self.bucket(1), self.bucket(1, '557.5')], 'has_more': False, 'next_page': None})
+        self.assertEqual(len(rows), 1)
+        self.assertAlmostEqual(rows[0]['USD'], 6.91)
+        self.assertAlmostEqual(rows[0]['Share'], 6.91 / 200 * 100)
+
+    def test_previous_month_buckets_are_dropped(self):
+        rows = self.q({'data': self.previous('900', '4000', '12345') + [self.bucket(1, '100')], 'has_more': False})
+        self.assertEqual(rows, [{'USD': 1, 'Share': 0.5}])
+
+    def test_empty_current_month_is_zero_percent(self):
+        # On the 1st (UTC) the window holds only the month before: 0, never the previous month and never no data.
+        self.assertEqual(self.q({'data': self.previous('900', '4000'), 'has_more': False}), [{'USD': 0, 'Share': 0}])
+        self.assertEqual(self.q({'data': [self.bucket(1)], 'has_more': False}), [{'USD': 0, 'Share': 0}])
+        self.assertEqual(self.q({'data': [], 'has_more': False}), [{'USD': 0, 'Share': 0}])
+
+    def test_over_limit_exceeds_100_percent(self):
+        row = self.q({'data': self.previous('99999') + [self.bucket(1, '15000'), self.bucket(1, '10000.5')], 'has_more': False})[0]
+        self.assertAlmostEqual(row['USD'], 250.005)
+        self.assertGreater(row['Share'], 100)
+        self.assertAlmostEqual(row['Share'], 125.0025)
+
+    def test_truncated_or_unreadable_report_fails_visibly(self):
+        for bad in ({'data': [self.bucket(1, '5')], 'has_more': True, 'next_page': 'page_x'},
+                    {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Invalid date range: ending date must be after starting date'}}):
+            with self.assertRaises(ValueError, msg=bad):
+                self.q(bad)
 
 
 class RailwayStatus(unittest.TestCase):
@@ -808,48 +866,31 @@ class GeneratedSelectors(unittest.TestCase):
             run(line, narrowed)
         self.assertEqual(run(cell, narrowed)[0]['Budget'], 'S$20.00 / month · Budget-GCP · projects projects/737787224638')
 
-    def test_cost_daily_chart_joins_by_singapore_date_and_converts_at_tiles_fx(self):
+    def test_cost_daily_chart_joins_by_singapore_date(self):
+        # Owner, 8 November 2026: Azure removed, so GCP and the budget line only (SGD, no conversion).
         targets = {t['refId']: t for t in self.panel('mw-cost', 6)['targets']}
         today = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).date()
         day = today - dt.timedelta(days=3)
         midnight = sgt_midnight_ms(day)
         key = midnight + 12 * 3600 * 1000  # FINAL2-8: each date at Singapore noon, so the first bar is not cut
-        ymd = int(day.strftime('%Y%m%d'))
-        azure = {'properties': {'rows': [[1.0, ymd, '/vm', 'USD'], [0.5, ymd, '/disk', 'USD']]}}
-        backup = {'properties': {'rows': [[0.25, ymd, '/vault', 'USD']]}}
         gcp = {'jobComplete': True, 'rows': [{'f': [{'v': '%.7E' % (midnight / 1000)}, {'v': '3'}, {'v': '-1'}, {'v': v}, {'v': 'S'}, {'v': 'R'}, {'v': 'SGD'}]} for v in ('2', '0.5')]}
-        fx = {'base': 'USD', 'quote': 'SGD', 'rate': 1.3, 'date': str(dt.datetime.now(dt.timezone.utc).date())}
-        names = {'A': 'Azure compute USD', 'B': 'Azure backup USD', 'C': 'GCP', 'E': 'SGD per USD'}
-        fields = {'A': 'USD', 'B': 'USD', 'C': 'GCP', 'E': 'FX'}
-        self.assertEqual(sorted(targets), ['A', 'B', 'C', 'E', 'F'], 'Azure, GCP, FX and the budget line; no Railway query')
+        self.assertEqual(sorted(targets), ['C', 'F'], 'GCP and the budget line; no Azure, Railway or FX query')
+        rows = run(targets['C']['root_selector'], gcp)
+        self.assertEqual([r['Time'] for r in rows], [key], 'keyed by the Singapore date')
+        self.assertAlmostEqual(rows[0]['GCP'], 2.5)
+        m = merge_by_time([{'fields': ['Time', 'GCP'], 'rows': rows},
+                           {'fields': ['Time', 'GCP budget (billing account) / day'],
+                            'rows': [{'Time': r['Time'], 'GCP budget (billing account) / day': r['Budget']} for r in run(targets['F']['root_selector'], {'budgets': [budget()]})]}])
+        self.assertEqual(next(r for r in m['rows'] if r['Time'] == key)['GCP'], 2.5, 'GCP bar on the budget line\'s date row')
+        for bad in ({'jobComplete': True, 'pageToken': 'x'}, {'jobComplete': True, 'rows': [{'f': [{'v': '1'}] * 6 + [{'v': 'USD'}]}]}):
+            with self.assertRaises(ValueError):
+                run(targets['C']['root_selector'], bad)
 
-        def frame(ref, data):
-            rows = run(targets[ref]['root_selector'], data)
-            return {'fields': ['Time', names[ref]], 'rows': [{'Time': r['Time'], names[ref]: r[fields[ref]]} for r in rows]}
-        frames = {ref: frame(ref, data) for ref, data in (('A', azure), ('B', backup), ('C', gcp), ('E', fx))}
-        for ref in 'ABC':
-            self.assertEqual([r['Time'] for r in frames[ref]['rows']], [key], ref + ' keyed by the Singapore date')
-        self.assertEqual(len(frames['E']['rows']), 32)
-        self.assertIn(key, [r['Time'] for r in frames['E']['rows']])
-        self.assertTrue(all(r['SGD per USD'] == 1.3 for r in frames['E']['rows']), 'one current rate for every day')
-
-        def chart(present):
-            m = merge_by_time([frames[r] for r in present])
-            binary(m, 'Azure USD', 'Azure compute USD', '+', 'Azure backup USD')
-            binary(m, 'Azure', 'Azure USD', '*', 'SGD per USD')
-            return m, next(r for r in m['rows'] if r['Time'] == key)
-        m, row = chart('ABCE')
-        self.assertAlmostEqual(row['Azure'], 1.75 * 1.3)
-        self.assertAlmostEqual(row['GCP'], 2.5)
-        # A failed provider (its query errors, so no frame) draws no series: never a zero series.
-        for missing, gone in (('B', 'Azure'), ('E', 'Azure'), ('C', 'GCP')):
-            m, _ = chart(''.join(r for r in 'ABCE' if r != missing))
-            self.assertNotIn(gone, m['fields'], missing + ' missing removes ' + gone)
-        for ref, bad in (('A', {'properties': {'rows': [], 'nextLink': 'x'}}), ('A', {'properties': {'rows': [[1, ymd, 'x', 'EUR']]}}),
-                         ('C', {'jobComplete': True, 'pageToken': 'x'}), ('C', {'jobComplete': True, 'rows': [{'f': [{'v': '1'}] * 6 + [{'v': 'USD'}]}]}),
-                         ('E', dict(fx, rate=0)), ('E', dict(fx, base='EUR'))):
-            with self.assertRaises(ValueError, msg=ref):
-                run(targets[ref]['root_selector'], bad)
+    def test_cost_claude_api_tile_uses_the_month_selector(self):
+        t = self.panel('mw-cost', 65)['targets'][0]
+        self.assertEqual(t['root_selector'], (ROOT / 'anthropic-cost-month.jq').read_text().replace('__LIMIT__', '200'))
+        self.assertNotIn('group_by', t['url'])
+        self.assertEqual(run(t['root_selector'], {'data': [AnthropicCostMonth().bucket(1, '5000')], 'has_more': False}), [{'USD': 50, 'Share': 25}])
 
 if __name__ == '__main__':
     unittest.main()
