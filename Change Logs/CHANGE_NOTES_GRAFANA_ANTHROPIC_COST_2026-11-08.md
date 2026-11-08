@@ -145,8 +145,8 @@ Owner instructions: "chat fix, roles, CI tests" and "get everything done in one 
 | --- | --- |
 | Byte's tests and `npm run test:monitoring` | Reported by Byte |
 | Azure readback (Forge, ARM) | Both role definitions return 404 `RoleDefinitionDoesNotExist`; no custom roles remain in the subscription; the assignment and its principal no longer appear; `rg-vm01-controller` returns 403 to this identity (cannot be read; owner confirmed the deletion) |
-| Chase live check | pending |
-| Apply | not applicable (no Terraform or dashboard change in this follow-up) |
+| Chase live check (generated SQL of panels 51 and 52 through Grafana, month to date) | 13 turns (2 failed), all `claude-opus-5-5`: Est. cost S$6.90 (S$0.5308 per turn), matching a hand calculation; before the fix it was "No price". Against Anthropic's billed 1 to 7 November (US$6.908 = S$8.85) the estimate is 0.78: cache writes (57 % of billed input, 1.25x) explain about half; the rest is likely other organization usage (DEV, transliteration, failed turns). `npm run test:monitoring` and `ci-reuse-evidence` tests pass |
+| Apply (Forge, from 322844c) | Reviewed plan sha256 `daf5e262…c62f`: 0 to add, 1 to change (`mw-cost`: only `rawSql` price table and descriptions of panels 50, 51, 52), 0 to destroy. `Apply complete! Resources: 0 added, 1 changed, 0 destroyed`; live `mw-cost` version 19 with `claude-opus-5-5` in panels 50 to 52. Re-plan: No changes |
 
 ### Recovery
 Prices: revert `model-prices.json`. CI: revert the workflow, `package.json` and `stages.json` changes. The deleted Azure objects cannot be restored; the controller and roles can be redeployed from the Bicep in Git history only if a VM is ever recreated.
