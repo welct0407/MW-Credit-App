@@ -91,7 +91,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "SGD. Available costs only: the sum of the platforms that answered (GCP for the selected dates, Railway for its billing cycle), Railway converted from USD at the current ECB USD/SGD reference rate. When a platform cannot be read its tile shows the error and this total is incomplete (it then covers only the other platform). Query host for the GCP and Railway tiles. The Claude API (USD, its own tile below) is not included. The previous month's figure is below.",
+        "description": "SGD. Available costs only: the sum of the platforms that answered (GCP for the selected dates, Railway for its billing cycle), Railway converted from USD at the current ECB USD/SGD reference rate. When a platform cannot be read its tile shows the error and this total is incomplete (it then covers only the other platform). Query host for the GCP and Railway tiles. The Claude API · US$200 limit tile (USD) is not included. The previous month's figure is below.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -301,7 +301,7 @@
           "type": "datasource",
           "uid": "-- Dashboard --"
         },
-        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. GCP uses the selected dates; Railway uses its billing cycle. Read through TOTAL's queries; a platform that cannot be read shows its error here.",
+        "description": "SGD amount from TOTAL's shared queries. Total sums available platforms only: if a platform shows No data, total is partial. GCP uses the selected dates; Railway uses its billing cycle. A platform that cannot be read shows its error here.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -437,7 +437,7 @@
           "type": "datasource",
           "uid": "-- Dashboard --"
         },
-        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. GCP uses the selected dates; Railway uses its billing cycle. Read through TOTAL's queries; a platform that cannot be read shows its error here.",
+        "description": "SGD amount from TOTAL's shared queries. Total sums available platforms only: if a platform shows No data, total is partial. GCP uses the selected dates; Railway uses its billing cycle. A platform that cannot be read shows its error here.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -665,7 +665,7 @@
         ],
         "timeFrom": "now/M",
         "timeShift": "1M",
-        "title": "Last month, same day",
+        "title": "Last month, same day · GCP",
         "transformations": [
           {
             "id": "filterFieldsByName",
@@ -787,7 +787,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-anthropic-cost"
         },
-        "description": "Anthropic's billed Claude API cost for the current UTC calendar month, whatever the selected range: complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok (the figure runs through the end of yesterday, UTC; on the 1st it is 0). Every API key and workspace of the organization, against the owner's US$200 monthly limit: Month to date in USD and Limit used (orange from 80 %, red from 100 %). Not included in the SGD total. Admin API cost report over the last 31 days, kept to this UTC month. Detail by model in the collapsed Anthropic row.",
+        "description": "Anthropic's billed Claude API cost for the current UTC calendar month, whatever the selected range, every API key and workspace of the organization, against the owner's US$200 monthly limit: To yesterday (UTC) in USD and Limit used (orange from 80 %, red from 100 %). Complete UTC days only, so up to yesterday (UTC); today's cost appears after 07:00 Bangkok. On the 1st it is 0. Not included in the SGD total. Admin API cost report over the last 31 days, kept to this UTC month; detail by model in the collapsed Anthropic row.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -813,12 +813,12 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "Month to date"
+                "options": "To yesterday (UTC)"
               },
               "properties": [
                 {
                   "id": "unit",
-                  "value": "currencyUSD"
+                  "value": "prefix:US$"
                 },
                 {
                   "id": "decimals",
@@ -845,7 +845,7 @@
                 },
                 {
                   "id": "decimals",
-                  "value": 1
+                  "value": 0
                 },
                 {
                   "id": "color",
@@ -911,7 +911,7 @@
             "columns": [
               {
                 "selector": "USD",
-                "text": "Month to date",
+                "text": "To yesterday (UTC)",
                 "type": "number"
               },
               {
@@ -927,7 +927,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Anthropic Claude API billed cost of the current UTC calendar month against the owner's monthly limit of\n# US$200 (cost_report without group_by over a rolling 31 days). The report holds complete UTC days only\n# (start rounded up, end down), so the figure runs to the end of yesterday (UTC). Buckets of earlier months are\n# left out. One row: Month to date in USD and Limit used in percent; a month without a complete day or without\n# spending is 0, never no data. Amounts are US cents as decimal strings. A truncated report is an error, not an\n# undercount.\nif .has_more then error(\"Anthropic cost report has more pages; it needs more than 31 daily buckets\")\nelif (.data | type) != \"array\" then error(\"Anthropic cost report unavailable\")\nelse (now | strftime(\"%Y-%m\")) as $month\n  | (([.data[] | select((.starting_at // \"\")[0:7] == $month) | .results[]? | .amount | tonumber] | add // 0) / 100) as $usd\n  | {USD: $usd, Share: ($usd / 200 * 100)}\nend\n",
+            "root_selector": "# Anthropic Claude API billed cost of the current UTC calendar month against the owner's monthly limit of\n# US$200 (cost_report without group_by over a rolling 31 days). The report holds complete UTC days only\n# (start rounded up, end down), so the figure runs to the end of yesterday (UTC). Buckets of earlier months are\n# left out. One row: USD (field To yesterday (UTC)) and Share (field Limit used, percent); a month without a complete day or without\n# spending is 0, never no data. Amounts are US cents as decimal strings. A truncated report is an error, not an\n# undercount.\nif .has_more then error(\"Anthropic cost report has more pages; it needs more than 31 daily buckets\")\nelif (.data | type) != \"array\" then error(\"Anthropic cost report unavailable\")\nelse (now | strftime(\"%Y-%m\")) as $month\n  | (([.data[] | select((.starting_at // \"\")[0:7] == $month) | .results[]? | .amount | tonumber] | add // 0) / 100) as $usd\n  | {USD: $usd, Share: ($usd / 200 * 100)}\nend\n",
             "source": "url",
             "type": "json",
             "url": "https://api.anthropic.com/v1/organizations/cost_report?starting_at=${__timeFrom:date:iso}&ending_at=${__timeTo:date:iso}&bucket_width=1d&limit=31",
@@ -1307,7 +1307,7 @@
         "type": "table"
       },
       {
-        "description": "How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile the current UTC calendar month in complete UTC days (up to yesterday, UTC), so the top rows are not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.",
+        "description": "How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile the current UTC calendar month in complete UTC days (up to yesterday, UTC; today appears after 07:00 Bangkok), so the top rows are not a common-period invoice. There is no forecast: the previous-month figure and the budget line are references. Refresh hourly; frequent manual refreshes can reach provider limits.",
         "gridPos": {
           "h": 4,
           "w": 24,
@@ -1321,7 +1321,7 @@
             "showLineNumbers": false,
             "showMiniMap": false
           },
-          "content": "Cost data is delayed and provisional, no data is not zero spending, and the total combines provider periods (GCP Singapore dates, Railway cycle), so it is not an invoice. The Claude API tile is USD against its US$200 monthly limit (UTC calendar month, complete UTC days up to yesterday; today appears after 07:00 Bangkok) and is not in the SGD total. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.",
+          "content": "Delayed, provisional; no data is not zero; not an invoice. The Claude API tile is USD against its US$200 monthly limit (UTC month, to yesterday) and is not in the SGD total.",
           "mode": "markdown"
         },
         "title": "Unchanged rules of reading",
@@ -2808,7 +2808,7 @@
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-gcp-monitoring"
             },
-            "description": "Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Singapore. Restricted to the AppSheet project; query capped at 100 MB billed.",
+            "description": "Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Singapore. Restricted to project clever-oasis-508610-n7; query capped at 100 MB billed.",
             "fieldConfig": {
               "defaults": {
                 "color": {
@@ -3522,7 +3522,7 @@
                     }
                   ]
                 },
-                "unit": "currencyUSD"
+                "unit": "prefix:US$"
               },
               "overrides": []
             },
@@ -3674,7 +3674,11 @@
                   "properties": [
                     {
                       "id": "unit",
-                      "value": "currencyUSD"
+                      "value": "prefix:US$"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 2
                     },
                     {
                       "id": "custom.width",

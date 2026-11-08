@@ -36,3 +36,33 @@ Remove row 60 from `cost.cjs` and rebuild; move the datasource to an unprotected
 
 ## Remaining work
 None. Merge this branch to `main` so the next Grafana apply from `main` keeps row 60 and `mw-anthropic-cost`.
+
+## Follow-up — 8 November 2026: Claude API limit tile, Azure removed from the Cost page
+
+### Purpose
+Owner instruction: "Limit is 200 usd and keep it in USD. Don't include in total amount, but keep it separate on the upper part of the dashboard. You may remove azure as it's no longer used."
+
+### Changes
+- `cost.cjs` and `mw-cost.json`: Azure removed from the Cost page (tile 2, collapsed row 10 with 101 to 104, Azure in TOTAL 1, Last month 9, daily chart 6, rules text 40 and descriptions); `cost-prior-azure.jq` deleted. TOTAL is GCP plus Railway at the ECB USD/SGD rate. Top row: Total (1), GCP (3), Railway (4), width 8 each; y 4: 'Last month, same day · GCP' (9, GCP only), GCP budget (8), new tile 65 'Claude API · US$200 limit' (x 16, width 8).
+- Tile 65: own query on `mw-anthropic-cost` (`bucket_width=1d`, `limit=31`), rolling `now-31d` window with hidden time override, selector `anthropic-cost-month.jq` keeps the current UTC calendar month; fields 'To yesterday (UTC)' (US$, 2 decimals, neutral) and 'Limit used' (whole %, green below 80, orange from 80, red from 100); limit constant 200 (`ANTHROPIC_LIMIT_USD`). Not in the SGD total. Complete UTC days only: today appears after 07:00 Bangkok and the tile shows 0 on the 1st. Row 60 (table 62) stays collapsed and errors when the range holds no complete UTC day.
+- Collapsed rows now GCP 20 (y 51), Railway 30 (y 52), Anthropic 60 (y 53).
+- Datasource `mw-azure-monitoring` stays defined in Terraform and is no longer used by any dashboard.
+- Records: `project/Documents/Resource_Monitoring_Dashboard_Guide.md` (Cost table, 80/100 % colour variant), `project/Documents/Resource_Monitoring.md` (coverage, cost calculation, Azure marked unused), `project/scripts/monitoring/README.md` (selector list).
+
+### Checks
+| Command | Result |
+| --- | --- |
+| Byte's dashboard build and query tests | Reported by Byte (build, layout fit and query fixtures for `anthropic-cost-month.jq`) |
+| Chase, live read-only queries, 8 November | Tile 65 US$6.908 / 3.454 % (October's US$7.43 in the 31-day window excluded); TOTAL = GCP -S$0.0014 + Railway US$11.01 x 1.2816 = S$14.11 with no Azure or Anthropic input; tiles 9, 8, 6 and 62 return without error |
+| Echo UX review | Codes COST-A1 to C5 and D1 accepted; D1 is the documentation update above |
+| `npm run -s check:docs` | See the report below |
+| Apply | pending Forge |
+
+### Recovery
+Revert `cost.cjs`, restore `cost-prior-azure.jq` and rebuild `mw-cost.json` from the previous commit, then apply through a reviewed plan; the Terraform dashboard resource is replaced in place and no data is touched.
+
+### Open questions
+- Retire the unused datasource `mw-azure-monitoring` (and the Azure app `mw-grafana-monitoring`)? Separate owner decision.
+
+### Remaining work
+Apply the dashboard (Forge), then merge the branch to `main`.

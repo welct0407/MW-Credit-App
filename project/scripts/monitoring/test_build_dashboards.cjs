@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const {spawnSync} = require('node:child_process');
 const L = require('./dashboards/lib.cjs');
+const M = require('./layout-model.cjs');
 const {buildAll, outputPath} = require('./build-dashboards.cjs');
 
 const built = buildAll();
@@ -215,12 +216,34 @@ assert.equal(claudeQuery.url, 'https://api.anthropic.com/v1/organizations/cost_r
 assert.deepEqual(claudeQuery.url_options.headers, [{key: 'anthropic-version', value: '2023-06-01'}]);
 assert.equal(claudeQuery.root_selector, L.jq('anthropic-cost-month.jq', {LIMIT: 200}), 'month selector with the US$200 limit');
 assert.ok(claudeQuery.root_selector.includes('/ 200 * 100'), 'limit 200 in the selector');
-assert.deepEqual(claudeQuery.columns.map(c => c.text), ['Month to date', 'Limit used']);
+// Echo COST-A2: the amount is named by the days it covers.
+assert.deepEqual(claudeQuery.columns.map(c => c.text), ['To yesterday (UTC)', 'Limit used']);
 const claudeProps = name => Object.fromEntries(claude.fieldConfig.overrides.filter(o => o.matcher.options === name).flatMap(o => o.properties.map(x => [x.id, x.value])));
-assert.deepEqual([claudeProps('Month to date').unit, claudeProps('Month to date').decimals, claudeProps('Month to date').color], ['currencyUSD', 2, {mode: 'fixed', fixedColor: L.COLOR.text}], 'USD amount, neutral theme text');
-assert.equal(claudeProps('Limit used').unit, 'percent');
+// Echo COST-A1: a US$ prefix (currencyUSD shows a bare $, which could read as SGD); COST-B2: whole percent.
+const amount = claudeProps('To yesterday (UTC)');
+assert.deepEqual([amount.unit, amount.decimals, amount.color], ['prefix:US$', 2, {mode: 'fixed', fixedColor: L.COLOR.text}], 'US$ amount, neutral theme text');
+assert.deepEqual([claudeProps('Limit used').unit, claudeProps('Limit used').decimals], ['percent', 0]);
+// COST-A3: the description's order.
+const order = ['up to yesterday (UTC)', 'On the 1st it is 0', 'Not included in the SGD total'].map(t => claude.description.indexOf(t));
+assert.ok(order.every(i => i >= 0) && order[0] < order[1] && order[1] < order[2] && claude.description.split('up to yesterday (UTC)').length === 2, 'tile 65 description order');
+// COST-A1 also on the collapsed Anthropic panels 61 and 62; no currencyUSD left on the page.
+assert.ok(!costText.includes('currencyUSD'), 'no bare-$ currencyUSD unit on mw-cost');
+assert.equal(panelOf0('mw-cost', 61).fieldConfig.defaults.unit, 'prefix:US$');
+assert.ok(panelOf0('mw-cost', 62).fieldConfig.overrides.some(o => o.matcher.options === 'Claude API USD' && o.properties.some(x => x.id === 'unit' && x.value === 'prefix:US$')), 'table 62 in US$');
+// Echo COST-C1/C2/C3/C5: wording.
+for (const id of [3, 4]) assert.ok(cost.panels.find(p => p.id === id).description.startsWith('SGD amount from TOTAL\'s shared queries.') && !/stacked-bar/.test(costText), 'tile ' + id + ' reads TOTAL\'s queries');
+assert.equal(cost.panels.find(p => p.id === 9).title, 'Last month, same day · GCP');
+assert.ok(host.description.includes('The Claude API · US$200 limit tile (USD) is not included.'), 'TOTAL names the Claude API tile');
+assert.ok(!/AppSheet/.test(costText) && panelOf0('mw-cost', 201).description.includes('Restricted to project clever-oasis-508610-n7;'), 'panel 201 names this project, not AppSheet');
 assert.deepEqual(claudeProps('Limit used').thresholds.steps, [{color: L.COLOR.ok, value: null}, {color: L.COLOR.degraded, value: 80}, {color: L.COLOR.down, value: 100}], 'orange from 80 %, red from 100 %');
 assert.ok(!cost.panels.some(p => p.id !== 65 && JSON.stringify(p.targets || []).includes('panelId":65')), 'nothing reads the Claude API tile');
+// Echo COST-C4: the rules text fits its 4-row tile on a 390 px phone without scrolling (14 px text at the layout
+// model's 0.55 em proportional glyph, 1.5 line height) and carries the Claude API sentence.
+const rulesText = cost.panels.find(p => p.id === 40);
+const rulesBox = M.contentBox(rulesText.gridPos, 'phone');
+assert.equal(rulesText.gridPos.h, 4);
+assert.ok(M.lines(rulesText.options.content, 14, 'title', rulesBox.width) * 14 * 1.5 <= rulesBox.height, 'rules text fits a phone: ' + rulesText.options.content.length + ' characters');
+assert.ok(rulesText.options.content.includes('The Claude API tile is USD against its US$200 monthly limit (UTC month, to yesterday) and is not in the SGD total.'));
 // LIVE-10: the Cost reading rules sit above the collapsed provider rows.
 assert.ok(cost.panels.find(p => p.id === 40).gridPos.y < Math.min(...cost.panels.filter(p => p.type === 'row').map(p => p.gridPos.y)));
 // Previous-month figure: Azure Custom windows shifted by the panel (TheLastMonth is refused by Cost Management).
@@ -344,7 +367,6 @@ for (const [uid, id] of [['mw-pwa', 32], ['mw-agent', 6]]) {
 }
 // READ-1: stat names 16 px and values 32 px (text tiles 20 px), several values listed as rows; bar gauges 16/22;
 // tables md rows; and the layout model finds no truncation at 1440 px (docked menu) or on a 390 px phone.
-const M = require('./layout-model.cjs');
 const MODEL = {'mw-pwa:30': {names: ['Clean', 'Slip not confirmed', 'Amount unreadable', 'Reference unreadable']}};
 // R093: ten Cloud Run services; Cost 50 ten questions and 52 three models, each with a footer row.
 const TABLE_ROWS = {'mw-now:3': 4, 'mw-now:19': 6, 'mw-infra:5': 1, 'mw-infra:6': 4, 'mw-infra:8': 1, 'mw-infra:9': 10, 'mw-infra:17': 7, 'mw-cost:7': 11,

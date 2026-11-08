@@ -138,9 +138,9 @@ const POLICY = {
   limit: ['Pending', '401 · session invalid', 'Median turn', 'Median rounds', 'Limit used'],
   age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Last notification'],
   // Lifted Cost detail tiles without a named field are classed by their title.
-  // Owner, 8 November 2026: Azure left the Cost page; Month to date is the Claude API tile's USD figure.
+  // Owner, 8 November 2026: Azure left the Cost page; To yesterday (UTC) is the Claude API tile's USD figure.
   money: ['This month', 'GCP', 'Railway', 'UsageUSD', 'GCP · before credits (SGD)',
-    'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn', 'Claude API USD', 'Month to date'],
+    'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn', 'Claude API USD', 'To yesterday (UTC)'],
   info: ['Provider', 'Running for', 'Uptime', 'GCP budget', 'Last turn']
 };
 /* R090 owner decision: limits for tiles without an alert value (recommended by the team, set on 22 October

@@ -35,7 +35,7 @@ function total() {
   const chain = sourceChain().filter(t => t.id !== 'filterFieldsByName' && t.id !== 'organize');
   return {
     id: HOST, type: 'stat', title: 'Total · this month', gridPos: pos(0, 0, 8, 4),
-    description: 'SGD. Available costs only: the sum of the platforms that answered (GCP for the selected dates, Railway for its billing cycle), Railway converted from USD at the current ECB USD/SGD reference rate. When a platform cannot be read its tile shows the error and this total is incomplete (it then covers only the other platform). Query host for the GCP and Railway tiles. The Claude API (USD, its own tile below) is not included. The previous month\'s figure is below.',
+    description: 'SGD. Available costs only: the sum of the platforms that answered (GCP for the selected dates, Railway for its billing cycle), Railway converted from USD at the current ECB USD/SGD reference rate. When a platform cannot be read its tile shows the error and this total is incomplete (it then covers only the other platform). Query host for the GCP and Railway tiles. The Claude API · US$' + ANTHROPIC_LIMIT_USD + ' limit tile (USD) is not included. The previous month\'s figure is below.',
     datasource: DS.mixed, targets: costTargets(),
     transformations: [...chain,
       {id: 'calculateField', options: {alias: 'This month', mode: 'reduceRow', reduce: {include: ['GCP', 'Railway'], reducer: 'sum'}, replaceFields: false}},
@@ -52,7 +52,7 @@ function lastMonth() {
   const gcp = L.liftTarget(COST, 2, 'C');
   if (!JSON.parse(gcp.url_options.data).query.includes(WINDOW)) throw Error('GCP query must keep the picker window');
   return {
-    id: 9, type: 'stat', title: 'Last month, same day', gridPos: pos(0, 4, 8, 4),
+    id: 9, type: 'stat', title: 'Last month, same day · GCP', gridPos: pos(0, 4, 8, 4),
     description: 'SGD. GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M). Railway has no past-cycle figure (cycle only). A reference, not a forecast.',
     datasource: gcp.datasource, timeFrom: 'now/M', timeShift: '1M', hideTimeOverride: true,
     targets: [gcp],
@@ -64,8 +64,11 @@ function lastMonth() {
 
 function platform(oldId, id, x, title) {
   const p = L.lift(COST, oldId, {id, gridPos: pos(x, 0, 8, 4), title, panelIds: {2: HOST}});
-  p.description = p.description.replace('Conversion and coverage are shown below.', 'Read through TOTAL\'s queries; a platform that cannot be read shows its error here.')
+  // Echo COST-C1: the lifted wording named the retired stacked-bar panel.
+  p.description = p.description.replace('Conversion and coverage are shown below.', 'A platform that cannot be read shows its error here.')
+    .replace('SGD amount from the shared stacked-bar results.', 'SGD amount from TOTAL\'s shared queries.')
     .replace('Azure/GCP use selected dates;', 'GCP uses the selected dates;');
+  if (/stacked-bar/.test(p.description)) throw Error('Platform panel ' + oldId + ' description still names the stacked bars');
   if (/Azure/.test(p.description)) throw Error('Platform panel ' + oldId + ' description still names Azure');
   if (!p.description.includes('SGD')) throw Error('Platform panel ' + oldId + ' description lost its currency');
   p.targets = consumer();
@@ -163,6 +166,14 @@ const DESCRIPTIONS = {
   301: 'Railway workspace billing period and accrued usage (GraphQL API), current cycle only.',
   303: 'How the Railway estimate is built from published rates.'
 };
+// Echo COST-C5: lifted wording that names a retired system (AppSheet is retired; the export is this project's).
+const DESCRIPTION_FIXES = {201: ['Restricted to the AppSheet project;', 'Restricted to project ' + L.PROJECT + ';']};
+function fixDescription(p) {
+  const fix = DESCRIPTION_FIXES[p.id];
+  if (!fix) return p;
+  if (!p.description.includes(fix[0])) throw Error('Panel ' + p.id + ' description changed; review DESCRIPTION_FIXES');
+  return {...p, description: p.description.replace(...fix)};
+}
 // Collapsed provider rows: today's panels unchanged, moved under their row with relative positions kept.
 // FINAL2-2: lifted titles shortened to one line on a phone.
 const ROW_TITLES = {206: 'GCP · daily cost (SGD)',
@@ -173,16 +184,16 @@ function providerRow(id, title, y, oldRowId, ids) {
     const p = L.findPanel(COST, old);
     return L.lift(COST, old, {id: old, gridPos: pos(p.gridPos.x, y + 1 + p.gridPos.y - oldRow.gridPos.y - 1, p.gridPos.w, p.gridPos.h),
       title: ROW_TITLES[old] || p.title, panelIds: {201: 201, 301: 301}});
-  }).map(p => (p.description ? p : {...p, description: DESCRIPTIONS[p.id]}));
+  }).map(p => (p.description ? p : {...p, description: DESCRIPTIONS[p.id]})).map(fixDescription);
   return L.row({id, title, gridPos: pos(0, y, 24, 1), collapsed: true, panels: children});
 }
 
 function rules() {
   return L.text({id: 40, title: 'Unchanged rules of reading', gridPos: pos(0, 23, 24, 4),
-    description: 'How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile the current UTC calendar month in complete UTC days (up to yesterday, UTC), so the top rows are not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.',
-    content: 'Cost data is delayed and provisional, no data is not zero spending, and the total combines provider periods (GCP Singapore dates, Railway cycle), so it is not an invoice. ' +
-      'The Claude API tile is USD against its US$' + ANTHROPIC_LIMIT_USD + ' monthly limit (UTC calendar month, complete UTC days up to yesterday; today appears after 07:00 Bangkok) and is not in the SGD total. ' +
-      'There is no forecast: the previous-month figure and the budget line are references; refresh hourly.'});
+    description: 'How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile the current UTC calendar month in complete UTC days (up to yesterday, UTC; today appears after 07:00 Bangkok), so the top rows are not a common-period invoice. There is no forecast: the previous-month figure and the budget line are references. Refresh hourly; frequent manual refreshes can reach provider limits.',
+    // Echo COST-C4: short enough for the 4-row tile on a phone without scrolling (test_build_dashboards.cjs).
+    content: 'Delayed, provisional; no data is not zero; not an invoice. ' +
+      'The Claude API tile is USD against its US$' + ANTHROPIC_LIMIT_USD + ' monthly limit (UTC month, to yesterday) and is not in the SGD total.'});
 }
 
 // COLOUR-1: money is neutral (theme text) on every stat, including the lifted provider tiles that carried
@@ -308,7 +319,9 @@ const ANTHROPIC_WARN_PERCENT = 80;
 const ANTHROPIC_H = 10;
 const ANTHROPIC_DETAIL = 62;
 const ANTHROPIC_FIELD = 'Claude API USD';
-const ANTHROPIC_MONTH_FIELDS = ['Month to date', 'Limit used'];
+// Echo COST-A2: the amount is named by what it covers (complete UTC days); COST-A1: US$ prefix, never read as SGD.
+const ANTHROPIC_MONTH_FIELDS = ['To yesterday (UTC)', 'Limit used'];
+const USD = {unit: 'prefix:US$', decimals: 2};
 const ANTHROPIC_REPORT = 'https://api.anthropic.com/v1/organizations/cost_report?starting_at=' + L.FROM + '&ending_at=' + L.TO + '&bucket_width=1d&limit=31';
 const ANTHROPIC_URL = ANTHROPIC_REPORT + '&group_by%5B%5D=description';
 const ANTHROPIC_OPTIONS = {method: 'GET', headers: [{key: 'anthropic-version', value: '2023-06-01'}]};
@@ -318,15 +331,16 @@ const ANTHROPIC_DAYS = 'complete UTC days only, so up to yesterday (UTC); today\
 function anthropicMonth() {
   const [usd, share] = ANTHROPIC_MONTH_FIELDS;
   return L.stat({id: 65, title: 'Claude API · US$' + ANTHROPIC_LIMIT_USD + ' limit', gridPos: pos(16, 4, 8, 4), timeFrom: 'now-31d', hideTimeOverride: true,
-    description: 'Anthropic\'s billed Claude API cost for the current UTC calendar month, whatever the selected range: ' + ANTHROPIC_DAYS + ' (the figure runs through the end of yesterday, UTC; on the 1st it is 0). ' +
-      'Every API key and workspace of the organization, against the owner\'s US$' + ANTHROPIC_LIMIT_USD +
-      ' monthly limit: Month to date in USD and Limit used (orange from ' + ANTHROPIC_WARN_PERCENT + ' %, red from 100 %). Not included in the SGD total. Admin API cost report over the last 31 days, kept to this UTC month. Detail by model in the collapsed Anthropic row.',
+    // Echo COST-A3: "up to yesterday (UTC)" once, then the 1st, then the total.
+    description: 'Anthropic\'s billed Claude API cost for the current UTC calendar month, whatever the selected range, every API key and workspace of the organization, against the owner\'s US$' + ANTHROPIC_LIMIT_USD +
+      ' monthly limit: ' + usd + ' in USD and Limit used (orange from ' + ANTHROPIC_WARN_PERCENT + ' %, red from 100 %). Complete UTC days only, so up to yesterday (UTC); today\'s cost appears after 07:00 Bangkok. ' +
+      'On the 1st it is 0. Not included in the SGD total. Admin API cost report over the last 31 days, kept to this UTC month; detail by model in the collapsed Anthropic row.',
     targets: [target('A', DS.anthropic, ANTHROPIC_REPORT, jq('anthropic-cost-month.jq', {LIMIT: ANTHROPIC_LIMIT_USD}),
       [col('USD', usd), col('Share', share)], {options: ANTHROPIC_OPTIONS})],
     defaults: {noValue: 'No data', mappings: [], color: {mode: 'fixed', fixedColor: COLOR.text}},
     // Value colour mode: the money text keeps the theme text colour (transparent would hide it).
-    overrides: [byName(usd, {unit: 'currencyUSD', decimals: 2, color: {mode: 'fixed', fixedColor: COLOR.text}}),
-      byName(share, {unit: 'percent', decimals: 1, color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [ANTHROPIC_WARN_PERCENT, COLOR.degraded], [100, COLOR.down])})],
+    overrides: [byName(usd, {...USD, color: {mode: 'fixed', fixedColor: COLOR.text}}),
+      byName(share, {unit: 'percent', decimals: 0, color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [ANTHROPIC_WARN_PERCENT, COLOR.degraded], [100, COLOR.down])})],
     // Two rows at the text-tile size so both fit a 4-row tile; the value is coloured, never the tile (money stays neutral).
     options: {colorMode: 'value', textMode: 'value_and_name', text: L.TEXT_TILE, reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}}});
 }
@@ -336,7 +350,7 @@ function anthropicRow(y) {
     description: 'Sum of the table beside it: ' + ANTHROPIC_SOURCE + ', for the selected range (month to date by default): ' + ANTHROPIC_DAYS + '.',
     datasource: DS.dashboard, targets: [{datasource: DS.dashboard, panelId: ANTHROPIC_DETAIL, refId: 'A', withTransforms: false}],
     transformations: [{id: 'filterFieldsByName', options: {include: {names: [ANTHROPIC_FIELD]}}}],
-    defaults: {displayName: ANTHROPIC_FIELD, unit: 'currencyUSD', decimals: 2, noValue: 'No data'},
+    defaults: {displayName: ANTHROPIC_FIELD, ...USD, noValue: 'No data'},
     options: {colorMode: 'value', textMode: 'value', reduceOptions: {calcs: ['sum'], fields: '', values: false}}});
   const note = L.text({id: 64, title: 'How to read Anthropic cost', gridPos: pos(0, top + 4, 8, ANTHROPIC_H - 4),
     description: 'What the Anthropic figures include.',
@@ -351,7 +365,7 @@ function anthropicRow(y) {
       {options: ANTHROPIC_OPTIONS})],
     defaults: {noValue: 'No cost', decimals: 2, custom: {align: 'auto', cellOptions: {type: 'auto'}, inspect: false}},
     overrides: [byName('Model', {'custom.width': 120}), byName('Type', {'custom.width': 130, 'custom.cellOptions': {type: 'auto', wrapText: true}}),
-      byName(ANTHROPIC_FIELD, {unit: 'currencyUSD', 'custom.width': 90})],
+      byName(ANTHROPIC_FIELD, {...USD, 'custom.width': 90})],
     options: {cellHeight: 'md', footer: {show: true, reducer: ['sum'], fields: [ANTHROPIC_FIELD], countRows: false}}});
   return L.row({id: 60, title: 'Anthropic · Claude API · billed cost (USD)', gridPos: pos(0, y, 24, 1), collapsed: true, panels: [total, note, detail]});
 }
