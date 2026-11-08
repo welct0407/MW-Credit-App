@@ -3,11 +3,24 @@
 const L = require('./lib.cjs');
 const {DS, COLOR, col, target, pos, byName, steps, valueMap, jq, COST} = L;
 
-/* COST-5 (owner review): no exchange-rate tile. TOTAL hosts today's panel 2 queries A–E (visible, so they
- * always run) and the provider tiles read them through the Dashboard datasource; the FX rate stays applied in
- * the conversions, only not shown. The GCP budget has its own small tile. */
+/* COST-5 (owner review): no exchange-rate tile. TOTAL hosts today's panel 2 queries (visible, so they always
+ * run) and the provider tiles read them through the Dashboard datasource; the FX rate stays applied in the
+ * conversions, only not shown. The GCP budget has its own small tile.
+ * Owner, 8 November 2026: Azure is no longer used (VM-01 deleted), so it leaves the Cost page: TOTAL hosts only
+ * queries C (GCP), D (Railway) and E (FX), and the panel 2 chain loses its Azure steps. */
 const HOST = 1;
-const sourceChain = () => structuredClone(L.findPanel(COST, 2).transformations);
+const AZURE_REFS = ['A', 'B'];
+const isAzureStep = t => t.id === 'calculateField' && /^Azure/.test(t.options.alias);
+const costTargets = () => L.findPanel(COST, 2).targets.filter(t => !AZURE_REFS.includes(t.refId)).map(t => structuredClone(t));
+function sourceChain() {
+  const chain = structuredClone(L.findPanel(COST, 2).transformations).filter(t => !isAzureStep(t));
+  for (const t of chain) {
+    if (t.id === 'filterFieldsByName') t.options.include.names = t.options.include.names.filter(n => n !== 'Azure');
+    if (t.id === 'organize') t.options.indexByName = {Category: 0, GCP: 1, Railway: 2};
+  }
+  if (JSON.stringify(chain).includes('Azure')) throw Error('Azure left in the Cost source chain');
+  return chain;
+}
 const consumer = () => [{datasource: DS.dashboard, panelId: HOST, refId: 'A', withTransforms: false}];
 const SGD = {unit: 'prefix:S$', decimals: 2};
 const WINDOW = "usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}')";
@@ -21,11 +34,11 @@ function bigQueryBody(t, query) {
 function total() {
   const chain = sourceChain().filter(t => t.id !== 'filterFieldsByName' && t.id !== 'organize');
   return {
-    id: HOST, type: 'stat', title: 'Total · this month', gridPos: pos(0, 0, 6, 4),
-    description: 'SGD. Available costs only: the sum of the platforms that answered (Azure and GCP for the selected dates, Railway for its billing cycle), Azure and Railway converted from USD at the current ECB USD/SGD reference rate. When a platform cannot be read its tile shows the error and this total is incomplete (it then covers only the other platforms). Query host for the Azure, GCP and Railway tiles. The previous month\'s figure is below.',
-    datasource: DS.mixed, targets: L.findPanel(COST, 2).targets.map(t => structuredClone(t)),
+    id: HOST, type: 'stat', title: 'Total · this month', gridPos: pos(0, 0, 8, 4),
+    description: 'SGD. Available costs only: the sum of the platforms that answered (GCP for the selected dates, Railway for its billing cycle), Railway converted from USD at the current ECB USD/SGD reference rate. When a platform cannot be read its tile shows the error and this total is incomplete (it then covers only the other platform). Query host for the GCP and Railway tiles. The Claude API (USD, its own tile below) is not included. The previous month\'s figure is below.',
+    datasource: DS.mixed, targets: costTargets(),
     transformations: [...chain,
-      {id: 'calculateField', options: {alias: 'This month', mode: 'reduceRow', reduce: {include: ['Azure', 'GCP', 'Railway'], reducer: 'sum'}, replaceFields: false}},
+      {id: 'calculateField', options: {alias: 'This month', mode: 'reduceRow', reduce: {include: ['GCP', 'Railway'], reducer: 'sum'}, replaceFields: false}},
       {id: 'filterFieldsByName', options: {include: {names: ['This month']}}}],
     fieldConfig: {defaults: {color: {fixedColor: COLOR.text, mode: 'fixed'}, displayName: 'This month', ...SGD, noValue: 'No data', thresholds: steps([null, COLOR.ok])},
       overrides: []},
@@ -33,31 +46,27 @@ function total() {
   };
 }
 
-// Previous month to the same moment: today's panel 2 queries A, B, C and E with their own window, shifted
-// by the panel's relative time now/M and time shift 1M (Azure Custom timePeriod, as A and B build it). The
-// Azure guard keeps only rows of that month up to today's UTC day. Railway has no past-cycle figure.
+// Previous month to the same moment: today's panel 2 query C (GCP) with its own window, shifted by the panel's
+// relative time now/M and time shift 1M. Railway has no past-cycle figure; Azure left the page (owner, 8 November 2026).
 function lastMonth() {
-  const [azure, backup, gcp, , fx] = L.findPanel(COST, 2).targets.map(t => structuredClone(t));
-  const guarded = (t, column) => ({...t, root_selector: jq('cost-prior-azure.jq'), columns: [col('Category', 'Category', 'string'), col('amount', column)]});
-  for (const t of [azure, backup]) if (JSON.parse(t.url_options.data).timeframe !== 'Custom') throw Error('Azure query must keep its Custom window');
+  const gcp = L.liftTarget(COST, 2, 'C');
+  if (!JSON.parse(gcp.url_options.data).query.includes(WINDOW)) throw Error('GCP query must keep the picker window');
   return {
     id: 9, type: 'stat', title: 'Last month, same day', gridPos: pos(0, 4, 8, 4),
-    description: 'SGD. Azure and GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M), converted at the current ECB rate. Railway has no past-cycle figure (cycle only). A reference, not a forecast.',
-    datasource: DS.mixed, timeFrom: 'now/M', timeShift: '1M', hideTimeOverride: true,
-    targets: [guarded(azure, 'Azure compute USD'), guarded(backup, 'Azure backup USD'), gcp, fx],
-    transformations: [{id: 'merge', options: {}},
-      {id: 'calculateField', options: {alias: 'Azure USD', mode: 'reduceRow', reduce: {include: ['Azure compute USD', 'Azure backup USD'], reducer: 'sum'}, replaceFields: false}},
-      {id: 'calculateField', options: {alias: 'Azure', binary: {left: 'Azure USD', operator: '*', right: 'SGD per USD'}, mode: 'binary', replaceFields: false}},
-      {id: 'calculateField', options: {alias: 'Azure + GCP', mode: 'reduceRow', reduce: {include: ['Azure', 'GCP'], reducer: 'sum'}, replaceFields: false}},
-      {id: 'filterFieldsByName', options: {include: {names: ['Azure + GCP']}}}],
-    fieldConfig: {defaults: {color: {fixedColor: COLOR.text, mode: 'fixed'}, displayName: 'Azure + GCP', ...SGD, noValue: 'cycle only', thresholds: steps([null, COLOR.ok])}, overrides: []},
+    description: 'SGD. GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M). Railway has no past-cycle figure (cycle only). A reference, not a forecast.',
+    datasource: gcp.datasource, timeFrom: 'now/M', timeShift: '1M', hideTimeOverride: true,
+    targets: [gcp],
+    transformations: [{id: 'filterFieldsByName', options: {include: {names: ['GCP']}}}],
+    fieldConfig: {defaults: {color: {fixedColor: COLOR.text, mode: 'fixed'}, displayName: 'GCP', ...SGD, noValue: 'No data', thresholds: steps([null, COLOR.ok])}, overrides: []},
     options: L.statOptions({colorMode: 'value', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}})
   };
 }
 
 function platform(oldId, id, x, title) {
-  const p = L.lift(COST, oldId, {id, gridPos: pos(x, 0, 6, 4), title, panelIds: {2: HOST}});
-  p.description = p.description.replace('Conversion and coverage are shown below.', 'Read through TOTAL\'s queries; a platform that cannot be read shows its error here.');
+  const p = L.lift(COST, oldId, {id, gridPos: pos(x, 0, 8, 4), title, panelIds: {2: HOST}});
+  p.description = p.description.replace('Conversion and coverage are shown below.', 'Read through TOTAL\'s queries; a platform that cannot be read shows its error here.')
+    .replace('Azure/GCP use selected dates;', 'GCP uses the selected dates;');
+  if (/Azure/.test(p.description)) throw Error('Platform panel ' + oldId + ' description still names Azure');
   if (!p.description.includes('SGD')) throw Error('Platform panel ' + oldId + ' description lost its currency');
   p.targets = consumer();
   p.transformations = [...sourceChain(), ...p.transformations];
@@ -65,7 +74,7 @@ function platform(oldId, id, x, title) {
 }
 
 const BUDGET = 'GCP budget (billing account) / day';
-const DAILY_SERIES = [['Azure', '#5794F2'], ['GCP', '#FF9830']];
+const DAILY_SERIES = [['GCP', '#FF9830']];
 const BUDGET_URL = 'https://billingbudgets.googleapis.com/v1/billingAccounts/0125EC-78CB0F-A74AAD/budgets';
 const budgetQuery = () => '(\n' + jq('budget.jq') + ')';
 // Budget tile: "S$20.00 / month · Budget-GCP · whole billing account"; no Budget-GCP is "no budget", never 0.
@@ -75,7 +84,7 @@ function budgetCellSelector() {
     'elif .Kind == "last period" then "last period amount · " + .Name + " · " + .Scope else "no budget" end)}';
 }
 function budgetTile() {
-  return L.stat({id: 8, title: 'GCP budget', gridPos: pos(8, 4, 16, 4),
+  return L.stat({id: 8, title: 'GCP budget', gridPos: pos(8, 4, 8, 4),
     description: 'The GCP budget Budget-GCP read live from the Cloud Billing Budget API: monthly amount, name and scope. It covers the whole billing account, while GCP on this page is this project only; no such budget reads "no budget", never 0. The red dashed line of the daily chart is this amount ÷ the days of the month.',
     targets: [target('A', DS.gcp, BUDGET_URL, budgetCellSelector(), [col('Category', 'Category', 'string'), col('Budget', 'GCP budget', 'string')])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')], noValue: 'No report'},
@@ -91,24 +100,14 @@ function budgetLineSelector() {
   return DAY_KEYS + 'def monthdays: (. + 28800 | gmtime) as $g | ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400);\n' +
     budgetQuery() + ' as $b |\nif $b.Kind != "specified" then empty elif $b.Scope != "whole billing account" then error("GCP budget scope is " + $b.Scope + ", not the whole billing account") else sgtdays | {Time: ((. + 43200) * 1000), Budget: ($b.SGD / monthdays)} end';
 }
-/* COST-6 (owner review): one stacked daily chart in SGD over the dashboard's range (month to date by default,
- * the owner's billing month for Azure and GCP), Azure + GCP. Every query keys its rows by the Singapore date at
- * 12:00 SGT (epoch ms; noon, so each date's bar sits inside its day and the month's first bar is not cut at the
- * range start, FINAL2-8) under one field Time, so the merge transformation (as today's panel 2 merges on
- * Category) puts one date on one row. Azure is converted with the month-to-date tiles' rule: today's panel 2
- * query E (current ECB USD/SGD reference, one rate for every day, repeated on each date row) and the same
- * binary calculateField steps. Railway is left out: its estimate exists only from its billing cycle's start
- * (mid-month), so it would not cover the same days. A query that fails leaves its field out, so no series is
- * drawn for it and the panel shows the error badge; nothing is drawn as zero for a failed provider. */
+/* COST-6 (owner review): one daily chart in SGD over the dashboard's range (month to date by default, the owner's
+ * billing month for GCP). Owner, 8 November 2026: Azure left the page, so GCP is the only series. Every query keys
+ * its rows by the Singapore date at 12:00 SGT (epoch ms; noon, so each date's bar sits inside its day and the
+ * month's first bar is not cut at the range start, FINAL2-8) under one field Time, so the merge transformation
+ * puts one date on one row with the budget line. Railway is left out: its estimate exists only from its billing
+ * cycle's start (mid-month), so it would not cover the same days. A query that fails leaves its field out, so no
+ * series is drawn for it and the panel shows the error badge; nothing is drawn as zero for a failed provider. */
 function dailyCost() {
-  const [azureCompute, azureBackup, , , fx] = L.findPanel(COST, 2).targets.map(t => structuredClone(t));
-  for (const t of [azureCompute, azureBackup]) if (JSON.parse(t.url_options.data).timeframe !== 'Custom') throw Error('Azure query must keep its Custom window');
-  // The tiles' Custom timePeriod over the picker's range (provider UTC days).
-  const azure = (t, refId, name) => ({...t, refId,
-    root_selector: 'if .properties.nextLink then error("Cost response truncated; shorten time range") elif (.properties.rows|type)!="array" then error("Azure cost response unavailable") elif any(.properties.rows[];.[3]!="USD") then error("Unexpected Azure currency") else\n' +
-      '  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+"-"+.[4:6]+"-"+.[6:8]+"T00:00:00Z") | fromdateiso8601) + 14400) * 1000), USD: .[0]}] |\n' +
-      '  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end',
-    columns: [col('Time', 'Time', 'timestamp_epoch'), col('USD', name)]});
   // The tiles' BigQuery window over the picker's range, grouped by Singapore date.
   const g = L.liftTarget(COST, 201);
   if (!JSON.parse(g.url_options.data).query.includes(WINDOW)) throw Error('GCP daily query must keep the picker window');
@@ -116,25 +115,19 @@ function dailyCost() {
     root_selector: '[\n' + g.root_selector + '] | if any(.[]; .Currency != null and .Currency != "SGD") then error("Unexpected GCP currency") else\n' +
       '  map(select(.Net != null and .Date != null)) | group_by(.Date)[] | {Time: (.[0].Date + 43200000), GCP: (map(.Net) | add)} end',
     columns: [col('Time', 'Time', 'timestamp_epoch'), col('GCP', 'GCP')]};
-  const rate = {...fx, refId: 'E',
-    root_selector: DAY_KEYS + '(\n' + fx.root_selector + '\n) | .FX as $fx | sgtdays | {Time: ((. + 43200) * 1000), FX: $fx}',
-    columns: [col('Time', 'Time', 'timestamp_epoch'), col('FX', 'SGD per USD')]};
   const budget = target('F', DS.gcp, BUDGET_URL, budgetLineSelector(), [col('Time', 'Time', 'timestamp_epoch'), col('Budget', BUDGET)]);
-  const binary = (alias, left, operator, right) => ({id: 'calculateField', options: {alias, binary: {left, operator, right}, mode: 'binary', replaceFields: false}});
   return L.timeseries({id: 6, title: 'Daily cost · this month', gridPos: pos(0, 8, 16, 15),
-    description: 'SGD per date over the selected range (month to date by default, the billing month of Azure and GCP), stacked: Azure (blue, Cost Management, both resource groups, provider UTC days) and GCP (orange, BigQuery billing export, net = cost + credits per Singapore date, same 100 MB billed-query cap). Azure USD is converted at the current ECB USD/SGD reference rate, one rate for every day, as the month-to-date tiles do. Railway is not drawn: its estimate covers only its own billing cycle, which starts mid-month (see the Railway tile). A platform that cannot be read shows the panel error badge and draws no bars, never zero; a day a platform has not reported draws no bar. Red dashed line = the GCP budget Budget-GCP (Budget API, monthly SGD amount) ÷ the days of that month, drawn only when it has a fixed amount. The budget covers the whole billing account while the GCP bars are this project only (the export is filtered to clever-oasis-508610-n7), so the line is a reference, not like-for-like if another project bills to the account.',
-    targets: [azure(azureCompute, 'A', 'Azure compute USD'), azure(azureBackup, 'B', 'Azure backup USD'), gcp, rate, budget], datasource: DS.mixed,
+    description: 'SGD per date over the selected range (month to date by default, the billing month of GCP): GCP (orange, BigQuery billing export, net = cost + credits per Singapore date, same 100 MB billed-query cap). Railway is not drawn: its estimate covers only its own billing cycle, which starts mid-month (see the Railway tile). An export that cannot be read shows the panel error badge and draws no bars, never zero; a day GCP has not reported draws no bar. Red dashed line = the GCP budget Budget-GCP (Budget API, monthly SGD amount) ÷ the days of that month, drawn only when it has a fixed amount. The budget covers the whole billing account while the GCP bars are this project only (the export is filtered to clever-oasis-508610-n7), so the line is a reference, not like-for-like if another project bills to the account.',
+    targets: [gcp, budget], datasource: DS.gcp,
     transformations: [{id: 'merge', options: {}},
-      binary('Azure USD', 'Azure compute USD', '+', 'Azure backup USD'),
-      binary('Azure', 'Azure USD', '*', 'SGD per USD'),
       {id: 'filterFieldsByName', options: {include: {names: ['Time', ...DAILY_SERIES.map(([name]) => name), BUDGET]}}},
-      {id: 'organize', options: {indexByName: {Time: 0, Azure: 1, GCP: 2, [BUDGET]: 3}}},
+      {id: 'organize', options: {indexByName: {Time: 0, GCP: 1, [BUDGET]: 2}}},
       {id: 'sortBy', options: {fields: {}, sort: [{desc: false, field: 'Time'}]}}],
     defaults: {...SGD, min: 0, noValue: 'No data', custom: {drawStyle: 'bars', fillOpacity: 80, lineWidth: 1, stacking: {group: 'A', mode: 'normal'}}},
     overrides: [...DAILY_SERIES.map(([name, color]) => byName(name, {color: {fixedColor: color, mode: 'fixed'}})),
       byName(BUDGET, {color: {fixedColor: 'red', mode: 'fixed'}, 'custom.drawStyle': 'line', 'custom.lineStyle': {dash: [10, 10], fill: 'dash'},
         'custom.fillOpacity': 0, 'custom.lineWidth': 2, 'custom.stacking': {group: 'A', mode: 'none'}})],
-    // The merge fills a date a platform has not reported with null, which the binary steps turn into 0: keep those out of the tooltip.
+    // A date without a GCP row or a budget row is null after the merge: keep zeros out of the tooltip.
     options: {tooltip: {hideZeros: true, mode: 'multi', sort: 'none'}}});
 }
 
@@ -162,9 +155,6 @@ function byService() {
 
 // NOW-12: one-line source descriptions for the lifted provider panels that had none.
 const DESCRIPTIONS = {
-  102: 'Sum of the Azure daily resource detail below (Cost Management, USD) for the selected dates.',
-  103: 'Azure Cost Management daily cost (USD) from the daily resource detail below, by provider UTC day.',
-  104: 'Azure cost per resource (USD) for the selected dates, from the daily resource detail below.',
   202: 'GCP billing export (BigQuery) cost before credits, SGD, from the daily resource detail below.',
   203: 'GCP credits (SGD) from the billing export daily resource detail below.',
   204: 'GCP net cost (cost + credits, SGD) from the billing export daily resource detail below.',
@@ -175,22 +165,24 @@ const DESCRIPTIONS = {
 };
 // Collapsed provider rows: today's panels unchanged, moved under their row with relative positions kept.
 // FINAL2-2: lifted titles shortened to one line on a phone.
-const ROW_TITLES = {101: 'Azure · daily detail (USD)', 206: 'GCP · daily cost (SGD)',
+const ROW_TITLES = {206: 'GCP · daily cost (SGD)',
   302: 'Railway · accrued usage', 301: 'Railway · billing period', 304: 'Railway · resources (USD est.)', 305: 'Railway · daily estimate (USD)'};
 function providerRow(id, title, y, oldRowId, ids) {
   const oldRow = L.findPanel(COST, oldRowId);
   const children = ids.map(old => {
     const p = L.findPanel(COST, old);
     return L.lift(COST, old, {id: old, gridPos: pos(p.gridPos.x, y + 1 + p.gridPos.y - oldRow.gridPos.y - 1, p.gridPos.w, p.gridPos.h),
-      title: ROW_TITLES[old] || p.title, panelIds: {101: 101, 201: 201, 301: 301}});
+      title: ROW_TITLES[old] || p.title, panelIds: {201: 201, 301: 301}});
   }).map(p => (p.description ? p : {...p, description: DESCRIPTIONS[p.id]}));
   return L.row({id, title, gridPos: pos(0, y, 24, 1), collapsed: true, panels: children});
 }
 
 function rules() {
   return L.text({id: 40, title: 'Unchanged rules of reading', gridPos: pos(0, 23, 24, 4),
-    description: 'How to read every figure on this dashboard: Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date and Railway always shows its current cycle, so the top row is not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.',
-    content: 'Cost data is delayed and provisional, no data is not zero spending, and the top row combines provider periods (Azure UTC days, GCP Singapore dates, Railway cycle), so it is not an invoice. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.'});
+    description: 'How to read every figure on this dashboard: GCP groups by Singapore date, Railway always shows its current cycle and the Claude API tile its current calendar month in UTC days, so the top rows are not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.',
+    content: 'Cost data is delayed and provisional, no data is not zero spending, and the total combines provider periods (GCP Singapore dates, Railway cycle), so it is not an invoice. ' +
+      'The Claude API tile is USD against its US$' + ANTHROPIC_LIMIT_USD + ' monthly limit (calendar month, UTC days) and is not in the SGD total. ' +
+      'There is no forecast: the previous-month figure and the budget line are references; refresh hourly.'});
 }
 
 // COLOUR-1: money is neutral (theme text) on every stat, including the lifted provider tiles that carried
@@ -300,16 +292,36 @@ function questions() {
 /* Owner request (8 November 2026): Anthropic's billed Claude API cost, beside the chat's own estimate above.
  * Read live from the Admin API cost report (USD, UTC days, the whole Anthropic organization) through
  * datasource mw-anthropic-cost; its Admin key is the encrypted field, canonical copy in Secret Manager
- * mw-anthropic-admin-cost-key. One query (the table); the tile sums it, so the page makes one call.
- * limit=31 covers a month; a longer range errors rather than undercounting. A collapsed provider row in
- * native USD like Azure, GCP and Railway (the page itself stays SGD); not yet in the SGD total. */
+ * mw-anthropic-admin-cost-key. limit=31 covers a month; a longer range errors rather than undercounting.
+ * Owner, 8 November 2026: "Limit is 200 usd and keep it in USD. Don't include in total amount, but keep it separate
+ * on the upper part of the dashboard." So the top tile 65 shows the current calendar month against the limit with
+ * its own query (a collapsed row's panels do not run), in USD and never in the SGD total; the collapsed row 60
+ * keeps the detail by model and type for the selected range (its table query; stat 61 sums it). */
+const ANTHROPIC_LIMIT_USD = 200;
+// Limit used: orange from 80 % of the limit, red from 100 % (COLOUR-1 class limit).
+const ANTHROPIC_WARN_PERCENT = 80;
 const ANTHROPIC_H = 10;
 const ANTHROPIC_DETAIL = 62;
 const ANTHROPIC_FIELD = 'Claude API USD';
-const ANTHROPIC_URL = 'https://api.anthropic.com/v1/organizations/cost_report?starting_at=' + L.FROM + '&ending_at=' + L.TO +
-  '&bucket_width=1d&limit=31&group_by%5B%5D=description';
+const ANTHROPIC_MONTH_FIELDS = ['Month to date', 'Limit used'];
+const ANTHROPIC_REPORT = 'https://api.anthropic.com/v1/organizations/cost_report?starting_at=' + L.FROM + '&ending_at=' + L.TO + '&bucket_width=1d&limit=31';
+const ANTHROPIC_URL = ANTHROPIC_REPORT + '&group_by%5B%5D=description';
 const ANTHROPIC_OPTIONS = {method: 'GET', headers: [{key: 'anthropic-version', value: '2023-06-01'}]};
 const ANTHROPIC_SOURCE = 'Anthropic\'s billed Claude API cost from the Admin API cost report, USD, UTC days, every API key and workspace of the organization';
+function anthropicMonth() {
+  const [usd, share] = ANTHROPIC_MONTH_FIELDS;
+  return L.stat({id: 65, title: 'Claude API · US$' + ANTHROPIC_LIMIT_USD + ' limit', gridPos: pos(16, 4, 8, 4), timeFrom: 'now/M', hideTimeOverride: true,
+    description: 'Anthropic\'s billed Claude API cost for the current calendar month (UTC days, whatever the selected range), every API key and workspace of the organization, against the owner\'s US$' + ANTHROPIC_LIMIT_USD +
+      ' monthly limit: Month to date in USD and Limit used (orange from ' + ANTHROPIC_WARN_PERCENT + ' %, red from 100 %). Not included in the SGD total. Admin API cost report; data usually appears within about five minutes. Detail by model in the collapsed Anthropic row.',
+    targets: [target('A', DS.anthropic, ANTHROPIC_REPORT, jq('anthropic-cost-month.jq', {LIMIT: ANTHROPIC_LIMIT_USD}),
+      [col('USD', usd), col('Share', share)], {options: ANTHROPIC_OPTIONS})],
+    defaults: {noValue: 'No data', mappings: [], color: {mode: 'fixed', fixedColor: COLOR.text}},
+    // Value colour mode: the money text keeps the theme text colour (transparent would hide it).
+    overrides: [byName(usd, {unit: 'currencyUSD', decimals: 2, color: {mode: 'fixed', fixedColor: COLOR.text}}),
+      byName(share, {unit: 'percent', decimals: 1, color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [ANTHROPIC_WARN_PERCENT, COLOR.degraded], [100, COLOR.down])})],
+    // Two rows at the text-tile size so both fit a 4-row tile; the value is coloured, never the tile (money stays neutral).
+    options: {colorMode: 'value', textMode: 'value_and_name', text: L.TEXT_TILE, reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}}});
+}
 function anthropicRow(y) {
   const top = y + 1;
   const total = L.stat({id: 61, title: 'Claude API · selected range', gridPos: pos(0, top, 8, 4),
@@ -336,15 +348,15 @@ function anthropicRow(y) {
 }
 const PROVIDERS_Y = CHAT_Y + 1 + USAGE_H + TURNS_H;
 
+// Owner, 8 November 2026: Azure removed (no longer used); the Claude API month against its limit on the second row.
 function build() {
-  return L.dashboard({uid: 'mw-cost', description: 'Cloud spending month to date in SGD with every provider detail in collapsed rows.',
+  return L.dashboard({uid: 'mw-cost', description: 'Cloud spending month to date in SGD (GCP and Railway) with every provider detail in collapsed rows; the Claude API month in USD against its US$' + ANTHROPIC_LIMIT_USD + ' limit, kept out of the SGD total.',
     time: {from: 'now/M', to: 'now'}, refresh: '1h',
     timepicker: {refresh_intervals: ['1h', '2h', '1d']},
-    panels: [total(), platform(5, 2, 6, 'Azure'), platform(6, 3, 12, 'GCP'), platform(7, 4, 18, 'Railway'), lastMonth(), budgetTile(), dailyCost(), byService(),
+    panels: [total(), platform(6, 3, 8, 'GCP'), platform(7, 4, 16, 'Railway'), lastMonth(), budgetTile(), anthropicMonth(), dailyCost(), byService(),
       rules(), ...questions(),
-      providerRow(10, 'Azure · residual cost (VM-01 deleted 8 November 2026)', PROVIDERS_Y, 306, [102, 103, 104, 101]),
-      providerRow(20, L.findPanel(COST, 307).title, PROVIDERS_Y + 1, 307, [202, 203, 204, 205, 207, 206, 201]),
-      providerRow(30, L.findPanel(COST, 308).title, PROVIDERS_Y + 2, 308, [302, 301, 303, 304, 305]),
-      anthropicRow(PROVIDERS_Y + 3)].map(neutralMoney)});
+      providerRow(20, L.findPanel(COST, 307).title, PROVIDERS_Y, 307, [202, 203, 204, 205, 207, 206, 201]),
+      providerRow(30, L.findPanel(COST, 308).title, PROVIDERS_Y + 1, 308, [302, 301, 303, 304, 305]),
+      anthropicRow(PROVIDERS_Y + 2)].map(neutralMoney)});
 }
-module.exports = {build, HOST};
+module.exports = {build, HOST, ANTHROPIC_LIMIT_USD};

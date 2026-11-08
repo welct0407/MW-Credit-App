@@ -108,7 +108,8 @@ function valueMap(entries, nullText) {
  *   problem  green at 0, red above when something is broken now, orange above for counts over a period
  *            that need attention (failures in 24 h, request errors in the range, open reviews);
  *   work     normal-work counts and volumes: neutral, coloured only through a documented age or limit;
- *   limit    normal-work counts with an owner-set limit (R090): green below, orange from the limit;
+ *   limit    normal-work counts with an owner-set limit (R090): green below, orange from the limit; the share of
+ *            the owner's Claude API spending limit (owner, 8 November 2026): orange from 80 %, red from 100 %;
  *   age      ages with a documented limit: green within, orange past the limit (the alert value or, without
  *            an alert, the owner-set limit in LIMITS), grey stale;
  *   money    neutral (the live budget comparison would need the budget in the same query; not done);
@@ -134,11 +135,12 @@ const POLICY = {
     '503 · body timeout', '5xx · all services', '3 · Validate · holds', 'Validation holds', '4 · Review · overdue', '5 · Post · unconfirmed',
     'Posting unconfirmed', '6 · Notify · failed', 'Notify failures'],
   work: ['Sent · 24 h', 'Turns', 'Turns · 24 h', 'Extractions', 'Valid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting'],
-  limit: ['Pending', '401 · session invalid', 'Median turn', 'Median rounds'],
+  limit: ['Pending', '401 · session invalid', 'Median turn', 'Median rounds', 'Limit used'],
   age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Last notification'],
   // Lifted Cost detail tiles without a named field are classed by their title.
-  money: ['This month', 'Azure', 'GCP', 'Railway', 'Azure + GCP', 'UsageUSD', 'Azure · selected-range cost', 'GCP · before credits (SGD)',
-    'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn', 'Claude API USD'],
+  // Owner, 8 November 2026: Azure left the Cost page; Month to date is the Claude API tile's USD figure.
+  money: ['This month', 'GCP', 'Railway', 'UsageUSD', 'GCP · before credits (SGD)',
+    'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn', 'Claude API USD', 'Month to date'],
   info: ['Provider', 'Running for', 'Uptime', 'GCP budget', 'Last turn']
 };
 /* R090 owner decision: limits for tiles without an alert value (recommended by the team, set on 22 October

@@ -165,9 +165,10 @@ for (const [uid, id] of [['mw-now', 4], ['mw-agent', 1]]) {
   assert.ok(t.root_selector.endsWith('map(select(.details == "Last scan completion")) | .[]'), uid + ' ' + id + ' Scan keeps the completion row');
   assert.deepEqual(t.columns.map(c => c.selector), ['status'], uid + ' ' + id + ' Scan reads one field');
 }
-// FINAL-1 / COST-5: the Cost top row is TOTAL and the three providers, 24 columns, each 6 wide.
-const top = built['mw-cost'].spec.panels.filter(p => p.gridPos.y === 0);
-assert.deepEqual(top.map(p => [p.id, p.gridPos.w]), [[1, 6], [2, 6], [3, 6], [4, 6]], 'Cost top row');
+// FINAL-1 / COST-5, owner 8 November 2026 (Azure removed, Claude API limit tile on top): the Cost top rows are
+// TOTAL, GCP and Railway, then the previous month, the GCP budget and the Claude API month, each 8 of 24 wide.
+const topRows = [0, 4].map(y => built['mw-cost'].spec.panels.filter(p => p.gridPos.y === y).map(p => [p.id, p.gridPos.x, p.gridPos.w, p.gridPos.h]));
+assert.deepEqual(topRows, [[[1, 0, 8, 4], [3, 8, 8, 4], [4, 16, 8, 4]], [[9, 0, 8, 4], [8, 8, 8, 4], [65, 16, 8, 4]]], 'Cost top rows');
 // The Now home page carries no DEV series and the PWA page carries no unparameterised environment.
 const nowText = JSON.stringify(built['mw-now']);
 assert.ok(!/-dev\b|_dev\b|loan_manager_dev/.test(nowText), 'mw-now is PROD only');
@@ -180,30 +181,60 @@ for (const uid of ['mw-now', 'mw-agent']) {
   const webhook = allPanels(built[uid].spec).flatMap(e => e.panel.targets || []).filter(t => (t.url || '').includes('check_passed'));
   assert.ok(webhook.length === 1 && decodeURIComponent(webhook[0].url).includes('checker_location = "' + L.UPTIME_SINGAPORE_LOCATION + '"'), uid + ' webhook Singapore only');
 }
-// COST-5: no exchange-rate tile; TOTAL (visible at the top) hosts today's panel 2 queries A–E unchanged and
-// the provider tiles read them; the FX rate stays in the conversions.
+// COST-5: no exchange-rate tile; TOTAL (visible at the top) hosts today's panel 2 queries unchanged and the
+// provider tiles read them; the FX rate stays in the conversions. Owner, 8 November 2026: Azure is no longer used,
+// so TOTAL hosts only C (GCP), D (Railway) and E (FX) and sums GCP + Railway; the Claude API is not in it.
 const cost = built['mw-cost'].spec;
 const host = cost.panels.find(p => p.id === 1);
 assert.ok(host && host.gridPos.y === 0 && host.title === 'Total · this month');
-assert.deepEqual(host.targets, L.findPanel(L.COST, 2).targets);
+assert.deepEqual(host.targets, L.findPanel(L.COST, 2).targets.filter(t => ['C', 'D', 'E'].includes(t.refId)));
+assert.deepEqual(host.targets.map(t => t.datasource.uid), ['mw-gcp-monitoring', 'mw-railway-monitoring', 'efz19dcu6cwzka'], 'TOTAL inputs: GCP, Railway, FX');
+const totalSum = host.transformations.find(t => t.options.alias === 'This month');
+assert.deepEqual(totalSum.options.reduce.include, ['GCP', 'Railway'], 'TOTAL = GCP + Railway');
+assert.ok(!/azure|anthropic|Claude/i.test(JSON.stringify({targets: host.targets, transformations: host.transformations})), 'TOTAL has no Azure and no Anthropic input');
 assert.ok(!cost.panels.some(p => p.id === 5) && !/Coverage and FX/.test(L.serialize(built['mw-cost'])), 'no Coverage and FX tile');
-for (const id of [2, 3, 4]) assert.deepEqual(cost.panels.find(p => p.id === id).targets.map(t => t.panelId), [1], 'provider tile ' + id + ' reads TOTAL');
-assert.ok(host.transformations.some(t => t.options.binary && t.options.binary.right === 'SGD per USD'), 'FX applied in TOTAL');
+assert.ok(!cost.panels.some(p => p.id === 2 || p.id === 10), 'no Azure tile or Azure row');
+for (const id of [3, 4]) assert.deepEqual(cost.panels.find(p => p.id === id).targets.map(t => t.panelId), [1], 'provider tile ' + id + ' reads TOTAL');
+assert.ok(host.transformations.some(t => t.options.binary && t.options.binary.left === 'Railway USD' && t.options.binary.right === 'SGD per USD'), 'FX applied to Railway in TOTAL');
+// Owner, 8 November 2026: no Azure datasource, host or title anywhere on the Cost page (the datasource itself is kept).
+const costText = L.serialize(built['mw-cost']);
+assert.ok(!costText.includes('mw-azure-monitoring') && !costText.includes('management.azure.com') && !/azure/i.test(costText), 'mw-cost names no Azure');
+for (const {panel: p} of allPanels(cost)) assert.ok(!/azure/i.test(p.title + ' ' + (p.description || '')), 'mw-cost panel ' + p.id + ' title and description without Azure');
+// Owner, 8 November 2026: the Claude API month against the US$200 limit, on top, in USD, with its own query.
+const {ANTHROPIC_LIMIT_USD} = require('./dashboards/cost.cjs');
+assert.equal(ANTHROPIC_LIMIT_USD, 200, 'owner limit US$200');
+const claude = cost.panels.find(p => p.id === 65);
+assert.deepEqual([claude.type, claude.title, claude.gridPos, claude.timeFrom, claude.hideTimeOverride], ['stat', 'Claude API · US$200 limit', {x: 16, y: 4, w: 8, h: 4}, 'now/M', true]);
+assert.equal(claude.targets.length, 1, 'Claude API tile: one query of its own');
+const claudeQuery = claude.targets[0];
+assert.equal(claudeQuery.datasource.uid, 'mw-anthropic-cost');
+assert.equal(claudeQuery.url, 'https://api.anthropic.com/v1/organizations/cost_report?starting_at=${__timeFrom:date:iso}&ending_at=${__timeTo:date:iso}&bucket_width=1d&limit=31', 'month report without group_by');
+assert.deepEqual(claudeQuery.url_options.headers, [{key: 'anthropic-version', value: '2023-06-01'}]);
+assert.equal(claudeQuery.root_selector, L.jq('anthropic-cost-month.jq', {LIMIT: 200}), 'month selector with the US$200 limit');
+assert.ok(claudeQuery.root_selector.includes('/ 200 * 100'), 'limit 200 in the selector');
+assert.deepEqual(claudeQuery.columns.map(c => c.text), ['Month to date', 'Limit used']);
+const claudeProps = name => Object.fromEntries(claude.fieldConfig.overrides.filter(o => o.matcher.options === name).flatMap(o => o.properties.map(x => [x.id, x.value])));
+assert.deepEqual([claudeProps('Month to date').unit, claudeProps('Month to date').decimals, claudeProps('Month to date').color], ['currencyUSD', 2, {mode: 'fixed', fixedColor: L.COLOR.text}], 'USD amount, neutral theme text');
+assert.equal(claudeProps('Limit used').unit, 'percent');
+assert.deepEqual(claudeProps('Limit used').thresholds.steps, [{color: L.COLOR.ok, value: null}, {color: L.COLOR.degraded, value: 80}, {color: L.COLOR.down, value: 100}], 'orange from 80 %, red from 100 %');
+assert.ok(!cost.panels.some(p => p.id !== 65 && JSON.stringify(p.targets || []).includes('panelId":65')), 'nothing reads the Claude API tile');
 // LIVE-10: the Cost reading rules sit above the collapsed provider rows.
 assert.ok(cost.panels.find(p => p.id === 40).gridPos.y < Math.min(...cost.panels.filter(p => p.type === 'row').map(p => p.gridPos.y)));
 // Previous-month figure: Azure Custom windows shifted by the panel (TheLastMonth is refused by Cost Management).
 assert.ok(!L.serialize(built['mw-cost']).includes('TheLastMonth'), 'mw-cost uses no TheLastMonth timeframe');
 const lastMonth = cost.panels.find(p => p.id === 9);
 assert.ok(lastMonth && lastMonth.timeFrom === 'now/M' && lastMonth.timeShift === '1M');
-for (const t of lastMonth.targets.slice(0, 2)) assert.equal(JSON.parse(t.url_options.data).timeframe, 'Custom');
+// Owner, 8 November 2026: GCP only (Azure removed), the tiles' GCP query over the shifted window.
+assert.deepEqual(lastMonth.targets, [L.liftTarget(L.COST, 2, 'C')], 'last month reads GCP only');
+assert.equal(lastMonth.fieldConfig.defaults.displayName, 'GCP');
 // Lifted panels keep their selectors byte for byte.
 // R090: Metabase CPU and RAM (Infrastructure 14, 15) send one combined Railway call (test_dashboard_queries.py).
 for (const [uid, old, id] of [['mw-agent', 108, 2], ['mw-infra', 31, 1], ['mw-infra', 43, 16], ['mw-cost', 201, 201]]) {
   const p = allPanels(built[uid].spec).find(e => e.panel.id === id).panel;
   assert.deepEqual(p.targets.map(t => t.root_selector), L.findPanel(old === 201 ? L.COST : L.PERF, old).targets.map(t => t.root_selector), uid + ' ' + id + ' lifted selectors');
 }
-// COST-2/COST-6 (owner decisions): one stacked daily chart in SGD (Azure blue, GCP orange) over the dashboard's
-// range (month to date by default); Railway is left out (its estimate covers only its mid-month cycle).
+// COST-2/COST-6 (owner decisions): one daily chart in SGD over the dashboard's range (month to date by default);
+// Railway is left out (its estimate covers only its mid-month cycle). Owner, 8 November 2026: GCP (orange) only.
 const daily = cost.panels.filter(p => p.type === 'timeseries');
 assert.equal(daily.length, 1, 'Cost has one daily chart');
 const chart = daily[0];
@@ -215,26 +246,20 @@ assert.equal(chart.fieldConfig.defaults.unit, 'prefix:S$', 'daily chart unit SGD
 assert.equal(chart.fieldConfig.defaults.custom.drawStyle, 'bars');
 assert.deepEqual(chart.fieldConfig.defaults.custom.stacking, {group: 'A', mode: 'normal'});
 const colour = name => chart.fieldConfig.overrides.find(o => o.matcher.id === 'byName' && o.matcher.options === name)?.properties.find(x => x.id === 'color')?.value.fixedColor;
-assert.deepEqual(['Azure', 'GCP'].map(colour), ['#5794F2', '#FF9830'], 'Azure blue, GCP orange');
+assert.deepEqual(['GCP'].map(colour), ['#FF9830'], 'GCP orange');
 assert.ok(!chart.targets.some(t => (t.url || '').includes('railway')), 'no Railway query in the daily chart');
+assert.deepEqual(chart.targets.map(t => t.refId), ['C', 'F'], 'daily chart: GCP and the budget line');
 const budgetLine = chart.fieldConfig.overrides.find(o => o.matcher.options === 'GCP budget (billing account) / day');
 assert.ok(budgetLine && budgetLine.properties.some(x => x.id === 'custom.stacking' && x.value.mode === 'none'), 'budget line is not stacked');
 const kept = chart.transformations.find(t => t.id === 'filterFieldsByName').options.include.names;
-assert.deepEqual(kept, ['Time', 'Azure', 'GCP', 'GCP budget (billing account) / day'], 'daily series Azure, GCP and the budget line');
+assert.deepEqual(kept, ['Time', 'GCP', 'GCP budget (billing account) / day'], 'daily series GCP and the budget line');
 assert.equal(chart.transformations[0].id, 'merge', 'daily frames merged on Time');
 for (const t of chart.targets) assert.equal(t.columns[0].selector, 'Time', 'daily query ' + t.refId + ' keyed by Time');
-// Conversion: the tiles' FX query (mw-public-fx) with the tiles' binary steps.
-const tilesFx = L.findPanel(L.COST, 2).targets[4];
-const fxTarget = chart.targets.find(t => t.refId === 'E');
-assert.equal(fxTarget.datasource.uid, 'efz19dcu6cwzka');
-assert.equal(fxTarget.url, tilesFx.url);
-assert.ok(fxTarget.root_selector.includes(tilesFx.root_selector), 'daily FX keeps the tiles\' FX rule');
-const binaries = chart.transformations.filter(t => t.id === 'calculateField').map(t => t.options.binary);
-assert.deepEqual(binaries, L.findPanel(L.COST, 2).transformations.filter(t => t.id === 'calculateField').map(t => t.options.binary).slice(0, 2), 'same Azure conversion steps as the tiles');
+assert.ok(!chart.transformations.some(t => t.id === 'calculateField'), 'daily chart converts nothing (SGD sources only)');
 assert.equal(chart.targets.find(t => t.refId === 'C').url_options.data, L.liftTarget(L.COST, 201).url_options.data, 'GCP: the tiles\' picker window');
-for (const id of ['A', 'B']) assert.equal(JSON.parse(chart.targets.find(t => t.refId === id).url_options.data).timeframe, 'Custom');
-// No USD unit on the Cost page itself (the collapsed provider rows keep their native detail units).
-for (const p of cost.panels) assert.ok(!/currencyUSD|"unit":"[^"]*USD/.test(JSON.stringify(p.fieldConfig || {})), 'mw-cost panel ' + p.id + ' has no USD unit');
+// No USD unit on the Cost page itself (the collapsed provider rows keep their native detail units). Owner,
+// 8 November 2026: the one exception is the Claude API limit tile 65, kept in USD.
+for (const p of cost.panels) if (p.id !== 65) assert.ok(!/currencyUSD|"unit":"[^"]*USD/.test(JSON.stringify(p.fieldConfig || {})), 'mw-cost panel ' + p.id + ' has no USD unit');
 // Budget from budget.jq on the Budget API, in the chart and the GCP budget tile; no constant left.
 assert.ok(!L.serialize(built['mw-cost']).includes('gcp_budget_sgd'), 'no gcp_budget_sgd');
 assert.deepEqual(cost.templating.list, [], 'Cost has no budget constant');
@@ -560,7 +585,7 @@ for (const c of fills) {
 assert.ok(fills.has(L.COLOR.ok) && fills.has(L.COLOR.degraded) && fills.has(L.COLOR.down), 'state fills checked: ' + [...fills].join(', '));
 // FINAL4-1: money and info text tiles carry no fill.
 for (const [uid, id] of [['mw-cost', 8], ['mw-pwa', 33], ['mw-agent', 12]]) assert.equal(panelOf(uid, id).options.colorMode, 'none', uid + ' ' + id + ' no fill');
-for (const id of [1, 2, 3, 4, 9]) assert.ok(['value', 'none'].includes(panelOf('mw-cost', id).options.colorMode), 'mw-cost ' + id + ' money without a fill');
+for (const id of [1, 3, 4, 9, 65]) assert.ok(['value', 'none'].includes(panelOf('mw-cost', id).options.colorMode), 'mw-cost ' + id + ' money without a fill');
 // FINAL4-3: nothing logged on PWA 3 is "None" in green.
 assert.deepEqual(panelOf('mw-pwa', 3).fieldConfig.defaults.mappings[0].options.result, {text: 'None', color: L.COLOR.ok, index: 0});
 // FINAL4-4: the backups table lists its six sources first and merges every row by Source.
