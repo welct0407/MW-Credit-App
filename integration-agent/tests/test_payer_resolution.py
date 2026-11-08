@@ -334,12 +334,15 @@ class WeakHoldTextTests(unittest.TestCase):
     def test_unresolved_and_unreadable_use_the_reviewed_copy(self):
         m = master(borrower('b1', 'borrower', None), borrower('b2', 'referee', None))
         english = held_text(self.job('PAYER_UNRESOLVED', {'extraction': slip(), 'payer_candidates': ['b1', 'b2']}), None, 'English', m['accounts'], m['borrowers'])[1]
+        # R135: recording or rejecting moved to the hold's closing block; only the nickname tip stays with the candidates.
         self.assertIn("Reason: The slip's payer name did not identify one borrower.\nPossible borrowers: Synthetic borrower, Synthetic referee\n"
-                      "Record it in the app (the payer name is saved for next time) or reply Reject. Next time, send the borrower's nickname right after the slip.", english)
+                      "Next time, send the borrower's nickname right after the slip.\nNo payment posted.", english)
+        self.assertEqual(english.count('Reject'), 1)
         thai = held_text(self.job('PAYER_UNRESOLVED', {'extraction': slip(), 'payer_candidates': []}), None, 'ไทย', m['accounts'], m['borrowers'])[1]
-        self.assertIn('ผู้กู้ที่เป็นไปได้: ไม่มี\nบันทึกรายการในแอป (ระบบจะเก็บชื่อผู้โอนไว้ใช้ครั้งถัดไป) หรือตอบกลับว่า Reject ครั้งหน้าให้ส่งชื่อเล่นผู้กู้ต่อจากสลิปทันที', thai)
+        self.assertIn('ผู้กู้ที่เป็นไปได้: ไม่มี\nครั้งหน้าให้ส่งชื่อเล่นผู้กู้ต่อจากสลิปทันที\n', thai)
+        self.assertEqual(thai.count('Reject'), 1)
         unreadable = held_text(self.job('PAYER_NAME_UNREADABLE', {'extraction': slip('')}), None, 'English', m['accounts'], m['borrowers'])[1]
-        self.assertIn("Reason: The slip's payer name could not be read and no nickname was sent.\nRecord it in the app", unreadable)
+        self.assertIn("Reason: The slip's payer name could not be read and no nickname was sent.\nNext time, send the borrower's nickname", unreadable)
         self.assertNotIn('Possible borrowers', unreadable)
 
     def test_every_hold_shows_the_slip_payer_and_a_chosen_step(self):
@@ -355,8 +358,17 @@ class WeakHoldTextTests(unittest.TestCase):
             b['name_th'] = b['name_en'] = long_name
         for language in ('English', 'ไทย'):
             result = {'extraction': slip(long_name), 'payer_candidates': [b['id'] for b in m['borrowers']]}
-            body = held_text(self.job('PAYER_UNRESOLVED', result), {'name_en': long_name, 'name_th': long_name}, language, m['accounts'], m['borrowers'])[1]
-            self.assertLessEqual(len(body), 1000, (language, len(body)))
+            # R135: also as the `review` command resends it (counter and "still held" line).
+            body = held_text(self.job('PAYER_UNRESOLVED', result), {'name_en': long_name, 'name_th': long_name}, language, m['accounts'], m['borrowers'],
+                             resent_at=1791766800 + 400 * 86400)[1]
+            self.assertLessEqual(len('⚠️ 99/99 · ' + body), 1000, (language, len(body)))
+        from mw_integration_agent.receipt_hold import REASONS
+        for code in REASONS:
+            for language in ('English', 'ไทย'):
+                result = {'extraction': slip(long_name), 'payer_candidates': [b['id'] for b in m['borrowers']], 'payer_step': 'participants'}
+                body = held_text(self.job(code, result), {'name_en': long_name, 'name_th': long_name}, language, m['accounts'], m['borrowers'],
+                                 resent_at=1791766800 + 400 * 86400)[1]
+                self.assertLessEqual(len('⚠️ 99/99 · ' + body), 1000, (code, language, len(body)))
 
 
 class PayerResolveTests(unittest.TestCase):

@@ -99,6 +99,25 @@ class HealthTests(unittest.TestCase):
         self.assertEqual(health['undelivered_reviews'],0)
         self.assertEqual(health['overdue_reviews'],1)
 
+    def test_resent_hold_counts_as_delivered_without_resetting_age(self):
+        from mw_integration_agent.receipt_hold import resend_key
+        j=dict(self.job,status='REVIEW',detail='AMOUNT_UNREADABLE',created_at=1)
+        original=self.notice(event_key(j),'UNAVAILABLE','REJECTED');copy=self.notice(resend_key(j,'a'*64))
+        self.assertEqual(assess([j],[],[original],self.now)['unnotified_holds'],1)
+        health=assess([j],[],[original,copy],self.now)
+        self.assertEqual((health['unnotified_holds'],health['held_receipts'],health['status']),(0,1,1))
+        # An undelivered copy does not count, and a copy of an older reason is not this hold's alert.
+        self.assertEqual(assess([j],[],[original,self.notice(resend_key(j,'a'*64),'UNKNOWN','UNKNOWN')],self.now)['unnotified_holds'],1)
+        older=resend_key(dict(j,detail='DATE_UNREADABLE'),'a'*64)
+        self.assertEqual(assess([j],[],[self.notice(older)],self.now)['unnotified_holds'],1)
+    def test_base_key_round_trip(self):
+        from mw_integration_agent.receipt_hold import base_key,resend_key
+        j=dict(self.job,status='REVIEW',detail='AMOUNT_UNREADABLE')
+        self.assertEqual(base_key(resend_key(j,'0123456789abcdef'*4)),event_key(j))
+        self.assertEqual(base_key(event_key(j)),event_key(j))
+        for key in (event_key(j)+':resend:short',event_key(j)+':resend:'+'A'*64,event_key(j)+':resend:'+'a'*64+':x','review:r:resend:'+'a'*64):
+            self.assertEqual(base_key(key),key.removesuffix(':resend:'+'a'*64) if key.startswith('review:') else key)
+
     def test_ingress_review_count_is_reported_without_degrading_status(self):
         import tempfile
         from pathlib import Path
