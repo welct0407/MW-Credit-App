@@ -116,6 +116,7 @@ Owner instruction: "delete the Azure app registrations too" (the identities behi
 - Forge, as `mw-credit-unattended-admin` through `scripts/azure-cloud-session.sh`: removed the Monitoring Reader and Cost Management Reader assignments on `rg-mwcredit` held by `mw-grafana-monitoring`'s service principal (`e6a3f2f9…`; readback 404). No `grafana-vm-control` assignment remained (it went with VM-01). Non-secret snapshot and removal log kept privately.
 - The identity has no Microsoft Graph permission, so both app deletes returned 403 `Authorization_RequestDenied`; the owner deleted both app registrations (`c285a10c-5054-4f79-928f-46d7488b3f46` `mw-grafana-monitoring`, `f8351796-82db-4d90-9c66-d2e925e78068` `grafana-vm-control`) in the Entra ID portal, which also removed their service principals, secrets and any remaining assignment (including the RG-BACKUP Cost Management Reader this identity could not see).
 - Secret Manager holds no copy of either app's secret (39 secret names listed, no payload read).
+- Custom role "MW Grafana VM-01 Power Control" (`eaeb2a2c-c710-4759-8a82-538d1ec79c54`, assignable only on RG-MWCREDIT; VM read/start/deallocate) had no assignments and no Terraform declaration. Owner instruction "delete the custom role too": the unattended-admin identity got 403 `AuthorizationFailed` on `Microsoft.Authorization/roleDefinitions/delete` (Contributor and RBAC Administrator do not grant it), so the owner deleted it in the Azure portal. The custom roles "VM01 Power Controller" and "VM01 Operation Status Reader" were not touched.
 - Record: `project/Documents/Resource_Monitoring.md` credentials bullets.
 
 ### Checks
@@ -125,4 +126,4 @@ Owner instruction: "delete the Azure app registrations too" (the identities behi
 | Client-credentials token request with a dummy secret for each app ID (no real credential) | `AADSTS700016` "Application … was not found in the directory" for both |
 
 ### Open questions
-- The custom role definition "MW Grafana VM-01 Power Control" on RG-MWCREDIT is unused and was left in place.
+- Resolved: the custom role definition "MW Grafana VM-01 Power Control" was deleted (see Changes).
