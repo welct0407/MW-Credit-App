@@ -38,4 +38,36 @@ Before deployment: none needed. After deployment: `deploy-runtime.py rollback --
 None. Activation is the normal agent deploy, to be authorized separately by the owner.
 
 ## Remaining work
-The pull request's `Development checks` run; agent deploy on the owner's instruction, then a read-only check that the owner's next `review` lists any active holds.
+Owner acceptance: a read-only check that the owner's next `review` lists any active holds (the live acceptance; the held count was 0 at deploy).
+
+## DEV promotion record (Forge, 8 November 2026, UTC)
+There is no DEV agent, so no agent code was deployed for DEV. Evidence before PROD: the checks above and the pull request's `Development checks` run 42484565073 and Agent tests run 42484565050, both green.
+
+## PROD promotion record (Forge, 8 November 2026, UTC)
+Authority: the owner's instruction "open the PR and deploy to prod" (8 November 2026) for R135. Target verified before any change: project `clever-oasis-508610-n7`, `vm-mw-credit-agent` (`asia-southeast1-a`, service account `mw-integration-agent@`), Cloud SQL proxy to `mw-credit-pg-20261017`, agent database `mw_agent`. Access from the Claude Code cloud session: `mw-debian-ssh` (IAP SSH as `codex-cloud`, pinned host key); VM-01 was not used. No secret value appears here.
+
+| Step | Result |
+| --- | --- |
+| Package | `246bcb93b653790291a11989b21a516fcd9a3f12` (merge of PR #269; agent tree equal to `8a04b37`) |
+| Baseline | Live `0f34203` (R129), checkout clean on `main`, `/ready` true, `check` ok, catalogue revision 36, 0 failed units; `review_resend_cutoff`, `receipt_hold_reply_cutoff` and `receipt_hold_notice_cutoff` present and set (names only read) |
+| Update | `update-from-github.sh` fast-forwarded `0f34203` to `246bcb93` |
+| Dry run | Changed modules `hold_reply.py`, `receipt_health.py`, `receipt_hold.py`, `review_cycle.py`, `review_resend.py` only; no extras or missing files; all units unchanged; ancestry `ancestor`; agent schema check ok (shipped and applied through V11, no drift) |
+| Freeze | 13:26:21Z to 13:26:26Z; rollback directory `runtime-20261108T132625515112Z`, metadata sha256 `f37d80f74d5f187e12edf4a962a6b81cc676a50891ed04f6b2ecf1ee8d915e37` |
+| Install | 13:26:28Z to 13:26:37Z; no file removed, no unit changed |
+| Activate | 13:26:40Z to 13:26:48Z, probe `771ffc4e-c64d-4811-aa27-3b1ea7cdb30b`; six timers and the wake path resumed |
+| Readback | `/ready` true on `246bcb93` (started 13:26:46Z, `failed` empty); `check` ok, switches unchanged (`loan_close_execution` and `pay_forward_options` true, `generic_sending`, `processing` and `writes` false); configuration 92 keys; catalogue revision 36; webhook, recognizer, wake path and chat relay active; 0 failed units; 11 receipt cycles to 13:32:36Z with empty `failures` and `notification_failures`; 5 conversation-poll runs; no error-priority or `ERROR` log line from `mw-*` units since 13:26:21Z |
+| Access | The engine's schema check needed an `mw_agent` operator connection file, as in R127 and R128: a temporary root-only folder `/root/r135-op` (`postgres` through the 5432 proxy, password piped on stdin from Secret Manager into a 0600 file, never printed), shredded 13:26:57Z |
+| Not deployed | SQL on `mw_agent`, migrations, units, configuration, catalogue |
+| Rollback | `sudo python3 integration-agent/scripts/deploy-runtime.py rollback --commit 246bcb93b653790291a11989b21a516fcd9a3f12` (restores `0f34203` from `runtime-20261108T132625515112Z`; it needs the same temporary connection file; no configuration change to undo) |
+
+Observation, not caused by this deploy: one `mw-conversation-poll.service` start failure at 09:58:18Z, before the deploy window; the poll ran cleanly after activation. Limitations: the resend of held receipts was not exercised live (no active hold at deploy); the owner's next `review` is the acceptance.
+
+### Tag record
+Annotated tag `R135` on `246bcb93` through the Release tag workflow run 42485542863 (success, 13:33:57Z; tag object `05ef2c5`), which also published the GitHub Release.
+
+### Closure notes
+- Limitation: live acceptance is open (the owner's next `review` listing an active hold); 0 holds were active at deploy, so the hold resend was proven by tests only.
+- Session reads: read-only `mw_agent` reads through `codex-cloud-read` on 8 November 2026 (journal and held-job counts, sanitized) gave the background evidence; no PROD write, forced notification or financial action was made. The only write was the shredded temporary operator connection file recorded above.
+
+### Prune (closure)
+Deleted after repointing every inbound link to commit `246bcb9` (the last commit where it exists): `Change Logs/CHANGE_NOTES_R132_FAST_SAVED_STARTUP_2026-11-06.md` (R132 left the three-release window of R135, R134 and R133). Development Changes holds no R135 row. R133, R134, the non-release notes and the evidence cited by the Data Dictionary stay.
