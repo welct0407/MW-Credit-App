@@ -4634,6 +4634,273 @@
         ],
         "title": "Railway · workspace usage · current billing cycle",
         "type": "row"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 54
+        },
+        "id": 60,
+        "panels": [
+          {
+            "datasource": {
+              "type": "datasource",
+              "uid": "-- Dashboard --"
+            },
+            "description": "Sum of the table beside it: Anthropic's billed Claude API cost from the Admin API cost report, USD, UTC days, every API key and workspace of the organization, for the selected range (month to date by default). Data usually appears within about five minutes.",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                },
+                "decimals": 2,
+                "displayName": "Claude API USD",
+                "mappings": [],
+                "noValue": "No data",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#2E7D32",
+                      "value": null
+                    }
+                  ]
+                },
+                "unit": "currencyUSD"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 4,
+              "w": 8,
+              "x": 0,
+              "y": 55
+            },
+            "id": 61,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "sum"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "text": {
+                "titleSize": 16,
+                "valueSize": 32
+              },
+              "textMode": "value",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "datasource",
+                  "uid": "-- Dashboard --"
+                },
+                "panelId": 62,
+                "refId": "A",
+                "withTransforms": false
+              }
+            ],
+            "title": "Claude API · selected range",
+            "transformations": [
+              {
+                "id": "filterFieldsByName",
+                "options": {
+                  "include": {
+                    "names": [
+                      "Claude API USD"
+                    ]
+                  }
+                }
+              }
+            ],
+            "type": "stat"
+          },
+          {
+            "description": "What the Anthropic figures include.",
+            "gridPos": {
+              "h": 6,
+              "w": 8,
+              "x": 0,
+              "y": 59
+            },
+            "id": 64,
+            "options": {
+              "code": {
+                "language": "plaintext",
+                "showLineNumbers": false,
+                "showMiniMap": false
+              },
+              "content": "Billed **Claude API** cost in USD for every API key and workspace in the Anthropic organization, by UTC day. Prepaid credit balance, invoice credits and taxes are not shown. The **In-app chat** row above is MW Credit's own token estimate for the PWA chat only. [Open Claude Console cost](https://platform.claude.com/cost).",
+              "mode": "markdown"
+            },
+            "title": "How to read Anthropic cost",
+            "type": "text"
+          },
+          {
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-anthropic-cost"
+            },
+            "description": "The selected range by model and cost type (input, cached and output tokens; web search; code execution), summed over the days: Anthropic's billed Claude API cost from the Admin API cost report, USD, UTC days, every API key and workspace of the organization. The footer sums the cost.",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto"
+                  },
+                  "inspect": false
+                },
+                "decimals": 2,
+                "displayName": "${__field.name}",
+                "mappings": [],
+                "noValue": "No cost",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#2E7D32",
+                      "value": null
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Model"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 120
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Type"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 130
+                    },
+                    {
+                      "id": "custom.cellOptions",
+                      "value": {
+                        "type": "auto",
+                        "wrapText": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Claude API USD"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "currencyUSD"
+                    },
+                    {
+                      "id": "custom.width",
+                      "value": 90
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 10,
+              "w": 16,
+              "x": 8,
+              "y": 55
+            },
+            "id": 62,
+            "options": {
+              "cellHeight": "md",
+              "footer": {
+                "countRows": false,
+                "fields": [
+                  "Claude API USD"
+                ],
+                "reducer": [
+                  "sum"
+                ],
+                "show": true
+              },
+              "showHeader": true
+            },
+            "targets": [
+              {
+                "columns": [
+                  {
+                    "selector": "Model",
+                    "text": "Model",
+                    "type": "string"
+                  },
+                  {
+                    "selector": "Type",
+                    "text": "Type",
+                    "type": "string"
+                  },
+                  {
+                    "selector": "USD",
+                    "text": "Claude API USD",
+                    "type": "number"
+                  }
+                ],
+                "datasource": {
+                  "type": "yesoreyeram-infinity-datasource",
+                  "uid": "mw-anthropic-cost"
+                },
+                "format": "table",
+                "parser": "jq-backend",
+                "refId": "A",
+                "root_selector": "# Anthropic Claude API billed cost by model and cost type over the selected days (cost_report with\n# group_by[]=description). Amounts are US cents as decimal strings; rows without a model (web search,\n# code execution) show an em dash. Largest first; a truncated report is an error, not an undercount.\nif .has_more then error(\"Anthropic cost report has more pages; narrow the date range\")\nelse [.data[].results[]?]\n  | group_by([.model // \"\", .cost_type // \"\", .token_type // \"\"])\n  | map({Model: (.[0].model // \"—\"),\n         Type: ([.[0].cost_type, .[0].token_type] | map(select(. != null)) | join(\" · \")),\n         USD: ((map(.amount | tonumber) | add) / 100)})\n  | sort_by(-.USD) | .[]\nend\n",
+                "source": "url",
+                "type": "json",
+                "url": "https://api.anthropic.com/v1/organizations/cost_report?starting_at=${__timeFrom:date:iso}&ending_at=${__timeTo:date:iso}&bucket_width=1d&limit=31&group_by%5B%5D=description",
+                "url_options": {
+                  "headers": [
+                    {
+                      "key": "anthropic-version",
+                      "value": "2023-06-01"
+                    }
+                  ],
+                  "method": "GET"
+                }
+              }
+            ],
+            "title": "Claude API · by model",
+            "transformations": [],
+            "type": "table"
+          }
+        ],
+        "title": "Anthropic · Claude API · billed cost (USD)",
+        "type": "row"
       }
     ],
     "preload": false,

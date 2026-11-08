@@ -52,6 +52,23 @@
           ]
         }
       },
+      "mw_anthropic_cost": {
+        "uid": "mw-anthropic-cost",
+        "name": "MW \u00b7 Anthropic Cost",
+        "type": "yesoreyeram-infinity-datasource",
+        "access_mode": "proxy",
+        "url": "",
+        "is_default": false,
+        "basic_auth_enabled": false,
+        "json_data_encoded": "{\"allowedHosts\":[\"https://api.anthropic.com\"],\"auth_method\":\"apiKey\",\"apiKeyKey\":\"x-api-key\",\"apiKeyType\":\"header\",\"timeout\":60}",
+        "lifecycle": {
+          "prevent_destroy": true,
+          "ignore_changes": [
+            "secure_json_data_encoded",
+            "http_headers"
+          ]
+        }
+      },
       "cfz1i3v9ruk1sb": {
         "uid": "cfz1i3v9ruk1sb",
         "name": "mw-azure-vm-control",

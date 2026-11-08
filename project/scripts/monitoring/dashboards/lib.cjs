@@ -51,17 +51,19 @@ const DS = {
   // R093 V108: pwa_chat_recent_turns_v1 and pwa_chat_usage_v1). The uid is the one the R090 datasource was created
   // with, so the live datasource and its password are kept.
   chatQuestions: {type: 'grafana-postgresql-datasource', uid: 'mw-agent-questions'},
+  // Anthropic Admin API cost report; the Admin key (x-api-key) is the datasource's encrypted field, outside Terraform.
+  anthropic: {type: INFINITY, uid: 'mw-anthropic-cost'},
   dashboard: {type: 'datasource', uid: '-- Dashboard --'},
   mixed: {type: 'mixed', uid: '-- Mixed --'}
 };
 const ALLOWED_DATASOURCE_UIDS = [
   'mw-gcp-monitoring', 'mw-azure-monitoring', 'mw-railway-monitoring', 'cfz10a9eaokjkd',
-  'efz19dcu6cwzka', 'mw-public-gcp-status', 'mw-agent-questions', '-- Dashboard --', '-- Mixed --', '-- Grafana --'
+  'efz19dcu6cwzka', 'mw-public-gcp-status', 'mw-agent-questions', 'mw-anthropic-cost', '-- Dashboard --', '-- Mixed --', '-- Grafana --'
 ];
 const ALLOWED_URL_HOSTS = [
   'monitoring.googleapis.com', 'bigquery.googleapis.com', 'management.azure.com',
   'backboard.railway.com', 'api.frankfurter.dev', 'status.cloud.google.com', 'railway.instatus.com',
-  'billingbudgets.googleapis.com'
+  'billingbudgets.googleapis.com', 'api.anthropic.com'
 ];
 
 const FROM = '${__timeFrom:date:iso}';
@@ -136,7 +138,7 @@ const POLICY = {
   age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Last notification'],
   // Lifted Cost detail tiles without a named field are classed by their title.
   money: ['This month', 'Azure', 'GCP', 'Railway', 'Azure + GCP', 'UsageUSD', 'Azure · selected-range cost', 'GCP · before credits (SGD)',
-    'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn'],
+    'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn', 'Claude API USD'],
   info: ['Provider', 'Running for', 'Uptime', 'GCP budget', 'Last turn']
 };
 /* R090 owner decision: limits for tiles without an alert value (recommended by the team, set on 22 October

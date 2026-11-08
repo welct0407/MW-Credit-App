@@ -435,6 +435,34 @@ class BudgetQuery(unittest.TestCase):
                 self.q(data)
 
 
+class AnthropicCost(unittest.TestCase):
+    """anthropic-cost-detail.jq on the Admin API cost report: amounts are US cents as decimal strings."""
+    def q(self, data):
+        return query('anthropic-cost-detail.jq', data)
+
+    def bucket(self, day, *results):
+        return {'starting_at': '2026-11-%02dT00:00:00Z' % day, 'ending_at': '2026-11-%02dT00:00:00Z' % (day + 1), 'results': list(results)}
+
+    def cost(self, cents, model='claude-opus-5-5', cost_type='tokens', token_type='output_tokens'):
+        return {'currency': 'USD', 'amount': cents, 'model': model, 'cost_type': cost_type, 'token_type': token_type, 'description': 'x'}
+
+    def test_sums_days_per_model_and_type_largest_first_in_dollars(self):
+        rows = self.q({'data': [self.bucket(1, self.cost('123.5'), self.cost('10', token_type='cache_read_input_tokens')),
+                                self.bucket(2),
+                                self.bucket(3, self.cost('76.5'), self.cost('7', model=None, cost_type='web_search', token_type=None))],
+                       'has_more': False, 'next_page': None})
+        self.assertEqual(rows, [{'Model': 'claude-opus-5-5', 'Type': 'tokens · output_tokens', 'USD': 2},
+                                {'Model': 'claude-opus-5-5', 'Type': 'tokens · cache_read_input_tokens', 'USD': 0.1},
+                                {'Model': '—', 'Type': 'web_search', 'USD': 0.07}])
+
+    def test_no_spending_is_no_rows(self):
+        self.assertEqual(self.q({'data': [self.bucket(1), self.bucket(2)], 'has_more': False}), [])
+
+    def test_truncated_report_fails_visibly(self):
+        with self.assertRaises(ValueError):
+            self.q({'data': [self.bucket(1, self.cost('5'))], 'has_more': True, 'next_page': 'page_x'})
+
+
 class RailwayStatus(unittest.TestCase):
     """railway-status.jq on railway.instatus.com/summary.json (live shape when healthy: page only)."""
     UP = {'page': {'name': 'Railway', 'url': 'https://status.railway.com', 'status': 'UP'}}

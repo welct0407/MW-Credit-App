@@ -297,6 +297,43 @@ function questions() {
     options: {cellHeight: 'md', footer: {show: true, reducer: ['sum'], fields: ['Cost (SGD)'], countRows: false}}});
   return [L.row({id: 49, title: 'In-app chat · usage and cost', gridPos: pos(0, CHAT_Y, 24, 1)}), month(), byModel(), panel];
 }
+/* Owner request (8 November 2026): Anthropic's billed Claude API cost, beside the chat's own estimate above.
+ * Read live from the Admin API cost report (USD, UTC days, the whole Anthropic organization) through
+ * datasource mw-anthropic-cost; its Admin key is the encrypted field, canonical copy in Secret Manager
+ * mw-anthropic-admin-cost-key. One query (the table); the tile sums it, so the page makes one call.
+ * limit=31 covers a month; a longer range errors rather than undercounting. A collapsed provider row in
+ * native USD like Azure, GCP and Railway (the page itself stays SGD); not yet in the SGD total. */
+const ANTHROPIC_H = 10;
+const ANTHROPIC_DETAIL = 62;
+const ANTHROPIC_FIELD = 'Claude API USD';
+const ANTHROPIC_URL = 'https://api.anthropic.com/v1/organizations/cost_report?starting_at=' + L.FROM + '&ending_at=' + L.TO +
+  '&bucket_width=1d&limit=31&group_by%5B%5D=description';
+const ANTHROPIC_OPTIONS = {method: 'GET', headers: [{key: 'anthropic-version', value: '2023-06-01'}]};
+const ANTHROPIC_SOURCE = 'Anthropic\'s billed Claude API cost from the Admin API cost report, USD, UTC days, every API key and workspace of the organization';
+function anthropicRow(y) {
+  const top = y + 1;
+  const total = L.stat({id: 61, title: 'Claude API · selected range', gridPos: pos(0, top, 8, 4),
+    description: 'Sum of the table beside it: ' + ANTHROPIC_SOURCE + ', for the selected range (month to date by default). Data usually appears within about five minutes.',
+    datasource: DS.dashboard, targets: [{datasource: DS.dashboard, panelId: ANTHROPIC_DETAIL, refId: 'A', withTransforms: false}],
+    transformations: [{id: 'filterFieldsByName', options: {include: {names: [ANTHROPIC_FIELD]}}}],
+    defaults: {displayName: ANTHROPIC_FIELD, unit: 'currencyUSD', decimals: 2, noValue: 'No data'},
+    options: {colorMode: 'value', textMode: 'value', reduceOptions: {calcs: ['sum'], fields: '', values: false}}});
+  const note = L.text({id: 64, title: 'How to read Anthropic cost', gridPos: pos(0, top + 4, 8, ANTHROPIC_H - 4),
+    description: 'What the Anthropic figures include.',
+    content: 'Billed **Claude API** cost in USD for every API key and workspace in the Anthropic organization, by UTC day. ' +
+      'Prepaid credit balance, invoice credits and taxes are not shown. The **In-app chat** row above is MW Credit\'s own token estimate ' +
+      'for the PWA chat only. [Open Claude Console cost](https://platform.claude.com/cost).'});
+  const detail = L.table({id: ANTHROPIC_DETAIL, title: 'Claude API · by model', gridPos: pos(8, top, 16, ANTHROPIC_H),
+    description: 'The selected range by model and cost type (input, cached and output tokens; web search; code execution), summed over the days: ' + ANTHROPIC_SOURCE + '. The footer sums the cost.',
+    targets: [target('A', DS.anthropic, ANTHROPIC_URL, L.jq('anthropic-cost-detail.jq'),
+      [col('Model', 'Model', 'string'), col('Type', 'Type', 'string'), col('USD', ANTHROPIC_FIELD)],
+      {options: ANTHROPIC_OPTIONS})],
+    defaults: {noValue: 'No cost', decimals: 2, custom: {align: 'auto', cellOptions: {type: 'auto'}, inspect: false}},
+    overrides: [byName('Model', {'custom.width': 120}), byName('Type', {'custom.width': 130, 'custom.cellOptions': {type: 'auto', wrapText: true}}),
+      byName(ANTHROPIC_FIELD, {unit: 'currencyUSD', 'custom.width': 90})],
+    options: {cellHeight: 'md', footer: {show: true, reducer: ['sum'], fields: [ANTHROPIC_FIELD], countRows: false}}});
+  return L.row({id: 60, title: 'Anthropic · Claude API · billed cost (USD)', gridPos: pos(0, y, 24, 1), collapsed: true, panels: [total, note, detail]});
+}
 const PROVIDERS_Y = CHAT_Y + 1 + USAGE_H + TURNS_H;
 
 function build() {
@@ -307,6 +344,7 @@ function build() {
       rules(), ...questions(),
       providerRow(10, L.findPanel(COST, 306).title, PROVIDERS_Y, 306, [102, 103, 104, 101, 110]),
       providerRow(20, L.findPanel(COST, 307).title, PROVIDERS_Y + 1, 307, [202, 203, 204, 205, 207, 206, 201]),
-      providerRow(30, L.findPanel(COST, 308).title, PROVIDERS_Y + 2, 308, [302, 301, 303, 304, 305])].map(neutralMoney)});
+      providerRow(30, L.findPanel(COST, 308).title, PROVIDERS_Y + 2, 308, [302, 301, 303, 304, 305]),
+      anthropicRow(PROVIDERS_Y + 3)].map(neutralMoney)});
 }
 module.exports = {build, HOST};
