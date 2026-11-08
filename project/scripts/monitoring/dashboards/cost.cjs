@@ -23,6 +23,8 @@ function sourceChain() {
 }
 const consumer = () => [{datasource: DS.dashboard, panelId: HOST, refId: 'A', withTransforms: false}];
 const SGD = {unit: 'prefix:S$', decimals: 2};
+// USD money (Anthropic, Railway detail): a US$ prefix, never Grafana's bare-$ currencyUSD.
+const USD = {unit: 'prefix:US$', decimals: 2};
 const WINDOW = "usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}')";
 
 function bigQueryBody(t, query) {
@@ -196,6 +198,25 @@ function rules() {
       'The Claude API tile is USD against its US$' + ANTHROPIC_LIMIT_USD + ' monthly limit (UTC month, to yesterday) and is not in the SGD total.'});
 }
 
+/* Owner, 8 November 2026 ("switch Railway to US$"): every USD money unit on the page is prefix:US$ with 2 decimals,
+ * as the Anthropic panels (Grafana's currencyUSD shows a bare $ that could read as SGD). The lifted Railway detail
+ * panels carried currencyUSD in their defaults; any override carrying it is converted the same way. */
+function usdPrefix(panel) {
+  const fix = config => { if (config && config.unit === 'currencyUSD') Object.assign(config, USD); };
+  if (panel.fieldConfig) {
+    fix(panel.fieldConfig.defaults);
+    for (const o of panel.fieldConfig.overrides || []) {
+      const unit = o.properties.find(p => p.id === 'unit' && p.value === 'currencyUSD');
+      if (!unit) continue;
+      unit.value = USD.unit;
+      const decimals = o.properties.find(p => p.id === 'decimals');
+      if (decimals) decimals.value = USD.decimals; else o.properties.push({id: 'decimals', value: USD.decimals});
+    }
+  }
+  for (const child of panel.panels || []) usdPrefix(child);
+  return panel;
+}
+
 // COLOUR-1: money is neutral (theme text) on every stat, including the lifted provider tiles that carried
 // provider colours (an orange GCP figure read as a warning). The budget comparison would need the budget in
 // the same query, so no money tile is coloured by it.
@@ -321,7 +342,6 @@ const ANTHROPIC_DETAIL = 62;
 const ANTHROPIC_FIELD = 'Claude API USD';
 // Echo COST-A2: the amount is named by what it covers (complete UTC days); COST-A1: US$ prefix, never read as SGD.
 const ANTHROPIC_MONTH_FIELDS = ['To yesterday (UTC)', 'Limit used'];
-const USD = {unit: 'prefix:US$', decimals: 2};
 const ANTHROPIC_REPORT = 'https://api.anthropic.com/v1/organizations/cost_report?starting_at=' + L.FROM + '&ending_at=' + L.TO + '&bucket_width=1d&limit=31';
 const ANTHROPIC_URL = ANTHROPIC_REPORT + '&group_by%5B%5D=description';
 const ANTHROPIC_OPTIONS = {method: 'GET', headers: [{key: 'anthropic-version', value: '2023-06-01'}]};
@@ -380,6 +400,6 @@ function build() {
       rules(), ...questions(),
       providerRow(20, L.findPanel(COST, 307).title, PROVIDERS_Y, 307, [202, 203, 204, 205, 207, 206, 201]),
       providerRow(30, L.findPanel(COST, 308).title, PROVIDERS_Y + 1, 308, [302, 301, 303, 304, 305]),
-      anthropicRow(PROVIDERS_Y + 2)].map(neutralMoney)});
+      anthropicRow(PROVIDERS_Y + 2)].map(neutralMoney).map(usdPrefix)});
 }
 module.exports = {build, HOST, ANTHROPIC_LIMIT_USD};

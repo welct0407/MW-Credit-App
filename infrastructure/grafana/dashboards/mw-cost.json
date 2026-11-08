@@ -2998,7 +2998,7 @@
                     }
                   ]
                 },
-                "unit": "currencyUSD"
+                "unit": "prefix:US$"
               }
             },
             "gridPos": {
@@ -3104,7 +3104,7 @@
                     }
                   ]
                 },
-                "unit": "currencyUSD"
+                "unit": "prefix:US$"
               },
               "overrides": [
                 {
@@ -3249,7 +3249,7 @@
                     }
                   ]
                 },
-                "unit": "currencyUSD"
+                "unit": "prefix:US$"
               },
               "overrides": [
                 {
@@ -3409,7 +3409,7 @@
                     }
                   ]
                 },
-                "unit": "currencyUSD"
+                "unit": "prefix:US$"
               }
             },
             "gridPos": {

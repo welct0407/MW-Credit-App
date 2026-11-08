@@ -42,7 +42,6 @@ const DASHBOARD_TITLES = {
 const INFINITY = 'yesoreyeram-infinity-datasource';
 const DS = {
   gcp: {type: INFINITY, uid: 'mw-gcp-monitoring'},
-  azure: {type: INFINITY, uid: 'mw-azure-monitoring'},
   railway: {type: INFINITY, uid: 'mw-railway-monitoring'},
   publicStatus: {type: INFINITY, uid: 'cfz10a9eaokjkd'}, // mw-public-status, credential-free
   fx: {type: INFINITY, uid: 'efz19dcu6cwzka'},
@@ -56,12 +55,16 @@ const DS = {
   dashboard: {type: 'datasource', uid: '-- Dashboard --'},
   mixed: {type: 'mixed', uid: '-- Mixed --'}
 };
+// Owner, 8 November 2026: the Azure datasources (mw-azure-monitoring, mw-azure-vm-control cfz1i3v9ruk1sb) are deleted;
+// no dashboard reads Azure (the builder strips the Azure targets of the retired Cost panel 2 it lifts from).
+const RETIRED_DATASOURCE_UIDS = ['mw-azure-monitoring', 'cfz1i3v9ruk1sb'];
+const RETIRED_URL_HOSTS = ['management.azure.com'];
 const ALLOWED_DATASOURCE_UIDS = [
-  'mw-gcp-monitoring', 'mw-azure-monitoring', 'mw-railway-monitoring', 'cfz10a9eaokjkd',
+  'mw-gcp-monitoring', 'mw-railway-monitoring', 'cfz10a9eaokjkd',
   'efz19dcu6cwzka', 'mw-public-gcp-status', 'mw-agent-questions', 'mw-anthropic-cost', '-- Dashboard --', '-- Mixed --', '-- Grafana --'
 ];
 const ALLOWED_URL_HOSTS = [
-  'monitoring.googleapis.com', 'bigquery.googleapis.com', 'management.azure.com',
+  'monitoring.googleapis.com', 'bigquery.googleapis.com',
   'backboard.railway.com', 'api.frankfurter.dev', 'status.cloud.google.com', 'railway.instatus.com',
   'billingbudgets.googleapis.com', 'api.anthropic.com'
 ];
@@ -607,7 +610,7 @@ module.exports = {
   OLD_DASHBOARD_LINK, MONITORING_DIR, REPO_ROOT, DASHBOARD_DIR, PROJECT, INSTANCE_ID, SQL_INSTANCE, SQL_DATABASE_ID, WEBHOOK_CHECK_ID,
   UPTIME_SINGAPORE_LOCATION, SCHEDULER_ATTEMPT_METRIC, SCHEDULER_STATUS_LABEL, SCHEDULER_HTTP_LABEL,
   NUM_BACKENDS_DATABASE_LABEL, ALERT_FOLDER_UID, LOG_METRIC, STALE_SECONDS, ALIGNED_STALE_SECONDS, DASHBOARD_UIDS,
-  DASHBOARD_TITLES, DS, ALLOWED_DATASOURCE_UIDS, ALLOWED_URL_HOSTS, FROM, TO, CHART_PERIOD, COLOR, STATE_TEXT,
+  DASHBOARD_TITLES, DS, ALLOWED_DATASOURCE_UIDS, ALLOWED_URL_HOSTS, RETIRED_DATASOURCE_UIDS, RETIRED_URL_HOSTS, FROM, TO, CHART_PERIOD, COLOR, STATE_TEXT,
   stateMappings, valueMap, nullMap, steps, encodeFilter, monitoringUrl, customFilter, sqlFilter, labelClause, col, target,
   inlineTarget, jq, receiptFields, stateSelector, rowSelector, stateRow, lookbackVariable, LOOKBACK_FROM, LOOKBACK_SECONDS, RANGE_START, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,

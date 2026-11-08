@@ -66,3 +66,25 @@ Revert `cost.cjs`, restore `cost-prior-azure.jq` and rebuild `mw-cost.json` from
 
 ### Remaining work
 Apply the dashboard (Forge), then merge the branch to `main`.
+
+## Follow-up 2 — 8 November 2026: Azure datasources deleted, Railway amounts in US$
+
+### Purpose
+Owner instruction: "open the PR, delete Azure datasource, switch Railway to US$".
+
+### Changes
+- Railway collapsed detail panels 301, 302, 304 and 305 use the prefix `US$` instead of the bare `$` (`currencyUSD`), like the Anthropic panels.
+- Grafana datasources `mw-azure-monitoring` and `mw-azure-vm-control` (`cfz1i3v9ruk1sb`) are removed from `infrastructure/grafana/owned-services.tf.json` and destroyed through a reviewed plan; both were unused (VM-01 deleted and Azure dropped from the Cost page on 8 November 2026). The Azure AD app registrations `mw-grafana-monitoring` and `grafana-vm-control` and their client secrets are not deleted.
+- Records: `project/Documents/Resource_Monitoring.md`, `project/Documents/Resource_Monitoring_Dashboard_Guide.md`, `infrastructure/grafana/README.md` (six custom datasources), `project/Documents/Rules/Grafana_Alert_Troubleshooting_Runbook.md`. `Environment_Inventory.md` lists neither datasource and is unchanged.
+
+### Checks
+| Command | Result |
+| --- | --- |
+| Byte's builder and tests | Reported by Byte |
+| Apply | pending Forge |
+
+### Recovery
+Re-add the two datasource blocks from the previous commit and apply, then set the secrets again from the Azure app secrets (which still exist); revert the panel prefix in `cost.cjs` and rebuild.
+
+### Remaining work
+Delete the Azure app registrations `mw-grafana-monitoring` and `grafana-vm-control` and their client secrets (owner decision).

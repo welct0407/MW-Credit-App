@@ -115,6 +115,14 @@ for (const uid of L.DASHBOARD_UIDS) {
   }
 }
 
+// Owner, 8 November 2026: the Azure datasources are deleted; no dashboard references their uids or Azure's host,
+// and the allow-lists no longer admit them.
+for (const uid of L.DASHBOARD_UIDS) {
+  const text = L.serialize(built[uid]);
+  for (const gone of [...L.RETIRED_DATASOURCE_UIDS, ...L.RETIRED_URL_HOSTS]) assert.ok(!text.includes(gone), uid + ' references ' + gone);
+}
+assert.deepEqual([L.RETIRED_DATASOURCE_UIDS, L.RETIRED_URL_HOSTS], [['mw-azure-monitoring', 'cfz1i3v9ruk1sb'], ['management.azure.com']]);
+assert.ok(!L.RETIRED_DATASOURCE_UIDS.some(u => L.ALLOWED_DATASOURCE_UIDS.includes(u)) && !L.RETIRED_URL_HOSTS.some(h => L.ALLOWED_URL_HOSTS.includes(h)) && !('azure' in L.DS), 'Azure not allowed');
 // No generated dashboard links to a retiring dashboard.
 for (const uid of L.DASHBOARD_UIDS) assert.ok(!L.OLD_DASHBOARD_LINK.test(L.serialize(built[uid])), uid + ' has no link to a retiring dashboard');
 // LIVE-2/3: no query letter in names (field-name display), no Paused blue on informational stat values.
@@ -226,8 +234,18 @@ assert.deepEqual([claudeProps('Limit used').unit, claudeProps('Limit used').deci
 // COST-A3: the description's order.
 const order = ['up to yesterday (UTC)', 'On the 1st it is 0', 'Not included in the SGD total'].map(t => claude.description.indexOf(t));
 assert.ok(order.every(i => i >= 0) && order[0] < order[1] && order[1] < order[2] && claude.description.split('up to yesterday (UTC)').length === 2, 'tile 65 description order');
-// COST-A1 also on the collapsed Anthropic panels 61 and 62 (the lifted Railway detail keeps its proven units).
-for (const id of [61, 62, 65]) assert.ok(!JSON.stringify(panelOf0('mw-cost', id).fieldConfig).includes('currencyUSD'), 'Anthropic panel ' + id + ' has no bare-$ currencyUSD unit');
+// COST-A1, and owner 8 November 2026 ("switch Railway to US$"): no panel on mw-cost, nested ones included, uses
+// Grafana's bare-$ currencyUSD; every USD money unit is prefix:US$ with 2 decimals; the page-level tiles keep S$.
+const unitsOf = p => [p.fieldConfig?.defaults, ...(p.fieldConfig?.overrides || []).map(o => Object.fromEntries(o.properties.map(x => [x.id, x.value])))]
+  .filter(c => c && typeof c.unit === 'string').map(c => [c.unit, c.decimals]);
+for (const {panel: p} of allPanels(cost)) {
+  for (const [unit, decimals] of unitsOf(p)) {
+    assert.notEqual(unit, 'currencyUSD', 'mw-cost panel ' + p.id + ' uses currencyUSD');
+    if (/USD|US\$/.test(unit)) assert.deepEqual([unit, decimals], ['prefix:US$', 2], 'mw-cost panel ' + p.id + ' USD money is US$ with 2 decimals');
+  }
+}
+for (const id of [301, 302, 304, 305, 61, 62]) assert.ok(unitsOf(panelOf0('mw-cost', id)).some(([u]) => u === 'prefix:US$'), 'mw-cost ' + id + ' in US$');
+for (const id of [1, 3, 4, 9]) assert.equal(cost.panels.find(p => p.id === id).fieldConfig.defaults.unit, 'prefix:S$', 'mw-cost ' + id + ' stays S$');
 assert.equal(panelOf0('mw-cost', 61).fieldConfig.defaults.unit, 'prefix:US$');
 assert.ok(panelOf0('mw-cost', 62).fieldConfig.overrides.some(o => o.matcher.options === 'Claude API USD' && o.properties.some(x => x.id === 'unit' && x.value === 'prefix:US$')), 'table 62 in US$');
 // Echo COST-C1/C2/C3/C5: wording.
