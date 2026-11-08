@@ -44,11 +44,12 @@ Implement the owner-approved [R136 design](../project/outputs/r136-daily-instalm
 | `tests/integration/loan-rollover-independent.test.mjs` | Pass, 3/3 (Byte, same tree) |
 | Playwright `loan-form-defaults-independent` and `loan-rollover-independent`, desktop and mobile Chromium | Pass (Byte, same tree) |
 | Adversarial review of SQL and services against the design and Archie's 18 cases | No blockers (Chase); borrower-totals and statement assertions added; guard, privilege and reopen probes on disposable PostgreSQL 18 pass; loan-date rollover case added, Byte applying |
-| DEV functional test (Chase) and DEV UX pass (Echo) | Pass with findings, see [DEV functional test](#dev-functional-test) |
+| DEV functional test (Chase) and DEV UX pass (Echo) | Pass (findings fixed and re-checked), see [DEV functional test](#dev-functional-test) |
 | After the UX fixes (Byte, uncommitted on `3b6a2899`): `npm run lint`, `npm run typecheck` | Pass |
 | After the UX fixes: focused unit tests | Pass, 60/60 |
 | After the UX fixes: Playwright `loan-form-defaults-independent` and `loan-rollover-independent`, desktop and mobile Chromium and mobile WebKit | Pass, 12/12 |
-| Echo's DEV re-check of the fixes (Hosting `20fcdb382a6c758d`, build `2b4962d3…`, source `86e88c50`; iPhone 17 Pro Max WebKit, English and Thai, read-only) | Pass for the must-fix items UX-10, 11, 12; UX-13, 14, 17, 19, 20, 22 pass. New UX-23 to 25 fixed by Byte; Echo's final brief look at UX-23 to 25 is pending after the next Hosting deploy |
+| Echo's DEV re-check of the fixes (Hosting `20fcdb382a6c758d`, build `2b4962d3…`, source `86e88c50`; iPhone 17 Pro Max WebKit, English and Thai, read-only) | Pass for the must-fix items UX-10, 11, 12; UX-13, 14, 17, 19, 20, 22 pass. New UX-23 to 25 fixed by Byte; Echo's final look at UX-23 to 25 passed (next row) |
+| Echo's final look (Hosting `7dbd8220c2f37061`, build `63b6b13018df716c0bc2db40`; iPhone 17 Pro Max WebKit, English and Thai, read-only) | Pass (complete): UX-23, 24 and 25 pass, no new must-fix |
 | After the UX-23 to 25 fixes (Byte): lint, typecheck | Pass |
 | After the UX-23 to 25 fixes: focused unit tests | Pass, 60/60 |
 | After the UX-23 to 25 fixes: the two Playwright specs, desktop and mobile Chromium and mobile WebKit | Pass, 12/12 |
@@ -60,7 +61,8 @@ Observation (Chase): the settlement appears on the cash statement as `LOAN_PAYME
 ## Not run
 - Concurrent rollovers of one loan.
 - Real-role privilege tests (the grants are emulated, as in other tests).
-- iPhone WebKit browser run, the pull request CI run and the DEV deployment and smoke: Pending. A skipped check is not a pass.
+- Mid-life and referred-original rollovers on DEV: database-tested only (`Test-Rollover.sql`).
+- The pull request CI run: Pending. PROD is not deployed. A skipped check is not a pass.
 
 ## Recovery
 Git baseline `02371dbb` (R136 design commit on `claude/ecstatic-pasteur-x58o80`, after the R135 closure `5ea4036`). DEV: Hosting redeploy of the previous version, image-only Terraform back to the prior settings generation, and the verified DEV backup at V137 taken before V138 (reference recorded with the DEV deployment evidence). V138 is forward-fix only; the new column is nullable and unused by older code.
@@ -94,6 +96,7 @@ Forge, 8 November 2026, UTC. Authority: the owner's instruction of 8 November 20
 | Not done | The synthetic rollover and functional DEV test (Chase), Echo's pass, the chat read role grant (none needed by V138) |
 | Rollback | Settings generation `1793960930565811` (read, command and chat back to `3e0f49db…`), then Hosting `5d0c076529cad602` (R134). V138 is forward-fix only; restore backup `dev-refresh-a13079f694f84347a77f678c582fe2d9` only with separate authority |
 | DEV Hosting update to `86e88c50` (Forge) | Echo's DEV review fixes. `git diff --stat 3b6a2899 86e88c50`: PWA, tests and records only; nothing under `services/`, `database/`, `scripts/database/`, `infrastructure/` or the image inputs, so no backup, window, image or Terraform change (Cloud Run and V138 as above). `Development checks` run 42505250504 green. Built as before (scratch checkout, `npm ci`, nine settings from Secret Manager, file shredded): build-version R136 `2b4962d3dbcb2c7d172ea3fa`, entry `/assets/index-dijGN4H8.js`, embeds `86e88c5`, only DEV origins; `--check` 17 files; deployed 17:40:16Z to 17:40:24Z, version `20fcdb382a6c758d`, release `1794159623343000`. Smoke: three origins serve it (200), `sw.js` no-store, `/health` 200 on read, command and chat, no DEV ERROR logs 17:40Z to 17:40:37Z. Rollback: Hosting `4528005f120ccba4` |
+| DEV Hosting update to `4a254d8b` (Forge) | Echo's DEV re-check polish. `git diff --stat 86e88c50 4a254d8b -- services database scripts/database Dockerfile package.json package-lock.json infrastructure` is empty (the delta is PWA CSS and TSX, one spec and records), so Hosting only; Cloud Run and V138 as above. `Development checks` run 42506819695 green. Built as before (scratch checkout, `npm ci`, nine settings from Secret Manager, file shredded): build-version R136 `63b6b13018df716c0bc2db40`, entry `/assets/index-CsTfpaOD.js`, embeds `4a254d8`, only DEV origins; `--check` 17 files; deployed 18:40:53Z to 18:41:02Z, version `7dbd8220c2f37061`, release `1794163262113000`. Smoke: three origins serve it (200), `sw.js` no-store, `/health` 200 on read, command and chat, no DEV ERROR logs 18:40Z to 18:41:15Z. Rollback: Hosting `20fcdb382a6c758d` |
 
 ### DEV functional test
 Authority: the owner authorized adding DEV capital if needed in this session. Synthetic data only, DEV only, through the DEV test Partner `claude-dev-test` and the governed commands. Business date 9 November 2026 (Bangkok).
