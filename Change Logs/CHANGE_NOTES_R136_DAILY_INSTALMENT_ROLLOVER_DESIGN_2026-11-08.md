@@ -6,12 +6,13 @@ The owner asked on 8 November 2026 (Asia/Bangkok) for a high-level design and us
 ## Changes
 - New design document [project/outputs/r136-daily-instalment-rollover/DESIGN.md](../project/outputs/r136-daily-instalment-rollover/DESIGN.md): requirements restated, the current baseline (first-day charge, instalment formula, Loan Close, profit recognition), Part A form defaults, Part B rollover rule, SQL and operation (`loan.rollover`, V138 proposal), user experience summary with the Rollover statement, out of scope, compact test plan, delivery notes and ten decisions for the owner (D1 to D10).
 - Archie (A — Architect) and Echo (E — User Experience Officer) reviewed the draft on paper (no build exists); their accepted points are folded into the document. Archie: the settlement cannot use the `Loan Close` method (a payment naming a target loan runs the daily-interest payoff trigger), so it is an explicit `Selected Charges` plan as in R113; the two receipts of one journal row follow the R111 precedent and V138 must redefine `pwa_effective_payment_plan_v2`, its index and the correction head lookup; the closing charge is inserted on the rollover day whether or not a generated charge carries that date; "remaining days" became "days not yet charged"; decisions D11 to D13 and test-plan additions. Echo: R136-UX-01 to R136-UX-09 (never overwrite a typed value, one helper line per field with the totals above Save, Rollover in the Close Loan slot with its own icon, the statement as a label-and-amount list with Thai labels, the penalty field above the card, the negative-cash message, the recounted penalty helper, Cash issued first on Confirm, one name and one result wording). Byte, Chase, Dewey and Forge were not started: no implementation, tests, records beyond this note or infrastructure were in scope.
-- [Development Changes](../project/Documents/Development_Changes.md): one outstanding-work row for the R136 design review.
+- Owner review of 8 November 2026: "agree with all recommendations, except the following: 2. include daily interest too, if that's possible. 7. could be yesterday too. 12. … interest should be charged everyday. that's the main income." The design now covers daily-interest loans (the rollover reuses the close quote's components plus the penalty), a rollover day of today or yesterday (the apply generates the new loan's charge for today when the day is yesterday), and interest for every overdue day of an instalment loan inside the closing charge (contract daily interest × days past due). D5 is authorized: V138 adds the nullable column `"Loans"."Ref Rollover Source Loan"`. One follow-up question stays open (D14: interest-only charges on overdue instalment loans outside the rollover).
+- [Development Changes](../project/Documents/Development_Changes.md): one outstanding-work row for the R136 design.
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| `npm run check:docs` | Pass, 0 failures and the 4 pre-existing warnings (old unlinked change notes), on the final tree of the second commit on `claude/loving-ride-wslera` |
+| `npm run check:docs` | Pass, 0 failures and the 4 pre-existing warnings (old unlinked change notes), on the final tree of each commit on `claude/loving-ride-wslera` |
 
 ## Not run
 Product CI, unit tests, database groups and browser checks: documentation only, no executable input changed. A skipped check is not a pass.
@@ -20,7 +21,7 @@ Product CI, unit tests, database groups and browser checks: documentation only, 
 Git baseline `5ea4036` (R135 closure). Revert the commit that adds the design, this note and the Development Changes row; no artifact, configuration or data changed.
 
 ## Open questions
-The thirteen decisions in the design document, section 9 (label-only rename, rollover scope, unpaid charges in the deduction, penalty as closing-charge interest, the link column `"Ref Rollover Source Loan"`, negative cash refused, today only, referral rebate unchanged, original term reused, penalty stepper, negative remaining interest, a past-due original loan, a fully paid original loan).
+D14 in the design document, section 9: whether the charge generator should book an interest-only charge every day after an instalment loan's due date while it stays open (outside this release). The implementing session also confirms the D12 reading (contract daily interest per overdue day, not a rate on the outstanding principal) before writing the SQL.
 
 ## Remaining work
-Owner review of the design; then the implementing session takes it as the R136 scope (DEV first, PROD on the owner's instruction with a verified backup before V138).
+The implementing session takes the design as the R136 scope (DEV first, PROD on the owner's instruction with a verified backup before V138, which adds one column).
