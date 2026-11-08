@@ -60,7 +60,10 @@ test('R136 rollover: record action, prefilled form, live statement, confirm and 
  await expect(page.getByRole('heading',{name:'Rollover loan · Synthetic rollover borrower'})).toBeVisible();
  const statement=page.getByTestId('rollover-statement'),amount=(key:string)=>statement.locator(`[data-row="${key}"] .rollover-amount`);
  await expect(amount('available')).toHaveText('฿8,500');await expect(amount('settlement')).toHaveText('฿5,500');await expect(amount('cash')).toHaveText('฿3,000');await expect(amount('profit')).toHaveText('฿3,800');
- await expect(statement).toContainText('− 7 days not yet charged × ฿500');await expect(statement).toContainText('principal ฿2,800 · interest ฿700');
+ await expect(statement).toContainText('− 7 days not yet charged × ฿500');await expect(statement.locator('[data-row="uncharged"] small')).toHaveText('principal ฿2,800 · interest ฿700');
+ // UX-23: in the cash row only the amount is the largest figure.
+ const cashSize=async(part:string)=>Number.parseFloat(await statement.locator(`[data-row="cash"] ${part}`).evaluate(e=>getComputedStyle(e).fontSize));
+ expect(await cashSize('dd')).toBeGreaterThan(await cashSize('dt'));
  await expect(page.getByText('฿2,000 = 4 days of ฿500',{exact:true})).toBeVisible();
  await expect(page.getByRole('textbox',{name:/^Loan Arrangement/})).toHaveValue(/^Rollover of loan .*closed on 09\/10\/2026 with early closure penalty ฿2,000\.\nต่อสัญญาจากสินเชื่อ /);
  await expect(page.getByLabel('Due Date',{exact:true})).toHaveValue('2026-11-02');
@@ -111,7 +114,10 @@ test('R136 rollover: Yesterday before the original loan date is offered disabled
   await page.locator('.borrower-tile-main').click();await page.locator('.loan-record').click();await page.getByRole('button',{name:'Rollover',exact:true}).click();
   await expect(page.getByRole('radio',{name:/^Today · 09\/10\/2026/})).toBeChecked();
   const yesterday=page.getByRole('radio',{name:/^Yesterday · 08\/10\/2026/});await expect(yesterday).toBeDisabled();
-  await expect(page.locator('.loan-type-options')).toContainText('Before the original loan date 09/10/2026');
+  await expect(page.getByTestId('yesterday-reason')).toHaveText('Yesterday is before the original loan date 09/10/2026.');
+  // UX-24: the disabled choice reads disabled and both choices keep one height.
+  const choices=page.locator('.rollover-day-options label');expect(await choices.nth(1).evaluate(e=>getComputedStyle(e).cursor)).toBe('not-allowed');
+  const [a,b]=await Promise.all([choices.nth(0).boundingBox(),choices.nth(1).boundingBox()]);expect(Math.abs(a!.height-b!.height)).toBeLessThan(1);
   await expect(page.getByTestId('rollover-statement')).toBeVisible();
  }finally{sourceLoanDate='2026-09-22'}
 });

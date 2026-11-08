@@ -20,6 +20,11 @@ Implement the owner-approved [R136 design](../project/outputs/r136-daily-instalm
 - Confirm page cash line, English "Cash: ฿X out (disbursement); in by net-off at disbursement: ฿Y first day of the new loan, ฿Z settlement of the original loan." and Thai "เงินสด: จ่ายออก ฿X (จ่ายเงินกู้) · รับเข้าแบบหักกลบ ฿Y (ยอดวันแรกสินเชื่อใหม่) และ ฿Z (ปิดยอดสินเชื่อเดิม)"; the arrangement note and interval appear in the confirm terms.
 - Leaving Daily instalment clears the auto-filled fee, due date and daily payment; an interval field is added to the rollover form; the loan-form summary leads with a bold cash line; the link line keeps its date inside the link.
 
+### Echo's re-check findings fixed (Byte, PWA only)
+- UX-23: cash label 1.1em and amount 1.6em (was too large).
+- UX-24: a disabled Yesterday is greyed, with the help line "Yesterday is before the original loan date dd/mm/yyyy." / "เมื่อวานอยู่ก่อนวันที่กู้ของสินเชื่อเดิม dd/mm/yyyy" under the choices.
+- UX-25: the breakdown is a small indented sub-line again; the Thai statement headings use one regular weight.
+
 ### Differences from the design
 - The rollover is a separate page (`LoanRollover.tsx`), not a mode of the loan form; the arrangement note is built in the PWA.
 - The settlement payment posts before the new loan is created (the design listed the new loan first).
@@ -43,7 +48,10 @@ Implement the owner-approved [R136 design](../project/outputs/r136-daily-instalm
 | After the UX fixes (Byte, uncommitted on `3b6a2899`): `npm run lint`, `npm run typecheck` | Pass |
 | After the UX fixes: focused unit tests | Pass, 60/60 |
 | After the UX fixes: Playwright `loan-form-defaults-independent` and `loan-rollover-independent`, desktop and mobile Chromium and mobile WebKit | Pass, 12/12 |
-| Echo's DEV re-check of the fixes | Pending, after the Hosting redeploy |
+| Echo's DEV re-check of the fixes (Hosting `20fcdb382a6c758d`, build `2b4962d3…`, source `86e88c50`; iPhone 17 Pro Max WebKit, English and Thai, read-only) | Pass for the must-fix items UX-10, 11, 12; UX-13, 14, 17, 19, 20, 22 pass. New UX-23 to 25 fixed by Byte; Echo's final brief look at UX-23 to 25 is pending after the next Hosting deploy |
+| After the UX-23 to 25 fixes (Byte): lint, typecheck | Pass |
+| After the UX-23 to 25 fixes: focused unit tests | Pass, 60/60 |
+| After the UX-23 to 25 fixes: the two Playwright specs, desktop and mobile Chromium and mobile WebKit | Pass, 12/12 |
 | Pull request `Development checks` run | Pending (iPhone WebKit shard runs here) |
 | `npm run check:docs` | Pass, 0 failures and the 4 pre-existing warnings (Dewey) |
 
@@ -85,6 +93,7 @@ Forge, 8 November 2026, UTC. Authority: the owner's instruction of 8 November 20
 | Smoke (read-only) | `dev-lm.mw-credit.com`, the web.app and the firebaseapp.com origins serve R136 `cd29cb43…` and the entry (200); `sw.js` and `build-version.json` no-store; `/health` 200 on read, command and chat; unauthenticated 401 on read `/api/session` and `/api/collection`, command `/api/session` and the new `/api/loan-records/:id/rollover-preview`, chat `/api/chat/models` and `/api/chat/threads`; CORS preflight 204 from both DEV origins on read, command and chat; no ERROR logs on the DEV Cloud Run services 16:43Z to 16:58:04Z |
 | Not done | The synthetic rollover and functional DEV test (Chase), Echo's pass, the chat read role grant (none needed by V138) |
 | Rollback | Settings generation `1793960930565811` (read, command and chat back to `3e0f49db…`), then Hosting `5d0c076529cad602` (R134). V138 is forward-fix only; restore backup `dev-refresh-a13079f694f84347a77f678c582fe2d9` only with separate authority |
+| DEV Hosting update to `86e88c50` (Forge) | Echo's DEV review fixes. `git diff --stat 3b6a2899 86e88c50`: PWA, tests and records only; nothing under `services/`, `database/`, `scripts/database/`, `infrastructure/` or the image inputs, so no backup, window, image or Terraform change (Cloud Run and V138 as above). `Development checks` run 42505250504 green. Built as before (scratch checkout, `npm ci`, nine settings from Secret Manager, file shredded): build-version R136 `2b4962d3dbcb2c7d172ea3fa`, entry `/assets/index-dijGN4H8.js`, embeds `86e88c5`, only DEV origins; `--check` 17 files; deployed 17:40:16Z to 17:40:24Z, version `20fcdb382a6c758d`, release `1794159623343000`. Smoke: three origins serve it (200), `sw.js` no-store, `/health` 200 on read, command and chat, no DEV ERROR logs 17:40Z to 17:40:37Z. Rollback: Hosting `4528005f120ccba4` |
 
 ### DEV functional test
 Authority: the owner authorized adding DEV capital if needed in this session. Synthetic data only, DEV only, through the DEV test Partner `claude-dev-test` and the governed commands. Business date 9 November 2026 (Bangkok).
