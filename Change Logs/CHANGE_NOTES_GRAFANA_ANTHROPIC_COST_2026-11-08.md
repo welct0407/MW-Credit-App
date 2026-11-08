@@ -105,7 +105,7 @@ Owner request: fix the pre-existing failure found during this work. `test_bridge
 | `node project/scripts/monitoring/test_bridge_alert_proposals.cjs` | PASS (paused routing, dispatch age, stale/missing telemetry, warning/urgent boundaries) |
 
 ### Open questions
-- No CI workflow runs the monitoring tests (`test_build_dashboards.cjs`, `test_dashboard_queries.py`, `test_cost_detail.cjs`, this test); adding them to `Development checks` is a separate decision.
+- Resolved in Follow-up 5: `npm run test:monitoring` now runs these tests in `Development checks`.
 
 ## Follow-up 4 — 8 November 2026: Azure app registrations retired
 
@@ -128,3 +128,29 @@ Owner instruction: "delete the Azure app registrations too" (the identities behi
 
 ### Open questions
 - Resolved: the custom role definition "MW Grafana VM-01 Power Control" was deleted (see Changes).
+
+## Follow-up 5 — 8 November 2026: chat Claude prices, monitoring tests in CI, Azure roles and controller group removed
+
+### Purpose
+Owner instructions: "chat fix, roles, CI tests" and "get everything done in one batch".
+
+### Changes
+- Chat estimate: `project/scripts/monitoring/model-prices.json` adds claude-opus-5-5, claude-sonnet-5-5 and claude-haiku-5-5 at Anthropic's published USD prices times 1.2816 SGD/USD (ECB via Frankfurter, 6 November 2026, stated in the file's `source`). Before, all 13 PROD turns this month (claude-opus-5-5) showed "No price". Cache writes bill 1.25 times input but are counted as input, so the estimate runs slightly low. Cost panels 50 to 52 wording: prices come from `model-prices.json` (Claude API prices for Claude, Vertex for Gemini); the billed truth for Claude is the 'Claude API · US$200 limit' tile and the collapsed Anthropic row. Tests assert every selectable PWA chat model and the transliteration model are priced.
+- CI: new `npm run test:monitoring` (jq version, `build-dashboards.cjs --check`, `test_build_dashboards.cjs`, `test_dashboard_queries.py`, `test_cost_detail.cjs`, `test_bridge_alert_proposals.cjs`, `tests/grafana/test_manage.py`) runs in the `check` job of `Development checks` after `npm run check`; the `changes` filter triggers on `project/scripts/monitoring/**` (except Markdown and `grafana-mcp-bridge/`); the `check` evidence key in `scripts/ci/stages.json` includes those paths, asserted by `tests/unit/ci-reuse-evidence.test.mjs`.
+- Azure roles: custom roles "VM01 Power Controller" (`637a62eb-6239-5956-958c-c11032293ebe`, VM read, start, restart, deallocate; assignable on RG-MWCREDIT; no assignments) and "VM01 Operation Status Reader" (`a1fdc870-cc0e-5752-af1a-e065691949ad`; compute operations read at subscription; one assignment `88cf12f8-…` to `a671b605…`, the system identity of Function App `vm01-controller-50f792fa`) came from the retired controller's Bicep (`project/scripts/azure/vm01-controller/infra/vm-role.bicep`, `infra/operation-read-proposal.json`); no Terraform declared them. The unattended-admin identity got 403 on `roleDefinitions/delete`, so the owner, in the portal, deleted resource group `rg-vm01-controller` (the open item of the [VM-01 retirement note](CHANGE_NOTES_VM01_RETIREMENT_2026-11-08.md)), removed assignment `88cf12f8-…` and deleted both roles.
+- Records: `docs/Development.md`, `project/scripts/monitoring/README.md`, `project/Documents/Resource_Monitoring_Dashboard_Guide.md`, `project/Documents/Environment_Inventory.md`, `infrastructure/unattended-admin/README.md`, `project/scripts/azure/vm01-controller/README.md` and the VM-01 retirement change note (controller group marked done).
+
+### Checks
+| Command | Result |
+| --- | --- |
+| Byte's tests and `npm run test:monitoring` | Reported by Byte |
+| Azure readback (Forge, ARM) | Both role definitions return 404 `RoleDefinitionDoesNotExist`; no custom roles remain in the subscription; the assignment and its principal no longer appear; `rg-vm01-controller` returns 403 to this identity (cannot be read; owner confirmed the deletion) |
+| Chase live check | pending |
+| Apply | not applicable (no Terraform or dashboard change in this follow-up) |
+
+### Recovery
+Prices: revert `model-prices.json`. CI: revert the workflow, `package.json` and `stages.json` changes. The deleted Azure objects cannot be restored; the controller and roles can be redeployed from the Bicep in Git history only if a VM is ever recreated.
+
+### Open questions
+- Owner decision, not done: the Backup Contributor assignment of the unattended-admin identity on the deleted VM-01 backup item (Azure refused its deletion; already noted in the unattended-admin README).
+- Owner to identify: a subscription Reader assignment for unknown service principal `64274d85-968a-47e3-bbec-cfec984f2d42`, created 1 August 2021 and not in the repository.

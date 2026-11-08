@@ -32,7 +32,7 @@ The owner asked on 8 November 2026 to delete the Azure VM-01 workstation to stop
 
 ## Not run
 - `test_azure_power_history.cjs` fails with the same module-format error (`module is not defined in ES module scope`) before and after this batch; it is unrelated and was not fixed here.
-- `rg-vm01-controller` was not deleted: the operator has no role on it.
+- `rg-vm01-controller` was not deleted by this batch: the operator has no role on it. Done later the same day by the owner in the portal ([Grafana Anthropic cost change note](CHANGE_NOTES_GRAFANA_ANTHROPIC_COST_2026-11-08.md), Follow-up 5).
 
 ## Recovery
 VM-01 cannot be restored: its backup data was deleted with the protected item (it may sit in the vault's soft-delete for up to 14 days). The OS disk was deleted too, so a new workstation would start from a fresh image. Configuration recovery is the previous commit of this branch (Git history holds the deleted Terraform and `vm01-power.sh`). Grafana recovery is re-applying the previous dashboard JSON and data source definition from Git.
@@ -41,4 +41,4 @@ VM-01 cannot be restored: its backup data was deleted with the protected item (i
 None.
 
 ## Remaining work
-- Owner: delete resource group `rg-vm01-controller` (VM-01 controller Function App and its resources) in the Azure portal. Optionally remove the unused Grafana data source `mw-azure-vm-control` and its Entra app `grafana-vm-control`.
+- Done 8 November 2026: the owner deleted resource group `rg-vm01-controller`, and the Grafana data source `mw-azure-vm-control` and Entra app `grafana-vm-control` are gone (see the Grafana Anthropic cost change note, Follow-ups 2, 4 and 5).
