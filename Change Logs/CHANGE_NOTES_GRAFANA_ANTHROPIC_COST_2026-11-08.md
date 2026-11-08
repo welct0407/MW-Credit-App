@@ -90,3 +90,19 @@ Re-add the two datasource blocks from the previous commit and apply, then set th
 
 ### Remaining work
 Delete the Azure app registrations `mw-grafana-monitoring` and `grafana-vm-control` and their client secrets (owner decision).
+
+## Follow-up 3 — 8 November 2026: bridge alert proposals test runs again
+
+### Purpose
+Owner request: fix the pre-existing failure found during this work. `test_bridge_alert_proposals.cjs` stopped before running ("require is not defined in ES module scope"), because `build-bridge-alert-proposals.js` is CommonJS while the root `package.json` declares `"type": "module"`.
+
+### Changes
+- `project/scripts/monitoring/build-bridge-alert-proposals.js` renamed to `.cjs` (content unchanged); the test requires it by its new name; `project/scripts/monitoring/README.md` updated. Historical evidence under `project/outputs/` keeps the old name.
+
+### Checks
+| Command | Result |
+| --- | --- |
+| `node project/scripts/monitoring/test_bridge_alert_proposals.cjs` | PASS (paused routing, dispatch age, stale/missing telemetry, warning/urgent boundaries) |
+
+### Open questions
+- No CI workflow runs the monitoring tests (`test_build_dashboards.cjs`, `test_dashboard_queries.py`, `test_cost_detail.cjs`, this test); adding them to `Development checks` is a separate decision.
