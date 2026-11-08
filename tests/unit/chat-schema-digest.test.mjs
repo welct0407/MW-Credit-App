@@ -25,7 +25,7 @@ test('relations: public and agent_audit with every column, the chat journal excl
 });
 
 test('functions: exactly the allow-listed business functions; writers and chat RPCs excluded',()=>{
- assert.equal(ALLOWED.size,29);
+ assert.equal(ALLOWED.size,30); // R136: loan_rollover_calculation_v1
  assert.deepEqual(digest.functions.map(f=>f.function).sort(),[...ALLOWED.keys()].sort());
  for(const f of digest.functions){
   assert.deepEqual([f.purpose,f.use_when],ALLOWED.get(f.function));

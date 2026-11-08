@@ -24,7 +24,7 @@ import {readReferrers,readReferrerRecord,readRebateSettlement} from '../business
 import {readPaymentRecord,readPaymentCorrectionPreview} from '../business/payments.mjs';
 import {readChargeRecord} from '../business/charges.mjs';
 import {canonicalOperation,operationIdentity} from '../contracts/operation-command.mjs';
-import {readLoanRecord} from '../business/loans.mjs';
+import {readLoanRecord,readLoanRolloverPreview} from '../business/loans.mjs';
 import {readBorrowerRecord,mutateBorrowerRecord,validBorrowerId,borrowerNameMissing,loanBorrowerNameMissing} from '../business/borrowers.mjs';
 import {readCommandResult,readBorrowerPaymentHistory} from './result.mjs';
 import { readPaymentDraft, readOwnerPaymentDraft, paymentLoanDisplayKey } from './draft.mjs';
@@ -270,6 +270,12 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         const rebate=await readCloseRebate(client,id,calculation,businessDate);
         return {ok:true,value:{sourceVersion,businessDate,amount,planHash,...closeSummary(calculation),accounts,rebate,plan:{borrowerId:calculation.borrowerId,amountReceived:amount,allocations:calculation.allocations,allocationMethod:'Loan Close',targetChargeId:calculation.targetChargeId,targetLoanId:id,cashAccountId:null,paymentDate:businessDate,paymentMethod:null}}};
       },true);
+    },
+    // R136 (V138): the rollover preview (quote, the original loan's terms, Lisa's accounts); 404 for an unknown loan.
+    async loanRolloverPreview(principal,id,{day=null,penalty=null}={}){
+      if(!ownerTesting)return failure(403,'access_denied');
+      if(!validBorrowerId(id))return failure(400,'invalid_request');
+      return run(principal,async client=>{try{const value=await readLoanRolloverPreview(client,id,{day,penalty});return value?{ok:true,value}:failure(404,'not_found')}catch(error){if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true);
     },
     async preferences(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async(client,actor)=>({ok:true,value:await readPreferences(client,actor)}),true)},
     async cashOverview(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readCashOverview(client)}),true)},

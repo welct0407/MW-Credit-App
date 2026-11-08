@@ -33,6 +33,8 @@ export const ALLOWED=new Map([
   "Cross-checking the charge-balance payoff (business rules section 6) through the loan_payoff tool; call directly only for a date other than today."]],
  ["public.loan_close_calculation_v83(p_loan text, p_day date, p_exclude_payment text)",["The same payoff computed as if closing payment p_exclude_payment did not exist (correction preview).",
   "\"What would the payoff have been without payment X\"."]],
+ ["public.loan_rollover_calculation_v1(p_loan text, p_day date, p_penalty numeric)",["R136: the rollover quote of an open daily-instalment or daily-interest loan on p_day with an early closure penalty: unpaid charges, principal not yet charged, remaining (instalment) or gap (daily interest) interest, the closing charge, settlement and planHash; {eligible:false, reason} when the loan cannot be rolled over.",
+  "Explaining an early close of an instalment loan or a rollover's settlement (the Rollover action in the app); read only, chat cannot post a rollover."]],
  ["public.first_day_components_v83(l \"Loans\")",["First-day charge split (principal share; interest incl. transfer fee) for a Loans row; empty if none.",
   "Explaining the net-off at disbursement: SELECT * FROM \"Loans\" l, public.first_day_components_v83(l)."]],
  ["public.original_daily_interest_rate(p \"Loans\", historical boolean)",["Whole-percent daily rate frozen at creation (historical=true reconstructs it from the note or first charge); NULL without evidence.",

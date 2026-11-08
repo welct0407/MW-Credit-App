@@ -7,7 +7,8 @@ const uploaded=new Map<string,OwnReceipt['descriptor']>();
 
 /** R129 (V137): operations that are never queued: a rebate settlement is a cash payout, so it is sent only while connected
  * and never stored in the offline queue (sendOnlineOnly). */
-export const onlineOnlyOperation=(operation:unknown)=>typeof operation==='string'&&operation.startsWith('rebate-settlement.');
+// R136 (V138): a loan rollover is online only too (its statement is a live quote, like Loan Close).
+export const onlineOnlyOperation=(operation:unknown)=>typeof operation==='string'&&(operation.startsWith('rebate-settlement.')||operation==='loan.rollover');
 export type OnlineOnlyResult={kind:'synced'|'blocked'|'busy'|'unknown'|'offline';data?:any;status?:number;code?:string};
 /**
  * R129: send one online-only operation directly (POST /api/operations), never through the offline queue. An unknown outcome
@@ -57,6 +58,7 @@ export function savedRejectionMessage(result:{code?:string;data?:any},thai:boole
   record_conflict:['The record conflicts with current data.','รายการขัดแย้งกับข้อมูลปัจจุบัน'],
   command_conflict:['This request reference is already used for different details.','รหัสคำขอนี้ถูกใช้กับรายละเอียดอื่นแล้ว'],
   not_found:['The record no longer exists.','ไม่พบรายการนี้แล้ว'],
+  rollover_ineligible:['This loan cannot be rolled over now.','ต่อสัญญาสินเชื่อนี้ไม่ได้ในขณะนี้'],
   invalid_reference:['A related record is missing or invalid.','รายการอ้างอิงหายไปหรือไม่ถูกต้อง'],
   invalid_request:['The submitted details are invalid.','รายละเอียดที่ส่งไม่ถูกต้อง'],
   borrower_name_exists:['A borrower with this name already exists.','มีผู้กู้ชื่อนี้แล้ว'],

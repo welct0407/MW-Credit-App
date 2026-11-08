@@ -58,6 +58,9 @@ try {
   # R129: referral rebate settlement (V137): pending rebates, the Referrers reads, settle and delete, and two concurrency races, same cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/rebate-settlement-independent.test.mjs"
   if($LASTEXITCODE){throw 'Rebate settlement integration checks failed'}
+  # R136: loan rollover (V138): the preview read, the apply with both receipts, replay, source_conflict and rollover_ineligible, same cluster.
+  & node --test --test-concurrency=1 "$PSScriptRoot/loan-rollover-independent.test.mjs"
+  if($LASTEXITCODE){throw 'Loan rollover integration checks failed'}
   # R112: the agent receipt command v9 (pay forward through the plan) through the real receipt API handler, on the same head cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/agent-receipt-pay-forward-independent.test.mjs"
   if($LASTEXITCODE){throw 'Agent receipt pay forward integration checks failed'}
