@@ -36,7 +36,9 @@ test('R136 new daily instalment loan: defaults, typed values kept, helper lines,
  await expect(page.getByTestId('due-date-helper')).toHaveText('25 days, loan date is day 1');
  await expect(page.getByTestId('daily-payment-helper')).toHaveText('Daily principal ฿400 · daily interest ฿100 (1.00% of principal per day)');
  await expect(page.getByTestId('loan-summary')).toContainText('Total ฿12,500 over 25 days · interest ฿2,500 + documentation fee ฿1,000');
- await expect(page.getByTestId('loan-summary')).toContainText('Cash issued to borrower ฿8,500 = ฿10,000 principal − ฿1,000 documentation fee − ฿500 first-day payment');
+ // UX-20: the cash figure leads in bold, the formula on a smaller line.
+ await expect(page.getByTestId('loan-summary').locator('.loan-summary-cash')).toHaveText('Cash issued to borrower ฿8,500');
+ await expect(page.getByTestId('loan-summary').locator('small')).toHaveText('= ฿10,000 principal − ฿1,000 documentation fee − ฿500 first-day payment');
  // A typed fee stays; the untouched daily payment follows the principal; the remainder rule shows.
  await money('Documentation Fee').fill('800');await money('Principal Amount').fill('20001');
  await expect(money('Documentation Fee')).toHaveValue('800');await expect(money('Daily Payment Amount')).toHaveValue('1000');
@@ -44,4 +46,14 @@ test('R136 new daily instalment loan: defaults, typed values kept, helper lines,
  await page.getByRole('button',{name:'Save loan',exact:true}).click();
  await expect.poll(()=>writes.length).toBe(1);
  expect(writes[0]).toMatchObject({operation:'loan.create',inputs:{principal:'20001',transferFee:'800',dailyPayment:'1000',dueDate:'2026-11-02',loanDate:'2026-10-09',type:'ผ่อนชำระรายวัน',autoChargeEnabled:true}});
+});
+
+test('R136 leaving Daily instalment clears the fee, due date and daily payment the form filled; typed values stay (UX-19)',async({page})=>{
+ await setup(page,()=>undefined);
+ await page.locator('.borrower-tile-main').click();await page.getByRole('button',{name:'New loan',exact:true}).click();await expect(page.getByRole('button',{name:'Save loan',exact:true})).toBeEnabled();
+ const money=(label:string)=>page.locator('label').filter({has:page.locator('.field-title').filter({hasText:new RegExp('^'+label+'$')})}).getByRole('textbox');
+ await money('Principal Amount').fill('10000');await page.getByRole('radio',{name:'Daily instalment',exact:true}).check();await expect(money('Documentation Fee')).toHaveValue('1000');
+ await page.getByRole('radio',{name:'Fixed due date',exact:true}).check();await expect(money('Documentation Fee')).toHaveValue('');await expect(page.getByLabel(/^Due Date/)).toHaveValue('');
+ await money('Documentation Fee').fill('700');await page.getByRole('radio',{name:'Daily instalment',exact:true}).check();await expect(money('Documentation Fee')).toHaveValue('700');
+ await page.getByRole('radio',{name:'Daily interest',exact:true}).check();await expect(money('Documentation Fee')).toHaveValue('700');
 });

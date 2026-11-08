@@ -7,7 +7,7 @@ export const ROLLOVER_TYPES=[INSTALMENT,DAILY_INTEREST] as const;
 const whole=new Intl.NumberFormat('en-US',{maximumFractionDigits:0});
 export const baht=(value:number)=>(value<0?'−':'')+'฿'+whole.format(Math.abs(value));
 const amount=(value:unknown)=>typeof value==='string'&&/^-?\d+(\.\d+)?$/.test(value)?Number(value):typeof value==='number'&&Number.isFinite(value)?value:null;
-const dmy=(day:string|null|undefined)=>day&&/^\d{4}-\d{2}-\d{2}$/.test(day)?`${day.slice(8,10)}/${day.slice(5,7)}/${day.slice(0,4)}`:'—';
+export const dmy=(day:string|null|undefined)=>day&&/^\d{4}-\d{2}-\d{2}$/.test(day)?`${day.slice(8,10)}/${day.slice(5,7)}/${day.slice(0,4)}`:'—';
 /** Whether the loan record offers Rollover: an open, auto-enabled, non-defaulted daily-instalment or daily-interest loan with outstanding principal (a read without the figure keeps it). */
 export function rolloverOffered(item:any){
  if(item?.status!=='ยังไม่ปิดยอด'||!item.autoChargeEnabled||item.defaulted||!(ROLLOVER_TYPES as readonly string[]).includes(item.type))return false;
@@ -46,7 +46,7 @@ export type RolloverStatement={rows:StatementRow[];available:number;settlement:n
  * payment; deducted for the original loan = the quote's settlement; cash issued = available − settlement; profit recognized
  * today = interest (and late charge) the settlement pays + the new loan's first-day interest (fee included).
  */
-export function rolloverStatement(input:{type:string;principal:string|null;transferFee:string|null;dailyPayment:string|null;currentDailyInterest:string|null;loanDate:string;dueDate:string|null;quote:any;sourceKey:string},thai:boolean):RolloverStatement|null{
+export function rolloverStatement(input:{type:string;principal:string|null;transferFee:string|null;dailyPayment:string|null;currentDailyInterest:string|null;loanDate:string;dueDate:string|null;quote:any;sourceKey:string;today?:string|null},thai:boolean):RolloverStatement|null{
  const t=(en:string,th:string)=>thai?th:en,q=input.quote;if(!q)return null;
  const principal=amount(input.principal),fee=input.transferFee===null||input.transferFee===''?0:amount(input.transferFee),instalment=input.type===INSTALMENT;
  const payment=amount(instalment?input.dailyPayment:input.currentDailyInterest);
@@ -77,7 +77,7 @@ export function rolloverStatement(input:{type:string;principal:string|null;trans
  rows.push({key:'penalty',label:t(`− Early closure penalty (${penaltyDays} days of ${baht(daily)})`,`− ค่าปรับปิดก่อนกำหนด (${penaltyDays} วัน × ${baht(daily)})`),value:penalty},
   {key:'settlement',label:t('Deducted for the original loan','หักชำระสินเชื่อเดิม'),value:settlement,kind:'total'},
   {key:'cash',label:t('Cash issued to borrower','เงินสดที่จ่ายให้ผู้กู้'),value:cashIssued,kind:'cash'},
-  {key:'profit',label:t('Profit recognized today','กำไรรับรู้วันนี้'),value:profit,kind:'memo'});
+  {key:'profit',label:!input.today||input.today===input.loanDate?t('Profit recognized today','กำไรรับรู้วันนี้'):t('Profit recognized on ','กำไรรับรู้ ')+dmy(input.loanDate),value:profit,kind:'memo'});
  return {rows,available,settlement,cashIssued,profit,firstDayPayment:payment,fee,principal,negative:cashIssued<0,unpaid};
 }
 /** The message above the disabled Review button when cash issued would be negative (D6, Echo R136-UX-06). */
@@ -114,4 +114,25 @@ export function rolloverRebateLine(rebates:any[]|null|undefined,thai:boolean):st
   if(r.rebateState==='paid')return t('rebate '+b(r.amount)+' paid to '+r.referrerLabel+(r.settlementDate?' on '+shortDate(r.settlementDate,false):''),'ค่าแนะนำ '+b(r.amount)+' จ่ายให้ '+r.referrerLabel+(r.settlementDate?' เมื่อ '+shortDate(r.settlementDate,true):''));
   return t('rebate '+b(r.amount)+' pending to '+r.referrerLabel,'ค่าแนะนำ '+b(r.amount)+' ค้างจ่ายให้ '+r.referrerLabel);
  }).join('; ');
+}
+/** Whole-baht round half up of principal × part₀ / principal₀ (UX-13: the new loan keeps the original loan's own ratios). */
+export function scaleByRatio(principal:string|null,part0:unknown,principal0:unknown):string|null{
+ const p=amount(principal),x=amount(part0),p0=amount(principal0);
+ if(p===null||x===null||p0===null||p0<=0||p<0||!Number.isInteger(p))return null;
+ const n=BigInt(p)*BigInt(Math.round(x*100)),d=BigInt(Math.round(p0*100));return String((2n*n+d)/(2n*d));
+}
+export type RolloverManual=Partial<Record<'transferFee'|'dailyPayment'|'currentDailyInterest',boolean>>;
+const ratioKeys=['transferFee','dailyPayment','currentDailyInterest'] as const;
+/**
+ * One field change of the rollover form with its edited-by-hand flags (UX-13). A typed fee, daily payment or current daily
+ * interest is the Partner's from its first keystroke and clearing it hands it back; a principal change re-derives the untouched
+ * ones from the original loan's ratios (fee / P0, and DP0 / P0 or CDI0 / P0 by type).
+ */
+export function rolloverFieldChange<T extends Record<string,any>>(prior:T,manual:RolloverManual,key:string,value:any,source:any):{fields:T;manual:RolloverManual}{
+ let fields:any={...prior,[key]:value};const flags={...manual};
+ if((ratioKeys as readonly string[]).includes(key))flags[key as typeof ratioKeys[number]]=value!==null&&value!=='';
+ if(key==='principal'&&source){const instalment=source.type===INSTALMENT;
+  for(const field of ratioKeys){if(flags[field]||(field==='dailyPayment'&&!instalment)||(field==='currentDailyInterest'&&instalment))continue;
+   const next=scaleByRatio(value,source[field]??(field==='transferFee'?'0':null),source.principal);if(next!==null)fields={...fields,[field]:next};}}
+ return {fields,manual:flags};
 }

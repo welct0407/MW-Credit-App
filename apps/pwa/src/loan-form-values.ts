@@ -56,6 +56,8 @@ export function termDays(loanDate:string|null,dueDate:string|null){const a=Date.
 export function loanFormChange<T extends Record<string,any>>(prior:T,manual:ManualFlags,key:string,value:any,existing=false):{fields:T;manual:ManualFlags}{
  let fields:any=loanFieldChange(prior as any,key as any,value,existing),flags={...manual};
  if((derivedKeys as string[]).includes(key))flags={...flags,[key]:value!==null&&value!==''};
+ // UX-19: leaving Daily instalment clears the fee, due date and daily payment the form filled itself (typed values stay).
+ if(!existing&&key==='type'&&prior.type===INSTALMENT&&value!==INSTALMENT)for(const field of derivedKeys)if(!flags[field])fields={...fields,[field]:null};
  if(existing||fields.type!==INSTALMENT||!['type','principal','loanDate'].includes(key))return {fields,manual:flags};
  const fill=(field:DerivedKey,next:string|null)=>{if(!flags[field]&&next!==null)fields={...fields,[field]:next}};
  if(key==='type'||key==='principal'){fill('transferFee',tenth(fields.principal));fill('dailyPayment',twentieth(fields.principal));}

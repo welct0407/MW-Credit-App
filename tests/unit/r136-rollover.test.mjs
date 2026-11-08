@@ -8,7 +8,7 @@ const valuesUrl=url(transpile('loan-form-values.ts').replace("'./whole-number-in
 const values=await import(valuesUrl);
 const rollover=await import(url(transpile('rollover-statement.ts').replace("'./loan-form-values'",JSON.stringify(valuesUrl)).replace("'./pay-forward-text'",JSON.stringify(url(transpile('pay-forward-text.ts'))))));
 const {loanFormChange,percentOf,twentieth,tenth,instalmentSchedule,dailyPaymentHelper,dueDateHelper,loanSummaryLines,addDays,termDays}=values;
-const {rolloverStatement,negativeCashMessage,penaltyHelper,penaltyStep,rolloverArrangement,rolloverPrefill,rolloverOffered,rolloverResultLine,generatedArrangement,rolloverRebateLine}=rollover;
+const {rolloverStatement,negativeCashMessage,penaltyHelper,penaltyStep,rolloverArrangement,rolloverPrefill,rolloverOffered,rolloverResultLine,generatedArrangement,rolloverRebateLine,rolloverFieldChange,scaleByRatio}=rollover;
 const INST='ผ่อนชำระรายวัน',DAILY='ดอกเบี้ยรายวัน';
 const empty={borrowerId:'B',loanDate:'2026-10-15',principal:null,transferFee:null,disbursingAccountId:null,type:null,dueDate:null,dailyPayment:null,fixedInterest:null,currentDailyInterest:null,paymentInterval:1,arrangement:null,autoChargeEnabled:true};
 const change=(state,key,value,existing=false)=>loanFormChange(state.fields,state.manual,key,value,existing);
@@ -103,4 +103,24 @@ test('Part B: the referral-rebate line of a referred original loan, in the Loan 
  assert.equal(rolloverRebateLine([{amount:'550.00',rebateState:'pending',referrerLabel:'Mai'}],false),'rebate ฿550 pending to Mai');
  assert.equal(rolloverRebateLine([{amount:'550.00',rebateState:'pending',referrerLabel:'ใหม่'}],true),'ค่าแนะนำ ฿550 ค้างจ่ายให้ ใหม่');
  assert.equal(rolloverRebateLine([{amount:'550.00',rebateState:'paid',referrerLabel:'Mai',settlementDate:'2026-11-09'}],false),'rebate ฿550 paid to Mai on 9 Nov');
+});
+test('Echo UX-13: the rollover form re-derives untouched terms from the original loan\'s ratios; typed values stay',()=>{
+ assert.equal(scaleByRatio('12000','1000.00','10000.00'),'1200');assert.equal(scaleByRatio('10010','500','10000'),'501');assert.equal(scaleByRatio('10009','500','10000'),'500');assert.equal(scaleByRatio('x','1','1'),null);
+ const source={type:INST,principal:'10000.00',transferFee:'1000.00',dailyPayment:'500.00',currentDailyInterest:null};
+ let s={fields:{principal:'10000',transferFee:'1000',dailyPayment:'500',currentDailyInterest:null},manual:{}};
+ s=rolloverFieldChange(s.fields,s.manual,'principal','12000',source);assert.deepEqual([s.fields.transferFee,s.fields.dailyPayment,s.fields.currentDailyInterest],['1200','600',null]);
+ s=rolloverFieldChange(s.fields,s.manual,'transferFee','900',source);s=rolloverFieldChange(s.fields,s.manual,'principal','14000',source);
+ assert.deepEqual([s.fields.transferFee,s.fields.dailyPayment],['900','700'],'a typed fee stays');
+ s=rolloverFieldChange(s.fields,s.manual,'transferFee',null,source);s=rolloverFieldChange(s.fields,s.manual,'principal','15000',source);assert.equal(s.fields.transferFee,'1500','clearing hands it back');
+ const daily=rolloverFieldChange({principal:'10000',transferFee:'1000',dailyPayment:null,currentDailyInterest:'300'},{},'principal','15000',{type:DAILY,principal:'10000',transferFee:'1000',currentDailyInterest:'300'});
+ assert.deepEqual([daily.fields.transferFee,daily.fields.currentDailyInterest,daily.fields.dailyPayment],['1500','450',null]);
+});
+test('Echo UX-14 and UX-19: the profit row names a past rollover day; leaving Daily instalment clears what the form filled',()=>{
+ assert.equal(rolloverStatement({...terms(),today:'2026-11-01',quote:quote()},false).rows.at(-1).label,'Profit recognized today');
+ assert.equal(rolloverStatement({...terms(),today:'2026-11-02',quote:quote()},false).rows.at(-1).label,'Profit recognized on 01/11/2026');
+ assert.equal(rolloverStatement({...terms(),today:'2026-11-02',quote:quote()},true).rows.at(-1).label,'กำไรรับรู้ 01/11/2026');
+ let s={fields:{...empty,principal:'10000'},manual:{}};s=change(s,'type',INST);s=change(s,'dailyPayment','450');s=change(s,'type',DAILY);
+ assert.deepEqual([s.fields.transferFee,s.fields.dueDate,s.fields.dailyPayment],[null,null,'450'],'filled fee and due date cleared; the typed daily payment stays');
+ let f={fields:{...empty,principal:'10000'},manual:{}};f=change(f,'transferFee','700');f=change(f,'type',INST);f=change(f,'type','กำหนดวันชำระ');
+ assert.deepEqual([f.fields.transferFee,f.fields.dueDate],['700',null]);
 });

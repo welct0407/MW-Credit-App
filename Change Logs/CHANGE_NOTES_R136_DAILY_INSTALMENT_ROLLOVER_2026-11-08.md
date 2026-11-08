@@ -11,6 +11,15 @@ Implement the owner-approved [R136 design](../project/outputs/r136-daily-instalm
 - Tests: `tests/unit/r136-rollover.test.mjs`, `tests/integration/loan-rollover-independent.test.mjs`, `tests/e2e/loan-form-defaults-independent.spec.ts`, `loan-rollover-independent.spec.ts`, and edits to `chat-proposals`, `chat-schema-digest`, `phase5-borrower-independent` and `Run-UnifiedReceiving.ps1`.
 - Records (Dewey): [Release Tracker](../project/Documents/Release_Tracker.md), [Development Changes](../project/Documents/Development_Changes.md), [PWA Data Model](../project/Documents/PWA_Data_Model_Overview.md) (Loans row and rollover source-correction row with the reversal path), [Solution Design](../project/Documents/Solution_Design.md) (R136 current state), [Database README](../database/README.md) (V138 entry), [human-api.yaml](../project/Documents/Data%20Dictionary/systems/pwa/human-api.yaml) (route, operation, loan record fields), the DESIGN status line and this note. The Data Dictionary SQL objects (column, two functions, replaced routines) wait for a PROD capture after V138 reaches PROD, as for R128 and R129. The Environment Inventory pins wait for the DEV deployment.
 
+### Echo's DEV findings fixed (Byte, PWA only; UX-10 to 20 and 22, UX-21 skipped)
+- Statement card hierarchy and a red negative cash figure (UX-10).
+- Penalty field: empty while editing, leading zeros stripped, message "Enter the penalty in whole baht (0 or more)." / "กรอกค่าปรับเป็นบาทเต็ม (ตั้งแต่ 0)" (UX-11).
+- Day choice shows dd/mm/yyyy; Yesterday is disabled before the original loan date with "Before the original loan date dd/mm/yyyy" / "ก่อนวันที่กู้ของสินเชื่อเดิม ..." (UX-12).
+- A principal change rescales an untouched fee, daily payment or daily interest by the original loan's own ratios, with the helper "x% of principal per day" / "x% ของเงินต้นต่อวัน" (UX-13).
+- "Profit recognized on dd/mm/yyyy" / "กำไรรับรู้ dd/mm/yyyy" when the rollover day is yesterday.
+- Confirm page cash line, English "Cash: ฿X out (disbursement); in by net-off at disbursement: ฿Y first day of the new loan, ฿Z settlement of the original loan." and Thai "เงินสด: จ่ายออก ฿X (จ่ายเงินกู้) · รับเข้าแบบหักกลบ ฿Y (ยอดวันแรกสินเชื่อใหม่) และ ฿Z (ปิดยอดสินเชื่อเดิม)"; the arrangement note and interval appear in the confirm terms.
+- Leaving Daily instalment clears the auto-filled fee, due date and daily payment; an interval field is added to the rollover form; the loan-form summary leads with a bold cash line; the link line keeps its date inside the link.
+
 ### Differences from the design
 - The rollover is a separate page (`LoanRollover.tsx`), not a mode of the loan form; the arrangement note is built in the PWA.
 - The settlement payment posts before the new loan is created (the design listed the new loan first).
@@ -30,6 +39,11 @@ Implement the owner-approved [R136 design](../project/outputs/r136-daily-instalm
 | `tests/integration/loan-rollover-independent.test.mjs` | Pass, 3/3 (Byte, same tree) |
 | Playwright `loan-form-defaults-independent` and `loan-rollover-independent`, desktop and mobile Chromium | Pass (Byte, same tree) |
 | Adversarial review of SQL and services against the design and Archie's 18 cases | No blockers (Chase); borrower-totals and statement assertions added; guard, privilege and reopen probes on disposable PostgreSQL 18 pass; loan-date rollover case added, Byte applying |
+| DEV functional test (Chase) and DEV UX pass (Echo) | Pass with findings, see [DEV functional test](#dev-functional-test) |
+| After the UX fixes (Byte, uncommitted on `3b6a2899`): `npm run lint`, `npm run typecheck` | Pass |
+| After the UX fixes: focused unit tests | Pass, 60/60 |
+| After the UX fixes: Playwright `loan-form-defaults-independent` and `loan-rollover-independent`, desktop and mobile Chromium and mobile WebKit | Pass, 12/12 |
+| Echo's DEV re-check of the fixes | Pending, after the Hosting redeploy |
 | Pull request `Development checks` run | Pending (iPhone WebKit shard runs here) |
 | `npm run check:docs` | Pass, 0 failures and the 4 pre-existing warnings (Dewey) |
 
@@ -50,4 +64,42 @@ None: D1 to D14 are decided.
 DEV deployment evidence (to be added below by Forge or the delivering session), Echo's pass on the DEV build, the dictionary refresh after PROD, and PROD only on the owner's instruction with a verified backup before V138.
 
 ## DEV deployment evidence
-Pending. Fill in: package commit and `Development checks` run; V138 sha256 and DEV release manifest; backup at V137 (time, dump sha256, restore verified); owner window open and restore times; migration time and `Invoke-CloudFlyway.py verify --target dev` readback; Cloud Build id and image digest; Terraform plan and apply counts; revisions; Hosting version and build label; smoke results. Pins themselves go only in the [environment inventory](../project/Documents/Environment_Inventory.md).
+Forge, 8 November 2026, UTC. Authority: the owner's instruction of 8 November 2026 to implement R136 and test it in DEV, relayed by the orchestrator (DEV backup, V138 on `loan_manager_dev`, the Cloud Run images, DEV Hosting and the records). No PROD action of any kind; no financial or test write, no forced notification. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in `gs://mw-credit-operator-private-737787224638/promotion-packages/r136/dev/`.
+
+| Step | Result |
+| --- | --- |
+| Package | PR #271 (unmerged) head `3b6a2899abf53f161354283d4e1bf8d28fd9cdb3` on `claude/ecstatic-pasteur-x58o80`, clean checkout; `Development checks` run 42499453384 and Database migrations run 42499423810 green on it. V138 sha256 `ff58fae33a714195b820972783d29617d722ed27c18816f253642dc77d7f88df` |
+| Target | Project `clever-oasis-508610-n7` (737787224638) ACTIVE; instance `mw-credit-pg-20261017` RUNNABLE, POSTGRES_18, system identifier checked by the backup; database `loan_manager_dev`; services `mw-credit-app-*-dev`; Hosting site `mw-credit-app-dev-737787224638`; settings object `mw-credit-app-tfstate-737787224638/activation/dev.activation.tfvars` |
+| Scope | V138; read, command and chat images. Notify and jobs unchanged: by the runner's role rule (`GENERIC_ROLE_ENTRIES`), no file reachable from `services/workers/server.mjs` changed since their deployed source `e770115`, and the `package.json` change is scripts-only (`test:monitoring`). DEV Hosting labelled R136 |
+| Preflight (read-only) | 16:39:06Z, `info` as `codex-cloud-read`: head 137 (136 successful plus the baseline), V138 the only pending, nothing failed. `Invoke-CloudFlyway.py verify` is strict and refuses any pending migration, so it was run after the migration only |
+| Backup at V137 | `Backup-ProductionPromotion.py --environment development --expected-version 137`, 16:39:36Z to 16:42:09Z (snapshot 16:39:44Z): dump sha256 `e38fa60b6138f2efe3ac42b8cf8b5b6d262fdabaa4b0cffabdd1b2f590898e6a`, archive listing and isolated restore passed, 39 table fingerprints matched, folder `dev-refresh-a13079f694f84347a77f678c582fe2d9` (copied to `dev-backups/`) |
+| Image | Cloud Build `88a590cb-204a-4027-8139-9ba08f735a10` (`cloudbuild-command.yaml`, `mw-credit-app-build`, the DEV registry, as R131 DEV) from a `git archive` of `3b6a2899`, SUCCESS 16:42:32Z to 16:43:01Z, digest `sha256:5a0bc683ed4ae6481232c8f663c6ce59ffeccce11cb6e5e64e979900cdd277d1` |
+| Owner window | Six DEV owners (notify, jobs, ledger, changes, journal, chat), 24 statements, opened 16:43:03Z to 16:43:14Z; closed 16:50:49Z to 16:50:59Z (24 statements); readback: `postgres` membership inherit and set false on all six, no CREATE on `public` |
+| V138 | `Invoke-Flyway.ps1 -Environment development -Command migrate` 16:43:18Z to 16:50:22Z, exit 0: installed 16:43:29Z, 7.0 s, checksum -796682910; post-migrate application-role reconcile 565 statements, 0 violations. `validate` 16:50:31Z to 16:50:41Z successful, 0 invalid |
+| Verify | `Invoke-CloudFlyway.py verify --target dev` 16:51:30Z: validation successful, schema 138, 137 applied, nothing pending, 0 writes |
+| SQL readback | `"Loans"."Ref Rollover Source Loan"` text, nullable, FK ON DELETE RESTRICT, partial index `loans_ref_rollover_source_loan`; `"Transfer Fee"` comment names Documentation Fee; `loan_rollover_calculation_v1` owner `postgres`, EXECUTE `mw_app_dev` only; `pwa_apply_loan_rollover_v1` owner `postgres`, EXECUTE journal owner only; `pwa_submit_operation_v2` journal-owner definer, EXECUTE `mw_app_dev`; `pwa_effective_payment_plan_v2`, `pwa_payment_head_v2` and `first_day_charge_trigger` owners unchanged; indexes `pwa_operation_receipt_v2` and `pwa_operation_settlement_receipt_v1` present. Data: 157 loans, 0 with a rollover source |
+| DEV release manifest | `New-Release.ps1` at `3b6a2899` (138 migrations), copy `release-r136-v138-3b6a2899.json`, sha256 `206c156ecdccfa03e1e33f27a188141cf394f08c30ac227a284eb55509abaa64` |
+| Terraform | `infrastructure/dev`: fmt and validate pass; plan 0 add, 3 change, 0 destroy (plan sha256 `a0878082…a069`, JSON `8fa9a013…0014`); JSON readback: only `template.0.containers.0.image` on `read_api`, `command_api` and `chat_api`, nothing unknown after apply. Settings generation `1794156886117996` (previous `1793960930565811`); applied 16:54:49Z to 16:55:24Z; re-plan no changes |
+| Revisions | read `00076-g48`, command `00093-tkq`, chat `00045-tcz` on `5a0bc683…`, 100%, Ready; notify `00031-mmn` and jobs `00031-v8v` unchanged on `d35efe83…` |
+| Hosting | Detached scratch worktree of `3b6a2899`, `npm ci`, `.env.live-dev` (0600) from Secret Manager `mw-credit-app-dev-firebase-web` (DEV web app id checked) plus the three DEV service origins, `VITE_COMMAND_MODE=dev-owner-testing` and `VITE_NOTIFICATIONS=enabled` (nine settings, as R131), shredded after the build; worktree removed. `npm run build:live-dev`: build-version R136 `cd29cb43a7d079b37605bec2`, entry `/assets/index-DVXo85RE.js`, embeds `3b6a289`, only the DEV service origins. `deploy-hosting.mjs --live-dev --check` 17 files, then deploy 16:57:17Z to 16:57:26Z: version `4528005f120ccba4`, release `1794157046148000` |
+| Smoke (read-only) | `dev-lm.mw-credit.com`, the web.app and the firebaseapp.com origins serve R136 `cd29cb43…` and the entry (200); `sw.js` and `build-version.json` no-store; `/health` 200 on read, command and chat; unauthenticated 401 on read `/api/session` and `/api/collection`, command `/api/session` and the new `/api/loan-records/:id/rollover-preview`, chat `/api/chat/models` and `/api/chat/threads`; CORS preflight 204 from both DEV origins on read, command and chat; no ERROR logs on the DEV Cloud Run services 16:43Z to 16:58:04Z |
+| Not done | The synthetic rollover and functional DEV test (Chase), Echo's pass, the chat read role grant (none needed by V138) |
+| Rollback | Settings generation `1793960930565811` (read, command and chat back to `3e0f49db…`), then Hosting `5d0c076529cad602` (R134). V138 is forward-fix only; restore backup `dev-refresh-a13079f694f84347a77f678c582fe2d9` only with separate authority |
+
+### DEV functional test
+Authority: the owner authorized adding DEV capital if needed in this session. Synthetic data only, DEV only, through the DEV test Partner `claude-dev-test` and the governed commands. Business date 9 November 2026 (Bangkok).
+
+**DEV capital (Chase).** Two Contribution rows, note "R136 DEV test capital": ฿20,000 (request `fd74e859-b6d1-4dda-bddb-0e62d35122d6`, 17:03:32Z) and ฿8,000 (request `970b27e8-a50d-4696-8bcf-c614034130ec`, 17:15:19Z), 8 November 2026 UTC. The pool went from ฿64 to ฿1,084 after the tests.
+
+**Chase's results, all pass:**
+1. Part A defaults on iPhone WebKit: fee 10%, due date +24 days, daily payment 5%, rounding (333 gives 33 and 17; 55 gives 6 and 3), a typed fee is kept, the label reads Documentation Fee.
+2. Instalment rollover through the PWA on the original loan's loan date: settlement ฿14,000 (missing principal 9,600 + remaining interest 2,400 + penalty 2,000), new loan ฿18,000, cash issued ฿1,300; ledger -18,000, +2,700, +14,000; the original loan closed with the settlement as its closing payment; the `rl138:` charge exists; the "Rollover of" and "Rolled over to" lines show both ways.
+3. Daily-interest rollover with gap interest and unpaid charges: settlement ฿560, cash issued ฿35.
+4. Replay is idempotent; the same request id with a different payload gives `command_conflict`; a stale plan hash, settlement or version gives `source_conflict`; negative cash gives `rollover_ineligible`; a day two days back gives `invalid_date`.
+5. Observation, not an R136 defect: 13 ERROR log entries between 17:12Z and 17:19Z, all 503 statement timeouts on `GET offline-dataset` (collection, command service) and borrower upcoming (read service) under concurrent Chase and Echo PWA load; none on the rollover path. Follow-up for the owner.
+
+Not covered on DEV: a mid-life rollover with charges (covered by `Test-Rollover.sql`) and a referred original loan (database test case 12).
+
+**DEV records left** (synthetic): borrower "R136 DEV test rollover borrower" `ff5349b2-…`; instalment pair `0a1b439d-…` (closed) to `3badb540-…` (open, ฿18,000); daily-interest pair `5fcd483b-…` (closed) to `ceb61ae7-…` (open, ฿600); a spare open ฿10,000 instalment loan `e5ec8c3e-…` (created twice by mistake, used for the refusal tests).
+
+**Echo's DEV UX pass** (iPhone 17 Pro Max, WebKit, read-only): R136-UX-01, 02, 03, 05, 06, 07, 08 and 09 verified. New findings R136-UX-10 to 22. Must-fix: 10 (statement card hierarchy and red negative), 11 (stale penalty after a retype), 12 (yesterday before the loan date is a dead end). Should-fix: 13, 14, 17, 19. Optional: 15, 16, 18, 20, 22. Byte is fixing all of them except UX-21 (acceptable wrap at 390 px, skipped). Resolution of UX-13 (orchestrator): an untouched fee, daily payment or daily interest rescales with the original loan's own ratios when the principal changes. The fixes are not yet re-tested on DEV; the Checks row above stays "Pass with findings" until Echo's re-check passes.

@@ -27,9 +27,10 @@ async function setup(page:Page,handle:Handler,loanRows:any[]=[]){
 
 const original={id:'R-loan',version:'b'.repeat(64),borrowerId:record.id,borrowerDisplayName:'Synthetic rollover borrower',loanDate:'2026-09-22',principal:'10000.00',transferFee:'1000.00',disbursingAccountId:'C-account',disbursingAccountLabel:'Synthetic Lisa lending account',type:'ผ่อนชำระรายวัน',dueDate:'2026-10-16',dailyPayment:'500.00',fixedInterest:null,currentDailyInterest:null,originalRate:1,paymentInterval:1,scheduleAnchor:null,arrangement:null,autoChargeEnabled:true,status:'ยังไม่ปิดยอด',defaulted:false,closeDate:null,defaultLoss:null,outstandingPrincipal:'2800',principalReceived:'7200',interestReceived:'2800',amountReceived:'10000',defaultLossDate:null,lastDefaultLoss:null,unpaidChargeCount:0,unpaidChargeAmount:'0',rolloverSourceLoanId:null,rolledOverToLoanId:null};
 const row={id:'R-loan',borrowerId:record.id,borrowerDisplayName:'Synthetic rollover borrower',originalDailyInterestRate:'1',loanDate:'2026-09-22',dueDate:'2026-10-16',closeDate:null,loanType:'ผ่อนชำระรายวัน',status:'ยังไม่ปิดยอด',principalAmount:'10000',outstandingPrincipal:'2800',totalPrincipalReceived:'7200',totalInterestReceived:'2800',totalAmountReceived:'10000',defaulted:false,autoChargeEnabled:true};
+let sourceLoanDate='2026-09-22';
 function preview(url:URL){const penalty=url.searchParams.get('penalty')??'2000',day=url.searchParams.get('day')??'2026-10-09',settlement=String(3500+Number(penalty));
  return {ok:true,businessDate:day,today:'2026-10-09',yesterday:'2026-10-08',penalty,eligible:true,reason:null,accounts:[{id:'C-account',label:'Synthetic Lisa lending account',isDefault:true}],
-  source:{id:'R-loan',borrowerId:record.id,type:'ผ่อนชำระรายวัน',principal:'10000.00',transferFee:'1000.00',loanDate:'2026-09-22',dueDate:'2026-10-16',dailyPayment:'500.00',currentDailyInterest:null,paymentInterval:1,arrangement:null,disbursingAccountId:'C-account',originalRate:1,term:25,version:'b'.repeat(64)},
+  source:{id:'R-loan',borrowerId:record.id,type:'ผ่อนชำระรายวัน',principal:'10000.00',transferFee:'1000.00',loanDate:sourceLoanDate,dueDate:'2026-10-16',dailyPayment:'500.00',currentDailyInterest:null,paymentInterval:1,arrangement:null,disbursingAccountId:'C-account',originalRate:1,term:25,version:'b'.repeat(64)},
   quote:{eligible:true,type:'ผ่อนชำระรายวัน',businessDate:day,unpaid:'0',unchargedDays:7,missingPrincipal:'2800',remainingInterest:'700',interestClamped:false,penalty,dailyAmount:'500',settlement,sourceVersion:'b'.repeat(64),planHash:(penalty==='2000'?'c':'d').repeat(64),
    allocations:[{chargeId:'rl138:6:R-loan:'+day,principal:'2800',interest:String(700+Number(penalty)),lateCharge:'0'}]}};}
 /** A rollover draft saved on an older day (no longer today or yesterday), with untouched prefill: 2026-10-01 + 24 days and its note. */
@@ -69,15 +70,27 @@ test('R136 rollover: record action, prefilled form, live statement, confirm and 
  await page.getByRole('button',{name:'Decrease penalty by one day',exact:true}).click();await expect(amount('cash')).toHaveText('฿3,000');
  expect(previews.some(q=>q.includes('penalty=2500'))).toBe(true);
  // The device draft (design 5.3): leaving and reopening keeps the edited penalty and principal, and the statement is quoted again.
- await page.getByRole('button',{name:'Increase penalty by one day',exact:true}).click();await page.getByRole('textbox',{name:'Principal Amount',exact:true}).fill('11000');await expect(amount('cash')).toHaveText('฿3,500');
+ await page.getByRole('button',{name:'Increase penalty by one day',exact:true}).click();await page.getByRole('textbox',{name:'Principal Amount',exact:true}).fill('11000');await expect(amount('cash')).toHaveText('฿3,350');
  const quotes=previews.length;await page.waitForTimeout(700);
  await page.getByRole('button',{name:'Back to loan details',exact:true}).click();await page.getByRole('button',{name:'Rollover',exact:true}).click();
  await expect(page.getByRole('textbox',{name:'Principal Amount',exact:true})).toHaveValue('11000');await expect(page.getByText('฿2,500 = 5 days of ฿500',{exact:true})).toBeVisible();
- await expect(amount('cash')).toHaveText('฿3,500');expect(previews.length).toBeGreaterThan(quotes);expect(previews.at(-1)).toContain('penalty=2500');
+ await expect(page.getByRole('textbox',{name:'Documentation Fee',exact:true})).toHaveValue('1100');await expect(amount('cash')).toHaveText('฿3,350');expect(previews.length).toBeGreaterThan(quotes);expect(previews.at(-1)).toContain('penalty=2500');
  await page.getByRole('button',{name:'Decrease penalty by one day',exact:true}).click();await page.getByRole('textbox',{name:'Principal Amount',exact:true}).fill('10000');await expect(amount('cash')).toHaveText('฿3,000');
+ // UX-11: the penalty may be cleared while typing (no quote, an inline message, Review disabled); "750" is quoted as typed.
+ const penaltyBox=page.getByRole('textbox',{name:'Early closure penalty (original loan)',exact:true});
+ await penaltyBox.fill('');await expect(page.getByTestId('penalty-message')).toHaveText('Enter the penalty in whole baht (0 or more).');await expect(page.getByRole('button',{name:'Review rollover',exact:true})).toBeDisabled();
+ await penaltyBox.fill('0750');await expect(penaltyBox).toHaveValue('750');await expect(page.getByTestId('penalty-message')).toHaveCount(0);await expect(amount('cash')).toHaveText('฿4,250');
+ expect(previews.some(q=>q.includes('penalty=750'))).toBe(true);
+ await penaltyBox.fill('2000');await expect(amount('cash')).toHaveText('฿3,000');
+ // UX-13: a principal change re-derives the untouched fee and daily payment at the original loan's ratios (10% and 5%); a typed fee stays.
+ const principalBox=page.getByRole('textbox',{name:'Principal Amount',exact:true}),feeBox=page.getByRole('textbox',{name:'Documentation Fee',exact:true}),dailyBox=page.getByRole('textbox',{name:'Daily Payment Amount',exact:true});
+ await principalBox.fill('12000');await expect(feeBox).toHaveValue('1200');await expect(dailyBox).toHaveValue('600');
+ await feeBox.fill('1100');await principalBox.fill('14000');await expect(feeBox).toHaveValue('1100');await expect(dailyBox).toHaveValue('700');
+ await feeBox.fill('');await principalBox.fill('10000');await expect(feeBox).toHaveValue('1000');await expect(dailyBox).toHaveValue('500');
  await expect(page.locator('.rollover-review-row')).toContainText('Cash issued ฿3,000');
  await page.getByRole('button',{name:'Review rollover',exact:true}).click();
  await expect(page.locator('.rollover-cash-lead')).toContainText('Cash issued to borrower ฿3,000');
+ await expect(page.getByTestId('rollover-cash-lines')).toHaveText('Cash: ฿10,000 out (disbursement); in by net-off at disbursement: ฿1,500 first day of the new loan, ฿5,500 settlement of the original loan.');
  await page.getByRole('button',{name:'Confirm',exact:true}).click();
  await expect.poll(()=>writes.length).toBe(1);
  expect(writes[0].targetId).toBe('f1111111-1111-4111-8111-111111111111');
@@ -88,4 +101,17 @@ test('R136 rollover: record action, prefilled form, live statement, confirm and 
  // After the apply no draft is left: reopening Rollover on the original loan starts from a fresh prefill.
  expect(await savedDraft(page)).toBeFalsy();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+});
+
+test('R136 rollover: Yesterday before the original loan date is offered disabled with its reason, and the form stays (UX-12)',async({page})=>{
+ sourceLoanDate='2026-10-09';
+ try{
+  await setup(page,(path,url)=>{if(path==='/api/loan-records/R-loan/rollover-preview')return preview(url);if(path.startsWith('/api/loan-records/')&&(path.endsWith('/charges')||path.endsWith('/payments')))return {ok:true,items:[],nextCursor:null};
+   if(path==='/api/loan-records/R-loan')return {ok:true,item:{...original,loanDate:'2026-10-09',dueDate:'2026-11-02'},asOf:Date.now(),businessDate:'2026-10-09'};return undefined},[{...row,loanDate:'2026-10-09'}]);
+  await page.locator('.borrower-tile-main').click();await page.locator('.loan-record').click();await page.getByRole('button',{name:'Rollover',exact:true}).click();
+  await expect(page.getByRole('radio',{name:/^Today · 09\/10\/2026/})).toBeChecked();
+  const yesterday=page.getByRole('radio',{name:/^Yesterday · 08\/10\/2026/});await expect(yesterday).toBeDisabled();
+  await expect(page.locator('.loan-type-options')).toContainText('Before the original loan date 09/10/2026');
+  await expect(page.getByTestId('rollover-statement')).toBeVisible();
+ }finally{sourceLoanDate='2026-09-22'}
 });
