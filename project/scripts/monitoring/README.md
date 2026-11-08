@@ -48,13 +48,11 @@ The Railway cost selectors `railway-resource-cost.jq` and `railway-daily-estimat
 
 ## Initial provisioning (already completed)
 
-`Initialize-Azure.ps1` checks the signed-in tenant/subscription/account, creates a dedicated one-year service-principal secret and group-scoped read permissions. It refuses existing principals/credentials.
-
-`Initialize-AzureVmControl.ps1` separately provisions the owner-approved single-VM control identity with only read, instanceView, start and deallocate permissions. It never runs a power operation and must not be replayed against the existing identity. `VmControl.Helpers.ps1` is retained as inactive preparation only; no dashboard calls it. Do not re-enable it without a new request and supported Grafana authenticated actions. Power-cycle testing is disruptive because VM-01 hosts the desktop/Codex session; do not use deallocation as an automated smoke test.
+The Azure tooling (`Initialize-Azure.ps1`, `Initialize-AzureVmControl.ps1`, `VmControl.Helpers.ps1`) was removed on 8 November 2026 with the Azure data sources `mw-azure-monitoring` and `mw-azure-vm-control` (owner decision; VM-01 deleted the same day); Git history keeps it.
 
 `Initialize-Gcp.ps1 -ApprovedKeyCreationException` is a security-sensitive, one-time procedure requiring owner authorization. It creates the dedicated monitoring identity/dataset, temporarily makes project-level exceptions for both key-creation constraints, creates one key outside Git, and restores inherited enforcement in `finally`. It refuses an existing key or local policy. Do not rerun for routine dashboard changes. If interrupted, inspect/restore project policies immediately and reconcile the existing identity/key; never automatically create another key.
 
-Detailed GCP billing export and the Railway workspace token were configured in their authenticated web consoles. `Install-DataSources.ps1` installs only the three named Infinity sources and refuses existing UIDs. It never writes plaintext credentials into generated dashboards. `Monitoring.Common.ps1` (used by these helpers) reads the private path documented in the operating reference. No workload deployment, business database write or AppSheet change is part of these tools.
+Detailed GCP billing export and the Railway workspace token were configured in their authenticated web consoles. `Install-DataSources.ps1` installs only the two named Infinity sources (GCP and Railway; the Azure source was removed on 8 November 2026) and refuses existing UIDs. It never writes plaintext credentials into generated dashboards. `Monitoring.Common.ps1` (used by these helpers) reads the private path documented in the operating reference. No workload deployment, business database write or AppSheet change is part of these tools.
 
 `worker-timing.jq` formats same-sample numeric worker timing values, rejects pagination and returns Unknown after six minutes.
 
@@ -83,10 +81,10 @@ The description and panel text need a scoped update from a fresh live Grafana de
 
 The candidate collector requires the matching MW `relay_health` module before deployment. It uses completed outcome/backlog evidence with the existing `audit_relay` component label and exports bounded numeric diagnostics through the existing worker metric. Missing inspection fails DOWN. Units, dashboards and alert selectors stay unchanged. See [R050 checks and rollout/rollback](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Current live timer/result behavior remains the baseline until a separately approved rollout.
 
-### R051 bridge telemetry and daily VM-01 availability
+### R051 bridge telemetry
 
-`azure-daily-availability.jq` (lifted into Infrastructure) uses only passive VM availability PT1M samples, clips selected partial days and preserves null gaps; observed available hours differ from exact running and billable allocated time. `azure-power-history.js` correlates completed Activity Log operations as evidence only, without inferring continuous guest uptime or invoking Azure/controller actions. All Activity Log pages and a sufficient pre-period lookback are required; no assumed initial state.
+The daily VM-01 availability selector `azure-daily-availability.jq` and the Activity Log correlator `azure-power-history.js` (with its test) were removed on 8 November 2026 with VM-01 and the Azure data sources; Git history keeps them.
 
 Optional Cloud Run instrumentation is under `grafana-mcp-bridge/src/monitoring.ts`. It adds numeric exports after natural dispatch only when new `MONITORING_ENABLED=true` is explicitly configured. It needs approved metricWriter access, the new oldest-pending index, verified private expected membership and a pinned Cloud Run rollout. No Debian/integration-worker runtime change. `build-bridge-alert-proposals.js` writes paused rule proposals for a separate IRM-only contact; it never installs/unpauses or changes filters. Legacy missing grant metadata remains Unknown until ordinary host renewal provides authenticated deadline data.
 
-Relevant checks: `test_azure_power_history.cjs`, `test_bridge_alert_proposals.cjs`; bridge `npm run build` and targeted monitoring/events/store/offline-auth tests. No fixture is sent to live monitoring or business services. Rollout evidence: [checkpoint and proposals](../../outputs/grafana-row5-vm01-20261004/README.md).
+Relevant checks: `test_bridge_alert_proposals.cjs`; bridge `npm run build` and targeted monitoring/events/store/offline-auth tests. No fixture is sent to live monitoring or business services. Rollout evidence: [checkpoint and proposals](../../outputs/grafana-row5-vm01-20261004/README.md).
