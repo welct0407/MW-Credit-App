@@ -27,6 +27,15 @@ test('stages.json names the check runs the workflows produce and the paths that 
   assert.ok(isRelevant(stages.check, 'services/business/borrowers.mjs'));
   assert.ok(!isRelevant(stages.check, 'Change Logs/CHANGE_NOTES_X_2026-10-18.md'));
   assert.ok(!isRelevant(stages.check, 'project/Documents/Release_Tracker.md'));
+  // npm run test:monitoring (check stage): the dashboard builder, its tests and the generated dashboards invalidate
+  // the check evidence; the monitoring README, other project scripts and the MCP bridge (own workflow) do not.
+  for (const file of ['project/scripts/monitoring/dashboards/cost.cjs', 'project/scripts/monitoring/model-prices.json', 'project/scripts/monitoring/dashboards/retired/mw-resource-cost.json', 'infrastructure/grafana/dashboards/mw-cost.json', 'tests/grafana/test_manage.py'])
+    assert.ok(isRelevant(stages.check, file), file);
+  for (const file of ['project/scripts/monitoring/README.md', 'project/scripts/other.ps1', 'project/scripts/monitoring/grafana-mcp-bridge/src/index.ts'])
+    assert.ok(!isRelevant(stages.check, file), file);
+  assert.ok(!isRelevant(stages.lint, 'project/scripts/monitoring/dashboards/cost.cjs'), 'biome does not lint project/');
+  const workflow = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  assert.ok(workflow.includes('      - run: npm run test:monitoring\n') && workflow.includes("grep -E '^project/scripts/monitoring/' changed.txt"), 'ci.yml runs and triggers the monitoring tests');
   assert.ok(!isRelevant(loadStages('database').rebuild, 'database/README.md'));
   assert.ok(isRelevant(loadStages('database').rebuild, 'database/migrations/V96__x.sql'));
   assert.throws(() => loadStages('nope'), /Unknown workflow/);

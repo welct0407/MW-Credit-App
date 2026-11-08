@@ -2,7 +2,7 @@
   "ci": {
     "check": {
       "checks": ["check"],
-      "exclude": "^(project/|integration-agent/|Change Logs/)|\\.md$"
+      "exclude": "^(project/(?!scripts/monitoring/(?!grafana-mcp-bridge/))|integration-agent/|Change Logs/)|\\.md$"
     },
     "lint": {
       "checks": ["lint"],

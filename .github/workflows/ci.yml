@@ -71,8 +71,12 @@ jobs:
               if ! gh api --paginate "repos/${{ github.repository }}/compare/${PUSH_BEFORE}...${PUSH_AFTER}?per_page=100" --jq '.files[].filename' > changed.txt; then everything "Unreadable push range"; fi ;;
             *) everything "${{ github.event_name }}" ;;
           esac
-          # Documentation, project records and the integration agent have their own checks.
+          # Documentation, project records and the integration agent have their own checks. The
+          # Grafana dashboard builder and its tests (project/scripts/monitoring/, npm run
+          # test:monitoring) run in the check stage, as stages.json's check pattern keeps them; the
+          # MCP bridge below it has its own workflow.
           grep -Ev '^(project/|integration-agent/|Change Logs/)|\.md$' changed.txt > app.txt || true
+          grep -E '^project/scripts/monitoring/' changed.txt | grep -Ev '^project/scripts/monitoring/grafana-mcp-bridge/|\.md$' >> app.txt || true
           app=false; e2e=false; terraform=false
           if [ -s app.txt ]; then app=true; fi
           if grep -Eq '^(apps/pwa/|tests/e2e/|playwright\.config\.ts$|package(-lock)?\.json$|vite\.config\.ts$|tsconfig\.json$|index\.html$|\.nvmrc$|\.github/workflows/ci\.yml$)' app.txt; then e2e=true; fi
@@ -106,6 +110,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      # Grafana dashboards: generated JSON matches the builder, structure, jq fixtures, Grafana runner guards.
+      # Synthetic only (no provider or Grafana calls); jq and python3 come with the runner image.
+      - run: npm run test:monitoring
       - run: npm run build:live-dev
       - run: npm audit --omit=dev --audit-level=moderate
       - name: Checks leave tracked files unchanged
