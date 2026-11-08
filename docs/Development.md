@@ -4,7 +4,7 @@ The root owns PWA/API/shared SQL/infrastructure, `project/` owns release coordin
 
 ## Setup
 
-On VM-01, dot-source `scripts/Enter-Dev.ps1`; reuse installed tooling and root dependencies. Elsewhere use supported tools matching .nvmrc/package-lock and Terraform required_version. Run npm ci only when dependencies require it. Cloud Build/GitHub handle image builds; local Docker is not a routine prerequisite.
+On a Windows workstation (VM-01 was deleted on 8 November 2026), dot-source `scripts/Enter-Dev.ps1`; reuse installed tooling and root dependencies. Elsewhere use supported tools matching .nvmrc/package-lock and Terraform required_version. Run npm ci only when dependencies require it. Cloud Build/GitHub handle image builds; local Docker is not a routine prerequisite.
 
 Google project `clever-oasis-508610-n7`, region `asia-southeast1`; shared SQL `mw-credit-pg-20261017`; databases `loan_manager_dev` / `loan_manager_prod`. Receipt bucket `mw-payment-receipts-prod-508610-n7` remains private. Verify complete targets before operations. Current origins/pins are maintained in the project's Environment_Inventory.md.
 

@@ -18,7 +18,7 @@ variable "receipt_recognizer" {
 }
 
 locals {
-  # VM-01 (vm-mw-credit-agent) primary internal address on the default subnet,
+  # Debian VM (vm-mw-credit-agent) primary internal address on the default subnet,
   # pinned as network_ip in ../ecosystem-debian. The ID-token audience is exactly this URL.
   receipt_recognizer_url = "http://10.148.0.2:8790/v1/receipt-recognition"
   receipt_recognizer_egress = {

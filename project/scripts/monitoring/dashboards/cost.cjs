@@ -175,7 +175,7 @@ const DESCRIPTIONS = {
 };
 // Collapsed provider rows: today's panels unchanged, moved under their row with relative positions kept.
 // FINAL2-2: lifted titles shortened to one line on a phone.
-const ROW_TITLES = {101: 'Azure · daily detail (USD)', 110: 'VM-01 · running hours by day', 206: 'GCP · daily cost (SGD)',
+const ROW_TITLES = {101: 'Azure · daily detail (USD)', 206: 'GCP · daily cost (SGD)',
   302: 'Railway · accrued usage', 301: 'Railway · billing period', 304: 'Railway · resources (USD est.)', 305: 'Railway · daily estimate (USD)'};
 function providerRow(id, title, y, oldRowId, ids) {
   const oldRow = L.findPanel(COST, oldRowId);
@@ -305,7 +305,7 @@ function build() {
     timepicker: {refresh_intervals: ['1h', '2h', '1d']},
     panels: [total(), platform(5, 2, 6, 'Azure'), platform(6, 3, 12, 'GCP'), platform(7, 4, 18, 'Railway'), lastMonth(), budgetTile(), dailyCost(), byService(),
       rules(), ...questions(),
-      providerRow(10, L.findPanel(COST, 306).title, PROVIDERS_Y, 306, [102, 103, 104, 101, 110]),
+      providerRow(10, 'Azure · residual cost (VM-01 deleted 8 November 2026)', PROVIDERS_Y, 306, [102, 103, 104, 101]),
       providerRow(20, L.findPanel(COST, 307).title, PROVIDERS_Y + 1, 307, [202, 203, 204, 205, 207, 206, 201]),
       providerRow(30, L.findPanel(COST, 308).title, PROVIDERS_Y + 2, 308, [302, 301, 303, 304, 305])].map(neutralMoney)});
 }

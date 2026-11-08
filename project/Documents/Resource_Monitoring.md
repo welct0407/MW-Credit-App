@@ -6,7 +6,7 @@ Operating reference for Grafana Cloud stack `olivecrab1199` (work account). Pane
 
 | Area | Source | Runs on |
 | --- | --- | --- |
-| Azure VM-01, GCP Debian VM and shared Cloud SQL, Railway Metabase/Postgres: performance and cost | Provider APIs queried live by Grafana Infinity data sources `mw-azure-monitoring`, `mw-gcp-monitoring`, `mw-railway-monitoring` | Grafana Cloud (no time series copied into Grafana storage; provider retention applies) |
+| GCP Debian VM and shared Cloud SQL, Railway Metabase/Postgres: performance and cost; Azure: residual cost only | Provider APIs queried live by Grafana Infinity data sources `mw-azure-monitoring`, `mw-gcp-monitoring`, `mw-railway-monitoring` | Grafana Cloud (no time series copied into Grafana storage; provider retention applies) |
 | Debian service health, native API probes, receipt pipeline, Metabase probes, bridge telemetry, PWA Hosting checks | `project/scripts/monitoring/debian-health.py`, run every two minutes by `mw-resource-health.timer` as `mwagent`; exports numeric states to `custom.googleapis.com/mw_resource_monitoring/*` through the VM's Monitoring Metric Writer role | Debian VM `vm-mw-credit-agent`, `/opt/mw-resource-monitoring/` |
 | Public webhook | Google Cloud uptime check `mw-webhook-external-health-ySLl0784KgI` (`GET https://hooks.mw-credit.com/instagram`, expects HTTPS, 403 and body `Forbidden`, every 5 minutes from Singapore, Belgium and Oregon); in Terraform (`infrastructure/ecosystem-debian`) | Google Cloud |
 | Railway status (new dashboards) | Credential-free Infinity source `mw-public-status` (`cfz10a9eaokjkd`), `https://railway.instatus.com/summary.json` (host allowed in `49cccf1`); selector `scripts/monitoring/railway-status.jq`; replaces OpenAI on Now 17 and Agent 11 | Grafana Cloud |
@@ -14,7 +14,7 @@ Operating reference for Grafana Cloud stack `olivecrab1199` (work account). Pane
 | Cloud Run PWA services, Cloud Scheduler, Cloud SQL | `mw-gcp-monitoring` aggregate queries (PWA & APIs, Now and Infrastructure dashboards), and, for the Cost budget cell and line, the Cloud Billing Budget API (`billingbudgets.googleapis.com`, scope `cloud-billing`, read-only service account holding `roles/billing.viewer` on the billing account; the budget `Budget-GCP` is account-wide); log-based metrics declared in `infrastructure/prod` and `infrastructure/dev` with an environment suffix because the project is shared: `mw_scheduler_attempts_<env>` (Cloud Monitoring has no Cloud Scheduler `attempt_count` series in this project), `mw_recognition_outcome_<env>`, `mw_recognition_route_latency_<env>`, and the sign-in and request error counter from the existing `read_request` and `command_request` records | Grafana Cloud, Google Cloud |
 | Google Cloud status | Credential-free Infinity source `mw-public-gcp-status` (allowed host `status.cloud.google.com`, `incidents.json`; no cache setting, because Terraform cannot set one); selector `scripts/monitoring/gcp-status.jq`. UID `mw-public-gcp-status`, created by the Grafana apply of 22 October 2026. | Grafana Cloud |
 
-VM-01 is not available 24x7 and is not a monitoring dependency. The webhook check and OpenAI queries do not depend on either VM; other Debian-local lights become Unknown if Debian stops reporting. Native API probes use `native-api-probe --scope oltp|olap` (metric labels `oltp`/`olap` are kept for alert compatibility). No AppSheet probe remains.
+Azure VM-01 was deleted on 8 November 2026 ([change note](../../Change%20Logs/CHANGE_NOTES_VM01_RETIREMENT_2026-11-08.md)); its Infrastructure panels and Cost running-hours chart were removed. The webhook check and OpenAI queries do not depend on either VM; other Debian-local lights become Unknown if Debian stops reporting. Native API probes use `native-api-probe --scope oltp|olap` (metric labels `oltp`/`olap` are kept for alert compatibility). No AppSheet probe remains.
 
 ## Dashboards and access
 
@@ -57,7 +57,7 @@ The collector imports the worker's read-only `receipt_health.inspect` and export
 
 ## Performance alerts and phone delivery (23 September 2026)
 
-Nine Grafana-managed rules (ten before the OpenAI rule was removed on 22 October 2026, commit `11be21c`, apply as plan-011 pending) in folder **MW Resource Monitoring Alerts**, group **Performance 2m**, evaluate every two minutes and send firing and resolved notifications to contact point **MW Performance IRM**. The contact point feeds the IRM integration **MW Performance Monitoring**, whose default route triggers **MW owner mobile push** to the owner. No on-call schedule, SMS or external messenger exists. Four rules evaluate several labelled instances; together with the webhook and SQL rules they cover all 23 availability and data tiles. Azure VM-01 uptime has no rule (not 24x7); Cost has no push rules.
+Nine Grafana-managed rules (ten before the OpenAI rule was removed on 22 October 2026, commit `11be21c`, apply as plan-011 pending) in folder **MW Resource Monitoring Alerts**, group **Performance 2m**, evaluate every two minutes and send firing and resolved notifications to contact point **MW Performance IRM**. The contact point feeds the IRM integration **MW Performance Monitoring**, whose default route triggers **MW owner mobile push** to the owner. No on-call schedule, SMS or external messenger exists. Four rules evaluate several labelled instances; together with the webhook and SQL rules they cover all 23 availability and data tiles. Azure VM-01 (deleted 8 November 2026) never had a rule; Cost has no push rules.
 
 | Rule | Fires when | Pending |
 |---|---|---|
@@ -121,7 +121,7 @@ Fixed references are configuration snapshots; update them when the settings chan
 
 | Source | Scope | Performance | Cost |
 |---|---|---|---|
-| Azure | IDEA Prod Subscription `50f792fa-803e-4280-833d-1fe60fef5293`; VM-01 in RG-MWCREDIT | CPU, available memory, network bytes per interval, OS disk throughput | ActualCost for `rg-mwcredit` and `rg-backup`; USD |
+| Azure | IDEA Prod Subscription `50f792fa-803e-4280-833d-1fe60fef5293`; VM-01 deleted 8 November 2026 | None (data source health check reads resource group `rg-mwcredit`) | ActualCost for `rg-mwcredit` and `rg-backup`; USD |
 | GCP | Project `clever-oasis-508610-n7`; `vm-mw-credit-agent`, `mw-credit-pg-20261017` | VM CPU, used memory, network, disk; SQL CPU, memory, storage, connections | Detailed billing export in `mw_cloud_billing` (US) filtered to this project; SGD; gross plus negative credits equals net |
 | Railway | `welct0407's Projects`, MW Credit Metabase project, production | CPU cores, memory GB, volume GB | Workspace `customer.currentUsage`, USD, current billing cycle regardless of the date picker |
 
@@ -137,7 +137,7 @@ Credentials never enter Git. Keep recovery exports in the current user's establi
 - GCP service account `mw-grafana-monitoring@clever-oasis-508610-n7.iam.gserviceaccount.com`: Monitoring Viewer and BigQuery Job User on the project, reader on the billing dataset. Rotating its key needs the scoped key-creation policy procedure.
 - Railway `mw-grafana-monitoring` workspace token: Railway offers no read-only toggle at workspace scope. Queries are read-only but the credential can write; restrict Grafana access to trusted users. Canonical copy: Secret Manager `mw-railway-grafana-monitoring-token` (version 1, 22 October 2026, after Railway revoked all API tokens in incident QH8L8B3E). Rotate by adding a secret version, then setting datasource `mw-railway-monitoring` field `bearerToken` through the Grafana API; Terraform ignores that field.
 - Railway PITR project token: canonical copy Secret Manager `mw-railway-pitr-token` (version 1, created through the Railway API with the workspace token). Rotate by adding a version and replacing `/etc/mw-resource-monitoring/railway-pitr-token.txt`. If PITR reports `signup_required`, the workspace SSH key is missing: re-register `/var/lib/mw-integration-agent/.ssh/id_ed25519.pub` with the pinned CLI (`railway ssh keys add --workspace <id> --name mw-debian-pitr-health`, using the workspace token).
-- Retained VM-01 control identity `grafana-vm-control` and Infinity source `mw-azure-vm-control` (`cfz1i3v9ruk1sb`; one-year secret created 23 September 2026) are not used by any dashboard. Read the Azure controller record before use or retirement.
+- Retained former VM-01 control identity `grafana-vm-control` and Infinity source `mw-azure-vm-control` (`cfz1i3v9ruk1sb`; one-year secret created 23 September 2026) are not used by any dashboard. Read the Azure controller record before use or retirement.
 - Grafana provisioning uses Secret Manager `mw-grafana-provisioning-token` (version 1, no expiry) and `mw-grafana-contact-integrations` (version 1) through the `infrastructure/grafana` roots; secret payloads stay outside Terraform and Git.
 
 ## Recovery
