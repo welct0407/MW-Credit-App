@@ -56,7 +56,7 @@ Owner instruction: "Limit is 200 usd and keep it in USD. Don't include in total 
 | Chase, live read-only queries, 8 November | Tile 65 US$6.908 / 3.454 % (October's US$7.43 in the 31-day window excluded); TOTAL = GCP -S$0.0014 + Railway US$11.01 x 1.2816 = S$14.11 with no Azure or Anthropic input; tiles 9, 8, 6 and 62 return without error |
 | Echo UX review | Codes COST-A1 to C5 and D1 accepted; D1 is the documentation update above |
 | `npm run -s check:docs` | See the report below |
-| Apply | pending Forge |
+| Apply (Forge, 8 Nov 2026 10:21Z, from 33ec382) | Reviewed plan sha256 `9d0efd5e…ef52`: 0 to add, 1 to change (`mw-cost` only), 0 to destroy; before = state at 16e1f7b, after = committed spec. `Apply complete! Resources: 0 added, 1 changed, 0 destroyed`. Live `mw-cost` version 16 → 17: top row 1, 3, 4 and second row 9, 8, 65 as designed, no 'azure' in the live JSON, no panels 2, 10, 101–104. Re-plan: No changes. Live-vs-generated differences on panels 7, 50, 51, 52, 205, 303 are Grafana normalisation (null threshold base, empty arrays), not content |
 
 ### Recovery
 Revert `cost.cjs`, restore `cost-prior-azure.jq` and rebuild `mw-cost.json` from the previous commit, then apply through a reviewed plan; the Terraform dashboard resource is replaced in place and no data is touched.
