@@ -32,7 +32,10 @@ test('R116 a ledger cursor from before R116 (v1, no time) is rejected as invalid
 
 test('R116 the ledger read joins the borrower through the payment, the loan or the rebate expense',async()=>{
  const client=fakeClient([]);await readManagementFinancial(client,'cash-movements',{limit:1});const sql=client.calls[0].text;
- assert.match(sql,/LEFT JOIN public\."Borrowers" bw ON bw\."Row ID"=coalesce\(bp\."Ref Borrower",bl\."Ref Borrowers",be\."Ref Payee Borrower"\)/);
+ assert.match(sql,/LEFT JOIN public\."Borrowers" bw ON bw\."Row ID"=coalesce\(bp\."Ref Borrower",bl\."Ref Borrowers",be\."Ref Payee Borrower",/);
+ // R129 (V137): a rebate settlement names the payee of its linked rebates, read through to_jsonb (none before V137).
+ assert.match(sql,/CASE WHEN s\."Source Type"='Rebate Settlement' THEN \(SELECT x\."Ref Payee Borrower" FROM public\."Business Expenses" x WHERE to_jsonb\(x\)->>'Ref Rebate Settlement'=to_jsonb\(s\)->>'Ref Rebate Settlement'/);
+ assert.doesNotMatch(sql,/pwa_rebate_settlements/,'no table a database before V137 lacks');
  assert.match(sql,/bw\."Borrower Name" AS "borrowerName",bw\."Description" AS "borrowerDescription"/);
 });
 

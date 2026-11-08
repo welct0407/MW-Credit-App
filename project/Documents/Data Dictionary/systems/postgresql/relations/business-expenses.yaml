@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r120-20261104/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "a36046cfdac29ff84ab43e97a886936571674503"
+    "commit": "0f2fc4461cb7c8a6fab82a9339a174589f1a01de"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/business-expenses.yaml"
     "identity":
       "system": "postgresql"
@@ -361,7 +361,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Created At":
       "schema": "public"
@@ -492,6 +492,25 @@
       "acl": null
       "comment": "R120: referral rebate cap (baht) applied when this rebate was booked (REFERRAL_REBATE_V2); null on rows\
         \ booked before V135 and on other expenses."
+    "Ref Rebate Settlement":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "Ref Rebate Settlement"
+      "ordinal": 26
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{mw_notify_owner_prod=r/postgres}"
+      "comment": "R129: the settlement that paid this pending referral rebate (REFERRAL_REBATE_V3); null while pending, on\
+        \ offset-only and legacy rows and on other expenses. Set and cleared by the settlement command only."
   "constraints":
     "Business Expenses_Allocation Basis_not_null":
       "schema": "public"
@@ -769,6 +788,24 @@
       "delete_action": "a"
       "match_type": "s"
       "comment": null
+    "Business Expenses_Ref Rebate Settlement_fkey":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "Business Expenses_Ref Rebate Settlement_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Rebate Settlement\") REFERENCES pwa_rebate_settlements(id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 26
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "pwa_rebate_settlements"
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
     "Business Expenses_Ref Related Borrower_fkey":
       "schema": "public"
       "relation": "Business Expenses"
@@ -901,7 +938,8 @@
       "definition": "CHECK (\"Source Type\" <> 'Referral Rebate'::text OR \"Amount\"::numeric > 0::numeric AND \"Ref Related\
         \ Loan\" IS NOT NULL AND \"Ref Related Borrower\" IS NOT NULL AND \"Ref Payee Borrower\" IS NOT NULL AND \"Source\
         \ Key\" = ('REFERRAL_REBATE:'::text || \"Ref Related Loan\") AND (\"Rule Version\" = 'REFERRAL_REBATE_V1'::text OR\
-        \ \"Rule Version\" = 'REFERRAL_REBATE_V2'::text AND \"Rebate Rate\" IS NOT NULL AND \"Rebate Cap\" IS NOT NULL))"
+        \ (\"Rule Version\" = ANY (ARRAY['REFERRAL_REBATE_V2'::text, 'REFERRAL_REBATE_V3'::text])) AND \"Rebate Rate\" IS\
+        \ NOT NULL AND \"Rebate Cap\" IS NOT NULL))"
       "deferrable": false
       "initially_deferred": false
       "validated": true
@@ -1058,6 +1096,24 @@
       "key_attribute_count": 1
       "total_attribute_count": 1
       "predicate": "(\"Ref Offset Payment\" IS NOT NULL)"
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "business_expenses_ref_rebate_settlement":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "business_expenses_ref_rebate_settlement"
+      "definition": "CREATE INDEX business_expenses_ref_rebate_settlement ON public.\"Business Expenses\" USING btree (\"\
+        Ref Rebate Settlement\") WHERE (\"Ref Rebate Settlement\" IS NOT NULL)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": "(\"Ref Rebate Settlement\" IS NOT NULL)"
       "expressions": null
       "options": null
       "access_method": "btree"
@@ -1225,6 +1281,30 @@
       "name": "RI_ConstraintTrigger_c_37368"
       "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_37368\" AFTER UPDATE ON \"Business Expenses\" FROM\
         \ \"Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39221":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "RI_ConstraintTrigger_c_39221"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39221\" AFTER INSERT ON \"Business Expenses\" FROM\
+        \ pwa_rebate_settlements NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39222":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "RI_ConstraintTrigger_c_39222"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39222\" AFTER UPDATE ON \"Business Expenses\" FROM\
+        \ pwa_rebate_settlements NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
       "enabled": "O"
       "internal": true
       "routine": "\"RI_FKey_check_upd\"()"

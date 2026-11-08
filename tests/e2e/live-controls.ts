@@ -1,4 +1,4 @@
-import {expect,type BrowserContext,type Page} from '@playwright/test';
+import {expect,type BrowserContext,type Page} from './fixtures/test';
 export async function chooseLanguage(page:Page, language:'EN'|'ไทย') {
  await expect(page.locator('.live-body')).toBeVisible();
  // Signed out, phones show the language choice on the sign-in card (APP-UX-SETTINGS-02), not in the menu.

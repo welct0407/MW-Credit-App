@@ -93,9 +93,60 @@ class OptionsCycleTests(unittest.TestCase):
         self.assertEqual(self.submit.call_args[0][1]['command']['plan']['purpose'],{'forward':True,'loans':None,'principal':[]},'the command is built from the chosen purpose plan')
         self.assertEqual(self.submit.call_args[0][1]['command']['requestId'],receipt_api.request_id('dev',self.key),'one slip, one request id')
 
-    def test_a_split_reply_carries_its_amount(self):
-        self.reply('3 800');self.run_cycle()
-        self.assertEqual(self.submit.call_count,1);self.assertIn('800',self.j.db.execute('SELECT detail FROM partner_reviews').fetchone()[0])
+    def test_a_withdrawn_split_reply_asks_again_and_posts_nothing(self):
+        # R127 (owner, 5 November 2026): "3 <amount>" no longer splits; it gets the prompt and the options once.
+        self.reply('3 800');self.assertEqual(self.run_cycle()['failures'],[]);self.run_cycle()
+        self.assertEqual(self.state(),'PENDING');self.submit.assert_not_called();self.add_payment.assert_not_called()
+        self.assertEqual(self.option_notices(),1)
+        self.assertEqual(self.j.db.execute("SELECT status FROM receipt_jobs WHERE id='job'").fetchone()[0],'REVIEW_REQUESTED')
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertTrue(notices.db.execute("SELECT body FROM partner_notices WHERE event_key LIKE 'review:%:options:%'").fetchone()[0].startswith('Reply 1, 2 or 3.\n'))
+        finally:notices.close()
+
+    def posted_notice(self):
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:return notices.db.execute("SELECT body FROM partner_notices WHERE event_key=?",('review-result:'+self.key+':POSTED',)).fetchone()[0]
+        finally:notices.close()
+
+    def test_option_two_posts_and_reports_the_interest_and_principal_split(self):
+        # R127 (Echo AG-12), the owner's example: remainder 500, principal 410, so interest 90, from the saved options.
+        o=dict(options(),remainder='500',principal=[{'loanId':'L1','loanKey':'L-0398','amount':'410','dailyAfter':'53','outstandingAfter':'9590'}])
+        self.proposal['options']=o;self.proposal['receipt']=dict(self.proposal['receipt'],amount='950')
+        self.j.db.execute("UPDATE partner_reviews SET proposal=?",(json.dumps(self.proposal,sort_keys=True,ensure_ascii=False),));self.j.db.commit()
+        self.current=dict(self.proposal)
+        self.reply('2');self.run_cycle();self.run_cycle()
+        self.assertEqual(self.state(),'POSTED');self.assertEqual(self.submit.call_count,1)
+        self.assertEqual(self.submit.call_args[0][1]['command']['plan']['purpose'],{'forward':False,'loans':None,'principal':[{'loanId':'L1','amount':'410'}]})
+        self.assertTrue(self.posted_notice().endswith('\nRecorded ฿950 · interest ฿90 + principal ฿410, new interest ฿53/day'))
+
+    def test_posted_notice_wording(self):
+        from mw_integration_agent.review_cycle import posted_purpose
+        o=dict(options(),remainder='500',principal=[{'loanId':'L1','loanKey':'L-0398','amount':'410','dailyAfter':'53','outstandingAfter':'9590'}])
+        proposal=dict(self.proposal,options=o,receipt=dict(self.proposal['receipt'],amount='950'))
+        def detail(forward,principal):return json.dumps({'purpose':{'forward':forward,'principal':principal,'loans':None}})
+        principal=detail(False,[{'loanId':'L1','amount':'410'}])
+        self.assertEqual(posted_purpose(proposal,principal,False),'Recorded ฿950 · interest ฿90 + principal ฿410, new interest ฿53/day')
+        self.assertEqual(posted_purpose(proposal,principal,True),'บันทึก ฿950 · ดอกเบี้ย ฿90 + เงินต้น ฿410 ดอกเบี้ยใหม่ ฿53/วัน')
+        # No accrued interest (AG-9): the principal only.
+        whole=dict(proposal,options=dict(o,principal=[dict(o['principal'][0],amount='500')]))
+        self.assertEqual(posted_purpose(whole,detail(False,[{'loanId':'L1','amount':'500'}]),False),'Recorded ฿950 · principal ฿500, new interest ฿53/day')
+        self.assertEqual(posted_purpose(whole,detail(False,[{'loanId':'L1','amount':'500'}]),True),'บันทึก ฿950 · เงินต้น ฿500 ดอกเบี้ยใหม่ ฿53/วัน')
+        # A split approved before the R127 deploy may still post: its saved detail keeps the R112 wording.
+        split=detail(True,[{'loanId':'L1','amount':'200'}])
+        self.assertEqual(posted_purpose(proposal,split,False),'Recorded ฿950 · principal ฿200, the rest pays forward')
+        self.assertEqual(posted_purpose(proposal,split,True),'บันทึก ฿950 · เงินต้น ฿200 ส่วนที่เหลือชำระล่วงหน้า')
+        self.assertEqual(posted_purpose(proposal,detail(True,[]),False),'Recorded ฿950 · pay forward, paid through 5 Nov')
+
+    def test_a_split_approved_before_the_deploy_still_posts_and_reports(self):
+        # The R112 "3 800" reply was decided before the deploy (as the old ReviewStore.decide recorded it); it posts now.
+        detail=json.dumps({'purpose':{'forward':True,'principal':[{'loanId':'L1','amount':'800'}],'loans':None}},sort_keys=True,separators=(',',':'))
+        self.reply('3 800',message='old')
+        self.j.db.execute("UPDATE partner_reviews SET state='APPROVED',deciding_partner='p',decision_message='old',detail=?",(detail,))
+        self.j.db.execute("INSERT INTO partner_review_replies VALUES ('old',?,'APPROVED')",(self.key,));self.j.db.commit()
+        self.run_cycle();self.assertEqual(self.option_notices(),0)
+        self.assertEqual(self.state(),'POSTED');self.assertEqual(self.submit.call_count,1)
+        self.assertEqual(self.submit.call_args[0][1]['command']['plan']['purpose']['principal'],[{'loanId':'L1','amount':'800'}])
+        self.assertTrue(self.posted_notice().endswith('\nRecorded ฿1,500 · principal ฿800, the rest pays forward'))
 
     def test_a_changed_purpose_plan_means_no_post(self):
         from mw_integration_agent.receipt_rules import ReceiptInvalid
@@ -140,11 +191,12 @@ class OptionsCycleTests(unittest.TestCase):
         self.reply('1');self.run_cycle();self.run_cycle()
         self.assertEqual(self.state(),'MANUAL_REQUIRED');self.assertEqual(self.submit.call_count,1)
 
-    def test_four_plans_the_slip_again_from_current_charges(self):
-        # Owner request, 3 November 2026: after a late fee is added in the app, 4 supersedes the options and the next
-        # planning reads the current charges. Here the new plan is a different options proposal: a replacement request goes out.
+    def test_three_plans_the_slip_again_from_current_charges(self):
+        # Owner request, 3 November 2026: after a late fee is added in the app, 3 (R127; 4 before) supersedes the options
+        # and the next planning reads the current charges. Here the new plan is a different options proposal: a
+        # replacement request goes out.
         self.j.db.execute("UPDATE receipt_jobs SET result=?,created_at=? WHERE id='job'",(json.dumps({'receipt':self.proposal['receipt'],'borrower':self.b}),time.time()));self.j.db.commit()
-        self.reply('4');self.current=dict(self.proposal,options=options('c'*64))
+        self.reply('3');self.current=dict(self.proposal,options=options('c'*64))
         result=self.run_cycle();self.assertEqual(result['failures'],[])
         # The legacy order plans before it reads replies, so the next run plans again; the production order (with the
         # image phase) reads replies first and plans again in the same run.
@@ -165,7 +217,8 @@ class OptionsCycleTests(unittest.TestCase):
         self.reply('1',message='reply2');self.run_cycle()
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews WHERE id=?',(self.key,)).fetchone()[0],'SUPERSEDED','a reply to the old message decides nothing')
 
-    def test_four_is_planned_again_in_the_same_run_with_the_image_phase(self):
+    def test_legacy_four_is_planned_again_in_the_same_run_with_the_image_phase(self):
+        # A request sent before the R127 deploy offered "4 recheck"; that reply still rechecks.
         self.j.db.execute("UPDATE receipt_jobs SET result=?,created_at=? WHERE id='job'",(json.dumps({'receipt':self.proposal['receipt'],'borrower':self.b}),time.time()));self.j.db.commit()
         self.reply('4');self.current=dict(self.proposal,options=options('d'*64))
         result=cycle(self.config,self.j,lambda *_:{'id':'456','username':'partner'},images=lambda:None)
@@ -173,12 +226,12 @@ class OptionsCycleTests(unittest.TestCase):
         self.assertEqual(self.j.db.execute("SELECT state FROM partner_reviews WHERE job_id='job'").fetchone()[0],'PENDING')
         self.submit.assert_not_called()
 
-    def test_four_after_the_charge_edit_made_the_review_stale(self):
+    def test_a_recheck_after_the_charge_edit_made_the_review_stale(self):
         # The incident of 3 November 2026: a "Review" resend checked the open review against the edited charges and
-        # marked it STALE (PROPOSAL_FACTS_CHANGED); the 4 that followed must still plan the slip again.
+        # marked it STALE (PROPOSAL_FACTS_CHANGED); the recheck that followed must still plan the slip again.
         self.j.db.execute("UPDATE receipt_jobs SET result=?,created_at=? WHERE id='job'",(json.dumps({'receipt':self.proposal['receipt'],'borrower':self.b}),time.time()))
         self.j.db.execute("UPDATE partner_reviews SET state='STALE',detail='PROPOSAL_FACTS_CHANGED'");self.j.db.commit()
-        self.reply('4');self.current=dict(self.proposal,options=options('e'*64))
+        self.reply('3');self.current=dict(self.proposal,options=options('e'*64))
         result=cycle(self.config,self.j,lambda *_:{'id':'456','username':'partner'},images=lambda:None)
         self.assertEqual(result['failures'],[])
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews WHERE id=?',(self.key,)).fetchone()[0],'SUPERSEDED')

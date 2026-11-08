@@ -1,7 +1,7 @@
 # Change notes — DEV reader allowlist, 21 October 2026
 
 ## Purpose
-`scripts/configure-dev-read-role.py` failed against live DEV with "Unexpected business SELECT privilege". It did so before and after the first DEV refresh ([refresh note](CHANGE_NOTES_DEV_REFRESH_2026-10-21.md), [review note](CHANGE_NOTES_DEV_REFRESH_REVIEW_2026-10-21.md)). This batch makes the script's checks match the reader's recorded grants. No grant changed.
+`scripts/configure-dev-read-role.py` failed against live DEV with "Unexpected business SELECT privilege". It did so before and after the first DEV refresh ([refresh note](CHANGE_NOTES_DEV_REFRESH_2026-10-21.md), [review note](https://github.com/welct0407/MW-Credit-App/blob/0f2fc44/Change%20Logs/CHANGE_NOTES_DEV_REFRESH_REVIEW_2026-10-21.md)). This batch makes the script's checks match the reader's recorded grants. No grant changed.
 
 ## Changes
 - `scripts/configure-dev-read-role.py`:

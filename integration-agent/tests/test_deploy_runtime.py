@@ -132,7 +132,7 @@ class RuntimeDeploymentTests(unittest.TestCase):
         self.assertEqual(package.retired_keys(cleaned), [])
         self.assertEqual((package.RETIRED_SERVICES, package.RETIRED_KEYS, package.RETIRED_PREFIXES),
                          (runtime.R091_SERVICES, runtime.R091_KEYS, runtime.R091_PREFIXES))
-        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R119_REVISIONS[1])
+        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R128_REVISIONS[1])
 
     def test_r102_adds_exactly_the_disabled_chat_relay(self):
         live = dict(self.catalogue, revision=32)
@@ -191,8 +191,8 @@ class RuntimeDeploymentTests(unittest.TestCase):
     def r119(self):
         """R119: the repository revision 35 catalogue as candidate; a live revision 34 shaped like PROD's (services the
         repository template has off are on there), with the recheck switch already set on the host."""
-        candidate = json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))
-        self.assertEqual(candidate['revision'], 35)
+        # The repository's revision 36 services are revision 35's (R128 changes no service): the revision 35 candidate.
+        candidate = dict(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8')), revision=35)
         live = json.loads(json.dumps(candidate)); live['revision'] = 34
         for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):
             live['services'][name]['enabled'] = True
@@ -227,6 +227,41 @@ class RuntimeDeploymentTests(unittest.TestCase):
             self.prepared(catalogue=drift, candidate=candidate)
         # Skipping a revision (33 -> 35) or going back (35 -> 34) is ordinary revision drift.
         for old, new in ((33, 35), (35, 34)):
+            with self.subTest(live=old, candidate=new), self.assertRaisesRegex(RuntimeError, 'revision drift'):
+                self.prepared(catalogue=dict(live, revision=old), candidate=dict(candidate, revision=new))
+
+    def r128(self):
+        """R128: the repository revision 36 catalogue as candidate; a live revision 35 shaped like PROD's."""
+        candidate = json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))
+        self.assertEqual(candidate['revision'], 36)
+        live = json.loads(json.dumps(candidate)); live['revision'] = 35
+        for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):
+            live['services'][name]['enabled'] = True
+        return live, candidate
+
+    def test_r128_moves_the_revision_and_keeps_services_switches_and_the_close_switch(self):
+        live, candidate = self.r128()
+        config = dict(self.config, loan_close_execution_enabled=True)
+        before = json.dumps([config, live, candidate], sort_keys=True)
+        cleaned, catalogue = self.prepared(config=config, catalogue=live, candidate=candidate)
+        self.assertEqual(catalogue, dict(live, revision=36))  # only the revision moves; the live switches stay
+        self.assertEqual(cleaned, dict(config, code_version=COMMIT))  # the close switch is kept as it is
+        self.assertEqual(json.dumps([config, live, candidate], sort_keys=True), before)
+        self.assertEqual(runtime.services_sha256(candidate['services']), runtime.R128_TEMPLATE_SHA256)
+        cleaned, _ = self.prepared(catalogue=live, candidate=candidate)
+        self.assertNotIn('loan_close_execution_enabled', cleaned)  # absent on the host: stays absent (off)
+
+    def test_r128_refuses_other_drift(self):
+        live, candidate = self.r128()
+        switched = json.loads(json.dumps(candidate)); switched['services']['conversation_poll']['enabled'] = not candidate['services']['conversation_poll']['enabled']
+        added = json.loads(json.dumps(candidate)); added['services']['extra_service'] = {'enabled': False, 'implemented': True}
+        for change in (switched, added):
+            with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, 'R128 candidate must keep'):
+                self.prepared(catalogue=live, candidate=change)
+        short = json.loads(json.dumps(live)); del short['services']['chat_messages_relay']
+        with self.assertRaisesRegex(RuntimeError, 'R128 catalogue must keep every service'):
+            self.prepared(catalogue=short, candidate=candidate)
+        for old, new in ((34, 36), (36, 35)):
             with self.subTest(live=old, candidate=new), self.assertRaisesRegex(RuntimeError, 'revision drift'):
                 self.prepared(catalogue=dict(live, revision=old), candidate=dict(candidate, revision=new))
 

@@ -2115,6 +2115,10 @@
           "pointer": "/content/columns/Rebate Cap"
         },
         {
+          "subject": "Ref Rebate Settlement",
+          "pointer": "/content/columns/Ref Rebate Settlement"
+        },
+        {
           "subject": "Business Expenses_Allocation Basis_not_null",
           "pointer": "/content/constraints/Business Expenses_Allocation Basis_not_null"
         },
@@ -2177,6 +2181,10 @@
         {
           "subject": "Business Expenses_Ref Payee Borrower_fkey",
           "pointer": "/content/constraints/Business Expenses_Ref Payee Borrower_fkey"
+        },
+        {
+          "subject": "Business Expenses_Ref Rebate Settlement_fkey",
+          "pointer": "/content/constraints/Business Expenses_Ref Rebate Settlement_fkey"
         },
         {
           "subject": "Business Expenses_Ref Related Borrower_fkey",
@@ -2546,6 +2554,10 @@
           "pointer": "/content/columns/Ref To Cash Account"
         },
         {
+          "subject": "Ref Rebate Settlement",
+          "pointer": "/content/columns/Ref Rebate Settlement"
+        },
+        {
           "subject": "Cash Ledger_Amount_check",
           "pointer": "/content/constraints/Cash Ledger_Amount_check"
         },
@@ -2596,6 +2608,10 @@
         {
           "subject": "Cash Ledger_Ref Payment_fkey",
           "pointer": "/content/constraints/Cash Ledger_Ref Payment_fkey"
+        },
+        {
+          "subject": "Cash Ledger_Ref Rebate Settlement_fkey",
+          "pointer": "/content/constraints/Cash Ledger_Ref Rebate Settlement_fkey"
         },
         {
           "subject": "Cash Ledger_Ref Settlement_fkey",
@@ -7217,6 +7233,141 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/public-pwa-rebate-settlements-f7f8495e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_rebate_settlements",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "id",
+          "pointer": "/content/columns/id"
+        },
+        {
+          "subject": "payee_borrower_id",
+          "pointer": "/content/columns/payee_borrower_id"
+        },
+        {
+          "subject": "settlement_date",
+          "pointer": "/content/columns/settlement_date"
+        },
+        {
+          "subject": "amount",
+          "pointer": "/content/columns/amount"
+        },
+        {
+          "subject": "paid_by_cash_holder",
+          "pointer": "/content/columns/paid_by_cash_holder"
+        },
+        {
+          "subject": "paid_by_cash_account",
+          "pointer": "/content/columns/paid_by_cash_account"
+        },
+        {
+          "subject": "payment_method",
+          "pointer": "/content/columns/payment_method"
+        },
+        {
+          "subject": "bank_reference",
+          "pointer": "/content/columns/bank_reference"
+        },
+        {
+          "subject": "notes",
+          "pointer": "/content/columns/notes"
+        },
+        {
+          "subject": "created_by",
+          "pointer": "/content/columns/created_by"
+        },
+        {
+          "subject": "created_at",
+          "pointer": "/content/columns/created_at"
+        },
+        {
+          "subject": "pwa_rebate_settlements_amount_check",
+          "pointer": "/content/constraints/pwa_rebate_settlements_amount_check"
+        },
+        {
+          "subject": "pwa_rebate_settlements_amount_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlements_amount_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlements_check",
+          "pointer": "/content/constraints/pwa_rebate_settlements_check"
+        },
+        {
+          "subject": "pwa_rebate_settlements_created_at_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlements_created_at_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlements_created_by_check",
+          "pointer": "/content/constraints/pwa_rebate_settlements_created_by_check"
+        },
+        {
+          "subject": "pwa_rebate_settlements_created_by_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlements_created_by_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlements_id_check",
+          "pointer": "/content/constraints/pwa_rebate_settlements_id_check"
+        },
+        {
+          "subject": "pwa_rebate_settlements_id_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlements_id_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlements_notes_check",
+          "pointer": "/content/constraints/pwa_rebate_settlements_notes_check"
+        },
+        {
+          "subject": "pwa_rebate_settlements_paid_by_cash_account_fkey",
+          "pointer": "/content/constraints/pwa_rebate_settlements_paid_by_cash_account_fkey"
+        },
+        {
+          "subject": "pwa_rebate_settlements_paid_by_cash_account_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlements_paid_by_cash_account_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlements_paid_by_cash_holder_check",
+          "pointer": "/content/constraints/pwa_rebate_settlements_paid_by_cash_holder_check"
+        },
+        {
+          "subject": "pwa_rebate_settlements_paid_by_cash_holder_fkey",
+          "pointer": "/content/constraints/pwa_rebate_settlements_paid_by_cash_holder_fkey"
+        },
+        {
+          "subject": "pwa_rebate_settlements_paid_by_cash_holder_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlements_paid_by_cash_holder_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlements_payee_borrower_id_fkey",
+          "pointer": "/content/constraints/pwa_rebate_settlements_payee_borrower_id_fkey"
+        },
+        {
+          "subject": "pwa_rebate_settlements_payee_borrower_id_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlements_payee_borrower_id_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlements_payment_method_check",
+          "pointer": "/content/constraints/pwa_rebate_settlements_payment_method_check"
+        },
+        {
+          "subject": "pwa_rebate_settlements_payment_method_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlements_payment_method_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlements_pkey",
+          "pointer": "/content/constraints/pwa_rebate_settlements_pkey"
+        },
+        {
+          "subject": "pwa_rebate_settlements_settlement_date_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlements_settlement_date_not_null"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/public-r008-cash-account-cutover-fa0a2f3b.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -11330,6 +11481,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-apply-rebate-settlement-v1-canonical-text-6563fdc0.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_rebate_settlement_v1(canonical text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-assessment-refresh-window-v2-start-day-date-end-day-date-as-of-date-2bafe3a2.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -11620,6 +11781,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-convert-legacy-rebate-v1-p-expense-id-text-c50365a2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_convert_legacy_rebate_v1(p_expense_id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-effective-payment-plan-v2-p-id-text-1ecd9952.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -11795,6 +11966,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_notify_content_v4(delivery uuid, generation bigint)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-content-v5-delivery-uuid-generation-bigint-5b1ef79f.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_content_v5(delivery uuid, generation bigint)",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -11980,6 +12161,36 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-rebate-pending-v1-p-expense-text-4af59110.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_rebate_pending_v1(p_expense text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-rebate-settlement-version-v1-p-id-text-fff0571a.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_rebate_settlement_version_v1(p_id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-rebates-owed-v1-p-referrer-text-e82a01f7.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_rebates_owed_v1(p_referrer text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-referral-rebate-projection-v1-p-loan-text-p-calculation-jsonb-11d6997c.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -12105,6 +12316,26 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.r051_restate_opening_source()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-rebate-settlement-cash-source-8faf9bd6.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.rebate_settlement_cash_source()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-rebate-settlement-row-guard-f96782ec.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.rebate_settlement_row_guard()",
       "scope": "production",
       "status": "documented",
       "lookup": []

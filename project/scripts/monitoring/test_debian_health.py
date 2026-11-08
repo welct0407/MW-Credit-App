@@ -80,6 +80,77 @@ class PollingStatusTests(unittest.TestCase):
         self.assertEqual(self.poll(self.EPOCH-60,timer={'LoadState':'loaded','ActiveState':'inactive'}),(0,self.EPOCH-60))
         self.assertEqual(self.poll(self.EPOCH-60,LoadState='not-found')[0],0)
         self.assertEqual(self.poll(self.EPOCH-60,timer={'LoadState':'not-found','ActiveState':'inactive'})[0],0)
+    def journal(self,journal_success,last_success=None,monotonic=1000,epoch=None,timer=None,**kw):
+        # Defaults to a run in progress since 20 s (no idle success visible), unless overridden.
+        service={'LoadState':'loaded','ActiveState':'activating','Result':'success','ExecMainStatus':'0',
+                 'ExecMainStartTimestampMonotonic':str((monotonic-20)*1000000),'ExecMainExitTimestampMonotonic':'0'}
+        service.update(kw)
+        return health.polling_status(service,timer or {'LoadState':'loaded','ActiveState':'active'},monotonic,
+                                     self.EPOCH if epoch is None else epoch,last_success,journal_success=journal_success)
+    def test_phase_locked_runs_follow_the_journal(self):
+        # Slow polls (run plus OnUnitInactiveSec about 125 s) phase-lock with the 126 s collector cycle: every sample
+        # sees the unit running, but the journal records a success before each sample.
+        last=self.EPOCH-50
+        for k in range(6):
+            now=self.EPOCH+126*k
+            journal=now-25
+            status,last=self.journal(journal,last,monotonic=1000+126*k,epoch=now,
+                                     ActiveState='active' if k%2 else 'activating')
+            self.assertEqual((status,last),(1,journal),k)
+    def test_journal_stall_is_down_after_600_s(self):
+        self.assertEqual(self.journal(self.EPOCH-601,self.EPOCH-601),(0,self.EPOCH-601))
+        self.assertEqual(self.journal(self.EPOCH-600,self.EPOCH-600),(1,self.EPOCH-600))
+        self.assertEqual(self.journal(self.EPOCH-601,None),(0,self.EPOCH-601))
+    def test_hung_run_with_fresh_journal_is_down(self):
+        self.assertEqual(self.journal(self.EPOCH-30,self.EPOCH-30,ExecMainStartTimestampMonotonic=str(399*1000000))[0],0)
+        self.assertEqual(self.journal(self.EPOCH-30,self.EPOCH-30,ExecMainStartTimestampMonotonic=str(400*1000000))[0],1)
+    def test_failed_idle_run_uses_the_journal_success(self):
+        failed={'ActiveState':'failed','Result':'exit-code','ExecMainStatus':'2','ExecMainExitTimestampMonotonic':'950000000'}
+        self.assertEqual(self.journal(self.EPOCH-120,self.EPOCH-400,**failed),(2,self.EPOCH-120))
+        self.assertEqual(self.journal(self.EPOCH-601,self.EPOCH-700,**failed),(0,self.EPOCH-601))
+    def test_future_journal_is_ignored_and_a_past_one_seeds_an_empty_state(self):
+        self.assertEqual(self.journal(self.EPOCH+3600,self.EPOCH-100),(1,self.EPOCH-100))
+        self.assertEqual(self.journal(self.EPOCH+3600,None),(1,self.EPOCH))  # seeded with now, as without a journal
+        self.assertEqual(self.journal(self.EPOCH-200,None),(1,self.EPOCH-200))
+    def test_future_journal_cannot_hide_a_failed_streak(self):
+        # After a clock step back the journal's newest success stays in the future and is re-read every sample;
+        # with no real success since, a failed streak still reaches Down after 600 s.
+        failed={'ActiveState':'failed','Result':'exit-code','ExecMainStatus':'2','ExecMainExitTimestampMonotonic':'950000000'}
+        last=self.EPOCH
+        for elapsed,expected in ((0,2),(126,2),(300,2),(600,2),(601,0)):
+            status,last=self.journal(self.EPOCH+3600,last,monotonic=1000+elapsed,epoch=self.EPOCH+elapsed,**failed)
+            self.assertEqual((status,last),(expected,self.EPOCH),elapsed)
+    def test_older_or_missing_journal_never_lowers_the_saved_success(self):
+        self.assertEqual(self.journal(self.EPOCH-500,self.EPOCH-100),(1,self.EPOCH-100))
+        self.assertEqual(self.poll(self.EPOCH-500),(1,self.EPOCH-50))
+        self.assertEqual(health.polling_status({'LoadState':'loaded','ActiveState':'inactive','Result':'success','ExecMainStatus':'0',
+                                                'ExecMainExitTimestampMonotonic':'950000000'},{'LoadState':'loaded','ActiveState':'active'},
+                                               1000,self.EPOCH,self.EPOCH-500,journal_success=self.EPOCH-300),(1,self.EPOCH-50))
+    def test_journal_success_epoch(self):
+        def runner(stdout='',returncode=0,error=None):
+            calls=[]
+            def fake(args,timeout=None):
+                calls.append((args,timeout))
+                if error:
+                    raise error
+                return Mock(returncode=returncode,stdout=stdout)
+            return fake,calls
+        unit='mw-conversation-poll.service'
+        entry=f'{{"__REALTIME_TIMESTAMP":"1800000000123456","MESSAGE_ID":"7ad2d189f7e94e70a38c781354912448","UNIT":"{unit}","_PID":"1"}}\n'
+        fake,calls=runner(entry)
+        self.assertEqual(health.journal_success_epoch(unit,runner=fake),1800000000)
+        args,timeout=calls[0]
+        self.assertEqual(args[0],'journalctl')
+        self.assertIn(unit,args)
+        self.assertIn('MESSAGE_ID=7ad2d189f7e94e70a38c781354912448',args)
+        self.assertTrue({'-o','json','-n','1','-r','-q','--no-pager'}<=set(args))
+        self.assertEqual(timeout,15)
+        for fake,_ in (runner(''),runner('\n'),runner(entry,returncode=1),runner('not json'),runner('[]'),
+                       runner(entry.replace(unit,'other.service')),runner(entry.replace('7ad2d1','000000')),
+                       runner(entry.replace('"_PID":"1"','"_PID":"4242"')),runner(entry.replace(',"_PID":"1"','')),
+                       runner(f'{{"MESSAGE_ID":"7ad2d189f7e94e70a38c781354912448","UNIT":"{unit}"}}'),
+                       runner(error=health.subprocess.TimeoutExpired('journalctl',15)),runner(error=OSError())):
+            self.assertIsNone(health.journal_success_epoch(unit,runner=fake))
     def test_shared_timer_rule_is_unchanged_for_other_jobs(self):
         # Other timers keep timer_status: a failed run there is still Down.
         service=dict(LoadState='loaded',ActiveState='failed',Result='exit-code',ExecMainStatus='2',ExecMainExitTimestampMonotonic='950000000')

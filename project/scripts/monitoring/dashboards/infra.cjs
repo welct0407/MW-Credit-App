@@ -177,14 +177,6 @@ function metabase() {
   ];
 }
 
-const VM_TITLES = {13: 'Network transfer'}; // FINAL2-2: titles that fit one line on a phone.
-function azure() {
-  const y0 = BELOW + 27;
-  return L.row({id: 20, title: 'Azure VM-01 · on-demand operator host (no 24x7 expectation, no alert)', gridPos: pos(0, y0, 24, 1), collapsed: true,
-    panels: [[11, 21, 0, y0 + 1], [12, 22, 12, y0 + 1], [13, 23, 0, y0 + 8], [14, 24, 12, y0 + 8]].map(([old, id, x, y]) =>
-      L.lift(L.PERF, old, {id, gridPos: pos(x, y, 12, 7), title: 'VM-01 · ' + (VM_TITLES[old] || L.findPanel(L.PERF, old).title)}))});
-}
-
 // FINAL2-4: chart legends as a list below the chart with the full series names (the lifted table legends
 // with Last and Max columns cut the names in a 6-column panel); values stay in the tooltip.
 function listLegend(panel) {
@@ -194,8 +186,8 @@ function listLegend(panel) {
 }
 
 function build() {
-  return L.dashboard({uid: 'mw-infra', description: 'Capacity and limits: Cloud SQL, Cloud Run, the Debian VM, Metabase on Railway and the on-demand Azure VM-01.',
+  return L.dashboard({uid: 'mw-infra', description: 'Capacity and limits: Cloud SQL, Cloud Run, the Debian VM and Metabase on Railway.',
     time: {from: 'now-24h', to: 'now'}, refresh: '5m',
-    panels: [...cloudSql(), cloudRun(), ...debian(), ...metabase(), azure()].map(listLegend)});
+    panels: [...cloudSql(), cloudRun(), ...debian(), ...metabase()].map(listLegend)});
 }
 module.exports = {build, MAX_INSTANCES};

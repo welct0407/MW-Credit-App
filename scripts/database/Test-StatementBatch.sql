@@ -72,9 +72,10 @@ DO $$ DECLARE leaked text; BEGIN
  -- DB-LOCK-03: pwa_lock_key_v1 is the only public function that still spells the inline advisory key.
  SELECT string_agg(p.oid::regprocedure::text,', ') INTO leaked FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosrc LIKE '%hashtextextended(%' AND p.oid<>'public.pwa_lock_key_v1(text,text)'::regprocedure;
  IF leaked IS NOT NULL THEN RAISE EXCEPTION 'inline advisory key still used by %',leaked; END IF;
- IF (SELECT count(*) FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosrc LIKE '%pwa_lock_key_v1(%' AND p.oid<>'public.pwa_lock_key_v1(text,text)'::regprocedure)<>9 THEN
-  -- Nine since V107 (R091) dropped pwa_submit_agent_operation_v1, the tenth V94 call site.
-  RAISE EXCEPTION 'expected nine public functions to take their advisory key from pwa_lock_key_v1'; END IF;
+ IF (SELECT count(*) FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosrc LIKE '%pwa_lock_key_v1(%' AND p.oid<>'public.pwa_lock_key_v1(text,text)'::regprocedure)<>12 THEN
+  -- Nine since V107 (R091) dropped pwa_submit_agent_operation_v1, the tenth V94 call site; twelve since V137 (R129): the
+  -- rebate settlement command, Loan Close and the legacy rebate conversion take the referrer's borrower key.
+  RAISE EXCEPTION 'expected twelve public functions to take their advisory key from pwa_lock_key_v1'; END IF;
  -- DB-LOCK-02: the job journal is pending/completed only; the lease columns are gone.
  IF EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid='public.pwa_job_runs'::regclass AND NOT attisdropped AND attname IN ('lease_expires_at','lease_generation','error_code')) THEN
   RAISE EXCEPTION 'pwa_job_runs lease columns survived V94'; END IF;
@@ -192,6 +193,10 @@ END $$;
 \ir Test-WriteOffSegregationEdges.sql
 -- V132 (R118, Chase): late charges (columns, both engines, v11 and agent v10, Loan Close, pay forward, default, income, push content), rolled back.
 \ir Test-LateCharges.sql
+-- V136 (R128): Loan Close slip facts (bank reference and transfer time on the closing payment; the agent's Instagram-approved close as the agent actor; receipt evidence link; refused facts), rolled back.
+\ir Test-AgentLoanClose.sql
+-- V137 (R129): referral rebate settlement (V3 pending rebates, settle, replay, refusals, delete, closing-payment refusal, immutability, ledger CHECK, push v5, legacy conversion), rolled back.
+\ir Test-RebateSettlement.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).

@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './fixtures/test';
 import {chooseLanguage,chooseLanguagePreservingForm} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess,base:string;
@@ -54,7 +54,7 @@ const sentPath=(s:State)=>s.writes.at(-1)?.body.inputs.rebatePath;
 test('the rebate choice offsets the referrer loan by default (D3), previews the plan, and the close command carries rebatePath offset',async({page})=>{
  const s=await setup(page);await openClose(page,s,rebate());
  await expect(group(page)).toBeVisible();
- await expect(choice(page,/^Offset referrer's loan/)).toBeChecked();await expect(choice(page,/^Pay out as expense/)).not.toBeChecked();
+ await expect(choice(page,/^Offset referrer's loan/)).toBeChecked();await expect(choice(page,/^Record as pending payment/)).not.toBeChecked();
  await expect(page.locator('label').filter({hasText:/^Offset referrer's loan/})).toContainText('L-0398 · 9–12 Oct (฿75 × 4), paid through 12 Oct');
  await expect(page.getByRole('combobox',{name:/^Payment Method(?: \*)?$/}).locator('option')).toHaveText(['Bank Transfer','Cash','Net-off at Disbursement']);
  await reviewAndConfirm(page);
@@ -65,31 +65,38 @@ test('the rebate choice offsets the referrer loan by default (D3), previews the 
  await expect(page.getByRole('status').filter({hasText:'Rebate: Offset to L-0398, paid through 12 Oct'})).toBeVisible();
 });
 
-test('choosing Pay out as expense sends rebatePath expense and names the transfer from Lisa',async({page})=>{
- const s=await setup(page);await openClose(page,s,rebate());
- await choice(page,/^Pay out as expense/).check();await reviewAndConfirm(page);
- await expect(page.locator('main')).toContainText('฿300 to ผู้แนะนำจำลอง, transfer from Lisa');
- await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect.poll(()=>s.writes.length).toBe(1);expect(sentPath(s)).toBe('expense');
- await expect(page.getByRole('status').filter({hasText:'Rebate: ฿300 to ผู้แนะนำจำลอง, transfer from Lisa'})).toBeVisible();
+// R129 (V137): a rebate not offset is pending payment (the Referrers page settles it); nothing moves from Lisa at the close.
+test('choosing Record as pending payment sends rebatePath expense and names the pending rebate and the owed total',async({page})=>{
+ const s=await setup(page);await openClose(page,s,rebate({owedBefore:'600'}));
+ // The owed total shows only under the selected option (Echo LC-1).
+ const pendingOption=page.locator('label').filter({hasText:/^Record as pending payment/});
+ await expect(pendingOption).toContainText('฿300 pending to ผู้แนะนำจำลอง');await expect(pendingOption).not.toContainText('owed');
+ await choice(page,/^Record as pending payment/).check();await expect(pendingOption).toContainText('฿300 pending to ผู้แนะนำจำลอง (฿900 owed after this close)');
+ await chooseLanguagePreservingForm(page,'ไทย');await expect(page.locator('label').filter({hasText:/^บันทึกเป็นค้างจ่าย/})).toContainText('฿300 ค้างจ่ายให้ ผู้แนะนำจำลอง (รวมค้างจ่าย ฿900)');
+ await chooseLanguagePreservingForm(page,'EN');await reviewAndConfirm(page);
+ await expect(page.locator('main')).toContainText('฿300 pending to ผู้แนะนำจำลอง (฿900 owed after this close)');await expect(page.locator('main')).not.toContainText('transfer from Lisa');
+ // The language switches above save the preference too; only the close counts here.
+ await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect.poll(()=>s.writes.filter(w=>w.body.operation==='loan.close').length).toBe(1);expect(sentPath(s)).toBe('expense');
+ await expect(page.getByRole('status').filter({hasText:'Rebate: ฿300 pending to ผู้แนะนำจำลอง'})).toBeVisible();
 });
 
 test('a re-close preselects the previous path instead of the default',async({page})=>{
  const s=await setup(page);await openClose(page,s,rebate({previousPath:'expense'}));
- await expect(choice(page,/^Pay out as expense/)).toBeChecked();await expect(choice(page,/^Offset referrer's loan/)).not.toBeChecked();
+ await expect(choice(page,/^Record as pending payment/)).toBeChecked();await expect(choice(page,/^Offset referrer's loan/)).not.toBeChecked();
 });
 
-test('a rebate beyond the referrer schedule says what stays payable and does not block Review',async({page})=>{
+test('a rebate beyond the referrer schedule says what stays pending and does not block Review',async({page})=>{
  const s=await setup(page);const r=rebate();r.offset={...r.offset,covered:'200',payable:'100'};await openClose(page,s,r);
- await expect(page.locator('.field-help').filter({hasText:'฿200 offset; ฿100 stays payable to ผู้แนะนำจำลอง'})).toBeVisible();
+ await expect(page.locator('.field-help').filter({hasText:'฿200 offset to L-0398, paid through 12 Oct · ฿100 pending'})).toBeVisible();
  await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('C-account');await page.getByRole('combobox',{name:/^Payment Method(?: \*)?$/}).selectOption('Cash');
  await expect(page.getByRole('button',{name:'Review close',exact:true})).toBeEnabled();
 });
 
-test('a referrer without an open loan has no choice, only the transfer line on the form and the confirmation',async({page})=>{
+test('a referrer without an open loan has no choice, only the pending line on the form and the confirmation',async({page})=>{
  const s=await setup(page);await openClose(page,s,rebate({hasOpenLoan:false,offset:null}));
  await expect(group(page)).toHaveCount(0);await expect(choice(page,/Offset referrer's loan/)).toHaveCount(0);
- await expect(page.locator('main')).toContainText('Rebate ฿300 to ผู้แนะนำจำลอง, transfer from Lisa');
- await reviewAndConfirm(page);await expect(page.locator('main')).toContainText('฿300 to ผู้แนะนำจำลอง, transfer from Lisa');
+ await expect(page.locator('main')).toContainText('Rebate ฿300 pending to ผู้แนะนำจำลอง');
+ await reviewAndConfirm(page);await expect(page.locator('main')).toContainText('฿300 pending to ผู้แนะนำจำลอง');await expect(page.locator('main')).not.toContainText('transfer from Lisa');
  await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect.poll(()=>s.writes.length).toBe(1);expect([undefined,'expense']).toContain(sentPath(s));
 });
 
@@ -99,10 +106,10 @@ test('a close preview without a rebate shows no rebate block and sends no offset
  await reviewAndConfirm(page);await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect.poll(()=>s.writes.length).toBe(1);expect([undefined,'expense']).toContain(sentPath(s));
 });
 
-test('an offset that covers nothing is not offered; the rebate is paid out as expense',async({page})=>{
+test('an offset that covers nothing is not offered; the rebate is recorded as pending payment',async({page})=>{
  const s=await setup(page);const r=rebate();r.offset={...r.offset,rows:[],paidThrough:{},covered:'0',payable:'300'};await openClose(page,s,r);
  await expect(choice(page,/^Offset referrer's loan/)).toHaveCount(0);
- await reviewAndConfirm(page);await expect(page.locator('main')).toContainText('฿300 to ผู้แนะนำจำลอง, transfer from Lisa');
+ await reviewAndConfirm(page);await expect(page.locator('main')).toContainText('฿300 pending to ผู้แนะนำจำลอง');
  await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect.poll(()=>s.writes.length).toBe(1);expect([undefined,'expense']).toContain(sentPath(s));
 });
 
@@ -143,13 +150,28 @@ test('the closing payment shows the rebate offset line (nothing payable when ful
  await setup(page);const detail=await openClosingPayment(page,closeRebate());
  await expect(detail).toContainText('Loan closed · rebate ฿300 offset to L-0398, paid through 12 Oct');await expect(detail).not.toContainText('stays payable');
 });
-test('the closing payment shows the transfer from Lisa when the rebate is paid out, and nothing when the loan has no rebate',async({page})=>{
- await setup(page);const detail=await openClosingPayment(page,closeRebate({offsetPaymentId:null,offsetAmount:null,offsetLoanId:null,offsetLoanLabel:null,paidThrough:null,payableAmount:'300'}));
+// R129 (V137): a rebate booked from V137 on is pending until a settlement pays it, then paid on the settlement date; a rebate
+// booked before V137 (no rebateState, as here before R129) keeps the transfer from Lisa it had at close.
+const unoffset={offsetPaymentId:null,offsetAmount:null,offsetLoanId:null,offsetLoanLabel:null,paidThrough:null,payableAmount:'300'};
+test('the closing payment shows the pending rebate, and keeps the transfer from Lisa for a rebate booked before R129',async({page})=>{
+ await setup(page);const detail=await openClosingPayment(page,closeRebate({...unoffset,rebateState:'pending',pendingAmount:'300.00',owedTotal:'900.00'}));
+ await expect(detail).toContainText('Loan closed · rebate ฿300 pending to ผู้แนะนำจำลอง');await expect(detail).not.toContainText('transfer from Lisa');
+});
+test('the closing payment of a settled rebate names the settlement date',async({page})=>{
+ await setup(page);const detail=await openClosingPayment(page,closeRebate({...unoffset,rebateState:'paid',pendingAmount:'0.00',settlementId:'c1111111-1111-4111-8111-111111111111',settlementDate:'2026-11-12'}));
+ await expect(detail).toContainText('Loan closed · rebate ฿300 paid to ผู้แนะนำจำลอง on 12 Nov');
+});
+test('a rebate booked before R129 keeps the transfer from Lisa line',async({page})=>{
+ await setup(page);const detail=await openClosingPayment(page,closeRebate(unoffset));
  await expect(detail).toContainText('Loan closed · rebate ฿300 to ผู้แนะนำจำลอง, transfer from Lisa');
 });
-test('a partly offset rebate adds the payable suffix; a payment without a rebate shows no rebate line',async({page})=>{
- await setup(page);const detail=await openClosingPayment(page,closeRebate({offsetAmount:'200.00',payableAmount:'100'}));
- await expect(detail).toContainText('rebate ฿200 offset to L-0398, paid through 12 Oct · ฿100 stays payable');
+test('a partly offset rebate adds the pending suffix',async({page})=>{
+ await setup(page);const detail=await openClosingPayment(page,closeRebate({offsetAmount:'200.00',payableAmount:'100',rebateState:'pending',pendingAmount:'100.00'}));
+ await expect(detail).toContainText('rebate ฿200 offset to L-0398, paid through 12 Oct · ฿100 pending');
+});
+test('a partly offset rebate booked before R129 keeps the payable suffix',async({page})=>{
+ await setup(page);const legacy=await openClosingPayment(page,closeRebate({offsetAmount:'200.00',payableAmount:'100'}));
+ await expect(legacy).toContainText('rebate ฿200 offset to L-0398, paid through 12 Oct · ฿100 stays payable');
 });
 test('an ordinary payment has no Loan closed rebate line',async({page})=>{
  await setup(page);const detail=await openClosingPayment(page,null);
@@ -157,6 +179,7 @@ test('an ordinary payment has no Loan closed rebate line',async({page})=>{
 });
 // R119 (Echo PR-1/PR-2): a payment that closed two referred loans shows one line per loan, each starting with the closed
 // loan's key, in the order the API sends (the Payment Allocations order); a single rebate keeps today's text.
+// The first line is a rebate booked before R129 (no rebateState): its wording stays.
 test('R119: two closeRebates give two lines in order, each starting with its closed loan key',async({page})=>{
  await setup(page);
  const first=closeRebate({loanId:'C-loan-a',loanDisplayKey:'SYNTHETIC A-฿1,000-01/10-2%',amount:'30.00',referrerLabel:'Referrer A',offsetPaymentId:null,offsetAmount:null,offsetLoanId:null,offsetLoanLabel:null,paidThrough:null,payableAmount:'30'});
@@ -181,9 +204,9 @@ test('R120 the Loan Close basis line with default terms sits under the legend of
  const box=await group(page).evaluate(f=>{const r=(e:Element|null)=>e!.getBoundingClientRect(),basis=r(f.querySelector('.rebate-basis')),labels=[...f.querySelectorAll(':scope>label')].map(e=>r(e)),inner=f.clientWidth;return {basis:basis.width,inner,below:labels.length===2&&labels.every(l=>l.top>=basis.bottom)}});
  expect(box.basis).toBeGreaterThanOrEqual(box.inner-1);expect(box.below).toBe(true);expect(s.writes).toHaveLength(0);
 });
-test('R120 custom terms name the referrer under the payout line, in English and Thai',async({page})=>{
+test('R120 custom terms name the referrer under the pending line, in English and Thai',async({page})=>{
  const s=await setup(page);await openClose(page,s,rebate({hasOpenLoan:false,offset:null,amount:'360',profit:'2400',rate:15,cap:1500,custom:true}));
- const summary=page.locator('p.field-summary').filter({hasText:'Rebate ฿360 to ผู้แนะนำจำลอง, transfer from Lisa'});await expect(summary).toBeVisible();
+ const summary=page.locator('p.field-summary').filter({hasText:'Rebate ฿360 pending to ผู้แนะนำจำลอง'});await expect(summary).toBeVisible();
  await expect(summary.locator('+p.field-help')).toHaveText('15% of ฿2,400 interest and late charges, maximum ฿1,500 · custom terms for ผู้แนะนำจำลอง');
  await chooseLanguagePreservingForm(page,'ไทย');await expect(page.locator('main')).toContainText('15% ของดอกเบี้ยและค่าปรับล่าช้า ฿2,400 สูงสุด ฿1,500 · เงื่อนไขเฉพาะของ ผู้แนะนำจำลอง');expect(s.writes).toHaveLength(0);
 });

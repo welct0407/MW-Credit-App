@@ -1,4 +1,4 @@
-import {test,expect,type Page,type BrowserContext} from '@playwright/test';
+import {test,expect,type Page,type BrowserContext} from './fixtures/test';
 
 // UX-CHK-04 (Echo, 19 October 2026): while a payment shows "Confirming…" (an own write applied locally,
 // localPending), the disabled Correct, Move interest and Delete actions say why; other disabled titles stay.

@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-production/README.md"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
   "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "0f2fc4461cb7c8a6fab82a9339a174589f1a01de"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-calculate-business-expense-03c6d18d.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.calculate_business_expense()"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -25,6 +34,9 @@
       AS $function$
       DECLARE allocation_date date;
       BEGIN
+       -- R129: a rebate paid by a settlement goes only after the settlement (every path: a closing-payment delete or
+       -- correction, a direct delete).
+       IF TG_OP='DELETE' AND OLD."Source Type"='Referral Rebate' AND OLD."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'Remove the settlement first'; END IF;
        IF TG_OP='DELETE' AND OLD."Source Type"='Referral Rebate' AND pg_trigger_depth()>=2
         AND EXISTS(SELECT 1 FROM public."Loans" l WHERE l."Row ID"=OLD."Ref Related Loan"
          AND l."Ref Closing Payment" IS NOT NULL AND (l."Ref Closing Payment"=nullif(current_setting('payment_crud.id',true),'')
@@ -38,12 +50,32 @@
            OR NEW."Created At" IS DISTINCT FROM OLD."Created At" OR NEW."Created By" IS DISTINCT FROM OLD."Created By" THEN
            RAISE EXCEPTION 'Expense identity, source and creation audit are immutable';
          END IF;
-         IF OLD."Source Type"='Referral Rebate' AND
-           (to_jsonb(NEW)-ARRAY['Partner A Share','Partner B Share','Partner A Expense','Partner B Expense','Allocation Basis'])
-             IS DISTINCT FROM (to_jsonb(OLD)-ARRAY['Partner A Share','Partner B Share','Partner A Expense','Partner B Expense','Allocation Basis']) THEN
+         -- R129: "Ref Rebate Settlement" is set (to the new value) or cleared (the old value) only while pwa.rebate_settlement
+         -- names that settlement (pwa_apply_rebate_settlement_v1), never moved from one settlement to another, never on a manual row.
+         IF NEW."Ref Rebate Settlement" IS DISTINCT FROM OLD."Ref Rebate Settlement" AND (OLD."Source Type" IS DISTINCT FROM 'Referral Rebate'
+           OR (NEW."Ref Rebate Settlement" IS NOT NULL AND OLD."Ref Rebate Settlement" IS NOT NULL)
+           OR nullif(current_setting('pwa.rebate_settlement',true),'') IS DISTINCT FROM coalesce(NEW."Ref Rebate Settlement",OLD."Ref Rebate Settlement")) THEN
+           RAISE EXCEPTION 'Rebate settlement links change only through a rebate settlement';
+         END IF;
+         -- R129 D1: the owner-authorized legacy conversion (V1/V2 to V3) of one row, only while pwa.rebate_convert names it.
+         IF OLD."Source Type"='Referral Rebate' AND NEW."Rule Version" IS DISTINCT FROM OLD."Rule Version" AND (OLD."Rule Version" NOT IN ('REFERRAL_REBATE_V1','REFERRAL_REBATE_V2')
+           OR NEW."Rule Version" IS DISTINCT FROM 'REFERRAL_REBATE_V3' OR nullif(current_setting('pwa.rebate_convert',true),'') IS DISTINCT FROM OLD."Row ID") THEN
            RAISE EXCEPTION 'Automatic referral expenses are system-managed';
          END IF;
+         IF OLD."Source Type"='Referral Rebate' AND
+           (to_jsonb(NEW)-ARRAY['Partner A Share','Partner B Share','Partner A Expense','Partner B Expense','Allocation Basis','Ref Rebate Settlement','Rule Version'])
+             IS DISTINCT FROM (to_jsonb(OLD)-ARRAY['Partner A Share','Partner B Share','Partner A Expense','Partner B Expense','Allocation Basis','Ref Rebate Settlement','Rule Version']) THEN
+           RAISE EXCEPTION 'Automatic referral expenses are system-managed';
+         END IF;
+         -- R129: the expense, its date and the Partner split stay as booked at the close.
+         IF OLD."Source Type"='Referral Rebate' AND (NEW."Ref Rebate Settlement" IS DISTINCT FROM OLD."Ref Rebate Settlement" OR NEW."Rule Version" IS DISTINCT FROM OLD."Rule Version") THEN
+           NEW."Partner A Share":=OLD."Partner A Share"; NEW."Partner B Share":=OLD."Partner B Share";
+           NEW."Partner A Expense":=OLD."Partner A Expense"; NEW."Partner B Expense":=OLD."Partner B Expense"; NEW."Allocation Basis":=OLD."Allocation Basis";
+           RETURN NEW;
+         END IF;
        END IF;
+       -- R129: a new row never starts settled.
+       IF TG_OP='INSERT' AND NEW."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'Rebate settlement links change only through a rebate settlement'; END IF;
        IF NEW."Source Type"='Referral Rebate' THEN
          IF TG_OP='INSERT' AND pg_trigger_depth()<2 THEN RAISE EXCEPTION 'Referral expenses require a qualifying loan-close event'; END IF;
          SELECT "Close Date" INTO allocation_date FROM public."Loans" WHERE "Row ID"=NEW."Ref Related Loan";
@@ -83,8 +115,3 @@
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"

@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r115-20261102/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "fb46ffe68dcf20b61c078dceaabbf6dc2e3949c8"
+    "commit": "0f2fc4461cb7c8a6fab82a9339a174589f1a01de"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-guard-cash-ledger-109c85eb.yaml"
     "identity":
       "system": "postgresql"
@@ -56,6 +56,7 @@
        NEW."Ref Loan":=nullif(btrim(NEW."Ref Loan"),'');
        NEW."Ref Business Expense":=nullif(btrim(NEW."Ref Business Expense"),'');
        NEW."Ref Settlement":=nullif(btrim(NEW."Ref Settlement"),'');
+       NEW."Ref Rebate Settlement":=nullif(btrim(NEW."Ref Rebate Settlement"),''); -- R129
        IF TG_OP='UPDATE' THEN
         IF NEW."Row ID" IS DISTINCT FROM OLD."Row ID" OR NEW."Entry Origin" IS DISTINCT FROM OLD."Entry Origin"
          OR NEW."Source Type" IS DISTINCT FROM OLD."Source Type" OR NEW."Source Key" IS DISTINCT FROM OLD."Source Key"
@@ -68,6 +69,8 @@
        ELSE
         NEW."Source Type":='Manual';
         NEW."Source Key":='MANUAL:'||NEW."Row ID";
+        -- R129: only the settlement's own projection links a rebate settlement.
+        IF NEW."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'Only a rebate settlement may link a rebate settlement'; END IF;
         IF NEW."Movement Type"='Cash Handover' THEN
          IF (NEW."Ref From Cash Holder"=NEW."Ref To Cash Holder" AND NEW."Ref From Cash Account" IS DISTINCT FROM NEW."Ref To Cash Account" AND NEW."Ref From Cash Account" IS NOT NULL AND NEW."Ref To Cash Account" IS NOT NULL) IS NOT TRUE AND (NEW."Ref From Cash Holder"='ch:dad' AND NEW."Ref To Cash Holder"='ch:lisa') IS NOT TRUE
           AND (NEW."Ref From Cash Holder"='ch:lisa' AND NEW."Ref To Cash Holder"='ch:dad') IS NOT TRUE THEN

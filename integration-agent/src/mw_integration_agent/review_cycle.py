@@ -12,8 +12,9 @@ from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
 from .statement_delivery import resolve_recipient
-from .partner_review import OPTIONS_REQUIRED,RECHECKED,ReviewStore,request_text,review_id
-from .review_proposal import OPTIONS,chosen_plan,facts,options_enabled,plan,review_posts_overpayment,same_posting_outcome,unlabelled
+from .partner_review import OPTIONS_REQUIRED,RECHECKED,ReviewStore,close_failure_line,close_notice,request_text,review_id
+from .review_proposal import (LOAN_CLOSE_CHANGED,OPTIONS,chosen_plan,close_enabled,facts,options_enabled,plan,review_posts_close,
+                              review_posts_overpayment,same_posting_outcome,unlabelled)
 from .review_execution import readback
 from . import receipt_api
 from .cash_statement import read_query
@@ -24,6 +25,10 @@ NOT_SENT_RETRY_SECONDS=900  # AGT-SEND-03: a persistent 401/403 or token fault r
 NOTICE_CAP=6  # bounded transport work per notify pass; failures keep the 300 s deferral
 SAME_OUTCOME='FACTS_CHANGED_SAME_OUTCOME'
 LOAN_CLOSE='LOAN_CLOSE_REQUIRED'
+# R128: an approved close that does not post (switch off at execution, the server refused it, the day passed).
+CLOSE_OFF='LOAN_CLOSE_EXECUTION_OFF'
+CLOSE_REJECTED='LOAN_CLOSE_REJECTED'
+CLOSE_DAY_PASSED='LOAN_CLOSE_DAY_PASSED'
 
 # R095 (Cloud SQL log, both receipt-cycle failures): "could not determine data type of parameter $2" for a None note,
 # because "? IS NULL" gives the server no type to infer. Both note parameters are cast to text (detail's type), in the
@@ -177,7 +182,7 @@ class Run:
                 except ConfigurationError:continue
                 outcome=self.reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
                 if outcome==RECHECKED:
-                    # Owner request, 3 November 2026: acknowledge "4"; the new plan follows as its own message
+                    # Owner request, 3 November 2026: acknowledge the recheck ("3" since R127; legacy "4"); the new plan follows as its own message
                     # (or the automatic-payment result) once the receipt is planned again from the current charges.
                     row=db.execute('SELECT proposal FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
                     partner=next((p for p in live['partners'] if p['id']==notice['partner_id']),None)
@@ -213,6 +218,14 @@ class Run:
                 if review['state'] in ('POSTING','UNKNOWN'):
                     if review['state']=='POSTING':
                         with db:db.execute("UPDATE partner_reviews SET state='UNKNOWN' WHERE id=?",(review['id'],))
+                    if review_posts_close(proposal):
+                        # R128: the close is reconciled by its own status route, never resent.
+                        api_result=receipt_api.close_status(config,key) if key.startswith('pwa:') else None
+                        if api_result and api_result.get('originalOutcome',{}).get('status')=='rejected':
+                            with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED',detail=? WHERE id=?",(close_rejection(api_result),review['id']))
+                        elif api_result and receipt_api.close_posted(api_result,key,proposal['loan_id']) and readback(config,key,proposal):
+                            with db:db.execute("UPDATE partner_reviews SET state='POSTED',payment_id=?,detail=? WHERE id=?",(key,close_detail(api_result),review['id']))
+                        continue
                     api_result=receipt_api.status(config,key,review['id']) if key.startswith('pwa:') else None
                     if api_result and api_result.get('originalOutcome',{}).get('status')=='rejected':
                         with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED',detail='RECEIPT_API_REJECTED' WHERE id=?",(review['id'],))
@@ -233,8 +246,14 @@ class Run:
                     continue
                 # R112: approved options post only while the switch is on (fail closed: off means manual).
                 options_review=proposal['action']==OPTIONS
-                if proposal['action']!='Lump Sum' and not (not automatic and (review_posts_overpayment(proposal) or (options_review and options_enabled(config)))):
-                    with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED' WHERE id=?",(review['id'],))
+                # R128: an approved close posts only while loan_close_execution_enabled is on (off: manual, "close it in the app").
+                close_review=review_posts_close(proposal)
+                if proposal['action']!='Lump Sum' and not (not automatic and (review_posts_overpayment(proposal) or (options_review and options_enabled(config))
+                                                                              or (close_review and close_enabled(config)))):
+                    if close_review:
+                        with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED',detail=? WHERE id=?",(CLOSE_OFF,review['id']))
+                    else:
+                        with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED' WHERE id=?",(review['id'],))
                     continue
                 if config.get('partner_review_execution_enabled') is not True:continue
                 if config.get('receipt_payment_api_enabled') is not True:continue
@@ -269,16 +288,24 @@ class Run:
                     day=today()
                     if proposal['receipt']['date'] not in (day.isoformat(),(day-timedelta(days=1)).isoformat()):
                         raise ReceiptInvalid('RECEIPT_DATE_TOO_OLD')
+                    # R128: a close posts on the slip's day only (the server's Loan Close is today's).
+                    if close_review and proposal['receipt']['date']!=day.isoformat():raise ReceiptInvalid(CLOSE_DAY_PASSED)
                     check(config,proposal['receipt'],b)
-                    fresh=plan(proposal['receipt'],b,facts(config,b['id']),config=config if options_review else None)
+                    fresh=plan(proposal['receipt'],b,facts(config,b['id']),config=config if options_review or close_review else None,strict=close_review)
                     # Owner rule (20 Oct 2026): a charge edit keeps the approval while the
                     # consequence is still "post the full amount as Lump Sum".
                     marker=(AUTO_POLICY+':' if automatic else '')
-                    if fresh['action']=='Loan Close':
+                    if fresh['action']=='Loan Close' and not close_review:
                         with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED',detail=? WHERE id=?",(marker+LOAN_CLOSE,review['id']))
                         continue
                     chosen=None
-                    if options_review:
+                    if close_review:
+                        # R128: re-planned and re-quoted now: the same loan, plan hash, version and rebate the Reviewer approved.
+                        if not same_posting_outcome(proposal,fresh,automatic) or any(
+                                fresh['close'].get(k)!=proposal['close'].get(k) for k in ('sourceVersion','rebatePath','rebateAmount')):
+                            raise ReceiptInvalid(close_changed(config,proposal))
+                        outcome=None
+                    elif options_review:
                         # R112: the server's plans must be the ones the Reviewer chose from (same planSha256, same
                         # business day); the chosen purpose's plan is read now and becomes the v9 command's lines.
                         if proposal['receipt']['date']!=day.isoformat():raise ReceiptInvalid('PAY_FORWARD_DAY_PASSED')
@@ -303,7 +330,10 @@ class Run:
                 # The original cutoff remains deployment history, not a legacy fallback.
                 # The payload keeps the hash of the approved proposal (what the reviewer saw).
                 asset=db.execute('SELECT * FROM receipt_assets WHERE job_id=?',(review['job_id'],)).fetchone()
-                api_payload=receipt_api.payload(config,review,proposal,asset,automatic,**({'plan':chosen} if chosen else {}))
+                if close_review:
+                    api_payload=receipt_api.close_payload(config,review,proposal)
+                else:
+                    api_payload=receipt_api.payload(config,review,proposal,asset,automatic,**({'plan':chosen} if chosen else {}))
                 key='pwa:'+api_payload['command']['requestId']
                 with db:
                     claimed=db.execute("UPDATE partner_reviews SET state='POSTING',payment_id=? WHERE id=? AND state='APPROVED'",(key,review['id'])).rowcount
@@ -312,7 +342,7 @@ class Run:
                 if outcome:posting_config['_receipt_facts_outcome']=outcome
                 api_result=None
                 try:
-                    api_result=receipt_api.submit(posting_config,api_payload)
+                    api_result=(receipt_api.submit_close if close_review else receipt_api.submit)(posting_config,api_payload)
                 except receipt_api.NotSent as exc:
                     # Nothing reached the API's business path: release the claim so the next cycle
                     # re-submits under the same deterministic requestId (AGT-SEND-03). `detail` is
@@ -327,10 +357,19 @@ class Run:
                     failures.append({'stage':'submit','exception':type(exc).__name__})
                 verified=False
                 try:
-                    if api_result is None:api_result=receipt_api.status(config,key,review['id'])
-                    verified=receipt_api.posted(api_result,key) and readback(config,key,proposal)
+                    if close_review:
+                        if api_result is None:api_result=receipt_api.close_status(config,key)
+                        verified=receipt_api.close_posted(api_result,key,proposal['loan_id']) and readback(config,key,proposal)
+                    else:
+                        if api_result is None:api_result=receipt_api.status(config,key,review['id'])
+                        verified=receipt_api.posted(api_result,key) and readback(config,key,proposal)
                 except Exception as exc:failures.append({'stage':'readback','exception':type(exc).__name__})
                 state='POSTED' if verified else 'MANUAL_REQUIRED' if api_result and api_result.get('originalOutcome',{}).get('status')=='rejected' else 'UNKNOWN'
+                if close_review:
+                    # R128: the recorded rebate (posted) or the refusal code (rejected) is the result's detail.
+                    note=close_detail(api_result) if state=='POSTED' else close_rejection(api_result) if state=='MANUAL_REQUIRED' else None
+                    with db:db.execute(SETTLE_REVIEW_SQL,(state,note,note,review['id']))
+                    continue
                 # The row can no longer return to APPROVED, so the facts note may join the policy marker.
                 note=outcome and marker+outcome
                 with db:db.execute(SETTLE_REVIEW_SQL,(state,note,note,review['id']))
@@ -341,18 +380,52 @@ class Run:
             notify(self.config,self.journal,self.notices,self.identity_reader,self.notification_failures,self.resolver,changed)
 
 
+def close_detail(result):
+    """R128: a posted close's review detail: the referral rebate as recorded (path, amount, offset and payable parts)."""
+    outcome=(result or {}).get('originalOutcome') if isinstance(result,dict) else None
+    applied=outcome.get('result') if isinstance(outcome,dict) else None
+    rebate=applied.get('rebate') if isinstance(applied,dict) else None
+    kept={k:rebate.get(k) for k in ('path','amount','offsetAmount','payable')} if isinstance(rebate,dict) else None
+    return json.dumps({'closeRebate':kept},sort_keys=True,separators=(',',':'))
+
+
+def close_rejection(result):
+    """R128: a refused close's review detail, with the server's rejection code when it is a plain code."""
+    import re
+    outcome=(result or {}).get('originalOutcome') if isinstance(result,dict) else None
+    code=outcome.get('code') if isinstance(outcome,dict) else None
+    return CLOSE_REJECTED+(':'+code if isinstance(code,str) and re.fullmatch('[a-z_]{1,64}',code) else '')
+
+
+def close_changed(config,proposal):
+    """R128: the STALE detail of a close whose quote changed, with the current closing amount when it differs from the slip
+    (Echo AG-20); best effort, a quote that cannot be read gives the plain detail."""
+    from decimal import Decimal
+    try:amount=receipt_api.close_quote(config,proposal['loan_id'])['amount']
+    except receipt_api.QuoteRefused as exc:return str(exc) if str(exc)=='LOAN_CLOSE_QUOTE_UNAVAILABLE' else LOAN_CLOSE_CHANGED
+    except Exception:return LOAN_CLOSE_CHANGED
+    return LOAN_CLOSE_CHANGED+(':'+amount if Decimal(amount)!=Decimal(proposal['receipt']['amount']) else '')
+
+
 def posted_purpose(proposal,detail,thai):
     """Echo AG-5: the use of the remainder the Reviewer chose, on the posted result."""
-    from .partner_review import baht,short_date
+    from .partner_review import baht,short_date,principal_split
     try:purpose=json.loads(detail)['purpose']
     except (ValueError,TypeError,KeyError):return ''
     amount=baht(proposal['receipt']['amount']);o=proposal['options'];through=(o.get('forward') or {}).get('through')
     if purpose['forward'] and not purpose['principal']:
         return f"บันทึก {amount} · ชำระล่วงหน้า"+(f" ชำระถึง {short_date(through,True)}" if through else '') if thai else \
             f"Recorded {amount} · pay forward"+(f", paid through {short_date(through,False)}" if through else '')
-    part=baht(purpose['principal'][0]['amount'])
+    chosen=purpose['principal'][0];part=baht(chosen['amount'])
     if purpose['forward']:
+        # Legacy R112 split ("3 <amount>", withdrawn in R127): a split approved before the R127 deploy may still post.
         return f"บันทึก {amount} · เงินต้น {part} ส่วนที่เหลือชำระล่วงหน้า" if thai else f"Recorded {amount} · principal {part}, the rest pays forward"
+    # R127 (Echo AG-12): the interest and principal split and the new daily interest, from the saved options.
+    offered=next((p for p in o.get('principal') or [] if p.get('loanId')==chosen['loanId'] and p.get('amount')==chosen['amount']),None)
+    if offered:
+        daily=baht(offered['dailyAfter'])
+        return f"บันทึก {amount} · {principal_split(o,offered,True)} ดอกเบี้ยใหม่ {daily}/วัน" if thai else \
+            f"Recorded {amount} · {principal_split(o,offered,False)}, new interest {daily}/day"
     return f"บันทึก {amount} · ชำระเงินต้น {part}" if thai else f"Recorded {amount} · repay principal {part}"
 
 
@@ -384,7 +457,10 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                     # Opted-out partners get no result of any state (R089: non-POSTED results were
                     # reserved, then held as IG_PREFLIGHT_FAILED and counted as failed deliveries).
                     if p['enabled'] is not True:continue
-                    if review['state']=='POSTED':
+                    if review['state']=='POSTED' and review_posts_close(proposal):
+                        # R128 (Echo AG-19): the close's own notice, with the loan and the rebate as recorded.
+                        subject,body=close_notice(proposal,p['language'],review['payment_id'],review['detail'])
+                    elif review['state']=='POSTED':
                         subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],review['detail'].endswith(SAME_OUTCOME))
                         if proposal.get('action')==OPTIONS:body+='\n'+posted_purpose(proposal,review['detail'],p['language']=='ไทย')
                     else:
@@ -397,7 +473,11 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                         subject='ผลการตรวจสอบ' if thai else 'Receipt review result'
                         body=subject+'\n'+(proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id'])+'\n'+proposal['receipt']['amount']+' THB\n'+words[review['state']][int(thai)]
                         if review['state']=='MANUAL_REQUIRED' and review['detail'].endswith(LOAN_CLOSE):
-                            body+='\n'+('ข้อมูลสัญญาเปลี่ยนหลังอนุมัติ: รายการนี้เป็นการปิดสัญญา' if thai else 'Loan details changed after approval: this payment now closes the loan.')
+                            # R128 (Echo AG-21): the manual close is done in the app.
+                            body+='\n'+('ข้อมูลสัญญาเปลี่ยนหลังอนุมัติ: รายการนี้เป็นการปิดสัญญา กรุณาปิดในแอป' if thai else 'Loan details changed after approval: this payment now closes the loan. Close it in the app.')
+                        if review_posts_close(proposal):
+                            line=close_failure_line(review['state'],review['detail'],proposal,thai)
+                            if line:body+='\n'+line
                     notices.reserve(event,p,subject,body)
     from .receipt_hold import queue_holds,event_key
     if config.get('receipt_hold_notice_cutoff'):
@@ -444,8 +524,10 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                     current=facts(config,proposal['borrower']['id'])
                     if current!=proposal['facts']:
                         # A request still goes out after a charge edit when approving it would post the same way.
-                        fresh=plan(proposal['receipt'],proposal['borrower'],current,config=config if proposal.get('action')==OPTIONS else None)
-                        if fresh['action']=='Loan Close' or not same_posting_outcome(proposal,fresh,False):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
+                        close=review_posts_close(proposal)
+                        fresh=plan(proposal['receipt'],proposal['borrower'],current,config=config if proposal.get('action')==OPTIONS or close else None,strict=close)
+                        # R128: a close request still goes out while the server's close plan is the one it shows.
+                        if (fresh['action']=='Loan Close' and not close) or not same_posting_outcome(proposal,fresh,False):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
                 except ReceiptInvalid as exc:
                     with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),row['id']))
                     continue

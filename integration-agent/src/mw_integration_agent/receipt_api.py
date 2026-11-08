@@ -4,6 +4,7 @@ import json
 import re
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from decimal import Decimal
 
@@ -111,7 +112,7 @@ def payer_lines(receipt):
     return {'before': before, 'after': after}
 
 
-def call(config, method, request=None, body=None):
+def call(config, method, request=None, body=None, route='receipt-payments', answered=(422,)):
     # Disabled configuration cannot silently fall back for a persisted pwa key.
     validate(config)
     if not config.get('receipt_payment_api_enabled'):
@@ -119,6 +120,8 @@ def call(config, method, request=None, body=None):
     origin = config['receipt_payment_api_origin']
     if request is not None and not re.fullmatch(r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}', request):
         raise ConfigurationError('INVALID_RECEIPT_REQUEST_ID')
+    if route not in ('receipt-payments', 'loan-closes') and not route.startswith('loan-closes/quote/'):
+        raise ConfigurationError('INVALID_RECEIPT_API_ROUTE')
     opener = http_opener()
     until = time.monotonic() + 20
     def remaining():
@@ -130,14 +133,14 @@ def call(config, method, request=None, body=None):
         raise NotSent('RECEIPT_API_NOT_SENT_TOKEN') from exc
     headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json',
                'X-MW-Wake-Deadline': str(int((time.time() + remaining()) * 1000))}
-    req = urllib.request.Request(origin + '/internal/agent/receipt-payments' + ('/' + request if request else ''),
+    req = urllib.request.Request(origin + '/internal/agent/' + route + ('/' + request if request else ''),
         method=method, headers=headers, data=None if body is None else json.dumps(body, ensure_ascii=False, separators=(',', ':')).encode())
     try:
         response = opener.open(req, timeout=remaining())
     except urllib.error.HTTPError as error:
         if error.code in (401, 403):
             raise NotSent('RECEIPT_API_NOT_SENT_' + str(error.code)) from None
-        if error.code != 422:
+        if error.code not in answered:
             raise ConfigurationError('RECEIPT_API_OUTCOME_UNCERTAIN') from None
         response = error
     with response:
@@ -170,3 +173,92 @@ def posted(result, payment_id):
     return (result.get('kind') == 'recorded' and result.get('financialMatch') is True
             and result.get('originalOutcome', {}).get('status') == 'posted'
             and result['originalOutcome'].get('paymentId') == payment_id)
+
+
+# R128: the Loan Close an approved Instagram receipt review posts (switch loan_close_execution_enabled). The command is the
+# PWA's contract-2 loan.close through the shared command service's reviewed-only agent route, under its own request id
+# namespace; the same NotSent / uncertain / audited semantics as the receipt payment, reconciled by status only.
+HEX64 = re.compile(r'[0-9a-f]{64}')
+WHOLE = re.compile(r'[1-9][0-9]{0,16}')
+
+
+def close_request_id(environment, review_id):
+    if environment not in ('dev', 'prod') or not isinstance(review_id, str) or not review_id or len(review_id.encode()) > 256:
+        raise ConfigurationError('INVALID_RECEIPT_REQUEST_ID')
+    return uuid_from_sha256(['mw-credit-agent-loan-close-v1', environment, review_id])
+
+
+def close_notes(review_id):
+    return 'Approved Instagram receipt review igr:' + review_id[:48]
+
+
+class QuoteRefused(ConfigurationError):
+    """The server answered that this loan has no Loan Close quote now: LOAN_CLOSE_QUOTE_UNAVAILABLE for 404 (the loan is not
+    found or the route is off), LOAN_CLOSE_QUOTE_REFUSED for 422 (the loan cannot close as it stands)."""
+
+
+def close_quote(config, loan_id):
+    """The server's Loan Close quote for today (read only): sourceVersion, businessDate, amount, planHash, the R118 parts and
+    the referral rebate. QuoteRefused when the server refuses one; any other fault is LOAN_CLOSE_QUOTE_UNAVAILABLE or the
+    transport's own error (NotSent passes)."""
+    if not isinstance(loan_id, str) or not loan_id or len(loan_id.encode()) > 256:
+        raise QuoteRefused('LOAN_CLOSE_QUOTE_REFUSED')
+    try:
+        quote = call(config, 'GET', route='loan-closes/quote/' + urllib.parse.quote(loan_id, safe=''), answered=(404, 422))
+    except NotSent:
+        raise
+    except ConfigurationError:
+        raise ConfigurationError('LOAN_CLOSE_QUOTE_UNAVAILABLE') from None
+    if isinstance(quote, dict) and set(quote) == {'error'}:
+        raise QuoteRefused('LOAN_CLOSE_QUOTE_UNAVAILABLE' if quote['error'] == 'not_found' else 'LOAN_CLOSE_QUOTE_REFUSED')
+    try:
+        valid = (quote['loanId'] == loan_id and HEX64.fullmatch(quote['sourceVersion']) and HEX64.fullmatch(quote['planHash'])
+                 and WHOLE.fullmatch(quote['amount']) and re.fullmatch(r'\d{4}-\d{2}-\d{2}', quote['businessDate'])
+                 and (quote.get('rebate') is None or isinstance(quote['rebate'], dict)))
+    except (KeyError, TypeError):
+        valid = False
+    if not valid:
+        raise ConfigurationError('LOAN_CLOSE_QUOTE_UNAVAILABLE')
+    return quote
+
+
+def close_payload(config, review, proposal):
+    """The reviewed close: the slip's date (today, checked by SQL), account, reference and transfer time, the quote the
+    Reviewer approved (version, amount, plan hash) and its rebate path when the close creates a rebate."""
+    validate(config)
+    if not config.get('receipt_payment_api_enabled'):
+        raise ConfigurationError('RECEIPT_PAYMENT_API_DISABLED')
+    receipt, close = proposal['receipt'], proposal['close']
+    reference, clock = receipt.get('reference'), str(receipt.get('time') or '')[:5]
+    if (not isinstance(reference, str) or not reference.strip() or len(reference.encode()) > 256 or re.search(r'[\0\r\n]', reference)
+            or not re.fullmatch(r'(?:[01][0-9]|2[0-3]):[0-5][0-9]', clock)):
+        raise ConfigurationError('LOAN_CLOSE_SLIP_FACTS_REQUIRED')
+    if not WHOLE.fullmatch(str(close['amount'])) or Decimal(str(close['amount'])) != Decimal(str(receipt['amount'])):
+        raise ConfigurationError('LOAN_CLOSE_AMOUNT_MISMATCH')
+    inputs = dict(paymentDate=receipt['date'], cashAccountId=receipt['account_id'], paymentMethod='Bank Transfer',
+                  notes=close_notes(review['id']), expectedAmount=str(close['amount']), expectedPlanHash=close['planHash'],
+                  bankReference=reference, transferTime=clock)
+    if close.get('rebatePath') is not None:
+        inputs['rebatePath'] = close['rebatePath']
+    command = dict(requestId=close_request_id(config['receipt_environment'], review['id']), targetId=proposal['loan_id'],
+                   expectedVersion=close['sourceVersion'], inputs=inputs, reviewId=review['id'], environment=config['receipt_environment'])
+    return {'command': command, 'actorPartnerId': review['deciding_partner']}
+
+
+@audited('receipt_payment', route='internal', action='INSERT', effect=True, plan=lambda config, body: dict(
+    requestId=body['command']['requestId'], reviewId=body['command']['reviewId'], mode='reviewed', operation='loan.close',
+    loanId=body['command']['targetId'], factsOutcome='UNCHANGED'))
+def submit_close(config, body):
+    return call(config, 'POST', body=body, route='loan-closes')
+
+
+def close_status(config, payment_id):
+    return call(config, 'GET', request=payment_id.removeprefix('pwa:'), route='loan-closes')
+
+
+def close_posted(result, payment_id, loan_id):
+    """The recorded close applied this loan's closing payment under the key."""
+    outcome = result.get('originalOutcome') if isinstance(result, dict) else None
+    applied = outcome.get('result') if isinstance(outcome, dict) else None
+    return (isinstance(outcome, dict) and result.get('kind') == 'recorded' and outcome.get('status') == 'applied' and isinstance(applied, dict)
+            and applied.get('operation') == 'loan.close' and applied.get('targetId') == loan_id and applied.get('paymentId') == payment_id)

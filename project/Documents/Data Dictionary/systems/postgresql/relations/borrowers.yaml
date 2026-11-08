@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r120-20261104/production-postgresql-observations.json"
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/ede185fa/project/outputs/dictionary-r120-20261104/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
     "commit": "a36046cfdac29ff84ab43e97a886936571674503"

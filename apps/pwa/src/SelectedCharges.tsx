@@ -12,6 +12,7 @@ import {PaymentResult} from './PaymentResult';
 import {confirmOwnPayment,verifiedOwnReceipt,type OwnReceipt} from './own-write-apply';
 import {useOnline} from './online-status';
 import {RECOGNITION_DEADLINE_MS} from './recognition-timing';
+import {endSentence} from './close-recognition';
 import type {OwnerOfflineRepository} from './owner-offline';
 import {useEffect,useRef,useState} from 'react';
 import {shortDate,dateRange,whole,forwardRuns,runAmount,type ForwardRow} from './pay-forward-text';
@@ -29,7 +30,7 @@ type Materialize={loanId:string;chargeId:string;chargeDate:string;principalDue:s
 /** R110 Pay Forward: a v10 principal entry (the plan read adds its effect fields), the server plan and Auto-assign's remainder previews. */
 type PrincipalEntry={loanId:string;kind:'raise'|'book'|'settle';chargeId:string;chargeDate:string;amount:string;accruedInterest:string;principalDue:string;outstandingBefore?:string;outstandingAfter?:string;dailyAfter?:string;nextChargeDate?:string;nextChargeAmount?:string;payoff?:string;charges?:string};
 /** R113: a loan the plan settles: its Loan Close payoff and the referral rebate its close creates (V124 default offset). */
-type Close={payoff?:string;gapInterest?:string;charges?:string;rebate:{amount:string;referrer:string;offset:boolean}|null};
+type Close={payoff?:string;gapInterest?:string;charges?:string;rebate:{amount:string;referrer:string;offset:boolean;referrerId?:string;owedBefore?:string|null}|null};
 type Plan={allocations:Allocation[];materialize:Materialize[];principal:PrincipalEntry[];forward:ForwardRow[];paidThrough:Record<string,string>;settles:string[];uncovered:string;blocked:{loanId:string;reason:string;more?:string}[];closes:Record<string,Close>};
 type PlanPurpose={forward:boolean;principal:{loanId:string;amount:string}[];loans:string[]|null};
 type PrincipalOption={loanId:string;amount:string;settles:boolean;entry:PrincipalEntry|null;payoffRemainder?:string|null;settleOnly?:boolean};
@@ -137,9 +138,11 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  // writes them only while the borrower's column still holds what the route read.
  const slipPayer=recognized?.slipPayer??null,payerLearns=!!slipPayer&&bankTransfer&&!!recognized?.payerAfter;
  const money=(value:string)=>{if(typeof value!=='string'||!/^-?[0-9]+$/.test(value))return t('Unavailable','ไม่มีข้อมูล');const n=BigInt(value),abs=n<0n?-n:n;return (n<0n?'-':'')+'฿'+abs.toLocaleString(thai?'th-TH':'en-US')};
- async function call(path:string,init:RequestInit={}) {
+ // R133: a write (the payment command, a receipt upload) is 'save'; the draft review, auto-assign and plan POSTs are previews
+ // and pass 'read', so the header says Loading, not Saving.
+ async function call(path:string,init:RequestInit={},kind:'read'|'save'=init.method&&init.method!=='GET'?'save':'read') {
   if(access.offlineOnly||!navigator.onLine)throw Error('Offline');
-  const done=beginRequest(),controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
+  const done=beginRequest(kind),controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
   try {
    const token=await access.token();
    const response=await fetch(access.origin+path,{...init,signal:controller.signal,headers:{'X-MW-Wake-Deadline':String(deadline),...init.headers,Authorization:'Bearer '+token}});
@@ -178,7 +181,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
      setError(t('Saved selection needs conversion review with current component balances.','รายการที่บันทึกไว้ต้องตรวจสอบการแปลงด้วยยอดเงินต้นและดอกเบี้ยปัจจุบัน'));
      if(!access.offlineOnly&&navigator.onLine){
       const ids=saved.value.selectionRows.map((row:any)=>row.id),method=ids.length===1?'Single Full':'Selected Charges';
-      const refreshed=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selectedChargeIds:ids,allocationMethod:method})});
+      const refreshed=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selectedChargeIds:ids,allocationMethod:method})},'read');
       if(current!==generation.current)return;
       if(refreshed.response.ok&&refreshed.data.charges.every((row:any)=>integer(row.principalRemaining)&&integer(row.interestRemaining)&&integer(lateOf(row)))){
        const lines=refreshed.data.charges.map((row:any)=>({chargeId:row.id,principal:row.principalRemaining,interest:row.interestRemaining,lateCharge:lateOf(row),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:lateOf(row),chargeDate:row.chargeDate}));
@@ -218,7 +221,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   if(access.offlineOnly||!navigator.onLine){if(queueEnabled&&draft&&!legacyDraft.current&&validPlan&&draft.accounts.some(row=>row.id===account)&&!uploading&&!uploadFailed&&!changedBalances)return true;setState('edit');setError(t('A valid saved allocation plan is required before offline review.','ต้องมีแผนจัดสรรที่บันทึกและใช้ได้ก่อนตรวจสอบออฟไลน์'));return false;}
   if(localImage&&!receipt&&!queueEnabled){setError(t('Upload the saved receipt or explicitly remove it before review.','อัปโหลดหลักฐานที่บันทึกไว้หรือนำออกก่อนตรวจสอบ'));return false;}
   const current=generation.current;
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,allocations:allocations.map(line8),materialize,principal:principalEntries})});
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,allocations:allocations.map(line8),materialize,principal:principalEntries})},'read');
    if(current!==generation.current||operation!==reviewOperation.current)return false;
    if(!response.ok||data.businessDate!==draft?.businessDate||!data.accounts?.some((row:any)=>row.id===account)){
     if(data.code==='plan_changed'&&Array.isArray(data.charges))setChangedBalances({operation,generation:current,charges:data.charges,upcoming:Array.isArray(data.upcoming)?data.upcoming:[],businessDate:data.businessDate});
@@ -245,7 +248,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   if(slipAmount===undefined&&allocations.some(row=>part(row.principal)>0n||part(row.interest)>0n||part(row.lateCharge)>0n)&&!window.confirm(projectedAllocated?t('Replace the current allocation plan with Auto-assign? Next charges you ticked will be cleared.','แทนที่แผนจัดสรรปัจจุบันด้วยการจัดสรรอัตโนมัติหรือไม่ งวดถัดไปที่เลือกไว้จะถูกล้าง'):t('Replace the current allocation plan with Auto-assign?','แทนที่แผนจัดสรรปัจจุบันด้วยการจัดสรรอัตโนมัติหรือไม่')))return 'skipped';
   const amount=slipAmount??received;
   if(!integer(amount)||BigInt(amount)<=0n)return 'skipped';const current=generation.current,operation=++reviewOperation.current;setAutoEmpty(false);
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/auto-assign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:amount,lineVersion:11})});if(current!==generation.current||operation!==reviewOperation.current)return 'skipped';if(!response.ok||!Array.isArray(data?.allocations))throw Error();legacyDraft.current=false;setUnavailableLines([]);setChangedBalances(null);setAllocations(data.allocations);
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/auto-assign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:amount,lineVersion:11})},'read');if(current!==generation.current||operation!==reviewOperation.current)return 'skipped';if(!response.ok||!Array.isArray(data?.allocations))throw Error();legacyDraft.current=false;setUnavailableLines([]);setChangedBalances(null);setAllocations(data.allocations);
    // R110: money beyond what is due opens the Remainder block (nothing chosen); its previews come with the answer.
    planOperation.current++;setPlan(null);setPurpose(null);setPlanBusy(false);setChoosing(true);setSplitAmount('');lastPurpose.current=null;
    if(typeof data.allocated==='string')setDueInfo({total:data.allocated,allocations:data.allocations});
@@ -270,7 +273,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  /** R110: the server's plan for the chosen use of the remainder (POST /plan); a usable plan collapses the choice. */
  async function loadPlan(body:PlanPurpose){
   const operation=++planOperation.current,current=generation.current;lastPurpose.current=body;setPlanBusy(true);setPlan(null);setError('');
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,purpose:body})});
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,purpose:body})},'read');
    if(operation!==planOperation.current||current!==generation.current)return;
    const value=data?.plan;
    if(!response.ok||!value||!Array.isArray(value.allocations)||!value.allocations.every((line:any)=>typeof line?.chargeId==='string'&&[line.principal,line.interest,line.lateCharge??'0',line.expectedPrincipalRemaining,line.expectedInterestRemaining,line.expectedLateChargeRemaining??'0'].every(whole)&&typeof line.chargeDate==='string'))throw Error();
@@ -352,7 +355,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  async function recognize(id:string,seq:number){
   const current=generation.current;recognitionTouched.current=new Set();setRecognition({receiptId:id,phase:'reading'});
   const stale=()=>seq!==uploadGeneration.current||current!==generation.current||!!command.current;
-  const done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),RECOGNITION_DEADLINE_MS);
+  const done=beginRequest('receipt'),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),RECOGNITION_DEADLINE_MS);
   try{
    if(access.offlineOnly||!navigator.onLine)throw Error('Offline');
    const token=await access.token();
@@ -491,9 +494,15 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   ...Object.entries(plan.paidThrough).sort(([a],[b])=>a.localeCompare(b)).map(([loan,day])=>(planLoanCount>1?loanLabel(loan)+': ':'')+t('Paid through ','ชำระถึง ')+shortDate(day,thai))].join(' · '):'';
  // R113 (Archie D3): one line per loan the payment closes, with its payoff and the referral rebate its close creates.
  const settledEntries=plan?plan.principal.filter(entry=>entry.kind==='settle'):[];
+ const owedSoFar=new Map<string,bigint>();
  const closeLines=settledEntries.map(entry=>{const close=plan?.closes[entry.loanId];const payoff=close?.payoff??entry.payoff;
   const parts=[whole(entry.accruedInterest)&&entry.accruedInterest!=='0'?t('gap interest ','ดอกเบี้ยค้าง ')+money(entry.accruedInterest):'',whole(entry.charges)&&entry.charges!=='0'?t('charges ','รายการเรียกเก็บ ')+money(entry.charges as string):''].filter(Boolean);
-  const rebate=close?.rebate&&whole(close.rebate.amount)?(t('Rebate ','ค่าแนะนำ ')+money(close.rebate.amount)+t(' to ',' ให้ ')+close.rebate.referrer+' — '+(close.rebate.offset?t('offset to their loan','หักกับสัญญาของผู้แนะนำ'):t('transfer from Lisa','โอนจาก Lisa'))):'';
+  // R129 (V137): a rebate not offset is pending payment, "Rebate ฿300 pending to Mai (฿900 owed)" (owed: the referrer's pending
+  // total before this payment plus every pending rebate of this payment to them so far); no total from a server before V137.
+  const r=close?.rebate;let owed:bigint|null=null;
+  if(r&&!r.offset&&whole(r.amount)&&whole(r.owedBefore)){const key=r.referrerId??r.referrer;owed=(owedSoFar.get(key)??BigInt(r.owedBefore as string))+BigInt(r.amount);owedSoFar.set(key,owed);}
+  const rebate=r&&whole(r.amount)?(r.offset?t('Rebate ','ค่าแนะนำ ')+money(r.amount)+t(' to ',' ให้ ')+r.referrer+' — '+t('offset to their loan','หักกับสัญญาของผู้แนะนำ')
+   :t('Rebate '+money(r.amount)+' pending to '+r.referrer+(owed!=null?' ('+money(String(owed))+' owed)':''),'ค่าแนะนำ '+money(r.amount)+' ค้างจ่ายให้ '+r.referrer+(owed!=null?' (รวมค้างจ่าย '+money(String(owed))+')':''))):'';
   return {loanId:entry.loanId,text:t('Closes ','ปิด ')+loanLabel(entry.loanId)+(whole(payoff)?' · '+t('payoff ','ยอดปิด ')+money(payoff as string):'')+(parts.length?' ('+parts.join(', ')+')':''),rebate};});
  const openLoans=remainder?Object.keys(remainder.loans).length:0;
  const closesSummary=settledEntries.length>1||(settledEntries.length>0&&openLoans>0&&settledEntries.length===openLoans)?t('Closes '+settledEntries.length+(settledEntries.length===1?' loan':' loans'),'ปิด '+settledEntries.length+' สัญญา')+(settledEntries.length===openLoans?' · '+t('outstanding ','เงินต้นคงเหลือ ')+money('0'):''):'';
@@ -573,7 +582,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  {recognition?.phase==='failed'&&<p className="field-help" role="status">{t('Slip not read — enter details manually.','อ่านสลิปไม่ได้ — กรุณากรอกรายละเอียดเอง')}</p>}
  {recognition?.phase==='unconfirmed'&&<p className="field-help" role="status">{t('The slip does not show a completed transfer — enter details manually.','สลิปไม่แสดงการโอนที่สำเร็จ — กรุณากรอกรายละเอียดเอง')}</p>}
  {recognized&&<p className="field-help recognition-note" role="status">{recognized.filled?.length?<>{t('From slip','จากสลิป')}{recognized.provider?` (${recognized.provider})`:''}: {recognized.filled.map(field=>({amount:t('amount','ยอด'),account:t('account','บัญชี'),reference:t('reference','เลขอ้างอิง'),date:t('date','วันที่')})[field]).join(', ')}. {t('Check before review.','ตรวจสอบก่อนกดตรวจสอบรายการ')}</>:t('Slip read; no empty fields to fill. Check before review.','อ่านสลิปแล้ว ไม่มีช่องว่างให้กรอก ตรวจสอบก่อนกดตรวจสอบรายการ')}{recognized.autoSkipped?' '+t('Auto-assign skipped: allocations already entered.','ไม่ได้จัดสรรอัตโนมัติ เพราะมีการจัดสรรอยู่แล้ว'):''}{recognized.autoOutcome==='empty'?' '+t('Auto-assign found no charges due by today — allocate below.','ไม่มีรายการครบกำหนดภายในวันนี้ให้จัดสรรอัตโนมัติ — กรุณาจัดสรรด้านล่าง'):recognized.autoOutcome==='failed'?' '+t('Auto-assign did not run — use Auto-assign or allocate below.','จัดสรรอัตโนมัติไม่สำเร็จ — กด จัดสรรอัตโนมัติ หรือจัดสรรด้านล่าง'):''}</p>}
- {typeof recognized?.dateNotUsed==='string'&&<p className="field-help" role="status">{recognized.dateNotUsed?`${t('Slip date not used: ','ไม่ได้ใช้วันที่ตามสลิป: ')}${displayValue(recognized.dateNotUsed)}.`:t('Slip date not used.','ไม่ได้ใช้วันที่ตามสลิป')}</p>}
+ {typeof recognized?.dateNotUsed==='string'&&<p className="field-help" role="status">{recognized.dateNotUsed?endSentence(`${t('Slip date not used: ','ไม่ได้ใช้วันที่ตามสลิป: ')}${displayValue(recognized.dateNotUsed)}`):t('Slip date not used.','ไม่ได้ใช้วันที่ตามสลิป')}</p>}
  <ReceiptPicker thai={thai} attached={!!(receipt||localImage||uploadFailed||uploading)} preview={preview} busy={uploading} onPreparing={setPreparingReceipt} onPick={file=>void upload(file)} onRemove={()=>{uploadGeneration.current++;setReceipt(null);setLocalImage(null);setPreview(null);setUploadFailed(false);setUploading(false);setError('');setRecognition(null);setSlipDate(null);setTransferTime('')}}/>
  {localImage&&!receipt&&!access.offlineOnly&&<button type="button" className="secondary-button" disabled={uploading} onClick={()=>void upload(new File([localImage],'receipt',{type:localImage.type}))}>{t('Upload saved receipt','อัปโหลดหลักฐานที่บันทึกไว้')}</button>}
 

@@ -199,6 +199,12 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigurationError('pay_forward_options_enabled must be boolean')
     if config.get('pay_forward_options_enabled') and not (config.get('partner_review_execution_enabled') and config.get('database_enabled')):
         raise ConfigurationError('pay forward options require review execution and the database')
+    # R128: the Instagram-approved Loan Close (default off). On, it needs the review execution and the shared receipt
+    # payment API, whose agent route serves the close quote and the close command; anything but true or false is refused.
+    if type(config.get('loan_close_execution_enabled',False)) is not bool:
+        raise ConfigurationError('loan_close_execution_enabled must be boolean')
+    if config.get('loan_close_execution_enabled') and not (config.get('partner_review_execution_enabled') and config.get('receipt_payment_api_enabled')):
+        raise ConfigurationError('loan close execution requires review execution and the receipt payment API')
     if type(config.get('conversation_poll_enabled',False)) is not bool:
         raise ConfigurationError('conversation_poll_enabled must be boolean')
     if config.get('conversation_poll_enabled'):

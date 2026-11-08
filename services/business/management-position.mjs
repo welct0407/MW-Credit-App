@@ -1,9 +1,15 @@
+import {rebatePendingSql} from './rebate-state.mjs';
 import {readCashOverview} from './cash.mjs';
 /** Read-only composition of the existing native cash providers. */
 export async function readManagementPosition(client){
  const overview=await readCashOverview(client);
  const holders=(await client.query(`SELECT "Ref Cash Holder" id,"Holder Name" label,"Cash In"::numeric::text AS "cashIn","Cash Out"::numeric::text AS "cashOut","Current Balance"::numeric::text AS "currentBalance","Business Cash Held"::numeric::text AS "businessCashHeld","Reimbursement / Advance Due"::numeric::text AS "reimbursementDue" FROM public."Cash Holder Balances" ORDER BY "Holder Name" COLLATE "C","Ref Cash Holder" COLLATE "C"`)).rows;
- return {...overview,holders};
+ // R129 (V137): referral rebates booked and still pending payment (a liability beside the holder balances: Lisa holds this
+ // cash until a settlement pays it), the pwa_rebate_pending_v1 rule; 0 before V137 (no REFERRAL_REBATE_V3 row).
+ const rebatesPayable=(await client.query(`SELECT coalesce(sum(p.pending),0)::numeric(20,2)::text AS amount,count(*) FILTER (WHERE p.pending>0)::int AS count
+  FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=to_jsonb(x)->>'Ref Offset Payment' CROSS JOIN LATERAL (SELECT ${rebatePendingSql('x','o')} AS pending) p
+  WHERE x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3'`)).rows[0]??{amount:'0.00',count:0};
+ return {...overview,holders,rebatesPayable:{amount:rebatesPayable.amount,count:rebatesPayable.count}};
 }
 /** R115 Daily cash withdrawal: the holder is fixed; V127 checks every account of the command belongs to it. */
 export const CASH_WITHDRAWAL_HOLDER='ch:dad';

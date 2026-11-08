@@ -2,6 +2,7 @@ import {wakeContext} from '../notifications/postcommit.mjs';
 import { canonicalCommand } from '../contracts/payment-command.mjs';
 import { beginRequest } from '../lib/http-boundary.mjs';
 import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
+import { logUnavailable } from '../lib/log.mjs';
 const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','selection_changed','plan_changed','selection_limit_exceeded','business_date_changed','payment_requires_reconciliation','source_changed','metadata_conflict','borrower_name_exists','borrower_name_required','operation_outcome_unknown','record_conflict','invalid_reference','record_requires_reconciliation','record_outcome_unknown','metadata_outcome_unknown','command_outcome_unknown','command_busy','command_unavailable','session_check_unavailable','body_timeout']);
 const MAX_BODY = 524288;
 codes.add('dataset_changed');
@@ -38,6 +39,12 @@ function route(raw) {
     if(url.pathname==='/api/cash-overview')return {operation:'cash_overview'};
     if(url.pathname==='/api/expense-options')return {operation:'expense_options'};
     if(url.pathname==='/api/expense-records')return {operation:'expense_list',options:pageOptions};
+    // R129 (V137): the Referrers page, a referrer's detail and one rebate settlement.
+    if(url.pathname==='/api/referrers')return {operation:'referrer_list'};
+    const referrer=/^\/api\/referrers\/([^/]+)$/.exec(url.pathname);
+    if(referrer)return {operation:'referrer_record',borrowerId:decodeURIComponent(referrer[1])};
+    const rebateSettlement=/^\/api\/rebate-settlements\/([^/]+)$/.exec(url.pathname);
+    if(rebateSettlement)return {operation:'rebate_settlement_record',settlementId:decodeURIComponent(rebateSettlement[1])};
     const expense=/^\/api\/expense-records\/([^/]+)$/.exec(url.pathname);
     if(expense)return {operation:'expense_record',expenseId:decodeURIComponent(expense[1])};
     if(url.pathname==='/api/loan-options')return {operation:'loan_options'};
@@ -80,7 +87,7 @@ function route(raw) {
  * revocation round trip. Exact (operation, method) pairs only; every write, every invalid or
  * unknown route and every method mismatch keeps verifyIdToken(token,true).
  */
-const READ_GET=new Set(['offline_dataset','management','record_list','cash_statement','collection_receipts','upcoming','payment_image','loan_related','payment_record','borrower_options','dashboard','preferences','cash_overview','expense_options','expense_list','expense_record','loan_options','operation_status','loan_close_preview','charge_record','loan_record','borrower_record','payment_history','command_result','payment_draft','receipt','command_status']);
+const READ_GET=new Set(['offline_dataset','management','record_list','cash_statement','collection_receipts','upcoming','payment_image','loan_related','payment_record','borrower_options','dashboard','preferences','cash_overview','expense_options','expense_list','expense_record','referrer_list','referrer_record','rebate_settlement_record','loan_options','operation_status','loan_close_preview','charge_record','loan_record','borrower_record','payment_history','command_result','payment_draft','receipt','command_status']);
 /** @param {any} target @param {string|undefined} method */
 export function isReadRoute(target,method){
   if(!target||target.invalid)return false;
@@ -139,7 +146,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if (target.operation === 'unknown') return reject(404, 'not_found');
     if ((target.operation === 'command_submit' && req.method !== 'POST') || (['command_status','command_result','payment_draft','payment_history'].includes(target.operation) && req.method !== 'GET')) return reject(405, 'method_not_allowed');
     if((['payment_review','payment_auto_assign','payment_select_all','payment_plan'].includes(target.operation)&&req.method!=='POST')||(target.operation==='command_metadata'&&req.method!=='PATCH')||(target.operation==='receipt'&&!['GET','POST'].includes(req.method))||(target.operation==='receipt_recognition'&&req.method!=='POST'))return reject(405,'method_not_allowed');
-    if(['borrower_create','operation_submit'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','loan_close_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
+    if(['borrower_create','operation_submit'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','referrer_list','referrer_record','rebate_settlement_record','loan_close_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
     let result;
     try {
       if(target.operation==='offline_dataset'){
@@ -164,6 +171,9 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       else if(target.operation==='expense_record')result=await store.expenseRecord(principal,target.expenseId);
       else if(target.operation==='expense_options')result=await store.expenseOptions(principal);
       else if(target.operation==='expense_list')result=await store.expenses(principal,target.options);
+      else if(target.operation==='referrer_list')result=await store.referrers(principal);
+      else if(target.operation==='referrer_record')result=await store.referrerRecord(principal,target.borrowerId);
+      else if(target.operation==='rebate_settlement_record')result=await store.rebateSettlementRecord(principal,target.settlementId);
       else if(target.operation==='collection_receipts')result=await store.collectionReceipts(principal,target.borrowerId,target.options);
       else if(target.operation==='payment_record')result=await store.paymentRecord(principal,target.paymentId,{preview:target.preview,targetLoanId:target.targetLoanId??null,paymentDate:target.paymentDate??null,proposedBorrowerId:target.proposedBorrowerId??null});
       else if(target.operation==='charge_record')result=await store.chargeRecord(principal,target.chargeId);
@@ -219,7 +229,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       } else if (target.operation === 'command_status') result = await store.status(principal, target.requestId);
       else return reject(404, 'not_found');
       const { status, ...value } = result;return send(status, value);
-    } catch { return reject(503, target.operation === 'command_submit' ? 'command_outcome_unknown' : 'command_unavailable'); }
+    } catch (error) { logUnavailable('command_handler_unavailable',error,{operation:target.operation}); return reject(503, target.operation === 'command_submit' ? 'command_outcome_unknown' : 'command_unavailable'); }
   };
 }
 

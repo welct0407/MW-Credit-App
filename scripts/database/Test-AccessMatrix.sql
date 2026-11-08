@@ -31,6 +31,10 @@ INSERT INTO am_expected_tables VALUES
   ('mw_app_dev_journal_owner','public.Cash Ledger','DELETE,INSERT,UPDATE'),
   ('mw_app_dev_journal_owner','public.pwa_payment_commands','INSERT,SELECT'),
   ('mw_app_dev_journal_owner','public.r008_cash_account_cutover','INSERT'),
+  -- V137 (R129): the settlements are written by the journal owner's command only and read by the app and ledger owner.
+  ('mw_app_dev_journal_owner','public.pwa_rebate_settlements','DELETE,INSERT,SELECT,UPDATE'),
+  ('mw_app_dev','public.pwa_rebate_settlements','SELECT'),
+  ('mw_ledger_owner_dev','public.pwa_rebate_settlements','SELECT'),
   ('mw_business_audit_owner','agent_audit.commits','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_changes_owner_dev','public.pwa_row_changes','DELETE,INSERT,SELECT'),
   ('mw_chat_owner_dev','public.pwa_chat_history','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
@@ -91,6 +95,10 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','pwa_pay_forward_plan_v1(text,numeric,date,jsonb)'),
   ('mw_app_dev','pwa_referral_rebate_projection_v1(text,jsonb)'),
   ('mw_app_dev','referral_rebate_terms(text)'),
+  -- V137 (R129): the rebate state reads and the settlement version.
+  ('mw_app_dev','pwa_rebate_pending_v1(text)'),
+  ('mw_app_dev','pwa_rebates_owed_v1(text)'),
+  ('mw_app_dev','pwa_rebate_settlement_version_v1(text)'),
   ('mw_app_dev','pwa_payment_version_v2(text)'),
   ('mw_app_dev','pwa_preference_version_v2(text)'),
   ('mw_app_dev','sync_cash_ledger(text,text)'),
@@ -101,6 +109,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev_journal_owner','pwa_apply_cash_opening_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_charge_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_expense_v2(text)'),
+  ('mw_app_dev_journal_owner','pwa_apply_rebate_settlement_v1(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_loan_close_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_loan_create_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_loan_source_v2(text)'),
@@ -183,6 +192,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_dispatch_dev','pwa_notify_content_v2(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_content_v3(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_content_v4(uuid,bigint)'),
+  ('mw_notify_dispatch_dev','pwa_notify_content_v5(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_enqueue_v1(uuid,uuid,bigint,boolean)'),
   ('mw_notify_dispatch_dev','pwa_notify_prepare_send_v1(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_start_send_v1(uuid,bigint,bigint)'),
@@ -196,6 +206,9 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_owner_dev','pwa_notify_content_v2(uuid,bigint)'),
   ('mw_notify_owner_dev','pwa_notify_content_v3(uuid,bigint)'),
   ('mw_notify_owner_dev','pwa_notify_content_v4(uuid,bigint)'),
+  ('mw_notify_owner_dev','pwa_notify_content_v5(uuid,bigint)'),
+  ('mw_notify_owner_dev','pwa_rebate_pending_v1(text)'),
+  ('mw_notify_owner_dev','pwa_rebates_owed_v1(text)'),
   ('mw_notify_owner_dev','pwa_notify_eligible_v1(uuid,uuid)'),
   ('mw_notify_owner_dev','pwa_notify_enqueue_v1(uuid,uuid,bigint,boolean)'),
   ('mw_notify_owner_dev','pwa_notify_history_content_v1(jsonb,uuid[])'),
@@ -412,6 +425,26 @@ EXCEPTION WHEN insufficient_privilege THEN NULL;
 END $$;
 RESET ROLE;
 ROLLBACK TO SAVEPOINT v123_probe;
+-- V137 (R129): content v5 is the notify owner's pinned definer; the owner reads the settlement's four columns and two more
+-- expense columns by column grant; no PUBLIC or agent EXECUTE on the new functions; the legacy conversion and the trigger
+-- functions are their owner's only; the DEV reconcile keeps the table read-only for the app role (app-role-policy.mjs).
+DO $$ BEGIN
+ IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_content_v5(uuid,bigint)'::regprocedure) THEN
+  RAISE EXCEPTION 'pwa_notify_content_v5 must be the notify owner''s pinned definer'; END IF;
+ IF (SELECT array_agg(a.attname::text ORDER BY a.attname) FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_rebate_settlements'::regclass AND x.grantee='mw_notify_owner_dev'::regrole AND x.privilege_type='SELECT')
+   IS DISTINCT FROM ARRAY['amount','id','payee_borrower_id','settlement_date'] OR has_table_privilege('mw_notify_owner_dev','public.pwa_rebate_settlements','SELECT')
+  OR NOT has_column_privilege('mw_notify_owner_dev','public."Business Expenses"','Rule Version','SELECT') OR NOT has_column_privilege('mw_notify_owner_dev','public."Business Expenses"','Ref Rebate Settlement','SELECT')
+  OR has_table_privilege('mw_notify_owner_dev','public."Business Expenses"','SELECT') THEN RAISE EXCEPTION 'V137: notify owner column grants differ'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['pwa_rebate_pending_v1(text)','pwa_rebates_owed_v1(text)','pwa_rebate_settlement_version_v1(text)','pwa_apply_rebate_settlement_v1(text)',
+   'pwa_convert_legacy_rebate_v1(text)','rebate_settlement_cash_source()','rebate_settlement_row_guard()','pwa_notify_content_v5(uuid,bigint)']) r
+   WHERE has_function_privilege('public',('public.'||r)::regprocedure,'EXECUTE')
+    OR (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_integration_agent') AND has_function_privilege('mw_integration_agent',('public.'||r)::regprocedure,'EXECUTE'))) THEN
+  RAISE EXCEPTION 'V137: PUBLIC or the agent executes a new function'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw_app_dev','mw_app_dev_journal_owner','mw_notify_owner_dev','mw_ledger_owner_dev','mw-credit-app-command-dev@clever-oasis-508610-n7.iam']) r
+   WHERE has_function_privilege(r,'public.pwa_convert_legacy_rebate_v1(text)','EXECUTE')) THEN RAISE EXCEPTION 'V137: only postgres may run the legacy rebate conversion'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege('mw_app_dev','public.pwa_rebate_settlements',p)) THEN
+  RAISE EXCEPTION 'V137: the application role must read pwa_rebate_settlements only'; END IF;
+END $$;
 -- V133 (R118): column-grant parity. A role that reads an interest column column by column also reads its late-charge
 -- sibling (V132 added the late columns; a column-level grant does not cover a new column, which broke the DEV jobs owner).
 -- Every grantee but the relation owner and superusers, reader IAM logins included.

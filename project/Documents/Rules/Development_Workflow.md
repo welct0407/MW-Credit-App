@@ -26,7 +26,7 @@ A local Windows checkout and a Cloud task each have their own checkout path. A C
 | --- | --- |
 | Current Codex/local or Cloud workspace | Source edits, CLI/API/Terraform and authorized data work using available supported access |
 | Authenticated browser | Only for work not supported adequately by a maintained API/tool; use the [service account mapping](../Service_Account_Browser_Mapping.md) |
-| VM-01 | Windows/local tool and account-bound access requirements; preserve its existing work and sign-in stores |
+| VM-01 | Deleted 8 November 2026 ([change note](../../../Change%20Logs/CHANGE_NOTES_VM01_RETIREMENT_2026-11-08.md)); Windows-only tools now need a Windows workstation the owner provides |
 | Debian | Persistent integration, chart and collector runtime; a controlled deployment target, not a duplicate development worker |
 
 Use the approved Secret Manager/unattended identity route before requesting human CLI sign-in or credential files. Current operator configuration is owned by the root infrastructure/unattended-admin and scripts/Invoke-UnattendedAdmin.ps1. Its supported host/scope matters; do not assume every executor has equivalent rights. Keep any API exception bounded and reconcile Terraform afterward. Browser/manual fallback must not expand scope or bypass platform confirmations.

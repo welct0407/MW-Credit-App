@@ -200,7 +200,8 @@ BEGIN
  PERFORM pg_temp.ro_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower"='RO-RB' AND "Payment Method"='Referral Rebate Offset'),'B: expense path posts no offset payment');
  PERFORM pg_temp.ro_assert((SELECT "Amount"::numeric=30 AND "Ref Offset Payment" IS NULL AND "Ref Paid By Cash Holder"='ch:lisa' FROM public."Business Expenses" WHERE "Row ID"='rr1:RO-LB'),'B: expense 30 paid by Lisa as today, no offset link');
  PERFORM pg_temp.ro_assert((SELECT "Amount Remaining"::numeric=10 FROM public."Charges" WHERE "Row ID"='RO-RB-today') AND NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"='RO-RB-L' AND "Charge Date">day),'B: the referrer loan is untouched');
- PERFORM pg_temp.ro_assert((SELECT count(*)=1 FROM public."Cash Ledger" WHERE "Ref Business Expense"='rr1:RO-LB' AND "Ref From Cash Holder"='ch:lisa'),'B: one cash row out, as before R111');
+ -- R129 (V137): the rebate is pending payment (REFERRAL_REBATE_V3): no cash moves at the close; a settlement pays it later.
+ PERFORM pg_temp.ro_assert(NOT EXISTS(SELECT 1 FROM public."Cash Ledger" WHERE "Ref Business Expense"='rr1:RO-LB') AND public.pwa_rebate_pending_v1('rr1:RO-LB')=30,'B: no cash row at the close, 30 pending (R129)');
  -- C: a pre-R111 command (no rebatePath) closes as before: expense path.
  PERFORM pg_temp.ro_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower"='RO-RC' AND "Payment Method"='Referral Rebate Offset') AND (SELECT "Ref Offset Payment" IS NULL AND "Amount"::numeric=30 FROM public."Business Expenses" WHERE "Row ID"='rr1:RO-LC'),'C: a close without rebatePath still works and is the expense path');
  PERFORM pg_temp.ro_assert((SELECT canonical_json NOT LIKE '%rebatePath%' FROM public.pwa_payment_commands WHERE request_id='d3333333-3333-4333-8333-333333333331'),'C: the legacy command is stored as sent');
@@ -213,7 +214,8 @@ BEGIN
  PERFORM pg_temp.ro_assert((SELECT max("Charge Date")<=day+93 FROM public."Charges" WHERE "Ref Loans"='RO-RE-L'),'E: no charge booked beyond day+93');
  PERFORM pg_temp.ro_assert((SELECT "Amount"::numeric=1000 AND "Ref Offset Payment"=off FROM public."Business Expenses" WHERE "Row ID"='rr1:RO-LE'),'E: the expense stays the full 1000 and links the partial offset');
  PERFORM pg_temp.ro_assert((SELECT coalesce(sum(CASE WHEN "Ref To Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)-coalesce(sum(CASE WHEN "Ref From Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)
-   =-(1000-(SELECT "Amount Received"::numeric FROM public."Payments" WHERE "Row ID"=off)) FROM public."Cash Ledger" WHERE "Ref Payment"=off OR "Ref Business Expense"='rr1:RO-LE'),'E: Lisa cash nets to minus the payable remainder');
+   =0 FROM public."Cash Ledger" WHERE "Ref Payment"=off OR "Ref Business Expense"='rr1:RO-LE')
+  AND public.pwa_rebate_pending_v1('rr1:RO-LE')=1000-(SELECT "Amount Received"::numeric FROM public."Payments" WHERE "Row ID"=off),'E: Lisa cash nets to zero; the remainder is pending (R129)');
  -- F: several open loans: due of both first (20), then the earliest next date, the smaller key on a tie.
  SELECT "Row ID" INTO off FROM public."Payments" WHERE "Ref Borrower"='RO-RF' AND "Payment Method"='Referral Rebate Offset';
  PERFORM pg_temp.ro_assert(off IS NOT NULL AND (SELECT "Amount Received"::numeric=30 FROM public."Payments" WHERE "Row ID"=off),'F: one offset payment of 30 across two loans');
@@ -482,8 +484,9 @@ BEGIN
  -- A: 300 + 300 against a 470 schedule: one offset in full, the other partial (170); Lisa pays the 130 rest.
  PERFORM pg_temp.ro_assert((SELECT array_agg(p."Amount Received"::numeric ORDER BY p."Amount Received") FROM public."Payments" p WHERE p."Ref Borrower"='RO-RQA' AND p."Payment Method"='Referral Rebate Offset')=ARRAY[170,300]::numeric[],'V131 A: offsets of 300 and 170 (partial cover)');
  PERFORM pg_temp.ro_assert((SELECT bool_and("Amount Remaining"::numeric=0) AND max("Charge Date")<=day+93 FROM public."Charges" WHERE "Ref Loans"='RO-RQA-L'),'V131 A: the referrer schedule is paid up to the horizon, nothing beyond');
- PERFORM pg_temp.ro_assert((SELECT coalesce(sum(CASE WHEN "Ref To Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)-coalesce(sum(CASE WHEN "Ref From Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)=-130
-   FROM public."Cash Ledger" WHERE "Ref Business Expense" IN ('rr1:RO-LQA1','rr1:RO-LQA2') OR "Ref Payment" IN (SELECT "Row ID" FROM public."Payments" WHERE "Ref Borrower"='RO-RQA' AND "Payment Method"='Referral Rebate Offset')),'V131 A: Lisa cash nets to minus the 130 payable');
+ PERFORM pg_temp.ro_assert((SELECT coalesce(sum(CASE WHEN "Ref To Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)-coalesce(sum(CASE WHEN "Ref From Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)=0
+   FROM public."Cash Ledger" WHERE "Ref Business Expense" IN ('rr1:RO-LQA1','rr1:RO-LQA2') OR "Ref Payment" IN (SELECT "Row ID" FROM public."Payments" WHERE "Ref Borrower"='RO-RQA' AND "Payment Method"='Referral Rebate Offset'))
+  AND public.pwa_rebates_owed_v1('RO-RQA')=130,'V131 A: Lisa cash nets to zero; 130 pending (R129)');
  -- B: 1000 + 300 against 470: 470 offset in all; the rest stays payable, the payment posted.
  PERFORM pg_temp.ro_assert((SELECT sum(p."Amount Received"::numeric)=470 FROM public."Payments" p WHERE p."Ref Borrower"='RO-RQB' AND p."Payment Method"='Referral Rebate Offset') AND (SELECT sum("Amount"::numeric)=1300 FROM public."Business Expenses" WHERE "Row ID" IN ('rr1:RO-LQB1','rr1:RO-LQB2')),'V131 B: 470 offset, 830 payable (second uncovered when the first takes the schedule)');
  PERFORM pg_temp.ro_assert((SELECT bool_and("Amount Remaining"::numeric=0) FROM public."Charges" WHERE "Ref Loans"='RO-RQB-L'),'V131 B: the referrer schedule is paid up to the horizon');
@@ -668,8 +671,8 @@ DO $$
 DECLARE t record;off text;
 BEGIN
  FOR t IN SELECT * FROM ro_terms LOOP
-  PERFORM pg_temp.ro_assert((SELECT "Amount"::numeric=t.amount AND "Rebate Rate"=t.rate AND "Rebate Cap"=t.cap AND "Rule Version"='REFERRAL_REBATE_V2' AND "Gross Profit Basis"::numeric=2400
-    FROM public."Business Expenses" WHERE "Row ID"='rr1:'||t.loan),'T '||t.loan||': expense '||t.amount||' with rate '||t.rate||', cap '||t.cap||', REFERRAL_REBATE_V2');
+  PERFORM pg_temp.ro_assert((SELECT "Amount"::numeric=t.amount AND "Rebate Rate"=t.rate AND "Rebate Cap"=t.cap AND "Rule Version"='REFERRAL_REBATE_V3' AND "Gross Profit Basis"::numeric=2400
+    FROM public."Business Expenses" WHERE "Row ID"='rr1:'||t.loan),'T '||t.loan||': expense '||t.amount||' with rate '||t.rate||', cap '||t.cap||', REFERRAL_REBATE_V3 (R129)');
   PERFORM pg_temp.ro_assert((SELECT (result_json#>>'{rebate,amount}')::numeric=t.amount FROM public.pwa_payment_commands WHERE canonical_json::jsonb#>>'{command,targetId}'=t.loan AND canonical_json::jsonb#>>'{command,operation}'='loan.close'),'T '||t.loan||': the stored quote equals the booked rebate');
  END LOOP;
  PERFORM pg_temp.ro_assert((SELECT "Loan Status"='ปิดยอดแล้ว' FROM public."Loans" WHERE "Row ID"='RO-LTZ') AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Ref Related Loan"='RO-LTZ')

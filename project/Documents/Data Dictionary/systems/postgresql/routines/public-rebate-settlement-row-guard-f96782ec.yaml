@@ -1,0 +1,45 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.rebate_settlement_row_guard()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "rebate_settlement_row_guard"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.rebate_settlement_row_guard()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       IF TG_OP='UPDATE' THEN RAISE EXCEPTION 'Rebate settlements are immutable; delete the settlement and record it again'; END IF;
+       -- The projection goes with its source (the business_source_delete pattern; the ledger guard allows it at depth 2).
+       DELETE FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Rebate Settlement' AND "Source Key"='REBATESETTLEMENT:'||OLD.id;
+       RETURN OLD;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres}"
+    "comment": "R129: a rebate settlement never changes after insert; its delete removes its cash projection first."
+    "extension": null

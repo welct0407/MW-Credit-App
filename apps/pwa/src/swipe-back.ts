@@ -100,6 +100,8 @@ export function useSwipeBack(workspaceRef:RefObject<HTMLElement|null>,buttonRef:
   };
   const start=(event:TouchEvent)=>{
    if(settling||gesture?.locked)return;
+   // R131 LRP-BOR-4: a page that has just opened is captured now, not on the next frame, so a swipe begun at once counts.
+   if(raf){cancelAnimationFrame(raf);update()}
    gesture=null;const touch=event.touches[0],active=latest.current.action,button=latest.current.buttonRef.current;
    if(event.touches.length!==1||!touch||!active||active.disabled||!usable(button)||modalOpen()||horizontal(event.target,shell)||frames.length<2)return;
    const standalone=matchMedia('(display-mode: standalone)').matches||(navigator as Navigator&{standalone?:boolean}).standalone===true;

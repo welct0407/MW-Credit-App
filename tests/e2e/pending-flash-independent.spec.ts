@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page,emitSyntheticUser} from './fixtures/test';
 import {chooseLanguage,routeSyntheticPreferences} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 // Owner report (PROD R064, iPhone): an ordinary online language change must not flash the
@@ -15,7 +15,7 @@ async function setup(page:Page){
  await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>r.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({ok:true,source:'dev',items:[],nextCursor:null,asOf:'2026-10-15T05:00:00Z'})}));
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',r=>{const path=new URL(r.request().url()).pathname;if(path.startsWith('/api/operations/'))return r.fulfill({contentType:'application/json',body:'{"ok":true,"kind":"unresolved","safeToUseNewRequestId":false}'});if(path==='/api/dashboard')return r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})});return r.fulfill({contentType:'application/json',body:'{"ok":true,"items":[],"nextCursor":null}'})});
  const writes=await routeSyntheticPreferences(page);
- await page.goto(base);await page.evaluate(()=>(window as any).emitUser());await expect(page.locator('.live-body')).toBeVisible();
+ await page.goto(base);await emitSyntheticUser(page);await expect(page.locator('.live-body')).toBeVisible();
  // Record every moment any pending affordance appears anywhere in the DOM, visible or not.
  await page.evaluate(pattern=>{const w=window as any;w.__flashes=[];const regex=new RegExp(pattern);const scan=()=>{if(document.querySelector('.waiting-sync-badge'))w.__flashes.push('badge');for(const el of document.querySelectorAll('button,p,[role=status]')){const text=(el.getAttribute('aria-label')??'')+' '+(el.textContent??'');if(regex.test(text)){w.__flashes.push(text.trim().slice(0,60));break}}};new MutationObserver(scan).observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true});scan()},flashPattern.source);
  return writes;

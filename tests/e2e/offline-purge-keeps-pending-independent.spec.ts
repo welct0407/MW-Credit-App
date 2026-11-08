@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './fixtures/test';
 // APP-OFFLINE-01: an involuntary purge (401/403) keeps unsynced pending:* rows and their inline receipt images; a voluntary sign-out purge still clears everything.
 const issuer='https://securetoken.google.com/clever-oasis-508610-n7';
 async function harness(page:any){

@@ -1,7 +1,7 @@
 import {chooseLanguage,chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
 function _preparedWire(value:any){const{data,...metadata}=value;return{...metadata,schemaVersion:2,generation:'fixture-'+value.domain,nextCursor:null,patches:Object.entries(data??{}).map(([key,value])=>({key,mode:'replace',value}))}}
 
-import {test,expect} from '@playwright/test';
+import {test,expect} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import sharp from 'sharp';
 let server:ChildProcess;let base:string;let serverLog="";

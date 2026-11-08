@@ -39,7 +39,33 @@ async function pendingIdentity(value:any){
  const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await image.arrayBuffer())),byte=>byte.toString(16).padStart(2,'0')).join('');
  return JSON.stringify({...value,receipt:{...value.receipt,image:{type:image.type,size:image.size,hash}}});
 }
-/** Caller must supply the currently verified owner session. No authentication is inferred here. */
+// R132: images are stored and restored as owned in-memory copies. A Blob read back from IndexedDB (a restored draft's
+// receipt) stays tied to its source record in WebKit; once that record is rewritten or deleted the Blob is unreadable, and a
+// pending row that stored it fails every later rewrite ("Error preparing Blob/File data"), so it would stay queued for ever.
+// Copies are made before a transaction opens (an await inside it would let it auto-commit). An unreadable image fails a
+// pending or cache save (a payment is never queued with a broken receipt); a draft drops it (ownedDraft). Type, size, name
+// and row shape are kept.
+async function ownedBlobs<T>(value:T,onUnreadable?:(path:string[])=>void,path:string[]=[]):Promise<T>{
+ if(value instanceof Blob){let bytes:ArrayBuffer;try{bytes=await value.arrayBuffer()}catch(error){if(!onUnreadable)throw error;onUnreadable(path);return null as T}return (value instanceof File?new File([bytes],value.name,{type:value.type,lastModified:value.lastModified}):new Blob([bytes],{type:value.type})) as T}
+ if(Array.isArray(value))return await Promise.all(value.map((item,index)=>ownedBlobs(item,onUnreadable,[...path,String(index)]))) as T;
+ if(value&&typeof value==='object'&&Object.getPrototypeOf(value)===Object.prototype)return Object.fromEntries(await Promise.all(Object.entries(value).map(async([key,item])=>[key,await ownedBlobs(item,onUnreadable,[...path,key])]))) as T;
+ return value;
+}
+/** A draft's unreadable receipt image is dropped with its receipt fields, as each form's Remove receipt does, so the owner re-attaches it. */
+async function ownedDraft<T>(value:T):Promise<T>{
+ const dropped:string[]=[];const owned:any=await ownedBlobs(value,path=>dropped.push(path.join('.')));
+ const draft=owned?.draft;
+ if(dropped.includes('draft.receiptImage')&&draft?.kind==='close')Object.assign(draft,{receipt:null,receiptName:'',transferTime:''});
+ if(dropped.includes('draft.receiptImage')&&draft?.kind==='correction')Object.assign(draft,{receiptId:null,receiptMode:draft.preview?.source?.receiptReference?'remove':'preserve'});
+ if(dropped.includes('image')&&owned&&'selectionRows' in owned)Object.assign(owned,{slipDate:null,transferTime:''});
+ return owned;
+}
+/**
+ * Caller supplies the owner session. No authentication is inferred here. R132: the scope may be opened for the persisted
+ * (provisional) uid before Firebase confirms it; until then the only writes are uid-independent expiry cleanup and the
+ * user's own drafts and saved changes, which stay in this scope and are kept (purge keepPending) if Firebase confirms a
+ * different uid.
+ */
 export function ownerOfflineRepository(identity:{issuer:string;uid:string},environment:ApplicationEnvironment=applicationEnvironment) {
  const name=offlineNamespace(identity,environment);
  const instanceEpoch=namespaceEpochs.get(name)??0;
@@ -79,16 +105,33 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
  async function read<T>(kind:Saved<T>['kind'],id:string){
   const value=await transaction<Saved<T>|undefined>('readonly',(store,done)=>{const req=store.get(kind+':'+id);req.onsuccess=()=>done(req.result)});
   if(value?.kind==='snapshot'&&Date.now()-value.savedAt>expiry){await remove(kind,id);return null;}
+  if(value?.kind==='draft')return {...value,value:await ownedDraft(value.value)};
   return value??null;
+ }
+ // R132: WebKit can also drop a record's Blob when the record is rewritten with the Blob it was just read with (a claim
+ // or settle under load), leaving the pending row unsendable. Those rewrites store an owned copy of the receipt image read
+ // just before (outside the transaction); one copy per sync attempt (claim, dispatch, settle; pending rows are immutable).
+ // An image that is already unreadable is rewritten as it was.
+ const imageCopies=new Map<string,Blob>();
+ async function pendingImageCopy(id:string){
+  const saved=imageCopies.get(id);if(saved)return saved;
+  const image=(await read<any>('pending',id).catch(()=>null))?.value?.receipt?.image;
+  if(!(image instanceof Blob))return null;
+  try{const copy=await ownedBlobs(image);imageCopies.set(id,copy);return copy}catch{return null}
+ }
+ function withImageCopy(row:Saved<any>,image:Blob|null):Saved<any>{
+  const current=row.value?.receipt?.image;
+  return image&&current instanceof Blob&&current.size===image.size&&current.type===image.type?{...row,value:{...row.value,receipt:{...row.value.receipt,image}}}:row;
  }
  function bumpReadRevision(store:IDBObjectStore){const request=store.get('meta:read-revision');request.onsuccess=()=>store.put({key:'meta:read-revision',kind:'meta',value:(request.result?.value??0)+1})}
  async function cacheTransaction<T>(mode:IDBTransactionMode,fallback:T,work:(store:IDBObjectStore,done:(value:T)=>void)=>void){
   if(!validInstance())return fallback;const expected=await capturedEpoch;
   return transaction<T>(mode,(store,done)=>{const epoch=store.get('meta:epoch');epoch.onsuccess=()=>{if(!validInstance()||(epoch.result?.value??'initial')!==expected){done(fallback);return;}const lease=store.get('lease:owner');lease.onsuccess=()=>{if(!lease.result||Date.now()-lease.result.value.verifiedAt>=expiry){done(fallback);return;}work(store,done)}}});
  }
- async function remove(kind:Saved<unknown>['kind'],id:string){await transaction<void>('readwrite',(store,done)=>{store.delete(kind+':'+id);if(kind==='pending')bumpReadRevision(store);done()});if(kind==='pending'){changed();readsInvalidated()}}
+ async function remove(kind:Saved<unknown>['kind'],id:string){if(kind==='pending')imageCopies.delete(id);await transaction<void>('readwrite',(store,done)=>{store.delete(kind+':'+id);if(kind==='pending')bumpReadRevision(store);done()});if(kind==='pending'){changed();readsInvalidated()}}
  async function save<T>(kind:Saved<T>['kind'],id:string,value:T,savedAt=Date.now()){
   if(!id)throw Error('Offline record identity required');
+  value=kind==='draft'?await ownedDraft(value):await ownedBlobs(value);
   const identity=kind==='pending'?await pendingIdentity(value):undefined;
   await transaction<void>('readwrite',(store,done,fail)=>{
    const req=store.get(kind+':'+id);req.onsuccess=()=>{
@@ -172,25 +215,38 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   /** savedAt: a receipt seeded from the server copy the owner just uploaded records the server's receipt time (R078). */
   async saveDatasetMedia(key:string,value:Blob,revision:number,savedAt=Date.now()){
    if(!(value instanceof Blob)||!['image/png','image/jpeg','image/webp'].includes(value.type))throw Error('Invalid offline receipt');
+   value=await ownedBlobs(value);
    return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const current=store.get('meta:read-revision');current.onsuccess=()=>{if((current.result?.value??0)!==revision){done(false);return;}store.put({key:'dataset-media:'+key,kind:'dataset-media',savedAt,revision,value});done(true)}});
   },
-  async readCachedResponse(key:string){return cacheTransaction<CachedResponse|null>('readwrite',null,(store,done)=>{const request=store.get('cache:'+key);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>{if(row.revision!==(current.result?.value??0)){done(null);return;}store.put({...row,lastUsed:Date.now()});done({...row.value,savedAt:row.savedAt,revision:row.revision})}}})},
+  // R132: a blob row is not rewritten to touch lastUsed (WebKit can drop a Blob rewritten with itself); blob rows age by savedAt.
+  async readCachedResponse(key:string){return cacheTransaction<CachedResponse|null>('readwrite',null,(store,done)=>{const request=store.get('cache:'+key);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>{if(row.revision!==(current.result?.value??0)){done(null);return;}if(row.value?.format!=='blob')store.put({...row,lastUsed:Date.now()});done({...row.value,savedAt:row.savedAt,revision:row.revision})}}})},
   async saveCachedResponse(key:string,value:Omit<CachedResponse,'savedAt'|'revision'>,revision:number,expectedCacheRevision?:number|null){
    const size=value.format==='blob'&&value.data instanceof Blob?value.data.size:new TextEncoder().encode(JSON.stringify(value.data)).byteLength;
    if(size>8388608)return false;
+   if(value.data instanceof Blob)value={...value,data:await ownedBlobs(value.data)};
    return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const version=store.get('meta:read-revision');version.onsuccess=()=>{if((version.result?.value??0)!==revision){done(false);return;}const cacheRevision=store.get('meta:cache-revision');cacheRevision.onsuccess=()=>{if(expectedCacheRevision!==undefined&&(cacheRevision.result?.value??0)!==expectedCacheRevision){done(false);return;}const request=store.getAll(kindRange('cache'));request.onsuccess=()=>{const rows=request.result.filter((row:any)=>row.key!=='cache:'+key).sort((a:any,b:any)=>(b.lastUsed??b.savedAt)-(a.lastUsed??a.savedAt));let count=1,bytes=size;for(const row of rows){count++;bytes+=row.size??0;if(count>512||bytes>33554432)store.delete(row.key)}store.put({key:'cache:'+key,kind:'cache',savedAt:Date.now(),lastUsed:Date.now(),size,value,revision});done(true)}}}});
   },
   async authorize(){await save('lease','owner',{verifiedAt:Date.now()});window.dispatchEvent(new Event('mw-offline-queued'))},
   async authorized(){const lease=await read<{verifiedAt:number}>('lease','owner');return !!lease&&Date.now()-lease.value.verifiedAt<expiry},
   async list(kind:'snapshot'|'draft'|'pending'){
    const rows=await transaction<Saved<any>[]>('readonly',(store,done)=>{const req=store.getAll(kindRange(kind));req.onsuccess=()=>done(req.result)});
-   return rows.filter(row=>row.kind===kind&&(kind!=='snapshot'||Date.now()-row.savedAt<expiry));
+   const current=rows.filter(row=>row.kind===kind&&(kind!=='snapshot'||Date.now()-row.savedAt<expiry));
+   return kind==='draft'?Promise.all(current.map(async row=>({...row,value:await ownedDraft(row.value)}))):current;
   },
   /** R072 troubleshooting: row counts per kind, the stored and partial dataset domains and the lease time, from keys only (no data loads). */
   async diagnosticCounts(){
    return transaction<{kinds:Record<string,number>;datasets:string[];progress:string[];leaseVerifiedAt:number|null}>('readonly',(store,done)=>{const keys=store.getAllKeys();keys.onsuccess=()=>{const kinds:Record<string,number>={},datasets:string[]=[],progress:string[]=[];
     for(const key of keys.result as string[]){const kind=String(key).split(':')[0];kinds[kind]=(kinds[kind]??0)+1;if(kind==='dataset')datasets.push(String(key).slice(8));if(kind==='dataset-progress')progress.push(String(key).slice(17))}
     const lease=store.get('lease:owner');lease.onsuccess=()=>{const verifiedAt=lease.result?.value?.verifiedAt;done({kinds,datasets:datasets.sort(),progress:progress.sort(),leaseVerifiedAt:typeof verifiedAt==='number'?verifiedAt:null})}}});
+  },
+  /** R133 troubleshooting (R132 WebKit unreadable blob): reads the bytes of up to `limit` stored receipts, read-only, and
+   * counts those that cannot be read (error names only; no key, type or bytes leave this method). */
+  async sampleDatasetMedia(limit=3){
+   const rows=await transaction<{value?:unknown}[]>('readonly',(store,done)=>{const request=store.getAll(kindRange('dataset-media'),Math.max(1,Math.floor(limit)));request.onsuccess=()=>done(request.result)});
+   let unreadable=0;const errors:string[]=[];
+   for(const row of rows){const blob=row?.value;if(!(blob instanceof Blob)){unreadable++;errors.push('NotABlob');continue}
+    try{await blob.arrayBuffer()}catch(error){unreadable++;errors.push(error instanceof Error&&error.name?error.name:'Error')}}
+   return {checked:rows.length,unreadable,errors};
   },
   async saveViewedSnapshot(value:ViewedSnapshot){validateViewedSnapshot(value);const lease=await read<{verifiedAt:number}>('lease','owner');if(!lease||Date.now()-lease.value.verifiedAt>=expiry)throw Error('Offline owner lease expired');await save('snapshot',value.domain+':'+value.recordId,value,Date.parse(value.asOf))},
   async saveSnapshot(id:string,value:{charges:unknown[];[key:string]:unknown}){if(value.charges.length>100)throw Error('Offline snapshot exceeds 100 charges');await save('snapshot',id,value)},
@@ -205,10 +261,12 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
    return transaction<boolean>('readonly',(store,done)=>{const epoch=store.get('meta:epoch');epoch.onsuccess=()=>{if(!validInstance()||(epoch.result?.value??'initial')!==expected){done(false);return;}const lease=store.get('lease:owner');lease.onsuccess=()=>done(!!lease.result&&Date.now()-lease.result.value.verifiedAt<expiry)}});
   },
   async claimPending(id:string,owner:string,exclusive=false){
-   const claimed=await transaction<Saved<any>|null>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(!row||row.sync?.state==='blocked'||((row.sync?.leaseUntil??0)>Date.now()&&!(exclusive&&row.sync?.exclusive))){done(null);return;}row.sync={state:'syncing',attempted:row.sync?.attempted??true,leaseOwner:owner,leaseUntil:Date.now()+90000,exclusive,deferred:row.sync?.deferred===true};store.put(row);done(row)}});if(claimed)changed();return claimed;
+   const image=await pendingImageCopy(id);
+   const claimed=await transaction<Saved<any>|null>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const stored=request.result as Saved<any>|undefined,row=stored&&withImageCopy(stored,image);if(!row||row.sync?.state==='blocked'||((row.sync?.leaseUntil??0)>Date.now()&&!(exclusive&&row.sync?.exclusive))){done(null);return;}row.sync={state:'syncing',attempted:row.sync?.attempted??true,leaseOwner:owner,leaseUntil:Date.now()+90000,exclusive,deferred:row.sync?.deferred===true};store.put(row);done(row)}});if(claimed)changed();else imageCopies.delete(id);return claimed;
   },
   async markPendingDispatched(id:string,owner:string){
-   return transaction<boolean>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner!==owner){done(false);return;}row.sync={...row.sync,attempted:true};store.put(row);done(true)}});
+   const image=await pendingImageCopy(id);
+   return transaction<boolean>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner!==owner){done(false);return;}store.put(withImageCopy({...row,sync:{...row.sync,attempted:true}},image));done(true)}});
   },
   async coalescePendingNote(oldId:string,newId:string,value:any){
    const identity=await pendingIdentity(value);
@@ -222,7 +280,8 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     const value={...row.value,command};delete value.notePredecessor;store.put({...row,value,identity:JSON.stringify(value)});done(true)}});
   },
   async settlePending(id:string,owner:string,sync:PendingSync|null){
-   let deferred=false;await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){deferred=row.sync.deferred===true;if(sync===null){store.delete(row.key);bumpReadRevision(store)}else store.put({...row,sync:{...sync,deferred:true}});}done()}});changed();if(sync===null){if(deferred)window.dispatchEvent(new CustomEvent('mw-offline-synced',{detail:{id}}));readsInvalidated()}
+   const image=sync===null?null:await pendingImageCopy(id);imageCopies.delete(id);
+   let deferred=false;await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){deferred=row.sync.deferred===true;if(sync===null){store.delete(row.key);bumpReadRevision(store)}else store.put(withImageCopy({...row,sync:{...sync,deferred:true}},image));}done()}});changed();if(sync===null){if(deferred)window.dispatchEvent(new CustomEvent('mw-offline-synced',{detail:{id}}));readsInvalidated()}
   },
   async migrateSavedNotes(){
    await transaction<void>('readwrite',(store,done)=>{const marker=store.get('meta:note-queue-v1');marker.onsuccess=()=>{if(marker.result){done();return;}const drafts=store.getAll(kindRange('draft'));drafts.onsuccess=()=>{const pendingRows=store.getAll(kindRange('pending'));pendingRows.onsuccess=()=>{for(const row of drafts.result as Saved<any>[]){const draft=row.value?.draft;if(row.kind!=='draft'||draft?.kind!=='collection-note'||typeof draft.id!=='string'||typeof draft.text!=='string'||!draft.record||!/^[a-f0-9]{64}$/.test(draft.record.version??''))continue;

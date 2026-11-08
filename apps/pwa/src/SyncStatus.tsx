@@ -1,6 +1,7 @@
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import type {OfflinePreparation} from './offline-dataset';
 import {pausedSections,shortSectionName} from './paused-sections';
+import {ACTIVITY_SETTLE_IDLE,activityLabelParts,settleActivity,type HeaderActivity} from './header-activity';
 
 const STALE_MS=10*60*1000,NOT_STARTED_MS=2000,ANNOUNCE_MS=5000;
 const clock=(thai:boolean,at:number)=>new Intl.DateTimeFormat(thai?'th-TH':'en-GB',{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(at));
@@ -9,8 +10,13 @@ const clock=(thai:boolean,at:number)=>new Intl.DateTimeFormat(thai?'th-TH':'en-G
  * detail.all) is checking its domains, it shows a progress bar and percentage; then the time of the
  * last completed check, "Updated HH:MM", or "Saved data from HH:MM" after ~10 minutes. Failed domains
  * read "Cash not updated" (several: "Update failed") until a check succeeds. Automatic checks (poll,
- * focus) stay quiet and only move the time. It is text, not a control. */
-export function SyncStatus({preparation,thai,visible}:{preparation:OfflinePreparation;thai:boolean;visible:boolean}){
+ * focus) stay quiet and only move the time. R133: while the refresh icon spins (activity, header-activity.ts) the cell
+ * names what it waits for ("Connecting…", "Signing in…", "Saving…", "Reading receipt…", "Loading…") in the normal colour,
+ * after a 200 ms spin and for at least 600 ms; the progress bar still wins, and the activity comes before a failure, an
+ * incomplete download and the time. The activity also shows before the session is ready (visible false), where the time
+ * and failures of an earlier scope never do. It is text, not a control. */
+export function SyncStatus({preparation,thai,visible,activity=null}:{preparation:OfflinePreparation;thai:boolean;visible:boolean;activity?:HeaderActivity|null}){
+ const shownActivity=useSettledActivity(activity);
  const [,tick]=useState(0),[requestedAt,setRequestedAt]=useState<number|null>(null),seenPending=useRef(false);
  const [announcement,setAnnouncement]=useState(''),wasSyncing=useRef(false),fullSync=useRef(false),texts=useRef({start:'',outcome:''}),clearTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
  useEffect(()=>{const timer=setInterval(()=>tick(value=>value+1),30000);return()=>clearInterval(timer)},[]);
@@ -40,15 +46,30 @@ export function SyncStatus({preparation,thai,visible}:{preparation:OfflinePrepar
  useEffect(()=>{const text=syncing&&!wasSyncing.current?texts.current.start:!syncing&&wasSyncing.current?texts.current.outcome:null;wasSyncing.current=syncing;if(text===null)return;if(!syncing)fullSync.current=false;setAnnouncement(text);clearTimeout(clearTimer.current);clearTimer.current=setTimeout(()=>setAnnouncement(''),ANNOUNCE_MS)},[syncing]);
  useEffect(()=>()=>clearTimeout(clearTimer.current),[]);
  const region=<span className="visually-hidden sync-announcement" role="status" aria-live="polite">{announcement}</span>;
- if(!visible)return region;
+ // Text only (no role): the hidden region above keeps the only announcements; the refresh button carries the same text.
+ // SYNC-ACT-UX-16: the Thai object word (ใบเสร็จ, ระบบ) stays on one line, as a failed section name does.
+ const [activityLead,activityObject]=shownActivity?activityLabelParts(shownActivity,thai):['',''];
+ const activityText=shownActivity&&<>{region}<span className="live-sync-status activity">{activityLead}{activityObject&&<span className="sync-section">{activityObject}</span>}</span></>;
+ if(!visible)return activityText||region;
  // HDR-SYNC-PCT-01: the percentage sits above the bar (owner, 17 October 2026), so it comes first in the DOM.
  if(syncing){const percent=Math.floor(preparation.progress);
   return <>{region}<span className="live-sync-status syncing"><span className="header-load-percent" aria-hidden="true">{percent}%</span><progress className="header-load-progress" max={100} value={percent} aria-label={t('Sync progress','ความคืบหน้าการซิงค์')}/></span></>}
+ if(activityText)return activityText;
  // HDR-SYNC-01/02/09: Thai keeps the section name, and "ไม่ครบ", on one line (.sync-section); the advice is visually hidden detail, not a title.
  if(failed.length)return <>{region}<span className="live-sync-status failed">{failed.length>1||!thai?failedText:<>ยังไม่อัปเดต <span className="sync-section">{short}</span></>}<span className="visually-hidden">{' '+failedDetail}</span></span></>;
  if(incomplete)return <>{region}<span className="live-sync-status failed">{thai?<>ดาวน์โหลด<span className="sync-section">ไม่ครบ</span></>:'Download incomplete'}<span className="visually-hidden">{' '+incompleteDetail}</span></span></>;
  if(at===null)return region;
  return <>{region}<span className={'live-sync-status'+(stale?' stale':'')}>{timeText}</span></>;
+}
+/** R133: the activity as settleActivity shows it (200 ms delay, 600 ms hold); the layout effect swaps it before paint. */
+function useSettledActivity(activity:HeaderActivity|null){
+ const settled=useRef(ACTIVITY_SETTLE_IDLE),[,rerender]=useState(0);
+ useLayoutEffect(()=>{
+  let timer:ReturnType<typeof setTimeout>|undefined;
+  const step=()=>{timer=undefined;const {state,wakeAt}=settleActivity(settled.current,activity,Date.now()),changed=state.shown!==settled.current.shown;settled.current=state;if(changed)rerender(value=>value+1);if(wakeAt!==null)timer=setTimeout(step,Math.max(0,wakeAt-Date.now()))};
+  step();return()=>clearTimeout(timer);
+ },[activity]);
+ return settled.current.shown;
 }
 /** SYNC-UX-07/R01/R06: a brief notice when changes that waited in the queue reach
  * the server. The live region stays mounted (empty when idle) so it is announced. */

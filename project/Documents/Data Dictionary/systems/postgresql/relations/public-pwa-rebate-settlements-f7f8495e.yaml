@@ -1,0 +1,763 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.pwa_rebate_settlements"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_rebate_settlements"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_app_prod=r/postgres,mw_app_prod_journal_owner=arwd/postgres,mw_ledger_owner_prod=r/postgres}"
+    "comment": "R129: one referral rebate settlement: whole pending rebates (REFERRAL_REBATE_V3) of one referrer paid by Lisa\
+      \ in one cash movement on settlement_date. Written only by pwa_apply_rebate_settlement_v1; immutable (delete and record\
+      \ again)."
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "id":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{mw_notify_owner_prod=r/postgres}"
+      "comment": "R129: the rebate-settlement.create command's targetId (client UUID v4)."
+    "payee_borrower_id":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "payee_borrower_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{mw_notify_owner_prod=r/postgres}"
+      "comment": "R129: the referrer paid."
+    "settlement_date":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "settlement_date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{mw_notify_owner_prod=r/postgres}"
+      "comment": "R129: the cash movement date; not in the future (Bangkok business date), not before the newest close date\
+        \ of the rebates it pays."
+    "amount":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "amount"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{mw_notify_owner_prod=r/postgres}"
+      "comment": "R129: whole baht, the sum of the pending amounts of the rebates linked to it."
+    "paid_by_cash_holder":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "paid_by_cash_holder"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "R129: always ch:lisa (D4)."
+    "paid_by_cash_account":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "paid_by_cash_account"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "R129: an active account of ch:lisa, checked by the apply function."
+    "payment_method":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "payment_method"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "bank_reference":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "bank_reference"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "notes":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "notes"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "created_by":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "created_by"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "created_at":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "created_at"
+      "ordinal": 11
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "now()"
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "pwa_rebate_settlements_amount_check":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_amount_check"
+      "kind": "c"
+      "definition": "CHECK (amount > 0::numeric AND amount < 'Infinity'::numeric AND amount = trunc(amount))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_amount_not_null":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_amount_not_null"
+      "kind": "n"
+      "definition": "NOT NULL amount"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_check":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_check"
+      "kind": "c"
+      "definition": "CHECK (bank_reference IS NULL OR octet_length(bank_reference) >= 1 AND octet_length(bank_reference) <=\
+        \ 256 AND btrim(bank_reference) <> ''::text AND bank_reference !~ '[\\r\\n]'::text AND payment_method = 'Bank Transfer'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_created_at_not_null":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_created_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL created_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 11
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_created_by_check":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_created_by_check"
+      "kind": "c"
+      "definition": "CHECK (btrim(created_by) <> ''::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 10
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_created_by_not_null":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_created_by_not_null"
+      "kind": "n"
+      "definition": "NOT NULL created_by"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 10
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_id_check":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_id_check"
+      "kind": "c"
+      "definition": "CHECK (id ~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_id_not_null":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_notes_check":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_notes_check"
+      "kind": "c"
+      "definition": "CHECK (notes IS NULL OR octet_length(notes) <= 65536)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_paid_by_cash_account_fkey":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_paid_by_cash_account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (paid_by_cash_account) REFERENCES \"Cash Accounts\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "pwa_rebate_settlements_paid_by_cash_account_not_null":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_paid_by_cash_account_not_null"
+      "kind": "n"
+      "definition": "NOT NULL paid_by_cash_account"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_paid_by_cash_holder_check":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_paid_by_cash_holder_check"
+      "kind": "c"
+      "definition": "CHECK (paid_by_cash_holder = 'ch:lisa'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_paid_by_cash_holder_fkey":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_paid_by_cash_holder_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (paid_by_cash_holder) REFERENCES \"Cash Holders\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Holders\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "pwa_rebate_settlements_paid_by_cash_holder_not_null":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_paid_by_cash_holder_not_null"
+      "kind": "n"
+      "definition": "NOT NULL paid_by_cash_holder"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_payee_borrower_id_fkey":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_payee_borrower_id_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (payee_borrower_id) REFERENCES \"Borrowers\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Borrowers\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "pwa_rebate_settlements_payee_borrower_id_not_null":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_payee_borrower_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL payee_borrower_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_payment_method_check":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_payment_method_check"
+      "kind": "c"
+      "definition": "CHECK (payment_method = ANY (ARRAY['Bank Transfer'::text, 'Cash'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_payment_method_not_null":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_payment_method_not_null"
+      "kind": "n"
+      "definition": "NOT NULL payment_method"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_pkey":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_rebate_settlements_settlement_date_not_null":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_settlement_date_not_null"
+      "kind": "n"
+      "definition": "NOT NULL settlement_date"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "pwa_rebate_settlements_payee_date":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_payee_date"
+      "definition": "CREATE INDEX pwa_rebate_settlements_payee_date ON public.pwa_rebate_settlements USING btree (payee_borrower_id,\
+        \ settlement_date DESC)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_rebate_settlements_pkey":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_rebate_settlements_pkey ON public.pwa_rebate_settlements USING btree (id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_39219":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_a_39219"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_39219\" AFTER DELETE ON pwa_rebate_settlements FROM\
+        \ \"Business Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_39220":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_a_39220"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_39220\" AFTER UPDATE ON pwa_rebate_settlements FROM\
+        \ \"Business Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_39225":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_a_39225"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_39225\" AFTER DELETE ON pwa_rebate_settlements FROM\
+        \ \"Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_39226":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_a_39226"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_39226\" AFTER UPDATE ON pwa_rebate_settlements FROM\
+        \ \"Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39205":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_c_39205"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39205\" AFTER INSERT ON pwa_rebate_settlements FROM\
+        \ \"Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39206":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_c_39206"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39206\" AFTER UPDATE ON pwa_rebate_settlements FROM\
+        \ \"Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39210":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_c_39210"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39210\" AFTER INSERT ON pwa_rebate_settlements FROM\
+        \ \"Cash Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39211":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_c_39211"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39211\" AFTER UPDATE ON pwa_rebate_settlements FROM\
+        \ \"Cash Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39215":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_c_39215"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39215\" AFTER INSERT ON pwa_rebate_settlements FROM\
+        \ \"Cash Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39216":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_c_39216"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39216\" AFTER UPDATE ON pwa_rebate_settlements FROM\
+        \ \"Cash Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a0_rebate_settlement_guard":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "a0_rebate_settlement_guard"
+      "definition": "CREATE TRIGGER a0_rebate_settlement_guard BEFORE DELETE OR UPDATE ON pwa_rebate_settlements FOR EACH\
+        \ ROW EXECUTE FUNCTION rebate_settlement_row_guard()"
+      "enabled": "O"
+      "internal": false
+      "routine": "rebate_settlement_row_guard()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zz_cash_source":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "zz_cash_source"
+      "definition": "CREATE TRIGGER zz_cash_source AFTER INSERT OR UPDATE OF amount, settlement_date, paid_by_cash_account\
+        \ ON pwa_rebate_settlements FOR EACH ROW EXECUTE FUNCTION rebate_settlement_cash_source()"
+      "enabled": "O"
+      "internal": false
+      "routine": "rebate_settlement_cash_source()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

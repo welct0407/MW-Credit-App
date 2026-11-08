@@ -23,7 +23,6 @@ locals {
   subscription   = "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293"
   resource_group = "${local.subscription}/resourceGroups/rg-mwcredit"
   backup_vault   = "${local.subscription}/resourceGroups/rg-backup/providers/Microsoft.RecoveryServices/vaults/vm-backup-vault"
-  backup_item    = "${local.backup_vault}/backupFabrics/Azure/protectionContainers/IaasVMContainer;iaasvmcontainerv2;RG-MWCREDIT;VM-01/protectedItems/VM;iaasvmcontainerv2;RG-MWCREDIT;VM-01"
 }
 resource "azurerm_user_assigned_identity" "operator" {
   name                = "mw-credit-unattended-admin"
@@ -41,12 +40,6 @@ resource "azurerm_role_assignment" "resource_admin" {
 resource "azurerm_role_assignment" "backup_reader" {
   scope                = local.backup_vault
   role_definition_name = "Reader"
-  principal_id         = azurerm_user_assigned_identity.operator.principal_id
-  principal_type       = "ServicePrincipal"
-}
-resource "azurerm_role_assignment" "backup_operator" {
-  scope                = local.backup_item
-  role_definition_name = "Backup Contributor"
   principal_id         = azurerm_user_assigned_identity.operator.principal_id
   principal_type       = "ServicePrincipal"
 }

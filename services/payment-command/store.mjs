@@ -1,3 +1,4 @@
+import {logUnavailable} from '../lib/log.mjs';
 import {BUSINESS_TODAY_QUERY} from '../lib/business-date.mjs';
 import {WAKE_MS} from '../notifications/postcommit.mjs';
 import {offlineDomains} from '../business/offline-dataset.mjs';
@@ -19,6 +20,7 @@ import {readLoanRelated} from '../business/loan-related.mjs';
 import {readPreferences} from '../business/preferences.mjs';
 import {readCashOverview,readCashStatement} from '../business/cash.mjs';
 import {readExpenseRecord,readExpenseOptions,readExpensePage} from '../business/expenses.mjs';
+import {readReferrers,readReferrerRecord,readRebateSettlement} from '../business/referrers.mjs';
 import {readPaymentRecord,readPaymentCorrectionPreview} from '../business/payments.mjs';
 import {readChargeRecord} from '../business/charges.mjs';
 import {canonicalOperation,operationIdentity} from '../contracts/operation-command.mjs';
@@ -61,7 +63,8 @@ async function settleCloses(client,plan,businessDate){
     if((await client.query(`SELECT to_regprocedure('public.pwa_referral_rebate_projection_v1(text,jsonb)') IS NOT NULL AS present`)).rows[0].present){
       const calculation=(await client.query('SELECT public.loan_close_calculation_v83($1,$2::date) AS value',[entry.loanId,businessDate])).rows[0].value;
       const projection=(await client.query('SELECT public.pwa_referral_rebate_projection_v1($1,$2::jsonb) AS value',[entry.loanId,JSON.stringify(calculation)])).rows[0].value;
-      if(projection)rebate={amount:projection.amount,referrer:borrowerDisplayName(projection.referrerName,projection.referrerDescription),offset:projection.hasOpenLoan===true&&projection.selfReferral!==true};
+      // R129 (V137): the referrer's id and pending total before this payment (owedBefore; null before V137).
+      if(projection)rebate={amount:projection.amount,referrer:borrowerDisplayName(projection.referrerName,projection.referrerDescription),offset:projection.hasOpenLoan===true&&projection.selfReferral!==true,referrerId:projection.referrerId,owedBefore:projection.owedBefore??null};
     }
     closes[entry.loanId]={payoff:entry.payoff,gapInterest:entry.accruedInterest,charges:entry.charges,rebate};
   }
@@ -92,8 +95,26 @@ async function readCloseRebate(client,loanId,calculation,businessDate){
   }
   // R120 (V135): the basis of the amount, the profit base and the referrer's terms; null from a projection before V135.
   const basis={profit:projection.profit??null,rate:projection.rate??null,cap:projection.cap??null,custom:typeof projection.custom==='boolean'?projection.custom:null};
+  // R129 (V137): what the referrer is owed before this close (pending rebates); null from a projection before V137.
   return {amount:projection.amount,referrer:{id:projection.referrerId,displayName:borrowerDisplayName(projection.referrerName,projection.referrerDescription)},hasOpenLoan:offerable,
-   previousPath:['offset','expense'].includes(previousPath)?previousPath:null,offset,businessDate,...basis};
+   previousPath:['offset','expense'].includes(previousPath)?previousPath:null,offset,businessDate,...basis,owedBefore:projection.owedBefore??null};
+}
+/** Loan Close calculation refusals (loan_close_calculation_v83, P0001) that mean the loan cannot close as it stands. */
+const CLOSE_UNAVAILABLE=['Loan Close requires an open auto-enabled daily-interest loan','Loan Close requires valid loan date, principal and daily interest','Loan charge components require reconciliation before closing','Loan has no outstanding principal to close','Principal already due exceeds outstanding loan principal','Multiple charges today require reconciliation before closing','Final receipt must be a positive whole-baht amount'];
+/**
+ * R128: the Loan Close quote an Instagram-approved close is planned and posted against (the agent's quote route): the close
+ * preview's figures for today (Bangkok) without the accounts and plan, the R118 parts and the referral rebate. Read only.
+ */
+export async function readLoanCloseQuote(client,id){
+  const loan=(await client.query('SELECT "Ref Borrowers" AS "borrowerId" FROM public."Loans" WHERE "Row ID"=$1',[id])).rows[0];
+  if(!loan)return failure(404,'not_found');
+  let calculation;try{calculation=(await client.query("SELECT public.loan_close_calculation_v83($1,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date) value",[id])).rows[0].value;}catch(error){
+    if(error.code==='P0001'&&CLOSE_UNAVAILABLE.includes(error.message))return failure(422,'record_requires_reconciliation');throw error;
+  }
+  const {sourceVersion,businessDate,amount,planHash}=calculation,rebate=await readCloseRebate(client,id,calculation,businessDate);
+  return {ok:true,value:{loanId:id,borrowerId:loan.borrowerId,sourceVersion,businessDate,amount,planHash,...closeSummary(calculation),
+    rebate:rebate&&{amount:rebate.amount,hasOpenLoan:rebate.hasOpenLoan,previousPath:rebate.previousPath,referrer:rebate.referrer,owedBefore:rebate.owedBefore,
+      offset:rebate.offset&&{covered:rebate.offset.covered,payable:rebate.offset.payable}}}};
 }
 /** R110: the purpose a v10 command carries, as the command derives it: its principal entries, and forward for the loans of
  * the lines dated after the business date (a materialize entry names its loan; a recorded charge's loan is read). */
@@ -180,6 +201,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       // Nothing is applied before COMMIT: a confirmed ROLLBACK is a known non-outcome even after the
       // write was attempted. Only a started COMMIT, or a failed ROLLBACK after the write was attempted,
       // leaves the outcome unknown (APP-PAY-06).
+      logUnavailable('command_store_unavailable',error,{readonly});
       return failure(503, !readonly && (commitStarted || (attempted && quarantine)) ? 'command_outcome_unknown' : 'command_unavailable');
     } finally {
       try { client?.release(quarantine); } catch { /* Cleanup must not mask the intended unavailable/unknown outcome. */ }
@@ -203,7 +225,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       if(!ownerTesting)return failure(403,'access_denied');
       if(!principalAllowed(principal))return failure(403,'access_denied');
       if(!offlineDomains.includes(domain)||![2,3].includes(options.protocol))return failure(400,'invalid_request');
-      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===3?await readOfflineDatasetDelta(offlineReadClient(client,signal),actor,domain,options.input):await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true))}catch{return failure(503,'command_unavailable')}
+      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===3?await readOfflineDatasetDelta(offlineReadClient(client,signal),actor,domain,options.input):await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true))}catch(error){logUnavailable('offline_dataset_unavailable',error,{domain,protocol:options.protocol});return failure(503,'command_unavailable')}
     },
     async management(principal,kind,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{const value=kind==='cash-position'?await readManagementPosition(client):kind==='cash-withdrawal'?await readCashWithdrawal(client,options):kind==='analytics-overview'?await readAnalyticsOverview(client):kind==='analytics-chart'?await readAnalyticsChart(client,options):kind==='analytics-validation'?await readManagementAnalytics(client,options):kind==='assessments'?await readManagementAssessments(client,options):kind==='openings'?await readManagementOpenings(client,options):await (['contributions','settlements','cash-movements'].includes(kind)?readManagementFinancial:readManagement)(client,kind,options);return options?.id&&!value.item?failure(404,'not_found'):{ok:true,value}},true)},
     async upcoming(principal,options={}){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readStandaloneUpcoming(client,options)}}catch(error){if(error.message==='business_date_changed')return failure(409,'business_date_changed');throw error}},true)},
@@ -241,7 +263,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       return run(principal,async client=>{
         if(!(await client.query('SELECT 1 FROM public."Loans" WHERE "Row ID"=$1',[id])).rowCount)return failure(404,'not_found');
         let calculation;try{calculation=(await client.query("SELECT public.loan_close_calculation_v83($1,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date) value",[id])).rows[0].value;}catch(error){
-          if(error.code==='P0001'&&['Loan Close requires an open auto-enabled daily-interest loan','Loan Close requires valid loan date, principal and daily interest','Loan charge components require reconciliation before closing','Loan has no outstanding principal to close','Principal already due exceeds outstanding loan principal','Multiple charges today require reconciliation before closing','Final receipt must be a positive whole-baht amount'].includes(error.message))return failure(422,'record_requires_reconciliation');throw error;
+          if(error.code==='P0001'&&CLOSE_UNAVAILABLE.includes(error.message))return failure(422,'record_requires_reconciliation');throw error;
         }
         const accounts=(await client.query(`SELECT a."Row ID" id,a."Account Label" label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
         const {sourceVersion,businessDate,amount,planHash}=calculation;
@@ -255,6 +277,10 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async expenseRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const item=await readExpenseRecord(client,id);return item?{ok:true,value:{item}}:failure(404,'not_found')},true)},
     async expenseOptions(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpenseOptions(client)}),true)},
     async expenses(principal,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpensePage(client,options)}),true)},
+    // R129 (V137): the Referrers page, a referrer's detail and one rebate settlement (the expense reads' access gate).
+    async referrers(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readReferrers(client)}),true)},
+    async referrerRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const value=await readReferrerRecord(client,id);return value?{ok:true,value}:failure(404,'not_found')},true)},
+    async rebateSettlementRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const value=await readRebateSettlement(client,id);return value?{ok:true,value}:failure(404,'not_found')},true)},
     async paymentImage(principal,id,source='preferred'){
       if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id)||!['preferred','manual','agent'].includes(source))return failure(400,'invalid_request');
       const sql='SELECT "Uploaded Receipt" manual,"Receipt Image" agent,"IG Receipt ID" AS "agentReceiptId","Receipt Received At"::text AS "agentReceivedAt" FROM public."Payments" WHERE "Row ID"=$1';
@@ -386,7 +412,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async remainderPreview(principal,borrowerId,amountReceived){
       const result=await run(principal,async client=>{
         const forward=await readPayForwardPlan(client,borrowerId,amountReceived,{forward:true,principal:[],loans:null});
-        if(!forward)return {ok:true,value:null};
+        // No plan function (before V121): an empty value, which the unwrap below reads as no preview (run() reads value.kind).
+        if(!forward)return {ok:true,value:{}};
         const options=[];
         for(const option of (forward.options??[]).slice(0,PRINCIPAL_PREVIEW_LIMIT)){
           // R113: a loan only a settle can take (kind null) is offered with its payoff remainder; settles: the request reaches

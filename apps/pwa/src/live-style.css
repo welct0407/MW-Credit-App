@@ -558,6 +558,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 /* HDR-SYNC-02: text never exceeds two lines; Thai keeps the section name whole (.sync-section). */
 .live-sync-status { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-width: 88px; padding: 2px 4px; font-size: 13px; line-height: 1.15; text-align: right; font-variant-numeric: tabular-nums; }
 .live-sync-status.failed { font-weight: 700; padding: 2px 0; }
+/* R133 SYNC-ACT-UX-1: the activity beside a spinning refresh icon reads in the normal colour and weight (never stale or failed). */
+.live-sync-status.activity { color: inherit; font-weight: 400; }
 .sync-section { display: inline-block; }
 /* HDR-SYNC-PCT-01: the percentage stacks above the bar, both right-aligned. */
 .live-sync-status.syncing { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 3px; padding: 0 4px; }
@@ -653,8 +655,9 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .live-desktop-nav .live-account-controls{gap:8px}
 .live-account-signout-note{margin:0;font-size:14px;line-height:1.4;color:#444;overflow-wrap:anywhere}
 @media(min-width:1051px){.nav-collapsed .live-account-signout-group{align-items:center}}
-.live-desktop-nav .live-vertical-nav button{height:auto;min-height:48px;max-height:none;padding:4px 14px}
-.live-desktop-nav .live-vertical-nav{gap:4px}
+/* R129: ten workspace items (Referrers added) still fit 1280×800: each item keeps the 44 px touch target, 2 px apart. */
+.live-desktop-nav .live-vertical-nav button{height:auto;min-height:44px;max-height:none;padding:4px 14px}
+.live-desktop-nav .live-vertical-nav,.nav-collapsed .live-desktop-nav .live-vertical-nav{gap:2px;padding-top:8px;padding-bottom:8px}
 .live-shell .topbar:not(:has(.live-menu-toggle)) .live-brand{grid-column:1/3}
 .access-language{display:flex;gap:8px;margin:16px 0 0;padding:0;border:0;min-width:0}
 @media(min-width:1051px){.access-blocked .access-language{display:none}}
@@ -682,6 +685,9 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:650px){.about-record dl>div{flex-direction:column;align-items:stretch;gap:4px}.about-record dt,.about-record dd{flex:none}.about-record dd{justify-content:flex-start;text-align:left}.about-record .secondary-button,.about-troubleshooting .about-copy>button{width:100%}}
 /* R075 slip recognition notes: wrap long references and labels, 44px targets. */
 .selected-payment .recognition-note{overflow-wrap:anywhere}.selected-payment .recognition-note .secondary-button{min-height:44px;margin-top:4px;white-space:normal}
+.loan-close-form .recognition-note{overflow-wrap:anywhere}.loan-close-form .recognition-note .secondary-button{min-height:44px;margin-top:4px;white-space:normal}
+.loan-close-form .slip-reference{overflow-wrap:anywhere}
+.loan-close-form input.slip-reference{display:block;width:100%;max-width:640px;min-width:0;min-height:44px;box-sizing:border-box;font:inherit;padding:10px}
 .selected-payment .slip-reference{overflow-wrap:anywhere}
 .selected-payment input.slip-reference{display:block;width:100%;max-width:640px;min-width:0;min-height:44px;box-sizing:border-box;font:inherit;padding:10px}
 /* Receiving page on iPhone: form controls and notes never exceed the column, and the page itself never pans or
@@ -730,10 +736,10 @@ html:has(.live-shell),html:has(.live-shell) body{overflow-x:clip;overscroll-beha
 main .borrower-record>.related-loans-heading:has(>.loan-direct-actions){flex-wrap:wrap}
 main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;flex-basis:100%;min-width:0;max-width:100%;flex-wrap:wrap;justify-content:flex-end;margin-left:0}
 /* R115 Daily cash withdrawal: date and time on one row; account table on desktop, stacked cards on phone. */
-.daily-cash-withdrawal form{display:flex;flex-direction:column;gap:10px}.dcw-when{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}.dcw-when>label,.dcw-when>.dcw-time{display:flex;flex-direction:column;gap:4px;margin:0}.dcw-when>.dcw-time{border:0;padding:0;min-width:0}.dcw-when .field-title{font-size:14px;color:#565656;font-weight:400}.dcw-when .field-title::after{content:none}.dcw-time-selects{display:flex;align-items:center;gap:4px}.daily-cash-withdrawal .dcw-time-selects select{display:inline-block;width:auto;min-width:64px}.daily-cash-withdrawal input,.daily-cash-withdrawal select{min-height:44px;font:inherit;font-size:16px}.dcw-asof{margin:0;color:#555}.dcw-lines.is-loading{opacity:.5}.dcw-table{width:100%;border-collapse:collapse;font-size:14px}.dcw-table th,.dcw-table td{padding:8px;border-bottom:1px solid #ddd;text-align:right;vertical-align:top}.dcw-table thead th{background:#f2f2f2;font-weight:600}.dcw-table th:first-child{text-align:left;overflow-wrap:anywhere}.dcw-amount{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.daily-cash-withdrawal .dcw-amount input:not([type=checkbox]){display:inline-block;width:9em;flex:0 0 9em;text-align:right}.dcw-amount{flex-wrap:nowrap}.dcw-max{color:#555}.dcw-amount .text-action{min-height:44px}.dcw-negative{color:#c62828}.dcw-table small{display:block}.dcw-total{margin:0;font-weight:600}.dcw-summary>div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #ddd;padding:6px 0}.dcw-summary dd{margin:0;text-align:right;white-space:nowrap}
+.daily-cash-withdrawal form{display:flex;flex-direction:column;gap:10px}.dcw-when{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}.dcw-when>label,.dcw-when>.dcw-time{display:flex;flex-direction:column;gap:4px;margin:0}.dcw-when>.dcw-time{border:0;padding:0;min-width:0}.dcw-when>label{flex:0 0 164px;min-width:0}.dcw-when .cash-date-picker{gap:8px}.dcw-when .cash-date-text{flex:1;text-align:center;white-space:nowrap}.dcw-when .cash-date-picker .app-icon{flex:0 0 20px;width:20px;height:20px;color:#565656}.dcw-when .field-title{font-size:14px;color:#565656;font-weight:400;white-space:nowrap}.dcw-when .field-title::after{content:none}.dcw-time-selects{display:flex;align-items:center;gap:4px}.daily-cash-withdrawal .dcw-time-selects select{-webkit-appearance:none;appearance:none;display:block;box-sizing:border-box;width:72px;min-width:0;height:44px;min-height:44px;margin:0;padding:0 26px 0 10px;border:1px solid #767676;border-radius:4px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%23565656' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E") no-repeat right 8px center/12px 12px;font-size:16px;color:#202124;text-align:center;text-align-last:center}.daily-cash-withdrawal .dcw-time-selects select:focus{outline:2px solid #bf6900;outline-offset:2px}.daily-cash-withdrawal input,.daily-cash-withdrawal select{min-height:44px;font:inherit;font-size:16px}.dcw-asof{margin:0;color:#555}.dcw-lines.is-loading{opacity:.5}.dcw-table{width:100%;border-collapse:collapse;font-size:14px}.dcw-table th,.dcw-table td{padding:8px;border-bottom:1px solid #ddd;text-align:right;vertical-align:top}.dcw-table thead th{background:#f2f2f2;font-weight:600}.dcw-table th:first-child{text-align:left;overflow-wrap:anywhere}.dcw-amount{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.daily-cash-withdrawal .dcw-amount input:not([type=checkbox]){display:inline-block;width:9em;flex:0 0 9em;text-align:right}.dcw-amount{flex-wrap:nowrap}.dcw-max{color:#555}.dcw-amount .text-action{min-height:44px}.dcw-negative{color:#c62828}.dcw-table small{display:block}.dcw-total{margin:0;font-weight:600}.dcw-summary>div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #ddd;padding:6px 0}.dcw-summary dd{margin:0;text-align:right;white-space:nowrap}
 @media(max-width:650px){.dcw-table thead{display:none}.dcw-table,.dcw-table tbody,.dcw-table tr,.dcw-table th,.dcw-table td{display:block;width:100%;box-sizing:border-box}.dcw-table tr{border:1px solid #ddd;border-radius:8px;margin-bottom:10px;padding:4px 8px}.dcw-table th[scope=row]{border-bottom:1px solid #eee;font-size:16px}.dcw-table td{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:0;text-align:right}.dcw-table td::before{content:attr(data-label);color:#555;text-align:left}.dcw-amount{flex:1 1 auto}.dcw-summary>div{flex-wrap:wrap}.dcw-summary dd{white-space:normal}}
 /* R115: Collection and Borrowers list every borrower (up to the 100-row API cap) with a count line instead of a pager. */
-.list-panel>.list-count{margin:8px 10px 0;padding:0;color:#555;font-size:14px;line-height:1.4}.list-panel>.list-more{margin:0;padding:12px 16px;color:#555;font-size:14px;border-top:1px solid #ddd}
+.list-panel>.list-count{margin:8px 10px 0;padding:0;color:#555;font-size:14px;line-height:1.4}
 /* R118 late charges (Echo LC-COL-1/2/6, LC-REC-1, LC-PAY-2): the Collection row's own late-charge line sits above the row's
    full-row details button; the details value lines up its amount and stepper; Receive payment labels stack for a Thai wrap. */
 .collection-charge-row>.charge-late-line{grid-column:1/-1;position:relative;z-index:2;pointer-events:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}
@@ -744,3 +750,47 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .payment-allocation-row>label{display:flex;flex-direction:column;justify-content:flex-end}
 /* R118 (Echo LC-PAY-R2-1): from 601 px the third input sits under Principal, not under the loan name. */
 @media(min-width:601px){.payment-allocation-row>.late-charge-input{grid-column:2}}
+/* R129 (V137) Referrers: rows wrap in two lines on a phone; the detail's four tiles are two by two on a phone and one row
+   from 1024 px; the Pay rebates button is full width above the first section; the settle list's rows are 44 px or taller;
+   the settle footer sticks to the bottom above the safe area. Status words are text, never colour alone. */
+.referrer-search{display:block;margin:0 0 8px}.referrer-search input{width:100%;box-sizing:border-box;min-height:44px}
+.live-shell .borrower-card.referrer-row,.live-shell .borrower-card.referrer-line{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:4px 12px;align-items:center;min-height:44px;text-align:left;width:100%}
+.referrer-row-name,.referrer-line>span{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
+.referrer-row-name small,.referrer-line small{font-size:13px;color:#4a5560}
+.referrer-row-figures{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-variant-numeric:tabular-nums;text-align:right}
+.referrer-unpaid{font-weight:700}.referrer-row-figures .muted{font-weight:400;color:#5f6b76}.referrer-referee small .muted{color:#5f6b76;font-style:italic}
+.referrer-terms{margin-bottom:2px}.referrer-terms-link{margin:0 0 8px}
+.referrer-line>strong{font-variant-numeric:tabular-nums;text-align:right}
+@media (max-width:600px){.live-shell .borrower-card.referrer-row{grid-template-columns:1fr}.referrer-row-figures{align-items:flex-start;text-align:left}}
+.referrer-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.referrer-tile{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid #d5dbe0;border-radius:6px;background:#fff;min-width:0}
+.referrer-tile span{font-size:13px;color:#4a5560;overflow-wrap:anywhere}.referrer-tile strong{font-size:1.2rem;font-variant-numeric:tabular-nums}
+@media (min-width:1024px){.referrer-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.referrer-pay{display:block;width:100%;min-height:44px;margin:8px 0 12px}
+.referrer-owed{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:4px 0}
+/* Echo BR-1: the Referrer page action keeps its caption on phones. */
+.referrer-owed .record-action:not(#_){width:auto;flex:0 0 auto;padding:7px 10px}.live-shell .referrer-owed .record-action-label:not(#_),.referrer-owed .record-action-label:not(#_){display:inline}
+.rebate-chip{display:inline-block;margin-top:2px;font-size:13px;font-weight:600;color:#3c4650}.rebate-chip-pending{color:#8a4b00}
+.rebate-settle-list{min-width:0;max-width:100%;border:1px solid #d5dbe0;border-radius:6px;padding:4px 10px}
+/* Echo PAY-1: beat .borrower-record label{display:block;margin:12px 0} so each tick row stays one row of 44 px or more. */
+.borrower-record label.rebate-settle-row{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;gap:10px;align-items:center;min-height:44px;margin:0;border-bottom:1px solid #eef1f3}
+.rebate-settle-row:last-child{border-bottom:0}.rebate-settle-row>span{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}.rebate-settle-row small{font-size:13px;color:#4a5560}
+.rebate-settle-row>strong{font-variant-numeric:tabular-nums;text-align:right}.rebate-settle-row input[type=checkbox]{width:22px;height:22px}
+.rebate-settle-all{font-weight:600}
+/* Echo PAY-2: the footer is a .form-sticky-actions bar (above the fixed bottom navigation at 1050 px and narrower). */
+.rebate-settle-footer>button{flex:1;width:100%;min-height:48px;font-weight:700}
+.rebate-settle-review{list-style:none;margin:0 0 8px;padding:0}.rebate-settle-review li{display:flex;justify-content:space-between;gap:12px;min-height:32px;align-items:center;border-bottom:1px solid #eef1f3}
+.rebate-settle-review strong{font-variant-numeric:tabular-nums}
+.destructive-note{font-weight:600;color:#a50e0e}
+.cash-rebates-payable{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:2px 12px;margin:10px 0 0;padding:8px 10px;border-top:1px solid #d5dbe0}
+.cash-rebates-payable strong{font-variant-numeric:tabular-nums}.cash-rebates-payable small{grid-column:1/-1;font-size:13px;color:#4a5560}
+/* R131 LRP-LAY-1: on the fixed desktop shell (main clips its overflow), the Management and Notifications workspace roots are
+   the scrolling content area, like .standalone-records and the record pages; narrower layouts keep the window scroll.
+   LRP-LAY-2: Cash Accounts keeps its heading and scrolls each pane on its own (holders | accounts), like the other two-pane
+   pages; with a form open it falls back to one scrolling column. */
+@media(min-width:1200px){
+ .live-shell main>.management-workspace,.live-shell main>.management-cash,.live-shell main>.notifications-view{min-height:0;overflow-y:auto;scrollbar-gutter:stable}
+ .live-shell main>.management-cash{display:flex;flex-direction:column}
+ .live-shell main>.management-cash>.cash-accounts-layout:not(:has(form)){flex:1;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch}
+ .live-shell main>.management-cash>.cash-accounts-layout:not(:has(form))>section{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+}

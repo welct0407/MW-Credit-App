@@ -1,5 +1,5 @@
 import {chooseLanguage} from './live-controls';
-import {test,expect} from '@playwright/test';
+import {test,expect} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
@@ -33,4 +33,38 @@ for(const view of ['Borrowers','Collection'])test(view+' server search, one list
  await page.getByRole('button',{name:'Search borrowers',exact:true}).click();await expect(input).toHaveValue('Needle');await page.getByRole('button',{name:'Clear search',exact:true}).click();await expect(page.locator(card)).toHaveCount(30);await page.getByRole('button',{name:'Back from search',exact:true}).click();await expect(page.locator('.list-panel .list-more')).toHaveCount(0);
  await page.getByRole('button',{name:'Search borrowers',exact:true}).click();await page.evaluate(()=>{(window as any).scrollCalls=0;const original=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(...args){(window as any).scrollCalls++;return original.apply(this,args)}});await input.fill('old');await page.getByRole('button',{name:'Submit search',exact:true}).click();await expect.poll(()=>!!releaseOld).toBe(true);await input.fill('เป้าหมาย');await page.getByRole('button',{name:'Submit search',exact:true}).click();await expect.poll(()=>!!releaseLatest).toBe(true);await expect(page.getByText('No matching borrowers.',{exact:true})).toHaveCount(0);await page.evaluate(()=>new Promise<void>(done=>requestAnimationFrame(()=>requestAnimationFrame(()=>done()))));const scrollBefore=await page.evaluate(()=>({calls:(window as any).scrollCalls,y:scrollY}));releaseLatest!();await expect(page.locator(card)).toHaveCount(1);expect(await page.evaluate(()=>(window as any).scrollCalls)).toBe(scrollBefore.calls);expect(await page.evaluate(()=>scrollY)).toBe(scrollBefore.y);releaseOld!();await expect(page.locator(card)).toContainText('Unique Needle');expect(new URLSearchParams(requests.at(-1)).has('cursor')).toBe(false);
  await expect(page.locator('.live-search button')).toHaveCount(3);for(const button of await page.locator('.live-search button').all()){const box=await button.boundingBox();expect(box!.width).toBeGreaterThanOrEqual(44);expect(box!.height).toBeGreaterThanOrEqual(44)}mkdirSync('test-results/r052-receiving-ux/search-regression',{recursive:true});await page.screenshot({path:'test-results/r052-receiving-ux/search-regression/'+info.project.name+'-'+view+'-live-search-en.png'});await page.getByRole('button',{name:'Back from search',exact:true}).click();await chooseLanguage(page,'ไทย');await page.getByRole('button',{name:'ค้นหาผู้กู้',exact:true}).click();await expect(page.getByRole('searchbox',{name:'ค้นหาชื่อไทยหรืออังกฤษ',exact:true})).toHaveValue('เป้าหมาย');expect((await page.locator('.topbar').boundingBox())!.height).toBe(height);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'test-results/r052-receiving-ux/search-regression/'+info.project.name+'-'+view+'-live-search-th.png'});await page.getByRole('searchbox',{name:'ค้นหาชื่อไทยหรืออังกฤษ',exact:true}).fill('unfindable-query');await page.getByRole('button',{name:'ค้นหา',exact:true}).click();await expect(page.locator(card)).toHaveCount(0);await expect(page.getByText('ไม่พบผู้กู้ที่ตรงกับการค้นหา',{exact:true})).toBeVisible();
+});
+// R131 (owner, 6 November 2026): beyond 100 borrowers the Borrowers list pages with previous/next at its end; the search stays
+// applied across pages, a page change starts at the top, and Back from a borrower on page 2 returns to that row on page 2.
+test('Borrowers pager: next and previous 100-borrower pages keep the search and return to the opened row',async({page},info)=>{
+ const mobile=info.project.name.startsWith('mobile');await page.setViewportSize({width:mobile?390:1440,height:900});
+ const records=Array.from({length:150},(_,i)=>({id:'page-'+i,name:'ผู้กู้ '+i,borrowerDisplayName:'ผู้กู้ '+i+' - English '+i,displayName:'ผู้กู้ '+i+' - English '+i,hasActiveLoan:true,createdDate:null,outstandingPrincipal:'100',totalProfitEarned:'1',note:null}));
+ const envelope={ok:true,source:'dev',businessDate:'2026-10-07',asOf:'2026-10-07T05:00:00Z'};const requests:URLSearchParams[]=[];
+ await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
+ await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{const u=new URL(r.request().url());let result:any={...envelope,items:[],nextCursor:null};
+  if(u.pathname==='/api/borrowers'){requests.push(u.searchParams);const q=(u.searchParams.get('q')??'').toLowerCase(),filtered=records.filter(x=>x.borrowerDisplayName.toLowerCase().includes(q)),start=u.searchParams.get('cursor')==='page-2'?100:0;result={...envelope,items:filtered.slice(start,start+100),nextCursor:filtered.length>start+100?'page-2':null}}
+  else{const one=/^\/api\/borrowers\/(page-\d+)$/.exec(u.pathname);if(one)result={...envelope,item:records.find(x=>x.id===one[1])}}
+  await r.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(result)}).catch(()=>{})});
+ await page.goto(base);await page.getByRole('button',{name:'Continue with Google'}).click();await page.getByRole('button',{name:'Borrowers',exact:true}).click();
+ const card='.borrower-tile-main',count=page.locator('.list-panel .list-count'),next=page.getByRole('button',{name:'Next borrowers page',exact:true}),previous=page.getByRole('button',{name:'Previous borrowers page',exact:true});
+ await expect(page.locator(card)).toHaveCount(100);await expect(count).toHaveText('Borrowers 1–100');await expect(previous).toHaveCount(0);await expect(page.locator('.list-panel .list-more')).toHaveCount(0);
+ // The pager sits at the end of the list; a page change starts the list at the top.
+ await next.scrollIntoViewIfNeeded();await next.click();await expect(page.locator(card)).toHaveCount(50);await expect(page.locator(card).first()).toContainText('English 100');await expect(count).toHaveText('Borrowers 101–150');
+ expect(requests.at(-1)!.get('cursor')).toBe('page-2');await expect(next).toHaveCount(0);await expect(previous).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>window.scrollY+(document.querySelector('.list-panel') as HTMLElement).scrollTop)).toBeLessThan(200);
+ // Back from a borrower on page 2 returns to that row on page 2.
+ const row=page.locator(card+'[data-record-id="page-140"]');await row.scrollIntoViewIfNeeded();await page.waitForTimeout(100);const before=await row.evaluate(e=>e.getBoundingClientRect().top);
+ await row.click();await expect(page.locator('.detail-panel')).toContainText('English 140');await page.getByRole('button',{name:'Back to list',exact:true}).click();
+ await expect(page.locator(card)).toHaveCount(50);await expect(count).toHaveText('Borrowers 101–150');await expect(row).toBeFocused();
+ await expect.poll(async()=>Math.abs(await row.evaluate(e=>e.getBoundingClientRect().top)-before)).toBeLessThanOrEqual(3);
+ await previous.scrollIntoViewIfNeeded();await previous.click();await expect(page.locator(card)).toHaveCount(100);await expect(count).toHaveText('Borrowers 1–100');expect(requests.at(-1)!.has('cursor')).toBe(false);
+ // A search keeps its query on the next page; a new search starts again at page 1.
+ await page.getByRole('button',{name:'Search borrowers',exact:true}).click();const input=page.getByRole('searchbox',{name:'Search Thai or English name',exact:true});await input.fill('English');await page.getByRole('button',{name:'Submit search',exact:true}).click();
+ await expect(page.locator(card)).toHaveCount(100);await page.getByRole('button',{name:'Back from search',exact:true}).click();await next.scrollIntoViewIfNeeded();await next.click();await expect(page.locator(card)).toHaveCount(50);
+ expect(requests.at(-1)!.get('q')).toBe('English');expect(requests.at(-1)!.get('cursor')).toBe('page-2');
+ await page.getByRole('button',{name:'Search borrowers',exact:true}).click();await input.fill('English 14');await page.getByRole('button',{name:'Submit search',exact:true}).click();
+ await expect(page.locator(card)).toHaveCount(11);expect(requests.at(-1)!.has('cursor')).toBe(false);await page.getByRole('button',{name:'Back from search',exact:true}).click();await expect(previous).toHaveCount(0);await expect(next).toHaveCount(0);await expect(count).toHaveText('11 borrowers');
+ // Thai labels.
+ await page.getByRole('button',{name:'Search borrowers',exact:true}).click();await page.getByRole('button',{name:'Clear search',exact:true}).click();await page.getByRole('button',{name:'Back from search',exact:true}).click();
+ await expect(page.locator(card)).toHaveCount(100);await chooseLanguage(page,'ไทย');await expect(count).toHaveText('ผู้กู้ 1–100');await expect(page.getByRole('button',{name:'หน้าผู้กู้ถัดไป',exact:true})).toBeVisible();
 });

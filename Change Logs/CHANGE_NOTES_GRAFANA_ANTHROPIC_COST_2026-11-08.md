@@ -1,13 +1,15 @@
 # Change notes — Anthropic Claude API cost on the Grafana Cost page, 8 November 2026
 
 ## Purpose
-The owner asked to put monthly Claude API credit usage on the Grafana Cost page, with the owner creating the Admin API key and everything else done for them. The in-app chat row only estimates the PWA chat from token counts; this adds Anthropic's billed figure for the whole organization.
+The owner asked to put monthly Claude API credit usage on the Grafana Cost page, with the owner creating the key and everything else done for them. The in-app chat row only estimates the PWA chat from token counts; this adds Anthropic's billed figure for the whole organization.
 
 ## Changes
 - New Infinity datasource `mw-anthropic-cost` ("MW · Anthropic Cost") in `infrastructure/grafana/owned-services.tf.json`: API key auth in header `x-api-key`, allowed host `https://api.anthropic.com`, `prevent_destroy`, secure fields ignored by Terraform.
 - Cost dashboard (`mw-cost`): collapsed row 60 "Anthropic · Claude API · billed cost (USD)" after Railway, with table 62 (billed cost by model and cost type for the selected range, from `/v1/organizations/cost_report?bucket_width=1d&limit=31&group_by[]=description`, header `anthropic-version: 2023-06-01`), stat 61 (its sum, through the Dashboard datasource, so one API call) and text 64. Built from `project/scripts/monitoring/dashboards/cost.cjs`; selector `anthropic-cost-detail.jq` (cents to USD; `has_more` is an error rather than an undercount). Native USD in a collapsed row like Azure, GCP and Railway, because the visible page is SGD only and keeps one daily chart (COST-2); not added to the SGD total.
 - `scripts/grafana/set_datasource_secret.py`: sets one datasource's encrypted field from a Secret Manager version for fixed pairs (`mw-anthropic-cost` ← `mw-anthropic-admin-cost-key`, `mw-railway-monitoring` ← `mw-railway-grafana-monitoring-token`); the value stays in memory, is format-checked and is never printed.
-- Secret Manager: empty secret `mw-anthropic-admin-cost-key` created in `clever-oasis-508610-n7` (automatic replication, labels `owner=mw-credit`, `purpose=anthropic-cost-monitoring`) for the owner to add version 1.
+- Secret Manager: secret `mw-anthropic-admin-cost-key` created in `clever-oasis-508610-n7` (automatic replication, labels `owner=mw-credit`, `purpose=anthropic-cost-monitoring`); the owner added version 1.
+- Anthropic account (owner, in the Claude Console): the organization was an individual account ("Will's Individual Org"), and the Admin API answered 403 to every organization report. The owner converted it to a team organization, now named "MW Credit"; the organization ID `fe93c72e-…3c57` is unchanged, so the chat relay's federation rules still point at it. The key is a personal key (`sk-ant-usr…`, linked to the owner, no workspace) created on the API keys page; the owner's role after conversion lets it read the cost report, so no Admin key was needed.
+- Applied 8 November 2026 after rebasing on `main` `c86c2e2` (VM-01 retirement): reviewed plan sha256 `a075ba36…0551`, 1 added (`mw-anthropic-cost`), 1 changed (`mw-cost`, only row 60 added); key set with `set_datasource_secret.py` (datasource version 2); recorded in `infrastructure/grafana/operational-secret-references.json`.
 - Records: `infrastructure/grafana/README.md`, `project/Documents/Resource_Monitoring.md` (coverage, credentials and rotation), `project/Documents/Resource_Monitoring_Dashboard_Guide.md` (also corrects the provider-row position to y 51 to 54), `project/scripts/monitoring/README.md`.
 
 ## Checks
@@ -16,18 +18,20 @@ The owner asked to put monthly Claude API credit usage on the Grafana Cost page,
 | `node project/scripts/monitoring/test_build_dashboards.cjs` | Pass (layout fit at 1440 and 390 px, datasource and host allow-lists, colour policy) |
 | `python3 -B project/scripts/monitoring/test_dashboard_queries.py` | Pass, 72 tests (3 new Anthropic fixtures) |
 | `python3 tests/grafana/test_manage.py`; `terraform fmt -check` | Pass |
-| Guarded Terraform plan | 1 to add (`mw-anthropic-cost`), 3 to change: `mw-cost` (this batch) plus `mw-infra` (collapsed Azure VM-01 row) and `mw_azure_monitoring` (VM-01 health-check URL), both already merged and documented as live but never applied |
+| First guarded plan (branch before rebase) | Also showed `mw-infra` and `mw_azure_monitoring` changes and an older Azure row 10: the branch predated today's VM-01 retirement on `main`. Not applied; rebased first |
+| Guarded plan after rebase, then apply | 1 to add, 1 to change (`mw-cost`: panel 60 added, no other panel or setting changed), 0 to destroy; `Apply complete! Resources: 1 added, 1 changed, 0 destroyed` |
+| Direct cost report with the stored key (value never printed) | Before conversion 403 on `cost_report`, `usage_report`, `workspaces`, `users`; after conversion 200, 7 UTC days, one page, US$6.91 month to date |
+| Grafana `/api/ds/query` with panel 62's target, month to date (Asia/Bangkok) | 8 rows (Claude Opus 5.5, Sonnet 5.5, Haiku 5.5 by token type), sum US$6.91, matching the direct report |
 | `curl` to `api.anthropic.com` cost report without a key | 401, so the host is reachable |
 
 ## Not run
-Apply, key setting and live query wait for the owner's Admin key (see Remaining work). No financial data or chat traffic is touched.
+No browser render of the row (verified through Grafana's query API instead). The chat relay's federation sign-in was not exercised after the account conversion (no chat turn sent); the organization ID is unchanged. No financial data or chat traffic is touched.
 
 ## Recovery
-Remove row 60 from `cost.cjs` and rebuild; move the datasource to an unprotected resource and destroy it through a reviewed plan (as for the R090 retirements); delete the Admin key in the Claude Console and disable the secret version.
+Remove row 60 from `cost.cjs` and rebuild; move the datasource to an unprotected resource and destroy it through a reviewed plan (as for the R090 retirements); delete the key in the Claude Console (API keys) and disable the secret version.
 
 ## Open questions
 - Whether to add Anthropic, converted to SGD, to the Total and provider tiles at the top of the page (left out for now: the top row's provider tiles and conversion are an earlier owner decision).
 
 ## Remaining work
-- Owner: create the Claude Console Admin key `mw-grafana-cost-report` and add it as version 1 of `mw-anthropic-admin-cost-key`.
-- Then: verify the key against the cost report, apply the reviewed plan, run `set_datasource_secret.py --datasource mw-anthropic-cost`, check the row through Grafana's query API and record the datasource version in `infrastructure/grafana/operational-secret-references.json`.
+- Owner: send one in-app chat message to confirm the relay still signs in after the account conversion.

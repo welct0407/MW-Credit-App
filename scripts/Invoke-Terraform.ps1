@@ -1,5 +1,5 @@
-# Cross-platform Terraform runner for infrastructure/<Stack> (Windows VM-01 and
-# Linux cloud sessions). Google authentication uses the active gcloud account;
+# Cross-platform Terraform runner for infrastructure/<Stack> (Windows workstations
+# and Linux cloud sessions). Google authentication uses the active gcloud account;
 # other provider credentials come from Secret Manager into this process only and
 # are cleared afterwards. Plans, data directories and activation variables stay
 # in the external private root, never in Git.
@@ -16,7 +16,7 @@ $mwRoot=Split-Path $PSScriptRoot
 $stackRoot=Join-Path $mwRoot "infrastructure/$Stack"
 if($Stack -notmatch '^[a-z0-9-]+$' -or -not (Test-Path -LiteralPath (Join-Path $stackRoot 'main.tf'))){throw "Unknown infrastructure stack '$Stack'."}
 if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -and $Stack -in @('ecosystem-azure','ecosystem-azure-metadata','unattended-admin','production-bootstrap')){
-  throw "Stack '$Stack' needs Azure managed identity or VM-01 private local state; run it on VM-01 (scripts/Invoke-UnattendedAdmin.ps1)."
+  throw "Stack '$Stack' needs Azure credentials; in a Linux cloud session run terraform through scripts/azure-cloud-session.sh (VM-01 was deleted on 8 November 2026)."
 }
 $project='clever-oasis-508610-n7'
 $devBucket='mw-credit-app-tfstate-737787224638'

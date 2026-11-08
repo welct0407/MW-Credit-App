@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "57e1e09e042f2045812d6ec883797d02a4aad224"
+    "commit": "0f2fc4461cb7c8a6fab82a9339a174589f1a01de"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-apply-loan-close-v2-canonical-text-533cd12e.yaml"
     "identity":
       "system": "postgresql"
@@ -36,6 +36,7 @@
        parent text;day date:=(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date;calculation jsonb;plan jsonb;result_value jsonb;payment text:='pwa:'||(e->>'requestId');message text;actual public."Payments"%ROWTYPE;
        -- R111: the projected rebate, the chosen path and, for an offset, the referrer's plan.
        rebate jsonb;path text:=coalesce(i->>'rebatePath','expense');forward jsonb;covered numeric:=0;offset_id text;offset_plan jsonb;expense public."Business Expenses"%ROWTYPE;
+       owed numeric:=0; -- R129: the referrer's pending rebates before this close
       BEGIN
        IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR e#>>'{command,operation}'<>'loan.close' THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
        SELECT "Ref Borrowers" INTO parent FROM public."Loans" WHERE "Row ID"=target;
@@ -51,10 +52,15 @@
         IF message=ANY(ARRAY['Loan Close requires an open auto-enabled daily-interest loan','Loan Close requires valid loan date, principal and daily interest','Loan charge components require reconciliation before closing','Loan has no outstanding principal to close','Principal already due exceeds outstanding loan principal','Multiple charges today require reconciliation before closing','Final receipt must be a positive whole-baht amount']) THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;
        END;
        IF calculation->>'planHash' IS DISTINCT FROM i->>'expectedPlanHash' OR calculation->>'amount' IS DISTINCT FROM i->>'expectedAmount' THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;
-       IF EXISTS(SELECT 1 FROM jsonb_array_elements(calculation->'allocations') line WHERE line->>'principal'!~'^(0|[1-9][0-9]*)$' OR line->>'interest'!~'^(0|[1-9][0-9]*)$' OR line->>'chargeDate' IS NULL) THEN RAISE EXCEPTION USING ERRCODE='P5B06';END IF;
+       IF EXISTS(SELECT 1 FROM jsonb_array_elements(calculation->'allocations') line WHERE line->>'principal'!~'^(0|[1-9][0-9]*)$' OR line->>'interest'!~'^(0|[1-9][0-9]*)$' OR coalesce(line->>'lateCharge','0')!~'^(0|[1-9][0-9]*)$' /* R118 */ OR line->>'chargeDate' IS NULL) THEN RAISE EXCEPTION USING ERRCODE='P5B06';END IF;
        -- R111: the rebate this close creates, and for a chosen offset on a referrer with an open loan the pay-forward plan
        -- (forward only, amount = rebate) under the referrer's borrower -> loans -> charges locks, taken after this borrower's.
        rebate:=public.pwa_referral_rebate_projection_v1(target,calculation);
+       -- R129: the referrer lock of rebate-settlement.create, so owedTotal is exact when the command commits.
+       IF rebate IS NOT NULL THEN
+        PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',rebate->>'referrerId'));
+        owed:=public.pwa_rebates_owed_v1(rebate->>'referrerId');
+       END IF;
        IF rebate IS NOT NULL AND path='offset' AND (rebate->>'hasOpenLoan')::boolean AND NOT (rebate->>'selfReferral')::boolean THEN
         PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=rebate->>'referrerId' FOR UPDATE;
         PERFORM 1 FROM public."Loans" WHERE "Ref Borrowers"=rebate->>'referrerId' ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
@@ -75,7 +81,9 @@
        IF rebate IS NOT NULL THEN
         result_value:=result_value||jsonb_build_object('rebate',jsonb_build_object('path',path,'amount',rebate->>'amount','referrerId',rebate->>'referrerId',
          'offsetPaymentId',offset_id,'offsetAmount',trunc(covered)::text,'payable',trunc((rebate->>'amount')::numeric-covered)::text,'offsetPlan',offset_plan,
-         'materialize',CASE WHEN offset_id IS NULL THEN '[]'::jsonb ELSE forward->'materialize' END,'paidThrough',CASE WHEN offset_id IS NULL THEN '{}'::jsonb ELSE forward->'paidThrough' END));
+         'materialize',CASE WHEN offset_id IS NULL THEN '[]'::jsonb ELSE forward->'materialize' END,'paidThrough',CASE WHEN offset_id IS NULL THEN '{}'::jsonb ELSE forward->'paidThrough' END,
+         -- R129: the part not offset is pending payment; owedTotal is the referrer's pending total after this close.
+         'pending',trunc((rebate->>'amount')::numeric-covered)::text,'owedTotal',trunc(owed+(rebate->>'amount')::numeric-covered)::text));
        END IF;
        INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code,result_json)
        VALUES((e->>'requestId')::uuid,2,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,encode(sha256(convert_to(canonical,'UTF8')),'hex'),'applied',NULL,NULL,result_value);
@@ -85,8 +93,10 @@
         PERFORM set_config('pwa.rebate_offset',payment,true);
         SET CONSTRAINTS public.referral_loan_closed DEFERRED;
        END IF;
-       INSERT INTO public."Payments"("Row ID","Ref Borrower","Payment Date","Amount Received","Payment Method","Allocation Method","Ref Target Charge","Ref Target Loan","Ref Received By Cash Account","Notes","Uploaded Receipt","Created By","Status")
-       VALUES(payment,parent,day,(calculation->>'amount')::numeric::money,i->>'paymentMethod','Loan Close',calculation->>'targetChargeId',target,i->>'cashAccountId',i->>'notes',e#>>'{receipt,storageReference}',a->>'loginEmail','Processing');
+       INSERT INTO public."Payments"("Row ID","Ref Borrower","Payment Date","Amount Received","Payment Method","Allocation Method","Ref Target Charge","Ref Target Loan","Ref Received By Cash Account","Notes","Uploaded Receipt","Created By","Status","Bank Reference","Created At")
+       VALUES(payment,parent,day,(calculation->>'amount')::numeric::money,i->>'paymentMethod','Loan Close',calculation->>'targetChargeId',target,i->>'cashAccountId',i->>'notes',e#>>'{receipt,storageReference}',a->>'loginEmail','Processing',
+        -- R128: the slip's reference and transfer time on the business day (the receipt evidence link verifies both).
+        i->>'bankReference',CASE WHEN i ? 'transferTime' THEN ((i->>'paymentDate')||' '||(i->>'transferTime')||':00')::timestamp END);
        SELECT * INTO actual FROM public."Payments" WHERE "Row ID"=payment;
        IF NOT FOUND OR actual."Status" IS DISTINCT FROM 'Posted' OR actual."Amount Received"::numeric IS DISTINCT FROM (calculation->>'amount')::numeric THEN RAISE EXCEPTION 'Close receipt differs from immutable plan';END IF;
        -- R111: run the deferred referral trigger now (its own function; nothing disabled), so the rebate and any offset are made

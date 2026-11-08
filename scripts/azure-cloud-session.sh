@@ -7,7 +7,6 @@
 #
 #   scripts/azure-cloud-session.sh <command> [args...]
 #   e.g. scripts/azure-cloud-session.sh terraform -chdir=infrastructure/unattended-admin plan
-#   VM-01 power: scripts/vm01-power.sh start|deallocate|restart
 set -euo pipefail
 
 account=codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com

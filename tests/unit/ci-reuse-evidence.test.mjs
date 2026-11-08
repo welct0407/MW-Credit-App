@@ -122,6 +122,9 @@ test('variantOf and evidenceName for every check named in stages.json', () => {
     ['ci', 'e2e', 'e2e (shard 1 of 3)', '1', `evidence-ci-e2e-${h}-1`],
     ['ci', 'e2e', 'e2e (shard 2 of 3)', '2', `evidence-ci-e2e-${h}-2`],
     ['ci', 'e2e', 'e2e (shard 3 of 3)', '3', `evidence-ci-e2e-${h}-3`],
+    ['ci', 'e2e', 'e2e iPhone WebKit (shard w1 of 3)', 'w1', `evidence-ci-e2e-${h}-w1`],
+    ['ci', 'e2e', 'e2e iPhone WebKit (shard w2 of 3)', 'w2', `evidence-ci-e2e-${h}-w2`],
+    ['ci', 'e2e', 'e2e iPhone WebKit (shard w3 of 3)', 'w3', `evidence-ci-e2e-${h}-w3`],
     ['database', 'rebuild', 'rebuild (migrations)', 'migrations', `evidence-database-rebuild-${h}-migrations`],
     ['database', 'rebuild', 'rebuild (receiving)', 'receiving', `evidence-database-rebuild-${h}-receiving`],
     ['database', 'rebuild', 'rebuild (phase5)', 'phase5', `evidence-database-rebuild-${h}-phase5`],
@@ -133,19 +136,19 @@ test('variantOf and evidenceName for every check named in stages.json', () => {
   for (const [, , , , name] of names) assert.doesNotMatch(name, /["':<>|*?\\/\r\n ]/);
 });
 
-test('e2e is reused only with evidence for all three shards, which may come from different runs', async () => {
-  const partial = table({ [E2E[0]]: ev(E2E[0]), [E2E[1]]: ev(E2E[1]) });
+test('e2e is reused only with evidence for all six shards (Chromium and iPhone WebKit), which may come from different runs', async () => {
+  const partial = table(Object.fromEntries(E2E.slice(0, 5).map((c) => [c, ev(c)])));
   const missing = await decide(stages, { e2e: true }, partial.getEvidence);
   assert.equal(missing.e2e.run, true);
   assert.equal(missing.e2e.reason, 'no evidence');
-  const all = table({ [E2E[0]]: ev(E2E[0], 7), [E2E[1]]: ev(E2E[1], 7), [E2E[2]]: ev(E2E[2], 9, '1234567890'.repeat(4)) });
+  const all = table({ ...Object.fromEntries(E2E.map((c) => [c, ev(c, 7)])), [E2E[2]]: ev(E2E[2], 9, '1234567890'.repeat(4)) });
   const covered = await decide(stages, { e2e: true }, all.getEvidence);
   assert.equal(covered.e2e.run, false);
   assert.equal(covered.e2e.reason, 'reused');
-  assert.deepEqual(covered.e2e.evidence.map((e) => e.runId), [7, 7, 9]);
-  assert.equal(evidenceLine(covered), 'e2e: run 7 @abcdef0 (1,2), run 9 @1234567 (3)');
+  assert.deepEqual(covered.e2e.evidence.map((e) => e.runId), [7, 7, 9, 7, 7, 7]);
+  assert.equal(evidenceLine(covered), 'e2e: run 7 @abcdef0 (1,2,w1,w2,w3), run 9 @1234567 (3)');
   // A missing first shard stops the stage without asking for the others.
-  const first = table({ [E2E[1]]: ev(E2E[1]), [E2E[2]]: ev(E2E[2]) });
+  const first = table(Object.fromEntries(E2E.slice(1).map((c) => [c, ev(c)])));
   await decide(stages, { e2e: true }, first.getEvidence);
   assert.deepEqual(first.calls, ['e2e/e2e (shard 1 of 3)']);
 });
@@ -168,10 +171,10 @@ test('summarize renders one row per stage and cites the runs; the evidence outpu
   const result = await decide(stages, { check: true, e2e: true, terraform: true }, rows.getEvidence);
   const text = summarize(result);
   assert.ok(text.includes('| check | skip | reused | [run 120](https://example.invalid/runs/120) @abcdef0 |'));
-  assert.ok(text.includes('| e2e | skip | reused | [run 123](https://example.invalid/runs/123) @abcdef0 (1,2,3) |'));
+  assert.ok(text.includes('| e2e | skip | reused | [run 123](https://example.invalid/runs/123) @abcdef0 (1,2,3,w1,w2,w3) |'));
   assert.ok(text.includes('| terraform | run | no evidence |  |'));
   assert.ok(text.includes('| lint | skip | not needed |  |'));
-  assert.equal(evidenceLine(result), 'check: run 120 @abcdef0; e2e: run 123 @abcdef0 (1,2,3)');
+  assert.equal(evidenceLine(result), 'check: run 120 @abcdef0; e2e: run 123 @abcdef0 (1,2,3,w1,w2,w3)');
   const database = await decide(loadStages('database'), { rebuild: true }, async (_s, check) => ev(check, 5));
   assert.equal(evidenceLine(database), 'rebuild: run 5 @abcdef0 (migrations,receiving,phase5,phase8)');
 });
