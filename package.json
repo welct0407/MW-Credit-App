@@ -17,7 +17,8 @@
     "check:docs": "node scripts/check-docs.mjs",
     "build:live-dev": "tsc --noEmit && node scripts/build-live-dev.mjs",
     "dev:live-dev": "vite --mode live-dev --host 127.0.0.1",
-    "lint": "biome lint"
+    "lint": "biome lint",
+    "test:monitoring": "jq --version && node project/scripts/monitoring/build-dashboards.cjs --check && node project/scripts/monitoring/test_build_dashboards.cjs && python3 -B project/scripts/monitoring/test_dashboard_queries.py && node project/scripts/monitoring/test_cost_detail.cjs && node project/scripts/monitoring/test_bridge_alert_proposals.cjs && python3 -B tests/grafana/test_manage.py"
   },
   "dependencies": {
     "@google-cloud/cloud-sql-connector": "^1.8.0",

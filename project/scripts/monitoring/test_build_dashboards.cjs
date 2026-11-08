@@ -579,6 +579,23 @@ for (const id of [50, 51, 52]) {
   assert.ok(sqlOf(id).includes(priceTable), 'Cost ' + id + ' prices from model-prices.json');
   for (const [m, p] of Object.entries(prices.models)) assert.ok(panelOf('mw-cost', id).description.includes(m + ' S$' + p.input.toFixed(2)), 'Cost ' + id + ' price text from the file');
 }
+// Owner, 8 November 2026 (chat fix): the PROD chat runs Claude, so the three Claude models are priced (Anthropic's
+// USD prices at the fixed 1.2816 SGD per USD in the file); every chat model the deployment can select or the
+// transliteration uses has a price, so no Claude row shows No price (an unpriced model makes the estimate null).
+const USD_SGD = 1.2816;
+const claudeUsd = {'claude-opus-5-5': [4, 0.20, 20], 'claude-sonnet-5-5': [2, 0.20, 10], 'claude-haiku-5-5': [0.10, 0.01, 0.50]};
+for (const [m, usd] of Object.entries(claudeUsd)) {
+  assert.deepEqual(['input', 'cached', 'output'].map(k => prices.models[m]?.[k]), usd.map(v => Math.round(v * USD_SGD * 1e4) / 1e4), m + ' priced at the stated rate');
+}
+assert.ok(prices.source.includes('1.2816 SGD per USD') && /Claude API/.test(prices.source), 'Claude price source and rate stated');
+const deploySource = fs.readFileSync(require.resolve('../../../scripts/promotion/deploy-business-hosting.mjs'), 'utf8');
+const selectable = [...deploySource.matchAll(/R\d+_CHAT_MODEL_IDS=Object\.freeze\(\[([^\]]*)\]\)/g)].flatMap(x => [...x[1].matchAll(/'([^']+)'/g)].map(y => y[1]));
+const transliterate = fs.readFileSync(require.resolve('../../../services/chat/transliterate.mjs'), 'utf8').match(/TRANSLITERATE_MODEL='([^']+)'/)[1];
+assert.ok(selectable.includes('claude-opus-5-5') && transliterate.startsWith('claude-'), 'chat model ids found: ' + selectable + ', ' + transliterate);
+for (const m of new Set([...selectable, transliterate])) assert.ok(m in prices.models, 'chat model ' + m + ' has a price (else No price)');
+// The No price rule is the LEFT JOIN: a usage row whose model matches no VALUES row. Each Claude model has its row.
+for (const id of [50, 51, 52]) for (const m of Object.keys(claudeUsd)) assert.ok(new RegExp("\\('" + m + "', [0-9.]+, [0-9.]+, [0-9.]+\\)").test(sqlOf(id)), 'Cost ' + id + ' prices ' + m);
+assert.ok(!/billed Vertex AI unit prices/.test(costText) && panelOf('mw-cost', 51).description.includes('the Claude API · US$200 limit tile and the collapsed Anthropic row (USD) for Claude models'), 'chat billed truth names the Claude API tile');
 assert.deepEqual(panelOf('mw-cost', 51).transformations[0].options.include.names, ['Turns', 'Failed', 'Est. cost', 'Per turn']);
 assert.ok(!/"Questions"|Per question/.test(L.serialize(built['mw-cost'])), 'Cost counts turns, as Now and PWA');
 assert.equal(built['mw-cost'].spec.panels.find(p => p.id === 49).title, 'In-app chat · usage and cost');

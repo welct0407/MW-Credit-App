@@ -105,7 +105,7 @@ Owner request: fix the pre-existing failure found during this work. `test_bridge
 | `node project/scripts/monitoring/test_bridge_alert_proposals.cjs` | PASS (paused routing, dispatch age, stale/missing telemetry, warning/urgent boundaries) |
 
 ### Open questions
-- No CI workflow runs the monitoring tests (`test_build_dashboards.cjs`, `test_dashboard_queries.py`, `test_cost_detail.cjs`, this test); adding them to `Development checks` is a separate decision.
+- Resolved in Follow-up 5: `npm run test:monitoring` now runs these tests in `Development checks`.
 
 ## Follow-up 4 — 8 November 2026: Azure app registrations retired
 
@@ -116,6 +116,7 @@ Owner instruction: "delete the Azure app registrations too" (the identities behi
 - Forge, as `mw-credit-unattended-admin` through `scripts/azure-cloud-session.sh`: removed the Monitoring Reader and Cost Management Reader assignments on `rg-mwcredit` held by `mw-grafana-monitoring`'s service principal (`e6a3f2f9…`; readback 404). No `grafana-vm-control` assignment remained (it went with VM-01). Non-secret snapshot and removal log kept privately.
 - The identity has no Microsoft Graph permission, so both app deletes returned 403 `Authorization_RequestDenied`; the owner deleted both app registrations (`c285a10c-5054-4f79-928f-46d7488b3f46` `mw-grafana-monitoring`, `f8351796-82db-4d90-9c66-d2e925e78068` `grafana-vm-control`) in the Entra ID portal, which also removed their service principals, secrets and any remaining assignment (including the RG-BACKUP Cost Management Reader this identity could not see).
 - Secret Manager holds no copy of either app's secret (39 secret names listed, no payload read).
+- Custom role "MW Grafana VM-01 Power Control" (`eaeb2a2c-c710-4759-8a82-538d1ec79c54`, assignable only on RG-MWCREDIT; VM read/start/deallocate) had no assignments and no Terraform declaration. Owner instruction "delete the custom role too": the unattended-admin identity got 403 `AuthorizationFailed` on `Microsoft.Authorization/roleDefinitions/delete` (Contributor and RBAC Administrator do not grant it), so the owner deleted it in the Azure portal. The custom roles "VM01 Power Controller" and "VM01 Operation Status Reader" were not touched.
 - Record: `project/Documents/Resource_Monitoring.md` credentials bullets.
 
 ### Checks
@@ -123,6 +124,33 @@ Owner instruction: "delete the Azure app registrations too" (the identities behi
 | --- | --- |
 | Role assignment readback (ARM) | Both removed assignments return 404 |
 | Client-credentials token request with a dummy secret for each app ID (no real credential) | `AADSTS700016` "Application … was not found in the directory" for both |
+| Custom role readback (ARM, after the owner's portal delete) | `eaeb2a2c-…` returns 404 `RoleDefinitionDoesNotExist` at subscription and RG-MWCREDIT scopes and is absent from both custom-role lists; "VM01 Power Controller" and "VM01 Operation Status Reader" unchanged |
 
 ### Open questions
-- The custom role definition "MW Grafana VM-01 Power Control" on RG-MWCREDIT is unused and was left in place.
+- Resolved: the custom role definition "MW Grafana VM-01 Power Control" was deleted (see Changes).
+
+## Follow-up 5 — 8 November 2026: chat Claude prices, monitoring tests in CI, Azure roles and controller group removed
+
+### Purpose
+Owner instructions: "chat fix, roles, CI tests" and "get everything done in one batch".
+
+### Changes
+- Chat estimate: `project/scripts/monitoring/model-prices.json` adds claude-opus-5-5, claude-sonnet-5-5 and claude-haiku-5-5 at Anthropic's published USD prices times 1.2816 SGD/USD (ECB via Frankfurter, 6 November 2026, stated in the file's `source`). Before, all 13 PROD turns this month (claude-opus-5-5) showed "No price". Cache writes bill 1.25 times input but are counted as input, so the estimate runs slightly low. Cost panels 50 to 52 wording: prices come from `model-prices.json` (Claude API prices for Claude, Vertex for Gemini); the billed truth for Claude is the 'Claude API · US$200 limit' tile and the collapsed Anthropic row. Tests assert every selectable PWA chat model and the transliteration model are priced.
+- CI: new `npm run test:monitoring` (jq version, `build-dashboards.cjs --check`, `test_build_dashboards.cjs`, `test_dashboard_queries.py`, `test_cost_detail.cjs`, `test_bridge_alert_proposals.cjs`, `tests/grafana/test_manage.py`) runs in the `check` job of `Development checks` after `npm run check`; the `changes` filter triggers on `project/scripts/monitoring/**` (except Markdown and `grafana-mcp-bridge/`); the `check` evidence key in `scripts/ci/stages.json` includes those paths, asserted by `tests/unit/ci-reuse-evidence.test.mjs`.
+- Azure roles: custom roles "VM01 Power Controller" (`637a62eb-6239-5956-958c-c11032293ebe`, VM read, start, restart, deallocate; assignable on RG-MWCREDIT; no assignments) and "VM01 Operation Status Reader" (`a1fdc870-cc0e-5752-af1a-e065691949ad`; compute operations read at subscription; one assignment `88cf12f8-…` to `a671b605…`, the system identity of Function App `vm01-controller-50f792fa`) came from the retired controller's Bicep (`project/scripts/azure/vm01-controller/infra/vm-role.bicep`, `infra/operation-read-proposal.json`); no Terraform declared them. The unattended-admin identity got 403 on `roleDefinitions/delete`, so the owner, in the portal, deleted resource group `rg-vm01-controller` (the open item of the [VM-01 retirement note](CHANGE_NOTES_VM01_RETIREMENT_2026-11-08.md)), removed assignment `88cf12f8-…` and deleted both roles.
+- Records: `docs/Development.md`, `project/scripts/monitoring/README.md`, `project/Documents/Resource_Monitoring_Dashboard_Guide.md`, `project/Documents/Environment_Inventory.md`, `infrastructure/unattended-admin/README.md`, `project/scripts/azure/vm01-controller/README.md` and the VM-01 retirement change note (controller group marked done).
+
+### Checks
+| Command | Result |
+| --- | --- |
+| Byte's tests and `npm run test:monitoring` | Reported by Byte |
+| Azure readback (Forge, ARM) | Both role definitions return 404 `RoleDefinitionDoesNotExist`; no custom roles remain in the subscription; the assignment and its principal no longer appear; `rg-vm01-controller` returns 403 to this identity (cannot be read; owner confirmed the deletion) |
+| Chase live check (generated SQL of panels 51 and 52 through Grafana, month to date) | 13 turns (2 failed), all `claude-opus-5-5`: Est. cost S$6.90 (S$0.5308 per turn), matching a hand calculation; before the fix it was "No price". Against Anthropic's billed 1 to 7 November (US$6.908 = S$8.85) the estimate is 0.78: cache writes (57 % of billed input, 1.25x) explain about half; the rest is likely other organization usage (DEV, transliteration, failed turns). `npm run test:monitoring` and `ci-reuse-evidence` tests pass |
+| Apply (Forge, from 322844c) | Reviewed plan sha256 `daf5e262…c62f`: 0 to add, 1 to change (`mw-cost`: only `rawSql` price table and descriptions of panels 50, 51, 52), 0 to destroy. `Apply complete! Resources: 0 added, 1 changed, 0 destroyed`; live `mw-cost` version 19 with `claude-opus-5-5` in panels 50 to 52. Re-plan: No changes |
+
+### Recovery
+Prices: revert `model-prices.json`. CI: revert the workflow, `package.json` and `stages.json` changes. The deleted Azure objects cannot be restored; the controller and roles can be redeployed from the Bicep in Git history only if a VM is ever recreated.
+
+### Open questions
+- Owner decision, not done: the Backup Contributor assignment of the unattended-admin identity on the deleted VM-01 backup item (Azure refused its deletion; already noted in the unattended-admin README).
+- Owner to identify: a subscription Reader assignment for unknown service principal `64274d85-968a-47e3-bbec-cfec984f2d42`, created 1 August 2021 and not in the repository.

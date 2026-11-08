@@ -25,6 +25,8 @@ const consumer = () => [{datasource: DS.dashboard, panelId: HOST, refId: 'A', wi
 const SGD = {unit: 'prefix:S$', decimals: 2};
 // USD money (Anthropic, Railway detail): a US$ prefix, never Grafana's bare-$ currencyUSD.
 const USD = {unit: 'prefix:US$', decimals: 2};
+// Owner, 8 November 2026: the Claude API monthly limit in USD (tile 65; see the Anthropic section below).
+const ANTHROPIC_LIMIT_USD = 200;
 const WINDOW = "usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}')";
 
 function bigQueryBody(t, query) {
@@ -229,7 +231,8 @@ function neutralMoney(panel) {
 /* R090 (owner, 22 October 2026), R091, R093 (owner Option A): the in-app chat's usage and cost. Text and token counts
  * come straight from loan_manager_prod through Grafana PDC (monitoring.pwa_chat_recent_turns_v1 and
  * monitoring.pwa_chat_usage_v1, V108); nothing is copied to Cloud Monitoring. Cost = uncached input, cached input
- * and output plus thinking tokens at the billed unit prices in model-prices.json (SGD per million tokens), the one
+ * and output plus thinking tokens at the unit prices in model-prices.json (SGD per million tokens: Vertex AI's billed
+ * prices for Gemini, Anthropic's Claude API prices for Claude, owner 8 November 2026), the one
  * price rule of every chat panel below (priced(), so the panels cannot drift apart). */
 const PRICES = require('../model-prices.json');
 const PRICE_TABLE = '(VALUES ' + Object.entries(PRICES.models).map(([model, p]) => "('" + model + "', " + p.input + ', ' + p.cached + ', ' + p.output + ')').join(', ') +
@@ -275,11 +278,13 @@ function byModelSql() {
 const CHAT_Y = 27;
 const USAGE_H = 8, TURNS_H = 15;
 const SOURCE = 'read live from loan_manager_prod through Grafana PDC (not stored in Cloud Monitoring)';
-const COST_RULE = 'Cost = input, cached input and output + thinking tokens (thinking bills as output; every round of a turn, tool calls included) at the billed Vertex AI unit prices in model-prices.json, SGD per million tokens: ' + PRICE_TEXT + '.';
+const COST_RULE = 'Cost = input, cached input and output + thinking tokens (thinking bills as output; every round of a turn, tool calls included) at the unit prices in model-prices.json (Claude API prices for Claude models, converted at a fixed rate; Vertex AI billed prices for Gemini), SGD per million tokens: ' + PRICE_TEXT + '.';
+// Where each model's billed cost is shown: Claude on the Claude API tile and the Anthropic row (USD), Gemini on GCP by service.
+const BILLED_TRUTH = 'An estimate: the billed truth is the Claude API · US$' + ANTHROPIC_LIMIT_USD + ' limit tile and the collapsed Anthropic row (USD) for Claude models, the Vertex AI line of GCP by service · net for Gemini.';
 function month() {
   const names = ['Turns', 'Failed', 'Est. cost', 'Per turn'];
   const panel = L.stat({id: 51, title: 'In-app chat · this month', gridPos: pos(0, CHAT_Y + 1, 8, USAGE_H),
-    description: 'The selected range (month to date by default): chat turns (Turns = answered and failed, as on Now and PWA & APIs; a question that got no reply is not counted), failed turns (orange above 0) and the estimated cost, in total and per turn, from monitoring.pwa_chat_usage_v1, ' + SOURCE + '. ' + COST_RULE + ' A model without a price shows No price. An estimate: the billed truth is the Vertex AI line of GCP by service · net.',
+    description: 'The selected range (month to date by default): chat turns (Turns = answered and failed, as on Now and PWA & APIs; a question that got no reply is not counted), failed turns (orange above 0) and the estimated cost, in total and per turn, from monitoring.pwa_chat_usage_v1, ' + SOURCE + '. ' + COST_RULE + ' A model without a price shows No price. ' + BILLED_TRUTH,
     targets: [sqlTarget(usageSql())],
     transformations: [{id: 'filterFieldsByName', options: {include: {names}}}],
     defaults: {color: L.NEUTRAL, noValue: 'No report', mappings: []},
@@ -291,7 +296,7 @@ function month() {
 }
 function byModel() {
   return L.table({id: 52, title: 'In-app chat · by model', gridPos: pos(8, CHAT_Y + 1, 16, USAGE_H),
-    description: 'One row per model over the selected range (month to date by default) from monitoring.pwa_chat_usage_v1, ' + SOURCE + ': turns, failed turns (orange above 0), Input = uncached input tokens, Cached = cached input, Output + thinking = generated tokens, and the estimated cost. ' + COST_RULE + ' The footer sums the cost.',
+    description: 'One row per model over the selected range (month to date by default) from monitoring.pwa_chat_usage_v1, ' + SOURCE + ': turns, failed turns (orange above 0), Input = uncached input tokens, Cached = cached input, Output + thinking = generated tokens, and the estimated cost. ' + COST_RULE + ' The footer sums the cost. ' + BILLED_TRUTH,
     targets: [sqlTarget(byModelSql())],
     defaults: {noValue: 'No turns', decimals: 0, unit: 'none', custom: {align: 'auto', cellOptions: {type: 'auto'}, inspect: false}},
     overrides: [byName('Model', {'custom.width': 140}), byName('Turns', {'custom.width': 60}),
@@ -334,7 +339,6 @@ function questions() {
  * keeps the detail by model and type for the selected range (its table query; stat 61 sums it). The tile reads a
  * rolling 31 days (now/M would hold no complete UTC day from the 1st, 00:00 Bangkok, to the 2nd, 07:00, and fail)
  * and its selector keeps the current UTC month's days; the start rounds up, so at most 31 buckets. */
-const ANTHROPIC_LIMIT_USD = 200;
 // Limit used: orange from 80 % of the limit, red from 100 % (COLOUR-1 class limit).
 const ANTHROPIC_WARN_PERCENT = 80;
 const ANTHROPIC_H = 10;
