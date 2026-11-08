@@ -124,6 +124,7 @@ Owner instruction: "delete the Azure app registrations too" (the identities behi
 | --- | --- |
 | Role assignment readback (ARM) | Both removed assignments return 404 |
 | Client-credentials token request with a dummy secret for each app ID (no real credential) | `AADSTS700016` "Application … was not found in the directory" for both |
+| Custom role readback (ARM, after the owner's portal delete) | `eaeb2a2c-…` returns 404 `RoleDefinitionDoesNotExist` at subscription and RG-MWCREDIT scopes and is absent from both custom-role lists; "VM01 Power Controller" and "VM01 Operation Status Reader" unchanged |
 
 ### Open questions
 - Resolved: the custom role definition "MW Grafana VM-01 Power Control" was deleted (see Changes).
