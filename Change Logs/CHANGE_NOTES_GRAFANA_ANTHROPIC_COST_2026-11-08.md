@@ -22,10 +22,11 @@ The owner asked to put monthly Claude API credit usage on the Grafana Cost page,
 | Guarded plan after rebase, then apply | 1 to add, 1 to change (`mw-cost`: panel 60 added, no other panel or setting changed), 0 to destroy; `Apply complete! Resources: 1 added, 1 changed, 0 destroyed` |
 | Direct cost report with the stored key (value never printed) | Before conversion 403 on `cost_report`, `usage_report`, `workspaces`, `users`; after conversion 200, 7 UTC days, one page, US$6.91 month to date |
 | Grafana `/api/ds/query` with panel 62's target, month to date (Asia/Bangkok) | 8 rows (Claude Opus 5.5, Sonnet 5.5, Haiku 5.5 by token type), sum US$6.91, matching the direct report |
+| Owner's chat turn after the conversion (`monitoring.pwa_chat_recent_turns_v1`, PROD) | 8 November 2026 09:58:41Z, `claude-opus-5-5`, status ok, 5 rounds, 51 s: the relay's federation sign-in to the converted organization works |
 | `curl` to `api.anthropic.com` cost report without a key | 401, so the host is reachable |
 
 ## Not run
-No browser render of the row (verified through Grafana's query API instead). The chat relay's federation sign-in was not exercised after the account conversion (no chat turn sent); the organization ID is unchanged. No financial data or chat traffic is touched.
+No browser render of the row (verified through Grafana's query API instead). No financial data or chat traffic is touched.
 
 ## Recovery
 Remove row 60 from `cost.cjs` and rebuild; move the datasource to an unprotected resource and destroy it through a reviewed plan (as for the R090 retirements); delete the key in the Claude Console (API keys) and disable the secret version.
@@ -34,4 +35,4 @@ Remove row 60 from `cost.cjs` and rebuild; move the datasource to an unprotected
 - Whether to add Anthropic, converted to SGD, to the Total and provider tiles at the top of the page (left out for now: the top row's provider tiles and conversion are an earlier owner decision).
 
 ## Remaining work
-- Owner: send one in-app chat message to confirm the relay still signs in after the account conversion.
+None. Merge this branch to `main` so the next Grafana apply from `main` keeps row 60 and `mw-anthropic-cost`.
