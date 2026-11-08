@@ -8,7 +8,7 @@ from contextlib import ExitStack
 import json
 import time
 from .state import connect, enabled, open_connection
-from .receipt_hold import event_key
+from .receipt_hold import base_key,event_key
 
 
 def opted_out(n):
@@ -47,7 +47,8 @@ def assess(jobs,reviews,notices,now,hold_replies=()):
     from .partner_review import review_id
     for n in notices:
         rid=review_id(n['event_key'])
-        key='review:'+rid if rid else n['event_key']
+        # R135: a hold copy resent by the `review` command counts for its hold; age stays the job's.
+        key='review:'+rid if rid else base_key(n['event_key']) if n['event_key'].startswith('receipt-held:') else n['event_key']
         by_event.setdefault(key,[]).append(n)
     def delivered(event):
         return any(n['ig_status']=='ACCEPTED' or n['email_status']=='SENT' for n in by_event.get(event,[]))

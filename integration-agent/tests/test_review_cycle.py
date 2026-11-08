@@ -332,7 +332,7 @@ class CycleTests(unittest.TestCase):
         self.run_cycle();self.run_cycle()
         rows=self.hold_notices();self.assertEqual(len(rows),1)
         self.assertEqual(rows[0]['partner_id'],'p');self.assertIn('bank reference',rows[0]['body'])
-        self.assertIn('cannot post',rows[0]['body']);self.submit.assert_not_called()
+        self.assertIn('This cannot be approved here.',rows[0]['body']);self.submit.assert_not_called()
         self.assertIsNone(self.j.db.execute("SELECT 1 FROM partner_reviews WHERE job_id='new-job'").fetchone())
         from mw_integration_agent.partner_notice import display_notice
         self.assertTrue(display_notice(rows[0])[0].startswith('⚠️'))
@@ -401,6 +401,69 @@ class CycleTests(unittest.TestCase):
         self.j.db.execute("UPDATE receipt_jobs SET status='DUPLICATE'");self.j.db.commit()
         self.run_cycle();self.dispatch.assert_not_called()
         self.assertEqual(self.hold_notices()[0]['ig_status'],'REVIEW')
+
+    # R135: copies the `review` command resends of an active hold.
+    def resent_hold(self):
+        from mw_integration_agent.receipt_hold import event_key
+        job=dict(self.j.db.execute("SELECT * FROM receipt_jobs WHERE id='new-job'").fetchone())
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:
+            notices.reserve(event_key(job)+':resend:'+'a'*64,self.p,'subject','1/1 · body')
+            return event_key(job)+':resend:'+'a'*64
+        finally:notices.close()
+
+    def test_resent_hold_is_dispatched_while_held_and_parked_once_rejected(self):
+        self.held_job();self.run_cycle();self.dispatch.reset_mock()
+        key=self.resent_hold()
+        self.run_cycle()
+        self.assertIn(key,[c.args[0]['event_key'] for c in self.dispatch.call_args_list])  # dispatch is mocked: the original stays due too
+        self.dispatch.reset_mock()
+        self.j.db.execute("UPDATE receipt_jobs SET status='REJECTED'");self.j.db.commit()
+        self.run_cycle();self.dispatch.assert_not_called()
+        copy=[n for n in self.hold_notices() if n['event_key']==key][0]
+        self.assertEqual((copy['ig_status'],copy['detail']),('REVIEW','HOLD_RESOLVED_OR_REVIEWER_REMOVED'))
+
+    def test_resent_hold_for_a_changed_reason_is_parked(self):
+        self.held_job();self.run_cycle();key=self.resent_hold();self.dispatch.reset_mock()
+        self.j.db.execute("UPDATE receipt_jobs SET detail='AMOUNT_UNREADABLE'");self.j.db.commit()
+        self.run_cycle()
+        self.assertNotIn(key,[c.args[0]['event_key'] for c in self.dispatch.call_args_list])
+        self.assertEqual([n['detail'] for n in self.hold_notices() if n['event_key']==key],['HOLD_RESOLVED_OR_REVIEWER_REMOVED'])
+
+    def message(self,message_id,text,reply_to=''):
+        import time
+        ingress=IngressJournal(self.root/'instagram-ingress.db')
+        ingress.db.execute("INSERT INTO messages(message_id,sender_id,event_timestamp,text,captured_at,status,reply_to) VALUES (?,?,?,?,?,?,?)",
+            (message_id,'456',time.time(),text,time.time(),'CAPTURED_NO_PROCESSING',reply_to))
+        ingress.db.commit();ingress.close()
+
+    def test_review_command_resends_hold_and_reject_on_the_copy_clears_it(self):
+        self.held_job();self.config.update(review_resend_cutoff='2026-01-01T00:00:00+00:00',receipt_hold_reply_cutoff='2026-01-01T00:00:00+00:00')
+        identity=lambda config,sender:{'id':sender,'username':{'456':'partner','123':'borrower'}[sender]}
+        self.message('command',' Review ')
+        self.assertEqual(cycle(self.config,self.j,identity)['failures'],[])
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:
+            [copy]=notices.db.execute("SELECT * FROM partner_notices WHERE event_key LIKE 'receipt-held:%:resend:%'").fetchall()
+            self.assertTrue(copy['body'].startswith('1/1 · Still held since '));self.assertIn('Borrower: Test',copy['body'])
+            ack=notices.db.execute("SELECT body FROM partner_notices WHERE event_key LIKE 'review-command-result:%'").fetchone()[0]
+            self.assertTrue(ack.startswith('Review list: 1 held receipt.'))
+            notices.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id='copy',recipient_id='456' WHERE id=?",(copy['id'],));notices.db.commit()
+        finally:notices.close()
+        self.message('reject','Reject','copy')
+        self.assertEqual(cycle(self.config,self.j,identity)['failures'],[])
+        self.assertEqual(self.j.db.execute("SELECT status FROM receipt_jobs WHERE id='new-job'").fetchone()[0],'REJECTED')
+        self.assertEqual(self.j.db.execute("SELECT outcome FROM partner_review_replies WHERE message_id='reject'").fetchone()[0],'HOLD_REJECTED')
+        self.submit.assert_not_called()
+
+    def test_review_sent_as_a_reply_is_not_a_command(self):
+        self.held_job();self.config['review_resend_cutoff']='2026-01-01T00:00:00+00:00'
+        self.message('not-command','review','unrelated')
+        self.run_cycle()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertEqual(notices.db.execute("SELECT count(*) FROM partner_notices WHERE event_key LIKE '%:resend:%' OR event_key LIKE 'review-command-result:%'").fetchone()[0],0)
+        finally:notices.close()
+        self.assertIsNone(self.j.db.execute("SELECT 1 FROM partner_review_replies WHERE message_id='not-command'").fetchone())
 
     def test_unverified_identity_and_unreadable_extraction_still_alert_reviewer(self):
         self.held_job();self.p['language']='ไทย'

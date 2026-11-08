@@ -158,7 +158,12 @@ class Run:
                     if not config.get('review_resend_cutoff'):continue
                     command_cutoff=cutoff_ts(config,'review_resend_cutoff')
                     if min(event['captured_at'],event['event_timestamp'])<command_cutoff or not 0<=time.time()-event['event_timestamp']<86340:continue
-                    queue(db,notices,config,event,masters(config),identity_reader(config,event['sender_id']))
+                    live=masters(config)
+                    def borrower(job,live=live):
+                        # A resent hold names the borrower as the first alert does; an outage leaves it unavailable.
+                        try:return receipt_borrower(config,job,self.journal,live,identity_reader)
+                        except Exception:return None
+                    queue(db,notices,config,event,live,identity_reader(config,event['sender_id']),borrower=borrower)
                     continue
                 if not event.get('reply_to'):continue
                 notice=notices.db.execute("SELECT * FROM partner_notices WHERE message_id=? AND (event_key LIKE 'review:%' OR event_key LIKE 'receipt-held:%')",(event['reply_to'],)).fetchone()
@@ -430,13 +435,22 @@ def posted_purpose(proposal,detail,thai):
 
 
 def notice_rank(notice,changed=()):
-    """Results reached in this run, other results, reply/command acknowledgements, review requests,
-    hold alerts, archive-delay alerts; due() order (retry_after,id) is kept within each group."""
+    """Results reached in this run, other results, reply/command acknowledgements, review requests (with the copies the
+    `review` command resends, R135), hold alerts, archive-delay alerts; due() order (retry_after,id) is kept within each group."""
     event=notice['event_key']
     if event.startswith('review-result:'):return 0 if event.split(':')[1] in changed else 1
+    if event.startswith('receipt-held:') and ':resend:' in event:return 3
     for rank,prefix in enumerate((('hold-reply-result:','review-command-result:'),'review:','receipt-held:','receipt-archive-pending:'),2):
         if event.startswith(prefix):return rank
     return 6
+
+
+def resend_position(notice):
+    """R135: copies resent by a `review` command go out in their 'i/N · ' counter order (oldest first) across both kinds."""
+    if ':resend:' not in notice['event_key']:return 0
+    import re
+    found=re.match(r'(\d+)/\d+ · ',notice.get('body') or '')
+    return int(found.group(1)) if found else 0
 
 
 def notify(config,journal,notices,identity_reader,failures,resolver=resolve_recipient,changed=()):
@@ -479,12 +493,12 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                             line=close_failure_line(review['state'],review['detail'],proposal,thai)
                             if line:body+='\n'+line
                     notices.reserve(event,p,subject,body)
-    from .receipt_hold import queue_holds,event_key
+    from .receipt_hold import base_key,queue_holds,event_key
     if config.get('receipt_hold_notice_cutoff'):
         queue_holds(config,journal,notices,masters(config),identity_reader,failures)
     eligible=sorted((n for n in notices.due() if n['event_key'].startswith(
         ('review:','review-result:','receipt-held:','receipt-archive-pending:','hold-reply-result:','review-command-result:'))),
-        key=lambda n:notice_rank(n,changed))
+        key=lambda n:(notice_rank(n,changed),resend_position(n)))
     # Bound optional transport work so a backlog cannot monopolize the receipt lock.
     # Retry timestamps also let untouched notices progress after a provider outage.
     for notice in eligible[:NOTICE_CAP]:
@@ -497,7 +511,7 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
             if notice['event_key'].startswith('receipt-held:'):
                 held=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(notice['event_key'].split(':')[1],)).fetchone()
                 if (notice['partner_id'] not in live.get('reviewer_ids',[]) or not held or
-                    held['status']!='REVIEW' or event_key(held)!=notice['event_key']):
+                    held['status']!='REVIEW' or event_key(held)!=base_key(notice['event_key'])):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='HOLD_RESOLVED_OR_REVIEWER_REMOVED' WHERE id=?",(notice['id'],))
                     continue
             if notice['event_key'].startswith('receipt-archive-pending:'):

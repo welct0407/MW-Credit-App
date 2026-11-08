@@ -1,3 +1,4 @@
+import hashlib
 import tempfile
 import time
 import unittest
@@ -117,3 +118,100 @@ class HoldReplyTests(unittest.TestCase):
             self.assertFalse(cycle(self.config,self.j,lambda *_:self.identity)['failures'])
         self.assertEqual((self.job()['status'],self.job()['detail']),('PENDING','RECEIPT_ARCHIVE_PENDING'))
         self.assertEqual(self.j.db.execute('SELECT count(*) FROM partner_review_replies').fetchone()[0],0)
+
+    # R135: the `review` command resends active holds as `<event_key>:resend:<sha256 of the command>` copies.
+    def resent_notice(self,message_id='copy',key=None):
+        key=key or self.key+':resend:'+hashlib.sha256(b'command').hexdigest()
+        notice_id=self.n.reserve(key,self.p,'subject','copy body')
+        with self.n.db:self.n.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id=?,recipient_id='123' WHERE id=?",(message_id,notice_id))
+        return dict(self.n.db.execute('SELECT * FROM partner_notices WHERE id=?',(notice_id,)).fetchone())
+    def test_reject_on_resent_copy_then_original_is_not_active(self):
+        copy=self.resent_notice()
+        self.assertEqual(self.decide(event=dict(self.event,reply_to='copy',message_id='on-copy'),notice=copy),'HOLD_REJECTED')
+        self.assertEqual((self.job()['status'],self.job()['detail']),('REJECTED','AMOUNT_UNREADABLE'))
+        self.assertEqual(self.decide(event=dict(self.event,message_id='on-original')),'HOLD_NOT_ACTIVE')
+        replies=dict(self.j.db.execute('SELECT message_id,review_id FROM partner_review_replies').fetchall())
+        self.assertEqual(replies,{'on-copy':copy['event_key'],'on-original':self.key})
+    def test_reject_on_original_then_resent_copy_is_not_active(self):
+        copy=self.resent_notice()
+        self.assertEqual(self.decide(),'HOLD_REJECTED')
+        self.assertEqual(self.decide(event=dict(self.event,reply_to='copy',message_id='on-copy'),notice=copy),'HOLD_NOT_ACTIVE')
+    def test_resent_copy_keeps_every_guard(self):
+        copy=self.resent_notice();event=dict(self.event,reply_to='copy')
+        for i,text in enumerate(('approve','yes','อนุมัติ')):
+            self.assertEqual(self.decide(event=dict(event,text=text,message_id='a'+str(i)),notice=copy),'HOLD_REJECT_REQUIRED')
+        for kwargs,expected in [({'reviewers':[]},'NOT_REVIEWER'),({'event':dict(event,sender_id='other')},'NOT_CORRELATED'),
+                                ({'event':dict(event,reply_to='out')},'NOT_CORRELATED'),({'event':dict(event,captured_at=90)},'BEFORE_HOLD_REPLY_CUTOFF')]:
+            self.assertEqual(self.decide(**{'notice':copy,'event':event,**kwargs}),expected)
+        self.assertEqual(self.job()['status'],'REVIEW')
+        self.reviews.reserve('j',{},1)
+        self.assertEqual(self.decide(event=dict(event,message_id='has-review'),notice=copy),'HOLD_HAS_REVIEW')
+        with self.j.db:self.j.db.execute('DELETE FROM partner_reviews')
+        with self.j.db:self.j.db.execute("UPDATE receipt_jobs SET detail='DATE_UNREADABLE'")
+        self.assertEqual(self.decide(event=dict(event,message_id='changed'),notice=copy),'HOLD_NOT_ACTIVE')
+        with self.j.db:self.j.db.execute("UPDATE receipt_jobs SET detail='AMOUNT_UNREADABLE',status='DUPLICATE'")
+        self.assertEqual(self.decide(event=dict(event,message_id='resolved'),notice=copy),'HOLD_NOT_ACTIVE')
+    def test_malformed_resend_suffix_fails_closed(self):
+        for i,suffix in enumerate((':resend:short',':resend:'+'A'*64,':options:'+'a'*64)):
+            copy=self.resent_notice('bad'+str(i),self.key+suffix)
+            self.assertEqual(self.decide(event=dict(self.event,reply_to='bad'+str(i),message_id='bad'+str(i)),notice=copy),'HOLD_NOT_ACTIVE')
+        self.assertEqual(self.job()['status'],'REVIEW')
+    def test_result_copy(self):
+        for outcome,english,thai in (
+          ('HOLD_REJECTED','Removed from the review list. The agent recorded or changed no payment. Receipt history is kept.',
+           'นำออกจากรายการรอตรวจสอบแล้ว ระบบไม่ได้บันทึกหรือเปลี่ยนแปลงรายการชำระเงิน ยังเก็บประวัติสลิปไว้'),
+          ('HOLD_REJECT_REQUIRED','Held receipts cannot be approved. Use Reply on the hold message and send Reject. If the payment is genuine, record it in the app first.',
+           'สลิปที่พักไว้อนุมัติไม่ได้ ใช้ Reply ตอบข้อความแจ้งพักสลิปว่า Reject หรือ ปฏิเสธ หากเป็นการชำระจริง กรุณาบันทึกในแอปก่อน')):
+            for language,words in (('English',english),('ไทย',thai)):
+                partner=dict(self.p,language=language);event=dict(self.event,message_id=outcome+language)
+                queue_result(self.n,event,self.notice,[partner],outcome)
+                body=self.n.db.execute('SELECT body FROM partner_notices WHERE event_key=?',(result_key(event['message_id']),)).fetchone()[0]
+                self.assertEqual(body.split('\n')[1],words)
+    def test_hold_text_closing_block_and_fallback(self):
+        from mw_integration_agent.receipt_hold import FALLBACK,held_text
+        with self.j.db:self.j.db.execute("UPDATE receipt_jobs SET detail='SOMETHING_NEW'")
+        english=held_text(self.job(),None,'English',[])[1];thai=held_text(self.job(),None,'ไทย',[])[1]
+        self.assertIn('Reason: Receipt validation could not be completed. Check the slip against the app.\n',english)
+        self.assertIn('สาเหตุ: ตรวจสอบสลิปไม่สำเร็จ กรุณาตรวจสอบสลิปกับรายการในแอป\n',thai)
+        self.assertEqual(FALLBACK[0],'Receipt validation could not be completed. Check the slip against the app.')
+        self.assertTrue(english.endswith('\nNo payment posted. Check the receipt against the app records.\nThis cannot be approved here. If the payment is genuine, '
+                                         'record it in the app yourself. Then use Reply on this message and send Reject to clear it from the list.'))
+        self.assertTrue(thai.endswith('\nอนุมัติผ่านข้อความนี้ไม่ได้ หากเป็นการชำระจริง กรุณาบันทึกในแอปเอง แล้วใช้ Reply ตอบข้อความนี้ว่า Reject หรือ ปฏิเสธ เพื่อนำออกจากรายการ'))
+        self.assertNotIn('Replying approve',english);self.assertNotIn('queue',english);self.assertEqual(english.count('Reject'),1)
+        self.assertNotIn('การตอบอนุมัติ',thai);self.assertNotIn('คิว',thai)
+
+
+# Codes raised as ReceiptInvalid that never become a receipt-job hold: execution-time review outcomes (partner_reviews
+# STALE/MANUAL_REQUIRED/UNKNOWN), the retired direct-email path, and IGNORED/DUPLICATE outcomes.
+NOT_HOLD_CODES={'APPROVING_PARTNER_CHANGED','AUTO_ACTOR_CHANGED','AUTO_ACTOR_UNMAPPED','BORROWER_MAPPING_CHANGED','BORROWER_NOT_UNIQUELY_ENABLED',
+                'CASH_ACCOUNT_CHANGED','NOT_PAYMENT_RECEIPT','NO_PARTNER_EMAIL','PARTNER_DELIVERY_CHANGED',
+                'PARTNER_LANGUAGE_UNSUPPORTED','PARTNER_LOGIN_UNMAPPED','PAY_FORWARD_DAY_PASSED','PAY_FORWARD_PLAN_CHANGED',
+                'PAY_FORWARD_PURPOSE_MISSING','PROPOSAL_FACTS_CHANGED','RECEIPT_DATE_TOO_OLD','RECEIPT_MISSING','RECEIVING_ACCOUNT_CHANGED'}
+R135_CODES=('IG_CONVERSATION_IDENTITY_AMBIGUOUS','IG_SENDER_INVALID','EXPLICIT_NON_THB_CURRENCY','FORWARDER_UNMAPPED','FORWARDED_GROUP_NOT_ELIGIBLE',
+            'FORWARDED_GROUP_AMBIGUOUS','FORWARDED_GROUP_MISSING','FORWARDED_BORROWER_CHANGED','BORROWER_CHANGED','LOAN_KEY_UNAVAILABLE',
+            'PAY_FORWARD_PLAN_UNAVAILABLE','WHOLE_BAHT_REQUIRED','MULTIPLE_TODAY_CHARGES','REVIEW_REQUEST_TOO_LONG')
+
+
+class HoldReasonCoverageTests(unittest.TestCase):
+    def test_every_hold_raising_code_has_its_own_reason(self):
+        import re
+        from mw_integration_agent import receipt_hold
+        from mw_integration_agent.receipt_hold import REASONS
+        source=Path(receipt_hold.__file__).parent
+        raised=set();marked=set()
+        for path in source.glob('*.py'):
+            text=path.read_text(encoding='utf-8')
+            raised|=set(re.findall(r"(?:ReceiptInvalid|PayerHeld)\('([A-Z_]+)'",text))
+            marked|=set(re.findall(r"mark\([^)]*'REVIEW',\s*'([A-Z_]+)'\)",text))
+            marked|=set(re.findall(r"retry\([^)]*'([A-Z_]+)'[,)]",text))-{'RECEIPT_PROCESSING_STARTED'}
+        self.assertTrue({'AMOUNT_UNREADABLE','PAYER_UNRESOLVED'}<=raised and {'RECEIPT_RETRY_LIMIT','RECEIPT_PROPOSAL_UNAVAILABLE','RECEIPT_PROCESSING_UNAVAILABLE'}<=marked)
+        self.assertEqual(NOT_HOLD_CODES-raised,set(),'a listed non-hold code is no longer raised')
+        holds=(raised-NOT_HOLD_CODES)|marked|{'POSSIBLE_EXISTING_PAYMENT_REVIEW'}
+        self.assertEqual(sorted(holds-set(REASONS)),[],'a hold code needs a REASONS entry (or, if it never holds, NOT_HOLD_CODES)')
+        self.assertTrue(set(R135_CODES)<=holds)
+    def test_reasons_are_bilingual_and_fit(self):
+        from mw_integration_agent.receipt_hold import REASONS
+        for code,(english,thai) in REASONS.items():
+            self.assertTrue(english.isascii() and english.endswith('.'),code)
+            self.assertFalse(thai.isascii(),code)
+            self.assertLessEqual(max(len(english),len(thai)),200,code)

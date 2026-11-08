@@ -3,7 +3,7 @@ import hashlib
 import time
 from datetime import datetime
 from .partner_review import authorize_reply
-from .receipt_hold import event_key
+from .receipt_hold import base_key,event_key
 
 REJECT={'reject','rejected','no','ignore','drop','ปฏิเสธ','ไม่อนุมัติ'}
 OUTCOMES={'HOLD_REJECTED','HOLD_NOT_ACTIVE','HOLD_REJECT_REQUIRED','HOLD_HAS_REVIEW'}
@@ -28,7 +28,8 @@ def decide(db,config,event,notice,partners,identity,reviewer_ids,now=None):
         job=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(notice['event_key'].split(':')[1],)).fetchone()
         if not job:return 'NOT_CORRELATED'
         if event['event_timestamp']<job['created_at'] or event['event_timestamp']>now:return 'INVALID_TIME'
-        if job['status']!='REVIEW' or event_key(job)!=notice['event_key']:
+        # R135: a copy resent by the `review` command names the same hold as the original alert.
+        if job['status']!='REVIEW' or event_key(job)!=base_key(notice['event_key']):
             outcome='HOLD_NOT_ACTIVE'
         elif event.get('text','').strip().casefold() not in REJECT:
             outcome='HOLD_REJECT_REQUIRED'
@@ -52,9 +53,9 @@ def queue_result(notices,event,notice,partners,outcome):
     thai=partner['language']=='ไทย'
     subject=('ปฏิเสธสลิปที่พักไว้แล้ว' if thai else 'Held receipt rejected') if outcome=='HOLD_REJECTED' else ('ผลการตอบสลิปที่พักไว้' if thai else 'Held receipt reply')
     words={
-      'HOLD_REJECTED':('Removed from the active receipt queue. No payment was recorded or changed. Receipt history is retained.','นำออกจากคิวสลิปที่รอดำเนินการแล้ว ไม่ได้บันทึกหรือเปลี่ยนแปลงรายการชำระเงิน ยังเก็บประวัติสลิปไว้'),
+      'HOLD_REJECTED':('Removed from the review list. The agent recorded or changed no payment. Receipt history is kept.','นำออกจากรายการรอตรวจสอบแล้ว ระบบไม่ได้บันทึกหรือเปลี่ยนแปลงรายการชำระเงิน ยังเก็บประวัติสลิปไว้'),
       'HOLD_NOT_ACTIVE':('That hold is already resolved or has changed. Nothing was changed by this reply.','สลิปที่พักไว้นี้ดำเนินการแล้วหรือมีการเปลี่ยนแปลง คำตอบนี้ไม่ได้เปลี่ยนแปลงข้อมูล'),
-      'HOLD_REJECT_REQUIRED':('To remove this held receipt, use Reply on the original hold notification and send Reject. Approval cannot bypass receipt validation.','หากต้องการนำสลิปนี้ออกจากคิว ให้ตอบกลับข้อความแจ้งพักสลิปเดิมว่า Reject หรือ ปฏิเสธ การอนุมัติไม่สามารถข้ามการตรวจสอบสลิปได้'),
+      'HOLD_REJECT_REQUIRED':('Held receipts cannot be approved. Use Reply on the hold message and send Reject. If the payment is genuine, record it in the app first.','สลิปที่พักไว้อนุมัติไม่ได้ ใช้ Reply ตอบข้อความแจ้งพักสลิปว่า Reject หรือ ปฏิเสธ หากเป็นการชำระจริง กรุณาบันทึกในแอปก่อน'),
       'HOLD_HAS_REVIEW':('This receipt has a separate payment review or posting outcome. Use its review request or reconcile the recorded outcome; this reply changed nothing.','สลิปนี้มีคำขอตรวจสอบหรือผลการบันทึกแยกต่างหาก กรุณาใช้คำขอตรวจสอบนั้นหรือตรวจสอบผลการบันทึก คำตอบนี้ไม่ได้เปลี่ยนแปลงข้อมูล'),
     }
     notices.reserve(result_key(event['message_id']),partner,subject,subject+'\n'+words[outcome][int(thai)])
