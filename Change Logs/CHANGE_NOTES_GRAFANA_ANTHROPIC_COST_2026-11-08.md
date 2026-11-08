@@ -89,7 +89,7 @@ Owner instruction: "open the PR, delete Azure datasource, switch Railway to US$"
 Re-add the two datasource blocks from the previous commit and apply, then set the secrets again from the Azure app secrets (which still exist); revert the panel prefix in `cost.cjs` and rebuild.
 
 ### Remaining work
-Delete the Azure app registrations `mw-grafana-monitoring` and `grafana-vm-control` and their client secrets (owner decision).
+Resolved in Follow-up 4: both Azure app registrations deleted.
 
 ## Follow-up 3 — 8 November 2026: bridge alert proposals test runs again
 
@@ -106,3 +106,23 @@ Owner request: fix the pre-existing failure found during this work. `test_bridge
 
 ### Open questions
 - No CI workflow runs the monitoring tests (`test_build_dashboards.cjs`, `test_dashboard_queries.py`, `test_cost_detail.cjs`, this test); adding them to `Development checks` is a separate decision.
+
+## Follow-up 4 — 8 November 2026: Azure app registrations retired
+
+### Purpose
+Owner instruction: "delete the Azure app registrations too" (the identities behind the two Azure Grafana datasources deleted in Follow-up 2).
+
+### Changes
+- Forge, as `mw-credit-unattended-admin` through `scripts/azure-cloud-session.sh`: removed the Monitoring Reader and Cost Management Reader assignments on `rg-mwcredit` held by `mw-grafana-monitoring`'s service principal (`e6a3f2f9…`; readback 404). No `grafana-vm-control` assignment remained (it went with VM-01). Non-secret snapshot and removal log kept privately.
+- The identity has no Microsoft Graph permission, so both app deletes returned 403 `Authorization_RequestDenied`; the owner deleted both app registrations (`c285a10c-5054-4f79-928f-46d7488b3f46` `mw-grafana-monitoring`, `f8351796-82db-4d90-9c66-d2e925e78068` `grafana-vm-control`) in the Entra ID portal, which also removed their service principals, secrets and any remaining assignment (including the RG-BACKUP Cost Management Reader this identity could not see).
+- Secret Manager holds no copy of either app's secret (39 secret names listed, no payload read).
+- Record: `project/Documents/Resource_Monitoring.md` credentials bullets.
+
+### Checks
+| Command | Result |
+| --- | --- |
+| Role assignment readback (ARM) | Both removed assignments return 404 |
+| Client-credentials token request with a dummy secret for each app ID (no real credential) | `AADSTS700016` "Application … was not found in the directory" for both |
+
+### Open questions
+- The custom role definition "MW Grafana VM-01 Power Control" on RG-MWCREDIT is unused and was left in place.
