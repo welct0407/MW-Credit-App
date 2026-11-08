@@ -11,7 +11,7 @@ import manage
 
 # datasource uid -> (secureJsonData field, Secret Manager secret, accepted value pattern)
 PAIRS = {
-    'mw-anthropic-cost': ('apiKeyValue', 'mw-anthropic-admin-cost-key', r'sk-ant-admin01-[A-Za-z0-9_-]{20,}'),
+    'mw-anthropic-cost': ('apiKeyValue', 'mw-anthropic-admin-cost-key', r'sk-ant-(?:admin01|api\d\d)-[A-Za-z0-9_-]{20,}'),
     'mw-railway-monitoring': ('bearerToken', 'mw-railway-grafana-monitoring-token', r'[A-Za-z0-9_-]{20,}'),
 }
 
