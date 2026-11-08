@@ -1,23 +1,6 @@
 {
   "resource": {
     "grafana_data_source": {
-      "mw_azure_monitoring": {
-        "uid": "mw-azure-monitoring",
-        "name": "MW \u00b7 Azure Monitoring and Cost",
-        "type": "yesoreyeram-infinity-datasource",
-        "access_mode": "proxy",
-        "url": "",
-        "is_default": false,
-        "basic_auth_enabled": false,
-        "json_data_encoded": "{\"allowedHosts\":[\"https://management.azure.com\",\"https://login.microsoftonline.com/9e29c895-606a-420b-acc2-1c24375df4d9\"],\"auth_method\":\"oauth2\",\"customHealthCheckEnabled\":true,\"customHealthCheckUrl\":\"https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit?api-version=2021-04-01\",\"oauth2\":{\"client_id\":\"c285a10c-5054-4f79-928f-46d7488b3f46\",\"oauth2_type\":\"client_credentials\",\"scopes\":[\"https://management.azure.com/.default\"],\"token_url\":\"https://login.microsoftonline.com/9e29c895-606a-420b-acc2-1c24375df4d9/oauth2/v2.0/token\"},\"timeout\":60}",
-        "lifecycle": {
-          "prevent_destroy": true,
-          "ignore_changes": [
-            "secure_json_data_encoded",
-            "http_headers"
-          ]
-        }
-      },
       "mw_gcp_monitoring": {
         "uid": "mw-gcp-monitoring",
         "name": "MW \u00b7 GCP Monitoring and Billing",
@@ -61,23 +44,6 @@
         "is_default": false,
         "basic_auth_enabled": false,
         "json_data_encoded": "{\"allowedHosts\":[\"https://api.anthropic.com\"],\"auth_method\":\"apiKey\",\"apiKeyKey\":\"x-api-key\",\"apiKeyType\":\"header\",\"timeout\":60}",
-        "lifecycle": {
-          "prevent_destroy": true,
-          "ignore_changes": [
-            "secure_json_data_encoded",
-            "http_headers"
-          ]
-        }
-      },
-      "cfz1i3v9ruk1sb": {
-        "uid": "cfz1i3v9ruk1sb",
-        "name": "mw-azure-vm-control",
-        "type": "yesoreyeram-infinity-datasource",
-        "access_mode": "proxy",
-        "url": "",
-        "is_default": false,
-        "basic_auth_enabled": false,
-        "json_data_encoded": "{\"allowedHosts\":[\"https://management.azure.com\"],\"auth_method\":\"oauth2\",\"global_queries\":[],\"oauth2\":{\"client_id\":\"f8351796-82db-4d90-9c66-d2e925e78068\",\"scopes\":[\"https://management.azure.com/.default\"],\"token_url\":\"https://login.microsoftonline.com/9e29c895-606a-420b-acc2-1c24375df4d9/oauth2/v2.0/token\"},\"oauthPassThru\":false,\"pdcInjected\":true}",
         "lifecycle": {
           "prevent_destroy": true,
           "ignore_changes": [

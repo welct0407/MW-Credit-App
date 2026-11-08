@@ -62,7 +62,7 @@ Owner instruction: "Limit is 200 usd and keep it in USD. Don't include in total 
 Revert `cost.cjs`, restore `cost-prior-azure.jq` and rebuild `mw-cost.json` from the previous commit, then apply through a reviewed plan; the Terraform dashboard resource is replaced in place and no data is touched.
 
 ### Open questions
-- Retire the unused datasource `mw-azure-monitoring` (and the Azure app `mw-grafana-monitoring`)? Separate owner decision.
+- Resolved in Follow-up 2: both Azure datasources deleted. The Azure apps remain an owner decision (see Follow-up 2).
 
 ### Remaining work
 Apply the dashboard (Forge), then merge the branch to `main`.
@@ -81,7 +81,9 @@ Owner instruction: "open the PR, delete Azure datasource, switch Railway to US$"
 | Command | Result |
 | --- | --- |
 | Byte's builder and tests | Reported by Byte |
-| Apply | pending Forge |
+| Pre-checks (Forge) | All 18 Grafana dashboards (Terraform-managed or not) and all 20 provisioned alert rules: no reference to either uid, name or 'azure'; non-secret backup of both definitions kept privately |
+| Apply (Forge, from e4768e2 + datasource removal) | Reviewed plan sha256 `ea287870…d49e`: 0 to add, 1 to change (`mw-cost`: only units on 301, 302, 304, 305), 2 to destroy (the two Azure datasources). `Apply complete! Resources: 0 added, 1 changed, 2 destroyed`. Readback: both datasources HTTP 404; live `mw-cost` version 18 with no `currencyUSD`. Re-plan: No changes |
+| Byte, dead Azure tooling | Deleted `azure-daily-availability.jq`, `azure-power-history.js` and its test, `VmControl.Helpers.ps1`, `Initialize-Azure.ps1`, `Initialize-AzureVmControl.ps1` (nothing executable referenced them); `Install-DataSources.ps1` no longer creates the Azure source (PowerShell parse check clean); builder checks, 77 jq fixtures, `test_cost_detail.cjs`, `test_manage.py` (8) and `check:docs` pass |
 
 ### Recovery
 Re-add the two datasource blocks from the previous commit and apply, then set the secrets again from the Azure app secrets (which still exist); revert the panel prefix in `cost.cjs` and rebuild.
