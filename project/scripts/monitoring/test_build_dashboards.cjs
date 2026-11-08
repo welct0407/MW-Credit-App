@@ -208,7 +208,7 @@ const claude = cost.panels.find(p => p.id === 65);
 assert.deepEqual([claude.type, claude.title, claude.gridPos, claude.timeFrom, claude.hideTimeOverride], ['stat', 'Claude API · US$200 limit', {x: 16, y: 4, w: 8, h: 4}, 'now-31d', true]);
 // Live read (8 November 2026): complete UTC days only, so a rolling 31 days (never now/M, which holds no complete
 // day early in the month); the selector keeps the current UTC month.
-assert.ok(/complete UTC days/.test(claude.description) && !/five minutes/.test(costText), 'complete UTC days, no five-minute claim');
+assert.ok(/complete UTC days/i.test(claude.description) && !/five minutes/.test(costText), 'complete UTC days, no five-minute claim');
 assert.equal(claude.targets.length, 1, 'Claude API tile: one query of its own');
 const claudeQuery = claude.targets[0];
 assert.equal(claudeQuery.datasource.uid, 'mw-anthropic-cost');
@@ -226,8 +226,8 @@ assert.deepEqual([claudeProps('Limit used').unit, claudeProps('Limit used').deci
 // COST-A3: the description's order.
 const order = ['up to yesterday (UTC)', 'On the 1st it is 0', 'Not included in the SGD total'].map(t => claude.description.indexOf(t));
 assert.ok(order.every(i => i >= 0) && order[0] < order[1] && order[1] < order[2] && claude.description.split('up to yesterday (UTC)').length === 2, 'tile 65 description order');
-// COST-A1 also on the collapsed Anthropic panels 61 and 62; no currencyUSD left on the page.
-assert.ok(!costText.includes('currencyUSD'), 'no bare-$ currencyUSD unit on mw-cost');
+// COST-A1 also on the collapsed Anthropic panels 61 and 62 (the lifted Railway detail keeps its proven units).
+for (const id of [61, 62, 65]) assert.ok(!JSON.stringify(panelOf0('mw-cost', id).fieldConfig).includes('currencyUSD'), 'Anthropic panel ' + id + ' has no bare-$ currencyUSD unit');
 assert.equal(panelOf0('mw-cost', 61).fieldConfig.defaults.unit, 'prefix:US$');
 assert.ok(panelOf0('mw-cost', 62).fieldConfig.overrides.some(o => o.matcher.options === 'Claude API USD' && o.properties.some(x => x.id === 'unit' && x.value === 'prefix:US$')), 'table 62 in US$');
 // Echo COST-C1/C2/C3/C5: wording.
