@@ -2,11 +2,12 @@
 // --prepare captures the private baseline; --publish creates the collection, ten questions and the dashboard once;
 // --refine --only=<question key|tab key>,... [--dry-run] dry-runs the named questions, then creates missing ones, updates the rest,
 // rebuilds the named tabs and archives state-owned questions the spec dropped; --verify checks structure, parity and preservation.
+// 9 November 2026: dashboard 32 is "Loan Reports"; dashboard 3 is archived (DecommissionLoanReports.mjs). Its frozen definition
+// (private dashboard-3-before.json, captured before the decommission) stays the reference for reused cards' settings, mappings
+// and reconciliation queries: Metabase hides the dashcards of archived questions but still answers queries on them.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,assertSource,privateDirFor,root} from './ReportingApi.mjs';
-import {writeOffIncomeRow} from './WriteOffSegregation.mjs';
-import {lateIncomeRow} from './LateCharges.mjs';
 import {longLaneCards} from './AddLongOverdueLane.mjs';
 export const out=root+'/outputs/loan-reports-redesign-20261026';
 // R116 PROD: MW_METABASE_PRIVATE_DIR, else ~/.mw-private/MW-Credit-App/metabase/loan-reports-redesign-20261026; never a path
@@ -227,12 +228,13 @@ async function dryRun(specs){
 }
 async function guardDashboard3(){
  const baseline=read('dashboard-3-before',priv),live=await api('GET','dashboard/3');
- assert.deepEqual(shape(live),shape(baseline),'dashboard 3 dashcards changed since the baseline');assert.deepEqual(live.tabs,baseline.tabs);assert.deepEqual(live.parameters,baseline.parameters);
- return {baseline,live};
+ assert.equal(live.archived,true,'dashboard 3 must be archived (DecommissionLoanReports.mjs --apply)');
+ assert.deepEqual(live.tabs,baseline.tabs);assert.deepEqual(live.parameters,baseline.parameters);
+ return {baseline,live:baseline};
 }
 async function applyTabs(state,baseline,only,specs){
  const d=await api('GET','dashboard/'+state.dashboard);
- const live1501=(await api('GET','dashboard/3')).dashcards.find(c=>c.id===1501);assert(live1501?.visualization_settings?.virtual_card?.display==='iframe','dashcard 1501 matrix iframe missing');
+ const live1501=baseline.dashcards.find(c=>c.id===1501);assert(live1501?.visualization_settings?.virtual_card?.display==='iframe','dashcard 1501 matrix iframe missing');
  const tabs=layout.tabs.filter(t=>!only||only.includes(t.key)),cards={};
  for(const t of tabs)for(const p of t.placements)if(p.columns){const id=p.reuse_card_id??state.questions[p.new_question];cards[id]??=await api('GET','card/'+id);}
  const keep=d.dashcards.filter(c=>only&&!only.includes(layout.tabs.find(t=>state.tabs[t.key]===c.dashboard_tab_id)?.key));
@@ -274,41 +276,6 @@ if(args.includes('--publish')){
  await applyTabs(state,baseline,null,specs);
  await guardDashboard3();
  console.log(JSON.stringify({dashboard:dash.id,collection:collection.id,questions:Object.keys(state.questions).length,tabs:Object.keys(state.tabs).length}));
-}
-// R102: dashboard 3 changes on purpose when AddLongOverdueLane.mjs --apply adds the Long overdue lane, so the guard's
-// baseline is renewed once from live dashboard 3, only after that script's state exists and its two lane cards are placed on
-// tab 19; the earlier baseline (when present) is kept beside it. Later runs guard against the renewed baseline.
-if(args.includes('--rebaseline-dashboard3=R102')){
- await assertSource();read('state');const long=longLaneCards();assert(long?.count&&long?.list,'run AddLongOverdueLane.mjs --apply first');
- const d=await api('GET','dashboard/3'),placed=d.dashcards.filter(c=>c.dashboard_tab_id===19&&[long.count,long.list].includes(c.card_id));
- assert.deepEqual(placed.map(c=>[c.card_id,c.row]).sort((a,b)=>a[1]-b[1]),[[long.count,6],[long.list,8]],'the Long overdue lane is not placed on dashboard 3 tab 19');
- if(fs.existsSync(`${priv}/dashboard-3-before.json`))fs.copyFileSync(`${priv}/dashboard-3-before.json`,`${priv}/dashboard-3-before-pre-r102.json`);
- save('dashboard-3-before',d,priv);save('dashboard-3-rebaseline',{at:new Date().toISOString(),reason:'R102 Long overdue lane (AddLongOverdueLane.mjs)',laneCards:long,dashcards:d.dashcards.length},priv);
- console.log(JSON.stringify({rebaselined:true,dashcards:d.dashcards.length,laneCards:long}));
-}
-// R116: Refine-WriteOffSegregation.mjs --apply changes dashboard 3 tab 16 on purpose (the write-off question in the scalar
-// row, the formula note and the waterfall title), so the guard's baseline is renewed once from live dashboard 3, only after
-// that question is placed; the earlier baseline is kept beside it.
-if(args.includes('--rebaseline-dashboard3=R116')){
- await assertSource();read('state');const writeoffs=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.writeoffs;
- assert(writeoffs,'run Refine-WriteOffSegregation.mjs --apply first');
- // The R116 five-card scalar row of tab 16 (WriteOffSegregation.mjs), wherever the live row sits; anything else refuses.
- const d=await api('GET','dashboard/3');writeOffIncomeRow(d.dashcards,writeoffs,16);
- if(fs.existsSync(`${priv}/dashboard-3-before.json`))fs.copyFileSync(`${priv}/dashboard-3-before.json`,`${priv}/dashboard-3-before-pre-r116.json`);
- save('dashboard-3-before',d,priv);save('dashboard-3-rebaseline-r116',{at:new Date().toISOString(),reason:'R116 write-off segregation (Refine-WriteOffSegregation.mjs)',question:writeoffs,dashcards:d.dashcards.length},priv);
- console.log(JSON.stringify({rebaselined:true,dashcards:d.dashcards.length,question:writeoffs}));
-}
-// R118: Refine-LateCharges.mjs --apply changes dashboard 3 tab 16 on purpose (the late-charge question as a sixth card of the
-// scalar row, every card at width 4, and the formula note), so the guard's baseline is renewed once more from live dashboard 3,
-// only after that question is placed; the earlier baselines are kept beside it.
-if(args.includes('--rebaseline-dashboard3=R118')){
- await assertSource();read('state');const cards=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards;
- assert(cards.writeoffs&&cards.latecharges,'run Refine-LateCharges.mjs --apply first');
- // The R118 six-card scalar row of tab 16 (LateCharges.mjs), wherever the live row sits; anything else refuses.
- const d=await api('GET','dashboard/3');lateIncomeRow(d.dashcards,cards.writeoffs,cards.latecharges,16);
- if(fs.existsSync(`${priv}/dashboard-3-before.json`))fs.copyFileSync(`${priv}/dashboard-3-before.json`,`${priv}/dashboard-3-before-pre-r118.json`);
- save('dashboard-3-before',d,priv);save('dashboard-3-rebaseline-r118',{at:new Date().toISOString(),reason:'R118 late charges (Refine-LateCharges.mjs)',question:cards.latecharges,dashcards:d.dashcards.length},priv);
- console.log(JSON.stringify({rebaselined:true,dashcards:d.dashcards.length,question:cards.latecharges}));
 }
 if(args.includes('--refine')){
  await assertSource();assert(only.length,'--refine needs --only=<keys>');const state=read('state'),{baseline}=await guardDashboard3(),specs=questions(await liveSources(),state,baseline);
@@ -511,7 +478,7 @@ if(args.includes('--verify')){
  // Click-through and preservation
  const links=d.dashcards.flatMap(c=>JSON.stringify(c.visualization_settings).match(/dashboard\/\d+\?tab=\d+[^"\\]*/g)??[]);
  (links.length&&links.every(l=>l.startsWith(`dashboard/${state.dashboard}?tab=`))?pass:fail)('links target the proposed dashboard',{links:links.length,toDashboard3:links.filter(l=>l.startsWith('dashboard/3?')).length});
- pass('dashboard 3 preserved',{dashcards:d3.dashcards.length,tabs:d3.tabs.length,parameters:d3.parameters.length});
+ pass('dashboard 3 archived',{frozenDashcards:d3.dashcards.length,tabs:d3.tabs.length,parameters:d3.parameters.length});
  const saved={dashboard:state.dashboard,collection:state.collection,tabs:d.tabs.map(({id,name,position})=>({id,name,position,key:tabKey[id]})),parameters:d.parameters,questions:await Promise.all(Object.entries(state.questions).map(async([key,id])=>{const c=await api('GET','card/'+id);return {key,id,name:c.name,display:c.display,description:c.description,dataset_query:c.dataset_query,visualization_settings:c.visualization_settings};})),layout:shape(d).map(c=>({...c,visualization_settings:redact(c.visualization_settings)}))};
  save('saved',saved);
  const passed=checks.every(c=>c.passed);

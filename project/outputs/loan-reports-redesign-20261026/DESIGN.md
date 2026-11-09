@@ -145,7 +145,7 @@ Where the money is on a chosen date: pool, principal, lending capital and net ca
 | 2/12 | 6×3 | reuse q207 | Remaining lending capital |  |  |
 | 2/18 | 6×3 | reuse q208 | Net cash balance |  |  |
 | 5/0 | 8×6 | reuse q68 | Capital deployed · live |  |  |
-| 5/8 | 16×6 | new `cash.holders-signed` | Net cash by holder · selected date |  |  |
+| 5/8 | 16×6 | new `cash.holders-signed` | Net cash by holder · selected date | vs graph.show_legend=False | legend off on the dashcard too (UX-CP-01): the saved question setting alone still showed it |
 | 11/0 | 24×6 | reuse q211 | Account balances · selected date |  |  |
 | 17/0 | 24×7 | reuse q202 | Daily closing positions · completed days | filters period |  |
 | 24/0 | 24×2 | text card | Unknown openings stay blank · source and freshness: Data health tab. | vs text.align_vertical=top |  |
@@ -173,7 +173,7 @@ Income − expenses = net profit for the statement period, compared with the pre
 | 8/16 | 8×3 | new `income.latecharges` | Late charges · inside income |  |  |
 | 11/0 | 16×8 | new `income.monthly` | Monthly income, expenses, write-offs and net profit |  |  |
 | 11/16 | 8×8 | reuse q178 | Expenses by category · this period |  |  |
-| 19/0 | 24×7 | reuse q213 | Daily income and expenses · snapshots |  |  |
+| 19/0 | 24×7 | reuse q213 | Daily income and expenses · snapshots | vs graph.colors=['#178F8A', '#D1495B'] | UX-IN-02: Income in the teal of the monthly chart; visualizer-format placement, so the series keys are COLUMN_2 (Income) and COLUMN_3 (Expenses) |
 | 26/0 | 24×7 | new `income.expense-detail-desc` | Expense detail · this period |  |  |
 | 33/0 | 24×2 | text card | Per-day average uses calendar days · freshness: Data health tab. | vs text.align_vertical=top |  |
 
@@ -199,7 +199,7 @@ Opening + money in − money out = closing for the period and account, movement 
 | 5/6 | 18×7 | new `cashflow.by-type-row` | Cash movement by transaction type |  |  |
 | 12/0 | 24×10 | reuse q203 | Movement by transaction type · table |  | height fits all nine type rows |
 | 22/0 | 24×7 | reuse q215 | Daily cash movement · completed days | vs graph.show_values=False | value labels off: they overlapped |
-| 29/0 | 24×10 | new `cashflow.transactions-desc` | Transactions · chronological |  |  |
+| 29/0 | 24×10 | new `cashflow.transactions-desc` | Transactions · newest first |  |  |
 | 39/0 | 24×2 | text card | Repayments keep their recorded type · freshness: Data health tab. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q198, q216, q196 (the saved questions are kept; nothing is deleted).

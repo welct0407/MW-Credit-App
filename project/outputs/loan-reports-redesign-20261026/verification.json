@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-09T07:52:41.004Z",
+  "at": "2026-11-09T08:11:00.255Z",
   "passed": true,
   "checks": [
     {
@@ -185,7 +185,7 @@
       "name": "cashflow.transactions-desc",
       "passed": true,
       "detail": {
-        "rows": 186,
+        "rows": 187,
         "sameRows": true,
         "reverseOrder": true
       }
@@ -326,7 +326,7 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 8,
+            "rows": 7,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
@@ -354,7 +354,7 @@
           },
           {
             "key": "collection.lane-paid",
-            "rows": 5,
+            "rows": 6,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true
@@ -380,10 +380,10 @@
       }
     },
     {
-      "name": "dashboard 3 preserved",
+      "name": "dashboard 3 archived",
       "passed": true,
       "detail": {
-        "dashcards": 276,
+        "frozenDashcards": 276,
         "tabs": 12,
         "parameters": 28
       }

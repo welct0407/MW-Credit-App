@@ -1,8 +1,8 @@
 {
  "dashboard": {
-  "name": "Loan Reports · proposed",
+  "name": "Loan Reports",
   "collection": {
-   "name": "Loan Reports · proposed",
+   "name": "Loan Reports · dashboard",
    "parent_collection_id": 5,
    "description": "Parallel redesign of Loan Reports (dashboard 3) for side-by-side review. Reuses the governed models and saved questions; new questions live here."
   },
@@ -2183,6 +2183,10 @@
      "size_y": 6,
      "new_question": "cash.holders-signed",
      "title": "Net cash by holder · selected date",
+     "note": "legend off on the dashcard too (UX-CP-01): the saved question setting alone still showed it",
+     "vs": {
+      "graph.show_legend": false
+     },
      "params": [
       "position-date",
       "period"
@@ -2360,6 +2364,23 @@
      "size_y": 7,
      "reuse_card_id": 213,
      "title": "Daily income and expenses · snapshots",
+     "note": "UX-IN-02: Income in the teal of the monthly chart; visualizer-format placement, so the series keys are COLUMN_2 (Income) and COLUMN_3 (Expenses)",
+     "vs": {
+      "graph.colors": [
+       "#178F8A",
+       "#D1495B"
+      ],
+      "series_settings": {
+       "COLUMN_2": {
+        "display": "bar",
+        "color": "#178F8A"
+       },
+       "COLUMN_3": {
+        "display": "bar",
+        "color": "#D1495B"
+       }
+      }
+     },
      "params": [
       "statement-period"
      ]
@@ -2526,8 +2547,7 @@
      "size_x": 24,
      "size_y": 10,
      "new_question": "cashflow.transactions-desc",
-     "title": "Transactions · chronological",
-     "description": "Newest first.",
+     "title": "Transactions · newest first",
      "params": [
       "statement-period",
       "account"

@@ -36,9 +36,11 @@ SITE = 'https://reports.mw-credit.com'
 # ---------------------------------------------------------------------------------------------------------
 # Dashboard-level definitions
 # ---------------------------------------------------------------------------------------------------------
+# 9 Nov 2026 decommission (DecommissionLoanReports.mjs): dashboard 32 renamed "Loan Reports" and collection 10
+# "Loan Reports · dashboard"; dashboard 3 archived. Names here are used only by --publish, which never replays.
 DASHBOARD = {
-    'name': 'Loan Reports · proposed',
-    'collection': {'name': 'Loan Reports · proposed', 'parent_collection_id': 5,
+    'name': 'Loan Reports',
+    'collection': {'name': 'Loan Reports · dashboard', 'parent_collection_id': 5,
                    'description': 'Parallel redesign of Loan Reports (dashboard 3) for side-by-side review. '
                                   'Reuses the governed models and saved questions; new questions live here.'},
     'description': 'Parallel redesign of Loan Reports for owner review. Live PROD OLAP · THB · Bangkok dates. '
@@ -565,7 +567,8 @@ TABS = [
              (207, 6, 3, {'title': 'Remaining lending capital'}),
              (208, 6, 3, {'title': 'Net cash balance'})],
             [(68, 8, 6, {'title': 'Capital deployed · live'}),
-             ('cash.holders-signed', 16, 6, {'title': 'Net cash by holder · selected date'})],
+             ('cash.holders-signed', 16, 6, {'title': 'Net cash by holder · selected date', 'vs': {'graph.show_legend': False},
+                                             'note': 'legend off on the dashcard too (UX-CP-01): the saved question setting alone still showed it'})],
             [(211, 24, 6, {'title': 'Account balances · selected date', 'description': 'Signed balances; negative balances count.'})],
             [(202, 24, 7, {'title': 'Daily closing positions · completed days', 'params': ['period']})],
             [T('Unknown openings stay blank · source and freshness: Data health tab.', 24)],
@@ -587,7 +590,9 @@ TABS = [
                    ('income.latecharges', 3, {'title': 'Late charges · inside income'}))],
             [('income.monthly', 16, 8, {'title': 'Monthly income, expenses, write-offs and net profit'}),
              (178, 8, 8, {'title': 'Expenses by category · this period'})],
-            [(213, 24, 7, {'title': 'Daily income and expenses · snapshots'})],
+            [(213, 24, 7, {'title': 'Daily income and expenses · snapshots',
+                           'vs': {'graph.colors': [TEAL, '#D1495B'], 'series_settings': {'COLUMN_2': {'display': 'bar', 'color': TEAL}, 'COLUMN_3': {'display': 'bar', 'color': '#D1495B'}}},
+                           'note': 'UX-IN-02: Income in the teal of the monthly chart; visualizer-format placement, so the series keys are COLUMN_2 (Income) and COLUMN_3 (Expenses)'})],
             [('income.expense-detail-desc', 24, 7, {'title': 'Expense detail · this period', 'description': 'Newest first.'})],
             [T('Per-day average uses calendar days · freshness: Data health tab.', 24)],
         ],
@@ -607,7 +612,7 @@ TABS = [
              ('cashflow.by-type-row', 18, 7, {'title': 'Cash movement by transaction type'})],
             [(203, 24, 10, {'title': 'Movement by transaction type · table', 'note': 'height fits all nine type rows'})],
             [(215, 24, 7, {'title': 'Daily cash movement · completed days', 'vs': {'graph.show_values': False}, 'note': 'value labels off: they overlapped'})],
-            [('cashflow.transactions-desc', 24, 10, {'title': 'Transactions · chronological', 'description': 'Newest first.'})],
+            [('cashflow.transactions-desc', 24, 10, {'title': 'Transactions · newest first'})],
             [T('Repayments keep their recorded type · freshness: Data health tab.', 24)],
         ],
         'dropped': [198, 216, 196],

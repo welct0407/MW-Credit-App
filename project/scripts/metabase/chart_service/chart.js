@@ -1,10 +1,11 @@
 'use strict';
 (() => {
 // Fragment parameters: key (bearer secret, memory only) and detail=<dashboard>:<tab>, the Borrower Detail target for name links.
-// Both are removed from the address bar; neither is ever sent in a request URL. Without a valid detail, links open dashboard 3 tab 105.
+// Both are removed from the address bar; neither is ever sent in a request URL. Without a valid detail, links open Loan Reports
+// (dashboard 32) tab 382 Borrower Detail; dashboard 3 was archived on 9 November 2026.
 const fragment = new URLSearchParams(location.hash.slice(1));
 const secret = fragment.get('key') || '';
-const [, detailDashboard, detailTab] = /^(\d{1,9}):(\d{1,9})$/.exec(fragment.get('detail') || '') || [null, '3', '105'];
+const [, detailDashboard, detailTab] = /^(\d{1,9}):(\d{1,9})$/.exec(fragment.get('detail') || '') || [null, '32', '382'];
 history.replaceState(null, '', location.pathname);
 const $ = id => document.getElementById(id), svg = $('matrix'), tooltip = $('tooltip');
 const ns = 'http://www.w3.org/2000/svg';
@@ -22,11 +23,8 @@ const icons = {
 const compactQuery = matchMedia('(max-height: 480px)');
 let rows = [], active = null, pinned = false, fetchedAt = null, requestBusy = false, generation = 0, redrawing = false;
 const number = (v,d=1) => v == null ? '—' : Number(v).toLocaleString('en-US',{maximumFractionDigits:d});
-// Dashboard 3 keeps its legacy filter slugs; the proposed dashboards use borrower and period.
-const detailUrl = id => {
- const legacy = detailDashboard === '3';
- return `https://reports.mw-credit.com/dashboard/${detailDashboard}?tab=${detailTab}&${legacy?'bd_borrower':'borrower'}=${encodeURIComponent(id)}&${legacy?'bd_activity':'period'}=past30days`;
-};
+// Loan Reports filter slugs: borrower and period.
+const detailUrl = id => `https://reports.mw-credit.com/dashboard/${detailDashboard}?tab=${detailTab}&borrower=${encodeURIComponent(id)}&period=past30days`;
 const spec = name => specs.find(s=>s.name===name);
 function el(tag,attrs={},text){const node=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));if(text!=null)node.textContent=text;return node;}
 function hide(){tooltip.hidden=true;tooltip.classList.remove('pinned');active=null;pinned=false;svg.querySelectorAll('.selected').forEach(n=>n.classList.remove('selected'));}

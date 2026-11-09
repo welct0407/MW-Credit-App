@@ -1,0 +1,1277 @@
+{
+  "at": "2026-11-09T08:04:59.460Z",
+  "owner_instruction": "2026-11-09: decommission the old dashboards (archive, reversible; never hard delete)",
+  "applied": true,
+  "renames": [
+    {
+      "object": "dashboard",
+      "id": 3,
+      "from": "Loan Reports",
+      "to": "Loan Reports · retired 2026-11-09"
+    },
+    {
+      "object": "dashboard",
+      "id": 32,
+      "from": "Loan Reports · proposed",
+      "to": "Loan Reports"
+    },
+    {
+      "object": "collection",
+      "id": 10,
+      "from": "Loan Reports · proposed",
+      "to": "Loan Reports · dashboard"
+    }
+  ],
+  "homepage_dashboard": 32,
+  "dashboards": [
+    {
+      "id": 1,
+      "name": "E-commerce Insights",
+      "collection_id": 2,
+      "dashcards": 14,
+      "archived_before": true,
+      "archived_after": true
+    },
+    {
+      "id": 2,
+      "name": "Borrower overview · PROD POC",
+      "collection_id": 5,
+      "dashcards": 7,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 3,
+      "name": "Loan Reports",
+      "collection_id": 5,
+      "dashcards": 276,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 4,
+      "name": "R027 backup · before Borrowers payment-health review",
+      "collection_id": 5,
+      "dashcards": 184,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 5,
+      "name": "R028 backup · before automatic schedule categories",
+      "collection_id": 5,
+      "dashcards": 207,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 6,
+      "name": "R029 backup · before equal-quadrant matrix",
+      "collection_id": 5,
+      "dashcards": 211,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 7,
+      "name": "R030 recovery · before custom matrix",
+      "collection_id": 5,
+      "dashcards": 217,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 8,
+      "name": "R033 recovery · before native matrix removal",
+      "collection_id": 5,
+      "dashcards": 218,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 9,
+      "name": "R034 recovery · before matrix reorder",
+      "collection_id": 5,
+      "dashcards": 213,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 10,
+      "name": "R035 recovery · before borrower pages",
+      "collection_id": 5,
+      "dashcards": 212,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 11,
+      "name": "R037 recovery Â· before borrower contribution",
+      "collection_id": 5,
+      "dashcards": 252,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 12,
+      "name": "R038 recovery - before lifetime principal return",
+      "collection_id": 5,
+      "dashcards": 256,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 13,
+      "name": "R039 recovery - before restoring borrower amount bars",
+      "collection_id": 5,
+      "dashcards": 256,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 14,
+      "name": "R040 recovery - before borrower lifetime display",
+      "collection_id": 5,
+      "dashcards": 258,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 15,
+      "name": "R040 recovery - before Portfolio BCG category",
+      "collection_id": 5,
+      "dashcards": 258,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 16,
+      "name": "R040 recovery - before borrower tab replacement",
+      "collection_id": 5,
+      "dashcards": 258,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 17,
+      "name": "R040 recovery - before borrower punctuality",
+      "collection_id": 5,
+      "dashcards": 237,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 18,
+      "name": "R041 recovery - before Detail presentation refinement",
+      "collection_id": 5,
+      "dashcards": 238,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 19,
+      "name": "R042 recovery - before payment receipts and loan profit",
+      "collection_id": 5,
+      "dashcards": 238,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 20,
+      "name": "R043 recovery - before borrower navigation",
+      "collection_id": 5,
+      "dashcards": 239,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 21,
+      "name": "R044 recovery - before Partners tab",
+      "collection_id": 5,
+      "dashcards": 223,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 22,
+      "name": "R045 recovery - before Forecast & Planning",
+      "collection_id": 5,
+      "dashcards": 247,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 23,
+      "name": "R048 recovery - before Forecast watchlist Loan Key",
+      "collection_id": 5,
+      "dashcards": 274,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 24,
+      "name": "R048 recovery - before Forecast original integer rate",
+      "collection_id": 5,
+      "dashcards": 274,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 25,
+      "name": "R048 recovery - before Partners capital share pie",
+      "collection_id": 5,
+      "dashcards": 274,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 26,
+      "name": "R050 recovery - before legacy Forecast & Partners tab removal",
+      "collection_id": 5,
+      "dashcards": 274,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 27,
+      "name": "R050 recovery - before borrower lifetime summary",
+      "collection_id": 5,
+      "dashcards": 259,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 28,
+      "name": "R050 recovery - before charge date labels",
+      "collection_id": 5,
+      "dashcards": 272,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 29,
+      "name": "R050 recovery - before daily charge lights",
+      "collection_id": 5,
+      "dashcards": 272,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 30,
+      "name": "R050 recovery - before distinct charge dates",
+      "collection_id": 5,
+      "dashcards": 272,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 31,
+      "name": "R050 recovery - before compact borrower category",
+      "collection_id": 5,
+      "dashcards": 272,
+      "archived_before": false,
+      "archived_after": true
+    }
+  ],
+  "archiveCards": [
+    {
+      "id": 40,
+      "name": "Borrowers",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 41,
+      "name": "Active borrowers",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 42,
+      "name": "Outstanding principal (THB)",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 43,
+      "name": "Borrower activity",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 44,
+      "name": "Borrowers by overdue amount",
+      "display": "bar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 45,
+      "name": "Borrower registrations by month",
+      "display": "line",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 46,
+      "name": "Borrower portfolio",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 47,
+      "name": "Total Cash Pool",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 48,
+      "name": "Outstanding Principal",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 52,
+      "name": "Projected Monthly Profit",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 54,
+      "name": "Cash Pool Utilization",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 55,
+      "name": "Active Loans",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 57,
+      "name": "Profit in Past 30 Days",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 58,
+      "name": "Interest Paid",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 59,
+      "name": "Top Borrower",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 60,
+      "name": "Outstanding Principal by Borrower",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 61,
+      "name": "30 Days Profit by Borrower",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 62,
+      "name": "Daily Outstanding Principal",
+      "display": "area",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 63,
+      "name": "Daily Profit",
+      "display": "area",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 78,
+      "name": "Active borrowers",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 81,
+      "name": "Lifetime interest",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 82,
+      "name": "Principal share",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 83,
+      "name": "Principal by borrower",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 84,
+      "name": "Interest · past 30 days share",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 85,
+      "name": "Interest · past 30 days by borrower",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 86,
+      "name": "30-day return on average principal",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 87,
+      "name": "Active principal covered by interest",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 88,
+      "name": "Lifetime interest by borrower",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 89,
+      "name": "Loans by borrower",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 90,
+      "name": "Interest contribution over time",
+      "display": "bar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 91,
+      "name": "Borrower value & stability",
+      "display": "scatter",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 92,
+      "name": "Average capital vs 30-day interest",
+      "display": "scatter",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 93,
+      "name": "Stability score components",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 112,
+      "name": "Principal by borrower",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 113,
+      "name": "Loan status",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 118,
+      "name": "Borrower risk monitor",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 139,
+      "name": "Current principal",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 140,
+      "name": "Active loans",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 141,
+      "name": "Overdue",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 143,
+      "name": "Monthly payment behaviour",
+      "display": "bar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 144,
+      "name": "Borrower loan history",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 145,
+      "name": "Credit history & assessment inputs",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 146,
+      "name": "Borrower risk monitor",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 148,
+      "name": "Remaining forecast",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 150,
+      "name": "Forecast realization",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 151,
+      "name": "Realized and remaining forecast",
+      "display": "bar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 152,
+      "name": "Expected interest by loan type",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 153,
+      "name": "Current daily interest by borrower",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 154,
+      "name": "Expected monthly interest by borrower",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 155,
+      "name": "Current partner pool shares",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 156,
+      "name": "Borrower forecast detail",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 157,
+      "name": "Interest received over time",
+      "display": "line",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 158,
+      "name": "Current and proposed exposure",
+      "display": "bar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 159,
+      "name": "Current portfolio share",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 160,
+      "name": "Proposed portfolio share",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 161,
+      "name": "Borrower selector",
+      "display": "table",
+      "collection_id": 8,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 169,
+      "name": "Operating expenses",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 196,
+      "name": "Transactions · chronological order",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 204,
+      "name": "Income less expenses and write-offs · Total = Net profit",
+      "display": "waterfall",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 210,
+      "name": "Net cash by holder · selected position",
+      "display": "bar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 212,
+      "name": "Expense detail · live period",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 234,
+      "name": "Net principal deployed · live",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 239,
+      "name": "People fully paid",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 240,
+      "name": "🟣 Overdue · people",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 241,
+      "name": "🟣 Overdue · borrowers",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 242,
+      "name": "🔴 Not paid · people",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 243,
+      "name": "🔴 Not paid · borrowers",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 244,
+      "name": "🟠 Partially paid · people",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 245,
+      "name": "🟠 Partially paid · borrowers",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 246,
+      "name": "🟢 Fully paid · people",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 247,
+      "name": "🟢 Fully paid · borrowers",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 250,
+      "name": "Bangkok date & query time",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 251,
+      "name": "Unclassified people · expected 0",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 259,
+      "name": "Cash Cow · active borrowers",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 261,
+      "name": "Star · active borrowers",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 263,
+      "name": "Dog · active borrowers",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 265,
+      "name": "Question Mark · active borrowers",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 266,
+      "name": "Payment behaviour vs contribution · automatic categories",
+      "display": "scatter",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 274,
+      "name": "Borrower portfolio matrix",
+      "display": "line",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 282,
+      "name": "Principal issued ฿",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 283,
+      "name": "Loans issued",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 285,
+      "name": "Current principal by borrower",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 286,
+      "name": "Period interest by borrower",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 295,
+      "name": "Current health · governed rolling window",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 311,
+      "name": "Borrowers Outstanding Principal Contribution",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 312,
+      "name": "Borrowers 30 Days Profit Contribution",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 313,
+      "name": "Lifetime Effective Achieved Daily Interest Rate · top 8",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 328,
+      "name": "Pending settlements ฿",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 330,
+      "name": "Partner positions · current",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 331,
+      "name": "Capital share · full pool",
+      "display": "pie",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 412,
+      "name": "⚫ Long overdue · people",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 413,
+      "name": "⚫ Long overdue · borrowers",
+      "display": "table",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 415,
+      "name": "Principal write-offs",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 417,
+      "name": "Late charges received",
+      "display": "scalar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true
+    }
+  ],
+  "retainedCandidates": {
+    "count": 151,
+    "onLiveDashboardOrProbe": 151,
+    "otherDependents": []
+  },
+  "unreferencedModels": [
+    {
+      "id": 76,
+      "name": "Partner Outlook",
+      "display": "table",
+      "collection_id": 8
+    },
+    {
+      "id": 319,
+      "name": "Partners · capital source",
+      "display": "table",
+      "collection_id": 8
+    },
+    {
+      "id": 320,
+      "name": "Partners · earnings source",
+      "display": "table",
+      "collection_id": 8
+    }
+  ],
+  "models": 27,
+  "consumers": 0,
+  "stops": [],
+  "private_baseline": "baseline.json in the private directory loan-reports-decommission-20261109 (outside Git)",
+  "applied_at": "2026-11-09T08:06:56.186Z",
+  "rollback": {
+    "unarchive_dashboards": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "unarchive_cards": [
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      52,
+      54,
+      55,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      78,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      112,
+      113,
+      118,
+      139,
+      140,
+      141,
+      143,
+      144,
+      145,
+      146,
+      148,
+      150,
+      151,
+      152,
+      153,
+      154,
+      155,
+      156,
+      157,
+      158,
+      159,
+      160,
+      161,
+      169,
+      196,
+      204,
+      210,
+      212,
+      234,
+      239,
+      240,
+      241,
+      242,
+      243,
+      244,
+      245,
+      246,
+      247,
+      250,
+      251,
+      259,
+      261,
+      263,
+      265,
+      266,
+      274,
+      282,
+      283,
+      285,
+      286,
+      295,
+      311,
+      312,
+      313,
+      328,
+      330,
+      331,
+      412,
+      413,
+      415,
+      417
+    ],
+    "renames": [
+      {
+        "object": "dashboard",
+        "id": 3,
+        "from": "Loan Reports · retired 2026-11-09",
+        "to": "Loan Reports"
+      },
+      {
+        "object": "dashboard",
+        "id": 32,
+        "from": "Loan Reports",
+        "to": "Loan Reports · proposed"
+      },
+      {
+        "object": "collection",
+        "id": 10,
+        "from": "Loan Reports · dashboard",
+        "to": "Loan Reports · proposed"
+      }
+    ],
+    "how": "PUT card/<id> and dashboard/<id> {\"archived\":false}; PUT the renames back; any dashcard Metabase dropped is restored from the private baseline (PUT dashboard/<id> dashcards)."
+  },
+  "verification": {
+    "at": "2026-11-09T08:07:47.623Z",
+    "passed": true,
+    "checks": [
+      {
+        "name": "dashboards 1-31 archived",
+        "passed": true,
+        "detail": {
+          "archived": 31
+        }
+      },
+      {
+        "name": "dashboard 3 renamed",
+        "passed": true
+      },
+      {
+        "name": "dashboard 32 active and renamed",
+        "passed": true
+      },
+      {
+        "name": "collection 10 renamed, collection 5 unchanged",
+        "passed": true
+      },
+      {
+        "name": "homepage is dashboard 32",
+        "passed": true
+      },
+      {
+        "name": "planned questions archived",
+        "passed": true,
+        "detail": {
+          "questions": 94
+        }
+      },
+      {
+        "name": "no active question or dashboard 32 card depends on an archived question",
+        "passed": true,
+        "detail": {
+          "broken": [],
+          "dead": []
+        }
+      },
+      {
+        "name": "no model archived",
+        "passed": true,
+        "detail": {
+          "models": 27
+        }
+      },
+      {
+        "name": "copies 419-421 active",
+        "passed": true
+      },
+      {
+        "name": "dashboard 32 matrix iframe works",
+        "passed": true,
+        "detail": {
+          "found": true,
+          "detail": "32:382",
+          "page": 200,
+          "data": 200,
+          "rows": 30
+        }
+      }
+    ]
+  }
+}

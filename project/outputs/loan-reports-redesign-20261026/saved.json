@@ -10192,7 +10192,7 @@
       }
     },
     {
-      "id": 9268,
+      "id": 9302,
       "card_id": null,
       "dashboard_tab_id": 376,
       "row": 0,
@@ -10215,7 +10215,7 @@
       }
     },
     {
-      "id": 9269,
+      "id": 9303,
       "card_id": 382,
       "dashboard_tab_id": 376,
       "row": 2,
@@ -10241,7 +10241,7 @@
       }
     },
     {
-      "id": 9270,
+      "id": 9304,
       "card_id": 383,
       "dashboard_tab_id": 376,
       "row": 2,
@@ -10267,7 +10267,7 @@
       }
     },
     {
-      "id": 9271,
+      "id": 9305,
       "card_id": 207,
       "dashboard_tab_id": 376,
       "row": 2,
@@ -10293,7 +10293,7 @@
       }
     },
     {
-      "id": 9272,
+      "id": 9306,
       "card_id": 208,
       "dashboard_tab_id": 376,
       "row": 2,
@@ -10319,7 +10319,7 @@
       }
     },
     {
-      "id": 9273,
+      "id": 9307,
       "card_id": 68,
       "dashboard_tab_id": 376,
       "row": 5,
@@ -10333,7 +10333,7 @@
       }
     },
     {
-      "id": 9274,
+      "id": 9308,
       "card_id": 419,
       "dashboard_tab_id": 376,
       "row": 5,
@@ -10355,11 +10355,12 @@
         }
       ],
       "visualization_settings": {
-        "card.title": "Net cash by holder · selected date"
+        "card.title": "Net cash by holder · selected date",
+        "graph.show_legend": false
       }
     },
     {
-      "id": 9275,
+      "id": 9309,
       "card_id": 211,
       "dashboard_tab_id": 376,
       "row": 11,
@@ -10386,7 +10387,7 @@
       }
     },
     {
-      "id": 9276,
+      "id": 9310,
       "card_id": 202,
       "dashboard_tab_id": 376,
       "row": 17,
@@ -10412,7 +10413,7 @@
       }
     },
     {
-      "id": 9277,
+      "id": 9311,
       "card_id": null,
       "dashboard_tab_id": 376,
       "row": 24,
@@ -10435,7 +10436,7 @@
       }
     },
     {
-      "id": 9278,
+      "id": 9312,
       "card_id": null,
       "dashboard_tab_id": 377,
       "row": 0,
@@ -10458,7 +10459,7 @@
       }
     },
     {
-      "id": 9279,
+      "id": 9313,
       "card_id": 168,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -10501,7 +10502,7 @@
       }
     },
     {
-      "id": 9280,
+      "id": 9314,
       "card_id": 392,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -10527,7 +10528,7 @@
       }
     },
     {
-      "id": 9281,
+      "id": 9315,
       "card_id": 416,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -10553,7 +10554,7 @@
       }
     },
     {
-      "id": 9282,
+      "id": 9316,
       "card_id": 170,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -10596,7 +10597,7 @@
       }
     },
     {
-      "id": 9283,
+      "id": 9317,
       "card_id": 384,
       "dashboard_tab_id": 377,
       "row": 5,
@@ -10622,7 +10623,7 @@
       }
     },
     {
-      "id": 9284,
+      "id": 9318,
       "card_id": 171,
       "dashboard_tab_id": 377,
       "row": 5,
@@ -10665,7 +10666,7 @@
       }
     },
     {
-      "id": 9285,
+      "id": 9319,
       "card_id": 418,
       "dashboard_tab_id": 377,
       "row": 8,
@@ -10691,7 +10692,7 @@
       }
     },
     {
-      "id": 9286,
+      "id": 9320,
       "card_id": 385,
       "dashboard_tab_id": 377,
       "row": 11,
@@ -10705,7 +10706,7 @@
       }
     },
     {
-      "id": 9287,
+      "id": 9321,
       "card_id": 178,
       "dashboard_tab_id": 377,
       "row": 11,
@@ -10748,7 +10749,7 @@
       }
     },
     {
-      "id": 9288,
+      "id": 9322,
       "card_id": 213,
       "dashboard_tab_id": 377,
       "row": 19,
@@ -10807,7 +10808,7 @@
               "COLUMN_3"
             ],
             "graph.colors": [
-              "#13855B",
+              "#178F8A",
               "#D1495B"
             ],
             "card.hide_empty": false,
@@ -10828,7 +10829,7 @@
             "series_settings": {
               "COLUMN_2": {
                 "display": "bar",
-                "color": "#13855B"
+                "color": "#178F8A"
               },
               "COLUMN_3": {
                 "display": "bar",
@@ -10840,11 +10841,25 @@
             ]
           }
         },
-        "card.title": "Daily income and expenses · snapshots"
+        "card.title": "Daily income and expenses · snapshots",
+        "graph.colors": [
+          "#178F8A",
+          "#D1495B"
+        ],
+        "series_settings": {
+          "COLUMN_2": {
+            "display": "bar",
+            "color": "#178F8A"
+          },
+          "COLUMN_3": {
+            "display": "bar",
+            "color": "#D1495B"
+          }
+        }
       }
     },
     {
-      "id": 9289,
+      "id": 9323,
       "card_id": 420,
       "dashboard_tab_id": 377,
       "row": 26,
@@ -10901,7 +10916,7 @@
       }
     },
     {
-      "id": 9290,
+      "id": 9324,
       "card_id": null,
       "dashboard_tab_id": 377,
       "row": 33,
@@ -10924,7 +10939,7 @@
       }
     },
     {
-      "id": 9291,
+      "id": 9325,
       "card_id": null,
       "dashboard_tab_id": 378,
       "row": 0,
@@ -10947,7 +10962,7 @@
       }
     },
     {
-      "id": 9292,
+      "id": 9326,
       "card_id": 195,
       "dashboard_tab_id": 378,
       "row": 2,
@@ -11001,7 +11016,7 @@
       }
     },
     {
-      "id": 9293,
+      "id": 9327,
       "card_id": 192,
       "dashboard_tab_id": 378,
       "row": 2,
@@ -11055,7 +11070,7 @@
       }
     },
     {
-      "id": 9294,
+      "id": 9328,
       "card_id": 193,
       "dashboard_tab_id": 378,
       "row": 2,
@@ -11109,7 +11124,7 @@
       }
     },
     {
-      "id": 9295,
+      "id": 9329,
       "card_id": 197,
       "dashboard_tab_id": 378,
       "row": 2,
@@ -11163,7 +11178,7 @@
       }
     },
     {
-      "id": 9296,
+      "id": 9330,
       "card_id": 194,
       "dashboard_tab_id": 378,
       "row": 5,
@@ -11223,7 +11238,7 @@
       }
     },
     {
-      "id": 9297,
+      "id": 9331,
       "card_id": 386,
       "dashboard_tab_id": 378,
       "row": 5,
@@ -11260,7 +11275,7 @@
       }
     },
     {
-      "id": 9298,
+      "id": 9332,
       "card_id": 203,
       "dashboard_tab_id": 378,
       "row": 12,
@@ -11297,7 +11312,7 @@
       }
     },
     {
-      "id": 9299,
+      "id": 9333,
       "card_id": 215,
       "dashboard_tab_id": 378,
       "row": 22,
@@ -11396,7 +11411,7 @@
       }
     },
     {
-      "id": 9300,
+      "id": 9334,
       "card_id": 421,
       "dashboard_tab_id": 378,
       "row": 29,
@@ -11451,12 +11466,11 @@
             "highlight_row": false
           }
         ],
-        "card.title": "Transactions · chronological",
-        "card.description": "Newest first."
+        "card.title": "Transactions · newest first"
       }
     },
     {
-      "id": 9301,
+      "id": 9335,
       "card_id": null,
       "dashboard_tab_id": 378,
       "row": 39,
