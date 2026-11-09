@@ -1,0 +1,62 @@
+{
+  "status": "in progress",
+  "targets": {
+    "postgresql-production": {
+      "identity": {
+        "instance": "mw-credit-pg-20261017",
+        "database": "loan_manager_prod",
+        "route": "cloud-sql-auth-proxy",
+        "host": "127.0.0.1",
+        "port": 15432
+      },
+      "version_or_hash": "1c406e8b4143ba48936b01eacccc7b3252a30d218c992b5cf0d1f5808157a260",
+      "counts": {
+        "schemas": 4,
+        "relations": 100,
+        "columns": 1559,
+        "constraints": 479,
+        "indexes": 97,
+        "routines": 240,
+        "triggers": 456,
+        "sequences": 2,
+        "types": 0,
+        "policies": 0,
+        "extensions": 2,
+        "default_privileges": 1,
+        "database": 1,
+        "database_role_settings": 7,
+        "role_dependencies": 40,
+        "relevant_roles": 52,
+        "role_memberships": 51,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 140,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 1330,
+        "jobs": 0
+      },
+      "captured_utc": "2026-11-09T11:37:19.744000+00:00"
+    }
+  },
+  "objects": [
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "1c406e8b4143ba48936b01eacccc7b3252a30d218c992b5cf0d1f5808157a260",
+      "object_kind": "relation",
+      "object_name": "public.olap_borrowers_analytics",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-borrowers-analytics-2ac154a3.yaml",
+      "status": "updated",
+      "expected_properties": 1578,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r137-20261109/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    }
+  ]
+}
