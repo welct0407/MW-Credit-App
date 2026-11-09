@@ -4,9 +4,9 @@
 The owner asked to update the question, "decommission the old dashboards" and "update the chart service default too". Dashboard 32 becomes the only Loan Reports dashboard. Everything is archived, not deleted.
 
 ## Changes
-- Metabase, through `project/scripts/metabase/DecommissionLoanReports.mjs`: dashboards 1 to 31 archived (dashboard 1 already was); dashboard 3 renamed "Loan Reports · retired 2026-11-09"; 94 questions placed only on those dashboards archived; no model archived (27 models checked).
+- Metabase, through `project/scripts/metabase/DecommissionLoanReports.mjs`: dashboards 1 to 31 archived (dashboard 1 already was); dashboard 3 renamed "Loan Reports · retired 2026-11-09"; 94 questions placed only on those dashboards archived; no model archived by the first step (27 models checked).
 - Dashboard 32 renamed "Loan Reports" and collection 10 "Loan Reports · dashboard"; `custom-homepage-dashboard` stays 32. Kept copies 419, 420 and 421 replace the archived originals 210, 212 and 196.
-- Models 76 (Partner Outlook), 319 and 320 are unreferenced and left for the owner to decide.
+- At the owner's request ("archive the three unused models too") Byte archived models 76 Partner Outlook, 319 Partners · capital source and 320 Partners · earnings source with the new `--models` step; a live re-check found no active question, dashboard 32 card or filter, chart `query.sql`, question 276, subscription or alert using them. 24 models remain active. The evidence file records before false and after true and the unarchive list.
 - UX fixes on dashboard 32: dashcard 9334 titled "Transactions · newest first", 9308 legend off, 9322 Income colour #178F8A.
 - `ProposedLoanReports.mjs`: the guard now asserts dashboard 3 is archived; `--rebaseline-dashboard3` removed.
 - Chart service: `chart.js` default `detail` is 32:382 and the legacy dashboard 3 link format is removed (sha256 `0069bbf3e2c14ab95f77e8db737c7837cdabb268bbe0bae51b00a663085e1ece`).
@@ -21,6 +21,7 @@ The owner asked to update the question, "decommission the old dashboards" and "u
 | `DecommissionLoanReports.mjs --verify` | Pass, 10 checks (archived flags, names, homepage, no active card depends on an archived one, no model archived, copies 419 to 421 active, matrix iframe 200 with 30 rows) (Byte) |
 | Chase read-only review | No defects. Cards 49, 56, 379, 380 and 381 executed; none of 153 dashboard 32 card references is archived; question 276 and models 76, 319, 320 not archived; rollback lists match 94 questions and 30 dashboards; evidence file clean |
 | Chart deploy checks (Forge) | Shell 200; served `chart.js` hash matches and contains `32` and `382`; unauthenticated `/api/matrix` 401 |
+| `DecommissionLoanReports.mjs --verify` after `--models` | Pass, 10 of 10 (24 models remain active); `ProposedLoanReports.mjs --verify` 32 of 32; `node --test` 29 of 29 (Byte) |
 | `dictionary.py index` and `validate` | Pass |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
 
@@ -31,7 +32,7 @@ The archived flags and the homepage were confirmed only through Byte's `--verify
 Unarchive the lists in the evidence file (`PUT card/{id}` and `PUT dashboard/{id}` with `{"archived": false}`), put the three renames back, and restore any dashcard Metabase dropped from the private baseline. Chart: copy the three files from `/opt/mw-report-charts/recovery-decommission-20261109/` back to `/opt/mw-report-charts/`; no restart.
 
 ## Open questions
-- Models 76, 319 and 320 are unreferenced: archive or keep?
+None.
 
 ## Remaining work
 None for this batch.

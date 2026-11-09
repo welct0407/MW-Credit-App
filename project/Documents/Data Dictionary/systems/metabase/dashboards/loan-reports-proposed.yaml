@@ -12,8 +12,8 @@
   "status": "Canonical dashboard since 9 November 2026: renamed \"Loan Reports\" (was \"Loan Reports · proposed\"), collection\
     \ 10 renamed \"Loan Reports · dashboard\", homepage custom-homepage-dashboard 32. Dashboard 3 is archived as \"Loan Reports\
     \ · retired 2026-11-09\" with dashboards 1 to 31, and 94 questions placed only on them are archived (decommission, reversible).\
-    \ Kept copies 419, 420 and 421 replace the archived originals 210, 212 and 196. Models 76, 319 and 320 are unreferenced\
-    \ and left for the owner. The earlier text below on dashboard 3 as recovery copy is historical."
+    \ Kept copies 419, 420 and 421 replace the archived originals 210, 212 and 196. Unreferenced models 76, 319 and 320\
+    \ are archived too (owner). The earlier text below on dashboard 3 as recovery copy is historical."
   "landing":
     "setting": "custom-homepage-dashboard"
     "value": 32

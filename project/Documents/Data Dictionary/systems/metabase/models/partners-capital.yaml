@@ -12,6 +12,7 @@
     "source": "outputs/r044-partners/saved.json"
   },
   "content": {
+    "retired": "Archived 9 November 2026 (owner: \"archive the three unused models too\"); no active question, dashboard or chart query used it. Reversible: PUT card/{id} {\"archived\": false}; see outputs/loan-reports-redesign-20261026/decommission-2026-11-09.json.",
     "key": "capital",
     "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
     "result_metadata": [
