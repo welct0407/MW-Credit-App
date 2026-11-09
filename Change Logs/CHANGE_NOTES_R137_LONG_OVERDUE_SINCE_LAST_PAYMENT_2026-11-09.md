@@ -18,11 +18,14 @@ Owner decision of 9 November 2026: a borrower is Long Overdue when they have at 
 | `scripts/database/Test-LongOverdue.sql` | Pass (Byte) |
 | `npm test` | Pass, 1251 of 1251 (Byte) |
 | typecheck, lint | Pass (Byte) |
-| Integration tests | 23 of 26 pass; 3 pre-existing failures (Byte; confirmation by Chase pending) |
-| Chase verification | pending |
+| Integration tests (`collection-postgres`) | 23 of 26 pass; the same 3 failures exist before the change (3494144: 21 pass, 4 fail; Chase confirmed); the suite is not run by CI |
+| Chase diff review (commits `0a1cca5`, `706ee67`) | Pass: the API and V140 agree on the payment definition (posted repayment, method not Referral Rebate Offset or Net-off at Disbursement, amount above 0, date on or before the reporting date, 8 or more days); the first charge excludes `df10:` rows; sort and cursor v5 are correct; a same-day payment counts as 0 days |
+| e2e `collection-read.spec.ts`, desktop-chromium | Pass, 3 of 3 (Chase) |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
 
 ## Not run
+Low risks Chase noted, not fixed: a borrower with only `df10:` unpaid charges falls to Overdue in both the view and the API; a cursor issued before the deploy can skip or repeat a row once across the deploy.
+
 V140 is not applied to DEV or PROD, so the PostgreSQL dictionary record of `olap_borrowers_analytics` (a captured live definition) is unchanged; refresh it after the apply.
 
 ## Recovery
