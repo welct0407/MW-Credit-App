@@ -1,5 +1,5 @@
 \set ON_ERROR_STOP on
--- V114 (R102): "Long Overdue" in olap_borrowers_analytics."Daily Collection Status" and the appended
+-- V114 (R102), V140 (R137): "Long Overdue" in olap_borrowers_analytics."Daily Collection Status" and the appended
 -- olap_portfolio_summary."Borrowers with Long Overdue Payment". Synthetic borrowers with one unpaid charge at
 -- d-1, d-7, d-8 and d-30 (d = olap_reporting_date()) give Overdue, Overdue, Long Overdue, Long Overdue; the
 -- five status counts partition the Collection borrowers; column lists stay compatible. Rolled back.
@@ -60,5 +60,52 @@ SELECT pg_temp.check_long((SELECT "Ref Preferred Receiving Cash Account" IS NULL
 -- Dependent reporting views (V34, V44) still read the replaced view.
 SELECT count(*) FROM public.reporting_borrower_directory_v1;
 SELECT count(*) FROM public.reporting_income_daily;
+-- V140 (R137, owner decision of 9 November 2026): Long Overdue = an unpaid past-due charge and 8 or more days since the
+-- borrower's last payment (never paid: since the first charge, df10: rows ignored). The never-paid cases above still hold:
+-- first charge d-7 is Overdue (LO-7), d-8, d-9 and d-30 are Long Overdue (LO-8, LO-MIX, LO-30). Each borrower below has an
+-- unpaid charge at d-20 unless noted; payments are posted receipts (Status Processing posts Repayments with "Ref Payment").
+INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES
+ ('LP-3','SYNTHETIC LP PAID D-3'),('LP-10','SYNTHETIC LP PAID D-10'),('LP-CLEAR','SYNTHETIC LP NOTHING UNPAID'),
+ ('LP-TOKEN','SYNTHETIC LP TOKEN D-1'),('LP-TWO','SYNTHETIC LP OTHER LOAN D-2'),('LP-REBATE','SYNTHETIC LP REBATE OFFSET'),
+ ('LP-NETOFF','SYNTHETIC LP NET-OFF'),('LP-DF10','SYNTHETIC LP DF10 FIRST');
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled")
+SELECT 'CI-LISA','LP-L-'||id,regexp_replace(id,'-B$',''),public.olap_reporting_date()-40,1000::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false
+FROM unnest(ARRAY['LP-3','LP-10','LP-CLEAR','LP-TOKEN','LP-TWO','LP-REBATE','LP-NETOFF','LP-DF10','LP-TWO-B']) id;
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES
+ ('LP-3-20','LP-L-LP-3',public.olap_reporting_date()-20,0::money,100::money),('LP-3-3','LP-L-LP-3',public.olap_reporting_date()-3,0::money,100::money),
+ ('LP-10-20','LP-L-LP-10',public.olap_reporting_date()-20,0::money,100::money),('LP-10-10','LP-L-LP-10',public.olap_reporting_date()-10,0::money,100::money),
+ ('LP-CLEAR-10','LP-L-LP-CLEAR',public.olap_reporting_date()-10,0::money,100::money),
+ ('LP-TOKEN-20','LP-L-LP-TOKEN',public.olap_reporting_date()-20,0::money,100::money),
+ ('LP-TWO-20','LP-L-LP-TWO',public.olap_reporting_date()-20,0::money,100::money),('LP-TWO-B-2','LP-L-LP-TWO-B',public.olap_reporting_date()-2,0::money,100::money),
+ ('LP-REBATE-20','LP-L-LP-REBATE',public.olap_reporting_date()-20,0::money,100::money),('LP-REBATE-2','LP-L-LP-REBATE',public.olap_reporting_date()-2,0::money,100::money),
+ ('LP-NETOFF-20','LP-L-LP-NETOFF',public.olap_reporting_date()-20,0::money,100::money),('LP-NETOFF-2','LP-L-LP-NETOFF',public.olap_reporting_date()-2,0::money,100::money),
+ ('df10:LP-DF10','LP-L-LP-DF10',public.olap_reporting_date()-30,0::money,100::money),('LP-DF10-5','LP-L-LP-DF10',public.olap_reporting_date()-5,0::money,100::money);
+-- One receipt per statement (a second Processing receipt of the same borrower in one statement needs reconciliation).
+INSERT INTO public."Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status","Payment Method")
+ VALUES('CI-DAD','LP-P3','LP-3','LP-3-3',100::money,public.olap_reporting_date()-3,'Single Full','Processing','Bank Transfer');
+INSERT INTO public."Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status","Payment Method")
+ VALUES('CI-DAD','LP-P10','LP-10','LP-10-10',100::money,public.olap_reporting_date()-10,'Single Full','Processing','Cash');
+INSERT INTO public."Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status","Payment Method")
+ VALUES('CI-DAD','LP-PCLEAR','LP-CLEAR','LP-CLEAR-10',100::money,public.olap_reporting_date()-10,'Single Full','Processing','Cash');
+INSERT INTO public."Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status","Payment Method")
+ VALUES('CI-DAD','LP-PTOKEN','LP-TOKEN','LP-TOKEN-20',1::money,public.olap_reporting_date()-1,'Single Partial','Processing','Cash');
+INSERT INTO public."Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status","Payment Method")
+ VALUES('CI-DAD','LP-PTWO','LP-TWO','LP-TWO-B-2',100::money,public.olap_reporting_date()-2,'Single Full','Processing','Bank Transfer');
+INSERT INTO public."Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status","Payment Method")
+ VALUES('CI-DAD','LP-PREBATE','LP-REBATE','LP-REBATE-2',100::money,public.olap_reporting_date()-2,'Single Full','Processing','Referral Rebate Offset');
+INSERT INTO public."Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status","Payment Method")
+ VALUES('CI-DAD','LP-PNETOFF','LP-NETOFF','LP-NETOFF-2',100::money,public.olap_reporting_date()-2,'Single Full','Processing','Net-off at Disbursement');
+-- The charges' paid state is settled by deferred triggers; settle it now, inside the rolled-back transaction.
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.check_long((SELECT count(*)=7 FROM public."Repayments" WHERE "Ref Payment" LIKE 'LP-P%'),'each fixture receipt posted one repayment');
+SELECT pg_temp.check_long((SELECT array_agg("Row ID"||'='||coalesce("Daily Collection Status",'-') ORDER BY "Row ID")
+ =ARRAY['LP-10=Long Overdue','LP-3=Overdue','LP-CLEAR=-','LP-DF10=Overdue','LP-NETOFF=Long Overdue','LP-REBATE=Long Overdue','LP-TOKEN=Overdue','LP-TWO=Overdue']
+ FROM public.olap_borrowers_analytics WHERE "Row ID" LIKE 'LP-%'),
+ 'paid d-3 Overdue; paid d-10 Long Overdue; nothing unpaid is neither; a 1-baht payment d-1 and a payment on another loan d-2 '
+ 'keep Overdue; rebate-offset and net-off receipts are not payments; a df10: row is not the first charge');
+SELECT pg_temp.check_long((SELECT s."Borrowers Not Paid Today"+s."Borrowers Partially Paid Today"+s."Borrowers with Overdue Payment"
+ +s."Borrowers with Long Overdue Payment"+s."Borrowers Fully Paid Today"
+ =(SELECT count(*) FROM public.olap_borrowers_analytics WHERE "Daily Collection Status" IS NOT NULL) FROM public.olap_portfolio_summary s),
+ 'the five status counts still partition the Collection borrowers');
 ROLLBACK;
 \echo Long overdue collection status checks passed

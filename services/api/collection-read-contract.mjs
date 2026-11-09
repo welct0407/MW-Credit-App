@@ -3,9 +3,16 @@ import { lateChargeSchema } from '../lib/late-charge-schema.mjs';
 import { searchQueryHash } from './search-query.mjs';
 /** Collection reads mirror the OLTP slice; directory Hidden Flag is not its membership rule. */
 import { borrowerDisplayName, validLoanId } from './loan-read-contract.mjs';
-/** R102: long_overdue = oldest unpaid charge more than LONG_OVERDUE_DAYS days past due; overdue is 1..7 days. */
+/** R137 (owner decision of 9 November 2026; V140 in olap_borrowers_analytics): long_overdue = an unpaid past-due charge and
+ * LONG_OVERDUE_SINCE_PAYMENT_DAYS or more days since the borrower's last payment (a borrower who never paid counts from the
+ * first charge date); overdue = an unpaid past-due charge with a payment within the last 7 days. A payment is any posted
+ * repayment of any amount (principal + interest + late charge above 0) on or before the business date, per borrower across
+ * all loans; a 'Referral Rebate Offset' or 'Net-off at Disbursement' receipt is no cash from the borrower and does not count.
+ * The first charge date ignores df10: (default-loss) rows. */
 export const collectionStatuses = ['not_paid', 'partially_paid', 'overdue', 'long_overdue', 'fully_paid'];
-export const LONG_OVERDUE_DAYS = 7;
+export const LONG_OVERDUE_SINCE_PAYMENT_DAYS = 8;
+/** Receipt methods that move no cash from the borrower (V122 rebate offset; first-day and V138 rollover net-offs). */
+export const NON_CASH_PAYMENT_METHODS = ['Referral Rebate Offset', 'Net-off at Disbursement'];
 const validDate = value => typeof value === 'string' && value >= '0001-01-01' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value + 'T00:00:00Z')) && new Date(value + 'T00:00:00Z').toISOString().slice(0, 10) === value;
 const decimal = value => value === null ? null : typeof value === 'string' && /^-?\d+(?:\.\d+)?$/.test(value) ? value : (() => { throw new Error('Invalid collection amount'); })();
 export const collectionQualitySql = `SELECT EXISTS (
@@ -21,6 +28,21 @@ export const collectionCteFor = late => `WITH today_repayments AS (
     CASE WHEN count(*) FILTER (WHERE r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL) > 0 THEN NULL
       ELSE sum(r."Principal Paid"::numeric + r."Interest Paid"::numeric${late ? ' + r."Late Charge Paid"::numeric' : ''}) END AS received_today
   FROM public."Repayments" r WHERE r."Payment Date" = $1::date GROUP BY r."Ref Charges"
+), last_pay AS (
+  -- R137: each borrower's last payment (posted repayment of a cash receipt, any amount above 0) on or before the business date.
+  SELECT pl."Ref Borrowers" AS lp_borrower, max(r."Payment Date") AS last_paid
+  FROM public."Repayments" r JOIN public."Payments" p ON p."Row ID" = r."Ref Payment"
+  JOIN public."Charges" pc ON pc."Row ID" = r."Ref Charges" JOIN public."Loans" pl ON pl."Row ID" = pc."Ref Loans"
+  WHERE r."Payment Date" <= $1::date AND ($2::text IS NULL OR pl."Ref Borrowers" = $2)
+    AND p."Payment Method" IS DISTINCT FROM '${NON_CASH_PAYMENT_METHODS[0]}' AND p."Payment Method" IS DISTINCT FROM '${NON_CASH_PAYMENT_METHODS[1]}'
+    AND r."Principal Paid"::numeric + r."Interest Paid"::numeric${late ? ' + r."Late Charge Paid"::numeric' : ''} > 0
+  GROUP BY pl."Ref Borrowers"
+), first_charge AS (
+  -- R137: a borrower who never paid counts from the first charge date (df10: default-loss rows excluded).
+  SELECT fl."Ref Borrowers" AS fc_borrower, min(fc."Charge Date") AS first_due
+  FROM public."Charges" fc JOIN public."Loans" fl ON fl."Row ID" = fc."Ref Loans"
+  WHERE NOT starts_with(fc."Row ID", 'df10:') AND ($2::text IS NULL OR fl."Ref Borrowers" = $2)
+  GROUP BY fl."Ref Borrowers"
 ), eligible AS (
   SELECT c."Row ID" AS id, l."Row ID" AS loan_id, b."Row ID" AS borrower_id,
     b."Borrower Name" AS borrower_name, b."Description" AS borrower_description,
@@ -40,7 +62,9 @@ export const collectionCteFor = late => `WITH today_repayments AS (
     OR c."Charge Date" = $1::date)
 ), grouped AS (
   SELECT borrower_id AS id, borrower_name, borrower_description,
-    CASE WHEN count(*) FILTER (WHERE charge_date < $1::date - ${LONG_OVERDUE_DAYS} AND payment_status <> 'ชำระแล้ว') > 0 THEN 3
+    ($1::date - COALESCE(last_paid, first_due))::integer AS since_days, last_paid IS NULL AS never_paid,
+    CASE WHEN count(*) FILTER (WHERE charge_date < $1::date AND payment_status <> 'ชำระแล้ว') > 0
+        AND $1::date - COALESCE(last_paid, first_due) >= ${LONG_OVERDUE_SINCE_PAYMENT_DAYS} THEN 3
       WHEN count(*) FILTER (WHERE charge_date < $1::date AND payment_status <> 'ชำระแล้ว') > 0 THEN 2
       -- R110: a future charge part-paid today (pay forward) is not due yet, so it never makes the tile partly paid.
       WHEN count(*) FILTER (WHERE charge_date <= $1::date AND payment_status IN ('รอชำระ', 'ชำระบางส่วน')) = 0 THEN 4
@@ -58,11 +82,14 @@ export const collectionCteFor = late => `WITH today_repayments AS (
       AND count(*) FILTER (WHERE payment_status <> 'ชำระแล้ว') = 0) AS prepaid_only,
     -- R110 COL-1: the latest earlier payment date of today's charges paid in advance (the "Paid in advance" source).
     max(payment_date) FILTER (WHERE charge_date = $1::date AND payment_status = 'ชำระแล้ว' AND payment_date < $1::date)::text AS prepaid_payment_date
-  FROM eligible GROUP BY borrower_id, borrower_name, borrower_description
+  FROM eligible LEFT JOIN last_pay ON lp_borrower = borrower_id LEFT JOIN first_charge ON fc_borrower = borrower_id
+  GROUP BY borrower_id, borrower_name, borrower_description, last_paid, first_due
 ), summaries AS (
   SELECT id, borrower_name, borrower_description, rank, overdue_days,
-    -- R102 owner decision: the long overdue group lists the most recently overdue first (fewest days); 0 elsewhere.
-    CASE WHEN rank = 3 THEN overdue_days ELSE 0 END AS sort_days, (remaining + collected)::text AS amount_due,
+    -- R137: days since the last payment (or the first charge) on long overdue rows only; never_paid says which.
+    CASE WHEN rank = 3 THEN since_days END AS since_last_payment_days, CASE WHEN rank = 3 THEN never_paid END AS never_paid,
+    -- R102/R137 owner decision: the long overdue group lists the fewest days since the last payment first; 0 elsewhere.
+    CASE WHEN rank = 3 THEN since_days ELSE 0 END AS sort_days, (remaining + collected)::text AS amount_due,
     collected::text AS amount_collected, remaining::text AS amount_remaining,
     prepaid::text AS prepaid_today, prepaid_only, prepaid_payment_date FROM grouped
 )`;
@@ -90,11 +117,15 @@ async function markPrepaidSource(client, businessDate, items) {
 }
 export function projectCollection(row) {
   if (!validLoanId(row.id) || !collectionStatuses[row.rank] || typeof row.prepaid_only !== 'boolean' || !(row.overdue_days === null || (Number.isSafeInteger(row.overdue_days) && row.overdue_days > 0))) throw new Error('Invalid collection source');
+  // R137: a long overdue row carries the days since the last payment (8 or more) and whether the borrower never paid; other
+  // rows carry null for both. A source row without the columns (an older reader) omits them.
+  const since = row.since_last_payment_days, never = row.never_paid;
+  if (since !== undefined && (row.rank === 3 ? !(Number.isSafeInteger(since) && since >= LONG_OVERDUE_SINCE_PAYMENT_DAYS && typeof never === 'boolean') : !(since === null && never === null))) throw new Error('Invalid collection source');
   // R102: overdueDays counts from the oldest overdue unpaid charge (null when none is overdue).
   // R097: prepaidToday is what was paid on earlier days toward charges dated today (row display only; collected stays cash today).
   // R110: prepaidPaymentDate names when that advance was paid (null when nothing today was paid earlier).
   if (row.prepaid_payment_date !== undefined && row.prepaid_payment_date !== null && !validDate(row.prepaid_payment_date)) throw new Error('Invalid collection source');
-  return { id: row.id, displayName: borrowerDisplayName(row.borrower_name, row.borrower_description), status: collectionStatuses[row.rank], overdueDays: row.overdue_days, amountDue: decimal(row.amount_due), amountCollected: decimal(row.amount_collected), amountRemaining: decimal(row.amount_remaining), prepaidToday: decimal(row.prepaid_today), prepaidOnly: row.prepaid_only, ...(row.prepaid_payment_date !== undefined ? { prepaidPaymentDate: row.prepaid_payment_date } : {}), ...(row.group_remaining !== undefined ? {groupRemaining:decimal(row.group_remaining),...(row.group_collected!==undefined?{groupCollected:decimal(row.group_collected)}:{})} : {}) };
+  return { id: row.id, displayName: borrowerDisplayName(row.borrower_name, row.borrower_description), status: collectionStatuses[row.rank], overdueDays: row.overdue_days, ...(since !== undefined ? { sinceLastPaymentDays: since, neverPaid: never } : {}), amountDue: decimal(row.amount_due), amountCollected: decimal(row.amount_collected), amountRemaining: decimal(row.amount_remaining), prepaidToday: decimal(row.prepaid_today), prepaidOnly: row.prepaid_only, ...(row.prepaid_payment_date !== undefined ? { prepaidPaymentDate: row.prepaid_payment_date } : {}), ...(row.group_remaining !== undefined ? {groupRemaining:decimal(row.group_remaining),...(row.group_collected!==undefined?{groupCollected:decimal(row.group_collected)}:{})} : {}) };
 }
 export function projectCollectionCharge(row) {
   if (!validLoanId(row.id) || !validLoanId(row.loan_id) || !validDate(row.charge_date) || !['รอชำระ', 'ชำระบางส่วน', 'ชำระแล้ว'].includes(row.payment_status)) throw new Error('Invalid collection charge');
@@ -110,7 +141,8 @@ export function encodeCollectionCursor(value, query = '') {
   const { kind, businessDate, id } = value;
   if (!validDate(businessDate) || !validLoanId(id)) throw new Error('Invalid cursor');
   let canonical;
-  // v5 (R102): the board keyset is (rank, days, name, id); days is the long overdue group's sort key (0 in other groups).
+  // v5 (R102): the board keyset is (rank, days, name, id); days is the long overdue group's sort key (0 in other groups):
+  // since R137 the days since the last payment (8 or more), which keeps the v5 rule days > 0 for rank 3.
   if (kind === 'collection' && Number.isInteger(value.rank) && value.rank >= 0 && value.rank <= 4 && Number.isSafeInteger(value.days) && (value.rank === 3 ? value.days > 0 : value.days === 0) && typeof value.name === 'string') canonical = { v: 5, kind, businessDate, rank: value.rank, days: value.days, name: value.name, id, queryHash: searchQueryHash(query) };
   else if (kind === 'collection-charges' && validLoanId(value.parentId) && validDate(value.chargeDate)) canonical = { v: 1, kind, businessDate, parentId: value.parentId, chargeDate: value.chargeDate, id };
   else throw new Error('Invalid cursor');

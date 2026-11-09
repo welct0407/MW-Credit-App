@@ -11,14 +11,16 @@ const owner='synthetic-owner@example.test';let instant='2026-10-07T05:00:00Z';co
 const pool={connect:async()=>{const c=await reader.connect();return{release:()=>c.release(),query:(sql,params)=>{queries.push(sql);if(sql.startsWith('SELECT CURRENT_TIMESTAMP AS'))return c.query(`SELECT $1::timestamptz AS "asOf",($1::timestamptz AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`,[instant]);return c.query(sql,params)}}}};
 const store=createBorrowerReadStore({pool,config:{ownerEmail:owner,database:'collection_fixture',dbUser:'synthetic_reader'}});
 const q=(sql,p)=>admin.query(sql,p);const pending='รอชำระ',partial='ชำระบางส่วน',paid='ชำระแล้ว';
-before(async()=>{await q(`CREATE ROLE synthetic_reader LOGIN; CREATE TABLE "Partners"("Row ID" text PRIMARY KEY,"Login Email" text); CREATE TABLE "Borrowers"("Row ID" text PRIMARY KEY,"Borrower Name" text,"Description" text,"Hidden Flag" boolean,"Creation Date" date,"Has Active Loan" boolean,"Total Interest Earned" numeric,"Total Outstanding Principal" numeric,"Borrower Note" text); CREATE TABLE "Loans"("Row ID" text PRIMARY KEY,"Ref Borrowers" text,"Principal Amount" money,"Loan Date" date,"Original Daily Interest Rate" integer); CREATE TABLE "Charges"("Row ID" text PRIMARY KEY,"Ref Loans" text,"Charge Date" date,"Payment Status" text,"Payment Date" date,"Amount Remaining" numeric,"Total Paid" numeric); CREATE TABLE "Repayments"("Ref Charges" text,"Payment Date" date,"Principal Paid" money,"Interest Paid" money); GRANT SELECT ON ALL TABLES IN SCHEMA public TO synthetic_reader;`);await setupProviders()});
+before(async()=>{await q(`CREATE ROLE synthetic_reader LOGIN; CREATE TABLE "Partners"("Row ID" text PRIMARY KEY,"Login Email" text); CREATE TABLE "Borrowers"("Row ID" text PRIMARY KEY,"Borrower Name" text,"Description" text,"Hidden Flag" boolean,"Creation Date" date,"Has Active Loan" boolean,"Total Interest Earned" numeric,"Total Outstanding Principal" numeric,"Borrower Note" text); CREATE TABLE "Loans"("Row ID" text PRIMARY KEY,"Ref Borrowers" text,"Principal Amount" money,"Loan Date" date,"Original Daily Interest Rate" integer); CREATE TABLE "Charges"("Row ID" text PRIMARY KEY,"Ref Loans" text,"Charge Date" date,"Payment Status" text,"Payment Date" date,"Amount Remaining" numeric,"Total Paid" numeric); CREATE TABLE "Repayments"("Ref Charges" text,"Payment Date" date,"Principal Paid" money,"Interest Paid" money,"Ref Payment" text); CREATE TABLE "Payments"("Row ID" text PRIMARY KEY,"Ref Target Loan" text,"Payment Date" date,"Amount Received" numeric,"Payment Method" text,"Status" text,"Notes" text); GRANT SELECT ON ALL TABLES IN SCHEMA public TO synthetic_reader;`);await setupProviders()});
 after(async()=>{await reader.end();await admin.end()});
-beforeEach(async()=>{instant='2026-10-07T05:00:00Z';queries.length=0;await q('TRUNCATE "Repayments","Charges","Loans","Borrowers","Partners"');await q('INSERT INTO "Partners" VALUES ($1,$2)',['partner',owner])});
+beforeEach(async()=>{instant='2026-10-07T05:00:00Z';queries.length=0;await q('TRUNCATE "Repayments","Payments","Charges","Loans","Borrowers","Partners"');await q('INSERT INTO "Partners" VALUES ($1,$2)',['partner',owner])});
 async function borrower(id,hidden=false){await q('INSERT INTO "Borrowers" VALUES ($1,$2,$3,$4,$5,true,0,1000,NULL)',[id,'ชื่อ '+id,'Synthetic '+id,hidden,'2026-01-01']);await q('INSERT INTO "Loans" VALUES ($1,$2,12000,$3,2)',['loan-'+id,id,'2026-10-01'])}
 async function charge(id,b,status=pending,date='2026-10-07',remaining='100.25',paymentDate=null,total='0'){await q('INSERT INTO "Charges" VALUES ($1,$2,$3,$4,$5,$6,$7)',[id,'loan-'+b,date,status,paymentDate,remaining,total])}
-async function repayment(id,principal,interest,date='2026-10-07'){await q('INSERT INTO "Repayments" VALUES ($1,$2,$3,$4)',[id,date,principal,interest])}
+async function repayment(id,principal,interest,date='2026-10-07',payment=null){await q('INSERT INTO "Repayments" VALUES ($1,$2,$3,$4,$5)',[id,date,principal,interest,payment])}
+// R137: a posted receipt (a "Payments" row) and its repayment on one charge; method null is an ordinary receipt.
+async function receipt(id,charge,date,amount='100',method='Bank Transfer'){await q('INSERT INTO "Payments"("Row ID","Payment Method") VALUES ($1,$2)',[id,method]);await repayment(charge,'0',amount,date,id)}
 const board=()=>store.listCollection(owner,{limit:100});const detail=b=>store.getCollectionCharges(owner,b,{limit:100});
-test('eligibility covers three arms, future receipts, hidden and fully paid zero without directory leak',async()=>{for(const id of ['due','paid','future','hidden','excluded'])await borrower(id,id==='hidden');await charge('c-due','due');await charge('c-paid','paid',paid,'2026-10-06','0','2026-10-07');await charge('c-future','future',pending,'2026-10-09','500');await repayment('c-future','12.34','1.66');await charge('c-hidden','hidden');await charge('c-excluded','excluded',paid,'2026-10-01','0',null);const result=await board();assert.equal(result.ok,true);assert.deepEqual(result.items.map(x=>x.id),['due','future','hidden','paid']);assert.deepEqual(result.items.find(x=>x.id==='future'),{id:'future',displayName:'ชื่อ future - Synthetic future',status:'not_paid',overdueDays:null,amountDue:'14.00',amountCollected:'14.00',amountRemaining:'0',prepaidToday:'0',prepaidOnly:false,groupRemaining:'200.50',groupCollected:'14.00'});assert.equal(result.items.at(-1).status,'fully_paid');assert.equal(result.items.at(-1).amountDue,'0');assert.equal((await detail('excluded')).status,404);assert.equal((await store.getBorrower(owner,'hidden')).status,404);assert.equal((await detail('hidden')).items.length,1)});
+test('eligibility covers three arms, future receipts, hidden and fully paid zero without directory leak',async()=>{for(const id of ['due','paid','future','hidden','excluded'])await borrower(id,id==='hidden');await charge('c-due','due');await charge('c-paid','paid',paid,'2026-10-06','0','2026-10-07');await charge('c-future','future',pending,'2026-10-09','500');await repayment('c-future','12.34','1.66');await charge('c-hidden','hidden');await charge('c-excluded','excluded',paid,'2026-10-01','0',null);const result=await board();assert.equal(result.ok,true);assert.deepEqual(result.items.map(x=>x.id),['due','future','hidden','paid']);assert.deepEqual(result.items.find(x=>x.id==='future'),{id:'future',displayName:'ชื่อ future - Synthetic future',status:'not_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'14.00',amountCollected:'14.00',amountRemaining:'0',prepaidToday:'0',prepaidOnly:false,groupRemaining:'200.50',groupCollected:'14.00'});assert.equal(result.items.at(-1).status,'fully_paid');assert.equal(result.items.at(-1).amountDue,'0');assert.equal((await detail('excluded')).status,404);assert.equal((await store.getBorrower(owner,'hidden')).status,404);assert.equal((await detail('hidden')).items.length,1)});
 // R096: a charge dated today stays in Collection whatever its status, including one paid on an earlier day; prepaid
 // charges dated another day stay out.
 test('a charge dated today is included even when it was paid on an earlier day; other prepaid dates stay out',async()=>{for(const id of ['prepaid','ahead','behind','today','unpaid','mixed'])await borrower(id);
@@ -31,10 +33,10 @@ test('a charge dated today is included even when it was paid on an earlier day; 
  const result=await board();assert.equal(result.ok,true);
  assert.deepEqual(result.items.map(x=>[x.id,x.status]),[['unpaid','not_paid'],['mixed','partially_paid'],['prepaid','fully_paid'],['today','fully_paid']]);
  const pick=id=>{const {groupRemaining:_r,groupCollected:_c,...row}=result.items.find(x=>x.id===id);return row};
- assert.deepEqual(pick('prepaid'),{id:'prepaid',displayName:'ชื่อ prepaid - Synthetic prepaid',status:'fully_paid',overdueDays:null,amountDue:'0',amountCollected:'0',amountRemaining:'0',prepaidToday:'100.25',prepaidOnly:true});
- assert.deepEqual(pick('today'),{id:'today',displayName:'ชื่อ today - Synthetic today',status:'fully_paid',overdueDays:null,amountDue:'100.25',amountCollected:'100.25',amountRemaining:'0',prepaidToday:'0',prepaidOnly:false});
- assert.deepEqual(pick('unpaid'),{id:'unpaid',displayName:'ชื่อ unpaid - Synthetic unpaid',status:'not_paid',overdueDays:null,amountDue:'100.25',amountCollected:'0',amountRemaining:'100.25',prepaidToday:'0',prepaidOnly:false});
- assert.deepEqual(pick('mixed'),{id:'mixed',displayName:'ชื่อ mixed - Synthetic mixed',status:'partially_paid',overdueDays:null,amountDue:'100.25',amountCollected:'0',amountRemaining:'100.25',prepaidToday:'100.25',prepaidOnly:false});
+ assert.deepEqual(pick('prepaid'),{id:'prepaid',displayName:'ชื่อ prepaid - Synthetic prepaid',status:'fully_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'0',amountCollected:'0',amountRemaining:'0',prepaidToday:'100.25',prepaidOnly:true});
+ assert.deepEqual(pick('today'),{id:'today',displayName:'ชื่อ today - Synthetic today',status:'fully_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'100.25',amountCollected:'100.25',amountRemaining:'0',prepaidToday:'0',prepaidOnly:false});
+ assert.deepEqual(pick('unpaid'),{id:'unpaid',displayName:'ชื่อ unpaid - Synthetic unpaid',status:'not_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'100.25',amountCollected:'0',amountRemaining:'100.25',prepaidToday:'0',prepaidOnly:false});
+ assert.deepEqual(pick('mixed'),{id:'mixed',displayName:'ชื่อ mixed - Synthetic mixed',status:'partially_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'100.25',amountCollected:'0',amountRemaining:'100.25',prepaidToday:'100.25',prepaidOnly:false});
  const prepaid=await detail('prepaid');assert.equal(prepaid.ok,true);assert.equal(prepaid.borrower.status,'fully_paid');
  assert.deepEqual(prepaid.items.map(x=>[x.id,x.chargeDate,x.paymentStatus,x.paymentDate,x.amountRemaining,x.totalPaid,x.receivedToday]),[['c-prepaid','2026-10-07',paid,'2026-10-06','0','100.25','0']]);
  assert.deepEqual((await detail('mixed')).items.map(x=>x.id).sort(),['m-pending','m-prepaid']);
@@ -58,24 +60,24 @@ test('prepaid amount and prepaid-only flag cover prepaid, unavailable, mixed and
  const detail=(await store.getCollectionCharges(owner,'pe',{limit:100})).borrower;assert.deepEqual([detail.prepaidToday,detail.prepaidOnly,detail.amountCollected],['100',true,'0']);
 });
 test('status precedence and global display order differ',async()=>{for(const b of ['pending','partial','mixed','overdue','paid'])await borrower(b);await charge('p','pending');await charge('s','partial',partial);await charge('m1','mixed');await charge('m2','mixed',paid,'2026-10-07','0','2026-10-07');await charge('o1','overdue',pending,'2026-10-06');await charge('o2','overdue',paid,'2026-10-07','0','2026-10-07');await charge('f','paid',paid,'2026-10-07','0','2026-10-07');const result=await board();assert.deepEqual(result.items.map(x=>[x.id,x.status]),[['pending','not_paid'],['mixed','partially_paid'],['partial','partially_paid'],['overdue','overdue'],['paid','fully_paid']])});
-test('R102 long_overdue: the 7-day and 8-day boundary, overdueDays, payment today, group totals and a v4 cursor across the group',async()=>{
+test('R102/R137 long_overdue: never paid counts from the first charge (7 and 8 days), overdueDays, a payment today, group totals and cursors',async()=>{
  for(const b of ['d1','d7','d8','d30','lp','old-paid','today'])await borrower(b);
  // Bangkok business date 2026-10-07: d-1 = 10-06, d-7 = 09-30, d-8 = 09-29, d-30 = 09-07.
  await charge('c-d1','d1',pending,'2026-10-06');await charge('c-d7','d7',pending,'2026-09-30');await charge('c-d8','d8',pending,'2026-09-29');
  await charge('c-d30a','d30',pending,'2026-09-07','10');await charge('c-d30b','d30',pending,'2026-10-05','20');
- // Paid in part today on a d-8 charge: still long overdue, with cash collected today.
- await charge('c-lp','lp',partial,'2026-09-29','50',null,'50');await repayment('c-lp','40','10');
+ // R137: paid in part today on a d-8 charge: a payment today makes it Overdue (R102 kept it long overdue), cash collected today.
+ await charge('c-lp','lp',partial,'2026-09-29','50',null,'50');await q('INSERT INTO "Payments"("Row ID","Payment Method") VALUES ($1,$2)',['p-lp','Cash']);await repayment('c-lp','40','10','2026-10-07','p-lp');
  // A d-8 charge paid in full before today is not on the board; today's charge alone is not paid.
  await charge('c-old','old-paid',paid,'2026-09-29','0','2026-10-01','100');await charge('c-today','today');
  const result=await board();assert.equal(result.ok,true,JSON.stringify(result));
- assert.deepEqual(result.items.map(x=>[x.id,x.status,x.overdueDays]),[['today','not_paid',null],['d1','overdue',1],['d7','overdue',7],['d8','long_overdue',8],['lp','long_overdue',8],['d30','long_overdue',30]]);
+ assert.deepEqual(result.items.map(x=>[x.id,x.status,x.overdueDays,x.sinceLastPaymentDays,x.neverPaid]),[['today','not_paid',null,null,null],['d1','overdue',1,null,null],['d7','overdue',7,null,null],['lp','overdue',8,null,null],['d8','long_overdue',8,8,true],['d30','long_overdue',30,30,true]]);
  const lp=result.items.find(x=>x.id==='lp');assert.deepEqual([lp.amountCollected,lp.amountRemaining],['50.00','50']);
  const groups=Object.groupBy(result.items,x=>x.status);
- assert.deepEqual([groups.overdue[0].groupRemaining,groups.long_overdue[0].groupRemaining,groups.long_overdue[0].groupCollected],['200.50','180.25','50.00']);
+ assert.deepEqual([groups.overdue[0].groupRemaining,groups.overdue[0].groupCollected,groups.long_overdue[0].groupRemaining,groups.long_overdue[0].groupCollected],['250.50','50.00','130.25','0']);
  assert.equal((await detail('d8')).borrower.status,'long_overdue');
  let cursor=null;const ids=[],cursors=[];
  do{const r=await store.listCollection(owner,{cursor,limit:2});assert.equal(r.ok,true,JSON.stringify(r));ids.push(...r.items.map(x=>x.id));cursor=r.nextCursor;if(cursor)cursors.push(JSON.parse(Buffer.from(cursor,'base64url').toString()))}while(cursor);
- assert.deepEqual(ids,result.items.map(x=>x.id));assert.deepEqual(cursors.map(c=>[c.v,c.rank,c.days]),[[5,2,0],[5,3,8]]);
+ assert.deepEqual(ids,result.items.map(x=>x.id));assert.deepEqual(cursors.map(c=>[c.v,c.rank,c.days]),[[5,2,0],[5,2,0]]);
 });
 test('R102: pre-deploy v3 (rank 3 meant fully paid) and DEV-only v4 Collection cursors are rejected with 400',async()=>{
  await borrower('a');await charge('ca','a');const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -96,6 +98,38 @@ test('R102 owner order: the long overdue group lists fewest days first (10, 19, 
   assert.ok(keys.every(([v])=>v===5));
   if(limit===2)assert.deepEqual(keys,[[5,3,10],[5,3,19],[5,3,42]]);
  }
+});
+// R137 (owner decision of 9 November 2026): Long Overdue = an unpaid past-due charge and 8 or more days since the borrower's
+// last payment (any posted receipt of any amount, per borrower across loans; rebate-offset and net-off receipts are no cash),
+// never paid: since the first charge (df10: rows ignored). Business date 2026-10-07; every borrower below has a charge d-20.
+test('R137 long_overdue counts from the last payment: Archie\'s cases, rebate offset and net-off ignored, partition',async()=>{
+ const cases=['pay3','pay10','clear','never9','never7','token','twoloans','rebate','netoff','df10'];for(const b of cases)await borrower(b);
+ for(const b of ['pay3','pay10','token','twoloans','rebate','netoff'])await charge('c20-'+b,b,pending,'2026-09-17');
+ await charge('c3-pay3','pay3',paid,'2026-10-04','0','2026-10-04','100');await receipt('p-pay3','c3-pay3','2026-10-04');
+ await charge('c10-pay10','pay10',paid,'2026-09-27','0','2026-09-27','100');await receipt('p-pay10','c10-pay10','2026-09-27');
+ await charge('c10-clear','clear',paid,'2026-09-27','0','2026-09-27','100');await receipt('p-clear','c10-clear','2026-09-27');
+ await charge('c9-never9','never9',pending,'2026-09-28');await charge('c7-never7','never7',pending,'2026-09-30');
+ await receipt('p-token','c20-token','2026-10-06','1','Cash');
+ await q('INSERT INTO "Loans" VALUES ($1,$2,12000,$3,2)',['loan-twoloans-b','twoloans','2026-09-01']);
+ await q('INSERT INTO "Charges" VALUES ($1,$2,$3,$4,$5,$6,$7)',['cb-twoloans','loan-twoloans-b','2026-10-05',paid,'2026-10-05','0','100']);await receipt('p-two','cb-twoloans','2026-10-05');
+ await charge('c2-rebate','rebate',paid,'2026-10-05','0','2026-10-05','100');await receipt('p-rebate','c2-rebate','2026-10-05','100','Referral Rebate Offset');
+ await charge('c2-netoff','netoff',paid,'2026-10-05','0','2026-10-05','100');await receipt('p-netoff','c2-netoff','2026-10-05','100','Net-off at Disbursement');
+ await charge('df10:x','df10',pending,'2026-08-01');await charge('c5-df10','df10',pending,'2026-10-02');
+ const result=await board();assert.equal(result.ok,true,JSON.stringify(result));
+ const row=id=>result.items.find(x=>x.id===id);
+ assert.deepEqual(Object.fromEntries(cases.map(id=>[id,row(id)?[row(id).status,row(id).sinceLastPaymentDays,row(id).neverPaid]:null])),{
+  pay3:['overdue',null,null],pay10:['long_overdue',10,false],clear:null,never9:['long_overdue',9,true],never7:['overdue',null,null],
+  token:['overdue',null,null],twoloans:['overdue',null,null],rebate:['long_overdue',20,true],netoff:['long_overdue',20,true],df10:['overdue',null,null]});
+ assert.equal(row('df10').overdueDays,67,'a df10: row is not the first charge (5 days since 10-02) but still counts as unpaid for overdueDays');
+ assert.equal(row('pay10').overdueDays,20,'overdueDays still counts from the oldest unpaid charge');
+ // Partition: every borrower once, in one status; the long overdue group lists the fewest days since a payment first.
+ assert.equal(new Set(result.items.map(x=>x.id)).size,result.items.length);
+ assert.deepEqual(result.items.filter(x=>x.status==='long_overdue').map(x=>[x.id,x.sinceLastPaymentDays]),[['never9',9],['pay10',10],['netoff',20],['rebate',20]]);
+ for(const limit of [1,2]){let cursor=null;const ids=[],days=[];
+  do{const r=await store.listCollection(owner,{cursor,limit});assert.equal(r.ok,true,JSON.stringify(r));ids.push(...r.items.map(x=>x.id));cursor=r.nextCursor;if(cursor){const c=JSON.parse(Buffer.from(cursor,'base64url').toString());if(c.rank===3)days.push(c.days)}}while(cursor);
+  assert.deepEqual(ids,result.items.map(x=>x.id),'paging across rank 3, limit '+limit);assert.ok(days.every(d=>d>=8))}
+ const one=await detail('pay10');assert.deepEqual([one.borrower.status,one.borrower.sinceLastPaymentDays,one.borrower.neverPaid],['long_overdue',10,false]);
+ assert.equal((await detail('pay3')).borrower.status,'overdue');
 });
 test('multiple repayments aggregate once per charge and preserve signed exact decimals',async()=>{await borrower('a');await charge('c1','a',partial,'2026-10-07','10.125');await charge('c2','a',partial,'2026-10-07','-2.125');await repayment('c1','10.10','0.20');await repayment('c1','2.00','0.30');await repayment('c2','-1.00','-0.25');await repayment('c2','999','999','2026-10-06');await repayment('c2','999','999',null);const r=(await board()).items[0];assert.equal(r.amountCollected,'11.35');assert.equal(r.amountRemaining,'8.000');assert.equal(r.amountDue,'19.350');const children=await detail('a');assert.equal(children.ok,true);assert.deepEqual(children.items.map(x=>[x.id,x.receivedToday]),[['c1','12.60'],['c2','-1.25']]);assert.equal(children.items[0].loanDisplayKey,'ชื่อ a - Synthetic a-฿12,000-01/10-2%')});
 test('relevant null inputs propagate while empty sums and irrelevant nulls do not',async()=>{await borrower('a');await charge('c','a',pending,'2026-10-07',null,null,null);await repayment('c',null,'2');let r=(await board()).items[0];assert.equal(r.amountDue,null);assert.equal(r.amountCollected,null);assert.equal(r.amountRemaining,null);assert.equal((await detail('a')).items[0].totalPaid,null);await q('DELETE FROM "Repayments"');await q('UPDATE "Charges" SET "Charge Date"=$1',['2026-10-09']);await repayment('c','1','2');r=(await board()).items[0];assert.equal(r.amountRemaining,'0');assert.equal(r.amountDue,'3.00')});
@@ -208,10 +242,7 @@ test('Collection sorts within status by borrower name then ID across tied and nu
 
 import {readLoanRelated} from '../../services/business/loan-related.mjs';
 test('loan-related real SQL pages newest dates before undated ties and preserves direct/allocation payment membership',async()=>{
- await q(`ALTER TABLE "Charges" ADD COLUMN "Principal Due" numeric, ADD COLUMN "Interest Due" numeric, ADD COLUMN "Notes" text;
- ALTER TABLE "Repayments" ADD COLUMN "Ref Payment" text;
- CREATE TABLE "Payments"("Row ID" text PRIMARY KEY,"Ref Target Loan" text,"Payment Date" date,"Amount Received" numeric,"Payment Method" text,"Status" text,"Notes" text);
- GRANT SELECT ON "Payments" TO synthetic_reader;`);
+ await q(`ALTER TABLE "Charges" ADD COLUMN "Principal Due" numeric, ADD COLUMN "Interest Due" numeric, ADD COLUMN "Notes" text;`); // R137: "Repayments"."Ref Payment" and "Payments" are in the shared fixture schema.
  await borrower('related');await borrower('other');
  const fixtures=[['a-old','2026-10-01'],['z-new','2026-10-07'],['b-new','2026-10-07'],['a-null',null],['b-null',null]];
  for(const [id,date]of fixtures){await charge(id,'related',pending,date);await q('INSERT INTO "Payments" ("Row ID","Ref Target Loan","Payment Date","Amount Received") VALUES ($1,$2,$3,1)',[id,'loan-related',date])}
