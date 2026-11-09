@@ -13,9 +13,11 @@
   "id": 384
   "name": "This period and the previous period"
   "description": "Loan Reports · proposed (income.vs-previous). Native: for the selected statement period and the immediately\
-    \ preceding period of equal length, one row per measure (Income, Expenses, Net profit, Net profit per day) with This period,\
-    \ Previous period, Change and Change %. Previous period blank before the reporting calendar. Whole baht, one-decimal percent.\
-    \ Basis: snippet 2 Income statement period (model 186 Income Events)."
+    \ preceding period of equal length, one row per measure (Income, Expenses, Write-offs, Net profit, Net profit per day;\
+    \ R116) with This period, Previous period, Change and Change %. Previous period blank before the reporting calendar. Whole\
+    \ baht, one-decimal percent. A hidden Signal column (9 Nov 2026) = sign(Change) × (−1 for Expenses and Write-offs, else\
+    \ 1) tints the whole row: green when the change is good for profit, red when it is bad, none when there is no previous\
+    \ period or no change. Basis: snippet 2 Income statement period (model 186 Income Events)."
   "display": "table"
   "dataset_query":
     "stages":
@@ -33,7 +35,7 @@
         "dimension":
         - "field"
         - "base-type": "type/Date"
-          "lib/uuid": "020c209c-1b62-4c10-9b5a-8ee7bac2344e"
+          "lib/uuid": "ba293576-b810-4953-a00c-8f76486ffbdb"
           "effective-type": "type/Date"
         - 82
         "alias": "d.\"Date\""
@@ -47,36 +49,49 @@
          UNION ALL SELECT 'previous',b.starts-b.days,b.starts-1,b.days,b.starts-b.days>=a.starts FROM bounds b CROSS JOIN available a WHERE b.days>0 AND b.days=b.ends-b.starts+1
          ), totals AS (
          SELECT p.p,p.ok,p.days,coalesce((SELECT sum(e."Income") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) income,
-         coalesce((SELECT sum(e."Expenses") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) expenses FROM periods p
+         coalesce((SELECT sum(e."Expenses") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) expenses,
+         coalesce((SELECT sum(e."Principal Write-offs") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) writeoffs FROM periods p
          ), m AS (
          SELECT v.ord,v.metric,max(v.amount) FILTER (WHERE t.p='this') cur,max(v.amount) FILTER (WHERE t.p='previous' AND t.ok) prev
-         FROM totals t CROSS JOIN LATERAL (VALUES (1,'Income',t.income),(2,'Expenses',t.expenses),(3,'Net profit',t.income-t.expenses),(4,'Net profit per day',(t.income-t.expenses)/nullif(t.days,0))) v(ord,metric,amount)
+         FROM totals t CROSS JOIN LATERAL (VALUES (1,'Income',t.income),(2,'Expenses',t.expenses),(3,'Write-offs',t.writeoffs),(4,'Net profit',t.income-t.expenses-t.writeoffs),(5,'Net profit per day',(t.income-t.expenses-t.writeoffs)/nullif(t.days,0))) v(ord,metric,amount)
          GROUP BY v.ord,v.metric
          )
-        SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord
+        SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %",
+         sign(cur-prev)*CASE WHEN metric IN ('Expenses','Write-offs') THEN -1 ELSE 1 END AS "Signal" FROM m ORDER BY ord
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
     "table.pivot": false
+    "table.columns":
+    - "name": "Measure"
+      "enabled": true
+    - "name": "This period"
+      "enabled": true
+    - "name": "Previous period"
+      "enabled": true
+    - "name": "Change"
+      "enabled": true
+    - "name": "Change %"
+      "enabled": true
+    - "name": "Signal"
+      "enabled": false
     "table.column_formatting":
     - "id": 0
       "columns":
-      - "Change %"
-      - "Change"
+      - "Signal"
       "type": "single"
       "operator": ">"
       "value": 0
-      "color": "#84BB4C"
-      "highlight_row": false
+      "color": "#BFE8D2"
+      "highlight_row": true
     - "id": 1
       "columns":
-      - "Change %"
-      - "Change"
+      - "Signal"
       "type": "single"
       "operator": "<"
       "value": 0
-      "color": "#ED6E6E"
-      "highlight_row": false
+      "color": "#F6CDD4"
+      "highlight_row": true
     "column_settings":
       "[\"name\",\"This period\"]":
         "number_style": "decimal"

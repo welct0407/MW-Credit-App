@@ -1,0 +1,99 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Transactions · newest first / 421"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "cashflow.transactions-desc"
+  "id": 421
+  "name": "Transactions · newest first"
+  "description": "Loan Reports · proposed (cashflow.transactions-desc). Question 196's query with every ORDER BY key descending\
+    \ (Date, Posted At, Ledger ID, Entry ID), so the newest transaction is first; Balance After is unchanged per row. Template\
+    \ tags, column formats and Money In / Money Out tints copied; maps `statement-period` and `account` as 196 maps review-flow\
+    \ and review-account. Basis: snippet 3 Cashflow statement period (same query as question 196)."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "alias": "d.\"Date\""
+        "widget-type": "date/all-options"
+        "id": "r016-cashflow_period"
+        "name": "cashflow_period"
+        "display-name": "Statement period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "27bd8c75-8706-4a5e-94ea-a754db9d8d01"
+          "effective-type": "type/Date"
+        - 82
+      - "type": "text"
+        "required": true
+        "id": "r016-cash-account"
+        "name": "cash_account"
+        "display-name": "Account"
+        "default": "__ALL__"
+      - "type": "snippet"
+        "snippet-id": 3
+        "id": "r016-snippet-3"
+        "name": "snippet: Cashflow statement period"
+        "display-name": "Cashflow statement period"
+        "snippet-name": "Cashflow statement period"
+      "lib/type": "mbql.stage/native"
+      "native": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT to_char(t.\"Date\",'DD/MM')||' '||to_char(t.\"\
+        Posted At\",'HH24:MI') AS \"Date / Time\",t.\"Transaction Type\",t.\"Counterparty\",t.\"Money In\",t.\"Money Out\"\
+        ,t.\"Balance After\",t.\"From Account\",t.\"To Account\",t.\"Notes\" FROM statement s CROSS JOIN LATERAL public.reporting_cash_period_entries(s.\"\
+        Period Start\",s.\"Period End\",{{cash_account}}) t WHERE s.\"Continuous Period\" ORDER BY t.\"Date\" DESC,t.\"Posted\
+        \ At\" DESC,t.\"Ledger ID\" COLLATE \"C\" DESC,t.\"Entry ID\" COLLATE \"C\" DESC"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.column_formatting":
+    - "columns":
+      - "Money In"
+      "type": "single"
+      "operator": ">"
+      "value": 0
+      "color": "#BFE8D2"
+      "highlight_row": false
+    - "columns":
+      - "Money Out"
+      "type": "single"
+      "operator": ">"
+      "value": 0
+      "color": "#F6CDD4"
+      "highlight_row": false
+    "column_settings":
+      "[\"name\",\"Money In\"]":
+        "number_style": "decimal"
+        "currency": "THB"
+        "currency_style": "symbol"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Money Out\"]":
+        "number_style": "decimal"
+        "currency": "THB"
+        "currency_style": "symbol"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Balance After\"]":
+        "number_style": "decimal"
+        "currency": "THB"
+        "currency_style": "symbol"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "basis": "snippet 3 Cashflow statement period (same query as question 196)"
+  "build_kind": "native"
+  "origin_question_id": 196
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

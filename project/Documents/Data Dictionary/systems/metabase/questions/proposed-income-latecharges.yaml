@@ -1,0 +1,67 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Late charges received · statement period / 418"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "income.latecharges"
+  "id": 418
+  "name": "Late charges received · statement period"
+  "description": "Loan Reports · proposed (income.latecharges). Question 168's template tags (statement_period, #186, snippet\
+    \ 2) and mapping, selecting the snippet's \"Late Charges Received\" (R118 V132): the late part of the period's income,\
+    \ a memo that is not added again. Basis: snippet 2 Income statement period."
+  "display": "scalar"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "alias": "d.\"Date\""
+        "widget-type": "date/all-options"
+        "id": "r016-statement_period"
+        "name": "statement_period"
+        "display-name": "Statement period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "bc043139-c62d-4f46-ad21-5f509b08bde9"
+          "effective-type": "type/Date"
+        - 82
+      - "display-name": "Model 186"
+        "type": "card"
+        "id": "r016-model-186"
+        "name": "#186"
+        "card-id": 186
+      - "type": "snippet"
+        "snippet-id": 2
+        "id": "r016-snippet-2"
+        "name": "snippet: Income statement period"
+        "display-name": "Income statement period"
+        "snippet-name": "Income statement period"
+      "lib/type": "mbql.stage/native"
+      "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT \"Late Charges Received\" AS \"Late charges\"\
+        \ FROM statement"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.field": "Late charges"
+    "column_settings":
+      "[\"name\",\"Operating Income\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Late charges\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "basis": "snippet 2 Income statement period"
+  "build_kind": "native"
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

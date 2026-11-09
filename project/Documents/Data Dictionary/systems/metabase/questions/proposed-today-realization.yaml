@@ -3,7 +3,7 @@
   "system": "metabase"
   "component": "reports.mw-credit.com"
   "kind": "question"
-  "name": "Interest this month · share of projection / 380"
+  "name": "Interest this month · x of projection / 380"
   "scope": "production"
 "verification":
   "status": "documented"
@@ -11,32 +11,29 @@
 "content":
   "key": "today.realization"
   "id": 380
-  "name": "Interest this month · share of projection"
-  "description": "Loan Reports · proposed (today.realization). MBQL on model 73: field Forecast Realization (Realized Profit\
-    \ MTD ÷ Projected Monthly Profit). Progress goal 1 shows the share of the projected month collected so far. Basis: model\
-    \ 73 Portfolio Overview."
-  "display": "progress"
+  "name": "Interest this month · x of projection"
+  "description": "Loan Reports · proposed (today.realization). Text scalar \"<Realized Profit MTD> of <Projected Monthly Profit>\
+    \ (<share>%)\" from model 73, whole baht with thousands separators; the share is Forecast Realization to one decimal,\
+    \ omitted when the projection is zero. Basis: model 73 Portfolio Overview."
+  "display": "scalar"
   "dataset_query":
     "stages":
-    - "fields":
-      - - "field"
-        - "base-type": "type/Decimal"
-          "lib/uuid": "d39c691c-d5f3-4561-a840-4e84d42fc590"
-        - "Forecast Realization"
-      "lib/type": "mbql.stage/mbql"
-      "source-card": 73
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-73"
+        "name": "#73"
+        "display-name": "Model 73"
+        "card-id": 73
+      "lib/type": "mbql.stage/native"
+      "native": "SELECT to_char(\"Realized Profit MTD\",'FM999,999,999')||' of '||to_char(\"Projected Monthly Profit\",'FM999,999,999')||coalesce('\
+        \ ('||to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM999,990.0')||'%)','') AS \"Interest\
+        \ of projection\" FROM {{#73}}"
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
-    "progress.goal": 1
-    "progress.color": "#2a78d6"
-    "column_settings":
-      "[\"name\",\"Forecast Realization\"]":
-        "number_style": "percent"
-        "decimals": 1
-        "number_separators": ".,"
+    "scalar.field": "Interest of projection"
   "basis": "model 73 Portfolio Overview"
-  "build_kind": "mbql"
+  "build_kind": "native"
   "origin_question_id": 52
   "dashboard_id": 32
   "collection_id": 10
