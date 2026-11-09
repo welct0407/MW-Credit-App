@@ -18,6 +18,8 @@ const paths = {
  recalculate:'M5 2h14v20H5zM8 5h8v4H8zM8 13h1m6 0h1M8 17h1m6 0h1',
  receive:'M20 7a5 5 0 1 1-10 0 5 5 0 0 1 10 0M15 4v6m2-5h-3a1 1 0 0 0 0 2h2a1 1 0 0 1 0 2h-3M2 16h3l3-3h5a2 2 0 0 1 0 4h-3m3 0 6-3a2 2 0 0 1 2 3l-8 4H7l-2-2H2',
  'loan-close':'M5 3h10l4 4v14H5zM15 3v5h4m-11 6 3 3 5-6',
+ // R136: Rollover (close into a new loan).
+ rollover:'M5 3h10l4 4v6M15 3v5h4M5 3v18h7m3-5h7m-3-3 3 3-3 3',
  confirm:'m4 12 5 5L20 6', warning:'m12 3 10 18H2zM12 9v5m0 3v1',
  'generate-charges':'M3 7v14h13M6 3h11l4 4v11H6zM17 3v5h4M10 12h7m-3-3v6',
  'new-loan':'M5 3h10l4 4v14H5zM15 3v5h4M8 14h8M12 10v8',

@@ -99,6 +99,8 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','pwa_rebate_pending_v1(text)'),
   ('mw_app_dev','pwa_rebates_owed_v1(text)'),
   ('mw_app_dev','pwa_rebate_settlement_version_v1(text)'),
+  -- V138 (R136): the rollover quote (the preview read; the journal owner inherits it).
+  ('mw_app_dev','loan_rollover_calculation_v1(text,date,numeric)'),
   ('mw_app_dev','pwa_payment_version_v2(text)'),
   ('mw_app_dev','pwa_preference_version_v2(text)'),
   ('mw_app_dev','sync_cash_ledger(text,text)'),
@@ -112,6 +114,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev_journal_owner','pwa_apply_rebate_settlement_v1(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_loan_close_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_loan_create_v2(text)'),
+  ('mw_app_dev_journal_owner','pwa_apply_loan_rollover_v1(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_loan_source_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_management_financial_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_management_v2(text)'),

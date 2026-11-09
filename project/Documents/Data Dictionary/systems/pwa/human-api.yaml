@@ -18,6 +18,7 @@
   - "GET /api/borrowers/:id/upcoming/:dueDate"
   "command_service_read_routes":
   - "GET /api/loan-records"
+  - "GET /api/loan-records/:id/rollover-preview?day=YYYY-MM-DD&penalty=N (R136, V138; the quote of loan_rollover_calculation_v1 plus the new loan prefill; day is today or yesterday in Asia/Bangkok; online only; handler in services/payment-command/handler.mjs beside close-preview)"
   - "GET /api/payment-records"
   - "GET /api/cash-statements"
   - "GET /api/management/cash-position"
@@ -45,6 +46,10 @@
   - "services/contracts/operation-command.mjs"
   "coverage": "Named route families and owning contracts, not an exhaustive OpenAPI schema. Exact methods, fields and validation\
     \ remain in the linked source."
+  "operations_r136":
+    "loan.rollover": "Command (R136, V138): targetId = the new loan uuid, expectedVersion null; inputs = the loan.create inputs plus sourceLoanId, sourceExpectedVersion, penalty (whole baht, 0 allowed), expectedSettlement and expectedPlanHash. One transaction (pwa_apply_loan_rollover_v1, journal owner only): closing charge rl138:<length>:<loan>:<day> and net-off settlement payment pwa:<requestId> on the original loan, then the new loan with its first-day net-off. Result keys settlement {paymentId, plan} and rollover {closedLoanId, newLoanId, settlementPaymentId, firstDayPaymentId, statement}. Rejections: source_conflict (changed quote or plan hash), rollover_ineligible (P5B12: closed, defaulted, wrong type, Processing payment, nothing to settle, negative cash, an rl138: charge exists), invalid_request, command_busy. Not in the chat command catalogue."
+    "loan_record_fields": "GET /api/loan-records/:id adds rolloverSourceLoanId and rolledOverToLoanId with their display keys."
+    "labels": "Documentation Fee (column Transfer Fee, API key transferFee unchanged)."
   "guards":
   - "Firebase identity and business membership"
   - "environment/origin validation"

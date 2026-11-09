@@ -7,7 +7,8 @@ const uploaded=new Map<string,OwnReceipt['descriptor']>();
 
 /** R129 (V137): operations that are never queued: a rebate settlement is a cash payout, so it is sent only while connected
  * and never stored in the offline queue (sendOnlineOnly). */
-export const onlineOnlyOperation=(operation:unknown)=>typeof operation==='string'&&operation.startsWith('rebate-settlement.');
+// R136 (V138): a loan rollover is online only too (its statement is a live quote, like Loan Close).
+export const onlineOnlyOperation=(operation:unknown)=>typeof operation==='string'&&(operation.startsWith('rebate-settlement.')||operation==='loan.rollover');
 export type OnlineOnlyResult={kind:'synced'|'blocked'|'busy'|'unknown'|'offline';data?:any;status?:number;code?:string};
 /**
  * R129: send one online-only operation directly (POST /api/operations), never through the offline queue. An unknown outcome
@@ -45,10 +46,8 @@ export type SavedSyncResult={kind:'queued'|'synced'|'blocked';data?:any;status?:
 export const isBusyOutcome=(result:{kind?:string;code?:string;data?:any}|null|undefined)=>!!result&&result.kind!=='synced'&&result.kind!=='blocked'&&(result.code==='command_busy'||result.data?.code==='command_busy');
 export const busyMessage=(thai:boolean)=>thai?'ระบบกำลังยุ่ง — ยังไม่ได้บันทึก ยังไม่มีการบันทึกรายการ กำลังลองใหม่อัตโนมัติ':'Busy — not saved yet. Nothing was applied. Retrying automatically.';
 export type SavedSyncSummary={remaining:number;blocked:number;synced:number;reason?:'offline'|'authorization'|'connection'|'waiting'|'attention'};
-/** Stable reason codes are retained for unknown server rejections; never display arbitrary server text. */
-export function savedRejectionMessage(result:{code?:string;data?:any},thai:boolean):string{
- const code=result.code??result.data?.originalOutcome?.code??result.data?.code??'request_rejected';
- const messages:Record<string,[string,string]>={
+/** Known rejection codes and their reasons (EN, TH). */
+const REJECTION_MESSAGES:Record<string,[string,string]>={
   dependency_conflict:['Related records still depend on this record.','ยังมีรายการอื่นอ้างอิงข้อมูลนี้'],
   record_requires_reconciliation:['Financial records require reconciliation.','ต้องกระทบยอดข้อมูลทางการเงิน'],
   payment_requires_reconciliation:['Payment balances require reconciliation.','ต้องกระทบยอดการรับชำระ'],
@@ -57,6 +56,9 @@ export function savedRejectionMessage(result:{code?:string;data?:any},thai:boole
   record_conflict:['The record conflicts with current data.','รายการขัดแย้งกับข้อมูลปัจจุบัน'],
   command_conflict:['This request reference is already used for different details.','รหัสคำขอนี้ถูกใช้กับรายละเอียดอื่นแล้ว'],
   not_found:['The record no longer exists.','ไม่พบรายการนี้แล้ว'],
+  rollover_ineligible:['This loan cannot be rolled over now.','ต่อสัญญาสินเชื่อนี้ไม่ได้ในขณะนี้'],
+  // Shared by settlements, cash withdrawals, cash openings and (R136 V139) loan.create, so the wording is neutral.
+  insufficient_funds:['Not enough available funds for this request.','ยอดเงินที่ใช้ได้ไม่พอสำหรับรายการนี้'],
   invalid_reference:['A related record is missing or invalid.','รายการอ้างอิงหายไปหรือไม่ถูกต้อง'],
   invalid_request:['The submitted details are invalid.','รายละเอียดที่ส่งไม่ถูกต้อง'],
   borrower_name_exists:['A borrower with this name already exists.','มีผู้กู้ชื่อนี้แล้ว'],
@@ -76,10 +78,20 @@ export function savedRejectionMessage(result:{code?:string;data?:any},thai:boole
   previous_note_not_applied:['The preceding note change was not applied.','การแก้ไขหมายเหตุก่อนหน้าไม่สำเร็จ'],
   current_note_unavailable:['The current note record no longer exists.','ไม่พบข้อมูลหมายเหตุปัจจุบันแล้ว'],
  };
- const reason=messages[code]?.[thai?1:0]??(thai?'คำขอนี้ไม่สามารถดำเนินการได้':'This request could not be applied.');
+/** R136 (V139): the cash pool refusal of a new loan (loan.create only; the shared code's text stays neutral). */
+export const LOAN_CASH_POOL_REFUSAL:[string,string]=['Not enough cash in the cash pool. Lower the amount or add contributed capital.','เงินในกองทุนไม่พอ ลดจำนวนเงินหรือเพิ่มเงินทุนสมทบ'];
+/** The plain reason of a rejection code, or null for an unknown code; loan.create names the cash pool for insufficient_funds. */
+export function rejectionReason(code:string,thai:boolean,operation?:string|null):string|null{
+ const entry=operation==='loan.create'&&code==='insufficient_funds'?LOAN_CASH_POOL_REFUSAL:REJECTION_MESSAGES[code];return entry?entry[thai?1:0]:null;
+}
+/** Stable reason codes are retained for unknown server rejections; never display arbitrary server text. */
+export function savedRejectionMessage(result:{code?:string;data?:any},thai:boolean,operation?:string|null):string{
+ const code=result.code??result.data?.originalOutcome?.code??result.data?.code??'request_rejected';
+ const reason=rejectionReason(code,thai,operation)??(thai?'คำขอนี้ไม่สามารถดำเนินการได้':'This request could not be applied.');
  const reference=typeof code==='string'&&/^[a-z][a-z0-9_]{0,79}$/.test(code)?' ('+code+')':'';
  return (thai?'ไม่สำเร็จ: ':'Could not apply: ')+reason+reference;
 }
+
 const inFlight=new Map<string,Promise<SavedSyncResult>>();
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const outcome=(scopeName:string,requestId:string,result:SavedSyncResult)=>{

@@ -42,7 +42,8 @@ test('catalogue: every sample canonicalizes and the list matches the command con
  const excluded=['partner.create','partner.update','partner.delete','cash-openings.initialize'];
  // R129 D9: the chat neither creates nor deletes a rebate settlement in this release; the operations are not in the
  // catalogue at all (command-catalogue.json unchanged), so the chat refuses them as unknown.
- const notChat=['rebate-settlement.create','rebate-settlement.delete'];
+ // R136: the chat cannot post a loan rollover in this release (design 4.2); it is not in the catalogue either.
+ const notChat=['rebate-settlement.create','rebate-settlement.delete','loan.rollover'];
  for(const operation of notChat)assert.ok(contract.has(operation)&&!catalogue.entries.has(operation)&&!Object.hasOwn(catalogue.excluded,operation),operation);
  const operations=[...catalogue.entries.values()].filter(e=>e.kind==='operation').map(e=>e.operation).sort();
  assert.deepEqual(operations,[...contract].filter(op=>!excluded.includes(op)&&!notChat.includes(op)).sort());

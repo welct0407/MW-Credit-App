@@ -393,8 +393,8 @@
      "name": "transferFee",
      "type": "money",
      "label": {
-      "en": "Transfer fee",
-      "th": "ค่าธรรมเนียมโอน"
+      "en": "Documentation fee",
+      "th": "ค่าธรรมเนียมเอกสาร"
      }
     },
     {
@@ -562,8 +562,8 @@
      "name": "transferFee",
      "type": "money",
      "label": {
-      "en": "Transfer fee",
-      "th": "ค่าธรรมเนียมโอน"
+      "en": "Documentation fee",
+      "th": "ค่าธรรมเนียมเอกสาร"
      }
     },
     {

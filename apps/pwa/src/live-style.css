@@ -794,3 +794,17 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
  .live-shell main>.management-cash>.cash-accounts-layout:not(:has(form)){flex:1;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch}
  .live-shell main>.management-cash>.cash-accounts-layout:not(:has(form))>section{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
 }
+/* R136: the rollover statement (label and amount rows, amounts right-aligned in tabular digits, Cash issued largest), the loan summary above Save and the rollover links. */
+.rollover-statement dl{display:block}.rollover-statement dl>div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:3px 0}.rollover-statement dt{min-width:0}.rollover-statement dt small{display:block;font-weight:400}
+.rollover-statement .rollover-heading dt{font-weight:700;margin-top:6px}.rollover-amount{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;margin:0}.rollover-statement dl>div:last-child dd{font-size:inherit}
+.rollover-statement .rollover-total{border-top:1px solid #ccc;font-weight:700}.rollover-statement .rollover-cash{font-weight:700;border-top:2px solid #25303d}.rollover-statement .rollover-memo{color:#555;font-size:.9em}
+.rollover-negative,.rollover-negative-message{color:#b3261e}.rollover-review-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}.rollover-cash-lead strong{font-size:1.4em}
+.loan-summary{margin:8px 0}.loan-summary dd{margin:2px 0;font-weight:400}.rollover-link{margin:4px 0}.link-button{background:none;border:0;padding:0;color:#0b57d0;text-decoration:underline;min-height:44px;text-align:left}
+.rollover-statement .rollover-cash dt{font-size:1.1em;font-weight:700;color:#202124}.rollover-statement .rollover-cash dd{font-size:1.6em;font-weight:700;color:#202124}.rollover-statement .rollover-total :is(dt,dd){font-weight:700;color:#202124}.rollover-statement .rollover-negative :is(dt,dd),.rollover-review-row .rollover-negative{color:#b3261e}
+.rollover-statement .rollover-memo :is(dt,dd){font-size:var(--text-meta,14px);font-weight:400;color:#565656}.rollover-statement dd{margin:0}.loan-summary .loan-summary-cash{font-weight:700}.loan-summary small{display:block;font-weight:400;color:#565656}
+/* R136 Echo UX-23 to UX-25: the cash row's amount is the largest figure; a disabled day choice reads disabled; the instalment
+   breakdown is a small indented sub-line of its row; the Thai statement headings have one weight (Thai glyphs have no bold face
+   here, so a bold heading showed only its date bold). */
+.rollover-statement .rollover-cash{align-items:center}.rollover-statement dt small.field-help{display:block;margin:0;padding-left:12px;font-size:13px;line-height:1.3;color:#565656}
+.rollover-statement .rollover-heading dt{color:#202124}:lang(th) .rollover-statement .rollover-heading dt{font-weight:400}
+.rollover-day-options label{min-height:44px}.rollover-day-options label:has(input:disabled){color:#8a8f94;background:#f2f2f2;cursor:not-allowed}.rollover-day-options label:has(input:disabled) input{cursor:not-allowed}
