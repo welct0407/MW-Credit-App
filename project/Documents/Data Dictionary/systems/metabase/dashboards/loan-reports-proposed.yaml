@@ -3,15 +3,17 @@
   "system": "metabase"
   "component": "reports.mw-credit.com"
   "kind": "dashboard"
-  "name": "Loan Reports · proposed / 32"
+  "name": "Loan Reports / 32"
   "scope": "production"
 "verification":
   "status": "documented"
   "source": "outputs/loan-reports-redesign-20261026/saved.json"
 "content":
-  "status": "Landing dashboard since 30 October 2026: Metabase setting custom-homepage-dashboard is 32 (was 3), so reports.mw-credit.com\
-    \ opens this dashboard for everyone. Dashboard 3 (Loan Reports) is unchanged, stays reachable by link and remains the\
-    \ recovery and canonical copy until the cutover in PLAN.md section 7 is formally closed."
+  "status": "Canonical dashboard since 9 November 2026: renamed \"Loan Reports\" (was \"Loan Reports · proposed\"), collection\
+    \ 10 renamed \"Loan Reports · dashboard\", homepage custom-homepage-dashboard 32. Dashboard 3 is archived as \"Loan Reports\
+    \ · retired 2026-11-09\" with dashboards 1 to 31, and 94 questions placed only on them are archived (decommission, reversible).\
+    \ Kept copies 419, 420 and 421 replace the archived originals 210, 212 and 196. Models 76, 319 and 320 are unreferenced\
+    \ and left for the owner. The earlier text below on dashboard 3 as recovery copy is historical."
   "landing":
     "setting": "custom-homepage-dashboard"
     "value": 32
@@ -2877,3 +2879,5 @@
       - "scenario"
       - "loan-kind"
       - "target"
+  "decommission": "Evidence outputs/loan-reports-redesign-20261026/decommission-2026-11-09.json; installer scripts/metabase/DecommissionLoanReports.mjs.\
+    \ UX fixes the same day: dashcard 9334 titled \"Transactions · newest first\", 9308 legend off, 9322 Income colour #178F8A."

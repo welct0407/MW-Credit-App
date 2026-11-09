@@ -7,7 +7,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "dashboard",
-      "name": "Loan Reports · proposed / 32",
+      "name": "Loan Reports / 32",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -17,7 +17,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "dashboard",
-      "name": "Loan Reports / 3",
+      "name": "Loan Reports · retired 2026-11-09 / 3",
       "scope": "production",
       "status": "documented",
       "lookup": []

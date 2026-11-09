@@ -116,6 +116,8 @@
     - "field"
     - "Principal outstanding"
     - "base-type": "type/Decimal"
+  "retired": "Archived 9 November 2026 in the Loan Reports decommission (owner instruction; reversible, not deleted): it was\
+    \ placed only on the retired dashboards 1 to 31. Unarchive with PUT card/{id} {\"archived\": false}; list in outputs/loan-reports-redesign-20261026/decommission-2026-11-09.json."
 "evidence":
   "/content/name":
     "reference": "outputs/r037-borrower-contribution/saved.json"
