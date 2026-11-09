@@ -297,43 +297,17 @@
   },
   "today.realization": {
    "name": "Interest this month · received of projection",
-   "display": "row",
+   "display": "progress",
    "kind": "native",
    "basis": "model 73 Portfolio Overview",
    "origin": 52,
    "params": [],
-   "definition": "One-row stacked bar from model 73: Received = Realized Profit MTD, Remaining = max(Projected Monthly Profit − Received, 0); the bar label (Share) reads \"<received> of <projection> · <share>%\" in whole baht, the share being Forecast Realization to one decimal (omitted when the projection is zero).",
-   "sql": "SELECT to_char(\"Realized Profit MTD\",'FM999,999,999')||' of '||to_char(\"Projected Monthly Profit\",'FM999,999,999')||coalesce(' · '||to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM990.0')||'%','') AS \"Share\",\"Realized Profit MTD\" AS \"Received\",greatest(\"Projected Monthly Profit\"-\"Realized Profit MTD\",0) AS \"Remaining\" FROM {{#73}}",
+   "definition": "Progress bar from model 73: Received = Realized Profit MTD against the goal Projection = Projected Monthly Profit (goal read from the column); the amount sits on the bar and \"Goal <projection>\" beneath it. Whole baht.",
+   "sql": "SELECT \"Realized Profit MTD\" AS \"Received\",\"Projected Monthly Profit\" AS \"Projection\" FROM {{#73}}",
    "settings": {
-    "graph.dimensions": [
-     "Share"
-    ],
-    "graph.metrics": [
-     "Received",
-     "Remaining"
-    ],
-    "stackable.stack_type": "stacked",
-    "graph.show_values": true,
-    "graph.show_stack_values": "total",
-    "graph.label_value_formatting": "full",
-    "graph.show_legend": false,
-    "graph.y_axis.axis_enabled": false,
-    "graph.x_axis.axis_enabled": true,
-    "graph.x_axis.labels_enabled": false,
-    "graph.y_axis.labels_enabled": false,
-    "legend.is_reversed": false,
-    "graph.colors": [
-     "#067647",
-     "#D9DEE5"
-    ],
-    "series_settings": {
-     "Received": {
-      "color": "#067647"
-     },
-     "Remaining": {
-      "color": "#D9DEE5"
-     }
-    },
+    "progress.value": "Received",
+    "progress.goal": "Projection",
+    "progress.color": "#067647",
     "column_settings": {
      "[\"name\", \"Received\"]": {
       "number_style": "decimal",
@@ -341,7 +315,7 @@
       "number_separators": ".,",
       "compact": false
      },
-     "[\"name\", \"Remaining\"]": {
+     "[\"name\", \"Projection\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
@@ -349,47 +323,21 @@
      }
     }
    },
-   "reconcile": "Received equals question 51; Received + Remaining equals max(question 52, question 51); the label's numbers equal questions 51 and 52 and its share model 73 Forecast Realization."
+   "reconcile": "Received equals question 51; Projection equals question 52; Received ÷ Projection equals model 73 Forecast Realization."
   },
   "today.collection-rate": {
    "name": "Today's charges · paid of due",
-   "display": "row",
+   "display": "progress",
    "kind": "native",
    "basis": "model 73 Portfolio Overview",
    "origin": 252,
    "params": [],
-   "definition": "One-row stacked bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts), Remaining = max(Amount Due Today − Paid, 0); the label (Share) reads \"<paid> of <due> · <share>%\", the share being Amount Collection Rate Today. Placed on Today only; Collection shows the same share as question 252.",
-   "sql": "SELECT to_char(\"Amount Collected Today\",'FM999,999,999')||' of '||to_char(\"Amount Due Today\",'FM999,999,999')||coalesce(' · '||to_char(100*\"Amount Collected Today\"/nullif(\"Amount Due Today\",0),'FM990.0')||'%','') AS \"Share\",\"Amount Collected Today\" AS \"Paid\",greatest(\"Amount Due Today\"-\"Amount Collected Today\",0) AS \"Remaining\" FROM {{#73}}",
+   "definition": "Progress bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts) against the goal Due = Amount Due Today; the amount sits on the bar and \"Goal <due>\" beneath it. Placed on Today only; Collection shows the same share as question 252.",
+   "sql": "SELECT \"Amount Collected Today\" AS \"Paid\",\"Amount Due Today\" AS \"Due\" FROM {{#73}}",
    "settings": {
-    "graph.dimensions": [
-     "Share"
-    ],
-    "graph.metrics": [
-     "Paid",
-     "Remaining"
-    ],
-    "stackable.stack_type": "stacked",
-    "graph.show_values": true,
-    "graph.show_stack_values": "total",
-    "graph.label_value_formatting": "full",
-    "graph.show_legend": false,
-    "graph.y_axis.axis_enabled": false,
-    "graph.x_axis.axis_enabled": true,
-    "graph.x_axis.labels_enabled": false,
-    "graph.y_axis.labels_enabled": false,
-    "legend.is_reversed": false,
-    "graph.colors": [
-     "#067647",
-     "#D9DEE5"
-    ],
-    "series_settings": {
-     "Paid": {
-      "color": "#067647"
-     },
-     "Remaining": {
-      "color": "#D9DEE5"
-     }
-    },
+    "progress.value": "Paid",
+    "progress.goal": "Due",
+    "progress.color": "#067647",
     "column_settings": {
      "[\"name\", \"Paid\"]": {
       "number_style": "decimal",
@@ -397,7 +345,7 @@
       "number_separators": ".,",
       "compact": false
      },
-     "[\"name\", \"Remaining\"]": {
+     "[\"name\", \"Due\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
@@ -405,7 +353,7 @@
      }
     }
    },
-   "reconcile": "Paid equals model 73 Amount Collected Today; Paid + Remaining equals max(Amount Due Today, Paid); the label's numbers equal Amount Collected Today and Amount Due Today and its share Amount Collection Rate Today."
+   "reconcile": "Paid equals model 73 Amount Collected Today; Due equals Amount Due Today; Paid ÷ Due equals Amount Collection Rate Today."
   },
   "today.attention": {
    "name": "Needs attention · strip",
@@ -2148,11 +2096,6 @@
      "new_question": "today.realization",
      "title": "Interest · of projection ฿",
      "description": "Interest received this month (green) and the rest of the projected month (grey), whole baht.",
-     "vs": {
-      "graph.x_axis.labels_enabled": false,
-      "graph.y_axis.labels_enabled": false,
-      "legend.is_reversed": false
-     },
      "params": [
       "period"
      ]
@@ -2165,11 +2108,6 @@
      "new_question": "today.collection-rate",
      "title": "Today's charges · paid ฿",
      "description": "Charges dated today: paid (green) and still due (grey), whole baht.",
-     "vs": {
-      "graph.x_axis.labels_enabled": false,
-      "graph.y_axis.labels_enabled": false,
-      "legend.is_reversed": false
-     },
      "params": [
       "period"
      ]

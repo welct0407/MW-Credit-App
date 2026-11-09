@@ -353,11 +353,8 @@ if(args.includes('--verify')){
  const dc=key=>d.dashcards.find(c=>c.card_id===state.questions[key]);
  const resultRows=key=>results.get(dc(key).id).data.rows;
  const ovRows=(await run(73)).rows;assert.equal(ovRows.length,1);const ov=ovRows[0],ovCols=(await api('GET','card/73')).result_metadata.map(m=>m.name),ovv=n=>ov[ovCols.indexOf(n)];
- // 9 Nov 2026: the two Today progress bars: [label "<done> of <total> · <share>%", done, Remaining = max(total − done, 0)].
- const baht=(x,v)=>v!=null&&Math.abs(Number(x)-Number(v))<=0.5+1e-9;
- const label=(text,done,total,ratio)=>{const m=String(text).match(/^(-?[\d,]+) of (-?[\d,]+)(?: · (-?[\d,]*\d\.\d)%)?$/);if(!m)return false;const [a,b,p]=[m[1],m[2],m[3]].map(x=>x==null?null:Number(x.replaceAll(',','')));
-  return baht(a,done)&&baht(b,total)&&(Number(total)?p!=null&&Math.abs(p-100*Number(ratio))<=0.05+1e-9:p===null);};
- const bar=(row,done,total,ratio)=>({oneRow:!!row,doneEquals:!!row&&near(row[1],done),totalEquals:!!row&&near(Number(row[1])+Number(row[2]),Math.max(Number(total),Number(done))),labelEquals:!!row&&label(row[0],done,total,ratio)});
+ // 9 Nov 2026 (fourth round): the two Today progress bars return [done, goal]; done ÷ goal equals model 73's share.
+ const bar=(row,done,total,ratio)=>({oneRow:!!row,doneEquals:!!row&&near(row[0],done),goalEquals:!!row&&near(row[1],total),shareEquals:!!row&&(Number(total)?Math.abs(Number(row[0])/Number(row[1])-Number(ratio))<0.0005:true)});
  const realized=await one(51),projected=await one(52),rl=resultRows('today.realization');
  const rlOk=bar(rl.length===1&&rl[0],realized,projected,ovv('Forecast Realization'));
  (Object.values(rlOk).every(Boolean)?pass:fail)('today.realization',rlOk);

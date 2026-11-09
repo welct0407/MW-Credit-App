@@ -113,7 +113,6 @@ AMOUNT_COLUMNS = ['This period', 'Previous period', 'Change', 'Change %']
 # with two or more series always shows its legend), axis names toggle with graph.<axis>.labels_enabled, and stacked charts reverse
 # their legend unless legend.is_reversed is false.
 UNREVERSED = {'legend.is_reversed': False}
-TODAY_BAR_DASHCARD = {'graph.x_axis.labels_enabled': False, 'graph.y_axis.labels_enabled': False, **UNREVERSED}
 # Band cards: costs red like the Cashflow money-out colour, by the same scalar segment rule that makes Income green (UX-IN-03).
 COST_RED = {'scalar.segments': [{'min': -1000000000000, 'max': 0, 'color': '#D1495B', 'label': ''}]}
 
@@ -126,22 +125,16 @@ def titled(name, title, fmt=BAHT):
     return {json.dumps(['name', name]): {**fmt, 'column_title': title}}
 
 
-def today_sql(done, total, name):
-    """Today progress bar query on model 73: label "<done> of <total> · <share>%" (whole baht), done, remaining."""
-    return (f"SELECT to_char(\"{done}\",'FM999,999,999')||' of '||to_char(\"{total}\",'FM999,999,999')"
-            f"||coalesce(' · '||to_char(100*\"{done}\"/nullif(\"{total}\",0),'FM990.0')||'%','') AS \"Share\","
-            f"\"{done}\" AS \"{name}\",greatest(\"{total}\"-\"{done}\",0) AS \"Remaining\" FROM {{{{#73}}}}")
+def today_sql(done, total, name, goal):
+    """Today progress bar query on model 73: the amount done and its total (the goal), whole baht."""
+    return f"SELECT \"{done}\" AS \"{name}\",\"{total}\" AS \"{goal}\" FROM {{{{#73}}}}"
 
 
-def today_bar(done):
-    """Today progress bar (9 Nov 2026): one stacked row, done green, remaining grey; the label carries the numbers and the total
-    sits at the bar end. Axis names off: on this version the axis name toggles are graph.<axis>.labels_enabled (UX-TD-04)."""
-    return {'graph.dimensions': ['Share'], 'graph.metrics': [done, 'Remaining'], 'stackable.stack_type': 'stacked',
-            'graph.show_values': True, 'graph.show_stack_values': 'total', 'graph.label_value_formatting': 'full',
-            'graph.show_legend': False, 'graph.y_axis.axis_enabled': False, 'graph.x_axis.axis_enabled': True,
-            'graph.x_axis.labels_enabled': False, 'graph.y_axis.labels_enabled': False, **UNREVERSED,
-            'graph.colors': ['#067647', '#D9DEE5'], 'series_settings': {done: {'color': '#067647'}, 'Remaining': {'color': '#D9DEE5'}},
-            'column_settings': cols([done, 'Remaining'])}
+def today_bar(done, goal):
+    """Today progress bar (9 Nov 2026, fourth round): Metabase's progress visualization with the goal read from a column
+    (v0.63 accepts a column name in progress.goal): the bar spans the whole card, the amount done sits on the bar and
+    "Goal <total>" beneath it, so no label column eats into the bar (owner: numbers below the bar so it looks longer)."""
+    return {'progress.value': done, 'progress.goal': goal, 'progress.color': '#067647', 'column_settings': cols([done, goal])}
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -194,29 +187,26 @@ NEW_QUESTIONS = {
         'settings': {'scalar.compact_primary_number': False, 'scalar.comparisons': [{'id': 'first', 'type': 'periodsAgo', 'value': 29}]},
         'reconcile': 'Latest value equals question 62\'s last completed day; first value equals its first day (built, verified).',
     },
-    # 9 Nov 2026 (owner, second and third rounds): the two Today cards are a progress bar: one stacked horizontal bar (done green,
-    # remaining grey). Metabase does not draw segment values on a stacked row, so the numbers sit in the bar's label (UX-TD-03).
+    # 9 Nov 2026 (owner, rounds two to four): the two Today cards are a progress bar with numbers. Round four: Metabase's own
+    # progress bar with its goal read from a column, so the amounts sit on and below a full-width bar (see today_bar).
     'today.realization': {
-        'name': 'Interest this month · received of projection', 'display': 'row', 'kind': 'native',
+        'name': 'Interest this month · received of projection', 'display': 'progress', 'kind': 'native',
         'basis': 'model 73 Portfolio Overview', 'origin': 52, 'params': [],
-        'definition': 'One-row stacked bar from model 73: Received = Realized Profit MTD, Remaining = max(Projected Monthly Profit − Received, 0); '
-                      'the bar label (Share) reads "<received> of <projection> · <share>%" in whole baht, the share being Forecast Realization '
-                      'to one decimal (omitted when the projection is zero).',
-        'sql': today_sql('Realized Profit MTD', 'Projected Monthly Profit', 'Received'),
-        'settings': today_bar('Received'),
-        'reconcile': 'Received equals question 51; Received + Remaining equals max(question 52, question 51); the label\'s numbers equal '
-                     'questions 51 and 52 and its share model 73 Forecast Realization.',
+        'definition': 'Progress bar from model 73: Received = Realized Profit MTD against the goal Projection = Projected Monthly '
+                      'Profit (goal read from the column); the amount sits on the bar and "Goal <projection>" beneath it. Whole baht.',
+        'sql': today_sql('Realized Profit MTD', 'Projected Monthly Profit', 'Received', 'Projection'),
+        'settings': today_bar('Received', 'Projection'),
+        'reconcile': 'Received equals question 51; Projection equals question 52; Received ÷ Projection equals model 73 Forecast Realization.',
     },
     'today.collection-rate': {
-        'name': "Today's charges · paid of due", 'display': 'row', 'kind': 'native',
+        'name': "Today's charges · paid of due", 'display': 'progress', 'kind': 'native',
         'basis': 'model 73 Portfolio Overview', 'origin': 252, 'params': [],
-        'definition': 'One-row stacked bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts), '
-                      'Remaining = max(Amount Due Today − Paid, 0); the label (Share) reads "<paid> of <due> · <share>%", the share being '
-                      'Amount Collection Rate Today. Placed on Today only; Collection shows the same share as question 252.',
-        'sql': today_sql('Amount Collected Today', 'Amount Due Today', 'Paid'),
-        'settings': today_bar('Paid'),
-        'reconcile': 'Paid equals model 73 Amount Collected Today; Paid + Remaining equals max(Amount Due Today, Paid); the label\'s numbers '
-                     'equal Amount Collected Today and Amount Due Today and its share Amount Collection Rate Today.',
+        'definition': 'Progress bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts) '
+                      'against the goal Due = Amount Due Today; the amount sits on the bar and "Goal <due>" beneath it. Placed on Today only; '
+                      'Collection shows the same share as question 252.',
+        'sql': today_sql('Amount Collected Today', 'Amount Due Today', 'Paid', 'Due'),
+        'settings': today_bar('Paid', 'Due'),
+        'reconcile': 'Paid equals model 73 Amount Collected Today; Due equals Amount Due Today; Paid ÷ Due equals Amount Collection Rate Today.',
     },
     'today.attention': {
         'name': 'Needs attention · strip', 'display': 'table', 'kind': 'native',
@@ -599,8 +589,8 @@ TABS = [
              (51, 6, 3, {'title': 'Interest this month'}),
              (237, 6, 3, {'title': 'Collected today'})],
             [(50, 6, 3, {'title': 'Expected interest · per day'}), (56, 6, 3, {'title': 'Profit growth · 7 days'}),
-             ('today.realization', 6, 3, {'title': 'Interest · of projection ฿', 'description': 'Interest received this month (green) and the rest of the projected month (grey), whole baht.', 'vs': TODAY_BAR_DASHCARD}),
-             ('today.collection-rate', 6, 3, {'title': "Today's charges · paid ฿", 'description': 'Charges dated today: paid (green) and still due (grey), whole baht.', 'vs': TODAY_BAR_DASHCARD})],
+             ('today.realization', 6, 3, {'title': 'Interest · of projection ฿', 'description': 'Interest received this month (green) and the rest of the projected month (grey), whole baht.'}),
+             ('today.collection-rate', 6, 3, {'title': "Today's charges · paid ฿", 'description': 'Charges dated today: paid (green) and still due (grey), whole baht.'})],
             [('today.attention', 24, 6, {'title': 'Needs attention · rows open pages', 'description': 'Click a row to open Collection or Borrower Health.'})],
             [('today.principal-vs-pool', 12, 7, {'title': 'Principal at work · daily close',
                                                  'note': 'dynamic reference: total cash pool as a dashed line instead of the static 120,000 goal; value labels off'}),
