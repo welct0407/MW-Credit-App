@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r137-20261109/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "commit": "0e9997c8d4050291b906771d216eaef9b0fd79b0"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-borrowers-analytics-2ac154a3.yaml"
     "identity":
       "system": "postgresql"
@@ -124,9 +124,9 @@
                         GROUP BY l."Ref Borrowers"
                       ), rr AS (
                        SELECT l."Ref Borrowers" AS id,
-                          COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= (ctx.d - 29) AND r."Payment Date" <= ctx.d AND r."Interest Paid"::numeric > 0::numeric), 0::numeric) AS profit30,
-                          COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= (ctx.d - 10) AND r."Payment Date" < ctx.d AND r."Interest Paid"::numeric > 0::numeric), 0::numeric) AS profit10,
-                          COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms AND r."Payment Date" <= ctx.me), 0::numeric) AS mtd,
+                          COALESCE(sum(r."Interest Paid"::numeric + r."Late Charge Paid"::numeric) FILTER (WHERE r."Payment Date" >= (ctx.d - 29) AND r."Payment Date" <= ctx.d AND (r."Interest Paid"::numeric + r."Late Charge Paid"::numeric) > 0::numeric), 0::numeric) AS profit30,
+                          COALESCE(sum(r."Interest Paid"::numeric + r."Late Charge Paid"::numeric) FILTER (WHERE r."Payment Date" >= (ctx.d - 10) AND r."Payment Date" < ctx.d AND (r."Interest Paid"::numeric + r."Late Charge Paid"::numeric) > 0::numeric), 0::numeric) AS profit10,
+                          COALESCE(sum(r."Interest Paid"::numeric + r."Late Charge Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms AND r."Payment Date" <= ctx.me), 0::numeric) AS mtd,
                           COALESCE(sum(r."30D Principal Reduction Days"), 0::numeric) AS reduction
                          FROM olap_repayments_analytics r
                            JOIN "Loans" l ON l."Row ID" = r."Ref Loans"
@@ -140,6 +140,23 @@
                            CROSS JOIN ctx
                         WHERE r."Payment Date" = ctx.d AND c."Ref Collection Borrower" IS NOT NULL
                         GROUP BY c."Ref Collection Borrower"
+                      ), lp AS (
+                       SELECT l_1."Ref Borrowers" AS id,
+                          max(r_1."Payment Date") AS last_paid
+                         FROM "Repayments" r_1
+                           JOIN "Payments" p_1 ON p_1."Row ID" = r_1."Ref Payment"
+                           JOIN "Charges" c_1 ON c_1."Row ID" = r_1."Ref Charges"
+                           JOIN "Loans" l_1 ON l_1."Row ID" = c_1."Ref Loans"
+                           CROSS JOIN ctx
+                        WHERE r_1."Payment Date" <= ctx.d AND p_1."Payment Method" IS DISTINCT FROM 'Referral Rebate Offset'::text AND p_1."Payment Method" IS DISTINCT FROM 'Net-off at Disbursement'::text AND (r_1."Principal Paid"::numeric + r_1."Interest Paid"::numeric + r_1."Late Charge Paid"::numeric) > 0::numeric
+                        GROUP BY l_1."Ref Borrowers"
+                      ), fc AS (
+                       SELECT l_1."Ref Borrowers" AS id,
+                          min(c_1."Charge Date") AS first_due
+                         FROM "Charges" c_1
+                           JOIN "Loans" l_1 ON l_1."Row ID" = c_1."Ref Loans"
+                        WHERE NOT starts_with(c_1."Row ID", 'df10:'::text)
+                        GROUP BY l_1."Ref Borrowers"
                       ), cr AS (
                        SELECT l."Ref Borrowers" AS id,
                           COALESCE(sum(c."Amount Remaining") FILTER (WHERE c."Charge Date" < ctx.d AND c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text), 0::numeric) AS overdue,
@@ -163,7 +180,14 @@
                           min(c."Charge Date") FILTER (WHERE c."Charge Date" < ctx.d) AS first_history,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL) AS collection_count,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" < ctx.d AND c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text) AS collection_overdue,
-                          count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" < (ctx.d - 7) AND c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text) AS collection_long_overdue,
+                              CASE
+                                  WHEN count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" < ctx.d AND c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text) > 0 AND (max(ctx.d) - COALESCE(( SELECT lp.last_paid
+                                     FROM lp
+                                    WHERE lp.id = l."Ref Borrowers"), ( SELECT fc.first_due
+                                     FROM fc
+                                    WHERE fc.id = l."Ref Borrowers"))) >= 8 THEN 1::bigint
+                                  ELSE 0::bigint
+                              END AS collection_long_overdue,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'รอชำระ'::text) AS collection_pending,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'ชำระบางส่วน'::text) AS collection_partial,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'ชำระแล้ว'::text) AS collection_paid,
@@ -2046,6 +2070,21 @@
   - "schema": "public"
     "relation": "olap_borrowers_analytics"
     "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Charge Date"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
     "referenced_relation": "Loans"
     "referenced_column": "Defaulted"
   - "schema": "public"
@@ -2063,6 +2102,46 @@
     "referenced_schema": "public"
     "referenced_relation": "Loans"
     "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Payment Method"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Late Charge Paid"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Charges"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Payment"
   - "schema": "public"
     "relation": "olap_borrowers_analytics"
     "referenced_schema": "public"
@@ -2183,6 +2262,11 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Late Charge Paid"
   - "schema": "public"
     "relation": "olap_borrowers_analytics"
     "referenced_schema": "public"

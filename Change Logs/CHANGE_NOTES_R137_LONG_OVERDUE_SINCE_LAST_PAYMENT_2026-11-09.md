@@ -43,7 +43,7 @@ Forge, 9 November 2026 (UTC). Package: PR #273 head `e81072f`; `Development chec
 ## Not run
 Low risks Chase noted, not fixed: a borrower with only `df10:` unpaid charges falls to Overdue in both the view and the API; a cursor issued before the deploy can skip or repeat a row once across the deploy.
 
-V140 is not applied to PROD. The PostgreSQL dictionary record of `olap_borrowers_analytics` (a captured live definition) is unchanged: the established capture was not run against DEV, so the refresh is pending.
+No authenticated PROD check was made. The PostgreSQL dictionary record of `olap_borrowers_analytics` was refreshed at closure from the PROD capture (see Closure notes).
 
 ## Recovery
 V140 is forward-fix only. A later migration restores the V132 text of `collection_long_overdue` (charge older than the date minus 7 days) and drops the two CTEs by the same method; the Git baseline is the commit before V140.
@@ -52,4 +52,40 @@ V140 is forward-fix only. A later migration restores the V132 text of `collectio
 - Add a "Days Since Last Payment" column to the view for the Metabase lane (owner authority needed)?
 
 ## Remaining work
-Apply V140 to PROD with the usual backup and records; update the Metabase question text; refresh the dictionary record.
+Owner acceptance in PROD; update the Metabase question text (Byte).
+
+## PROD promotion record (Forge, 9 November 2026, UTC)
+Authority: the owner's instruction of 9 November 2026, "move to production", relayed by the orchestrator as the scoped PROD approval for R137: the PROD backup and restore verification, V140 (a view only) on `loan_manager_prod`, the standard temporary owner window and its restoration, the changed images, Hosting and the technical records. No payment, notification or job was forced, and no financial correction or other data write was made; the smoke is read-only. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in `gs://mw-credit-operator-private-737787224638/promotion-packages/r137/` (receipt also in `promotion-receipts/R137-HOSTING-RECEIPT.json`).
+
+| Step | Result |
+| --- | --- |
+| Freeze (baseline read 11:12Z) | Release R137; package `e81072f` (PR #273 head), merged to `main` as `0e9997c8d4050291b906771d216eaef9b0fd79b0`; deploy inputs of `e81072f` and `9b76950` are identical. Baseline R136 `3aafed13`. Next unused number R138 (opened by the closure pull request) |
+| Target | Project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017`, database `loan_manager_prod`, services `mw-credit-app-*-prod`, Hosting site `mw-credit-prod-737787224638` |
+| Baseline capture (11:12Z) | Flyway head V139 (139 history rows). Revisions read `00050-5wg`, command `00055-t94`, chat `00034-mzp` on `b8a04f8e…`, notify and jobs on `f8cb243b…`; settings generation `1794191808466000`; Hosting `5af169db6cb665ce`, release `1794192111540000` |
+| Backup at V139 | `prod-promotion-ae80a30425364d28b561751d1f2f9d94`: dump sha256 `65c08214…68a9`, isolated restore passed, 39 table fingerprints matched |
+| Image | Cloud Build `4a02ad3a-9d3b-4458-9009-5451a6615fd2`, PROD builder digest `sha256:d5eae8f1…2835`; the DEV image was not relabelled |
+| SQL package | Manifest `release-r137-v140-e81072fc-prod.json`; V140 sha256 `29d28f95…` equals the DEV-applied bytes; connect preflight `544863e6…` (0 DEV sessions); `check`: pending exactly `["140"]` |
+| Owner window and V140 | Window 11:19:06Z to 11:21:04Z (24 statements each way; the first close attempt was refused for missing PROD arguments and the retry closed it). V140 applied 11:19:23Z to 11:20:42Z, 3.4 s, checksum 488249198. `verify` schema 140. Owners closed, no CREATE on `public`, view owner and grants unchanged |
+| Data effect | Daily Collection Status on PROD: Long Overdue 13 to 9, Overdue 2 to 6, Fully Paid 11, Not Paid 2, blank 24 |
+| Terraform | Plan 0 add, 3 change, 0 destroy (image only; plan sha256 `2297de86…`, JSON `3c95c02f…`), settings generation `1794223508302093` (previous `1794191808466000`), applied 11:25:11Z to 11:25:47Z, re-plan clean. Revisions read `00051-kh6`, command `00056-tr2`, chat `00035-8x4`; notify and jobs unchanged |
+| Hosting | Generic runner package `f7f18962…`, 18 files, as `mw-credit-unattended-admin`: version `17fa23f731e997e3`, release `1794223923190000`, build-version R137 `41ed456ba05adad5e3f86a6d` |
+| CI receipts | e2e: reused run 42599959317 (`212d834`, input-equivalent); Terraform: evidence run 42480531387; `Development checks` 42601853028 and `Database migrations` 42601844703 on `e81072f` |
+| Smoke (read-only) | Origins serve R137 (200), health 200, unauthenticated 401, CORS preflight 204, no ERROR logs 11:19Z to 11:32Z; second read-only verification at 11:30:38Z |
+| Rollback | Settings generation `1794191808466000`, then Hosting `5af169db6cb665ce`. V140 by a forward fix only (a later migration restoring the V132 text of `collection_long_overdue`) |
+
+### Deviations
+- The first owner-window close attempt was refused for missing PROD arguments; the retry closed it.
+
+### Limitations
+- No authenticated PROD check and no board read on PROD data; owner acceptance in PROD is pending.
+
+### Tag record
+Annotated tag `R137` on `0e9997c8d4050291b906771d216eaef9b0fd79b0` (merge of PR #273, `main`) through the Release tag workflow, run [42610347210](https://github.com/welct0407/MW-Credit-App/actions/runs/42610347210), succeeded 11:36:44Z; tag object `07dc9fb342a3bca54c91830b73c16419457d763a`, GitHub Release published in the same run.
+
+### Closure notes
+- Acceptance: PROD acceptance by the owner is pending. The owner decision that a rollover does not reset the clock stays as built.
+- Data Dictionary: refreshed in this closure from a read-only PROD capture at schema 140 (`capture_postgresql.py production` as `codex-cloud-read`, metadata only, 9 November 2026; capture sha256 `46c2e6be3d32366f0501e8bb649070f23406a24eb3caca587a6ae5bfed41c24e`): the relation `public.olap_borrowers_analytics` only. The index is rebuilt and `dictionary.py validate` shows no errors. Evidence: [plan, coverage and observations](../project/outputs/dictionary-r137-20261109/).
+- Metabase texts for Byte (not edited here, Metabase is Byte's): question 414 description and the lane note in `build_design.py` ("8+ days", "sorted by overdue amount"), and the question 396 description (the Long overdue lane wording), which still describe the charge-date rule.
+
+### Prune (closure)
+Deleted after repointing every inbound link to commit `0e9997c` (the last commit where it exists): `Change Logs/CHANGE_NOTES_R134_LATE_CHARGE_STEPPER_2026-11-07.md` (R134 left the three-release window of R137, R136 and R135). The Development Changes row for R137 is removed (the tracker row links this record). Deleted as evidence nothing current cites (the Data Dictionary documents it fed were refreshed since): `project/outputs/dictionary-r131-20261105/` (plan, coverage and observations). Other notes are inside the window or linked by current documents and stay.
