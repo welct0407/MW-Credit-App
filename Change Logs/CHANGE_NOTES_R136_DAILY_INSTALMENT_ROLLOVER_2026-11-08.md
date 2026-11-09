@@ -25,6 +25,9 @@ Implement the owner-approved [R136 design](../project/outputs/r136-daily-instalm
 - UX-24: a disabled Yesterday is greyed, with the help line "Yesterday is before the original loan date dd/mm/yyyy." / "เมื่อวานอยู่ก่อนวันที่กู้ของสินเชื่อเดิม dd/mm/yyyy" under the choices.
 - UX-25: the breakdown is a small indented sub-line again; the Thai statement headings use one regular weight.
 
+### Scope addition: no loan without cash (owner, 9 November 2026)
+The owner instructed: "If there's no cash available, the loan should not be created." Defect fixed (existing before R136): `loan.create` over the cash pool returned 503 `command_unavailable`, because the V17 cash pool check (`check_violation` 23514) was not translated in `pwa_apply_loan_create_v2`, and the PWA retried the queued loan indefinitely. Fix (Byte): `database/migrations/V139__loan_create_cashpool_refusal.sql` patches `pwa_apply_loan_create_v2` in place so only the V17 cash pool guard error ('New loan exceeds available cashpool...', 23514) becomes P5B10, the `insufficient_funds` rejection (`pwa_submit_operation_v2` already maps P5B10 for every operation). Preflight: V138 applied, not already patched; self-check: owner, ACL, security, volatility, configuration and comment unchanged; no table, column, grant or data change; same journal-owner window; PROD needs the verified backup. New test `scripts/database/Test-LoanCreateCashpool.sql` (registered in `Test-StatementBatch.sql`); `public-functions.sql` regenerated; the schema digest moves to 139 (a new chat history epoch). PWA: the refusal reads "Not enough cash in the cash pool. Lower the amount or add contributed capital." / "เงินในกองทุนไม่พอ ลดจำนวนเงินหรือเพิ่มเงินทุนสมทบ"; the saved-changes list shows "Could not apply: ... (insufficient_funds)" with Remove and never retries it; the new-loan form stays editable with the reason and Principal marked invalid. DEV capital for the owner's queued loan: Chase added a Contribution of ฿20,000 (request `8f801e08-4590-496d-8ea2-314388bd8cec`, 9 November 2026 00:53:06Z UTC, note "R136 DEV test capital — owner loan sync"), so the DEV pool went from ฿1,084 to ฿21,084 and the owner's queued ฿4,000 DEV loan can apply. After Chase's review, the shared `insufficient_funds` wording is neutral for every other operation (settlements, cash withdrawals, cash openings): "Not enough available funds for this request." / "ยอดเงินที่ใช้ได้ไม่พอสำหรับรายการนี้"; only a refused `loan.create` names the cash pool. Byte's re-run: lint, typecheck pass; unit 64 pass/1 existing skip plus `offline-sync-outcomes` 14/14; the two specs 15/15 on desktop and mobile Chromium and mobile WebKit; Chase's review: no blockers.
+
 ### Differences from the design
 - The rollover is a separate page (`LoanRollover.tsx`), not a mode of the loan form; the arrangement note is built in the PWA.
 - The settlement payment posts before the new loan is created (the design listed the new loan first).
@@ -53,6 +56,10 @@ Implement the owner-approved [R136 design](../project/outputs/r136-daily-instalm
 | After the UX-23 to 25 fixes (Byte): lint, typecheck | Pass |
 | After the UX-23 to 25 fixes: focused unit tests | Pass, 60/60 |
 | After the UX-23 to 25 fixes: the two Playwright specs, desktop and mobile Chromium and mobile WebKit | Pass, 12/12 |
+| V139 cash pool refusal (Byte, uncommitted tree): `Test-MigrationsCloud.py --sql-only` to V139 with both regressions, schema digest check, lint, typecheck | Pass |
+| V139 cash pool refusal: unit tests | Pass, 64 passed, 1 existing skip |
+| V139 cash pool refusal: Playwright specs, desktop and mobile Chromium and mobile WebKit | Pass, 15/15 |
+| V139 cash pool refusal: Chase review | Pending |
 | Pull request `Development checks` run | Pending (iPhone WebKit shard runs here) |
 | `npm run check:docs` | Pass, 0 failures and the 4 pre-existing warnings (Dewey) |
 

@@ -124,3 +124,18 @@ test('Echo UX-14 and UX-19: the profit row names a past rollover day; leaving Da
  let f={fields:{...empty,principal:'10000'},manual:{}};f=change(f,'transferFee','700');f=change(f,'type',INST);f=change(f,'type','กำหนดวันชำระ');
  assert.deepEqual([f.fields.transferFee,f.fields.dueDate],['700',null]);
 });
+test('V139: insufficient_funds reads neutral for every operation and names the cash pool only for loan.create (EN/TH); unknown codes have no reason',async()=>{
+ const {runInNewContext}=await import('node:vm');
+ const source=ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/offline-sync.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+ const exports={};runInNewContext(source,{exports,require:()=>({commandOriginAllowed:()=>true}),navigator:{onLine:true},location:{origin:'https://synthetic.invalid'},window:new EventTarget(),crypto,URL,Response,Blob,AbortController,CustomEvent,setTimeout,clearTimeout});
+ assert.equal(exports.rejectionReason('insufficient_funds',false),'Not enough available funds for this request.');
+ assert.equal(exports.rejectionReason('insufficient_funds',true),'ยอดเงินที่ใช้ได้ไม่พอสำหรับรายการนี้');
+ assert.equal(exports.rejectionReason('insufficient_funds',false,'settlement.complete'),'Not enough available funds for this request.');
+ assert.equal(exports.rejectionReason('insufficient_funds',false,'loan.create'),'Not enough cash in the cash pool. Lower the amount or add contributed capital.');
+ assert.equal(exports.rejectionReason('insufficient_funds',true,'loan.create'),'เงินในกองทุนไม่พอ ลดจำนวนเงินหรือเพิ่มเงินทุนสมทบ');
+ assert.equal(exports.savedRejectionMessage({data:{originalOutcome:{status:'rejected',code:'insufficient_funds'}}},false),'Could not apply: Not enough available funds for this request. (insufficient_funds)');
+ assert.equal(exports.savedRejectionMessage({code:'insufficient_funds'},false,'loan.create'),'Could not apply: Not enough cash in the cash pool. Lower the amount or add contributed capital. (insufficient_funds)');
+ assert.equal(exports.rejectionReason('source_conflict',false),'The record changed since it was opened.');
+ assert.equal(exports.rejectionReason('something_new',false),null);
+ assert.equal(exports.savedRejectionMessage({code:'something_new'},false),'Could not apply: This request could not be applied. (something_new)');
+});

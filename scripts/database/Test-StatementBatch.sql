@@ -200,6 +200,8 @@ END $$;
 \ir Test-RebateSettlement.sql
 -- V138 (R136): loan rollover (instalment and daily-interest quotes, the owner example, past due, D11, D13, D6, R101 lowering, yesterday with today's charges, referral offset, refusals, payment.correct, reversal, provenance), rolled back.
 \ir Test-Rollover.sql
+-- V139 (R136): loan.create over the available cash pool is rejected insufficient_funds (nothing written); exactly the pool applies, rolled back.
+\ir Test-LoanCreateCashpool.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).

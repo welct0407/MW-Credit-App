@@ -57,3 +57,21 @@ test('R136 leaving Daily instalment clears the fee, due date and daily payment t
  await money('Documentation Fee').fill('700');await page.getByRole('radio',{name:'Daily instalment',exact:true}).check();await expect(money('Documentation Fee')).toHaveValue('700');
  await page.getByRole('radio',{name:'Daily interest',exact:true}).check();await expect(money('Documentation Fee')).toHaveValue('700');
 });
+
+test('V139 a new loan above the cash pool is refused, not retried: the form reopens with the reason and saves after a change',async({page})=>{
+ const writes:any[]=[];
+ await setup(page,(path,_url,method,body)=>{if(path==='/api/operations'&&method==='POST'){writes.push(body);const refused=writes.length===1;
+  return {ok:true,kind:'recorded',originalOutcome:refused?{status:'rejected',code:'insufficient_funds',result:null}:{status:'applied',code:null,result:{operation:body.operation,targetType:'loan',targetId:body.targetId,paymentId:null,plan:null,predecessorRequestId:null}}}}return undefined});
+ await page.locator('.borrower-tile-main').click();await page.getByRole('button',{name:'New loan',exact:true}).click();await expect(page.getByRole('button',{name:'Save loan',exact:true})).toBeEnabled();
+ const money=(label:string)=>page.locator('label').filter({has:page.locator('.field-title').filter({hasText:new RegExp('^'+label+'$')})}).getByRole('textbox');
+ await money('Principal Amount').fill('4000');await page.getByRole('combobox',{name:/^Disbursing Cash Account/}).selectOption('C-account');
+ await page.getByRole('radio',{name:'Daily interest',exact:true}).check();
+ await page.getByRole('button',{name:'Save loan',exact:true}).click();
+ await expect(page.getByRole('alert')).toHaveText('Not enough cash in the cash pool. Lower the amount or add contributed capital.');
+ await expect(page.getByRole('button',{name:'Check loan request',exact:true})).toHaveCount(0);await expect(money('Principal Amount')).toHaveAttribute('aria-invalid','true');
+ const pending=await page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'r136-owner'}).list('pending')});
+ expect(pending).toHaveLength(0);
+ await page.waitForTimeout(1500);expect(writes).toHaveLength(1);
+ await money('Principal Amount').fill('1000');await page.getByRole('button',{name:'Save loan',exact:true}).click();
+ await expect.poll(()=>writes.length).toBe(2);expect(writes[1].requestId).not.toBe(writes[0].requestId);expect(writes[1].inputs.principal).toBe('1000');
+});

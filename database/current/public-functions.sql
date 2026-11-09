@@ -3251,7 +3251,7 @@ CREATE FUNCTION public.pwa_apply_loan_create_v2(canonical text) RETURNS jsonb
     SET search_path TO 'pg_catalog', 'public'
     AS $$
 DECLARE e jsonb:=canonical::jsonb;i jsonb:=e#>'{command,inputs}';a jsonb:=e->'actor';target text:=e#>>'{command,targetId}';
- l public."Loans"%ROWTYPE;component record;payment text;charge text;plan jsonb;result_value jsonb;actual public."Payments"%ROWTYPE;
+ l public."Loans"%ROWTYPE;component record;message text; /* R136 V139 */payment text;charge text;plan jsonb;result_value jsonb;actual public."Payments"%ROWTYPE;
 BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR e#>>'{command,operation}'<>'loan.create' THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
  PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=i->>'borrowerId' FOR UPDATE;
@@ -3274,8 +3274,13 @@ BEGIN
  -- This row and every triggered effect share the caller's savepoint and outer transaction.
  INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code,result_json)
  VALUES((e->>'requestId')::uuid,2,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,encode(sha256(convert_to(canonical,'UTF8')),'hex'),'applied',NULL,NULL,result_value);
+ -- R136 V139: the V17 cash pool guard is a refusal (P5B10, recorded as insufficient_funds), not a failed request.
+ BEGIN
  INSERT INTO public."Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Transfer Fee","Ref Disbursed From Cash Account","Loan Type","Due Date","Daily Payment Amount","Fixed Interest","Current Daily Interest","Interest Payment Interval","Loan Arrangement","Auto Charge Enabled","Created By","Loan Status","Defaulted","Interest Schedule Anchor Date")
  VALUES(l."Row ID",l."Ref Borrowers",l."Loan Date",l."Principal Amount",l."Transfer Fee",l."Ref Disbursed From Cash Account",l."Loan Type",l."Due Date",l."Daily Payment Amount",l."Fixed Interest",l."Current Daily Interest",l."Interest Payment Interval",l."Loan Arrangement",l."Auto Charge Enabled",l."Created By",l."Loan Status",false,l."Interest Schedule Anchor Date");
+ EXCEPTION WHEN check_violation THEN GET STACKED DIAGNOSTICS message=MESSAGE_TEXT;
+  IF message LIKE 'New loan exceeds available cashpool%' THEN RAISE EXCEPTION USING ERRCODE='P5B10';ELSE RAISE;END IF;
+ END;
  IF payment IS NOT NULL THEN
   SELECT * INTO actual FROM public."Payments" WHERE "Row ID"=payment;
   IF NOT FOUND OR actual."Status" IS DISTINCT FROM 'Posted' OR actual."Amount Received"::numeric IS DISTINCT FROM component.principal+component.interest
