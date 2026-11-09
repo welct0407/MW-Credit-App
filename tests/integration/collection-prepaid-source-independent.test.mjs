@@ -42,6 +42,17 @@ before(async()=>{
    await q(`UPDATE "Charges" SET "Charge Date"=$2::date WHERE "Row ID"=$1`,[l+'-today',today]);   // ... which is then dated today: paid in advance
   }
  }
+ // R137: two borrowers with a charge 20 days past due and unpaid: one whose only later receipt (d-2) was a rebate offset, one who
+ // paid cash d-10. Payments are backdated receipts on their own charge (Single Full), one receipt per statement.
+ await q(`INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('R137-COL-CAPITAL',$1,current_date-41,'Contribution',500000::money)`,[fixture.actorId]);
+ for(const [id,paidDay,method] of [['REB',2,'Referral Rebate Offset'],['CASH',10,'Cash']]){
+  const b='R137-'+id+'-B',l='R137-'+id+'-L';
+  await q('INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES($1,$2)',[b,'SYNTHETIC COL2 R137 '+id]);
+  await q(`INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES($1,$2,$3,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-40,1000::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false)`,[l,b,fixture.lendingAccountId]);
+  await q(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,$3::date,0::money,100::money),($4,$2,$5::date,0::money,100::money)`,[l+'-20',l,await day(-20),l+'-paid',await day(-paidDay)]);
+  await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Payment Method","Allocation Method","Status") VALUES($1,$2,$3,$4,100::money,$5::date,$6,'Single Full','Processing')`,[fixture.receivingAccountId,'R137-'+id+'-PAY',b,l+'-paid',await day(-paidDay),method]);
+  await q('SET CONSTRAINTS ALL IMMEDIATE');
+ }
  await q('SET CONSTRAINTS ALL IMMEDIATE');
 });
 after(async()=>{await reader?.end();await admin?.end()});   // the fixture rows stay (prefixed R114-), as the other files' do; the role's grants are reset per test
@@ -74,5 +85,20 @@ test('each missing grant alone also falls back (Payments Row ID, Payments Paymen
  for(const revoke of ['REVOKE SELECT("Row ID") ON public."Payments" FROM','REVOKE SELECT("Payment Method") ON public."Payments" FROM','REVOKE SELECT("Ref Payment") ON public."Repayments" FROM']){
   await grantAll();await q(`${revoke} ${role}`);
   const result=await board();assert.equal(result.collectionError,undefined,revoke+' '+JSON.stringify(result));assert.equal(byId(result)['R114-OFF-B'].prepaidSource,undefined,revoke);
+ }
+});
+// R137: the last-payment rule follows the same grants. With them, a rebate-offset receipt is no payment (Long Overdue, 20 days, never
+// paid in cash); without them the fallback reads Repayments only and counts any repayment above 0, so the same borrower is Overdue
+// (the fallback can understate Long Overdue, never overstate it). A cash payment d-10 is Long Overdue (10 days) either way; no 42501.
+test('R137 last payment: full rule with the grants, the Repayments-only fallback without them, the read never fails',async()=>{
+ const pick=result=>{const rows=byId(result);return ['R137-REB-B','R137-CASH-B'].map(id=>[id,rows[id]?.status,rows[id]?.sinceLastPaymentDays,rows[id]?.neverPaid]);};
+ await grantAll();
+ const full=await board();assert.equal(full.collectionError,undefined,JSON.stringify(full));
+ assert.deepEqual(pick(full),[['R137-REB-B','long_overdue',20,true],['R137-CASH-B','long_overdue',10,false]]);
+ for(const revoke of [revokeSource,()=>q(`REVOKE SELECT("Payment Method") ON public."Payments" FROM ${role}`),()=>q(`REVOKE SELECT("Ref Payment") ON public."Repayments" FROM ${role}`)]){
+  await grantAll();await revoke();
+  const fallback=await board();assert.equal(fallback.collectionError,undefined,JSON.stringify(fallback));
+  assert.deepEqual(pick(fallback),[['R137-REB-B','overdue',null,null],['R137-CASH-B','long_overdue',10,false]]);
+  const c=await client();try{const detail=await readCollection(c,{limit:10,after:null,borrowerId:'R137-CASH-B'});assert.equal(detail.collectionError,undefined);assert.equal(detail.borrower.sinceLastPaymentDays,10);}finally{c.release();}
  }
 });

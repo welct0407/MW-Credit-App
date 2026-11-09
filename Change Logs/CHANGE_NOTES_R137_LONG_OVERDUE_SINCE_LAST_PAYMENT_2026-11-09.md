@@ -21,7 +21,12 @@ Owner decision of 9 November 2026: a borrower is Long Overdue when they have at 
 | Integration tests (`collection-postgres`) | 23 of 26 pass; the same 3 failures exist before the change (3494144: 21 pass, 4 fail; Chase confirmed); the suite is not run by CI |
 | Chase diff review (commits `0a1cca5`, `706ee67`) | Pass: the API and V140 agree on the payment definition (posted repayment, method not Referral Rebate Offset or Net-off at Disbursement, amount above 0, date on or before the reporting date, 8 or more days); the first charge excludes `df10:` rows; sort and cursor v5 are correct; a same-day payment counts as 0 days |
 | e2e `collection-read.spec.ts`, desktop-chromium | Pass, 3 of 3 (Chase) |
+| PR #273 Database migrations run 42599654593 ("rebuild (receiving)") | Fail before the fix: `collection-prepaid-source-independent.test.mjs` threw permission denied without the optional Payments and Repayments `"Ref Payment"` grants (reproduced on `212d834`, 2 of 4 pass) |
+| After Byte's fix: that test, focused unit tests, biome, typecheck | Pass: 5 of 5 including the new fallback test; unit 16 of 16 (Byte) |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
+
+## CI correction
+PR #273 failed on the permission error above. `readCollection` now checks the grants once (the R114 `has_column_privilege` check): with the grants it applies the full rule; without them it falls back to Repayments dates and amounts only (any repayment above 0 counts), which can understate Long Overdue but never overstate it, and never throws.
 
 ## Not run
 Low risks Chase noted, not fixed: a borrower with only `df10:` unpaid charges falls to Overdue in both the view and the API; a cursor issued before the deploy can skip or repeat a row once across the deploy.

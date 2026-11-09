@@ -21,22 +21,30 @@ export const collectionQualitySql = `SELECT EXISTS (
   WHERE ($1::text IS NULL OR b."Row ID" = $1)
     AND (c."Payment Status" IS NULL OR c."Payment Status" NOT IN ('รอชำระ', 'ชำระบางส่วน', 'ชำระแล้ว') OR c."Charge Date" IS NULL OR NOT isfinite(c."Charge Date") OR c."Charge Date" < DATE '0001-01-01' OR c."Charge Date" > DATE '9999-12-31')
 ) AS invalid`;
+/** R137: each borrower's last payment on or before the business date. With the reader's payment-source grants (R114 COL-2:
+ * Repayments."Ref Payment", Payments "Row ID" and "Payment Method"), a posted receipt that moved cash: the receipt is joined
+ * and its method is neither a rebate offset nor a net-off. Without them (a reader without the R114 grants) the fallback reads
+ * only columns every reader has: any repayment with an amount above 0, whatever its receipt, so a rebate-offset or net-off
+ * repayment (and an unlinked legacy one) counts as a payment. The fallback can only show a borrower as Overdue who would
+ * be Long Overdue under the full rule, never the reverse; the board never fails for the missing grants. */
+const lastPaymentSql = (late, paymentSource) => `SELECT pl."Ref Borrowers" AS lp_borrower, max(r."Payment Date") AS last_paid
+  FROM public."Repayments" r${paymentSource ? ' JOIN public."Payments" p ON p."Row ID" = r."Ref Payment"' : ''}
+  JOIN public."Charges" pc ON pc."Row ID" = r."Ref Charges" JOIN public."Loans" pl ON pl."Row ID" = pc."Ref Loans"
+  WHERE r."Payment Date" <= $1::date AND ($2::text IS NULL OR pl."Ref Borrowers" = $2)${paymentSource ? `
+    AND p."Payment Method" IS DISTINCT FROM '${NON_CASH_PAYMENT_METHODS[0]}' AND p."Payment Method" IS DISTINCT FROM '${NON_CASH_PAYMENT_METHODS[1]}'` : ''}
+    AND r."Principal Paid"::numeric + r."Interest Paid"::numeric${late ? ' + r."Late Charge Paid"::numeric' : ''} > 0
+  GROUP BY pl."Ref Borrowers"`;
 /** R118 (V132): collectionCteFor(true) adds the late charge to received today and the charge rows' late columns; the
- * plain collectionCte is the shape before V132 (an older schema, and the membership and receipt reads that need neither). */
-export const collectionCteFor = late => `WITH today_repayments AS (
+ * plain collectionCte is the shape before V132 (an older schema, and the membership and receipt reads that need neither).
+ * R137: paymentSource (default true) selects the full last-payment rule; false is the no-grant fallback (lastPaymentSql). */
+export const collectionCteFor = (late, paymentSource = true) => `WITH today_repayments AS (
   SELECT r."Ref Charges" AS charge_id,
     CASE WHEN count(*) FILTER (WHERE r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL) > 0 THEN NULL
       ELSE sum(r."Principal Paid"::numeric + r."Interest Paid"::numeric${late ? ' + r."Late Charge Paid"::numeric' : ''}) END AS received_today
   FROM public."Repayments" r WHERE r."Payment Date" = $1::date GROUP BY r."Ref Charges"
 ), last_pay AS (
-  -- R137: each borrower's last payment (posted repayment of a cash receipt, any amount above 0) on or before the business date.
-  SELECT pl."Ref Borrowers" AS lp_borrower, max(r."Payment Date") AS last_paid
-  FROM public."Repayments" r JOIN public."Payments" p ON p."Row ID" = r."Ref Payment"
-  JOIN public."Charges" pc ON pc."Row ID" = r."Ref Charges" JOIN public."Loans" pl ON pl."Row ID" = pc."Ref Loans"
-  WHERE r."Payment Date" <= $1::date AND ($2::text IS NULL OR pl."Ref Borrowers" = $2)
-    AND p."Payment Method" IS DISTINCT FROM '${NON_CASH_PAYMENT_METHODS[0]}' AND p."Payment Method" IS DISTINCT FROM '${NON_CASH_PAYMENT_METHODS[1]}'
-    AND r."Principal Paid"::numeric + r."Interest Paid"::numeric${late ? ' + r."Late Charge Paid"::numeric' : ''} > 0
-  GROUP BY pl."Ref Borrowers"
+  -- R137: each borrower's last payment on or before the business date (lastPaymentSql: full rule or the no-grant fallback).
+  ${lastPaymentSql(late, paymentSource)}
 ), first_charge AS (
   -- R137: a borrower who never paid counts from the first charge date (df10: default-loss rows excluded).
   SELECT fl."Ref Borrowers" AS fc_borrower, min(fc."Charge Date") AS first_due
@@ -108,10 +116,11 @@ export const prepaidSourceSql = `WITH advance AS (
 )
 SELECT id FROM advance a WHERE paid_on = (SELECT max(b.paid_on) FROM advance b WHERE b.id = a.id)
 GROUP BY id HAVING bool_or(method = 'Referral Rebate Offset')`;
-/** R114 COL-2: items paid in advance by a rebate offset get prepaidSource 'rebate_offset' (others are left as they are). */
-async function markPrepaidSource(client, businessDate, items) {
+/** R114 COL-2: items paid in advance by a rebate offset get prepaidSource 'rebate_offset' (others are left as they are);
+ * allowed is the prepaidSourceAllowedSql answer the read took once (R137 uses it for the last-payment rule too). */
+async function markPrepaidSource(client, businessDate, items, allowed) {
   const ids = items.filter(item => item.prepaidOnly).map(item => item.id);
-  if (!ids.length || (await client.query(prepaidSourceAllowedSql)).rows[0]?.allowed !== true) return items;
+  if (!ids.length || allowed !== true) return items;
   const offset = new Set((await client.query(prepaidSourceSql, [businessDate, ids])).rows.map(row => row.id));
   return items.map(item => offset.has(item.id) ? { ...item, prepaidSource: 'rebate_offset' } : item);
 }
@@ -158,16 +167,19 @@ export function decodeCollectionCursor(cursor, kind, parentId, query = '') {
   return parsed;
 }
 export async function readCollection(client, { limit, after, borrowerId = null, query = '' }) {
-  const collectionCte = collectionCteFor(await lateChargeSchema(client));
+  const late = await lateChargeSchema(client);
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
   const { businessDate, asOf } = clock.rows[0];
   const metadata = { businessDate, asOf: new Date(asOf).toISOString(), timezone: BUSINESS_TZ };
   if (after && after.businessDate !== businessDate) return { collectionError: 'business_date_changed', collectionStatus: 409 };
   const quality = await client.query(collectionQualitySql, [borrowerId]);
   if (quality.rows[0]?.invalid !== false) return { collectionError: 'source_unavailable', collectionStatus: 503 };
+  // R114 COL-2 / R137: the payment-source grants decide the prepaid caption and the last-payment rule (never a 42501).
+  const paymentSource = (await client.query(prepaidSourceAllowedSql)).rows[0]?.allowed === true;
+  const collectionCte = collectionCteFor(late, paymentSource);
   if (borrowerId === null) {
     const result = await client.query(`${collectionCte}, filtered AS (SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0)), totals AS (SELECT *, CASE WHEN count(*) FILTER (WHERE amount_remaining IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_remaining::numeric) OVER (PARTITION BY rank)::text END AS group_remaining, CASE WHEN count(*) FILTER (WHERE amount_collected IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_collected::numeric) OVER (PARTITION BY rank)::text END AS group_collected FROM filtered) SELECT * FROM totals WHERE ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND (sort_days > $8::integer OR (sort_days = $8::integer AND (COALESCE(borrower_name, '') COLLATE "C" > $7::text COLLATE "C" OR (COALESCE(borrower_name, '') COLLATE "C" = $7::text COLLATE "C" AND id COLLATE "C" > $4::text COLLATE "C")))))) ORDER BY rank, sort_days, COALESCE(borrower_name, '') COLLATE "C" ASC, id COLLATE "C" ASC LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query, after?.name ?? null, after?.days ?? null]);
-    const items = await markPrepaidSource(client, businessDate, result.rows.slice(0, limit).map(projectCollection));
+    const items = await markPrepaidSource(client, businessDate, result.rows.slice(0, limit).map(projectCollection), paymentSource);
     const last = result.rows[Math.min(limit, result.rows.length) - 1];
     return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, days: last.sort_days, name: last.borrower_name ?? '', id: last.id }, query) : null };
   }
@@ -177,6 +189,6 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
     WHERE ($3::date IS NULL OR charge_date < $3::date OR (charge_date = $3::date AND id COLLATE "C" > $4::text COLLATE "C"))
     ORDER BY charge_date DESC, id COLLATE "C" LIMIT $5`, [businessDate, borrowerId, after?.chargeDate ?? null, after?.id ?? null, limit + 1]);
   const items = charges.rows.slice(0, limit).map(projectCollectionCharge);
-  const [borrower] = await markPrepaidSource(client, businessDate, [projectCollection(summary.rows[0])]);
+  const [borrower] = await markPrepaidSource(client, businessDate, [projectCollection(summary.rows[0])], paymentSource);
   return { ...metadata, borrower, items, nextCursor: charges.rows.length > limit ? encodeCollectionCursor({ kind: 'collection-charges', businessDate, parentId: borrowerId, chargeDate: items.at(-1).chargeDate, id: items.at(-1).id }) : null };
 }
