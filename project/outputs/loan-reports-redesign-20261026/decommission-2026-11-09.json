@@ -1206,10 +1206,15 @@
         "to": "Loan Reports · proposed"
       }
     ],
-    "how": "PUT card/<id> and dashboard/<id> {\"archived\":false}; PUT the renames back; any dashcard Metabase dropped is restored from the private baseline (PUT dashboard/<id> dashcards)."
+    "how": "PUT card/<id> and dashboard/<id> {\"archived\":false}; PUT the renames back; any dashcard Metabase dropped is restored from the private baseline (PUT dashboard/<id> dashcards).",
+    "unarchive_models": [
+      76,
+      319,
+      320
+    ]
   },
   "verification": {
-    "at": "2026-11-09T08:07:47.623Z",
+    "at": "2026-11-09T08:18:43.441Z",
     "passed": true,
     "checks": [
       {
@@ -1251,10 +1256,16 @@
         }
       },
       {
-        "name": "no model archived",
+        "name": "only the approved models archived",
         "passed": true,
         "detail": {
-          "models": 27
+          "active": 24,
+          "archived": [
+            76,
+            319,
+            320
+          ],
+          "usingModels": []
         }
       },
       {
@@ -1273,5 +1284,33 @@
         }
       }
     ]
-  }
+  },
+  "archiveModels": [
+    {
+      "id": 76,
+      "name": "Partner Outlook",
+      "display": "table",
+      "collection_id": 8,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 319,
+      "name": "Partners · capital source",
+      "display": "table",
+      "collection_id": 8,
+      "archived_before": false,
+      "archived_after": true
+    },
+    {
+      "id": 320,
+      "name": "Partners · earnings source",
+      "display": "table",
+      "collection_id": 8,
+      "archived_before": false,
+      "archived_after": true
+    }
+  ],
+  "models_applied_at": "2026-11-09T08:18:24.479Z",
+  "models_owner_instruction": "2026-11-09: archive the three unused models too"
 }

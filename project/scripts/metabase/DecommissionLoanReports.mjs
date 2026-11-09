@@ -1,9 +1,10 @@
 // Loan Reports decommission (owner, 9 November 2026: "decommission the old dashboards"). Archiving only: reversible, nothing is
 // deleted. Dashboard 3 is renamed "Loan Reports · retired 2026-11-09" and archived with dashboards 1-31 (1 was already archived);
 // then the questions placed only on those dashboards that nothing kept still reaches are archived; dashboard 32 becomes
-// "Loan Reports" and collection 10 "Loan Reports · dashboard". Models are never archived: unreferenced ones are listed.
+// "Loan Reports" and collection 10 "Loan Reports · dashboard". The plan never archives models: it lists unreferenced ones.
 //  --plan    private baseline (once, outside Git) and the plan; the sanitized evidence file with applied:false.
 //  --apply   recomputes the plan, refuses on drift or a subscription/alert stop condition, renames, archives, records.
+//  --models  after --apply, on the owner's later instruction: archives the unreferenced models 76, 319 and 320 (MODELS).
 //  --verify  end state: archived flags, names, homepage, no active card depending on an archived one, the matrix iframe.
 // Reachability as Retire-StatementObjects.mjs: roots are the kept dashboards (dashcards, series, visualizer sources, click
 // targets, filter value sources), question 276 (Grafana probe), subscriptions/alerts, every model in collection 8 and every
@@ -120,6 +121,23 @@ if(args.includes('--plan')||args.includes('--apply')){
   console.log(JSON.stringify({applied:true,dashboards:Object.keys(after.dashboards).length,cards:Object.keys(after.cards).length,allArchived:Object.values(after.dashboards).every(Boolean)&&Object.values(after.cards).every(Boolean)}));
  }
 }
+// Owner, 9 November 2026: "archive the three unused models too". Only these ids, only while the live plan still lists exactly
+// them as unreferenced and no active question, filter or the chart service query names them; archive only, never delete.
+export const MODELS=[76,319,320];
+if(args.includes('--models')){
+ await assertSource();const e=readEvidence();assert(e?.applied,'run --apply first');assert(!e.archiveModels,'models step already applied');
+ const inv=await inventory(),p=plan(inv),byId=new Map(inv.cards.map(c=>[c.id,c]));
+ assert.deepEqual(p.unreferencedModels.map(m=>m.id).sort((a,b)=>a-b),MODELS,'the live unreferenced models differ from the owner-approved list');
+ const users=inv.cards.filter(c=>!MODELS.includes(c.id)).flatMap(c=>[...refs([c.dataset_query,c.parameters,c.visualization_settings])].filter(id=>MODELS.includes(id)).map(id=>[c.id,id]));
+ const filters=inv.dashboards.filter(d=>!d.archived).flatMap(d=>[...dashboardRefs(d)].filter(id=>MODELS.includes(id)).map(id=>[d.id,id]));
+ const chartSql=[...refs(fs.readFileSync(`${root}/scripts/metabase/chart_service/query.sql`,'utf8'))].filter(id=>MODELS.includes(id));
+ if(users.length||filters.length||chartSql.length||p.stops.length)throw Error('Stop: a model to archive is still referenced: '+JSON.stringify({users,filters,chartSql,stops:p.stops}));
+ const done=[];
+ for(const id of MODELS){const c=byId.get(id);assert.equal(c.type,'model');await api('PUT','card/'+id,{archived:true});done.push({id,name:c.name,display:c.display,collection_id:c.collection_id,archived_before:false,archived_after:(await api('GET','card/'+id)).archived});}
+ Object.assign(e,{archiveModels:done,models_applied_at:new Date().toISOString(),models_owner_instruction:`${DATE}: archive the three unused models too`});
+ e.rollback.unarchive_models=MODELS;writeEvidence(e);
+ console.log(JSON.stringify({archivedModels:done.map(m=>[m.id,m.archived_after])}));
+}
 if(args.includes('--verify')){
  await assertSource();const e=readEvidence();assert(e?.applied,'run --apply first');
  const checks=[],check=(name,ok,detail)=>checks.push({name,passed:!!ok,...(detail?{detail}:{})});
@@ -137,7 +155,10 @@ if(args.includes('--verify')){
  for(const c of active)for(const id of refs([c.dataset_query,c.parameters,c.visualization_settings]))if(archived.has(id))broken.push([c.id,id]);
  const used=dashboardRefs(d32),dead=[...used].filter(id=>!active.some(c=>c.id===id));
  check('no active question or dashboard 32 card depends on an archived question',!broken.length&&!dead.length,{broken,dead});
- check('no model archived',active.filter(c=>c.type==='model').length===e.models,{models:active.filter(c=>c.type==='model').length});
+ // Models: only the owner-approved unused ones (--models) are archived.
+ const gone=e.archiveModels??[],goneIds=new Set(gone.map(m=>m.id)),modelStates=await Promise.all(gone.map(m=>api('GET','card/'+m.id).then(c=>c.archived)));
+ const usingModels=active.flatMap(c=>[...refs([c.dataset_query,c.parameters,c.visualization_settings])].filter(id=>goneIds.has(id)).map(id=>[c.id,id]));
+ check('only the approved models archived',active.filter(c=>c.type==='model').length===e.models-gone.length&&modelStates.every(Boolean)&&!usingModels.length,{active:active.filter(c=>c.type==='model').length,archived:[...goneIds],usingModels});
  check('copies 419-421 active',[419,420,421].every(id=>active.some(c=>c.id===id)));
  // The matrix iframe of dashboard 32 (copied from dashcard 1501): its page and data answer with the key in its fragment.
  // The key stays in memory; only statuses and a row count are recorded.
