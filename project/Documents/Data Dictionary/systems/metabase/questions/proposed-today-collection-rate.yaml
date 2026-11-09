@@ -12,11 +12,11 @@
   "key": "today.collection-rate"
   "id": 381
   "name": "Today's charges · paid of due"
-  "description": "Loan Reports · proposed (today.collection-rate). One-row stacked bar from model 73: Paid = Amount Collected\
-    \ Today (charges dated today that are paid, not receipts), Remaining = max(Amount Due Today − Paid, 0); the label (Share)\
-    \ reads \"<paid> of <due> · <share>%\", the share being Amount Collection Rate Today. Placed on Today only; Collection\
-    \ shows the same share as question 252. Basis: model 73 Portfolio Overview."
-  "display": "row"
+  "description": "Loan Reports · proposed (today.collection-rate). Progress bar from model 73: Paid = Amount Collected Today\
+    \ (charges dated today that are paid, not receipts) against the goal Due = Amount Due Today; the amount sits on the bar\
+    \ and \"Goal <due>\" beneath it. Placed on Today only; Collection shows the same share as question 252. Basis: model 73\
+    \ Portfolio Overview."
+  "display": "progress"
   "dataset_query":
     "stages":
     - "template-tags":
@@ -26,47 +26,24 @@
         "display-name": "Model 73"
         "card-id": 73
       "lib/type": "mbql.stage/native"
-      "native": "SELECT to_char(\"Amount Collected Today\",'FM999,999,999')||' of '||to_char(\"Amount Due Today\",'FM999,999,999')||coalesce('\
-        \ · '||to_char(100*\"Amount Collected Today\"/nullif(\"Amount Due Today\",0),'FM990.0')||'%','') AS \"Share\",\"Amount\
-        \ Collected Today\" AS \"Paid\",greatest(\"Amount Due Today\"-\"Amount Collected Today\",0) AS \"Remaining\" FROM\
-        \ {{#73}}"
+      "native": "SELECT \"Amount Collected Today\" AS \"Paid\",\"Amount Due Today\" AS \"Due\" FROM {{#73}}"
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
-    "graph.show_values": true
-    "graph.show_legend": false
-    "graph.x_axis.labels_enabled": false
-    "graph.x_axis.axis_enabled": true
-    "graph.y_axis.labels_enabled": false
-    "graph.metrics":
-    - "Paid"
-    - "Remaining"
-    "graph.y_axis.axis_enabled": false
-    "graph.show_stack_values": "total"
-    "graph.label_value_formatting": "full"
-    "graph.colors":
-    - "#067647"
-    - "#D9DEE5"
+    "progress.value": "Paid"
+    "progress.goal": "Due"
+    "progress.color": "#067647"
     "column_settings":
       "[\"name\",\"Paid\"]":
         "number_style": "decimal"
         "decimals": 0
         "number_separators": ".,"
         "compact": false
-      "[\"name\",\"Remaining\"]":
+      "[\"name\",\"Due\"]":
         "number_style": "decimal"
         "decimals": 0
         "number_separators": ".,"
         "compact": false
-    "series_settings":
-      "Paid":
-        "color": "#067647"
-      "Remaining":
-        "color": "#D9DEE5"
-    "legend.is_reversed": false
-    "graph.dimensions":
-    - "Share"
-    "stackable.stack_type": "stacked"
   "basis": "model 73 Portfolio Overview"
   "build_kind": "native"
   "origin_question_id": 252

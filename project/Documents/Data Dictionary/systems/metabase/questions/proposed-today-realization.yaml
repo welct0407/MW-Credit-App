@@ -12,11 +12,10 @@
   "key": "today.realization"
   "id": 380
   "name": "Interest this month · received of projection"
-  "description": "Loan Reports · proposed (today.realization). One-row stacked bar from model 73: Received = Realized Profit\
-    \ MTD, Remaining = max(Projected Monthly Profit − Received, 0); the bar label (Share) reads \"<received> of <projection>\
-    \ · <share>%\" in whole baht, the share being Forecast Realization to one decimal (omitted when the projection is zero).\
-    \ Basis: model 73 Portfolio Overview."
-  "display": "row"
+  "description": "Loan Reports · proposed (today.realization). Progress bar from model 73: Received = Realized Profit MTD\
+    \ against the goal Projection = Projected Monthly Profit (goal read from the column); the amount sits on the bar and \"\
+    Goal <projection>\" beneath it. Whole baht. Basis: model 73 Portfolio Overview."
+  "display": "progress"
   "dataset_query":
     "stages":
     - "template-tags":
@@ -26,47 +25,24 @@
         "display-name": "Model 73"
         "card-id": 73
       "lib/type": "mbql.stage/native"
-      "native": "SELECT to_char(\"Realized Profit MTD\",'FM999,999,999')||' of '||to_char(\"Projected Monthly Profit\",'FM999,999,999')||coalesce('\
-        \ · '||to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM990.0')||'%','') AS \"Share\"\
-        ,\"Realized Profit MTD\" AS \"Received\",greatest(\"Projected Monthly Profit\"-\"Realized Profit MTD\",0) AS \"Remaining\"\
-        \ FROM {{#73}}"
+      "native": "SELECT \"Realized Profit MTD\" AS \"Received\",\"Projected Monthly Profit\" AS \"Projection\" FROM {{#73}}"
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
-    "graph.show_values": true
-    "graph.show_legend": false
-    "graph.x_axis.labels_enabled": false
-    "graph.x_axis.axis_enabled": true
-    "graph.y_axis.labels_enabled": false
-    "graph.metrics":
-    - "Received"
-    - "Remaining"
-    "graph.y_axis.axis_enabled": false
-    "graph.show_stack_values": "total"
-    "graph.label_value_formatting": "full"
-    "graph.colors":
-    - "#067647"
-    - "#D9DEE5"
+    "progress.value": "Received"
+    "progress.goal": "Projection"
+    "progress.color": "#067647"
     "column_settings":
       "[\"name\",\"Received\"]":
         "number_style": "decimal"
         "decimals": 0
         "number_separators": ".,"
         "compact": false
-      "[\"name\",\"Remaining\"]":
+      "[\"name\",\"Projection\"]":
         "number_style": "decimal"
         "decimals": 0
         "number_separators": ".,"
         "compact": false
-    "series_settings":
-      "Received":
-        "color": "#067647"
-      "Remaining":
-        "color": "#D9DEE5"
-    "legend.is_reversed": false
-    "graph.dimensions":
-    - "Share"
-    "stackable.stack_type": "stacked"
   "basis": "model 73 Portfolio Overview"
   "build_kind": "native"
   "origin_question_id": 52
