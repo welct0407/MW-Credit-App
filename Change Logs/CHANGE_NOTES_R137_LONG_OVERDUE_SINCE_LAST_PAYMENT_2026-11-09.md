@@ -28,16 +28,28 @@ Owner decision of 9 November 2026: a borrower is Long Overdue when they have at 
 ## CI correction
 PR #273 failed on the permission error above. `readCollection` now checks the grants once (the R114 `has_column_privilege` check): with the grants it applies the full rule; without them it falls back to Repayments dates and amounts only (any repayment above 0 counts), which can understate Long Overdue but never overstate it, and never throws.
 
+## DEV deployment evidence
+Forge, 9 November 2026 (UTC). Package: PR #273 head `e81072f`; `Development checks` run 42601853028 and `Database migrations` run 42601844703 green. Target `loan_manager_dev` on `mw-credit-pg-20261017`; preflight 10:41Z at head 139.
+- Backup at V139, 10:42Z to 10:44Z: dump sha256 `9e376c17…92a9e3`, restore and 39 table fingerprints passed, folder `dev-refresh-3ad379b427354a05a0c58b875d1c1ebe` under `dev-backups/`.
+- Image: Cloud Build `7b23e848-446f-441d-891b-4bd3ee0cdd91`, digest `sha256:ace2363d811e3849404d258dcad16d9de10c7ad1486428111d9d011370df45b2`.
+- V140: owner window 10:46:09Z to 10:53:58Z, closed and read back; migrate 3.3 s; reconcile 565 statements, 0 violations; `validate` clean; `verify` schema 140. Manifest `release-r137-v140-e81072fc.json` sha256 `4ac6062f…7184`.
+- Terraform: plan 0 add, 3 change, 0 destroy (image only), plan sha256 `0d711d74…8592`, settings generation `1794221803831392` (previous `1794188367905895`), re-plan clean. Revisions: read `00078-tbb`, command `00095-wtk`, chat `00047-cdv`; notify and jobs unchanged on `d35efe83…`.
+- Hosting: version `7cb80157ed2451f1`, release `1794221945553000`, build-version R137 `06e2b59006efce53ebf0a9bf`.
+- Smoke: origins 200, health 200, unauthenticated 401, CORS preflight 204, no ERROR logs. Daily Collection Status on DEV: Long Overdue 20 to 32, Overdue 19 to 7, Fully Paid 1, blank 48.
+- Rollback: settings generation `1794188367905895`, then Hosting `214e47b93d7fdc27`; V140 is forward-fix only. Private records: `gs://mw-credit-operator-private-737787224638/promotion-packages/r137/dev/`.
+- Owner decision, 9 November 2026: a rollover does not reset the clock; the rule stays as built.
+- Chase board smoke on DEV: not run. The board needs the owner's Firebase sign-in and the session has only `codex-cloud`; the owner tests the Collection board on DEV. Ordering and fields are covered by the disposable-database tests.
+
 ## Not run
 Low risks Chase noted, not fixed: a borrower with only `df10:` unpaid charges falls to Overdue in both the view and the API; a cursor issued before the deploy can skip or repeat a row once across the deploy.
 
-V140 is not applied to DEV or PROD, so the PostgreSQL dictionary record of `olap_borrowers_analytics` (a captured live definition) is unchanged; refresh it after the apply.
+V140 is not applied to PROD. The PostgreSQL dictionary record of `olap_borrowers_analytics` (a captured live definition) is unchanged: the established capture was not run against DEV, so the refresh is pending.
 
 ## Recovery
-Before the apply, nothing live changes. After it, a later migration restores the V132 text of `collection_long_overdue` (charge older than the date minus 7 days) and drops the two CTEs by the same method; the Git baseline is the commit before V140.
+V140 is forward-fix only. A later migration restores the V132 text of `collection_long_overdue` (charge older than the date minus 7 days) and drops the two CTEs by the same method; the Git baseline is the commit before V140.
 
 ## Open questions
 - Add a "Days Since Last Payment" column to the view for the Metabase lane (owner authority needed)?
 
 ## Remaining work
-Apply V140 to DEV, then PROD, with the usual backup and records; update the Metabase question text; refresh the dictionary record.
+Apply V140 to PROD with the usual backup and records; update the Metabase question text; refresh the dictionary record.
