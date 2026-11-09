@@ -7,17 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
-  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "source": "outputs/dictionary-r136-20261109/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
   "previous_record":
-    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "commit": "3aafed131f2d5f9d9c594ad8363fbd17ce1d2fc9"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/loans.yaml"
     "identity":
       "system": "postgresql"
-      "component": "unassigned-database"
+      "component": "loan_manager_prod"
       "kind": "relation"
-      "name": "Loans"
-      "scope": "as-recorded"
+      "name": "public.Loans"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -30,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres,mw_app_prod=arwd/postgres,mw_jobs_owner_prod=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arw/postgres,mw_app_prod=arwd/postgres,mw_jobs_owner_prod=r/postgres,mw_ledger_owner_prod=r/postgres,mw_chat_read_prod=r/postgres}"
     "comment": null
     "view_definition": null
     "partition_key": null
@@ -54,7 +54,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=w/postgres}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_jobs_owner_prod=w/postgres,mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Loan Date":
       "schema": "public"
@@ -108,7 +108,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Due Date":
       "schema": "public"
@@ -144,7 +144,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\",mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Loan Arrangement":
       "schema": "public"
@@ -253,7 +253,9 @@
       "default_expression": null
       "collation": null
       "acl": null
-      "comment": null
+      "comment": "Documentation Fee (R136 business name; the column keeps its name): a one-off fee added to the first-day\
+        \ charge interest of a daily-interest or daily-instalment loan and netted off at disbursement, so it is profit on\
+        \ the loan date. A fixed-due-date loan has no first-day charge."
     "Interest Payment Interval":
       "schema": "public"
       "relation": "Loans"
@@ -342,7 +344,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
     "Daily Payment Amount":
       "schema": "public"
@@ -415,7 +417,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/postgres}"
       "comment": "Payment that changed this loan from open to closed. SQL-owned; NULL for pre-migration or non-payment closure.\
         \ No historical inference/backfill."
     "Charge Generation Request":
@@ -600,6 +602,25 @@
       "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": "Original average daily interest / original principal * 100, rounded to integer percentage points (1 means\
         \ 1%). Frozen at creation. NULL means original terms unavailable."
+    "Ref Rollover Source Loan":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Ref Rollover Source Loan"
+      "ordinal": 33
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "R136: the original loan this loan was created from by a rollover (loan.rollover), which closed it with a\
+        \ net-off settlement on the rollover day. Set only by pwa_apply_loan_rollover_v1; null on every other loan."
   "constraints":
     "Loans_Payment Request Cash Account_fkey":
       "schema": "public"
@@ -652,6 +673,24 @@
       "referenced_column_numbers":
       - 1
       "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
+    "Loans_Ref Rollover Source Loan_fkey":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loans_Ref Rollover Source Loan_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Rollover Source Loan\") REFERENCES \"Loans\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 33
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Loans\""
       "update_action": "a"
       "delete_action": "r"
       "match_type": "s"
@@ -861,6 +900,24 @@
       "options": null
       "access_method": "btree"
       "comment": null
+    "loans_ref_rollover_source_loan":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "loans_ref_rollover_source_loan"
+      "definition": "CREATE INDEX loans_ref_rollover_source_loan ON public.\"Loans\" USING btree (\"Ref Rollover Source Loan\"\
+        ) WHERE (\"Ref Rollover Source Loan\" IS NOT NULL)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": "(\"Ref Rollover Source Loan\" IS NOT NULL)"
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
   "triggers":
     "RI_ConstraintTrigger_a_16695":
       "schema": "public"
@@ -982,6 +1039,30 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "RI_ConstraintTrigger_a_39902":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_39902"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_39902\" AFTER DELETE ON \"Loans\" FROM \"Loans\" NOT\
+        \ DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_39903":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_39903"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_39903\" AFTER UPDATE ON \"Loans\" FROM \"Loans\" NOT\
+        \ DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "RI_ConstraintTrigger_c_16692":
       "schema": "public"
       "relation": "Loans"
@@ -1072,6 +1153,30 @@
       "name": "RI_ConstraintTrigger_c_17366"
       "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17366\" AFTER UPDATE ON \"Loans\" FROM \"Cash Accounts\"\
         \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39904":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_39904"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39904\" AFTER INSERT ON \"Loans\" FROM \"Loans\" NOT\
+        \ DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_39905":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_39905"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39905\" AFTER UPDATE ON \"Loans\" FROM \"Loans\" NOT\
+        \ DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
       "enabled": "O"
       "internal": true
       "routine": "\"RI_FKey_check_upd\"()"
@@ -1417,19 +1522,29 @@
       "deferrable": true
       "initially_deferred": true
       "comment": null
+    "zzzzzzz_pwa_row_change":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "zzzzzzz_pwa_row_change"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_change AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE\
+        \ FUNCTION pwa_track_row_change('Row ID')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzzz_pwa_row_truncate":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "zzzzzzz_pwa_row_truncate"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_truncate AFTER TRUNCATE ON \"Loans\" FOR EACH STATEMENT EXECUTE FUNCTION\
+        \ pwa_track_row_change('Row ID')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
   "policies": {}
   "dependencies": []
-"evidence":
-  "/content/columns":
-    "reference": "outputs/r048-loan-interest-production/postgresql-affected-definitions.json"
-    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
-    "state": "value"
-  "/content/constraints":
-    "reference": "outputs/r048-loan-interest-production/postgresql-affected-definitions.json"
-    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
-    "state": "value"
-  "/content/triggers/a000_blank_refs":
-    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-SCHEMA-02: renamed so the blank-reference normalizer fires first; V93 (R064 Wave 4). Applied in DEV (21:13\
-      \ Bangkok) and PROD (22:17 Bangkok) on 16 October 2026; the PROD readback confirms this value"
-    "state": "value"
