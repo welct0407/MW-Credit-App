@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-03T17:36:07.524Z",
+  "at": "2026-11-09T07:52:41.004Z",
   "passed": true,
   "checks": [
     {
@@ -23,7 +23,7 @@
       "name": "mapping parity",
       "passed": true,
       "detail": {
-        "checked": 157,
+        "checked": 154,
         "mismatched": 0
       }
     },
@@ -48,7 +48,7 @@
       "name": "reused values equal dashboard 3",
       "passed": true,
       "detail": {
-        "sampled": 104,
+        "sampled": 101,
         "different": []
       }
     },
@@ -56,15 +56,20 @@
       "name": "today.realization",
       "passed": true,
       "detail": {
-        "equalsModel73": true,
-        "equals51over52": true
+        "format": true,
+        "firstEquals51": true,
+        "secondEquals52": true,
+        "shareEqualsModel73": true
       }
     },
     {
       "name": "today.collection-rate",
       "passed": true,
       "detail": {
-        "equalsModel73": true,
+        "format": true,
+        "firstEqualsCollected": true,
+        "secondEqualsDue": true,
+        "shareEqualsModel73": true,
         "dueToday": "non-zero"
       }
     },
@@ -116,7 +121,8 @@
       "detail": {
         "thisEquals168to171AndWriteOffs": true,
         "previousEqualsPrecedingRange": true,
-        "days": 4
+        "signal": true,
+        "days": 9
       }
     },
     {
@@ -125,7 +131,7 @@
       "detail": {
         "months": 4,
         "equalsModel186MonthSums": true,
-        "question213Rows": 3
+        "question213Rows": 8
       }
     },
     {
@@ -135,23 +141,62 @@
         "cases": [
           {
             "period": "thismonth",
-            "rows": 4,
+            "rows": 6,
             "equal": true,
-            "sortedByMovement": true
+            "sortedIncreasesFirst": true,
+            "sumEqualsTotal": true
           },
           {
             "period": "past30days",
             "rows": 6,
             "equal": true,
-            "sortedByMovement": true
+            "sortedIncreasesFirst": true,
+            "sumEqualsTotal": true
           },
           {
             "period": "previous range",
             "rows": 6,
             "equal": true,
-            "sortedByMovement": true
+            "sortedIncreasesFirst": true,
+            "sumEqualsTotal": true
           }
         ]
+      }
+    },
+    {
+      "name": "cash.holders-signed",
+      "passed": true,
+      "detail": {
+        "cases": [
+          {
+            "date": "today",
+            "holders": 2,
+            "signedEquals210": true
+          },
+          {
+            "date": "first snapshot + 1",
+            "holders": 2,
+            "signedEquals210": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "cashflow.transactions-desc",
+      "passed": true,
+      "detail": {
+        "rows": 186,
+        "sameRows": true,
+        "reverseOrder": true
+      }
+    },
+    {
+      "name": "income.expense-detail-desc",
+      "passed": true,
+      "detail": {
+        "rows": 9,
+        "sameRows": true,
+        "reverseOrder": true
       }
     },
     {
@@ -281,35 +326,35 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 11,
+            "rows": 8,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-partial",
-            "rows": 1,
+            "rows": 0,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-overdue",
-            "rows": 5,
+            "rows": 2,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-long-overdue",
-            "rows": 10,
+            "rows": 13,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-paid",
-            "rows": 1,
+            "rows": 5,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true

@@ -77,7 +77,10 @@ const incomeSql=`WITH selected AS (SELECT d."Date" FROM public.reporting_stateme
  FROM totals t CROSS JOIN LATERAL (VALUES (1,'Income',t.income),(2,'Expenses',t.expenses),(3,'Write-offs',t.writeoffs),(4,'Net profit',t.income-t.expenses-t.writeoffs),(5,'Net profit per day',(t.income-t.expenses-t.writeoffs)/nullif(t.days,0))) v(ord,metric,amount)
  GROUP BY v.ord,v.metric
  )
-SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord`;
+SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %",
+ sign(cur-prev)*CASE WHEN metric IN ('Expenses','Write-offs') THEN -1 ELSE 1 END AS "Signal" FROM m ORDER BY ord`;
+// 9 Nov 2026: the income table tints whole rows from its hidden Signal column (layout settings); performance keeps the cell rules.
+const incomeTable={'table.pivot':false,column_settings:{...fmt(['This period','Previous period','Change']),...fmt(['Change %'],pct)}};
 const compareTable={'table.pivot':false,column_settings:{...fmt(['This period','Previous period','Change']),...fmt(['Change %'],pct)},'table.column_formatting':[{id:0,columns:['Change %','Change'],type:'single',operator:'>',value:0,color:'#84BB4C',highlight_row:false},{id:1,columns:['Change %','Change'],type:'single',operator:'<',value:0,color:'#ED6E6E',highlight_row:false}]};
 const sql=c=>c?.dataset_query?.stages?.[0]?.native??c?.dataset_query?.native?.query;
 // The origin's template tags in the legacy shape this installer posts (names, ids, types and defaults unchanged).
@@ -92,6 +95,9 @@ const firstDashcard=(baseline,id)=>[...(baseline?.dashcards??[])].sort((a,b)=>a.
 // Definitions given as an edit of the origin's query (layout: "rank<=10 changed to rank<=5 ... 'Others' replaced by 'Others (n)'").
 const top5=s=>{assert.equal(s.split('rank<=10').length,3,'origin rank<=10 twice');assert.equal(s.split(`ELSE 'Others' END`).length,2,'origin Others label once');const amount=['outstanding_principal','interest_received'].find(c=>s.includes(`sum(${c})`));assert(amount,'top-5 amount column');return s.replaceAll('rank<=10','rank<=5').replace(`ELSE 'Others' END`,`ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(${amount},0)<>0)||')' END`);};
 const edits={'borrowers.principal-top5':top5,'borrowers.interest-top5':top5};
+// layout order_desc: every key of the origin's single, final ORDER BY made descending (plain keys only; COLLATE kept).
+export const orderDesc=s=>{const i=s.lastIndexOf('ORDER BY ');assert(i>0&&s.indexOf('ORDER BY ')===i,'origin ORDER BY once');const keys=s.slice(i+9).trim().split(',');
+ assert(keys.every(k=>k.trim()&&!/[()]|\b(ASC|DESC|LIMIT|NULLS)\b/i.test(k)),'origin ORDER BY keys plain');return s.slice(0,i)+'ORDER BY '+keys.map(k=>k.trim()+' DESC').join(',');};
 // The new questions. A native question built from its origin's query (sql_wrap, an edit, or sql naming the origin's tags) copies the
 // origin's template tags and maps them as the origin's dashboard-3 dashcard did; other new questions carry the mappings written below.
 export function questions(sources={},state={},baseline){
@@ -99,14 +105,12 @@ export function questions(sources={},state={},baseline){
  const spec={
   'today.principal-smart':{dataset_query:mbql({'source-table':'card__74',aggregation:[['aggregation-options',['max',f('Outstanding Principal')],{name:'Principal at work','display-name':'Principal at work'}]],breakout:[f('Date','type/Date',{'temporal-unit':'day'})],'order-by':[['asc',f('Date','type/Date',{'temporal-unit':'day'})]]}),
    visualization_settings:{'scalar.compact_primary_number':false,'scalar.field':'Principal at work','scalar.comparisons':[{id:'first',type:'periodsAgo',value:29}],column_settings:fmt(['Principal at work'])},mappings:{period:['dimension',f('Date','type/Date')]}},
-  'today.realization':{dataset_query:mbql({'source-table':'card__73',fields:[f('Forecast Realization')]}),visualization_settings:{'progress.goal':1,'progress.color':'#2a78d6',column_settings:fmt(['Forecast Realization'],pct)},mappings:{}},
-  'today.collection-rate':{dataset_query:mbql({'source-table':'card__73',fields:[f('Amount Collection Rate Today')]}),visualization_settings:{'progress.goal':1,'progress.color':'#067647',column_settings:fmt(['Amount Collection Rate Today'],pct)},mappings:{}},
   'cash.pool-selected':{dataset_query:native(positionSql('Total Cash Pool'),[model(205),model(73),dateTag('position_date','Date')]),visualization_settings:{'scalar.field':'Total Cash Pool',column_settings:fmt(['Total Cash Pool'])},mappings:{'position-date':tagTarget('position_date')}},
   'cash.principal-selected':{dataset_query:native(positionSql('Outstanding Principal'),[model(205),model(73),dateTag('position_date','Date')]),visualization_settings:{'scalar.field':'Outstanding Principal',column_settings:fmt(['Outstanding Principal'])},mappings:{'position-date':tagTarget('position_date')}},
-  'income.vs-previous':{dataset_query:native(incomeSql,[model(186),dateTag('statement_period','Statement period')]),visualization_settings:compareTable,mappings:{'statement-period':tagTarget('statement_period')}},
+  'income.vs-previous':{dataset_query:native(incomeSql,[model(186),dateTag('statement_period','Statement period')]),visualization_settings:incomeTable,mappings:{'statement-period':tagTarget('statement_period')}},
   'income.monthly':{dataset_query:mbql({'source-table':'card__186',aggregation:[['aggregation-options',['sum',f('Income')],{name:'Income','display-name':'Income'}],['aggregation-options',['sum',f('Expenses')],{name:'Expenses','display-name':'Expenses'}],['aggregation-options',['sum',f('Principal Write-offs')],{name:'Write-offs','display-name':'Write-offs'}],['aggregation-options',['-',['sum',f('Income')],['sum',f('Expenses')],['sum',f('Principal Write-offs')]],{name:'Net profit','display-name':'Net profit'}]],breakout:[f('Date','type/Date',{'temporal-unit':'month'})],filter:['time-interval',f('Date','type/Date'),-5,'month',{'include-current':true}]}),
-   visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':['Income','Expenses','Write-offs','Net profit'],'graph.show_values':true,'graph.label_value_formatting':'compact','graph.colors':['#178F8A','#D6816B','#9B2C2C','#2a78d6'],'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,column_settings:fmt(['Income','Expenses','Write-offs','Net profit'])},mappings:{}},
-  'cashflow.by-type-row':{visualization_settings:{'graph.label_value_formatting':'compact',column_settings:fmt(['Money In','Money Out'])}},
+   visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':['Income','Expenses','Write-offs','Net profit'],'graph.show_values':true,'graph.label_value_formatting':'compact','graph.colors':['#178F8A','#D6816B','#9B2C2C','#84BB4C'],'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,column_settings:fmt(['Income','Expenses','Write-offs','Net profit'])},mappings:{}},
+  'cashflow.by-type-row':{visualization_settings:{'graph.label_value_formatting':'compact',column_settings:fmt(['Net Movement'])}},
   'perf.vs-previous':{dataset_query:native(perfSql,[model(70),model(71),dateTag('performance_period','Performance period')]),visualization_settings:{...compareTable,column_settings:{...compareTable.column_settings}},mappings:{period:tagTarget('performance_period')}},
   'partners.capital-share-row':{dataset_query:q331&&native(`SELECT "Partner","Net capital ฿"/nullif(sum("Net capital ฿") OVER (),0) AS "Capital share %","Net capital ฿" FROM (${sql(q331)}) t`,[{id:'lrp-partner',name:'partner','display-name':'Partner',type:'dimension',dimension:['field',121,null],'widget-type':'string/=',alias:'d.partner_id'},model(318)]),
    visualization_settings:{'graph.dimensions':['Partner'],'graph.metrics':['Capital share %'],'graph.show_values':true,'graph.show_legend':false,'graph.colors':['#178F8A','#7472BE','#D6816B','#D4AD60'],'graph.y_axis.min':0,'graph.y_axis.max':1,column_settings:{...fmt(['Capital share %'],pct),...fmt(['Net capital ฿'])}},mappings:{partner:tagTarget('partner')}}
@@ -115,7 +119,7 @@ export function questions(sources={},state={},baseline){
  const links={'today.attention':{column:'Item',linkTemplate:`${site}/dashboard/${state.dashboard}?tab={{Tab}}`}};
  return Object.entries(layout.new_questions).map(([key,d])=>{
   const origin=sources[d.origin],s=spec[key]??{};let {dataset_query,mappings={}}=s;
-  let copy=false,text=d.sql??(d.sql_wrap&&sql(origin)&&d.sql_wrap.replace(`<${d.origin}>`,sql(origin)))??(edits[key]&&sql(origin)&&edits[key](sql(origin)));
+  let copy=false,text=d.sql??(d.sql_wrap&&sql(origin)&&d.sql_wrap.replace(`<${d.origin}>`,sql(origin)))??(edits[key]&&sql(origin)&&edits[key](sql(origin)))??(d.order_desc&&sql(origin)&&orderDesc(sql(origin)));
   if(text){
    assert(!d.sql_wrap||!text.includes(`<${d.origin}>`),'sql_wrap placeholder left: '+key);
    text=text.replaceAll('__TAB_COLLECTION__',String(state.tabs?.collection)).replaceAll('__TAB_HEALTH__',String(state.tabs?.health));
@@ -136,6 +140,7 @@ export function questions(sources={},state={},baseline){
   // Formatting rules keep only columns the new question returns (a rule left without columns is dropped).
   const fields=d.query?.fields?.map(x=>x[1]);
   if(copyKeys.includes('table.column_formatting')&&from['table.column_formatting'])copied['table.column_formatting']=from['table.column_formatting'].map(r=>({...r,columns:r.columns.filter(c=>!fields||fields.includes(c))})).filter(r=>r.columns.length);
+  if(copyKeys.includes('table.columns')&&from['table.columns'])copied['table.columns']=from['table.columns'];
   if(copyKeys.includes('click_behavior')){
    if(from.click_behavior)copied.click_behavior=from.click_behavior;
    for(const [k,v] of Object.entries(from.column_settings??{}))if(v.click_behavior)(copied.column_settings??={})[k]={click_behavior:v.click_behavior};
@@ -382,10 +387,15 @@ if(args.includes('--verify')){
  const dc=key=>d.dashcards.find(c=>c.card_id===state.questions[key]);
  const resultRows=key=>results.get(dc(key).id).data.rows;
  const ovRows=(await run(73)).rows;assert.equal(ovRows.length,1);const ov=ovRows[0],ovCols=(await api('GET','card/73')).result_metadata.map(m=>m.name),ovv=n=>ov[ovCols.indexOf(n)];
- const realized=await one(51),projected=await one(52);
- (near(resultRows('today.realization')[0][0],ovv('Forecast Realization'))&&(projected?near(ovv('Forecast Realization'),realized/projected):true)?pass:fail)('today.realization',{equalsModel73:near(resultRows('today.realization')[0][0],ovv('Forecast Realization')),equals51over52:projected?near(ovv('Forecast Realization'),realized/projected):'projected 0'});
- const due=ovv('Amount Due Today'),got=ovv('Amount Collected Today');
- (near(resultRows('today.collection-rate')[0][0],ovv('Amount Collection Rate Today'))&&(due?near(ovv('Amount Collection Rate Today'),got/due):true)?pass:fail)('today.collection-rate',{equalsModel73:near(resultRows('today.collection-rate')[0][0],ovv('Amount Collection Rate Today')),dueToday:due?'non-zero':'zero'});
+ // 9 Nov 2026: the two Today numbers read "x of n (p%)" in whole baht; p is omitted when n is zero.
+ const xOfN=v=>{const m=String(v).match(/^(-?[\d,]+) of (-?[\d,]+)(?: \((-?[\d,]+\.\d)%\))?$/);return m&&[m[1],m[2],m[3]].map(x=>x==null?null:Number(x.replaceAll(',','')));};
+ const baht=(x,v)=>v!=null&&Math.abs(x-Number(v))<=0.5+1e-9,pctOf=(p,ratio,n)=>Number(n)?p!=null&&Math.abs(p-100*Number(ratio))<=0.05+1e-9:p===null;
+ const realized=await one(51),projected=await one(52),rl=xOfN(resultRows('today.realization')[0][0]);
+ const rlOk={format:!!rl,firstEquals51:!!rl&&baht(rl[0],realized),secondEquals52:!!rl&&baht(rl[1],projected),shareEqualsModel73:!!rl&&pctOf(rl[2],ovv('Forecast Realization'),projected)};
+ (Object.values(rlOk).every(Boolean)?pass:fail)('today.realization',rlOk);
+ const due=ovv('Amount Due Today'),got=ovv('Amount Collected Today'),rc=xOfN(resultRows('today.collection-rate')[0][0]);
+ const rcOk={format:!!rc,firstEqualsCollected:!!rc&&baht(rc[0],got),secondEqualsDue:!!rc&&baht(rc[1],due),shareEqualsModel73:!!rc&&pctOf(rc[2],ovv('Amount Collection Rate Today'),due)};
+ (Object.values(rcOk).every(Boolean)?pass:fail)('today.collection-rate',{...rcOk,dueToday:Number(due)?'non-zero':'zero'});
  const smart=resultRows('today.principal-smart'),q62=(await dashQuery(3,d3.dashcards.find(c=>c.card_id===62),[{id:'overview-trend-period',type:'date/all-options',value:'past30days',target:d3.dashcards.find(c=>c.card_id===62).parameter_mappings[0].target}])).data.rows;
  (near(smart.at(-1)[1],q62.at(-1)[1])&&near(smart[0][1],q62[0][1])&&smart.length===q62.length?pass:fail)('today.principal-smart',{days:smart.length,latestEquals62:near(smart.at(-1)[1],q62.at(-1)[1]),firstEquals62:near(smart[0][1],q62[0][1])});
   const firstSnap=(await api('POST','dataset',native('SELECT min("Date")::text, (min("Date")+1)::text, (min("Date")-3)::text FROM {{#205}}',[model(205)]))).data.rows[0];
@@ -411,7 +421,9 @@ if(args.includes('--verify')){
  // R118: the late-charge memo card equals the dashboard 3 late-charge question (Refine-LateCharges.mjs) and stays within Income.
  const lateQuestion=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.latecharges,iLate=await one(lateQuestion,sp('thismonth')),late=resultRows('income.latecharges')[0][0];
  (near(late,iLate)&&Number(late)<=Number(i168)+1e-7?pass:fail)('income.latecharges',{equalsDashboard3LateCharges:near(late,iLate),withinIncome:Number(late)<=Number(i168)+1e-7});
- (incOk?pass:fail)('income.vs-previous',{thisEquals168to171AndWriteOffs:near(inc[0][1],i168)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170),previousEqualsPrecedingRange:inc[0][2]===null?'before calendar':near(inc[0][2],p168),days:stmt[2]});
+ // 9 Nov 2026: hidden Signal = sign(Change) × (−1 for Expenses and Write-offs), blank without a previous period.
+ const signalOk=inc.every(r=>r[3]==null?r[5]==null:near(r[5],Math.sign(Number(r[3]))*(['Expenses','Write-offs'].includes(r[0])?-1:1)));
+ (incOk&&signalOk?pass:fail)('income.vs-previous',{thisEquals168to171AndWriteOffs:near(inc[0][1],i168)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170),previousEqualsPrecedingRange:inc[0][2]===null?'before calendar':near(inc[0][2],p168),signal:signalOk,days:stmt[2]});
  const monthly=resultRows('income.monthly'),q213=await ref(213,{'review-income':'thismonth'});
  let monthlyOk=monthly.length>0;const q186=(await api('POST','dataset',native(`SELECT date_trunc('month',"Date")::date::text m,sum("Income"),sum("Expenses"),sum("Principal Write-offs") FROM {{#186}} WHERE "Date">=date_trunc('month',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date)-interval '5 months' GROUP BY 1 ORDER BY 1`,[model(186)]))).data.rows;
  for(const [i,row] of monthly.entries())monthlyOk&&=String(row[0]).startsWith(q186[i]?.[0])&&near(row[1],q186[i][1])&&near(row[2],q186[i][2])&&near(row[3],q186[i][3])&&near(row[4],q186[i][1]-q186[i][2]-q186[i][3]);
@@ -419,11 +431,27 @@ if(args.includes('--verify')){
  const cfc=dc('cashflow.by-type-row');let cfOk=true;const cfCases=[];
  for(const [period,account] of [['thismonth','__ALL__'],['past30days','__ALL__'],[prevStmt,'__ALL__']]){
   const a=(await dashQuery(state.dashboard,cfc,[{id:'statement-period',type:'date/all-options',value:period,target:tagTarget('cashflow_period')},{id:'account',type:'string/=',value:[account],target:tagTarget('cash_account','variable')}])).data.rows;
-  const b=(await ref(203,{'review-flow':period,'review-account':[account]})).rows.filter(r=>r[0]!=='TOTAL'&&(Number(r[1])||Number(r[2])));
-  const sorted=a.every((r,i)=>!i||Number(a[i-1][1])+Number(a[i-1][2])>=Number(r[1])+Number(r[2])),equal=JSON.stringify(sortRows(a))===JSON.stringify(sortRows(b));
-  cfCases.push({period:period.includes('~')?'previous range':period,rows:a.length,equal,sortedByMovement:sorted});cfOk&&=equal&&sorted;
+  // 9 Nov 2026 waterfall: (Transaction Type, Net Movement) without TOTAL and zero rows; increases first, then decreases, each by size.
+  const all=(await ref(203,{'review-flow':period,'review-account':[account]})).rows,total=all.find(r=>r[0]==='TOTAL')?.[3]??0;
+  const b=all.filter(r=>r[0]!=='TOTAL'&&Number(r[3])).map(r=>[r[0],r[3]]),k=r=>[Number(r[1])<0?1:0,-Math.abs(Number(r[1]))];
+  const sorted=a.every((r,i)=>!i||k(a[i-1])[0]<k(r)[0]||(k(a[i-1])[0]===k(r)[0]&&k(a[i-1])[1]<=k(r)[1])),equal=JSON.stringify(sortRows(a))===JSON.stringify(sortRows(b));
+  const sumEquals=near(sum(a,1),total);
+  cfCases.push({period:period.includes('~')?'previous range':period,rows:a.length,equal,sortedIncreasesFirst:sorted,sumEqualsTotal:sumEquals});cfOk&&=equal&&sorted&&sumEquals;
  }
  (cfOk?pass:fail)('cashflow.by-type-row',{cases:cfCases});
+ // 9 Nov 2026 copies of questions reused on dashboard 3: signed holder bars and the two newest-first tables.
+ const hsc=dc('cash.holders-signed'),hsCases=[];
+ for(const v of ['today',past]){
+  const a=(await dashQuery(state.dashboard,hsc,[{id:'position-date',type:'date/all-options',value:v,target:hsc.parameter_mappings[0].target}])).data.rows,b=(await ref(210,{'review-position':v})).rows;
+  const signed=a.length===b.length&&a.every((r,i)=>r[0]===b[i][0]&&(b[i][1]==null?r[1]==null&&r[2]==null:Number(b[i][1])>=0?near(r[1],b[i][1])&&r[2]==null:near(r[2],b[i][1])&&r[1]==null));
+  hsCases.push({date:v==='today'?'today':'first snapshot + 1',holders:a.length,signedEquals210:signed});
+ }
+ (hsCases.every(c=>c.signedEquals210)?pass:fail)('cash.holders-signed',{cases:hsCases});
+ for(const [key,origin,values] of [['cashflow.transactions-desc',196,{'review-flow':'thismonth','review-account':['__ALL__']}],['income.expense-detail-desc',212,{'review-income':'thismonth'}]]){
+  const a=resultRows(key),b=(await ref(origin,values)).rows;
+  const r={rows:a.length,sameRows:JSON.stringify(sortRows(a))===JSON.stringify(sortRows(b)),reverseOrder:JSON.stringify(a)===JSON.stringify([...b].reverse())};
+  (r.sameRows&&r.reverseOrder?pass:fail)(key,r);
+ }
  const perf=resultRows('perf.vs-previous'),pp=v=>({'review-performance':v});
  const perfRange=await range('past30days'),prevPerf=shift(perfRange);
  const perfOk=perf.length===5&&near(perf[4][1],await one(234,pp('past30days')))&&near(perf[4][2],await one(234,pp(prevPerf)))&&near(perf[0][1],await one(217,pp('past30days')))&&near(perf[1][1],await one(218,pp('past30days')))&&near(perf[2][1],await one(219,pp('past30days')))&&near(perf[0][2],await one(217,pp(prevPerf)))&&near(perf[1][2],await one(218,pp(prevPerf)))&&near(perf[2][2],await one(219,pp(prevPerf)));
