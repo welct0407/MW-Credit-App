@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r136-20261109/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "57e1e09e042f2045812d6ec883797d02a4aad224"
+    "commit": "3aafed131f2d5f9d9c594ad8363fbd17ce1d2fc9"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/public-pwa-payment-commands-93248f5b.yaml"
     "identity":
       "system": "postgresql"
@@ -671,15 +671,18 @@
         \ = 'object'::text AND octet_length(result_json::text) <= 524288 AND result_json ?& ARRAY['operation'::text, 'targetType'::text,\
         \ 'targetId'::text, 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text] AND (result_json - ARRAY['operation'::text,\
         \ 'targetType'::text, 'targetId'::text, 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text, 'sourceCreatedBy'::text,\
-        \ 'rebate'::text]) = '{}'::jsonb AND (NOT result_json ? 'rebate'::text OR (result_json ->> 'operation'::text) = 'loan.close'::text\
-        \ AND jsonb_typeof(result_json -> 'rebate'::text) = 'object'::text) AND (NOT result_json ? 'sourceCreatedBy'::text\
-        \ OR (jsonb_typeof(result_json -> 'sourceCreatedBy'::text) = ANY (ARRAY['string'::text, 'null'::text]))) AND (result_json\
-        \ ->> 'operation'::text) = (canonical_json::jsonb #>> '{command,operation}'::text[]) AND (result_json ->> 'targetType'::text)\
-        \ = (canonical_json::jsonb #>> '{command,targetType}'::text[]) AND (result_json ->> 'targetId'::text) = (canonical_json::jsonb\
-        \ #>> '{command,targetId}'::text[]) OR outcome = 'rejected'::text AND result_json IS NULL AND (rejection_code = ANY\
-        \ (ARRAY['source_conflict'::text, 'not_found'::text, 'invalid_reference'::text, 'borrower_name_exists'::text, 'dependency_conflict'::text,\
-        \ 'insufficient_funds'::text, 'plan_changed'::text, 'invalid_date'::text, 'account_unavailable'::text, 'record_requires_reconciliation'::text]))))\
-        \ IS TRUE)"
+        \ 'rebate'::text, 'settlement'::text, 'rollover'::text]) = '{}'::jsonb AND (NOT (result_json ? 'settlement'::text\
+        \ OR result_json ? 'rollover'::text) OR (result_json ->> 'operation'::text) = 'loan.rollover'::text AND jsonb_typeof(result_json\
+        \ -> 'settlement'::text) = 'object'::text AND jsonb_typeof(result_json -> 'rollover'::text) = 'object'::text) AND\
+        \ (NOT result_json ? 'rebate'::text OR (result_json ->> 'operation'::text) = 'loan.close'::text AND jsonb_typeof(result_json\
+        \ -> 'rebate'::text) = 'object'::text) AND (NOT result_json ? 'sourceCreatedBy'::text OR (jsonb_typeof(result_json\
+        \ -> 'sourceCreatedBy'::text) = ANY (ARRAY['string'::text, 'null'::text]))) AND (result_json ->> 'operation'::text)\
+        \ = (canonical_json::jsonb #>> '{command,operation}'::text[]) AND (result_json ->> 'targetType'::text) = (canonical_json::jsonb\
+        \ #>> '{command,targetType}'::text[]) AND (result_json ->> 'targetId'::text) = (canonical_json::jsonb #>> '{command,targetId}'::text[])\
+        \ OR outcome = 'rejected'::text AND result_json IS NULL AND (rejection_code = ANY (ARRAY['source_conflict'::text,\
+        \ 'not_found'::text, 'invalid_reference'::text, 'borrower_name_exists'::text, 'dependency_conflict'::text, 'insufficient_funds'::text,\
+        \ 'plan_changed'::text, 'invalid_date'::text, 'account_unavailable'::text, 'record_requires_reconciliation'::text,\
+        \ 'rollover_ineligible'::text])))) IS TRUE)"
       "deferrable": false
       "initially_deferred": false
       "validated": true
@@ -722,7 +725,8 @@
       "name": "pwa_operation_receipt_v2"
       "definition": "CREATE UNIQUE INDEX pwa_operation_receipt_v2 ON public.pwa_payment_commands USING btree (((result_json\
         \ ->> 'paymentId'::text))) WHERE ((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb\
-        \ #>> '{command,operation}'::text[]) = ANY (ARRAY['loan.create'::text, 'loan.close'::text, 'charge.create'::text])))"
+        \ #>> '{command,operation}'::text[]) = ANY (ARRAY['loan.create'::text, 'loan.close'::text, 'charge.create'::text,\
+        \ 'loan.rollover'::text])))"
       "unique": true
       "primary": false
       "valid": true
@@ -731,8 +735,28 @@
       "key_attribute_count": 1
       "total_attribute_count": 1
       "predicate": "((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb #>> '{command,operation}'::text[])\
-        \ = ANY (ARRAY['loan.create'::text, 'loan.close'::text, 'charge.create'::text])))"
+        \ = ANY (ARRAY['loan.create'::text, 'loan.close'::text, 'charge.create'::text, 'loan.rollover'::text])))"
       "expressions": "(result_json ->> 'paymentId'::text)"
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_operation_settlement_receipt_v1":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "pwa_operation_settlement_receipt_v1"
+      "definition": "CREATE UNIQUE INDEX pwa_operation_settlement_receipt_v1 ON public.pwa_payment_commands USING btree (((result_json\
+        \ #>> '{settlement,paymentId}'::text[]))) WHERE ((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb\
+        \ #>> '{command,operation}'::text[]) = 'loan.rollover'::text))"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": "((contract_version = 2) AND (outcome = 'applied'::text) AND (((canonical_json)::jsonb #>> '{command,operation}'::text[])\
+        \ = 'loan.rollover'::text))"
+      "expressions": "(result_json #>> '{settlement,paymentId}'::text[])"
       "options": null
       "access_method": "btree"
       "comment": null

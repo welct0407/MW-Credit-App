@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r136-20261109/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "2a158a68b274e4ba7f661b9d77c06f6565bb5500"
+    "commit": "3aafed131f2d5f9d9c594ad8363fbd17ce1d2fc9"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-effective-payment-plan-v2-p-id-text-1ecd9952.yaml"
     "identity":
       "system": "postgresql"
@@ -31,23 +31,28 @@
       \ revision public.pwa_payment_commands%ROWTYPE;\r\n origin uuid; head uuid; source_creator text; origin_actor jsonb;\
       \ correction_actor jsonb; plan jsonb; c jsonb; matches integer; visited uuid[];\r\nBEGIN\r\n SELECT count(*) INTO matches\
       \ FROM public.pwa_payment_commands j WHERE\r\n  (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND\
-      \ j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9','10') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array')\
+      \ j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9','10','11') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array')\
       \ OR\r\n  (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}'\
-      \ IN('loan.create','loan.close','charge.create','system.rebate-offset')) OR\n  -- R111: the Referral Rebate Offset payment\
+      \ IN('loan.create','loan.close','charge.create','system.rebate-offset','loan.rollover')) OR\n  -- R136: the settlement\
+      \ payment of a rollover.\n  (j.contract_version=2 AND j.outcome='applied' AND j.result_json#>>'{settlement,paymentId}'=p_id\
+      \ AND j.canonical_json::jsonb#>>'{command,operation}'='loan.rollover') OR\n  -- R111: the Referral Rebate Offset payment\
       \ of a Loan Close.\n  (j.contract_version=2 AND j.outcome='applied' AND j.result_json#>>'{rebate,offsetPaymentId}'=p_id\
       \ AND j.canonical_json::jsonb#>>'{command,operation}'='loan.close');\r\n IF matches=0 THEN RETURN NULL;END IF;\r\n IF\
       \ matches<>1 THEN RAISE EXCEPTION 'Ambiguous payment provenance';END IF;\r\n SELECT * INTO STRICT r FROM public.pwa_payment_commands\
       \ j WHERE\r\n  (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}'\
-      \ IN ('6','7','8','9','10') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR\r\n  (j.contract_version=2\
-      \ AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create','system.rebate-offset'))\
-      \ OR\n  -- R111: the Referral Rebate Offset payment of a Loan Close.\n  (j.contract_version=2 AND j.outcome='applied'\
-      \ AND j.result_json#>>'{rebate,offsetPaymentId}'=p_id AND j.canonical_json::jsonb#>>'{command,operation}'='loan.close');\r\
-      \n origin:=r.request_id;head:=origin;visited:=ARRAY[head];origin_actor:=r.canonical_json::jsonb->'actor';source_creator:=CASE\
+      \ IN ('6','7','8','9','10','11') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR\r\n\
+      \  (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}'\
+      \ IN('loan.create','loan.close','charge.create','system.rebate-offset','loan.rollover')) OR\n  -- R136: the settlement\
+      \ payment of a rollover.\n  (j.contract_version=2 AND j.outcome='applied' AND j.result_json#>>'{settlement,paymentId}'=p_id\
+      \ AND j.canonical_json::jsonb#>>'{command,operation}'='loan.rollover') OR\n  -- R111: the Referral Rebate Offset payment\
+      \ of a Loan Close.\n  (j.contract_version=2 AND j.outcome='applied' AND j.result_json#>>'{rebate,offsetPaymentId}'=p_id\
+      \ AND j.canonical_json::jsonb#>>'{command,operation}'='loan.close');\r\n origin:=r.request_id;head:=origin;visited:=ARRAY[head];origin_actor:=r.canonical_json::jsonb->'actor';source_creator:=CASE\
       \ WHEN r.result_json ? 'sourceCreatedBy' THEN r.result_json->>'sourceCreatedBy' ELSE origin_actor->>'loginEmail' END;\r\
       \n IF r.contract_version=1 THEN\r\n  c:=r.canonical_json::jsonb->'command';\r\n  plan:=jsonb_build_object('borrowerId',c->'borrowerId','amountReceived',c->'amountReceived','allocations',c->'allocations','allocationMethod','Selected\
       \ Charges','targetChargeId',NULL,'targetLoanId',NULL,'cashAccountId',c->'cashAccountId','paymentDate',c->'paymentDate','paymentMethod',CASE\
-      \ WHEN c ? 'reviewId' THEN to_jsonb('Bank Transfer'::text) ELSE c->'paymentMethod' END);\r\n ELSIF r.result_json#>>'{rebate,offsetPaymentId}'=p_id\
-      \ THEN plan:=r.result_json#>'{rebate,offsetPlan}';\n ELSE plan:=r.result_json->'plan';END IF;\r\n LOOP\r\n  SELECT count(*)\
+      \ WHEN c ? 'reviewId' THEN to_jsonb('Bank Transfer'::text) ELSE c->'paymentMethod' END);\r\n ELSIF r.result_json#>>'{settlement,paymentId}'=p_id\
+      \ THEN plan:=r.result_json#>'{settlement,plan}'; -- R136\n ELSIF r.result_json#>>'{rebate,offsetPaymentId}'=p_id THEN\
+      \ plan:=r.result_json#>'{rebate,offsetPlan}';\n ELSE plan:=r.result_json->'plan';END IF;\r\n LOOP\r\n  SELECT count(*)\
       \ INTO matches FROM public.pwa_payment_commands j WHERE j.contract_version=2 AND j.outcome='applied'\r\n   AND j.canonical_json::jsonb#>>'{command,operation}'='payment.correct'\r\
       \n   AND j.canonical_json::jsonb#>>'{command,targetType}'='payment' AND j.canonical_json::jsonb#>>'{command,targetId}'=p_id\r\
       \n   AND j.canonical_json::jsonb#>>'{command,predecessorRequestId}'=head::text;\r\n  EXIT WHEN matches=0;\r\n  IF matches<>1\

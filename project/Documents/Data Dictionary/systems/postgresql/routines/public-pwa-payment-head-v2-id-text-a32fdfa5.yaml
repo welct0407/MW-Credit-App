@@ -7,7 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r052/dictionary-production-closure.json"
+  "source": "outputs/dictionary-r136-20261109/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "3aafed131f2d5f9d9c594ad8363fbd17ce1d2fc9"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-payment-head-v2-id-text-a32fdfa5.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.pwa_payment_head_v2(id text)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -20,7 +30,9 @@
       \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE head uuid;candidate uuid;total integer;\r\nBEGIN\r\
       \n SELECT request_id INTO head FROM public.pwa_payment_commands WHERE contract_version=1 AND outcome='posted' AND payment_id=$1;\r\
       \n IF head IS NULL THEN SELECT request_id INTO head FROM public.pwa_payment_commands WHERE contract_version=2 AND outcome='applied'\
-      \ AND result_json->>'paymentId'=$1 AND canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create');END\
+      \ AND result_json->>'paymentId'=$1 AND canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create','payment.create','loan.rollover');END\
+      \ IF;\n -- R136: the settlement payment of a rollover.\n IF head IS NULL THEN SELECT request_id INTO head FROM public.pwa_payment_commands\
+      \ WHERE contract_version=2 AND outcome='applied' AND result_json#>>'{settlement,paymentId}'=$1 AND canonical_json::jsonb#>>'{command,operation}'='loan.rollover';END\
       \ IF;\r\n LOOP\r\n SELECT count(*) INTO total FROM public.pwa_payment_commands WHERE contract_version=2 AND outcome='applied'\
       \ AND canonical_json::jsonb#>>'{command,operation}'='payment.correct' AND canonical_json::jsonb#>>'{command,targetId}'=$1\
       \ AND canonical_json::jsonb#>>'{command,predecessorRequestId}' IS NOT DISTINCT FROM head::text;\r\n IF total=0 THEN\
@@ -40,6 +52,6 @@
     "rows": 0.0
     "settings":
     - "search_path=pg_catalog, public"
-    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres,mw_chat_read_prod=X/postgres}"
     "comment": null
     "extension": null

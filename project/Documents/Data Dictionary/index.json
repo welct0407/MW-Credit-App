@@ -3371,6 +3371,10 @@
           "pointer": "/content/columns/Original Daily Interest Rate"
         },
         {
+          "subject": "Ref Rollover Source Loan",
+          "pointer": "/content/columns/Ref Rollover Source Loan"
+        },
+        {
           "subject": "Loans_Payment Request Cash Account_fkey",
           "pointer": "/content/constraints/Loans_Payment Request Cash Account_fkey"
         },
@@ -3381,6 +3385,10 @@
         {
           "subject": "Loans_Ref Disbursed From Cash Account_fkey",
           "pointer": "/content/constraints/Loans_Ref Disbursed From Cash Account_fkey"
+        },
+        {
+          "subject": "Loans_Ref Rollover Source Loan_fkey",
+          "pointer": "/content/constraints/Loans_Ref Rollover Source Loan_fkey"
         },
         {
           "subject": "Loans_Row ID_not_null",
@@ -11091,6 +11099,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-loan-rollover-calculation-v1-p-loan-text-p-day-date-p-penalty-numeric-197e2446.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.loan_rollover_calculation_v1(p_loan text, p_day date, p_penalty numeric)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-lump-sum-child-guard-3afa2ecf.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -11416,6 +11434,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_apply_loan_create_v2(canonical text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-apply-loan-rollover-v1-canonical-text-1e435805.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_loan_rollover_v1(canonical text)",
       "scope": "production",
       "status": "documented",
       "lookup": []
