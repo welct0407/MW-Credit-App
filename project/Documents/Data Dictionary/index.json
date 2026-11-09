@@ -1438,6 +1438,26 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/proposed-income-daily-signed.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Daily income and expenses · snapshots (costs negative) / 422",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-income-expense-categories-signed.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Expenses by category · statement period (negative) / 423",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/proposed-income-expense-detail-desc.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -1452,7 +1472,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Expenses · statement period (positive) / 392",
+      "name": "Expenses · statement period (negative) / 392",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1492,7 +1512,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Principal write-offs · statement period (positive) / 416",
+      "name": "Principal write-offs · statement period (negative) / 416",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1542,7 +1562,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Today's charges · paid x of due / 381",
+      "name": "Today's charges · paid of due / 381",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1592,7 +1612,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Interest this month · x of projection / 380",
+      "name": "Interest this month · received of projection / 380",
       "scope": "production",
       "status": "documented",
       "lookup": []

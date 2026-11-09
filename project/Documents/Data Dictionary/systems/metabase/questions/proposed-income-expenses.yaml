@@ -3,7 +3,7 @@
   "system": "metabase"
   "component": "reports.mw-credit.com"
   "kind": "question"
-  "name": "Expenses · statement period (positive) / 392"
+  "name": "Expenses · statement period (negative) / 392"
   "scope": "production"
 "verification":
   "status": "documented"
@@ -11,10 +11,10 @@
 "content":
   "key": "income.expenses"
   "id": 392
-  "name": "Expenses · statement period (positive)"
-  "description": "Loan Reports · proposed (income.expenses). Question 169's query with the sign flipped, so the equation band\
-    \ reads \"Income − Expenses = Net profit\" with the minus in the title and a positive magnitude in the card. Copies 169's\
-    \ template tags (statement_period, #186, snippet 2) and mapping. Basis: snippet 2 Income statement period."
+  "name": "Expenses · statement period (negative)"
+  "description": "Loan Reports · proposed (income.expenses). Question 169's query as a negative amount (-abs(\"Operating Expenses\"\
+    )), so the band reads \"Income + Expenses + Write-offs = Net profit\" with costs negative. Copies 169's template tags\
+    \ (statement_period, #186, snippet 2) and mapping. Basis: snippet 2 Income statement period."
   "display": "scalar"
   "dataset_query":
     "stages":
@@ -28,7 +28,7 @@
         "dimension":
         - "field"
         - "base-type": "type/Date"
-          "lib/uuid": "681cd639-0d1b-4fa3-87c0-dbfe7e385c09"
+          "lib/uuid": "46b81658-b60d-4b39-9570-13b296453d09"
           "effective-type": "type/Date"
         - 82
       - "display-name": "Model 186"
@@ -43,8 +43,8 @@
         "display-name": "Income statement period"
         "snippet-name": "Income statement period"
       "lib/type": "mbql.stage/native"
-      "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT -\"Operating Expenses\" AS \"Expenses\" FROM\
-        \ statement"
+      "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT -abs(\"Operating Expenses\") AS \"Expenses\"\
+        \ FROM statement"
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":

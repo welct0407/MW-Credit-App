@@ -1,0 +1,86 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Daily income and expenses · snapshots (costs negative) / 422"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "income.daily-signed"
+  "id": 422
+  "name": "Daily income and expenses · snapshots (costs negative)"
+  "description": "Loan Reports · proposed (income.daily-signed). Question 213's query wrapped: Date, Income and −|Expenses|\
+    \ per completed day, stacked so income rises in green and expenses fall in red. Template tags copied; maps `statement-period`\
+    \ as 213 maps review-income. Basis: model 205 Daily Cash Snapshots (same query as question 213)."
+  "display": "bar"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "alias": "d.\"Date\""
+        "widget-type": "date/all-options"
+        "id": "r016-statement_period"
+        "name": "statement_period"
+        "display-name": "Statement period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "3812a490-9f8c-4a8a-95fa-3205bbb82fff"
+          "effective-type": "type/Date"
+        - 82
+      - "display-name": "Model 205"
+        "type": "card"
+        "id": "r016-model-205"
+        "name": "#205"
+        "card-id": 205
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        SELECT t."Date",t."Income",-abs(t."Expenses") AS "Expenses" FROM (WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE d."Date"<public.olap_reporting_date() [[AND {{statement_period}}]])
+         SELECT d."Date",s."Income",s."Expenses",
+         s."Generated At" AS "Generated At"
+         FROM selected d LEFT JOIN {{#205}} s ON s."Date"=d."Date" ORDER BY d."Date") t ORDER BY t."Date"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.show_values": true
+    "graph.show_legend": true
+    "graph.x_axis.title_enabled": false
+    "graph.missing": "none"
+    "graph.y_axis.auto_split": false
+    "graph.y_axis.title_enabled": false
+    "graph.label_value_frequency": "fit"
+    "graph.metrics":
+    - "Income"
+    - "Expenses"
+    "graph.colors":
+    - "#13855B"
+    - "#D1495B"
+    "column_settings":
+      "[\"name\",\"Income\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Expenses\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "series_settings":
+      "Income":
+        "color": "#13855B"
+      "Expenses":
+        "color": "#D1495B"
+    "legend.is_reversed": false
+    "graph.dimensions":
+    - "Date"
+    "stackable.stack_type": "stacked"
+  "basis": "model 205 Daily Cash Snapshots (same query as question 213)"
+  "build_kind": "native"
+  "origin_question_id": 213
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Question on the Loan Reports dashboard (32); the retired dashboard 3 never used it."

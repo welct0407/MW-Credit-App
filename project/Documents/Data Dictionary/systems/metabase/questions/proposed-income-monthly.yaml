@@ -12,19 +12,21 @@
   "key": "income.monthly"
   "id": 385
   "name": "Monthly income, expenses, write-offs and net profit"
-  "description": "Loan Reports · proposed (income.monthly). MBQL on model 186: sum Income, sum Expenses, sum Principal Write-offs\
-    \ and sum (Income − Expenses − Principal Write-offs) by Date month (R116), the previous five complete months plus the\
-    \ current month (partial). One shared y-axis so expenses read at true scale. Basis: model 186 Income Events."
-  "display": "bar"
+  "description": "Loan Reports · proposed (income.monthly). MBQL on model 186 by Date month (R116), the previous five complete\
+    \ months plus the current month (partial): sum Income, −sum Expenses, −sum Principal Write-offs (costs negative, 9 Nov\
+    \ 2026) as side-by-side bars, each labelled (costs below zero), and Net profit = sum (Income − Expenses − Principal Write-offs)\
+    \ as an unlabelled line with markers (UX-IN-04: stacked cost segments were too thin to label and reversed the legend).\
+    \ One shared y-axis. Basis: model 186 Income Events."
+  "display": "combo"
   "dataset_query":
     "stages":
     - "filters":
       - - "time-interval"
         - "include-current": true
-          "lib/uuid": "da3e8dda-f7b1-4d5a-8125-c73a08ca3e82"
+          "lib/uuid": "0f3bd75d-697c-465e-b6fd-756d310ad959"
         - - "field"
           - "base-type": "type/Date"
-            "lib/uuid": "63614294-a51d-41eb-b465-b2b6e48fc10c"
+            "lib/uuid": "251a195d-33ad-4dc5-afa5-e89face58fca"
           - "Date"
         - -5
         - "month"
@@ -32,55 +34,61 @@
       "aggregation":
       - - "sum"
         - "name": "Income"
-          "lib/uuid": "38305669-86da-4b07-ab48-0215446bc38a"
+          "lib/uuid": "3e35e88f-117d-42f0-9c72-3625a8df6685"
           "display-name": "Income"
         - - "field"
           - "base-type": "type/Decimal"
-            "lib/uuid": "1a4808f5-75a4-4d1e-86bc-f2cc98419551"
+            "lib/uuid": "4260d420-0abf-4699-b489-2e23b1929e5c"
           - "Income"
-      - - "sum"
+      - - "*"
         - "name": "Expenses"
-          "lib/uuid": "59e6da28-8dac-4c09-9561-ac41239e594d"
+          "lib/uuid": "496ed1b4-dbfb-4ca6-8144-b64bcea03c5d"
           "display-name": "Expenses"
-        - - "field"
-          - "base-type": "type/Decimal"
-            "lib/uuid": "6dfa3384-dab8-4778-a3bf-4fd34109cf1c"
-          - "Expenses"
-      - - "sum"
+        - -1
+        - - "sum"
+          - "lib/uuid": "4bcbd802-8354-4529-bec2-3d320c6ae027"
+          - - "field"
+            - "base-type": "type/Decimal"
+              "lib/uuid": "f35cdc5c-f5d5-42f0-a77c-e26516cdc7fa"
+            - "Expenses"
+      - - "*"
         - "name": "Write-offs"
-          "lib/uuid": "6aff432b-f750-4549-b0bb-50041ac65568"
+          "lib/uuid": "a61f7081-1d20-449d-8155-2ca5e6b99c41"
           "display-name": "Write-offs"
-        - - "field"
-          - "base-type": "type/Decimal"
-            "lib/uuid": "454441de-203f-4ee6-948f-9e62edeb2435"
-          - "Principal Write-offs"
+        - -1
+        - - "sum"
+          - "lib/uuid": "a0a3e198-989d-4b46-94e7-cc41ad9c073d"
+          - - "field"
+            - "base-type": "type/Decimal"
+              "lib/uuid": "319440ca-4a4d-43ee-867b-8823aa68462b"
+            - "Principal Write-offs"
       - - "-"
         - "name": "Net profit"
-          "lib/uuid": "88b41804-1273-48f5-a863-621e62ba4eef"
+          "lib/uuid": "51e581c7-4983-4609-a88c-debaffb342f7"
           "display-name": "Net profit"
         - - "sum"
-          - "lib/uuid": "fb21ad03-96d7-4ec1-879d-e030f589225c"
+          - "lib/uuid": "2c601eed-f7b9-4020-ba2e-4f8003c50824"
           - - "field"
             - "base-type": "type/Decimal"
-              "lib/uuid": "ba2cc7e9-861e-4755-a04f-08833192cea1"
+              "lib/uuid": "a44f878f-eb06-4178-b43d-8bc202f4557c"
             - "Income"
         - - "sum"
-          - "lib/uuid": "f7609ffa-b9a5-40f1-adbe-bdbcf350e90b"
+          - "lib/uuid": "139f9db5-4fbe-48f4-88b4-826cf5f31eec"
           - - "field"
             - "base-type": "type/Decimal"
-              "lib/uuid": "ac91e63b-2ee3-4fea-bfa4-4b2d35fcadee"
+              "lib/uuid": "b6338672-55f4-4b2b-9306-fb582dc029b5"
             - "Expenses"
         - - "sum"
-          - "lib/uuid": "95c9af26-5128-4517-8460-c60946d81c85"
+          - "lib/uuid": "2ade7651-469d-4578-b5d8-e392ea369a86"
           - - "field"
             - "base-type": "type/Decimal"
-              "lib/uuid": "0e8d8acc-ee96-4571-961a-c28ae638ee6e"
+              "lib/uuid": "8d5dc268-a590-4ec5-a9c9-ee17a5718328"
             - "Principal Write-offs"
       "breakout":
       - - "field"
         - "temporal-unit": "month"
           "base-type": "type/Date"
-          "lib/uuid": "ae946eff-d1c1-49de-af11-736bb482fbca"
+          "lib/uuid": "9360a3e7-7d7c-4be9-b101-e9565635e50b"
         - "Date"
       "source-card": 186
     "lib/type": "mbql/query"
@@ -97,8 +105,8 @@
     - "Net profit"
     "graph.label_value_formatting": "compact"
     "graph.colors":
-    - "#178F8A"
-    - "#D6816B"
+    - "#13855B"
+    - "#D1495B"
     - "#9B2C2C"
     - "#84BB4C"
     "column_settings":
@@ -124,15 +132,22 @@
         "compact": false
     "series_settings":
       "Income":
-        "color": "#178F8A"
+        "display": "bar"
+        "color": "#13855B"
       "Expenses":
-        "color": "#D6816B"
+        "display": "bar"
+        "color": "#D1495B"
       "Write-offs":
+        "display": "bar"
         "color": "#9B2C2C"
       "Net profit":
+        "display": "line"
         "color": "#84BB4C"
+        "line.marker_enabled": true
+        "show_series_values": false
     "graph.dimensions":
     - "Date"
+    "stackable.stack_type": null
   "basis": "model 186 Income Events"
   "build_kind": "mbql"
   "origin_question_id": 213

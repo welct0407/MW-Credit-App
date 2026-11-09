@@ -12,8 +12,8 @@
   "status": "Canonical dashboard since 9 November 2026: renamed \"Loan Reports\" (was \"Loan Reports · proposed\"), collection\
     \ 10 renamed \"Loan Reports · dashboard\", homepage custom-homepage-dashboard 32. Dashboard 3 is archived as \"Loan Reports\
     \ · retired 2026-11-09\" with dashboards 1 to 31, and 94 questions placed only on them are archived (decommission, reversible).\
-    \ Kept copies 419, 420 and 421 replace the archived originals 210, 212 and 196. Unreferenced models 76, 319 and 320\
-    \ are archived too (owner). The earlier text below on dashboard 3 as recovery copy is historical."
+    \ Kept copies 419, 420 and 421 replace the archived originals 210, 212 and 196. Unreferenced models 76, 319 and 320 are\
+    \ archived too (owner). The earlier text below on dashboard 3 as recovery copy is historical."
   "landing":
     "setting": "custom-homepage-dashboard"
     "value": 32
@@ -37,7 +37,15 @@
     \ #267DCC, total shown); question 421 (a copy of 196, newest first) is on 9300. Dashboard 3 and questions 210, 196, 212\
     \ and 203 are untouched. Borrower Health \"Modified plans\" (question 270, reused) counts borrowers with at least one\
     \ active loan on a modified schedule (auto-charge off, at least 7 observed days, at least 2 expected dates, 30-day interest\
-    \ or charge-date coverage below 80%; V42)."
+    \ or charge-date coverage below 80%; V42). Owner feedback, 9 November 2026: Today questions 380 and 381 are one-row stacked\
+    \ bars (Received or Paid green #067647, Remaining #D9DEE5, label \"x of n · y%\"; the legend cannot be hidden on Metabase\
+    \ 0.63, also dashcard 9308). Income: costs are negative and red #D1495B (questions 392 and 416 as -abs; titles \"Income\"\
+    , \"+ Expenses\", \"+ Write-offs\", \"= Net profit\"; header \"Net profit = Income + Expenses + Write-offs (costs negative)\"\
+    ); question 384 shows costs negative, Net profit as the sum, Change % = change / abs(previous), column rules red below\
+    \ 0 and green above 0 (the Signal column is dropped); question 385 is grouped bars, all labelled, costs negative, Net\
+    \ profit a line #84BB4C, legend Income, Expenses, Write-offs, Net profit; question 420 shows Expenses negative; new question\
+    \ 422 (income.daily-signed) replaces the archived question 213 and new question 423 (income.expense-categories-signed,\
+    \ red negative bars) replaces the archived question 178."
   "canonical_dashboard_id": 3
   "dashboard_id": 32
   "database_id": 2
@@ -46,9 +54,9 @@
   "created": "2026-10-26"
   "release": "Loan Reports redesign build (no product release number)"
   "design_reference": "outputs/loan-reports-redesign-20261026/DESIGN.md"
-  "revision": "Third batch, 9 November 2026 (presentation batch above), on the second batch of 26 October 2026 and the R116\
-    \ and R118 additions (questions 416 and 418): spec at 229 placements and 30 new questions (379 to 402, 414, 416, 418 to\
-    \ 421). Questions of dashboard 3 are never edited; copies live in collection 10."
+  "revision": "Third batch and owner feedback, 9 November 2026 (presentation batch above), on the second batch of 26 October\
+    \ 2026 and the R116 and R118 additions (questions 416 and 418): spec at 229 placements and 32 new questions (379 to 402,\
+    \ 414, 416, 418 to 423). Questions of dashboard 3 are never edited; copies live in collection 10."
   "plan_reference": "outputs/loan-reports-redesign-20261026/PLAN.md"
   "specification": "outputs/loan-reports-redesign-20261026/layout.json"
   "definition_reference": "outputs/loan-reports-redesign-20261026/saved.json"
@@ -59,10 +67,10 @@
     "tabs": 12
     "parameters": 22
     "placements": 229
-    "reused_placements": 154
-    "reused_questions": 149
-    "new_questions": 30
-    "new_question_placements": 30
+    "reused_placements": 152
+    "reused_questions": 147
+    "new_questions": 32
+    "new_question_placements": 32
     "text_and_heading_cards": 44
     "iframe_cards": 1
   "new_question_ids":
@@ -96,6 +104,8 @@
     "cash.holders-signed": 419
     "income.expense-detail-desc": 420
     "cashflow.transactions-desc": 421
+    "income.daily-signed": 422
+    "income.expense-categories-signed": 423
   "new_question_records":
     "today.principal-smart": "questions/proposed-today-principal-smart.yaml"
     "today.realization": "questions/proposed-today-realization.yaml"
@@ -127,6 +137,8 @@
     "cash.holders-signed": "questions/proposed-cash-holders-signed.yaml"
     "income.expense-detail-desc": "questions/proposed-income-expense-detail-desc.yaml"
     "cashflow.transactions-desc": "questions/proposed-cashflow-transactions-desc.yaml"
+    "income.daily-signed": "questions/proposed-income-daily-signed.yaml"
+    "income.expense-categories-signed": "questions/proposed-income-expense-categories-signed.yaml"
   "tabs":
   - "id": 375
     "name": "Today"
@@ -516,7 +528,7 @@
     - "fp-reserve"
   "layout":
     "today":
-    - "dashcard_id": 9252
+    - "dashcard_id": 9394
       "row": 0
       "col": 0
       "size_x": 18
@@ -524,7 +536,7 @@
       "card_id": null
       "virtual": "text"
       "text": "**Today** · live on refresh · trends from completed-day snapshots."
-    - "dashcard_id": 9253
+    - "dashcard_id": 9395
       "row": 0
       "col": 18
       "size_x": 6
@@ -533,7 +545,7 @@
       "title": "As of · Bangkok"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9254
+    - "dashcard_id": 9396
       "row": 2
       "col": 0
       "size_x": 6
@@ -542,7 +554,7 @@
       "title": "Cash available"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9255
+    - "dashcard_id": 9397
       "row": 2
       "col": 6
       "size_x": 6
@@ -553,7 +565,7 @@
       "question_key": "today.principal-smart"
       "parameters":
       - "period"
-    - "dashcard_id": 9256
+    - "dashcard_id": 9398
       "row": 2
       "col": 12
       "size_x": 6
@@ -562,7 +574,7 @@
       "title": "Interest this month"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9257
+    - "dashcard_id": 9399
       "row": 2
       "col": 18
       "size_x": 6
@@ -571,7 +583,7 @@
       "title": "Collected today"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9258
+    - "dashcard_id": 9400
       "row": 5
       "col": 0
       "size_x": 6
@@ -580,7 +592,7 @@
       "title": "Expected interest · per day"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9259
+    - "dashcard_id": 9401
       "row": 5
       "col": 6
       "size_x": 6
@@ -589,7 +601,7 @@
       "title": "Profit growth · 7 days"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9260
+    - "dashcard_id": 9402
       "row": 5
       "col": 12
       "size_x": 6
@@ -599,7 +611,7 @@
       "source": "new"
       "question_key": "today.realization"
       "parameters": []
-    - "dashcard_id": 9261
+    - "dashcard_id": 9403
       "row": 5
       "col": 18
       "size_x": 6
@@ -609,7 +621,7 @@
       "source": "new"
       "question_key": "today.collection-rate"
       "parameters": []
-    - "dashcard_id": 9262
+    - "dashcard_id": 9404
       "row": 8
       "col": 0
       "size_x": 24
@@ -619,7 +631,7 @@
       "source": "new"
       "question_key": "today.attention"
       "parameters": []
-    - "dashcard_id": 9263
+    - "dashcard_id": 9405
       "row": 14
       "col": 0
       "size_x": 12
@@ -630,7 +642,7 @@
       "question_key": "today.principal-vs-pool"
       "parameters":
       - "period"
-    - "dashcard_id": 9264
+    - "dashcard_id": 9406
       "row": 14
       "col": 12
       "size_x": 12
@@ -640,7 +652,7 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 9265
+    - "dashcard_id": 9407
       "row": 21
       "col": 0
       "size_x": 12
@@ -650,7 +662,7 @@
       "source": "new"
       "question_key": "today.principal-top4"
       "parameters": []
-    - "dashcard_id": 9266
+    - "dashcard_id": 9408
       "row": 21
       "col": 12
       "size_x": 12
@@ -660,7 +672,7 @@
       "source": "new"
       "question_key": "today.interest-top4"
       "parameters": []
-    - "dashcard_id": 9267
+    - "dashcard_id": 9409
       "row": 28
       "col": 0
       "size_x": 24
@@ -669,7 +681,7 @@
       "virtual": "text"
       "text": "Profit = gross interest before expenses · definitions in card descriptions."
     "cash-position":
-    - "dashcard_id": 9268
+    - "dashcard_id": 9410
       "row": 0
       "col": 0
       "size_x": 24
@@ -677,7 +689,7 @@
       "card_id": null
       "virtual": "text"
       "text": "**Cash position** · Date = today is live, a past date is the snapshot."
-    - "dashcard_id": 9269
+    - "dashcard_id": 9411
       "row": 2
       "col": 0
       "size_x": 6
@@ -688,7 +700,7 @@
       "question_key": "cash.pool-selected"
       "parameters":
       - "position-date"
-    - "dashcard_id": 9270
+    - "dashcard_id": 9412
       "row": 2
       "col": 6
       "size_x": 6
@@ -699,7 +711,7 @@
       "question_key": "cash.principal-selected"
       "parameters":
       - "position-date"
-    - "dashcard_id": 9271
+    - "dashcard_id": 9413
       "row": 2
       "col": 12
       "size_x": 6
@@ -709,7 +721,7 @@
       "source": "reused"
       "parameters":
       - "position-date"
-    - "dashcard_id": 9272
+    - "dashcard_id": 9414
       "row": 2
       "col": 18
       "size_x": 6
@@ -719,7 +731,7 @@
       "source": "reused"
       "parameters":
       - "position-date"
-    - "dashcard_id": 9273
+    - "dashcard_id": 9415
       "row": 5
       "col": 0
       "size_x": 8
@@ -728,7 +740,7 @@
       "title": "Capital deployed · live"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9274
+    - "dashcard_id": 9416
       "row": 5
       "col": 8
       "size_x": 16
@@ -739,7 +751,7 @@
       "question_key": "cash.holders-signed"
       "parameters":
       - "position-date"
-    - "dashcard_id": 9275
+    - "dashcard_id": 9417
       "row": 11
       "col": 0
       "size_x": 24
@@ -749,7 +761,7 @@
       "source": "reused"
       "parameters":
       - "position-date"
-    - "dashcard_id": 9276
+    - "dashcard_id": 9418
       "row": 17
       "col": 0
       "size_x": 24
@@ -759,7 +771,7 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 9277
+    - "dashcard_id": 9419
       "row": 24
       "col": 0
       "size_x": 24
@@ -768,47 +780,47 @@
       "virtual": "text"
       "text": "Unknown openings stay blank · source and freshness: Data health tab."
     "income":
-    - "dashcard_id": 9278
+    - "dashcard_id": 9420
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Income statement** · live · net profit = income − expenses − write-offs."
-    - "dashcard_id": 9279
+      "text": "Net profit = Income + Expenses + Write-offs (costs negative)."
+    - "dashcard_id": 9421
       "row": 2
       "col": 0
       "size_x": 6
       "size_y": 3
       "card_id": 168
-      "title": "Income · gross interest"
+      "title": "Income"
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9280
+    - "dashcard_id": 9422
       "row": 2
       "col": 6
       "size_x": 6
       "size_y": 3
       "card_id": 392
-      "title": "− Expenses"
+      "title": "+ Expenses"
       "source": "new"
       "question_key": "income.expenses"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9281
+    - "dashcard_id": 9423
       "row": 2
       "col": 12
       "size_x": 6
       "size_y": 3
       "card_id": 416
-      "title": "− Write-offs"
+      "title": "+ Write-offs"
       "source": "new"
       "question_key": "income.writeoffs"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9282
+    - "dashcard_id": 9424
       "row": 2
       "col": 18
       "size_x": 6
@@ -818,7 +830,7 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9283
+    - "dashcard_id": 9425
       "row": 5
       "col": 0
       "size_x": 16
@@ -829,7 +841,7 @@
       "question_key": "income.vs-previous"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9284
+    - "dashcard_id": 9426
       "row": 5
       "col": 16
       "size_x": 8
@@ -839,7 +851,7 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9285
+    - "dashcard_id": 9427
       "row": 8
       "col": 16
       "size_x": 8
@@ -850,7 +862,7 @@
       "question_key": "income.latecharges"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9286
+    - "dashcard_id": 9428
       "row": 11
       "col": 0
       "size_x": 16
@@ -860,27 +872,29 @@
       "source": "new"
       "question_key": "income.monthly"
       "parameters": []
-    - "dashcard_id": 9287
+    - "dashcard_id": 9429
       "row": 11
       "col": 16
       "size_x": 8
       "size_y": 8
-      "card_id": 178
+      "card_id": 423
       "title": "Expenses by category · this period"
-      "source": "reused"
+      "source": "new"
+      "question_key": "income.expense-categories-signed"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9288
+    - "dashcard_id": 9430
       "row": 19
       "col": 0
       "size_x": 24
       "size_y": 7
-      "card_id": 213
+      "card_id": 422
       "title": "Daily income and expenses · snapshots"
-      "source": "reused"
+      "source": "new"
+      "question_key": "income.daily-signed"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9289
+    - "dashcard_id": 9431
       "row": 26
       "col": 0
       "size_x": 24
@@ -891,7 +905,7 @@
       "question_key": "income.expense-detail-desc"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9290
+    - "dashcard_id": 9432
       "row": 33
       "col": 0
       "size_x": 24
@@ -900,7 +914,7 @@
       "virtual": "text"
       "text": "Per-day average uses calendar days · freshness: Data health tab."
     "cashflow":
-    - "dashcard_id": 9291
+    - "dashcard_id": 9325
       "row": 0
       "col": 0
       "size_x": 24
@@ -908,7 +922,7 @@
       "card_id": null
       "virtual": "text"
       "text": "**Cashflow statement** · live · All accounts nets transfers to zero."
-    - "dashcard_id": 9292
+    - "dashcard_id": 9326
       "row": 2
       "col": 0
       "size_x": 6
@@ -919,7 +933,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9293
+    - "dashcard_id": 9327
       "row": 2
       "col": 6
       "size_x": 6
@@ -930,7 +944,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9294
+    - "dashcard_id": 9328
       "row": 2
       "col": 12
       "size_x": 6
@@ -941,7 +955,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9295
+    - "dashcard_id": 9329
       "row": 2
       "col": 18
       "size_x": 6
@@ -952,7 +966,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9296
+    - "dashcard_id": 9330
       "row": 5
       "col": 0
       "size_x": 6
@@ -963,7 +977,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9297
+    - "dashcard_id": 9331
       "row": 5
       "col": 6
       "size_x": 18
@@ -975,7 +989,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9298
+    - "dashcard_id": 9332
       "row": 12
       "col": 0
       "size_x": 24
@@ -986,7 +1000,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9299
+    - "dashcard_id": 9333
       "row": 22
       "col": 0
       "size_x": 24
@@ -997,19 +1011,19 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9300
+    - "dashcard_id": 9334
       "row": 29
       "col": 0
       "size_x": 24
       "size_y": 10
       "card_id": 421
-      "title": "Transactions · chronological"
+      "title": "Transactions · newest first"
       "source": "new"
       "question_key": "cashflow.transactions-desc"
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9301
+    - "dashcard_id": 9335
       "row": 39
       "col": 0
       "size_x": 24

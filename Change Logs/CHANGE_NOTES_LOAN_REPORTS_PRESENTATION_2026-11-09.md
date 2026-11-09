@@ -11,7 +11,13 @@ The owner asked for a presentation pass on the Loan Reports proposed dashboard (
 - The four tabs were rebuilt through `build_design.py`, `layout.json` and `ProposedLoanReports.mjs --refine`. Dashcard ids changed on those tabs; 224 other placements are identical. The dashboard now has 229 placements and 30 new questions.
 - Owner question answered in chat: "Modified plans" (question 270, Borrower Health) counts borrowers with at least one active loan on a modified schedule (auto-charge off, at least 7 observed days, at least 2 expected dates, 30-day interest or charge-date coverage below 80%; V42).
 - Records: dictionary `dashboards/loan-reports-proposed.yaml` (counts, new question ids and records, layout regenerated from `saved.json`, presentation text), question records for 380, 381, 384, 385, 386 updated and 419, 420, 421 added; the records for 416 (income.writeoffs) and 418 (income.latecharges), missing since R116 and R118, were added; `index.json` rebuilt; `unresolved.yaml`, `Development_Changes.md` and `project/scripts/metabase/README.md` updated.
-- Dashboard 3 and questions 210, 196, 212 and 203 are not changed. Byte saved a fresh private dashboard 3 baseline outside the repository.
+- Owner feedback rounds, 9 November 2026 ("Today: progress bar, not text"; "Income: expenses and write-offs red and negative, income and net profit green, formula must make sense"), later in the same day:
+  - Today: questions 380 and 381 are one-row stacked bars (Received or Paid green #067647, Remaining #D9DEE5) with the dimension label "x of n · y%". Metabase 0.63 cannot hide the legend (also dashcard 9308).
+  - Income band: questions 392 and 416 show costs as -abs in red #D1495B; titles "Income", "+ Expenses", "+ Write-offs", "= Net profit"; header "Net profit = Income + Expenses + Write-offs (costs negative)".
+  - Question 384: costs negative, Net profit is the sum, Change % = change / abs(previous), column rules red below 0 and green above 0 (the Signal column is dropped).
+  - Question 385: grouped bars, all labelled, costs negative, Net profit a line #84BB4C without labels, legend order Income, Expenses, Write-offs, Net profit. Question 420: Expenses negative.
+  - New question 422 `income.daily-signed` replaces question 213 (archived with `--followup=213`); new question 423 `income.expense-categories-signed` (negative red bars) replaces question 178 (archived). The dashboard now has 32 new questions.
+- Dashboard 3 and questions 210, 196, 212 and 203 are not changed by the first round (dashboard 3 and 196, 210, 212 are archived later by the [decommission](CHANGE_NOTES_LOAN_REPORTS_DECOMMISSION_2026-11-09.md)). Byte saved a fresh private dashboard 3 baseline outside the repository.
 
 ## Checks
 | Command | Result |
@@ -19,6 +25,9 @@ The owner asked for a presentation pass on the Loan Reports proposed dashboard (
 | `ProposedLoanReports.mjs --verify` | Pass, 32 of 32 (Byte) |
 | `node --test` | Pass, 29 of 29 (Byte) |
 | `node --check`, `py_compile` | Pass (Byte) |
+| `ProposedLoanReports.mjs --verify` after the feedback rounds | Pass, 35 of 35; `DecommissionLoanReports.mjs --verify` 10 of 10; `node --test` 29 of 29 (Byte) |
+| Chase, feedback rounds | Questions 380 and 381 executed, Received + Remaining equals the model 73 totals; SQL signs of 384, 385 and 422 correct, no double negation |
+| Echo, pass 3 | Must-fixes TD-03, IN-03, IN-04 and IN-06 resolved at 1440 px and 390 px |
 | `dictionary.py index` and `validate` | Pass |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
 | Chase read-only verification on live Metabase | No defects. Questions 380 and 381 executed ("49,036 of 336,168 (14.6%)", "3,700 of 9,125 (40.5%)"), matching `olap_portfolio_summary`. Signal (384), the sign split (419), the descending order (420, 421) and the waterfall settings (386) verified statically from live SQL and settings. Questions 210, 196, 212 and 203 still show their September update dates; dashboard 3 unchanged. Repository diff (commit `ca58bf3`) holds no secrets or personal data and no new baseline files. |

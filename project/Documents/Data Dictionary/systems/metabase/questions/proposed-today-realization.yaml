@@ -3,7 +3,7 @@
   "system": "metabase"
   "component": "reports.mw-credit.com"
   "kind": "question"
-  "name": "Interest this month · x of projection / 380"
+  "name": "Interest this month · received of projection / 380"
   "scope": "production"
 "verification":
   "status": "documented"
@@ -11,11 +11,12 @@
 "content":
   "key": "today.realization"
   "id": 380
-  "name": "Interest this month · x of projection"
-  "description": "Loan Reports · proposed (today.realization). Text scalar \"<Realized Profit MTD> of <Projected Monthly Profit>\
-    \ (<share>%)\" from model 73, whole baht with thousands separators; the share is Forecast Realization to one decimal,\
-    \ omitted when the projection is zero. Basis: model 73 Portfolio Overview."
-  "display": "scalar"
+  "name": "Interest this month · received of projection"
+  "description": "Loan Reports · proposed (today.realization). One-row stacked bar from model 73: Received = Realized Profit\
+    \ MTD, Remaining = max(Projected Monthly Profit − Received, 0); the bar label (Share) reads \"<received> of <projection>\
+    \ · <share>%\" in whole baht, the share being Forecast Realization to one decimal (omitted when the projection is zero).\
+    \ Basis: model 73 Portfolio Overview."
+  "display": "row"
   "dataset_query":
     "stages":
     - "template-tags":
@@ -26,12 +27,46 @@
         "card-id": 73
       "lib/type": "mbql.stage/native"
       "native": "SELECT to_char(\"Realized Profit MTD\",'FM999,999,999')||' of '||to_char(\"Projected Monthly Profit\",'FM999,999,999')||coalesce('\
-        \ ('||to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM999,990.0')||'%)','') AS \"Interest\
-        \ of projection\" FROM {{#73}}"
+        \ · '||to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM990.0')||'%','') AS \"Share\"\
+        ,\"Realized Profit MTD\" AS \"Received\",greatest(\"Projected Monthly Profit\"-\"Realized Profit MTD\",0) AS \"Remaining\"\
+        \ FROM {{#73}}"
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
-    "scalar.field": "Interest of projection"
+    "graph.show_values": true
+    "graph.show_legend": false
+    "graph.x_axis.labels_enabled": false
+    "graph.x_axis.axis_enabled": true
+    "graph.y_axis.labels_enabled": false
+    "graph.metrics":
+    - "Received"
+    - "Remaining"
+    "graph.y_axis.axis_enabled": false
+    "graph.show_stack_values": "total"
+    "graph.label_value_formatting": "full"
+    "graph.colors":
+    - "#067647"
+    - "#D9DEE5"
+    "column_settings":
+      "[\"name\",\"Received\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Remaining\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "series_settings":
+      "Received":
+        "color": "#067647"
+      "Remaining":
+        "color": "#D9DEE5"
+    "legend.is_reversed": false
+    "graph.dimensions":
+    - "Share"
+    "stackable.stack_type": "stacked"
   "basis": "model 73 Portfolio Overview"
   "build_kind": "native"
   "origin_question_id": 52

@@ -3,7 +3,7 @@
   "system": "metabase"
   "component": "reports.mw-credit.com"
   "kind": "question"
-  "name": "Principal write-offs · statement period (positive) / 416"
+  "name": "Principal write-offs · statement period (negative) / 416"
   "scope": "production"
 "verification":
   "status": "documented"
@@ -11,11 +11,11 @@
 "content":
   "key": "income.writeoffs"
   "id": 416
-  "name": "Principal write-offs · statement period (positive)"
+  "name": "Principal write-offs · statement period (negative)"
   "description": "Loan Reports · proposed (income.writeoffs). Question 169's template tags (statement_period, #186, snippet\
     \ 2) and mapping, selecting the snippet's \"Principal Write-offs\" (the df10: principal write-offs of the period, R116\
-    \ V128) with the sign flipped, so the band reads \"Income − Expenses − Write-offs = Net profit\" with the minus in the\
-    \ title. Basis: snippet 2 Income statement period."
+    \ V128) as a negative amount (-abs), so the band reads \"Income + Expenses + Write-offs = Net profit\". Basis: snippet\
+    \ 2 Income statement period."
   "display": "scalar"
   "dataset_query":
     "stages":
@@ -29,7 +29,7 @@
         "dimension":
         - "field"
         - "base-type": "type/Date"
-          "lib/uuid": "cbe8d8e5-22ec-4f1c-9348-59bff55fbaf1"
+          "lib/uuid": "8b10c825-e029-4043-aab3-dba890a797a7"
           "effective-type": "type/Date"
         - 82
       - "display-name": "Model 186"
@@ -44,7 +44,7 @@
         "display-name": "Income statement period"
         "snippet-name": "Income statement period"
       "lib/type": "mbql.stage/native"
-      "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT -\"Principal Write-offs\" AS \"Write-offs\"\
+      "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT -abs(\"Principal Write-offs\") AS \"Write-offs\"\
         \ FROM statement"
     "lib/type": "mbql/query"
     "database": 2
