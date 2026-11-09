@@ -1025,6 +1025,15 @@
       "collection_id": 5,
       "archived_before": false,
       "archived_after": true
+    },
+    {
+      "id": 213,
+      "name": "Daily income & expenses · hourly snapshots",
+      "display": "bar",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true,
+      "followup_at": "2026-11-09T08:54:34.187Z"
     }
   ],
   "retainedCandidates": {
@@ -1184,7 +1193,8 @@
       412,
       413,
       415,
-      417
+      417,
+      213
     ],
     "renames": [
       {
@@ -1214,7 +1224,7 @@
     ]
   },
   "verification": {
-    "at": "2026-11-09T08:18:43.441Z",
+    "at": "2026-11-09T08:54:53.516Z",
     "passed": true,
     "checks": [
       {
@@ -1244,7 +1254,7 @@
         "name": "planned questions archived",
         "passed": true,
         "detail": {
-          "questions": 94
+          "questions": 95
         }
       },
       {

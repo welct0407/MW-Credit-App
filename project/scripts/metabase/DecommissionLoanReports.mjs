@@ -5,6 +5,7 @@
 //  --plan    private baseline (once, outside Git) and the plan; the sanitized evidence file with applied:false.
 //  --apply   recomputes the plan, refuses on drift or a subscription/alert stop condition, renames, archives, records.
 //  --models  after --apply, on the owner's later instruction: archives the unreferenced models 76, 319 and 320 (MODELS).
+//  --followup=<ids>  after --apply: archives named questions a later dashboard 32 refine left unreferenced (213 on 9 Nov 2026).
 //  --verify  end state: archived flags, names, homepage, no active card depending on an archived one, the matrix iframe.
 // Reachability as Retire-StatementObjects.mjs: roots are the kept dashboards (dashcards, series, visualizer sources, click
 // targets, filter value sources), question 276 (Grafana probe), subscriptions/alerts, every model in collection 8 and every
@@ -137,6 +138,19 @@ if(args.includes('--models')){
  Object.assign(e,{archiveModels:done,models_applied_at:new Date().toISOString(),models_owner_instruction:`${DATE}: archive the three unused models too`});
  e.rollback.unarchive_models=MODELS;writeEvidence(e);
  console.log(JSON.stringify({archivedModels:done.map(m=>[m.id,m.archived_after])}));
+}
+// --followup=<id,...>: after --apply, a question the decommission kept only because dashboard 32 still used it is archived once a
+// later refine replaced it (9 Nov 2026: 213, replaced by income.daily-signed). Only named ids, only when the live plan lists them.
+const followup=(args.find(a=>a.startsWith('--followup='))||'').slice(11).split(',').filter(Boolean).map(Number);
+if(followup.length){
+ await assertSource();const e=readEvidence();assert(e?.applied,'run --apply first');
+ const p=plan(await inventory()),listed=new Map(p.archiveCards.map(c=>[c.id,c]));
+ if(p.stops.length)throw Error('Stop: a subscription or alert targets a retired dashboard or question: '+JSON.stringify(p.stops));
+ for(const id of followup)assert(listed.has(id),`question ${id} is still referenced or not on a retired dashboard: not archived`);
+ const at=new Date().toISOString(),done=[];
+ for(const id of followup){await api('PUT','card/'+id,{archived:true});done.push({...listed.get(id),archived_before:false,archived_after:(await api('GET','card/'+id)).archived,followup_at:at});}
+ e.archiveCards.push(...done);e.rollback.unarchive_cards.push(...followup);writeEvidence(e);
+ console.log(JSON.stringify({archived:done.map(c=>[c.id,c.archived_after]),alsoUnreferencedNotArchived:[...listed.keys()].filter(id=>!followup.includes(id))}));
 }
 if(args.includes('--verify')){
  await assertSource();const e=readEvidence();assert(e?.applied,'run --apply first');

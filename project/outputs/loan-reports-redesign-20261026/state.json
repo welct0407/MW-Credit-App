@@ -30,7 +30,8 @@
     "income.latecharges": 418,
     "cash.holders-signed": 419,
     "income.expense-detail-desc": 420,
-    "cashflow.transactions-desc": 421
+    "cashflow.transactions-desc": 421,
+    "income.daily-signed": 422
   },
   "tabs": {
     "today": 375,

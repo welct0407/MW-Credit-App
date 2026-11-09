@@ -61,8 +61,8 @@ const perfSql=`WITH clock AS (SELECT public.olap_reporting_date() today),
  )
 SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord`;
 // Pattern of snippet 2: selected statement period and the preceding period of equal length on model 186. R116 (V128): model 186
-// "Income" is gross profit and "Principal Write-offs" the df10: principal write-offs (positive here, like Expenses), so
-// Net profit = Income - Expenses - Write-offs.
+// "Income" is gross profit and "Principal Write-offs" the df10: principal write-offs (positive in the model, like Expenses).
+// 9 Nov 2026: costs are shown negative (-abs), so Net profit = Income + Expenses + Write-offs as displayed.
 const incomeSql=`WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE true [[AND {{statement_period}}]]),
  available AS (SELECT min("Date") starts FROM public.reporting_statement_calendar),
  bounds AS (SELECT min("Date") starts,max("Date") ends,count(*)::int days FROM selected),
@@ -71,16 +71,15 @@ const incomeSql=`WITH selected AS (SELECT d."Date" FROM public.reporting_stateme
  UNION ALL SELECT 'previous',b.starts-b.days,b.starts-1,b.days,b.starts-b.days>=a.starts FROM bounds b CROSS JOIN available a WHERE b.days>0 AND b.days=b.ends-b.starts+1
  ), totals AS (
  SELECT p.p,p.ok,p.days,coalesce((SELECT sum(e."Income") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) income,
- coalesce((SELECT sum(e."Expenses") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) expenses,
- coalesce((SELECT sum(e."Principal Write-offs") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) writeoffs FROM periods p
+ -abs(coalesce((SELECT sum(e."Expenses") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0)) expenses,
+ -abs(coalesce((SELECT sum(e."Principal Write-offs") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0)) writeoffs FROM periods p
  ), m AS (
  SELECT v.ord,v.metric,max(v.amount) FILTER (WHERE t.p='this') cur,max(v.amount) FILTER (WHERE t.p='previous' AND t.ok) prev
- FROM totals t CROSS JOIN LATERAL (VALUES (1,'Income',t.income),(2,'Expenses',t.expenses),(3,'Write-offs',t.writeoffs),(4,'Net profit',t.income-t.expenses-t.writeoffs),(5,'Net profit per day',(t.income-t.expenses-t.writeoffs)/nullif(t.days,0))) v(ord,metric,amount)
+ FROM totals t CROSS JOIN LATERAL (VALUES (1,'Income',t.income),(2,'Expenses',t.expenses),(3,'Write-offs',t.writeoffs),(4,'Net profit',t.income+t.expenses+t.writeoffs),(5,'Net profit per day',(t.income+t.expenses+t.writeoffs)/nullif(t.days,0))) v(ord,metric,amount)
  GROUP BY v.ord,v.metric
  )
-SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %",
- sign(cur-prev)*CASE WHEN metric IN ('Expenses','Write-offs') THEN -1 ELSE 1 END AS "Signal" FROM m ORDER BY ord`;
-// 9 Nov 2026: the income table tints whole rows from its hidden Signal column (layout settings); performance keeps the cell rules.
+SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord`;
+// 9 Nov 2026: the income table's cell rules (negative red, positive green on the four amount columns) come from the layout.
 const incomeTable={'table.pivot':false,column_settings:{...fmt(['This period','Previous period','Change']),...fmt(['Change %'],pct)}};
 const compareTable={'table.pivot':false,column_settings:{...fmt(['This period','Previous period','Change']),...fmt(['Change %'],pct)},'table.column_formatting':[{id:0,columns:['Change %','Change'],type:'single',operator:'>',value:0,color:'#84BB4C',highlight_row:false},{id:1,columns:['Change %','Change'],type:'single',operator:'<',value:0,color:'#ED6E6E',highlight_row:false}]};
 const sql=c=>c?.dataset_query?.stages?.[0]?.native??c?.dataset_query?.native?.query;
@@ -109,8 +108,8 @@ export function questions(sources={},state={},baseline){
   'cash.pool-selected':{dataset_query:native(positionSql('Total Cash Pool'),[model(205),model(73),dateTag('position_date','Date')]),visualization_settings:{'scalar.field':'Total Cash Pool',column_settings:fmt(['Total Cash Pool'])},mappings:{'position-date':tagTarget('position_date')}},
   'cash.principal-selected':{dataset_query:native(positionSql('Outstanding Principal'),[model(205),model(73),dateTag('position_date','Date')]),visualization_settings:{'scalar.field':'Outstanding Principal',column_settings:fmt(['Outstanding Principal'])},mappings:{'position-date':tagTarget('position_date')}},
   'income.vs-previous':{dataset_query:native(incomeSql,[model(186),dateTag('statement_period','Statement period')]),visualization_settings:incomeTable,mappings:{'statement-period':tagTarget('statement_period')}},
-  'income.monthly':{dataset_query:mbql({'source-table':'card__186',aggregation:[['aggregation-options',['sum',f('Income')],{name:'Income','display-name':'Income'}],['aggregation-options',['sum',f('Expenses')],{name:'Expenses','display-name':'Expenses'}],['aggregation-options',['sum',f('Principal Write-offs')],{name:'Write-offs','display-name':'Write-offs'}],['aggregation-options',['-',['sum',f('Income')],['sum',f('Expenses')],['sum',f('Principal Write-offs')]],{name:'Net profit','display-name':'Net profit'}]],breakout:[f('Date','type/Date',{'temporal-unit':'month'})],filter:['time-interval',f('Date','type/Date'),-5,'month',{'include-current':true}]}),
-   visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':['Income','Expenses','Write-offs','Net profit'],'graph.show_values':true,'graph.label_value_formatting':'compact','graph.colors':['#178F8A','#D6816B','#9B2C2C','#84BB4C'],'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,column_settings:fmt(['Income','Expenses','Write-offs','Net profit'])},mappings:{}},
+  'income.monthly':{dataset_query:mbql({'source-table':'card__186',aggregation:[['aggregation-options',['sum',f('Income')],{name:'Income','display-name':'Income'}],['aggregation-options',['*',-1,['sum',f('Expenses')]],{name:'Expenses','display-name':'Expenses'}],['aggregation-options',['*',-1,['sum',f('Principal Write-offs')]],{name:'Write-offs','display-name':'Write-offs'}],['aggregation-options',['-',['sum',f('Income')],['sum',f('Expenses')],['sum',f('Principal Write-offs')]],{name:'Net profit','display-name':'Net profit'}]],breakout:[f('Date','type/Date',{'temporal-unit':'month'})],filter:['time-interval',f('Date','type/Date'),-5,'month',{'include-current':true}]}),
+   visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':['Income','Expenses','Write-offs','Net profit'],'graph.show_values':true,'graph.label_value_formatting':'compact','graph.colors':['#13855B','#D1495B','#9B2C2C','#84BB4C'],'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,column_settings:fmt(['Income','Expenses','Write-offs','Net profit'])},mappings:{}},
   'cashflow.by-type-row':{visualization_settings:{'graph.label_value_formatting':'compact',column_settings:fmt(['Net Movement'])}},
   'perf.vs-previous':{dataset_query:native(perfSql,[model(70),model(71),dateTag('performance_period','Performance period')]),visualization_settings:{...compareTable,column_settings:{...compareTable.column_settings}},mappings:{period:tagTarget('performance_period')}},
   'partners.capital-share-row':{dataset_query:q331&&native(`SELECT "Partner","Net capital ฿"/nullif(sum("Net capital ฿") OVER (),0) AS "Capital share %","Net capital ฿" FROM (${sql(q331)}) t`,[{id:'lrp-partner',name:'partner','display-name':'Partner',type:'dimension',dimension:['field',121,null],'widget-type':'string/=',alias:'d.partner_id'},model(318)]),
@@ -354,14 +353,14 @@ if(args.includes('--verify')){
  const dc=key=>d.dashcards.find(c=>c.card_id===state.questions[key]);
  const resultRows=key=>results.get(dc(key).id).data.rows;
  const ovRows=(await run(73)).rows;assert.equal(ovRows.length,1);const ov=ovRows[0],ovCols=(await api('GET','card/73')).result_metadata.map(m=>m.name),ovv=n=>ov[ovCols.indexOf(n)];
- // 9 Nov 2026: the two Today numbers read "x of n (p%)" in whole baht; p is omitted when n is zero.
- const xOfN=v=>{const m=String(v).match(/^(-?[\d,]+) of (-?[\d,]+)(?: \((-?[\d,]+\.\d)%\))?$/);return m&&[m[1],m[2],m[3]].map(x=>x==null?null:Number(x.replaceAll(',','')));};
- const baht=(x,v)=>v!=null&&Math.abs(x-Number(v))<=0.5+1e-9,pctOf=(p,ratio,n)=>Number(n)?p!=null&&Math.abs(p-100*Number(ratio))<=0.05+1e-9:p===null;
- const realized=await one(51),projected=await one(52),rl=xOfN(resultRows('today.realization')[0][0]);
- const rlOk={format:!!rl,firstEquals51:!!rl&&baht(rl[0],realized),secondEquals52:!!rl&&baht(rl[1],projected),shareEqualsModel73:!!rl&&pctOf(rl[2],ovv('Forecast Realization'),projected)};
+ // 9 Nov 2026: the two Today progress bars: [Share label, done, Remaining = max(total − done, 0)].
+ const shareOf=(label,ratio,n)=>{if(!Number(n))return label==null;const m=String(label).match(/^(-?[\d,]*\d\.\d)%$/);return !!m&&Math.abs(Number(m[1].replaceAll(',',''))-100*Number(ratio))<=0.05+1e-9;};
+ const bar=(row,done,total,ratio)=>({oneRow:!!row,doneEquals:!!row&&near(row[1],done),totalEquals:!!row&&near(Number(row[1])+Number(row[2]),Math.max(Number(total),Number(done))),shareEquals:!!row&&shareOf(row[0],ratio,total)});
+ const realized=await one(51),projected=await one(52),rl=resultRows('today.realization');
+ const rlOk=bar(rl.length===1&&rl[0],realized,projected,ovv('Forecast Realization'));
  (Object.values(rlOk).every(Boolean)?pass:fail)('today.realization',rlOk);
- const due=ovv('Amount Due Today'),got=ovv('Amount Collected Today'),rc=xOfN(resultRows('today.collection-rate')[0][0]);
- const rcOk={format:!!rc,firstEqualsCollected:!!rc&&baht(rc[0],got),secondEqualsDue:!!rc&&baht(rc[1],due),shareEqualsModel73:!!rc&&pctOf(rc[2],ovv('Amount Collection Rate Today'),due)};
+ const due=ovv('Amount Due Today'),got=ovv('Amount Collected Today'),rc=resultRows('today.collection-rate');
+ const rcOk=bar(rc.length===1&&rc[0],got,due,ovv('Amount Collection Rate Today'));
  (Object.values(rcOk).every(Boolean)?pass:fail)('today.collection-rate',{...rcOk,dueToday:Number(due)?'non-zero':'zero'});
  const smart=resultRows('today.principal-smart'),q62=(await dashQuery(3,d3.dashcards.find(c=>c.card_id===62),[{id:'overview-trend-period',type:'date/all-options',value:'past30days',target:d3.dashcards.find(c=>c.card_id===62).parameter_mappings[0].target}])).data.rows;
  (near(smart.at(-1)[1],q62.at(-1)[1])&&near(smart[0][1],q62[0][1])&&smart.length===q62.length?pass:fail)('today.principal-smart',{days:smart.length,latestEquals62:near(smart.at(-1)[1],q62.at(-1)[1]),firstEquals62:near(smart[0][1],q62[0][1])});
@@ -383,17 +382,20 @@ if(args.includes('--verify')){
  const p168=await one(168,sp(prevStmt)),p170=await one(170,sp(prevStmt));
  // R116: rows Income, Expenses, Write-offs, Net profit, Net profit per day; Write-offs equals -(the dashboard 3 write-off question).
  const writeOffQuestion=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.writeoffs,iWo=await one(writeOffQuestion,sp('thismonth'));
- const incOk=inc.length===5&&near(inc[0][1],i168)&&near(inc[1][1],-i169)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170)&&near(inc[4][1],i171)&&(inc[0][2]===null||near(inc[0][2],p168))&&(inc[3][2]===null||near(inc[3][2],p170));
- (near(resultRows('income.writeoffs')[0][0],-iWo)?pass:fail)('income.writeoffs',{equalsMinusDashboard3WriteOffs:near(resultRows('income.writeoffs')[0][0],-iWo)});
+ // 9 Nov 2026: costs negative; Income + Expenses + Write-offs = Net profit in both periods.
+ const negAbs=x=>x==null?null:-Math.abs(Number(x));
+ const incOk=inc.length===5&&near(inc[0][1],i168)&&near(inc[1][1],negAbs(i169))&&near(inc[2][1],negAbs(iWo))&&near(inc[3][1],i170)&&near(inc[4][1],i171)&&(inc[0][2]===null||near(inc[0][2],p168))&&(inc[3][2]===null||near(inc[3][2],p170));
+ const addsUp=[1,2].every(i=>inc[0][i]==null||near(Number(inc[0][i])+Number(inc[1][i])+Number(inc[2][i]),inc[3][i]));
+ (near(resultRows('income.writeoffs')[0][0],negAbs(iWo))?pass:fail)('income.writeoffs',{equalsMinusAbsDashboard3WriteOffs:near(resultRows('income.writeoffs')[0][0],negAbs(iWo))});
+ const band=Number(i168)+Number(resultRows('income.expenses')[0][0])+Number(resultRows('income.writeoffs')[0][0]);
+ (near(band,i170)?pass:fail)('income band adds up',{q168PlusExpensesPlusWriteOffsEquals170:near(band,i170)});
  // R118: the late-charge memo card equals the dashboard 3 late-charge question (Refine-LateCharges.mjs) and stays within Income.
  const lateQuestion=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.latecharges,iLate=await one(lateQuestion,sp('thismonth')),late=resultRows('income.latecharges')[0][0];
  (near(late,iLate)&&Number(late)<=Number(i168)+1e-7?pass:fail)('income.latecharges',{equalsDashboard3LateCharges:near(late,iLate),withinIncome:Number(late)<=Number(i168)+1e-7});
- // 9 Nov 2026: hidden Signal = sign(Change) × (−1 for Expenses and Write-offs), blank without a previous period.
- const signalOk=inc.every(r=>r[3]==null?r[5]==null:near(r[5],Math.sign(Number(r[3]))*(['Expenses','Write-offs'].includes(r[0])?-1:1)));
- (incOk&&signalOk?pass:fail)('income.vs-previous',{thisEquals168to171AndWriteOffs:near(inc[0][1],i168)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170),previousEqualsPrecedingRange:inc[0][2]===null?'before calendar':near(inc[0][2],p168),signal:signalOk,days:stmt[2]});
+ (incOk&&addsUp?pass:fail)('income.vs-previous',{thisEquals168to171AndWriteOffs:near(inc[0][1],i168)&&near(inc[2][1],negAbs(iWo))&&near(inc[3][1],i170),previousEqualsPrecedingRange:inc[0][2]===null?'before calendar':near(inc[0][2],p168),addsUpBothPeriods:addsUp,days:stmt[2]});
  const monthly=resultRows('income.monthly'),q213=await ref(213,{'review-income':'thismonth'});
  let monthlyOk=monthly.length>0;const q186=(await api('POST','dataset',native(`SELECT date_trunc('month',"Date")::date::text m,sum("Income"),sum("Expenses"),sum("Principal Write-offs") FROM {{#186}} WHERE "Date">=date_trunc('month',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date)-interval '5 months' GROUP BY 1 ORDER BY 1`,[model(186)]))).data.rows;
- for(const [i,row] of monthly.entries())monthlyOk&&=String(row[0]).startsWith(q186[i]?.[0])&&near(row[1],q186[i][1])&&near(row[2],q186[i][2])&&near(row[3],q186[i][3])&&near(row[4],q186[i][1]-q186[i][2]-q186[i][3]);
+ for(const [i,row] of monthly.entries())monthlyOk&&=String(row[0]).startsWith(q186[i]?.[0])&&near(row[1],q186[i][1])&&near(row[2],-q186[i][2])&&near(row[3],-q186[i][3])&&near(row[4],q186[i][1]-q186[i][2]-q186[i][3]);
  (monthlyOk?pass:fail)('income.monthly',{months:monthly.length,equalsModel186MonthSums:monthlyOk,question213Rows:q213.rows.length});
  const cfc=dc('cashflow.by-type-row');let cfOk=true;const cfCases=[];
  for(const [period,account] of [['thismonth','__ALL__'],['past30days','__ALL__'],[prevStmt,'__ALL__']]){
@@ -414,6 +416,9 @@ if(args.includes('--verify')){
   hsCases.push({date:v==='today'?'today':'first snapshot + 1',holders:a.length,signedEquals210:signed});
  }
  (hsCases.every(c=>c.signedEquals210)?pass:fail)('cash.holders-signed',{cases:hsCases});
+ {const a=resultRows('income.daily-signed'),b=(await ref(213,{'review-income':'thismonth'})).rows;
+  const r={days:a.length,sameDates:a.length===b.length&&a.every((x,i)=>x[0]===b[i][0]),incomeEqual:a.every((x,i)=>near(x[1],b[i]?.[1])),expensesNegative:a.every((x,i)=>near(x[2],negAbs(b[i]?.[2])))};
+  (Object.values(r).slice(1).every(Boolean)?pass:fail)('income.daily-signed',r);}
  for(const [key,origin,values] of [['cashflow.transactions-desc',196,{'review-flow':'thismonth','review-account':['__ALL__']}],['income.expense-detail-desc',212,{'review-income':'thismonth'}]]){
   const a=resultRows(key),b=(await ref(origin,values)).rows;
   const r={rows:a.length,sameRows:JSON.stringify(sortRows(a))===JSON.stringify(sortRows(b)),reverseOrder:JSON.stringify(a)===JSON.stringify([...b].reverse())};
@@ -437,7 +442,7 @@ if(args.includes('--verify')){
   (r.sumEquals&&r.firstFourEqual&&r.othersLabel&&a.length<=5?pass:fail)(key,r);
  }
  const ec=dc('income.expenses'),exp=async v=>(await dashQuery(state.dashboard,ec,[{id:'statement-period',type:'date/all-options',value:v,target:ec.parameter_mappings[0].target}])).data.rows[0]?.[0]??null;
- const expOk={thisMonthEqualsMinus169:near(await exp('thismonth'),neg(i169)),previousRangeEqualsMinus169:near(await exp(prevStmt),neg(await one(169,sp(prevStmt))))};
+ const expOk={thisMonthEqualsMinusAbs169:near(await exp('thismonth'),negAbs(i169)),previousRangeEqualsMinusAbs169:near(await exp(prevStmt),negAbs(await one(169,sp(prevStmt))))};
  (Object.values(expOk).every(Boolean)?pass:fail)('income.expenses',expOk);
  const topN=async(key,origin,cases)=>{
   const c=dc(key),old=firstDashcard(d3,origin),out=[];

@@ -296,32 +296,116 @@
    "reconcile": "Latest value equals question 62's last completed day; first value equals its first day (built, verified)."
   },
   "today.realization": {
-   "name": "Interest this month · x of projection",
-   "display": "scalar",
+   "name": "Interest this month · received of projection",
+   "display": "row",
    "kind": "native",
    "basis": "model 73 Portfolio Overview",
    "origin": 52,
    "params": [],
-   "definition": "Text scalar \"<Realized Profit MTD> of <Projected Monthly Profit> (<share>%)\" from model 73, whole baht with thousands separators; the share is Forecast Realization to one decimal, omitted when the projection is zero.",
-   "sql": "SELECT to_char(\"Realized Profit MTD\",'FM999,999,999')||' of '||to_char(\"Projected Monthly Profit\",'FM999,999,999')||coalesce(' ('||to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM999,990.0')||'%)','') AS \"Interest of projection\" FROM {{#73}}",
+   "definition": "One-row stacked bar from model 73: Received = Realized Profit MTD, Remaining = max(Projected Monthly Profit − Received, 0); the bar label (Share) is Forecast Realization as a one-decimal percent, blank when the projection is zero. Whole baht.",
+   "sql": "SELECT to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM990.0')||'%' AS \"Share\",\"Realized Profit MTD\" AS \"Received\",greatest(\"Projected Monthly Profit\"-\"Realized Profit MTD\",0) AS \"Remaining\" FROM {{#73}}",
    "settings": {
-    "scalar.field": "Interest of projection"
+    "graph.dimensions": [
+     "Share"
+    ],
+    "graph.metrics": [
+     "Received",
+     "Remaining"
+    ],
+    "stackable.stack_type": "stacked",
+    "graph.show_values": true,
+    "graph.show_stack_values": "all",
+    "graph.label_value_formatting": "full",
+    "graph.show_legend": false,
+    "graph.y_axis.axis_enabled": false,
+    "graph.x_axis.axis_enabled": true,
+    "graph.x_axis.labels_enabled": true,
+    "graph.x_axis.title_enabled": false,
+    "graph.y_axis.title_enabled": false,
+    "graph.colors": [
+     "#067647",
+     "#D9DEE5"
+    ],
+    "series_settings": {
+     "Received": {
+      "color": "#067647"
+     },
+     "Remaining": {
+      "color": "#D9DEE5"
+     }
+    },
+    "column_settings": {
+     "[\"name\", \"Received\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     },
+     "[\"name\", \"Remaining\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
    },
-   "reconcile": "First number equals question 51, second equals question 52 (rounded to whole baht); the share equals model 73 Forecast Realization."
+   "reconcile": "Received equals question 51; Received + Remaining equals max(question 52, question 51); Share equals model 73 Forecast Realization."
   },
   "today.collection-rate": {
-   "name": "Today's charges · paid x of due",
-   "display": "scalar",
+   "name": "Today's charges · paid of due",
+   "display": "row",
    "kind": "native",
    "basis": "model 73 Portfolio Overview",
    "origin": 252,
    "params": [],
-   "definition": "Text scalar \"<Amount Collected Today> of <Amount Due Today> (<share>%)\" from model 73: the charges dated today that are paid, not receipts; the share is Amount Collection Rate Today to one decimal, omitted when nothing is due. Placed on Today only; Collection shows the same share as question 252.",
-   "sql": "SELECT to_char(\"Amount Collected Today\",'FM999,999,999')||' of '||to_char(\"Amount Due Today\",'FM999,999,999')||coalesce(' ('||to_char(100*\"Amount Collected Today\"/nullif(\"Amount Due Today\",0),'FM999,990.0')||'%)','') AS \"Charges paid\" FROM {{#73}}",
+   "definition": "One-row stacked bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts), Remaining = max(Amount Due Today − Paid, 0); the label (Share) is Amount Collection Rate Today as a one-decimal percent. Placed on Today only; Collection shows the same share as question 252.",
+   "sql": "SELECT to_char(100*\"Amount Collected Today\"/nullif(\"Amount Due Today\",0),'FM990.0')||'%' AS \"Share\",\"Amount Collected Today\" AS \"Paid\",greatest(\"Amount Due Today\"-\"Amount Collected Today\",0) AS \"Remaining\" FROM {{#73}}",
    "settings": {
-    "scalar.field": "Charges paid"
+    "graph.dimensions": [
+     "Share"
+    ],
+    "graph.metrics": [
+     "Paid",
+     "Remaining"
+    ],
+    "stackable.stack_type": "stacked",
+    "graph.show_values": true,
+    "graph.show_stack_values": "all",
+    "graph.label_value_formatting": "full",
+    "graph.show_legend": false,
+    "graph.y_axis.axis_enabled": false,
+    "graph.x_axis.axis_enabled": true,
+    "graph.x_axis.labels_enabled": true,
+    "graph.x_axis.title_enabled": false,
+    "graph.y_axis.title_enabled": false,
+    "graph.colors": [
+     "#067647",
+     "#D9DEE5"
+    ],
+    "series_settings": {
+     "Paid": {
+      "color": "#067647"
+     },
+     "Remaining": {
+      "color": "#D9DEE5"
+     }
+    },
+    "column_settings": {
+     "[\"name\", \"Paid\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     },
+     "[\"name\", \"Remaining\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
    },
-   "reconcile": "Numbers equal model 73 Amount Collected Today and Amount Due Today (whole baht); the share equals Amount Collection Rate Today and question 252."
+   "reconcile": "Paid equals model 73 Amount Collected Today; Paid + Remaining equals max(Amount Due Today, Paid); Share equals Amount Collection Rate Today."
   },
   "today.attention": {
    "name": "Needs attention · strip",
@@ -625,7 +709,7 @@
    "reconcile": "Per holder, Positive or Negative equals question 210's Net Cash Balance for the same Date (the other blank)."
   },
   "income.expenses": {
-   "name": "Expenses · statement period (positive)",
+   "name": "Expenses · statement period (negative)",
    "display": "scalar",
    "kind": "native",
    "basis": "snippet 2 Income statement period",
@@ -633,8 +717,8 @@
    "params": [
     "statement-period"
    ],
-   "definition": "Question 169's query with the sign flipped, so the equation band reads \"Income − Expenses = Net profit\" with the minus in the title and a positive magnitude in the card. Copies 169's template tags (statement_period, #186, snippet 2) and mapping.",
-   "sql": "WITH statement AS ({{snippet: Income statement period}}) SELECT -\"Operating Expenses\" AS \"Expenses\" FROM statement",
+   "definition": "Question 169's query as a negative amount (-abs(\"Operating Expenses\")), so the band reads \"Income + Expenses + Write-offs = Net profit\" with costs negative. Copies 169's template tags (statement_period, #186, snippet 2) and mapping.",
+   "sql": "WITH statement AS ({{snippet: Income statement period}}) SELECT -abs(\"Operating Expenses\") AS \"Expenses\" FROM statement",
    "settings": {
     "scalar.field": "Expenses",
     "column_settings": {
@@ -646,10 +730,10 @@
      }
     }
    },
-   "reconcile": "Equals −(question 169) for the same Statement period."
+   "reconcile": "Equals −|question 169| for the same Statement period; 168 + this + income.writeoffs equals 170."
   },
   "income.writeoffs": {
-   "name": "Principal write-offs · statement period (positive)",
+   "name": "Principal write-offs · statement period (negative)",
    "display": "scalar",
    "kind": "native",
    "basis": "snippet 2 Income statement period",
@@ -657,8 +741,8 @@
    "params": [
     "statement-period"
    ],
-   "definition": "Question 169's template tags (statement_period, #186, snippet 2) and mapping, selecting the snippet's \"Principal Write-offs\" (the df10: principal write-offs of the period, R116 V128) with the sign flipped, so the band reads \"Income − Expenses − Write-offs = Net profit\" with the minus in the title.",
-   "sql": "WITH statement AS ({{snippet: Income statement period}}) SELECT -\"Principal Write-offs\" AS \"Write-offs\" FROM statement",
+   "definition": "Question 169's template tags (statement_period, #186, snippet 2) and mapping, selecting the snippet's \"Principal Write-offs\" (the df10: principal write-offs of the period, R116 V128) as a negative amount (-abs), so the band reads \"Income + Expenses + Write-offs = Net profit\".",
+   "sql": "WITH statement AS ({{snippet: Income statement period}}) SELECT -abs(\"Principal Write-offs\") AS \"Write-offs\" FROM statement",
    "settings": {
     "scalar.field": "Write-offs",
     "column_settings": {
@@ -670,7 +754,7 @@
      }
     }
    },
-   "reconcile": "Equals −(the dashboard 3 write-off question of Refine-WriteOffSegregation.mjs) for the same Statement period."
+   "reconcile": "Equals −|the dashboard 3 write-off question of Refine-WriteOffSegregation.mjs| for the same Statement period."
   },
   "income.latecharges": {
    "name": "Late charges received · statement period",
@@ -724,69 +808,49 @@
    "params": [
     "statement-period"
    ],
-   "definition": "Native: for the selected statement period and the immediately preceding period of equal length, one row per measure (Income, Expenses, Write-offs, Net profit, Net profit per day; R116) with This period, Previous period, Change and Change %. Previous period blank before the reporting calendar. Whole baht, one-decimal percent. A hidden Signal column (9 Nov 2026) = sign(Change) × (−1 for Expenses and Write-offs, else 1) tints the whole row: green when the change is good for profit, red when it is bad, none when there is no previous period or no change.",
+   "definition": "Native: for the selected statement period and the immediately preceding period of equal length, one row per measure (Income, Expenses, Write-offs, Net profit, Net profit per day; R116) with This period, Previous period, Change and Change %. Costs are negative (9 Nov 2026): Expenses and Write-offs are −|sum|, Net profit = Income + Expenses + Write-offs; Change = this − previous, Change % = Change ÷ |previous|. Previous period blank before the reporting calendar. Whole baht, one-decimal percent. Cells of the four amount columns: negative red, positive green.",
    "settings": {
-    "table.columns": [
-     {
-      "name": "Measure",
-      "enabled": true
-     },
-     {
-      "name": "This period",
-      "enabled": true
-     },
-     {
-      "name": "Previous period",
-      "enabled": true
-     },
-     {
-      "name": "Change",
-      "enabled": true
-     },
-     {
-      "name": "Change %",
-      "enabled": true
-     },
-     {
-      "name": "Signal",
-      "enabled": false
-     }
-    ],
     "table.column_formatting": [
      {
       "id": 0,
       "columns": [
-       "Signal"
-      ],
-      "type": "single",
-      "operator": ">",
-      "value": 0,
-      "color": "#BFE8D2",
-      "highlight_row": true
-     },
-     {
-      "id": 1,
-      "columns": [
-       "Signal"
+       "This period",
+       "Previous period",
+       "Change",
+       "Change %"
       ],
       "type": "single",
       "operator": "<",
       "value": 0,
       "color": "#F6CDD4",
-      "highlight_row": true
+      "highlight_row": false
+     },
+     {
+      "id": 1,
+      "columns": [
+       "This period",
+       "Previous period",
+       "Change",
+       "Change %"
+      ],
+      "type": "single",
+      "operator": ">",
+      "value": 0,
+      "color": "#BFE8D2",
+      "highlight_row": false
      }
     ]
    },
-   "reconcile": "This period equals 168–171; previous equals them with the preceding range (built, verified)."
+   "reconcile": "This period equals 168, −|169|, −|write-offs|, 170, 171; Income + Expenses + Write-offs = Net profit in both periods; previous equals them with the preceding range (built, verified)."
   },
   "income.monthly": {
    "name": "Monthly income, expenses, write-offs and net profit",
-   "display": "bar",
+   "display": "combo",
    "kind": "mbql",
    "basis": "model 186 Income Events",
    "origin": 213,
    "params": [],
-   "definition": "MBQL on model 186: sum Income, sum Expenses, sum Principal Write-offs and sum (Income − Expenses − Principal Write-offs) by Date month (R116), the previous five complete months plus the current month (partial). One shared y-axis so expenses read at true scale.",
+   "definition": "MBQL on model 186 by Date month (R116), the previous five complete months plus the current month (partial): sum Income, −sum Expenses, −sum Principal Write-offs (costs negative, 9 Nov 2026) as stacked bars and Net profit = sum (Income − Expenses − Principal Write-offs) as a line with markers. One shared y-axis.",
    "settings": {
     "graph.dimensions": [
      "Date"
@@ -799,28 +863,91 @@
     ],
     "graph.show_values": true,
     "graph.y_axis.auto_split": false,
+    "stackable.stack_type": "stacked",
+    "graph.show_stack_values": "series",
     "graph.colors": [
-     "#178F8A",
-     "#D6816B",
+     "#13855B",
+     "#D1495B",
      "#9B2C2C",
      "#84BB4C"
     ],
     "series_settings": {
      "Income": {
-      "color": "#178F8A"
+      "display": "bar",
+      "color": "#13855B"
      },
      "Expenses": {
-      "color": "#D6816B"
+      "display": "bar",
+      "color": "#D1495B"
      },
      "Write-offs": {
+      "display": "bar",
       "color": "#9B2C2C"
      },
      "Net profit": {
-      "color": "#84BB4C"
+      "display": "line",
+      "color": "#84BB4C",
+      "line.marker_enabled": true
      }
     }
    },
-   "reconcile": "Each month equals the model 186 month sums (built, verified)."
+   "reconcile": "Each month equals the model 186 month sums with Expenses and Write-offs negated (built, verified)."
+  },
+  "income.daily-signed": {
+   "name": "Daily income and expenses · snapshots (costs negative)",
+   "display": "bar",
+   "kind": "native",
+   "basis": "model 205 Daily Cash Snapshots (same query as question 213)",
+   "origin": 213,
+   "params": [
+    "statement-period"
+   ],
+   "definition": "Question 213's query wrapped: Date, Income and −|Expenses| per completed day, stacked so income rises in green and expenses fall in red. Template tags copied; maps `statement-period` as 213 maps review-income.",
+   "sql_wrap": "SELECT t.\"Date\",t.\"Income\",-abs(t.\"Expenses\") AS \"Expenses\" FROM (<213>) t ORDER BY t.\"Date\"",
+   "settings": {
+    "graph.dimensions": [
+     "Date"
+    ],
+    "graph.metrics": [
+     "Income",
+     "Expenses"
+    ],
+    "stackable.stack_type": "stacked",
+    "graph.show_values": true,
+    "graph.label_value_frequency": "fit",
+    "graph.show_legend": true,
+    "graph.missing": "none",
+    "graph.y_axis.auto_split": false,
+    "graph.x_axis.title_enabled": false,
+    "graph.y_axis.title_enabled": false,
+    "graph.colors": [
+     "#13855B",
+     "#D1495B"
+    ],
+    "series_settings": {
+     "Income": {
+      "color": "#13855B"
+     },
+     "Expenses": {
+      "color": "#D1495B"
+     }
+    },
+    "column_settings": {
+     "[\"name\", \"Income\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     },
+     "[\"name\", \"Expenses\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
+   },
+   "reconcile": "Same dates as question 213 for the same Statement period; Income equal, Expenses equal to −|213 Expenses|."
   },
   "cashflow.by-type-row": {
    "name": "Cash movement by transaction type · waterfall",
@@ -1978,7 +2105,7 @@
      "size_y": 3,
      "new_question": "today.realization",
      "title": "Interest · of projection ฿",
-     "description": "Interest this month of the projected month, whole baht.",
+     "description": "Interest received this month (green) and the rest of the projected month (grey), whole baht.",
      "params": [
       "period"
      ]
@@ -1990,7 +2117,7 @@
      "size_y": 3,
      "new_question": "today.collection-rate",
      "title": "Today's charges · paid ฿",
-     "description": "Charges dated today: paid of due, whole baht.",
+     "description": "Charges dated today: paid (green) and still due (grey), whole baht.",
      "params": [
       "period"
      ]
@@ -2251,7 +2378,7 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Income statement** · live · net profit = income − expenses − write-offs.",
+     "text": "Net profit = Income + Expenses + Write-offs (costs negative).",
      "vs": {
       "text.align_vertical": "top"
      },
@@ -2263,7 +2390,7 @@
      "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 168,
-     "title": "Income · gross interest",
+     "title": "Income",
      "params": [
       "statement-period"
      ]
@@ -2274,7 +2401,7 @@
      "size_x": 6,
      "size_y": 3,
      "new_question": "income.expenses",
-     "title": "− Expenses",
+     "title": "+ Expenses",
      "params": [
       "statement-period"
      ]
@@ -2285,7 +2412,7 @@
      "size_x": 6,
      "size_y": 3,
      "new_question": "income.writeoffs",
-     "title": "− Write-offs",
+     "title": "+ Write-offs",
      "params": [
       "statement-period"
      ]
@@ -2362,25 +2489,8 @@
      "col": 0,
      "size_x": 24,
      "size_y": 7,
-     "reuse_card_id": 213,
+     "new_question": "income.daily-signed",
      "title": "Daily income and expenses · snapshots",
-     "note": "UX-IN-02: Income in the teal of the monthly chart; visualizer-format placement, so the series keys are COLUMN_2 (Income) and COLUMN_3 (Expenses)",
-     "vs": {
-      "graph.colors": [
-       "#178F8A",
-       "#D1495B"
-      ],
-      "series_settings": {
-       "COLUMN_2": {
-        "display": "bar",
-        "color": "#178F8A"
-       },
-       "COLUMN_3": {
-        "display": "bar",
-        "color": "#D1495B"
-       }
-      }
-     },
      "params": [
       "statement-period"
      ]
@@ -2416,7 +2526,8 @@
     204,
     214,
     169,
-    212
+    212,
+    213
    ]
   },
   {
@@ -5311,7 +5422,6 @@
    208,
    209,
    211,
-   213,
    214,
    215,
    216,
@@ -5447,6 +5557,7 @@
    "collection.lane-paid",
    "collection.lane-partial",
    "collection.people",
+   "income.daily-signed",
    "income.expense-detail-desc",
    "income.expenses",
    "income.latecharges",

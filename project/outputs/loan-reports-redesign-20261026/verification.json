@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-09T08:21:56.397Z",
+  "at": "2026-11-09T08:58:10.042Z",
   "passed": true,
   "checks": [
     {
@@ -23,7 +23,7 @@
       "name": "mapping parity",
       "passed": true,
       "detail": {
-        "checked": 154,
+        "checked": 153,
         "mismatched": 0
       }
     },
@@ -48,7 +48,7 @@
       "name": "reused values equal dashboard 3",
       "passed": true,
       "detail": {
-        "sampled": 101,
+        "sampled": 100,
         "different": []
       }
     },
@@ -56,20 +56,20 @@
       "name": "today.realization",
       "passed": true,
       "detail": {
-        "format": true,
-        "firstEquals51": true,
-        "secondEquals52": true,
-        "shareEqualsModel73": true
+        "oneRow": true,
+        "doneEquals": true,
+        "totalEquals": true,
+        "shareEquals": true
       }
     },
     {
       "name": "today.collection-rate",
       "passed": true,
       "detail": {
-        "format": true,
-        "firstEqualsCollected": true,
-        "secondEqualsDue": true,
-        "shareEqualsModel73": true,
+        "oneRow": true,
+        "doneEquals": true,
+        "totalEquals": true,
+        "shareEquals": true,
         "dueToday": "non-zero"
       }
     },
@@ -104,7 +104,14 @@
       "name": "income.writeoffs",
       "passed": true,
       "detail": {
-        "equalsMinusDashboard3WriteOffs": true
+        "equalsMinusAbsDashboard3WriteOffs": true
+      }
+    },
+    {
+      "name": "income band adds up",
+      "passed": true,
+      "detail": {
+        "q168PlusExpensesPlusWriteOffsEquals170": true
       }
     },
     {
@@ -121,7 +128,7 @@
       "detail": {
         "thisEquals168to171AndWriteOffs": true,
         "previousEqualsPrecedingRange": true,
-        "signal": true,
+        "addsUpBothPeriods": true,
         "days": 9
       }
     },
@@ -182,10 +189,20 @@
       }
     },
     {
+      "name": "income.daily-signed",
+      "passed": true,
+      "detail": {
+        "days": 8,
+        "sameDates": true,
+        "incomeEqual": true,
+        "expensesNegative": true
+      }
+    },
+    {
       "name": "cashflow.transactions-desc",
       "passed": true,
       "detail": {
-        "rows": 187,
+        "rows": 192,
         "sameRows": true,
         "reverseOrder": true
       }
@@ -252,8 +269,8 @@
       "name": "income.expenses",
       "passed": true,
       "detail": {
-        "thisMonthEqualsMinus169": true,
-        "previousRangeEqualsMinus169": true
+        "thisMonthEqualsMinusAbs169": true,
+        "previousRangeEqualsMinusAbs169": true
       }
     },
     {
@@ -326,7 +343,7 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 7,
+            "rows": 4,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
@@ -354,7 +371,7 @@
           },
           {
             "key": "collection.lane-paid",
-            "rows": 6,
+            "rows": 9,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true
