@@ -490,8 +490,9 @@ NEW_QUESTIONS = {
     'collection.board': {
         'name': 'Collection board · lanes summary', 'display': 'table', 'kind': 'native',
         'basis': 'model 162 Collection Status Summary', 'origin': 242, 'params': [],
-        'definition': 'One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, ⚫ Long overdue (R102, V114), '
-                      '🟢 Fully paid; all five always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and '
+        'definition': 'One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, ⚫ Long overdue (R102 V114; since R137 V140: '
+                      'an unpaid past-due charge and 8 or more days since the borrower\'s last cash payment, never paid counting from the first '
+                      'charge), 🟢 Fully paid; all five always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and '
                       'Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card.',
         'sql': "WITH lanes(ord,status,label,tint) AS (VALUES (1,'Not Paid','🔴 Not paid','not_paid'),(2,'Partially Paid','🟠 Partially paid','partial'),(3,'Overdue','🟣 Overdue','overdue'),(4,'Long Overdue','⚫ Long overdue','long'),(5,'Fully Paid','🟢 Fully paid','paid')),\n"
                " rows AS (SELECT l.ord,l.label,l.tint,coalesce(s.\"Borrower Count\",0) people,coalesce(s.\"Amount Remaining\",0) remaining,coalesce(s.\"Receipts Today\",0) received FROM lanes l LEFT JOIN {{#162}} s ON s.\"Collection Status\"=l.status\n"
@@ -513,8 +514,10 @@ NEW_QUESTIONS = {
     # R102 (V114) long-overdue lane, ported from the hand-edited layout.json; its tint rule (copied from question 241 as
     # status = 'Overdue', which never matched) is the board's grey on status = 'Long Overdue' since 30 Oct.
     'collection.lane-long-overdue': {**lane('Long Overdue', '⚫ Long overdue', 'Overdue Amount', 'Overdue', 'Amount Remaining', 'Left', 'Overdue Amount', 241, STATUS['long'], [72, 90, 70]),
-        'definition': "MBQL on model 77 filtered Daily Collection Status = 'Long Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', "
-                      "'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as the R102 long-overdue "
+        'definition': "MBQL on model 77 filtered Daily Collection Status = 'Long Overdue' (R137 V140: an unpaid past-due charge and 8 or more "
+                      "days since the borrower's last cash payment; a borrower who never paid counts from the first charge); fields ['Borrower', "
+                      "'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc "
+                      "(by amount overdue, not by days since the last payment as the PWA board orders it). Same rows as the R102 long-overdue "
                       "list question (AddLongOverdueLane.mjs), resorted; settings copied from question 241. Column titles Name / Overdue / Left; "
                       "widths [72, 90, 70] px for the three visible columns.",
         'reconcile': 'Same Borrower set and the same values per borrower as the R102 long-overdue list question (order differs).'},
@@ -795,7 +798,7 @@ TABS = [
             [('collection.lane-not-paid', 5, 9, {'title': '🔴 Not paid', 'note': 'Due ฿ · Left ฿, sorted by amount left'}),
              ('collection.lane-partial', 5, 9, {'title': '🟠 Partially paid', 'note': 'Received ฿ · Left ฿, sorted by amount left'}),
              ('collection.lane-overdue', 5, 9, {'title': '🟣 Overdue', 'note': 'Overdue ฿ · Left ฿, sorted by overdue amount'}),
-             ('collection.lane-long-overdue', 5, 9, {'title': '⚫ Long overdue', 'note': 'Overdue ฿ · Left ฿, 8+ days, sorted by overdue amount'}),
+             ('collection.lane-long-overdue', 5, 9, {'title': '⚫ Long overdue', 'note': 'Overdue ฿ · Left ฿; 8+ days since the last cash payment (R137); sorted by overdue amount, largest first'}),
              ('collection.lane-paid', 4, 9, {'title': '🟢 Fully paid', 'note': 'Received ฿ · Due ฿, sorted by received'})],
             [(248, 24, 10, {'title': 'Collection detail · filters apply here', 'columns': COLUMNS_248})],
             [(249, 24, 3, {'title': 'Charges dated today · not board balances', 'description': 'Charges dated today are a separate drill-down, not board balances.'})],

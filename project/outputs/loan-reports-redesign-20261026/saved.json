@@ -1763,7 +1763,7 @@
       "id": 396,
       "name": "Collection board · lanes summary",
       "display": "table",
-      "description": "Loan Reports · proposed (collection.board). One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, ⚫ Long overdue (R102, V114), 🟢 Fully paid; all five always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card. Basis: model 162 Collection Status Summary.",
+      "description": "Loan Reports · proposed (collection.board). One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, ⚫ Long overdue (R102 V114; since R137 V140: an unpaid past-due charge and 8 or more days since the borrower's last cash payment, never paid counting from the first charge), 🟢 Fully paid; all five always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card. Basis: model 162 Collection Status Summary.",
       "dataset_query": {
         "stages": [
           {
@@ -2782,7 +2782,7 @@
       "id": 414,
       "name": "⚫ Long overdue · lane",
       "display": "table",
-      "description": "Loan Reports · proposed (collection.lane-long-overdue). MBQL on model 77 filtered Daily Collection Status = 'Long Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as the R102 long-overdue list question (AddLongOverdueLane.mjs), resorted; settings copied from question 241. Column titles Name / Overdue / Left; widths [72, 90, 70] px for the three visible columns. Basis: model 77 Collection Worklist.",
+      "description": "Loan Reports · proposed (collection.lane-long-overdue). MBQL on model 77 filtered Daily Collection Status = 'Long Overdue' (R137 V140: an unpaid past-due charge and 8 or more days since the borrower's last cash payment; a borrower who never paid counts from the first charge); fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc (by amount overdue, not by days since the last payment as the PWA board orders it). Same rows as the R102 long-overdue list question (AddLongOverdueLane.mjs), resorted; settings copied from question 241. Column titles Name / Overdue / Left; widths [72, 90, 70] px for the three visible columns. Basis: model 77 Collection Worklist.",
       "dataset_query": {
         "stages": [
           {
@@ -2790,13 +2790,13 @@
               [
                 "=",
                 {
-                  "lib/uuid": "c3148c10-fd24-46d3-b0f5-e3a2e09c0ed7"
+                  "lib/uuid": "8e76e020-dbf5-4b66-8bcf-4311b6f0d801"
                 },
                 [
                   "field",
                   {
                     "base-type": "type/Text",
-                    "lib/uuid": "8ca4e73c-1825-4dde-b6bc-d8b1f81550dc"
+                    "lib/uuid": "8f5ea19e-d199-4e1b-9c0f-3b293fe7e123"
                   },
                   "Daily Collection Status"
                 ],
@@ -2809,7 +2809,7 @@
                 "field",
                 {
                   "base-type": "type/Text",
-                  "lib/uuid": "c2e55b6d-27f5-4f41-b14a-08342ac7240d"
+                  "lib/uuid": "fa5ce0a0-e486-4d8c-8634-cb3d33dbb17f"
                 },
                 "Borrower"
               ],
@@ -2817,7 +2817,7 @@
                 "field",
                 {
                   "base-type": "type/Decimal",
-                  "lib/uuid": "77d18364-3f1b-4cd4-90c7-7ff48382cb36"
+                  "lib/uuid": "3c4fbdc9-e33a-4fb8-bbd5-0e830e672b51"
                 },
                 "Overdue Amount"
               ],
@@ -2825,7 +2825,7 @@
                 "field",
                 {
                   "base-type": "type/Decimal",
-                  "lib/uuid": "24203a3e-d1ea-481a-893a-f33342a9477a"
+                  "lib/uuid": "2e0d4967-902e-4f74-b3e6-d788c1b0dcda"
                 },
                 "Amount Remaining"
               ],
@@ -2833,7 +2833,7 @@
                 "field",
                 {
                   "base-type": "type/Text",
-                  "lib/uuid": "124429ed-184c-422a-9264-99cad8820b72"
+                  "lib/uuid": "88cffe11-e56c-4c56-9b9f-135ba6974359"
                 },
                 "Borrower ID"
               ],
@@ -2841,7 +2841,7 @@
                 "field",
                 {
                   "base-type": "type/Text",
-                  "lib/uuid": "151355fe-7fe1-4ae7-af30-daae3177218e"
+                  "lib/uuid": "f702cdbd-e546-4394-bdc0-3da226c66eab"
                 },
                 "Daily Collection Status"
               ]
@@ -2850,13 +2850,13 @@
               [
                 "desc",
                 {
-                  "lib/uuid": "088a24c5-d25b-45e8-ae80-d6f7a3db5d78"
+                  "lib/uuid": "6fa4dc48-f4cd-4bbc-a2ee-d7262ac26697"
                 },
                 [
                   "field",
                   {
                     "base-type": "type/Decimal",
-                    "lib/uuid": "5994655a-c39a-4589-88ce-7e8239639ff7"
+                    "lib/uuid": "88f6c432-abfb-479a-bc91-c79fd107f9c0"
                   },
                   "Overdue Amount"
                 ]
@@ -2864,13 +2864,13 @@
               [
                 "asc",
                 {
-                  "lib/uuid": "b867f64c-b5c2-4f13-8771-5d4684574279"
+                  "lib/uuid": "3b1c0423-8545-4273-ad05-ef5a2bffcdb9"
                 },
                 [
                   "field",
                   {
                     "base-type": "type/Text",
-                    "lib/uuid": "91b430fd-aa88-4e70-a70b-0627b0cdd748"
+                    "lib/uuid": "638d8c64-cbe6-4aa0-a171-a54122caeb67"
                   },
                   "Borrower"
                 ]

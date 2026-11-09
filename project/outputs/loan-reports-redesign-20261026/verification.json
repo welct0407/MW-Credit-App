@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-09T09:29:47.353Z",
+  "at": "2026-11-09T11:47:42.766Z",
   "passed": true,
   "checks": [
     {
@@ -366,14 +366,14 @@
           },
           {
             "key": "collection.lane-overdue",
-            "rows": 2,
+            "rows": 6,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-long-overdue",
-            "rows": 13,
+            "rows": 9,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
