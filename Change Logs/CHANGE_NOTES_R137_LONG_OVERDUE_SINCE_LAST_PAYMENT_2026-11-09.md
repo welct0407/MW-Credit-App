@@ -80,7 +80,7 @@ Authority: the owner's instruction of 9 November 2026, "move to production", rel
 - No authenticated PROD check and no board read on PROD data; owner acceptance in PROD is pending.
 
 ### Tag record
-Annotated tag `R137` on `0e9997c8d4050291b906771d216eaef9b0fd79b0` (merge of PR #273, `main`) through the Release tag workflow, run TAG_RUN_PENDING (the orchestrator confirms the run, time and tag object).
+Annotated tag `R137` on `0e9997c8d4050291b906771d216eaef9b0fd79b0` (merge of PR #273, `main`) through the Release tag workflow, run [42610347210](https://github.com/welct0407/MW-Credit-App/actions/runs/42610347210), succeeded 11:36:44Z; tag object `07dc9fb342a3bca54c91830b73c16419457d763a`, GitHub Release published in the same run.
 
 ### Closure notes
 - Acceptance: PROD acceptance by the owner is pending. The owner decision that a rollover does not reset the clock stays as built.
