@@ -230,7 +230,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   // R137: a long overdue tile says how long since the borrower last paid (never paid: since the first charge); a cached
   // pre-R137 row without the field keeps the R102 days-overdue text.
   const longOverdueDays = (row: Summary) => typeof row.sinceLastPaymentDays === 'number'
-    ? ' · ' + (row.neverPaid ? t(`Never paid · ${row.sinceLastPaymentDays} days`, `ยังไม่เคยชำระ · ${row.sinceLastPaymentDays} วัน`) : t(`No payment for ${row.sinceLastPaymentDays} days`, `ไม่มีการชำระ ${row.sinceLastPaymentDays} วัน`))
+    ? ' · ' + (row.neverPaid ? t(`Never paid · ${row.sinceLastPaymentDays} days`, `ยังไม่เคยชำระ · ${row.sinceLastPaymentDays} วัน`) : t(`No payment for ${row.sinceLastPaymentDays} days`, `ไม่ได้ชำระมา ${row.sinceLastPaymentDays} วัน`))
     : typeof row.overdueDays === 'number' ? ' · ' + row.overdueDays + t(' days', ' วัน') : '';
   const statusLabel = (value: CollectionStatus) => ({ not_paid: t('Not paid', 'ยังไม่ชำระ'), partially_paid: t('Partially paid', 'ชำระบางส่วน'), overdue: t('Overdue', 'เกินกำหนด'), long_overdue: t('Long overdue', 'เกินกำหนดนาน'), fully_paid: t('Fully paid', 'ชำระครบ') })[value];
   const paymentLabel = (value: string) => value === 'รอชำระ' ? t('Pending', 'รอชำระ') : value === 'ชำระบางส่วน' ? t('Partially paid', 'ชำระบางส่วน') : t('Paid', 'ชำระแล้ว');
