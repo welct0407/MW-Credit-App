@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-09T08:58:10.042Z",
+  "at": "2026-11-09T09:13:13.053Z",
   "passed": true,
   "checks": [
     {
@@ -23,7 +23,7 @@
       "name": "mapping parity",
       "passed": true,
       "detail": {
-        "checked": 153,
+        "checked": 152,
         "mismatched": 0
       }
     },
@@ -48,7 +48,7 @@
       "name": "reused values equal dashboard 3",
       "passed": true,
       "detail": {
-        "sampled": 100,
+        "sampled": 99,
         "different": []
       }
     },
@@ -59,7 +59,7 @@
         "oneRow": true,
         "doneEquals": true,
         "totalEquals": true,
-        "shareEquals": true
+        "labelEquals": true
       }
     },
     {
@@ -69,7 +69,7 @@
         "oneRow": true,
         "doneEquals": true,
         "totalEquals": true,
-        "shareEquals": true,
+        "labelEquals": true,
         "dueToday": "non-zero"
       }
     },
@@ -189,6 +189,15 @@
       }
     },
     {
+      "name": "income.expense-categories-signed",
+      "passed": true,
+      "detail": {
+        "categories": 2,
+        "sameCategories": true,
+        "amountsNegated": true
+      }
+    },
+    {
       "name": "income.daily-signed",
       "passed": true,
       "detail": {
@@ -202,7 +211,7 @@
       "name": "cashflow.transactions-desc",
       "passed": true,
       "detail": {
-        "rows": 192,
+        "rows": 193,
         "sameRows": true,
         "reverseOrder": true
       }
@@ -343,7 +352,7 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 4,
+            "rows": 3,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
@@ -371,7 +380,7 @@
           },
           {
             "key": "collection.lane-paid",
-            "rows": 9,
+            "rows": 10,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true

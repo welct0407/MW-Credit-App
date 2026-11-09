@@ -489,7 +489,7 @@
       "id": 380,
       "name": "Interest this month · received of projection",
       "display": "row",
-      "description": "Loan Reports · proposed (today.realization). One-row stacked bar from model 73: Received = Realized Profit MTD, Remaining = max(Projected Monthly Profit − Received, 0); the bar label (Share) is Forecast Realization as a one-decimal percent, blank when the projection is zero. Whole baht. Basis: model 73 Portfolio Overview.",
+      "description": "Loan Reports · proposed (today.realization). One-row stacked bar from model 73: Received = Realized Profit MTD, Remaining = max(Projected Monthly Profit − Received, 0); the bar label (Share) reads \"<received> of <projection> · <share>%\" in whole baht, the share being Forecast Realization to one decimal (omitted when the projection is zero). Basis: model 73 Portfolio Overview.",
       "dataset_query": {
         "stages": [
           {
@@ -503,7 +503,7 @@
               }
             ],
             "lib/type": "mbql.stage/native",
-            "native": "SELECT to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM990.0')||'%' AS \"Share\",\"Realized Profit MTD\" AS \"Received\",greatest(\"Projected Monthly Profit\"-\"Realized Profit MTD\",0) AS \"Remaining\" FROM {{#73}}"
+            "native": "SELECT to_char(\"Realized Profit MTD\",'FM999,999,999')||' of '||to_char(\"Projected Monthly Profit\",'FM999,999,999')||coalesce(' · '||to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM990.0')||'%','') AS \"Share\",\"Realized Profit MTD\" AS \"Received\",greatest(\"Projected Monthly Profit\"-\"Realized Profit MTD\",0) AS \"Remaining\" FROM {{#73}}"
           }
         ],
         "lib/type": "mbql/query",
@@ -512,16 +512,15 @@
       "visualization_settings": {
         "graph.show_values": true,
         "graph.show_legend": false,
-        "graph.x_axis.labels_enabled": true,
-        "graph.x_axis.title_enabled": false,
+        "graph.x_axis.labels_enabled": false,
         "graph.x_axis.axis_enabled": true,
-        "graph.y_axis.title_enabled": false,
+        "graph.y_axis.labels_enabled": false,
         "graph.metrics": [
           "Received",
           "Remaining"
         ],
         "graph.y_axis.axis_enabled": false,
-        "graph.show_stack_values": "all",
+        "graph.show_stack_values": "total",
         "graph.label_value_formatting": "full",
         "graph.colors": [
           "#067647",
@@ -549,6 +548,7 @@
             "color": "#D9DEE5"
           }
         },
+        "legend.is_reversed": false,
         "graph.dimensions": [
           "Share"
         ],
@@ -560,7 +560,7 @@
       "id": 381,
       "name": "Today's charges · paid of due",
       "display": "row",
-      "description": "Loan Reports · proposed (today.collection-rate). One-row stacked bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts), Remaining = max(Amount Due Today − Paid, 0); the label (Share) is Amount Collection Rate Today as a one-decimal percent. Placed on Today only; Collection shows the same share as question 252. Basis: model 73 Portfolio Overview.",
+      "description": "Loan Reports · proposed (today.collection-rate). One-row stacked bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts), Remaining = max(Amount Due Today − Paid, 0); the label (Share) reads \"<paid> of <due> · <share>%\", the share being Amount Collection Rate Today. Placed on Today only; Collection shows the same share as question 252. Basis: model 73 Portfolio Overview.",
       "dataset_query": {
         "stages": [
           {
@@ -574,7 +574,7 @@
               }
             ],
             "lib/type": "mbql.stage/native",
-            "native": "SELECT to_char(100*\"Amount Collected Today\"/nullif(\"Amount Due Today\",0),'FM990.0')||'%' AS \"Share\",\"Amount Collected Today\" AS \"Paid\",greatest(\"Amount Due Today\"-\"Amount Collected Today\",0) AS \"Remaining\" FROM {{#73}}"
+            "native": "SELECT to_char(\"Amount Collected Today\",'FM999,999,999')||' of '||to_char(\"Amount Due Today\",'FM999,999,999')||coalesce(' · '||to_char(100*\"Amount Collected Today\"/nullif(\"Amount Due Today\",0),'FM990.0')||'%','') AS \"Share\",\"Amount Collected Today\" AS \"Paid\",greatest(\"Amount Due Today\"-\"Amount Collected Today\",0) AS \"Remaining\" FROM {{#73}}"
           }
         ],
         "lib/type": "mbql/query",
@@ -583,16 +583,15 @@
       "visualization_settings": {
         "graph.show_values": true,
         "graph.show_legend": false,
-        "graph.x_axis.labels_enabled": true,
-        "graph.x_axis.title_enabled": false,
+        "graph.x_axis.labels_enabled": false,
         "graph.x_axis.axis_enabled": true,
-        "graph.y_axis.title_enabled": false,
+        "graph.y_axis.labels_enabled": false,
         "graph.metrics": [
           "Paid",
           "Remaining"
         ],
         "graph.y_axis.axis_enabled": false,
-        "graph.show_stack_values": "all",
+        "graph.show_stack_values": "total",
         "graph.label_value_formatting": "full",
         "graph.colors": [
           "#067647",
@@ -620,6 +619,7 @@
             "color": "#D9DEE5"
           }
         },
+        "legend.is_reversed": false,
         "graph.dimensions": [
           "Share"
         ],
@@ -854,7 +854,7 @@
       "id": 385,
       "name": "Monthly income, expenses, write-offs and net profit",
       "display": "combo",
-      "description": "Loan Reports · proposed (income.monthly). MBQL on model 186 by Date month (R116), the previous five complete months plus the current month (partial): sum Income, −sum Expenses, −sum Principal Write-offs (costs negative, 9 Nov 2026) as stacked bars and Net profit = sum (Income − Expenses − Principal Write-offs) as a line with markers. One shared y-axis. Basis: model 186 Income Events.",
+      "description": "Loan Reports · proposed (income.monthly). MBQL on model 186 by Date month (R116), the previous five complete months plus the current month (partial): sum Income, −sum Expenses, −sum Principal Write-offs (costs negative, 9 Nov 2026) as side-by-side bars, each labelled (costs below zero), and Net profit = sum (Income − Expenses − Principal Write-offs) as an unlabelled line with markers (UX-IN-04: stacked cost segments were too thin to label and reversed the legend). One shared y-axis. Basis: model 186 Income Events.",
       "dataset_query": {
         "stages": [
           {
@@ -863,13 +863,13 @@
                 "time-interval",
                 {
                   "include-current": true,
-                  "lib/uuid": "65bfdafb-28dd-402f-80fb-c6fad71e6628"
+                  "lib/uuid": "0f3bd75d-697c-465e-b6fd-756d310ad959"
                 },
                 [
                   "field",
                   {
                     "base-type": "type/Date",
-                    "lib/uuid": "30ec0032-a607-4006-8064-d4d41da335c0"
+                    "lib/uuid": "251a195d-33ad-4dc5-afa5-e89face58fca"
                   },
                   "Date"
                 ],
@@ -883,14 +883,14 @@
                 "sum",
                 {
                   "name": "Income",
-                  "lib/uuid": "1494e8ff-30ca-4fb0-ae09-03f3292106da",
+                  "lib/uuid": "3e35e88f-117d-42f0-9c72-3625a8df6685",
                   "display-name": "Income"
                 },
                 [
                   "field",
                   {
                     "base-type": "type/Decimal",
-                    "lib/uuid": "6d9d84fa-cdf9-4f95-b2bd-b32c296a4963"
+                    "lib/uuid": "4260d420-0abf-4699-b489-2e23b1929e5c"
                   },
                   "Income"
                 ]
@@ -899,20 +899,20 @@
                 "*",
                 {
                   "name": "Expenses",
-                  "lib/uuid": "836b3b9d-bc7e-4d15-8158-9f0eb8fbd253",
+                  "lib/uuid": "496ed1b4-dbfb-4ca6-8144-b64bcea03c5d",
                   "display-name": "Expenses"
                 },
                 -1,
                 [
                   "sum",
                   {
-                    "lib/uuid": "2600f4eb-ad35-4100-8730-cd0a40cbd2c9"
+                    "lib/uuid": "4bcbd802-8354-4529-bec2-3d320c6ae027"
                   },
                   [
                     "field",
                     {
                       "base-type": "type/Decimal",
-                      "lib/uuid": "04bf1995-9dcd-498d-b8c7-0d8fad638414"
+                      "lib/uuid": "f35cdc5c-f5d5-42f0-a77c-e26516cdc7fa"
                     },
                     "Expenses"
                   ]
@@ -922,20 +922,20 @@
                 "*",
                 {
                   "name": "Write-offs",
-                  "lib/uuid": "c4477413-339c-436c-9620-792cdcc6ba8d",
+                  "lib/uuid": "a61f7081-1d20-449d-8155-2ca5e6b99c41",
                   "display-name": "Write-offs"
                 },
                 -1,
                 [
                   "sum",
                   {
-                    "lib/uuid": "43aa3c05-6e49-480d-9414-35db55f21666"
+                    "lib/uuid": "a0a3e198-989d-4b46-94e7-cc41ad9c073d"
                   },
                   [
                     "field",
                     {
                       "base-type": "type/Decimal",
-                      "lib/uuid": "12186f78-7f18-4876-9180-485b40fc3b88"
+                      "lib/uuid": "319440ca-4a4d-43ee-867b-8823aa68462b"
                     },
                     "Principal Write-offs"
                   ]
@@ -945,19 +945,19 @@
                 "-",
                 {
                   "name": "Net profit",
-                  "lib/uuid": "b050e2a4-6ba6-45c4-9289-af65ed8934cc",
+                  "lib/uuid": "51e581c7-4983-4609-a88c-debaffb342f7",
                   "display-name": "Net profit"
                 },
                 [
                   "sum",
                   {
-                    "lib/uuid": "fdb0678d-f53e-47bf-8b65-15ac6e519572"
+                    "lib/uuid": "2c601eed-f7b9-4020-ba2e-4f8003c50824"
                   },
                   [
                     "field",
                     {
                       "base-type": "type/Decimal",
-                      "lib/uuid": "7d6eb26d-6d72-43f2-8182-b48436806f05"
+                      "lib/uuid": "a44f878f-eb06-4178-b43d-8bc202f4557c"
                     },
                     "Income"
                   ]
@@ -965,13 +965,13 @@
                 [
                   "sum",
                   {
-                    "lib/uuid": "f42bf1ab-1022-41ed-a815-eceb6194c1c0"
+                    "lib/uuid": "139f9db5-4fbe-48f4-88b4-826cf5f31eec"
                   },
                   [
                     "field",
                     {
                       "base-type": "type/Decimal",
-                      "lib/uuid": "c1396e96-2160-4f8a-909d-103083c74a8c"
+                      "lib/uuid": "b6338672-55f4-4b2b-9306-fb582dc029b5"
                     },
                     "Expenses"
                   ]
@@ -979,13 +979,13 @@
                 [
                   "sum",
                   {
-                    "lib/uuid": "370f8414-af05-4fa2-90db-f96cb4ae9bad"
+                    "lib/uuid": "2ade7651-469d-4578-b5d8-e392ea369a86"
                   },
                   [
                     "field",
                     {
                       "base-type": "type/Decimal",
-                      "lib/uuid": "c50587a3-d9e8-4121-82ae-0e05c4c4d7ce"
+                      "lib/uuid": "8d5dc268-a590-4ec5-a9c9-ee17a5718328"
                     },
                     "Principal Write-offs"
                   ]
@@ -998,7 +998,7 @@
                 {
                   "temporal-unit": "month",
                   "base-type": "type/Date",
-                  "lib/uuid": "3d8954f1-eff9-4859-ad03-5f359f293580"
+                  "lib/uuid": "9360a3e7-7d7c-4be9-b101-e9565635e50b"
                 },
                 "Date"
               ]
@@ -1020,7 +1020,6 @@
           "Write-offs",
           "Net profit"
         ],
-        "graph.show_stack_values": "series",
         "graph.label_value_formatting": "compact",
         "graph.colors": [
           "#13855B",
@@ -1070,13 +1069,14 @@
           "Net profit": {
             "display": "line",
             "color": "#84BB4C",
-            "line.marker_enabled": true
+            "line.marker_enabled": true,
+            "show_series_values": false
           }
         },
         "graph.dimensions": [
           "Date"
         ],
-        "stackable.stack_type": "stacked"
+        "stackable.stack_type": null
       }
     },
     {
@@ -3262,7 +3262,7 @@
       "id": 420,
       "name": "Expense detail · newest first",
       "display": "table",
-      "description": "Loan Reports · proposed (income.expense-detail-desc). Question 212's query ordered by Expense Date DESC, Expense ID DESC. Template tags, column formats and the column set (Expense ID hidden) copied; maps `statement-period` as 212 maps review-income. Basis: snippet 2 Income statement period (same query as question 212).",
+      "description": "Loan Reports · proposed (income.expense-detail-desc). Question 212's query wrapped: Expenses as −|amount| (costs negative on the Income tab, 9 Nov 2026), ordered by Expense Date DESC, Expense ID DESC. Template tags, column formats and the column set (Expense ID hidden) copied; maps `statement-period` as 212 maps review-income. Basis: snippet 2 Income statement period (same query as question 212).",
       "dataset_query": {
         "stages": [
           {
@@ -3278,7 +3278,7 @@
                   "field",
                   {
                     "base-type": "type/Date",
-                    "lib/uuid": "8b260182-8cc5-407b-ab3f-1d551af8a791",
+                    "lib/uuid": "07e747e6-5d0a-42b0-a2e5-ad14efe8e572",
                     "effective-type": "type/Date"
                   },
                   82
@@ -3308,7 +3308,7 @@
               }
             ],
             "lib/type": "mbql.stage/native",
-            "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT e.\"Expense Date\",e.\"Expense Category\",b.\"Payee Name\" AS \"Payee\",h.\"Cash Holder\" AS \"Paid By\",e.\"Expense Amount\" AS \"Expenses\",b.\"Notes\",e.\"Expense ID\" FROM statement s JOIN {{#163}} e ON e.\"Expense Date\" BETWEEN s.\"Period Start\" AND s.\"Period End\" LEFT JOIN public.\"Business Expenses\" b ON b.\"Row ID\"=e.\"Expense ID\" LEFT JOIN (SELECT DISTINCT \"Cash Holder ID\",\"Cash Holder\" FROM public.reporting_cash_accounts) h ON h.\"Cash Holder ID\"=b.\"Ref Paid By Cash Holder\" WHERE s.\"Continuous Period\" ORDER BY e.\"Expense Date\" DESC,e.\"Expense ID\" DESC"
+            "native": "SELECT t.\"Expense Date\",t.\"Expense Category\",t.\"Payee\",t.\"Paid By\",-abs(t.\"Expenses\") AS \"Expenses\",t.\"Notes\",t.\"Expense ID\" FROM (WITH statement AS ({{snippet: Income statement period}}) SELECT e.\"Expense Date\",e.\"Expense Category\",b.\"Payee Name\" AS \"Payee\",h.\"Cash Holder\" AS \"Paid By\",e.\"Expense Amount\" AS \"Expenses\",b.\"Notes\",e.\"Expense ID\" FROM statement s JOIN {{#163}} e ON e.\"Expense Date\" BETWEEN s.\"Period Start\" AND s.\"Period End\" LEFT JOIN public.\"Business Expenses\" b ON b.\"Row ID\"=e.\"Expense ID\" LEFT JOIN (SELECT DISTINCT \"Cash Holder ID\",\"Cash Holder\" FROM public.reporting_cash_accounts) h ON h.\"Cash Holder ID\"=b.\"Ref Paid By Cash Holder\" WHERE s.\"Continuous Period\" ORDER BY e.\"Expense Date\",e.\"Expense ID\") t ORDER BY t.\"Expense Date\" DESC,t.\"Expense ID\" DESC"
           }
         ],
         "lib/type": "mbql/query",
@@ -3480,7 +3480,7 @@
                   "field",
                   {
                     "base-type": "type/Date",
-                    "lib/uuid": "9a65d329-289e-48b0-8890-7a3c1abdada0",
+                    "lib/uuid": "3812a490-9f8c-4a8a-95fa-3205bbb82fff",
                     "effective-type": "type/Date"
                   },
                   82
@@ -3539,10 +3539,96 @@
             "color": "#D1495B"
           }
         },
+        "legend.is_reversed": false,
         "graph.dimensions": [
           "Date"
         ],
         "stackable.stack_type": "stacked"
+      }
+    },
+    {
+      "key": "income.expense-categories-signed",
+      "id": 423,
+      "name": "Expenses by category · statement period (negative)",
+      "display": "row",
+      "description": "Loan Reports · proposed (income.expense-categories-signed). Question 178's query wrapped: Expense Category and −|Expenses|, largest cost first; red bars to the left of zero. Template tags copied; maps `statement-period` as 178 maps review-income. Basis: snippet 2 Income statement period (same query as question 178).",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "alias": "d.\"Date\"",
+                "widget-type": "date/all-options",
+                "id": "r016-statement_period",
+                "name": "statement_period",
+                "display-name": "Statement period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "c38ca2ea-8494-4208-8a35-e140e9cc9e86",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ]
+              },
+              {
+                "display-name": "Model 186",
+                "type": "card",
+                "id": "r016-model-186",
+                "name": "#186",
+                "card-id": 186
+              },
+              {
+                "type": "snippet",
+                "snippet-id": 2,
+                "id": "r016-snippet-2",
+                "name": "snippet: Income statement period",
+                "display-name": "Income statement period",
+                "snippet-name": "Income statement period"
+              },
+              {
+                "display-name": "Model 163",
+                "type": "card",
+                "id": "r016-model-163",
+                "name": "#163",
+                "card-id": 163
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "SELECT t.\"Expense Category\",-abs(t.\"Expenses\") AS \"Expenses\" FROM (WITH statement AS ({{snippet: Income statement period}}) SELECT e.\"Expense Category\",sum(e.\"Expense Amount\") AS \"Expenses\" FROM statement s JOIN {{#163}} e ON e.\"Expense Date\" BETWEEN s.\"Period Start\" AND s.\"Period End\" WHERE s.\"Continuous Period\" GROUP BY 1 ORDER BY 2 DESC,1) t ORDER BY 2,1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Expense Category"
+        ],
+        "graph.show_values": true,
+        "graph.label_value_formatting": "full",
+        "graph.show_legend": false,
+        "graph.colors": [
+          "#D1495B"
+        ],
+        "series_settings": {
+          "Expenses": {
+            "color": "#D1495B"
+          }
+        },
+        "column_settings": {
+          "[\"name\",\"Expenses\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        },
+        "graph.metrics": [
+          "Expenses"
+        ]
       }
     }
   ],
@@ -9993,250 +10079,6 @@
       }
     },
     {
-      "id": 9302,
-      "card_id": null,
-      "dashboard_tab_id": 376,
-      "row": 0,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Cash position** · Date = today is live, a past date is the snapshot.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "**Cash position** · Date = today is live, a past date is the snapshot."
-      }
-    },
-    {
-      "id": 9303,
-      "card_id": 382,
-      "dashboard_tab_id": 376,
-      "row": 2,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "position-date",
-          "card_id": 382,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "position_date"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Total cash pool"
-      }
-    },
-    {
-      "id": 9304,
-      "card_id": 383,
-      "dashboard_tab_id": 376,
-      "row": 2,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "position-date",
-          "card_id": 383,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "position_date"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Principal outstanding"
-      }
-    },
-    {
-      "id": 9305,
-      "card_id": 207,
-      "dashboard_tab_id": 376,
-      "row": 2,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "position-date",
-          "card_id": 207,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "position_date"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Remaining lending capital"
-      }
-    },
-    {
-      "id": 9306,
-      "card_id": 208,
-      "dashboard_tab_id": 376,
-      "row": 2,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "position-date",
-          "card_id": 208,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "position_date"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Net cash balance"
-      }
-    },
-    {
-      "id": 9307,
-      "card_id": 68,
-      "dashboard_tab_id": 376,
-      "row": 5,
-      "col": 0,
-      "size_x": 8,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Capital deployed · live"
-      }
-    },
-    {
-      "id": 9308,
-      "card_id": 419,
-      "dashboard_tab_id": 376,
-      "row": 5,
-      "col": 8,
-      "size_x": 16,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "position-date",
-          "card_id": 419,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "position_date"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Net cash by holder · selected date",
-        "graph.show_legend": false
-      }
-    },
-    {
-      "id": 9309,
-      "card_id": 211,
-      "dashboard_tab_id": 376,
-      "row": 11,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "position-date",
-          "card_id": 211,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "position_date"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Account balances · selected date",
-        "card.description": "Signed balances; negative balances count."
-      }
-    },
-    {
-      "id": 9310,
-      "card_id": 202,
-      "dashboard_tab_id": 376,
-      "row": 17,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 202,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "position_trend"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Daily closing positions · completed days"
-      }
-    },
-    {
-      "id": 9311,
-      "card_id": null,
-      "dashboard_tab_id": 376,
-      "row": 24,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Unknown openings stay blank · source and freshness: Data health tab.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "Unknown openings stay blank · source and freshness: Data health tab."
-      }
-    },
-    {
       "id": 9325,
       "card_id": null,
       "dashboard_tab_id": 378,
@@ -10791,7 +10633,7 @@
       }
     },
     {
-      "id": 9336,
+      "id": 9394,
       "card_id": null,
       "dashboard_tab_id": 375,
       "row": 0,
@@ -10814,7 +10656,7 @@
       }
     },
     {
-      "id": 9337,
+      "id": 9395,
       "card_id": 257,
       "dashboard_tab_id": 375,
       "row": 0,
@@ -10828,7 +10670,7 @@
       }
     },
     {
-      "id": 9338,
+      "id": 9396,
       "card_id": 49,
       "dashboard_tab_id": 375,
       "row": 2,
@@ -10858,7 +10700,7 @@
       }
     },
     {
-      "id": 9339,
+      "id": 9397,
       "card_id": 379,
       "dashboard_tab_id": 375,
       "row": 2,
@@ -10887,7 +10729,7 @@
       }
     },
     {
-      "id": 9340,
+      "id": 9398,
       "card_id": 51,
       "dashboard_tab_id": 375,
       "row": 2,
@@ -10917,7 +10759,7 @@
       }
     },
     {
-      "id": 9341,
+      "id": 9399,
       "card_id": 237,
       "dashboard_tab_id": 375,
       "row": 2,
@@ -10931,7 +10773,7 @@
       }
     },
     {
-      "id": 9342,
+      "id": 9400,
       "card_id": 50,
       "dashboard_tab_id": 375,
       "row": 5,
@@ -10961,7 +10803,7 @@
       }
     },
     {
-      "id": 9343,
+      "id": 9401,
       "card_id": 56,
       "dashboard_tab_id": 375,
       "row": 5,
@@ -10997,7 +10839,7 @@
       }
     },
     {
-      "id": 9344,
+      "id": 9402,
       "card_id": 380,
       "dashboard_tab_id": 375,
       "row": 5,
@@ -11008,11 +10850,14 @@
       "parameter_mappings": [],
       "visualization_settings": {
         "card.title": "Interest · of projection ฿",
-        "card.description": "Interest received this month (green) and the rest of the projected month (grey), whole baht."
+        "card.description": "Interest received this month (green) and the rest of the projected month (grey), whole baht.",
+        "graph.x_axis.labels_enabled": false,
+        "graph.y_axis.labels_enabled": false,
+        "legend.is_reversed": false
       }
     },
     {
-      "id": 9345,
+      "id": 9403,
       "card_id": 381,
       "dashboard_tab_id": 375,
       "row": 5,
@@ -11023,11 +10868,14 @@
       "parameter_mappings": [],
       "visualization_settings": {
         "card.title": "Today's charges · paid ฿",
-        "card.description": "Charges dated today: paid (green) and still due (grey), whole baht."
+        "card.description": "Charges dated today: paid (green) and still due (grey), whole baht.",
+        "graph.x_axis.labels_enabled": false,
+        "graph.y_axis.labels_enabled": false,
+        "legend.is_reversed": false
       }
     },
     {
-      "id": 9346,
+      "id": 9404,
       "card_id": 389,
       "dashboard_tab_id": 375,
       "row": 8,
@@ -11051,7 +10899,7 @@
       }
     },
     {
-      "id": 9347,
+      "id": 9405,
       "card_id": 402,
       "dashboard_tab_id": 375,
       "row": 14,
@@ -11077,7 +10925,7 @@
       }
     },
     {
-      "id": 9348,
+      "id": 9406,
       "card_id": 222,
       "dashboard_tab_id": 375,
       "row": 14,
@@ -11110,7 +10958,7 @@
       }
     },
     {
-      "id": 9349,
+      "id": 9407,
       "card_id": 390,
       "dashboard_tab_id": 375,
       "row": 21,
@@ -11124,7 +10972,7 @@
       }
     },
     {
-      "id": 9350,
+      "id": 9408,
       "card_id": 391,
       "dashboard_tab_id": 375,
       "row": 21,
@@ -11138,7 +10986,7 @@
       }
     },
     {
-      "id": 9351,
+      "id": 9409,
       "card_id": null,
       "dashboard_tab_id": 375,
       "row": 28,
@@ -11161,7 +11009,251 @@
       }
     },
     {
-      "id": 9352,
+      "id": 9410,
+      "card_id": null,
+      "dashboard_tab_id": 376,
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Cash position** · Date = today is live, a past date is the snapshot.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "**Cash position** · Date = today is live, a past date is the snapshot."
+      }
+    },
+    {
+      "id": 9411,
+      "card_id": 382,
+      "dashboard_tab_id": 376,
+      "row": 2,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "position-date",
+          "card_id": 382,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Total cash pool"
+      }
+    },
+    {
+      "id": 9412,
+      "card_id": 383,
+      "dashboard_tab_id": 376,
+      "row": 2,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "position-date",
+          "card_id": 383,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Principal outstanding"
+      }
+    },
+    {
+      "id": 9413,
+      "card_id": 207,
+      "dashboard_tab_id": 376,
+      "row": 2,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "position-date",
+          "card_id": 207,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Remaining lending capital"
+      }
+    },
+    {
+      "id": 9414,
+      "card_id": 208,
+      "dashboard_tab_id": 376,
+      "row": 2,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "position-date",
+          "card_id": 208,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Net cash balance"
+      }
+    },
+    {
+      "id": 9415,
+      "card_id": 68,
+      "dashboard_tab_id": 376,
+      "row": 5,
+      "col": 0,
+      "size_x": 8,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Capital deployed · live"
+      }
+    },
+    {
+      "id": 9416,
+      "card_id": 419,
+      "dashboard_tab_id": 376,
+      "row": 5,
+      "col": 8,
+      "size_x": 16,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "position-date",
+          "card_id": 419,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Net cash by holder · selected date",
+        "legend.is_reversed": false
+      }
+    },
+    {
+      "id": 9417,
+      "card_id": 211,
+      "dashboard_tab_id": 376,
+      "row": 11,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "position-date",
+          "card_id": 211,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Account balances · selected date",
+        "card.description": "Signed balances; negative balances count."
+      }
+    },
+    {
+      "id": 9418,
+      "card_id": 202,
+      "dashboard_tab_id": 376,
+      "row": 17,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 202,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_trend"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Daily closing positions · completed days"
+      }
+    },
+    {
+      "id": 9419,
+      "card_id": null,
+      "dashboard_tab_id": 376,
+      "row": 24,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Unknown openings stay blank · source and freshness: Data health tab.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "Unknown openings stay blank · source and freshness: Data health tab."
+      }
+    },
+    {
+      "id": 9420,
       "card_id": null,
       "dashboard_tab_id": 377,
       "row": 0,
@@ -11184,7 +11276,7 @@
       }
     },
     {
-      "id": 9353,
+      "id": 9421,
       "card_id": 168,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -11227,7 +11319,7 @@
       }
     },
     {
-      "id": 9354,
+      "id": 9422,
       "card_id": 392,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -11249,11 +11341,19 @@
         }
       ],
       "visualization_settings": {
-        "card.title": "+ Expenses"
+        "card.title": "+ Expenses",
+        "scalar.segments": [
+          {
+            "min": -1000000000000,
+            "max": 0,
+            "color": "#D1495B",
+            "label": ""
+          }
+        ]
       }
     },
     {
-      "id": 9355,
+      "id": 9423,
       "card_id": 416,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -11275,11 +11375,19 @@
         }
       ],
       "visualization_settings": {
-        "card.title": "+ Write-offs"
+        "card.title": "+ Write-offs",
+        "scalar.segments": [
+          {
+            "min": -1000000000000,
+            "max": 0,
+            "color": "#D1495B",
+            "label": ""
+          }
+        ]
       }
     },
     {
-      "id": 9356,
+      "id": 9424,
       "card_id": 170,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -11322,7 +11430,7 @@
       }
     },
     {
-      "id": 9357,
+      "id": 9425,
       "card_id": 384,
       "dashboard_tab_id": 377,
       "row": 5,
@@ -11348,7 +11456,7 @@
       }
     },
     {
-      "id": 9358,
+      "id": 9426,
       "card_id": 171,
       "dashboard_tab_id": 377,
       "row": 5,
@@ -11391,7 +11499,7 @@
       }
     },
     {
-      "id": 9359,
+      "id": 9427,
       "card_id": 418,
       "dashboard_tab_id": 377,
       "row": 8,
@@ -11417,7 +11525,7 @@
       }
     },
     {
-      "id": 9360,
+      "id": 9428,
       "card_id": 385,
       "dashboard_tab_id": 377,
       "row": 11,
@@ -11431,8 +11539,8 @@
       }
     },
     {
-      "id": 9361,
-      "card_id": 178,
+      "id": 9429,
+      "card_id": 423,
       "dashboard_tab_id": 377,
       "row": 11,
       "col": 16,
@@ -11442,7 +11550,7 @@
       "parameter_mappings": [
         {
           "parameter_id": "statement-period",
-          "card_id": 178,
+          "card_id": 423,
           "target": [
             "dimension",
             [
@@ -11453,28 +11561,11 @@
         }
       ],
       "visualization_settings": {
-        "graph.colors": [
-          "#D1495B"
-        ],
-        "graph.show_values": true,
-        "card.title": "Expenses by category · this period",
-        "series_settings": {
-          "Expenses": {
-            "color": "#EF8C8C"
-          }
-        },
-        "column_settings": {
-          "[\"name\",\"Expenses\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
+        "card.title": "Expenses by category · this period"
       }
     },
     {
-      "id": 9362,
+      "id": 9430,
       "card_id": 422,
       "dashboard_tab_id": 377,
       "row": 19,
@@ -11500,7 +11591,7 @@
       }
     },
     {
-      "id": 9363,
+      "id": 9431,
       "card_id": 420,
       "dashboard_tab_id": 377,
       "row": 26,
@@ -11557,7 +11648,7 @@
       }
     },
     {
-      "id": 9364,
+      "id": 9432,
       "card_id": null,
       "dashboard_tab_id": 377,
       "row": 33,

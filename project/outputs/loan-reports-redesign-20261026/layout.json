@@ -302,8 +302,8 @@
    "basis": "model 73 Portfolio Overview",
    "origin": 52,
    "params": [],
-   "definition": "One-row stacked bar from model 73: Received = Realized Profit MTD, Remaining = max(Projected Monthly Profit − Received, 0); the bar label (Share) is Forecast Realization as a one-decimal percent, blank when the projection is zero. Whole baht.",
-   "sql": "SELECT to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM990.0')||'%' AS \"Share\",\"Realized Profit MTD\" AS \"Received\",greatest(\"Projected Monthly Profit\"-\"Realized Profit MTD\",0) AS \"Remaining\" FROM {{#73}}",
+   "definition": "One-row stacked bar from model 73: Received = Realized Profit MTD, Remaining = max(Projected Monthly Profit − Received, 0); the bar label (Share) reads \"<received> of <projection> · <share>%\" in whole baht, the share being Forecast Realization to one decimal (omitted when the projection is zero).",
+   "sql": "SELECT to_char(\"Realized Profit MTD\",'FM999,999,999')||' of '||to_char(\"Projected Monthly Profit\",'FM999,999,999')||coalesce(' · '||to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM990.0')||'%','') AS \"Share\",\"Realized Profit MTD\" AS \"Received\",greatest(\"Projected Monthly Profit\"-\"Realized Profit MTD\",0) AS \"Remaining\" FROM {{#73}}",
    "settings": {
     "graph.dimensions": [
      "Share"
@@ -314,14 +314,14 @@
     ],
     "stackable.stack_type": "stacked",
     "graph.show_values": true,
-    "graph.show_stack_values": "all",
+    "graph.show_stack_values": "total",
     "graph.label_value_formatting": "full",
     "graph.show_legend": false,
     "graph.y_axis.axis_enabled": false,
     "graph.x_axis.axis_enabled": true,
-    "graph.x_axis.labels_enabled": true,
-    "graph.x_axis.title_enabled": false,
-    "graph.y_axis.title_enabled": false,
+    "graph.x_axis.labels_enabled": false,
+    "graph.y_axis.labels_enabled": false,
+    "legend.is_reversed": false,
     "graph.colors": [
      "#067647",
      "#D9DEE5"
@@ -349,7 +349,7 @@
      }
     }
    },
-   "reconcile": "Received equals question 51; Received + Remaining equals max(question 52, question 51); Share equals model 73 Forecast Realization."
+   "reconcile": "Received equals question 51; Received + Remaining equals max(question 52, question 51); the label's numbers equal questions 51 and 52 and its share model 73 Forecast Realization."
   },
   "today.collection-rate": {
    "name": "Today's charges · paid of due",
@@ -358,8 +358,8 @@
    "basis": "model 73 Portfolio Overview",
    "origin": 252,
    "params": [],
-   "definition": "One-row stacked bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts), Remaining = max(Amount Due Today − Paid, 0); the label (Share) is Amount Collection Rate Today as a one-decimal percent. Placed on Today only; Collection shows the same share as question 252.",
-   "sql": "SELECT to_char(100*\"Amount Collected Today\"/nullif(\"Amount Due Today\",0),'FM990.0')||'%' AS \"Share\",\"Amount Collected Today\" AS \"Paid\",greatest(\"Amount Due Today\"-\"Amount Collected Today\",0) AS \"Remaining\" FROM {{#73}}",
+   "definition": "One-row stacked bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts), Remaining = max(Amount Due Today − Paid, 0); the label (Share) reads \"<paid> of <due> · <share>%\", the share being Amount Collection Rate Today. Placed on Today only; Collection shows the same share as question 252.",
+   "sql": "SELECT to_char(\"Amount Collected Today\",'FM999,999,999')||' of '||to_char(\"Amount Due Today\",'FM999,999,999')||coalesce(' · '||to_char(100*\"Amount Collected Today\"/nullif(\"Amount Due Today\",0),'FM990.0')||'%','') AS \"Share\",\"Amount Collected Today\" AS \"Paid\",greatest(\"Amount Due Today\"-\"Amount Collected Today\",0) AS \"Remaining\" FROM {{#73}}",
    "settings": {
     "graph.dimensions": [
      "Share"
@@ -370,14 +370,14 @@
     ],
     "stackable.stack_type": "stacked",
     "graph.show_values": true,
-    "graph.show_stack_values": "all",
+    "graph.show_stack_values": "total",
     "graph.label_value_formatting": "full",
     "graph.show_legend": false,
     "graph.y_axis.axis_enabled": false,
     "graph.x_axis.axis_enabled": true,
-    "graph.x_axis.labels_enabled": true,
-    "graph.x_axis.title_enabled": false,
-    "graph.y_axis.title_enabled": false,
+    "graph.x_axis.labels_enabled": false,
+    "graph.y_axis.labels_enabled": false,
+    "legend.is_reversed": false,
     "graph.colors": [
      "#067647",
      "#D9DEE5"
@@ -405,7 +405,7 @@
      }
     }
    },
-   "reconcile": "Paid equals model 73 Amount Collected Today; Paid + Remaining equals max(Amount Due Today, Paid); Share equals Amount Collection Rate Today."
+   "reconcile": "Paid equals model 73 Amount Collected Today; Paid + Remaining equals max(Amount Due Today, Paid); the label's numbers equal Amount Collected Today and Amount Due Today and its share Amount Collection Rate Today."
   },
   "today.attention": {
    "name": "Needs attention · strip",
@@ -789,15 +789,55 @@
    "params": [
     "statement-period"
    ],
-   "definition": "Question 212's query ordered by Expense Date DESC, Expense ID DESC. Template tags, column formats and the column set (Expense ID hidden) copied; maps `statement-period` as 212 maps review-income.",
-   "order_desc": true,
+   "definition": "Question 212's query wrapped: Expenses as −|amount| (costs negative on the Income tab, 9 Nov 2026), ordered by Expense Date DESC, Expense ID DESC. Template tags, column formats and the column set (Expense ID hidden) copied; maps `statement-period` as 212 maps review-income.",
+   "sql_wrap": "SELECT t.\"Expense Date\",t.\"Expense Category\",t.\"Payee\",t.\"Paid By\",-abs(t.\"Expenses\") AS \"Expenses\",t.\"Notes\",t.\"Expense ID\" FROM (<212>) t ORDER BY t.\"Expense Date\" DESC,t.\"Expense ID\" DESC",
    "settings": {
     "table.pivot": false,
     "copy_from_origin": [
      "table.columns"
     ]
    },
-   "reconcile": "Same rows as question 212 for the same Statement period, in exactly the reverse order."
+   "reconcile": "Same rows as question 212 for the same Statement period (Expenses negated), in exactly the reverse order."
+  },
+  "income.expense-categories-signed": {
+   "name": "Expenses by category · statement period (negative)",
+   "display": "row",
+   "kind": "native",
+   "basis": "snippet 2 Income statement period (same query as question 178)",
+   "origin": 178,
+   "params": [
+    "statement-period"
+   ],
+   "definition": "Question 178's query wrapped: Expense Category and −|Expenses|, largest cost first; red bars to the left of zero. Template tags copied; maps `statement-period` as 178 maps review-income.",
+   "sql_wrap": "SELECT t.\"Expense Category\",-abs(t.\"Expenses\") AS \"Expenses\" FROM (<178>) t ORDER BY 2,1",
+   "settings": {
+    "graph.dimensions": [
+     "Expense Category"
+    ],
+    "graph.metrics": [
+     "Expenses"
+    ],
+    "graph.show_values": true,
+    "graph.label_value_formatting": "full",
+    "graph.show_legend": false,
+    "graph.colors": [
+     "#D1495B"
+    ],
+    "series_settings": {
+     "Expenses": {
+      "color": "#D1495B"
+     }
+    },
+    "column_settings": {
+     "[\"name\", \"Expenses\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
+   },
+   "reconcile": "Same categories as question 178 for the same Statement period, each amount −|178's|."
   },
   "income.vs-previous": {
    "name": "This period and the previous period",
@@ -850,7 +890,7 @@
    "basis": "model 186 Income Events",
    "origin": 213,
    "params": [],
-   "definition": "MBQL on model 186 by Date month (R116), the previous five complete months plus the current month (partial): sum Income, −sum Expenses, −sum Principal Write-offs (costs negative, 9 Nov 2026) as stacked bars and Net profit = sum (Income − Expenses − Principal Write-offs) as a line with markers. One shared y-axis.",
+   "definition": "MBQL on model 186 by Date month (R116), the previous five complete months plus the current month (partial): sum Income, −sum Expenses, −sum Principal Write-offs (costs negative, 9 Nov 2026) as side-by-side bars, each labelled (costs below zero), and Net profit = sum (Income − Expenses − Principal Write-offs) as an unlabelled line with markers (UX-IN-04: stacked cost segments were too thin to label and reversed the legend). One shared y-axis.",
    "settings": {
     "graph.dimensions": [
      "Date"
@@ -863,8 +903,8 @@
     ],
     "graph.show_values": true,
     "graph.y_axis.auto_split": false,
-    "stackable.stack_type": "stacked",
-    "graph.show_stack_values": "series",
+    "stackable.stack_type": null,
+    "graph.label_value_formatting": "compact",
     "graph.colors": [
      "#13855B",
      "#D1495B",
@@ -887,7 +927,8 @@
      "Net profit": {
       "display": "line",
       "color": "#84BB4C",
-      "line.marker_enabled": true
+      "line.marker_enabled": true,
+      "show_series_values": false
      }
     }
    },
@@ -932,6 +973,7 @@
       "color": "#D1495B"
      }
     },
+    "legend.is_reversed": false,
     "column_settings": {
      "[\"name\", \"Income\"]": {
       "number_style": "decimal",
@@ -2106,6 +2148,11 @@
      "new_question": "today.realization",
      "title": "Interest · of projection ฿",
      "description": "Interest received this month (green) and the rest of the projected month (grey), whole baht.",
+     "vs": {
+      "graph.x_axis.labels_enabled": false,
+      "graph.y_axis.labels_enabled": false,
+      "legend.is_reversed": false
+     },
      "params": [
       "period"
      ]
@@ -2118,6 +2165,11 @@
      "new_question": "today.collection-rate",
      "title": "Today's charges · paid ฿",
      "description": "Charges dated today: paid (green) and still due (grey), whole baht.",
+     "vs": {
+      "graph.x_axis.labels_enabled": false,
+      "graph.y_axis.labels_enabled": false,
+      "legend.is_reversed": false
+     },
      "params": [
       "period"
      ]
@@ -2310,9 +2362,9 @@
      "size_y": 6,
      "new_question": "cash.holders-signed",
      "title": "Net cash by holder · selected date",
-     "note": "legend off on the dashcard too (UX-CP-01): the saved question setting alone still showed it",
+     "note": "UX-CP-01: v0.63 has no legend toggle, so the legend stays; it reads Positive, Negative",
      "vs": {
-      "graph.show_legend": false
+      "legend.is_reversed": false
      },
      "params": [
       "position-date",
@@ -2402,6 +2454,16 @@
      "size_y": 3,
      "new_question": "income.expenses",
      "title": "+ Expenses",
+     "vs": {
+      "scalar.segments": [
+       {
+        "min": -1000000000000,
+        "max": 0,
+        "color": "#D1495B",
+        "label": ""
+       }
+      ]
+     },
      "params": [
       "statement-period"
      ]
@@ -2413,6 +2475,16 @@
      "size_y": 3,
      "new_question": "income.writeoffs",
      "title": "+ Write-offs",
+     "vs": {
+      "scalar.segments": [
+       {
+        "min": -1000000000000,
+        "max": 0,
+        "color": "#D1495B",
+        "label": ""
+       }
+      ]
+     },
      "params": [
       "statement-period"
      ]
@@ -2478,7 +2550,7 @@
      "col": 16,
      "size_x": 8,
      "size_y": 8,
-     "reuse_card_id": 178,
+     "new_question": "income.expense-categories-signed",
      "title": "Expenses by category · this period",
      "params": [
       "statement-period"
@@ -2527,7 +2599,8 @@
     214,
     169,
     212,
-    213
+    213,
+    178
    ]
   },
   {
@@ -5408,7 +5481,6 @@
    168,
    170,
    171,
-   178,
    184,
    192,
    193,
@@ -5558,6 +5630,7 @@
    "collection.lane-partial",
    "collection.people",
    "income.daily-signed",
+   "income.expense-categories-signed",
    "income.expense-detail-desc",
    "income.expenses",
    "income.latecharges",

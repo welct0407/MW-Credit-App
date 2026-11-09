@@ -109,6 +109,13 @@ STATUS = {'not_paid': '#ED6E6E', 'partial': '#F9A825', 'overdue': '#7172AD', 'lo
 BLUE, TEAL, ORANGE = '#509EE3', '#178F8A', '#EB6834'
 GREEN, RED = '#13855B', '#D1495B'  # money in / money out (Cashflow waterfall, Income charts)
 AMOUNT_COLUMNS = ['This period', 'Previous period', 'Change', 'Change %']
+# v0.63.18.1 frontend (checked in its bundle, 9 Nov 2026): there is no legend on/off setting (graph.show_legend is ignored; a chart
+# with two or more series always shows its legend), axis names toggle with graph.<axis>.labels_enabled, and stacked charts reverse
+# their legend unless legend.is_reversed is false.
+UNREVERSED = {'legend.is_reversed': False}
+TODAY_BAR_DASHCARD = {'graph.x_axis.labels_enabled': False, 'graph.y_axis.labels_enabled': False, **UNREVERSED}
+# Band cards: costs red like the Cashflow money-out colour, by the same scalar segment rule that makes Income green (UX-IN-03).
+COST_RED = {'scalar.segments': [{'min': -1000000000000, 'max': 0, 'color': '#D1495B', 'label': ''}]}
 
 
 def cols(names, fmt=BAHT):
@@ -119,12 +126,20 @@ def titled(name, title, fmt=BAHT):
     return {json.dumps(['name', name]): {**fmt, 'column_title': title}}
 
 
+def today_sql(done, total, name):
+    """Today progress bar query on model 73: label "<done> of <total> · <share>%" (whole baht), done, remaining."""
+    return (f"SELECT to_char(\"{done}\",'FM999,999,999')||' of '||to_char(\"{total}\",'FM999,999,999')"
+            f"||coalesce(' · '||to_char(100*\"{done}\"/nullif(\"{total}\",0),'FM990.0')||'%','') AS \"Share\","
+            f"\"{done}\" AS \"{name}\",greatest(\"{total}\"-\"{done}\",0) AS \"Remaining\" FROM {{{{#73}}}}")
+
+
 def today_bar(done):
-    """Today progress bar (9 Nov 2026): one stacked row, done green, remaining grey, segment values and the total at the end."""
+    """Today progress bar (9 Nov 2026): one stacked row, done green, remaining grey; the label carries the numbers and the total
+    sits at the bar end. Axis names off: on this version the axis name toggles are graph.<axis>.labels_enabled (UX-TD-04)."""
     return {'graph.dimensions': ['Share'], 'graph.metrics': [done, 'Remaining'], 'stackable.stack_type': 'stacked',
-            'graph.show_values': True, 'graph.show_stack_values': 'all', 'graph.label_value_formatting': 'full',
+            'graph.show_values': True, 'graph.show_stack_values': 'total', 'graph.label_value_formatting': 'full',
             'graph.show_legend': False, 'graph.y_axis.axis_enabled': False, 'graph.x_axis.axis_enabled': True,
-            'graph.x_axis.labels_enabled': True, 'graph.x_axis.title_enabled': False, 'graph.y_axis.title_enabled': False,
+            'graph.x_axis.labels_enabled': False, 'graph.y_axis.labels_enabled': False, **UNREVERSED,
             'graph.colors': ['#067647', '#D9DEE5'], 'series_settings': {done: {'color': '#067647'}, 'Remaining': {'color': '#D9DEE5'}},
             'column_settings': cols([done, 'Remaining'])}
 
@@ -179,25 +194,29 @@ NEW_QUESTIONS = {
         'settings': {'scalar.compact_primary_number': False, 'scalar.comparisons': [{'id': 'first', 'type': 'periodsAgo', 'value': 29}]},
         'reconcile': 'Latest value equals question 62\'s last completed day; first value equals its first day (built, verified).',
     },
-    # 9 Nov 2026 (owner, second round): the two Today cards are a progress bar with numbers again: one stacked horizontal bar
-    # (done in green, remaining in grey) labelled with the share, segment values and the total at the bar end.
+    # 9 Nov 2026 (owner, second and third rounds): the two Today cards are a progress bar: one stacked horizontal bar (done green,
+    # remaining grey). Metabase does not draw segment values on a stacked row, so the numbers sit in the bar's label (UX-TD-03).
     'today.realization': {
         'name': 'Interest this month · received of projection', 'display': 'row', 'kind': 'native',
         'basis': 'model 73 Portfolio Overview', 'origin': 52, 'params': [],
-        'definition': 'One-row stacked bar from model 73: Received = Realized Profit MTD, Remaining = max(Projected Monthly Profit − Received, 0); the bar label (Share) is Forecast Realization as a one-decimal percent, blank when the projection is zero. Whole baht.',
-        'sql': "SELECT to_char(100*\"Realized Profit MTD\"/nullif(\"Projected Monthly Profit\",0),'FM990.0')||'%' AS \"Share\",\"Realized Profit MTD\" AS \"Received\","
-               "greatest(\"Projected Monthly Profit\"-\"Realized Profit MTD\",0) AS \"Remaining\" FROM {{#73}}",
+        'definition': 'One-row stacked bar from model 73: Received = Realized Profit MTD, Remaining = max(Projected Monthly Profit − Received, 0); '
+                      'the bar label (Share) reads "<received> of <projection> · <share>%" in whole baht, the share being Forecast Realization '
+                      'to one decimal (omitted when the projection is zero).',
+        'sql': today_sql('Realized Profit MTD', 'Projected Monthly Profit', 'Received'),
         'settings': today_bar('Received'),
-        'reconcile': 'Received equals question 51; Received + Remaining equals max(question 52, question 51); Share equals model 73 Forecast Realization.',
+        'reconcile': 'Received equals question 51; Received + Remaining equals max(question 52, question 51); the label\'s numbers equal '
+                     'questions 51 and 52 and its share model 73 Forecast Realization.',
     },
     'today.collection-rate': {
         'name': "Today's charges · paid of due", 'display': 'row', 'kind': 'native',
         'basis': 'model 73 Portfolio Overview', 'origin': 252, 'params': [],
-        'definition': 'One-row stacked bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts), Remaining = max(Amount Due Today − Paid, 0); the label (Share) is Amount Collection Rate Today as a one-decimal percent. Placed on Today only; Collection shows the same share as question 252.',
-        'sql': "SELECT to_char(100*\"Amount Collected Today\"/nullif(\"Amount Due Today\",0),'FM990.0')||'%' AS \"Share\",\"Amount Collected Today\" AS \"Paid\","
-               "greatest(\"Amount Due Today\"-\"Amount Collected Today\",0) AS \"Remaining\" FROM {{#73}}",
+        'definition': 'One-row stacked bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts), '
+                      'Remaining = max(Amount Due Today − Paid, 0); the label (Share) reads "<paid> of <due> · <share>%", the share being '
+                      'Amount Collection Rate Today. Placed on Today only; Collection shows the same share as question 252.',
+        'sql': today_sql('Amount Collected Today', 'Amount Due Today', 'Paid'),
         'settings': today_bar('Paid'),
-        'reconcile': 'Paid equals model 73 Amount Collected Today; Paid + Remaining equals max(Amount Due Today, Paid); Share equals Amount Collection Rate Today.',
+        'reconcile': 'Paid equals model 73 Amount Collected Today; Paid + Remaining equals max(Amount Due Today, Paid); the label\'s numbers '
+                     'equal Amount Collected Today and Amount Due Today and its share Amount Collection Rate Today.',
     },
     'today.attention': {
         'name': 'Needs attention · strip', 'display': 'table', 'kind': 'native',
@@ -344,11 +363,25 @@ NEW_QUESTIONS = {
     'income.expense-detail-desc': {
         'name': 'Expense detail · newest first', 'display': 'table', 'kind': 'native',
         'basis': 'snippet 2 Income statement period (same query as question 212)', 'origin': 212, 'params': ['statement-period'],
-        'definition': 'Question 212\'s query ordered by Expense Date DESC, Expense ID DESC. Template tags, column formats and the '
-                      'column set (Expense ID hidden) copied; maps `statement-period` as 212 maps review-income.',
-        'order_desc': True,
+        'definition': 'Question 212\'s query wrapped: Expenses as −|amount| (costs negative on the Income tab, 9 Nov 2026), ordered by '
+                      'Expense Date DESC, Expense ID DESC. Template tags, column formats and the column set (Expense ID hidden) copied; '
+                      'maps `statement-period` as 212 maps review-income.',
+        'sql_wrap': 'SELECT t."Expense Date",t."Expense Category",t."Payee",t."Paid By",-abs(t."Expenses") AS "Expenses",t."Notes",t."Expense ID" '
+                    'FROM (<212>) t ORDER BY t."Expense Date" DESC,t."Expense ID" DESC',
         'settings': {'table.pivot': False, 'copy_from_origin': ['table.columns']},
-        'reconcile': 'Same rows as question 212 for the same Statement period, in exactly the reverse order.',
+        'reconcile': 'Same rows as question 212 for the same Statement period (Expenses negated), in exactly the reverse order.',
+    },
+    # 9 Nov 2026 (owner): costs negative on the Income tab; question 178 was a dashboard 3 question, so the signed chart is a copy.
+    'income.expense-categories-signed': {
+        'name': 'Expenses by category · statement period (negative)', 'display': 'row', 'kind': 'native',
+        'basis': 'snippet 2 Income statement period (same query as question 178)', 'origin': 178, 'params': ['statement-period'],
+        'definition': 'Question 178\'s query wrapped: Expense Category and −|Expenses|, largest cost first; red bars to the left of zero. '
+                      'Template tags copied; maps `statement-period` as 178 maps review-income.',
+        'sql_wrap': 'SELECT t."Expense Category",-abs(t."Expenses") AS "Expenses" FROM (<178>) t ORDER BY 2,1',
+        'settings': {'graph.dimensions': ['Expense Category'], 'graph.metrics': ['Expenses'], 'graph.show_values': True,
+                     'graph.label_value_formatting': 'full', 'graph.show_legend': False, 'graph.colors': [RED],
+                     'series_settings': {'Expenses': {'color': RED}}, 'column_settings': cols(['Expenses'])},
+        'reconcile': 'Same categories as question 178 for the same Statement period, each amount −|178\'s|.',
     },
     'income.vs-previous': {
         'name': 'This period and the previous period', 'display': 'table', 'kind': 'native',
@@ -368,14 +401,15 @@ NEW_QUESTIONS = {
         'name': 'Monthly income, expenses, write-offs and net profit', 'display': 'combo', 'kind': 'mbql',
         'basis': 'model 186 Income Events', 'origin': 213, 'params': [],
         'definition': 'MBQL on model 186 by Date month (R116), the previous five complete months plus the current month (partial): '
-                      'sum Income, −sum Expenses, −sum Principal Write-offs (costs negative, 9 Nov 2026) as stacked bars and '
-                      'Net profit = sum (Income − Expenses − Principal Write-offs) as a line with markers. One shared y-axis.',
+                      'sum Income, −sum Expenses, −sum Principal Write-offs (costs negative, 9 Nov 2026) as side-by-side bars, each '
+                      'labelled (costs below zero), and Net profit = sum (Income − Expenses − Principal Write-offs) as an unlabelled line '
+                      'with markers (UX-IN-04: stacked cost segments were too thin to label and reversed the legend). One shared y-axis.',
         'settings': {'graph.dimensions': ['Date'], 'graph.metrics': ['Income', 'Expenses', 'Write-offs', 'Net profit'], 'graph.show_values': True,
-                     'graph.y_axis.auto_split': False, 'stackable.stack_type': 'stacked', 'graph.show_stack_values': 'series',
+                     'graph.y_axis.auto_split': False, 'stackable.stack_type': None, 'graph.label_value_formatting': 'compact',
                      'graph.colors': [GREEN, RED, '#9B2C2C', '#84BB4C'],
                      'series_settings': {'Income': {'display': 'bar', 'color': GREEN}, 'Expenses': {'display': 'bar', 'color': RED},
                                          'Write-offs': {'display': 'bar', 'color': '#9B2C2C'},
-                                         'Net profit': {'display': 'line', 'color': '#84BB4C', 'line.marker_enabled': True}}},
+                                         'Net profit': {'display': 'line', 'color': '#84BB4C', 'line.marker_enabled': True, 'show_series_values': False}}},
         'reconcile': 'Each month equals the model 186 month sums with Expenses and Write-offs negated (built, verified).',
     },
     # 9 Nov 2026 (owner): question 213 is a dashboard 3 question shown in the visualizer format; the signed daily chart is a copy.
@@ -388,7 +422,7 @@ NEW_QUESTIONS = {
         'settings': {'graph.dimensions': ['Date'], 'graph.metrics': ['Income', 'Expenses'], 'stackable.stack_type': 'stacked',
                      'graph.show_values': True, 'graph.label_value_frequency': 'fit', 'graph.show_legend': True, 'graph.missing': 'none',
                      'graph.y_axis.auto_split': False, 'graph.x_axis.title_enabled': False, 'graph.y_axis.title_enabled': False,
-                     'graph.colors': [GREEN, RED], 'series_settings': {'Income': {'color': GREEN}, 'Expenses': {'color': RED}},
+                     'graph.colors': [GREEN, RED], 'series_settings': {'Income': {'color': GREEN}, 'Expenses': {'color': RED}}, **UNREVERSED,
                      'column_settings': cols(['Income', 'Expenses'])},
         'reconcile': 'Same dates as question 213 for the same Statement period; Income equal, Expenses equal to −|213 Expenses|.',
     },
@@ -565,8 +599,8 @@ TABS = [
              (51, 6, 3, {'title': 'Interest this month'}),
              (237, 6, 3, {'title': 'Collected today'})],
             [(50, 6, 3, {'title': 'Expected interest · per day'}), (56, 6, 3, {'title': 'Profit growth · 7 days'}),
-             ('today.realization', 6, 3, {'title': 'Interest · of projection ฿', 'description': 'Interest received this month (green) and the rest of the projected month (grey), whole baht.'}),
-             ('today.collection-rate', 6, 3, {'title': "Today's charges · paid ฿", 'description': 'Charges dated today: paid (green) and still due (grey), whole baht.'})],
+             ('today.realization', 6, 3, {'title': 'Interest · of projection ฿', 'description': 'Interest received this month (green) and the rest of the projected month (grey), whole baht.', 'vs': TODAY_BAR_DASHCARD}),
+             ('today.collection-rate', 6, 3, {'title': "Today's charges · paid ฿", 'description': 'Charges dated today: paid (green) and still due (grey), whole baht.', 'vs': TODAY_BAR_DASHCARD})],
             [('today.attention', 24, 6, {'title': 'Needs attention · rows open pages', 'description': 'Click a row to open Collection or Borrower Health.'})],
             [('today.principal-vs-pool', 12, 7, {'title': 'Principal at work · daily close',
                                                  'note': 'dynamic reference: total cash pool as a dashed line instead of the static 120,000 goal; value labels off'}),
@@ -594,8 +628,8 @@ TABS = [
              (207, 6, 3, {'title': 'Remaining lending capital'}),
              (208, 6, 3, {'title': 'Net cash balance'})],
             [(68, 8, 6, {'title': 'Capital deployed · live'}),
-             ('cash.holders-signed', 16, 6, {'title': 'Net cash by holder · selected date', 'vs': {'graph.show_legend': False},
-                                             'note': 'legend off on the dashcard too (UX-CP-01): the saved question setting alone still showed it'})],
+             ('cash.holders-signed', 16, 6, {'title': 'Net cash by holder · selected date', 'vs': UNREVERSED,
+                                             'note': 'UX-CP-01: v0.63 has no legend toggle, so the legend stays; it reads Positive, Negative'})],
             [(211, 24, 6, {'title': 'Account balances · selected date', 'description': 'Signed balances; negative balances count.'})],
             [(202, 24, 7, {'title': 'Daily closing positions · completed days', 'params': ['period']})],
             [T('Unknown openings stay blank · source and freshness: Data health tab.', 24)],
@@ -610,18 +644,18 @@ TABS = [
         'replaces': '3 · Income Statement (tab 16)',
         'rows': [
             [T('Net profit = Income + Expenses + Write-offs (costs negative).', 24)],
-            [(168, 6, 3, {'title': 'Income'}), ('income.expenses', 6, 3, {'title': '+ Expenses'}),
-             ('income.writeoffs', 6, 3, {'title': '+ Write-offs'}), (170, 6, 3, {'title': '= Net profit'})],
+            [(168, 6, 3, {'title': 'Income'}), ('income.expenses', 6, 3, {'title': '+ Expenses', 'vs': COST_RED}),
+             ('income.writeoffs', 6, 3, {'title': '+ Write-offs', 'vs': COST_RED}), (170, 6, 3, {'title': '= Net profit'})],
             [('income.vs-previous', 16, 6, {'title': 'This period and the previous period', 'note': 'height fits the five measure rows'}),
              stack(8, (171, 3, {'title': 'Net profit per day · calendar days'}),
                    ('income.latecharges', 3, {'title': 'Late charges · inside income'}))],
             [('income.monthly', 16, 8, {'title': 'Monthly income, expenses, write-offs and net profit'}),
-             (178, 8, 8, {'title': 'Expenses by category · this period'})],
+             ('income.expense-categories-signed', 8, 8, {'title': 'Expenses by category · this period'})],
             [('income.daily-signed', 24, 7, {'title': 'Daily income and expenses · snapshots'})],
             [('income.expense-detail-desc', 24, 7, {'title': 'Expense detail · this period', 'description': 'Newest first.'})],
             [T('Per-day average uses calendar days · freshness: Data health tab.', 24)],
         ],
-        'dropped': [184, 204, 214, 169, 212, 213],
+        'dropped': [184, 204, 214, 169, 212, 213, 178],
         'phone': 'Equation band stacks vertically with the − and = in the titles; comparison table, per-day number, charts, tables.',
     },
     {

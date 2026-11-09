@@ -1034,6 +1034,15 @@
       "archived_before": false,
       "archived_after": true,
       "followup_at": "2026-11-09T08:54:34.187Z"
+    },
+    {
+      "id": 178,
+      "name": "Expenses by category · live period",
+      "display": "row",
+      "collection_id": 5,
+      "archived_before": false,
+      "archived_after": true,
+      "followup_at": "2026-11-09T09:09:41.089Z"
     }
   ],
   "retainedCandidates": {
@@ -1194,7 +1203,8 @@
       413,
       415,
       417,
-      213
+      213,
+      178
     ],
     "renames": [
       {
@@ -1224,7 +1234,7 @@
     ]
   },
   "verification": {
-    "at": "2026-11-09T08:54:53.516Z",
+    "at": "2026-11-09T09:09:57.978Z",
     "passed": true,
     "checks": [
       {
@@ -1254,7 +1264,7 @@
         "name": "planned questions archived",
         "passed": true,
         "detail": {
-          "questions": 95
+          "questions": 96
         }
       },
       {
