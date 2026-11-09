@@ -75,3 +75,16 @@ test('V139 a new loan above the cash pool is refused, not retried: the form reop
  await money('Principal Amount').fill('1000');await page.getByRole('button',{name:'Save loan',exact:true}).click();
  await expect.poll(()=>writes.length).toBe(2);expect(writes[1].requestId).not.toBe(writes[0].requestId);expect(writes[1].inputs.principal).toBe('1000');
 });
+
+test('V139 the Saved changes list names the cash pool for a blocked new loan, as its failure details do',async({page})=>{
+ await setup(page,()=>undefined);
+ await page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repository=ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'r136-owner'});
+  const id='c1390000-0000-4000-8000-0000000000e1',command={requestId:id,operation:'loan.create',targetId:'c1390000-0000-4000-8000-0000000000e2',expectedVersion:null,predecessorRequestId:null,receiptId:null,inputs:{borrowerId:'C-borrower',principal:'4000'}};
+  await repository.savePending(id,{domain:'loan',command,borrowerLabel:'Synthetic borrower'});await repository.claimPending(id,'r136-test',true);
+  await repository.settlePending(id,'r136-test',{state:'blocked',attempted:true,code:'insufficient_funds',outcome:{kind:'recorded',originalOutcome:{status:'rejected',code:'insufficient_funds',result:null}}});
+  window.dispatchEvent(new Event('mw-offline-saved'))});
+ const waiting=page.getByRole('button',{name:/^Waiting to sync,/}).filter({visible:true});
+ if(!await waiting.count())await page.getByRole('button',{name:'Open navigation',exact:true}).click();
+ await waiting.first().click();
+ await expect(page.getByText('Could not apply: Not enough cash in the cash pool. Lower the amount or add contributed capital. (insufficient_funds)',{exact:true})).toBeVisible();
+});
