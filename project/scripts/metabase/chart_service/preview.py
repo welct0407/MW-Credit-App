@@ -1,4 +1,4 @@
-"""Local synthetic preview only: http://127.0.0.1:8766/#key=demo (add &detail=32:382 for the proposed dashboard links)"""
+"""Local synthetic preview only: http://127.0.0.1:8766/#key=demo (add &detail=32:382 for the Loan Reports dashboard links)"""
 import hashlib
 from wsgiref.simple_server import make_server, WSGIRequestHandler
 from app import ChartApp

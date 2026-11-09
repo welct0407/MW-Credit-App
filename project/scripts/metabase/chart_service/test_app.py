@@ -66,9 +66,12 @@ class AppTests(unittest.TestCase):
             self.assertNotIn(banned,script)
         self.assertIn(b"history.replaceState(null, '', location.pathname)",script)
         self.assertIn(b"Authorization:'Bearer '+secret",script)
-        # detail is whitelisted to digits only (dashboard:tab) and defaults to dashboard 3 tab 105
+        # detail is whitelisted to digits only (dashboard:tab) and defaults to Loan Reports (dashboard 32) tab 382 Borrower Detail;
+        # dashboard 3 and its legacy bd_ filter slugs were retired on 9 November 2026
         self.assertIn(rb"/^(\d{1,9}):(\d{1,9})$/",script)
-        self.assertIn(b"[null, '3', '105']",script)
+        self.assertIn(b"[null, '32', '382']",script)
+        self.assertIn(b"&borrower=${encodeURIComponent(id)}&period=past30days",script)
+        self.assertNotIn(b'bd_borrower',script)
         _,shell=self.call(key='',path='/')
         self.assertNotIn(b'<script src="http',shell)
         self.assertEqual(self.calls,0)

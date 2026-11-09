@@ -7,7 +7,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "dashboard",
-      "name": "Loan Reports · proposed / 32",
+      "name": "Loan Reports / 32",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -17,7 +17,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "dashboard",
-      "name": "Loan Reports / 3",
+      "name": "Loan Reports · retired 2026-11-09 / 3",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1318,6 +1318,16 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/proposed-cash-holders-signed.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Net cash by holder · positive and negative / 419",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/proposed-cash-pool-selected.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -1342,7 +1352,17 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Cash movement by transaction type · chart / 386",
+      "name": "Cash movement by transaction type · waterfall / 386",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-cashflow-transactions-desc.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Transactions · newest first / 421",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1418,11 +1438,51 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/proposed-income-daily-signed.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Daily income and expenses · snapshots (costs negative) / 422",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-income-expense-categories-signed.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Expenses by category · statement period (negative) / 423",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-income-expense-detail-desc.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Expense detail · newest first / 420",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/proposed-income-expenses.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Expenses · statement period (positive) / 392",
+      "name": "Expenses · statement period (negative) / 392",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-income-latecharges.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Late charges received · statement period / 418",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1432,7 +1492,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Monthly income, expenses and net profit / 385",
+      "name": "Monthly income, expenses, write-offs and net profit / 385",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1443,6 +1503,16 @@
       "component": "reports.mw-credit.com",
       "kind": "question",
       "name": "This period and the previous period / 384",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-income-writeoffs.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal write-offs · statement period (negative) / 416",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1492,7 +1562,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Today's charges · paid share / 381",
+      "name": "Today's charges · paid of due / 381",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1542,7 +1612,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Interest this month · share of projection / 380",
+      "name": "Interest this month · received of projection / 380",
       "scope": "production",
       "status": "documented",
       "lookup": []

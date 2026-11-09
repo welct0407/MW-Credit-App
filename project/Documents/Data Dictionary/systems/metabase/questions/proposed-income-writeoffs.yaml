@@ -1,0 +1,68 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Principal write-offs · statement period (negative) / 416"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "income.writeoffs"
+  "id": 416
+  "name": "Principal write-offs · statement period (negative)"
+  "description": "Loan Reports · proposed (income.writeoffs). Question 169's template tags (statement_period, #186, snippet\
+    \ 2) and mapping, selecting the snippet's \"Principal Write-offs\" (the df10: principal write-offs of the period, R116\
+    \ V128) as a negative amount (-abs), so the band reads \"Income + Expenses + Write-offs = Net profit\". Basis: snippet\
+    \ 2 Income statement period."
+  "display": "scalar"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "alias": "d.\"Date\""
+        "widget-type": "date/all-options"
+        "id": "r016-statement_period"
+        "name": "statement_period"
+        "display-name": "Statement period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "8b10c825-e029-4043-aab3-dba890a797a7"
+          "effective-type": "type/Date"
+        - 82
+      - "display-name": "Model 186"
+        "type": "card"
+        "id": "r016-model-186"
+        "name": "#186"
+        "card-id": 186
+      - "type": "snippet"
+        "snippet-id": 2
+        "id": "r016-snippet-2"
+        "name": "snippet: Income statement period"
+        "display-name": "Income statement period"
+        "snippet-name": "Income statement period"
+      "lib/type": "mbql.stage/native"
+      "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT -abs(\"Principal Write-offs\") AS \"Write-offs\"\
+        \ FROM statement"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.field": "Write-offs"
+    "column_settings":
+      "[\"name\",\"Operating Expenses\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Write-offs\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "basis": "snippet 2 Income statement period"
+  "build_kind": "native"
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Question on the Loan Reports dashboard (32); the retired dashboard 3 never used it."

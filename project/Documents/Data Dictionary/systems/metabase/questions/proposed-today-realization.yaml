@@ -3,7 +3,7 @@
   "system": "metabase"
   "component": "reports.mw-credit.com"
   "kind": "question"
-  "name": "Interest this month · share of projection / 380"
+  "name": "Interest this month · received of projection / 380"
   "scope": "production"
 "verification":
   "status": "documented"
@@ -11,33 +11,41 @@
 "content":
   "key": "today.realization"
   "id": 380
-  "name": "Interest this month · share of projection"
-  "description": "Loan Reports · proposed (today.realization). MBQL on model 73: field Forecast Realization (Realized Profit\
-    \ MTD ÷ Projected Monthly Profit). Progress goal 1 shows the share of the projected month collected so far. Basis: model\
-    \ 73 Portfolio Overview."
+  "name": "Interest this month · received of projection"
+  "description": "Loan Reports · proposed (today.realization). Progress bar from model 73: Received = Realized Profit MTD\
+    \ against the goal Projection = Projected Monthly Profit (goal read from the column); the amount sits on the bar and \"\
+    Goal <projection>\" beneath it. Whole baht. Basis: model 73 Portfolio Overview."
   "display": "progress"
   "dataset_query":
     "stages":
-    - "fields":
-      - - "field"
-        - "base-type": "type/Decimal"
-          "lib/uuid": "d39c691c-d5f3-4561-a840-4e84d42fc590"
-        - "Forecast Realization"
-      "lib/type": "mbql.stage/mbql"
-      "source-card": 73
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-73"
+        "name": "#73"
+        "display-name": "Model 73"
+        "card-id": 73
+      "lib/type": "mbql.stage/native"
+      "native": "SELECT \"Realized Profit MTD\" AS \"Received\",\"Projected Monthly Profit\" AS \"Projection\" FROM {{#73}}"
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
-    "progress.goal": 1
-    "progress.color": "#2a78d6"
+    "progress.value": "Received"
+    "progress.goal": "Projection"
+    "progress.color": "#067647"
     "column_settings":
-      "[\"name\",\"Forecast Realization\"]":
-        "number_style": "percent"
-        "decimals": 1
+      "[\"name\",\"Received\"]":
+        "number_style": "decimal"
+        "decimals": 0
         "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Projection\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
   "basis": "model 73 Portfolio Overview"
-  "build_kind": "mbql"
+  "build_kind": "native"
   "origin_question_id": 52
   "dashboard_id": 32
   "collection_id": 10
-  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."
+  "status": "Question on the Loan Reports dashboard (32); the retired dashboard 3 never used it."

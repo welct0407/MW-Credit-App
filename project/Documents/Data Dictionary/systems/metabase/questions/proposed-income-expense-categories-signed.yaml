@@ -1,0 +1,81 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Expenses by category · statement period (negative) / 423"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "income.expense-categories-signed"
+  "id": 423
+  "name": "Expenses by category · statement period (negative)"
+  "description": "Loan Reports · proposed (income.expense-categories-signed). Question 178's query wrapped: Expense Category\
+    \ and −|Expenses|, largest cost first; red bars to the left of zero. Template tags copied; maps `statement-period` as\
+    \ 178 maps review-income. Basis: snippet 2 Income statement period (same query as question 178)."
+  "display": "row"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "alias": "d.\"Date\""
+        "widget-type": "date/all-options"
+        "id": "r016-statement_period"
+        "name": "statement_period"
+        "display-name": "Statement period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "c38ca2ea-8494-4208-8a35-e140e9cc9e86"
+          "effective-type": "type/Date"
+        - 82
+      - "display-name": "Model 186"
+        "type": "card"
+        "id": "r016-model-186"
+        "name": "#186"
+        "card-id": 186
+      - "type": "snippet"
+        "snippet-id": 2
+        "id": "r016-snippet-2"
+        "name": "snippet: Income statement period"
+        "display-name": "Income statement period"
+        "snippet-name": "Income statement period"
+      - "display-name": "Model 163"
+        "type": "card"
+        "id": "r016-model-163"
+        "name": "#163"
+        "card-id": 163
+      "lib/type": "mbql.stage/native"
+      "native": "SELECT t.\"Expense Category\",-abs(t.\"Expenses\") AS \"Expenses\" FROM (WITH statement AS ({{snippet: Income\
+        \ statement period}}) SELECT e.\"Expense Category\",sum(e.\"Expense Amount\") AS \"Expenses\" FROM statement s JOIN\
+        \ {{#163}} e ON e.\"Expense Date\" BETWEEN s.\"Period Start\" AND s.\"Period End\" WHERE s.\"Continuous Period\" GROUP\
+        \ BY 1 ORDER BY 2 DESC,1) t ORDER BY 2,1"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.dimensions":
+    - "Expense Category"
+    "graph.show_values": true
+    "graph.label_value_formatting": "full"
+    "graph.show_legend": false
+    "graph.colors":
+    - "#D1495B"
+    "series_settings":
+      "Expenses":
+        "color": "#D1495B"
+    "column_settings":
+      "[\"name\",\"Expenses\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "graph.metrics":
+    - "Expenses"
+  "basis": "snippet 2 Income statement period (same query as question 178)"
+  "build_kind": "native"
+  "origin_question_id": 178
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Question on the Loan Reports dashboard (32); the retired dashboard 3 never used it."

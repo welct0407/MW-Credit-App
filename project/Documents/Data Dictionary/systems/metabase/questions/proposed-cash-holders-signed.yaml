@@ -1,0 +1,110 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Net cash by holder · positive and negative / 419"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "cash.holders-signed"
+  "id": 419
+  "name": "Net cash by holder · positive and negative"
+  "description": "Loan Reports · proposed (cash.holders-signed). Question 210's query wrapped: Net Cash Balance split into\
+    \ Positive (zero or more) and Negative (below zero) columns, stacked so each holder shows one bar, blue above zero and\
+    \ red below; no legend, values shown. Template tags copied; maps `position-date` as 210 maps review-position. Basis: snippet\
+    \ 4 Cash position source routing (same query as question 210)."
+  "display": "bar"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "display-name": "Daily Cash Snapshots"
+        "type": "card"
+        "id": "r016-model-205"
+        "name": "#205"
+        "card-id": 205
+      - "display-name": "Cash Account Positions"
+        "type": "card"
+        "id": "r016-model-164"
+        "name": "#164"
+        "card-id": 164
+      - "display-name": "Account Cash Snapshots"
+        "type": "card"
+        "id": "r016-model-206"
+        "name": "#206"
+        "card-id": 206
+      - "display-name": "Portfolio Overview"
+        "type": "card"
+        "id": "r016-model-73"
+        "name": "#73"
+        "card-id": 73
+      - "type": "snippet"
+        "snippet-name": "Cash position source routing"
+        "id": "r016-cash-position-routing"
+        "name": "snippet: Cash position source routing"
+        "display-name": "Cash position source routing"
+        "snippet-id": 4
+      - "alias": "d.\"Date\""
+        "widget-type": "date/all-options"
+        "id": "r016-snapshot-position-date"
+        "name": "position_date"
+        "display-name": "Position date / period end"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "7b0eb89f-1871-474c-9fb5-d90e9edd1511"
+          "effective-type": "type/Date"
+        - 82
+      "lib/type": "mbql.stage/native"
+      "native": "SELECT t.\"Cash Holder\",CASE WHEN t.\"Net Cash Balance\">=0 THEN t.\"Net Cash Balance\" END AS \"Positive\"\
+        ,CASE WHEN t.\"Net Cash Balance\"<0 THEN t.\"Net Cash Balance\" END AS \"Negative\" FROM (WITH position AS ({{snippet:\
+        \ Cash position source routing}}) SELECT \"Cash Holder\",CASE WHEN bool_and(\"Balance\" IS NOT NULL) THEN sum(\"Balance\"\
+        ) END AS \"Net Cash Balance\" FROM position WHERE \"Cash Holder ID\" IS NOT NULL GROUP BY \"Cash Holder ID\",\"Cash\
+        \ Holder\" ORDER BY \"Cash Holder\") t ORDER BY t.\"Cash Holder\""
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.show_values": true
+    "graph.show_legend": false
+    "graph.x_axis.title_enabled": false
+    "graph.y_axis.title_enabled": false
+    "graph.metrics":
+    - "Positive"
+    - "Negative"
+    "graph.label_value_formatting": "full"
+    "graph.colors":
+    - "#267DCC"
+    - "#D1495B"
+    "column_settings":
+      "[\"name\",\"Net Cash Balance\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Positive\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Negative\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "series_settings":
+      "Positive":
+        "color": "#267DCC"
+      "Negative":
+        "color": "#D1495B"
+    "graph.dimensions":
+    - "Cash Holder"
+    "stackable.stack_type": "stacked"
+  "basis": "snippet 4 Cash position source routing (same query as question 210)"
+  "build_kind": "native"
+  "origin_question_id": 210
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Question on the Loan Reports dashboard (32); the retired dashboard 3 never used it."

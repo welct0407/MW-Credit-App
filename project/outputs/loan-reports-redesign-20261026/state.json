@@ -27,7 +27,12 @@
     "today.principal-vs-pool": 402,
     "collection.lane-long-overdue": 414,
     "income.writeoffs": 416,
-    "income.latecharges": 418
+    "income.latecharges": 418,
+    "cash.holders-signed": 419,
+    "income.expense-detail-desc": 420,
+    "cashflow.transactions-desc": 421,
+    "income.daily-signed": 422,
+    "income.expense-categories-signed": 423
   },
   "tabs": {
     "today": 375,

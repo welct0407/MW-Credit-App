@@ -36,9 +36,11 @@ SITE = 'https://reports.mw-credit.com'
 # ---------------------------------------------------------------------------------------------------------
 # Dashboard-level definitions
 # ---------------------------------------------------------------------------------------------------------
+# 9 Nov 2026 decommission (DecommissionLoanReports.mjs): dashboard 32 renamed "Loan Reports" and collection 10
+# "Loan Reports · dashboard"; dashboard 3 archived. Names here are used only by --publish, which never replays.
 DASHBOARD = {
-    'name': 'Loan Reports · proposed',
-    'collection': {'name': 'Loan Reports · proposed', 'parent_collection_id': 5,
+    'name': 'Loan Reports',
+    'collection': {'name': 'Loan Reports · dashboard', 'parent_collection_id': 5,
                    'description': 'Parallel redesign of Loan Reports (dashboard 3) for side-by-side review. '
                                   'Reuses the governed models and saved questions; new questions live here.'},
     'description': 'Parallel redesign of Loan Reports for owner review. Live PROD OLAP · THB · Bangkok dates. '
@@ -105,6 +107,14 @@ BAHT = {'number_style': 'decimal', 'decimals': 0, 'number_separators': '.,', 'co
 PCT = {'number_style': 'percent', 'decimals': 1, 'number_separators': '.,'}
 STATUS = {'not_paid': '#ED6E6E', 'partial': '#F9A825', 'overdue': '#7172AD', 'long': '#90A4AE', 'paid': '#1E9F5A'}
 BLUE, TEAL, ORANGE = '#509EE3', '#178F8A', '#EB6834'
+GREEN, RED = '#13855B', '#D1495B'  # money in / money out (Cashflow waterfall, Income charts)
+AMOUNT_COLUMNS = ['This period', 'Previous period', 'Change', 'Change %']
+# v0.63.18.1 frontend (checked in its bundle, 9 Nov 2026): there is no legend on/off setting (graph.show_legend is ignored; a chart
+# with two or more series always shows its legend), axis names toggle with graph.<axis>.labels_enabled, and stacked charts reverse
+# their legend unless legend.is_reversed is false.
+UNREVERSED = {'legend.is_reversed': False}
+# Band cards: costs red like the Cashflow money-out colour, by the same scalar segment rule that makes Income green (UX-IN-03).
+COST_RED = {'scalar.segments': [{'min': -1000000000000, 'max': 0, 'color': '#D1495B', 'label': ''}]}
 
 
 def cols(names, fmt=BAHT):
@@ -113,6 +123,18 @@ def cols(names, fmt=BAHT):
 
 def titled(name, title, fmt=BAHT):
     return {json.dumps(['name', name]): {**fmt, 'column_title': title}}
+
+
+def today_sql(done, total, name, goal):
+    """Today progress bar query on model 73: the amount done and its total (the goal), whole baht."""
+    return f"SELECT \"{done}\" AS \"{name}\",\"{total}\" AS \"{goal}\" FROM {{{{#73}}}}"
+
+
+def today_bar(done, goal):
+    """Today progress bar (9 Nov 2026, fourth round): Metabase's progress visualization with the goal read from a column
+    (v0.63 accepts a column name in progress.goal): the bar spans the whole card, the amount done sits on the bar and
+    "Goal <total>" beneath it, so no label column eats into the bar (owner: numbers below the bar so it looks longer)."""
+    return {'progress.value': done, 'progress.goal': goal, 'progress.color': '#067647', 'column_settings': cols([done, goal])}
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -165,22 +187,26 @@ NEW_QUESTIONS = {
         'settings': {'scalar.compact_primary_number': False, 'scalar.comparisons': [{'id': 'first', 'type': 'periodsAgo', 'value': 29}]},
         'reconcile': 'Latest value equals question 62\'s last completed day; first value equals its first day (built, verified).',
     },
+    # 9 Nov 2026 (owner, rounds two to four): the two Today cards are a progress bar with numbers. Round four: Metabase's own
+    # progress bar with its goal read from a column, so the amounts sit on and below a full-width bar (see today_bar).
     'today.realization': {
-        'name': 'Interest this month · share of projection', 'display': 'progress', 'kind': 'mbql',
+        'name': 'Interest this month · received of projection', 'display': 'progress', 'kind': 'native',
         'basis': 'model 73 Portfolio Overview', 'origin': 52, 'params': [],
-        'definition': 'MBQL on model 73: field Forecast Realization (Realized Profit MTD ÷ Projected Monthly Profit). '
-                      'Progress goal 1 shows the share of the projected month collected so far.',
-        'settings': {'progress.goal': 1, 'progress.color': '#2a78d6'},
-        'reconcile': 'Equals question 51 ÷ question 52 (built, verified).',
+        'definition': 'Progress bar from model 73: Received = Realized Profit MTD against the goal Projection = Projected Monthly '
+                      'Profit (goal read from the column); the amount sits on the bar and "Goal <projection>" beneath it. Whole baht.',
+        'sql': today_sql('Realized Profit MTD', 'Projected Monthly Profit', 'Received', 'Projection'),
+        'settings': today_bar('Received', 'Projection'),
+        'reconcile': 'Received equals question 51; Projection equals question 52; Received ÷ Projection equals model 73 Forecast Realization.',
     },
     'today.collection-rate': {
-        'name': "Today's charges · paid share", 'display': 'progress', 'kind': 'mbql',
+        'name': "Today's charges · paid of due", 'display': 'progress', 'kind': 'native',
         'basis': 'model 73 Portfolio Overview', 'origin': 252, 'params': [],
-        'definition': 'MBQL on model 73: field Amount Collection Rate Today (Amount Collected Today ÷ Amount Due Today): the share of '
-                      'the charges dated today that is paid, not receipts. Progress goal 1. Placed on Today only; Collection shows the '
-                      'same share as question 252.',
-        'settings': {'progress.goal': 1, 'progress.color': '#067647'},
-        'reconcile': 'Equals model 73 Amount Collection Rate Today and question 252 (built, verified).',
+        'definition': 'Progress bar from model 73: Paid = Amount Collected Today (charges dated today that are paid, not receipts) '
+                      'against the goal Due = Amount Due Today; the amount sits on the bar and "Goal <due>" beneath it. Placed on Today only; '
+                      'Collection shows the same share as question 252.',
+        'sql': today_sql('Amount Collected Today', 'Amount Due Today', 'Paid', 'Due'),
+        'settings': today_bar('Paid', 'Due'),
+        'reconcile': 'Paid equals model 73 Amount Collected Today; Due equals Amount Due Today; Paid ÷ Due equals Amount Collection Rate Today.',
     },
     'today.attention': {
         'name': 'Needs attention · strip', 'display': 'table', 'kind': 'native',
@@ -273,28 +299,45 @@ NEW_QUESTIONS = {
         'settings': {'scalar.field': 'Outstanding Principal'},
         'reconcile': 'Today equals question 48; a past date equals model 205 (built, verified).',
     },
-    # ---- Income ------------------------------------------------------------------------------------------
-    'income.expenses': {
-        'name': 'Expenses · statement period (positive)', 'display': 'scalar', 'kind': 'native',
-        'basis': 'snippet 2 Income statement period', 'origin': 169, 'params': ['statement-period'],
-        'definition': 'Question 169\'s query with the sign flipped, so the equation band reads "Income − Expenses = Net profit" '
-                      'with the minus in the title and a positive magnitude in the card. Copies 169\'s template tags '
-                      '(statement_period, #186, snippet 2) and mapping.',
-        'sql': 'WITH statement AS ({{snippet: Income statement period}}) SELECT -"Operating Expenses" AS "Expenses" FROM statement',
-        'settings': {'scalar.field': 'Expenses', 'column_settings': cols(['Expenses'])},
-        'reconcile': 'Equals −(question 169) for the same Statement period.',
+    # 9 Nov 2026 (owner): question 210 is reused on dashboard 3, so the signed colours live in a copy.
+    'cash.holders-signed': {
+        'name': 'Net cash by holder · positive and negative', 'display': 'bar', 'kind': 'native',
+        'basis': 'snippet 4 Cash position source routing (same query as question 210)', 'origin': 210, 'params': ['position-date'],
+        'definition': 'Question 210\'s query wrapped: Net Cash Balance split into Positive (zero or more) and Negative (below zero) '
+                      'columns, stacked so each holder shows one bar, blue above zero and red below; no legend, values shown. '
+                      'Template tags copied; maps `position-date` as 210 maps review-position.',
+        'sql_wrap': 'SELECT t."Cash Holder",CASE WHEN t."Net Cash Balance">=0 THEN t."Net Cash Balance" END AS "Positive",'
+                    'CASE WHEN t."Net Cash Balance"<0 THEN t."Net Cash Balance" END AS "Negative" FROM (<210>) t ORDER BY t."Cash Holder"',
+        'settings': {'graph.dimensions': ['Cash Holder'], 'graph.metrics': ['Positive', 'Negative'], 'stackable.stack_type': 'stacked',
+                     'graph.show_values': True, 'graph.show_legend': False, 'graph.label_value_formatting': 'full',
+                     'graph.x_axis.title_enabled': False, 'graph.y_axis.title_enabled': False, 'graph.colors': ['#267DCC', '#D1495B'],
+                     'series_settings': {'Positive': {'color': '#267DCC'}, 'Negative': {'color': '#D1495B'}},
+                     'column_settings': cols(['Positive', 'Negative'])},
+        'reconcile': 'Per holder, Positive or Negative equals question 210\'s Net Cash Balance for the same Date (the other blank).',
     },
-    # R116 (V128): the band reads "Income − Expenses − Write-offs = Net profit"; snippet 2 carries "Principal Write-offs"
-    # signed like "Operating Expenses", so the card flips it to a positive magnitude exactly as income.expenses does.
+    # ---- Income ------------------------------------------------------------------------------------------
+    # 9 Nov 2026 (owner, second round): one sign convention on the Income tab: costs are negative, so the band reads
+    # "Income + Expenses + Write-offs = Net profit" and adds up as shown.
+    'income.expenses': {
+        'name': 'Expenses · statement period (negative)', 'display': 'scalar', 'kind': 'native',
+        'basis': 'snippet 2 Income statement period', 'origin': 169, 'params': ['statement-period'],
+        'definition': 'Question 169\'s query as a negative amount (-abs("Operating Expenses")), so the band reads '
+                      '"Income + Expenses + Write-offs = Net profit" with costs negative. Copies 169\'s template tags '
+                      '(statement_period, #186, snippet 2) and mapping.',
+        'sql': 'WITH statement AS ({{snippet: Income statement period}}) SELECT -abs("Operating Expenses") AS "Expenses" FROM statement',
+        'settings': {'scalar.field': 'Expenses', 'column_settings': cols(['Expenses'])},
+        'reconcile': 'Equals −|question 169| for the same Statement period; 168 + this + income.writeoffs equals 170.',
+    },
+    # R116 (V128): snippet 2 carries "Principal Write-offs"; shown negative like Expenses (9 Nov 2026).
     'income.writeoffs': {
-        'name': 'Principal write-offs · statement period (positive)', 'display': 'scalar', 'kind': 'native',
+        'name': 'Principal write-offs · statement period (negative)', 'display': 'scalar', 'kind': 'native',
         'basis': 'snippet 2 Income statement period', 'origin': 169, 'params': ['statement-period'],
         'definition': 'Question 169\'s template tags (statement_period, #186, snippet 2) and mapping, selecting the snippet\'s '
-                      '"Principal Write-offs" (the df10: principal write-offs of the period, R116 V128) with the sign flipped, so the '
-                      'band reads "Income − Expenses − Write-offs = Net profit" with the minus in the title.',
-        'sql': 'WITH statement AS ({{snippet: Income statement period}}) SELECT -"Principal Write-offs" AS "Write-offs" FROM statement',
+                      '"Principal Write-offs" (the df10: principal write-offs of the period, R116 V128) as a negative amount '
+                      '(-abs), so the band reads "Income + Expenses + Write-offs = Net profit".',
+        'sql': 'WITH statement AS ({{snippet: Income statement period}}) SELECT -abs("Principal Write-offs") AS "Write-offs" FROM statement',
         'settings': {'scalar.field': 'Write-offs', 'column_settings': cols(['Write-offs'])},
-        'reconcile': 'Equals −(the dashboard 3 write-off question of Refine-WriteOffSegregation.mjs) for the same Statement period.',
+        'reconcile': 'Equals −|the dashboard 3 write-off question of Refine-WriteOffSegregation.mjs| for the same Statement period.',
     },
     # R118 (V132): late charges are income (inside 168's Income and 170's Net profit); this memo card gives their part.
     'income.latecharges': {
@@ -306,39 +349,99 @@ NEW_QUESTIONS = {
         'settings': {'scalar.field': 'Late charges', 'column_settings': cols(['Late charges'])},
         'reconcile': 'Equals the dashboard 3 late-charge question of Refine-LateCharges.mjs for the same Statement period.',
     },
+    # 9 Nov 2026 (owner): question 212 is reused on dashboard 3, so newest-first lives in a copy.
+    'income.expense-detail-desc': {
+        'name': 'Expense detail · newest first', 'display': 'table', 'kind': 'native',
+        'basis': 'snippet 2 Income statement period (same query as question 212)', 'origin': 212, 'params': ['statement-period'],
+        'definition': 'Question 212\'s query wrapped: Expenses as −|amount| (costs negative on the Income tab, 9 Nov 2026), ordered by '
+                      'Expense Date DESC, Expense ID DESC. Template tags, column formats and the column set (Expense ID hidden) copied; '
+                      'maps `statement-period` as 212 maps review-income.',
+        'sql_wrap': 'SELECT t."Expense Date",t."Expense Category",t."Payee",t."Paid By",-abs(t."Expenses") AS "Expenses",t."Notes",t."Expense ID" '
+                    'FROM (<212>) t ORDER BY t."Expense Date" DESC,t."Expense ID" DESC',
+        'settings': {'table.pivot': False, 'copy_from_origin': ['table.columns']},
+        'reconcile': 'Same rows as question 212 for the same Statement period (Expenses negated), in exactly the reverse order.',
+    },
+    # 9 Nov 2026 (owner): costs negative on the Income tab; question 178 was a dashboard 3 question, so the signed chart is a copy.
+    'income.expense-categories-signed': {
+        'name': 'Expenses by category · statement period (negative)', 'display': 'row', 'kind': 'native',
+        'basis': 'snippet 2 Income statement period (same query as question 178)', 'origin': 178, 'params': ['statement-period'],
+        'definition': 'Question 178\'s query wrapped: Expense Category and −|Expenses|, largest cost first; red bars to the left of zero. '
+                      'Template tags copied; maps `statement-period` as 178 maps review-income.',
+        'sql_wrap': 'SELECT t."Expense Category",-abs(t."Expenses") AS "Expenses" FROM (<178>) t ORDER BY 2,1',
+        'settings': {'graph.dimensions': ['Expense Category'], 'graph.metrics': ['Expenses'], 'graph.show_values': True,
+                     'graph.label_value_formatting': 'full', 'graph.show_legend': False, 'graph.colors': [RED],
+                     'series_settings': {'Expenses': {'color': RED}}, 'column_settings': cols(['Expenses'])},
+        'reconcile': 'Same categories as question 178 for the same Statement period, each amount −|178\'s|.',
+    },
     'income.vs-previous': {
         'name': 'This period and the previous period', 'display': 'table', 'kind': 'native',
         'basis': 'snippet 2 Income statement period (model 186 Income Events)', 'origin': 168, 'params': ['statement-period'],
         'definition': 'Native: for the selected statement period and the immediately preceding period of equal length, one row '
                       'per measure (Income, Expenses, Write-offs, Net profit, Net profit per day; R116) with This period, Previous period, Change '
-                      'and Change %. Previous period blank before the reporting calendar. Whole baht, one-decimal percent.',
-        'settings': {'table.column_formatting': 'Change and Change % columns: positive green, negative red'},
-        'reconcile': 'This period equals 168–171; previous equals them with the preceding range (built, verified).',
+                      'and Change %. Costs are negative (9 Nov 2026): Expenses and Write-offs are −|sum|, Net profit = Income + Expenses + '
+                      'Write-offs; Change = this − previous, Change % = Change ÷ |previous|. Previous period blank before the reporting '
+                      'calendar. Whole baht, one-decimal percent. Cells of the four amount columns: negative red, positive green.',
+        'settings': {'table.column_formatting': [
+                         {'id': 0, 'columns': AMOUNT_COLUMNS, 'type': 'single', 'operator': '<', 'value': 0, 'color': '#F6CDD4', 'highlight_row': False},
+                         {'id': 1, 'columns': AMOUNT_COLUMNS, 'type': 'single', 'operator': '>', 'value': 0, 'color': '#BFE8D2', 'highlight_row': False}]},
+        'reconcile': 'This period equals 168, −|169|, −|write-offs|, 170, 171; Income + Expenses + Write-offs = Net profit in both periods; '
+                     'previous equals them with the preceding range (built, verified).',
     },
     'income.monthly': {
-        'name': 'Monthly income, expenses, write-offs and net profit', 'display': 'bar', 'kind': 'mbql',
+        'name': 'Monthly income, expenses, write-offs and net profit', 'display': 'combo', 'kind': 'mbql',
         'basis': 'model 186 Income Events', 'origin': 213, 'params': [],
-        'definition': 'MBQL on model 186: sum Income, sum Expenses, sum Principal Write-offs and sum (Income − Expenses − '
-                      'Principal Write-offs) by Date month (R116), the previous '
-                      'five complete months plus the current month (partial). One shared y-axis so expenses read at true scale.',
-        'settings': {'graph.dimensions': ['Date'], 'graph.metrics': ['Income', 'Expenses', 'Net profit'], 'graph.show_values': True,
-                     'graph.y_axis.auto_split': False},
-        'reconcile': 'Each month equals the model 186 month sums (built, verified).',
+        'definition': 'MBQL on model 186 by Date month (R116), the previous five complete months plus the current month (partial): '
+                      'sum Income, −sum Expenses, −sum Principal Write-offs (costs negative, 9 Nov 2026) as side-by-side bars, each '
+                      'labelled (costs below zero), and Net profit = sum (Income − Expenses − Principal Write-offs) as an unlabelled line '
+                      'with markers (UX-IN-04: stacked cost segments were too thin to label and reversed the legend). One shared y-axis.',
+        'settings': {'graph.dimensions': ['Date'], 'graph.metrics': ['Income', 'Expenses', 'Write-offs', 'Net profit'], 'graph.show_values': True,
+                     'graph.y_axis.auto_split': False, 'stackable.stack_type': None, 'graph.label_value_formatting': 'compact',
+                     'graph.colors': [GREEN, RED, '#9B2C2C', '#84BB4C'],
+                     'series_settings': {'Income': {'display': 'bar', 'color': GREEN}, 'Expenses': {'display': 'bar', 'color': RED},
+                                         'Write-offs': {'display': 'bar', 'color': '#9B2C2C'},
+                                         'Net profit': {'display': 'line', 'color': '#84BB4C', 'line.marker_enabled': True, 'show_series_values': False}}},
+        'reconcile': 'Each month equals the model 186 month sums with Expenses and Write-offs negated (built, verified).',
+    },
+    # 9 Nov 2026 (owner): question 213 is a dashboard 3 question shown in the visualizer format; the signed daily chart is a copy.
+    'income.daily-signed': {
+        'name': 'Daily income and expenses · snapshots (costs negative)', 'display': 'bar', 'kind': 'native',
+        'basis': 'model 205 Daily Cash Snapshots (same query as question 213)', 'origin': 213, 'params': ['statement-period'],
+        'definition': 'Question 213\'s query wrapped: Date, Income and −|Expenses| per completed day, stacked so income rises in green '
+                      'and expenses fall in red. Template tags copied; maps `statement-period` as 213 maps review-income.',
+        'sql_wrap': 'SELECT t."Date",t."Income",-abs(t."Expenses") AS "Expenses" FROM (<213>) t ORDER BY t."Date"',
+        'settings': {'graph.dimensions': ['Date'], 'graph.metrics': ['Income', 'Expenses'], 'stackable.stack_type': 'stacked',
+                     'graph.show_values': True, 'graph.label_value_frequency': 'fit', 'graph.show_legend': True, 'graph.missing': 'none',
+                     'graph.y_axis.auto_split': False, 'graph.x_axis.title_enabled': False, 'graph.y_axis.title_enabled': False,
+                     'graph.colors': [GREEN, RED], 'series_settings': {'Income': {'color': GREEN}, 'Expenses': {'color': RED}}, **UNREVERSED,
+                     'column_settings': cols(['Income', 'Expenses'])},
+        'reconcile': 'Same dates as question 213 for the same Statement period; Income equal, Expenses equal to −|213 Expenses|.',
     },
     # ---- Cashflow ----------------------------------------------------------------------------------------
+    # 9 Nov 2026 (owner): a waterfall of Net Movement replaces the two-colour row chart (key kept: question 386 updated in place).
     'cashflow.by-type-row': {
-        'name': 'Cash movement by transaction type · chart', 'display': 'row', 'kind': 'native',
+        'name': 'Cash movement by transaction type · waterfall', 'display': 'waterfall', 'kind': 'native',
         'basis': 'snippet 3 Cashflow statement period (same query as question 203)', 'origin': 203, 'params': ['statement-period', 'account'],
-        'definition': 'Question 203\'s query wrapped: TOTAL row and rows with no movement removed, ordered by Money In + Money Out '
-                      'descending. Horizontal bars of Money In (green) and Money Out (red), stacked (stackable.stack_type = stacked): on this '
-                      'version Metabase folds unstacked row-chart categories into "Other (n)" regardless of graph.max_categories_enabled; '
-                      'each type moves money one way, so stacking changes nothing visually.',
-        'sql_wrap': 'SELECT * FROM (<203>) t WHERE t."Transaction Type"<>\'TOTAL\' AND (coalesce(t."Money In",0)<>0 OR coalesce(t."Money Out",0)<>0) '
-                    'ORDER BY coalesce(t."Money In",0)+coalesce(t."Money Out",0) DESC,t."Transaction Type"',
-        'settings': {'graph.dimensions': ['Transaction Type'], 'graph.metrics': ['Money In', 'Money Out'], 'graph.show_values': True,
-                     'stackable.stack_type': 'stacked', 'graph.x_axis.title_enabled': False, 'graph.y_axis.title_enabled': False,
-                     'series_settings': {'Money In': {'color': '#13855B'}, 'Money Out': {'color': '#D1495B'}}},
-        'reconcile': 'Row set equals question 203 without TOTAL and zero rows, for three period/account cases.',
+        'definition': 'Question 203\'s query wrapped: Transaction Type and Net Movement, TOTAL row and zero-net rows removed, increases '
+                      'first then decreases, each by size (ORDER BY Net Movement < 0, abs(Net Movement) DESC). Waterfall: increases green, '
+                      'decreases red, the total bar (the period\'s net movement) blue.',
+        'sql_wrap': 'SELECT t."Transaction Type",t."Net Movement" FROM (<203>) t WHERE t."Transaction Type"<>\'TOTAL\' AND coalesce(t."Net Movement",0)<>0 '
+                    'ORDER BY (t."Net Movement"<0),abs(t."Net Movement") DESC,t."Transaction Type"',
+        'settings': {'graph.dimensions': ['Transaction Type'], 'graph.metrics': ['Net Movement'], 'graph.show_values': True,
+                     'graph.label_value_formatting': 'compact', 'graph.x_axis.title_enabled': False, 'graph.y_axis.title_enabled': False,
+                     'waterfall.increase_color': '#13855B', 'waterfall.decrease_color': '#D1495B', 'waterfall.total_color': '#267DCC',
+                     'waterfall.show_total': True, 'column_settings': cols(['Net Movement'])},
+        'reconcile': 'Rows equal question 203\'s Net Movement without TOTAL and zero rows, for three period/account cases; the sum equals 203\'s TOTAL.',
+    },
+    # 9 Nov 2026 (owner): question 196 is reused on dashboard 3, so newest-first lives in a copy.
+    'cashflow.transactions-desc': {
+        'name': 'Transactions · newest first', 'display': 'table', 'kind': 'native',
+        'basis': 'snippet 3 Cashflow statement period (same query as question 196)', 'origin': 196, 'params': ['statement-period', 'account'],
+        'definition': 'Question 196\'s query with every ORDER BY key descending (Date, Posted At, Ledger ID, Entry ID), so the newest '
+                      'transaction is first; Balance After is unchanged per row. Template tags, column formats and Money In / Money Out '
+                      'tints copied; maps `statement-period` and `account` as 196 maps review-flow and review-account.',
+        'order_desc': True,
+        'settings': {'table.pivot': False, 'copy_from_origin': ['table.column_formatting']},
+        'reconcile': 'Same rows as question 196 for the same filters, in exactly the reverse order.',
     },
     # ---- Performance -------------------------------------------------------------------------------------
     'perf.vs-previous': {
@@ -486,8 +589,8 @@ TABS = [
              (51, 6, 3, {'title': 'Interest this month'}),
              (237, 6, 3, {'title': 'Collected today'})],
             [(50, 6, 3, {'title': 'Expected interest · per day'}), (56, 6, 3, {'title': 'Profit growth · 7 days'}),
-             ('today.realization', 6, 3, {'title': 'Interest · of projection'}),
-             ('today.collection-rate', 6, 3, {'title': "Today's charges · paid"})],
+             ('today.realization', 6, 3, {'title': 'Interest · of projection ฿', 'description': 'Interest received this month (green) and the rest of the projected month (grey), whole baht.'}),
+             ('today.collection-rate', 6, 3, {'title': "Today's charges · paid ฿", 'description': 'Charges dated today: paid (green) and still due (grey), whole baht.'})],
             [('today.attention', 24, 6, {'title': 'Needs attention · rows open pages', 'description': 'Click a row to open Collection or Borrower Health.'})],
             [('today.principal-vs-pool', 12, 7, {'title': 'Principal at work · daily close',
                                                  'note': 'dynamic reference: total cash pool as a dashed line instead of the static 120,000 goal; value labels off'}),
@@ -498,7 +601,7 @@ TABS = [
             [T('Profit = gross interest before expenses · definitions in card descriptions.', 24)],
         ],
         'dropped': [47, 52, 54, 55, 57, 58, 59, 62, 63, 64, 68, 60, 61, 240, 254, 242, 244, 270, 251],
-        'phone': 'Thirteen cards instead of eighteen: header, As of, four numbers, expected interest and 7-day growth, two meters, the attention strip (one card), '
+        'phone': 'Thirteen cards instead of eighteen: header, As of, four numbers, expected interest and 7-day growth, two progress bars, the attention strip (one card), '
                  'then the four charts, in this order. Metabase stacks one card per row below about 760 px, in grid order, '
                  'with fixed heights by display type; the prototype\'s phone order (Collected today first) and its '
                  'side-by-side pairs cannot be expressed, so the desktop order is the phone order.',
@@ -515,12 +618,13 @@ TABS = [
              (207, 6, 3, {'title': 'Remaining lending capital'}),
              (208, 6, 3, {'title': 'Net cash balance'})],
             [(68, 8, 6, {'title': 'Capital deployed · live'}),
-             (210, 16, 6, {'title': 'Net cash by holder · selected date'})],
+             ('cash.holders-signed', 16, 6, {'title': 'Net cash by holder · selected date', 'vs': UNREVERSED,
+                                             'note': 'UX-CP-01: v0.63 has no legend toggle, so the legend stays; it reads Positive, Negative'})],
             [(211, 24, 6, {'title': 'Account balances · selected date', 'description': 'Signed balances; negative balances count.'})],
             [(202, 24, 7, {'title': 'Daily closing positions · completed days', 'params': ['period']})],
             [T('Unknown openings stay blank · source and freshness: Data health tab.', 24)],
         ],
-        'dropped': [47, 48, 209],
+        'dropped': [47, 48, 209, 210],
         'phone': 'Four numbers, gauge, holder chart, account table, trend, in that order; nothing to merge.',
     },
     {
@@ -529,19 +633,19 @@ TABS = [
                    'the previous months, with expense categories and detail.',
         'replaces': '3 · Income Statement (tab 16)',
         'rows': [
-            [T('**Income statement** · live · net profit = income − expenses − write-offs.', 24)],
-            [(168, 6, 3, {'title': 'Income · gross interest'}), ('income.expenses', 6, 3, {'title': '− Expenses'}),
-             ('income.writeoffs', 6, 3, {'title': '− Write-offs'}), (170, 6, 3, {'title': '= Net profit'})],
+            [T('Net profit = Income + Expenses + Write-offs (costs negative).', 24)],
+            [(168, 6, 3, {'title': 'Income'}), ('income.expenses', 6, 3, {'title': '+ Expenses', 'vs': COST_RED}),
+             ('income.writeoffs', 6, 3, {'title': '+ Write-offs', 'vs': COST_RED}), (170, 6, 3, {'title': '= Net profit'})],
             [('income.vs-previous', 16, 6, {'title': 'This period and the previous period', 'note': 'height fits the five measure rows'}),
              stack(8, (171, 3, {'title': 'Net profit per day · calendar days'}),
                    ('income.latecharges', 3, {'title': 'Late charges · inside income'}))],
             [('income.monthly', 16, 8, {'title': 'Monthly income, expenses, write-offs and net profit'}),
-             (178, 8, 8, {'title': 'Expenses by category · this period'})],
-            [(213, 24, 7, {'title': 'Daily income and expenses · snapshots'})],
-            [(212, 24, 7, {'title': 'Expense detail · this period'})],
+             ('income.expense-categories-signed', 8, 8, {'title': 'Expenses by category · this period'})],
+            [('income.daily-signed', 24, 7, {'title': 'Daily income and expenses · snapshots'})],
+            [('income.expense-detail-desc', 24, 7, {'title': 'Expense detail · this period', 'description': 'Newest first.'})],
             [T('Per-day average uses calendar days · freshness: Data health tab.', 24)],
         ],
-        'dropped': [184, 204, 214, 169],
+        'dropped': [184, 204, 214, 169, 212, 213, 178],
         'phone': 'Equation band stacks vertically with the − and = in the titles; comparison table, per-day number, charts, tables.',
     },
     {
@@ -557,10 +661,10 @@ TABS = [
              ('cashflow.by-type-row', 18, 7, {'title': 'Cash movement by transaction type'})],
             [(203, 24, 10, {'title': 'Movement by transaction type · table', 'note': 'height fits all nine type rows'})],
             [(215, 24, 7, {'title': 'Daily cash movement · completed days', 'vs': {'graph.show_values': False}, 'note': 'value labels off: they overlapped'})],
-            [(196, 24, 10, {'title': 'Transactions · chronological'})],
+            [('cashflow.transactions-desc', 24, 10, {'title': 'Transactions · newest first'})],
             [T('Repayments keep their recorded type · freshness: Data health tab.', 24)],
         ],
-        'dropped': [198, 216],
+        'dropped': [198, 216, 196],
         'phone': 'Equation band stacks; chart, type table, daily chart, transactions; tables scroll sideways (no phone column set exists in Metabase).',
     },
     {

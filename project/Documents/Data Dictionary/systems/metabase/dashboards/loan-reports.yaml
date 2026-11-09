@@ -3,16 +3,22 @@
   "system": "metabase"
   "component": "reports.mw-credit.com"
   "kind": "dashboard"
-  "name": "Loan Reports / 3"
+  "name": "Loan Reports · retired 2026-11-09 / 3"
   "scope": "production"
 "verification":
   "status": "documented"
   "source": "outputs/r016-20260922/statement-cleanup/README.md"
 "content":
+  "retired": "Archived and renamed \"Loan Reports · retired 2026-11-09\" on 9 November 2026 with dashboards 1 to 31 (owner:\
+    \ \"decommission the old dashboards\"; reversible, nothing deleted; 94 questions placed only on them also archived). Dashboard\
+    \ 32 is now \"Loan Reports\" and the canonical dashboard. The tab descriptions below are historical. Rollback: unarchive\
+    \ per outputs/loan-reports-redesign-20261026/decommission-2026-11-09.json and rename back."
   "dashboard_id": 3
   "database_id": 2
   "collection_id": 5
-  "parallel_review": "Dashboard 32 Loan Reports · proposed (26 October 2026) is a parallel review copy and, since 30 October 2026, the Metabase landing dashboard; this dashboard 3 is unchanged, reachable by link and stays the recovery and canonical copy until the cutover is formally closed. Record: dashboards/loan-reports-proposed.yaml"
+  "parallel_review": "Dashboard 32 Loan Reports · proposed (26 October 2026) is a parallel review copy and, since 30 October\
+    \ 2026, the Metabase landing dashboard; this dashboard 3 is unchanged, reachable by link and stays the recovery and canonical\
+    \ copy until the cutover is formally closed. Record: dashboards/loan-reports-proposed.yaml"
   "tabs":
   - "id": 4
     "dashboard_id": 3

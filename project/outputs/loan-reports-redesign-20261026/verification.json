@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-03T17:36:07.524Z",
+  "at": "2026-11-09T09:29:47.353Z",
   "passed": true,
   "checks": [
     {
@@ -23,7 +23,7 @@
       "name": "mapping parity",
       "passed": true,
       "detail": {
-        "checked": 157,
+        "checked": 152,
         "mismatched": 0
       }
     },
@@ -48,7 +48,7 @@
       "name": "reused values equal dashboard 3",
       "passed": true,
       "detail": {
-        "sampled": 104,
+        "sampled": 99,
         "different": []
       }
     },
@@ -56,15 +56,20 @@
       "name": "today.realization",
       "passed": true,
       "detail": {
-        "equalsModel73": true,
-        "equals51over52": true
+        "oneRow": true,
+        "doneEquals": true,
+        "goalEquals": true,
+        "shareEquals": true
       }
     },
     {
       "name": "today.collection-rate",
       "passed": true,
       "detail": {
-        "equalsModel73": true,
+        "oneRow": true,
+        "doneEquals": true,
+        "goalEquals": true,
+        "shareEquals": true,
         "dueToday": "non-zero"
       }
     },
@@ -99,7 +104,14 @@
       "name": "income.writeoffs",
       "passed": true,
       "detail": {
-        "equalsMinusDashboard3WriteOffs": true
+        "equalsMinusAbsDashboard3WriteOffs": true
+      }
+    },
+    {
+      "name": "income band adds up",
+      "passed": true,
+      "detail": {
+        "q168PlusExpensesPlusWriteOffsEquals170": true
       }
     },
     {
@@ -116,7 +128,8 @@
       "detail": {
         "thisEquals168to171AndWriteOffs": true,
         "previousEqualsPrecedingRange": true,
-        "days": 4
+        "addsUpBothPeriods": true,
+        "days": 9
       }
     },
     {
@@ -125,7 +138,7 @@
       "detail": {
         "months": 4,
         "equalsModel186MonthSums": true,
-        "question213Rows": 3
+        "question213Rows": 8
       }
     },
     {
@@ -135,23 +148,81 @@
         "cases": [
           {
             "period": "thismonth",
-            "rows": 4,
+            "rows": 6,
             "equal": true,
-            "sortedByMovement": true
+            "sortedIncreasesFirst": true,
+            "sumEqualsTotal": true
           },
           {
             "period": "past30days",
             "rows": 6,
             "equal": true,
-            "sortedByMovement": true
+            "sortedIncreasesFirst": true,
+            "sumEqualsTotal": true
           },
           {
             "period": "previous range",
             "rows": 6,
             "equal": true,
-            "sortedByMovement": true
+            "sortedIncreasesFirst": true,
+            "sumEqualsTotal": true
           }
         ]
+      }
+    },
+    {
+      "name": "cash.holders-signed",
+      "passed": true,
+      "detail": {
+        "cases": [
+          {
+            "date": "today",
+            "holders": 2,
+            "signedEquals210": true
+          },
+          {
+            "date": "first snapshot + 1",
+            "holders": 2,
+            "signedEquals210": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "income.expense-categories-signed",
+      "passed": true,
+      "detail": {
+        "categories": 2,
+        "sameCategories": true,
+        "amountsNegated": true
+      }
+    },
+    {
+      "name": "income.daily-signed",
+      "passed": true,
+      "detail": {
+        "days": 8,
+        "sameDates": true,
+        "incomeEqual": true,
+        "expensesNegative": true
+      }
+    },
+    {
+      "name": "cashflow.transactions-desc",
+      "passed": true,
+      "detail": {
+        "rows": 194,
+        "sameRows": true,
+        "reverseOrder": true
+      }
+    },
+    {
+      "name": "income.expense-detail-desc",
+      "passed": true,
+      "detail": {
+        "rows": 9,
+        "sameRows": true,
+        "reverseOrder": true
       }
     },
     {
@@ -207,8 +278,8 @@
       "name": "income.expenses",
       "passed": true,
       "detail": {
-        "thisMonthEqualsMinus169": true,
-        "previousRangeEqualsMinus169": true
+        "thisMonthEqualsMinusAbs169": true,
+        "previousRangeEqualsMinusAbs169": true
       }
     },
     {
@@ -281,35 +352,35 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 11,
+            "rows": 2,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-partial",
-            "rows": 1,
+            "rows": 0,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-overdue",
-            "rows": 5,
+            "rows": 2,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-long-overdue",
-            "rows": 10,
+            "rows": 13,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-paid",
-            "rows": 1,
+            "rows": 11,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true
@@ -335,10 +406,10 @@
       }
     },
     {
-      "name": "dashboard 3 preserved",
+      "name": "dashboard 3 archived",
       "passed": true,
       "detail": {
-        "dashcards": 276,
+        "frozenDashcards": 276,
         "tabs": 12,
         "parameters": 28
       }
