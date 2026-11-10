@@ -32,3 +32,4 @@ These conventions apply the [lean check routine](../../../project/Documents/Rule
 ## After the merge
 
 - Do not delete the head branch or any remote branch: the session proxy refuses it (HTTP 403), and GitHub deletes merged head branches itself. Repository settings and branch protection are the owner's; report a needed change once instead of retrying.
+- Leave a pending one-shot check-in (`send_later`) alone: do not cancel it with `delete_trigger` or disable it with `update_trigger`. The service asks the owner to approve every deletion or disabling of a scheduled task, whatever `.claude/settings.json` allows, so cancelling one raises a popup at each merge. Let it fire; when it does and the PR is merged or closed, end the turn in one line without further action.
