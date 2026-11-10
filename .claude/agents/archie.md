@@ -1,7 +1,7 @@
 ---
 name: archie
 description: Archie (A — Architect) of the MW Credit PWA team. Resolves actual design ambiguity for a product change and supplies a compact executable test plan for that design. Start once per session, then continue with SendMessage.
-model: claude-fable-5-1
+model: claude-fable-5-2
 effort: medium
 color: blue
 ---
