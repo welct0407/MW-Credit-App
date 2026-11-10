@@ -21,7 +21,7 @@ Owner, 10 November 2026: "The payee can be some existing borrower, like referrer
 - PWA (Echo EXP-PEND-18 to 25): one Payee field that searches borrowers (Referrer tag) or offers "Use ..." as a typed name; it never fills Related Borrower; list tile shows "ค้างจ่าย" with the payee; detail has one Payee row; review screen; the borrower page shows "Expenses owed" and the amount and item count when above 0.
 - Behaviour change: a referral rebate's detail now shows the borrower's live name as payee, not the captured `"Payee Name"`.
 - Records (Dewey): dictionary text of `pwa_submit_operation_v2` and `pwa_apply_expense_v2` and the two payee column comments in `business-expenses.yaml` (source definitions; the PROD capture follows the PROD apply); `database/README.md` (V143), `PWA_Data_Model_Overview.md`, `Solution_Design.md`, `Release_Tracker.md`, `Development_Changes.md`.
-- Tests (Byte, local): migrations, phase5 and receiving groups pass; `npm test` 1277 pass; biome, `tsc` and build pass; Playwright expense and referrer specs 58 pass. CI and the DEV deployment and test: to be added.
+- Tests (Byte, local): migrations, phase5 and receiving groups pass; `npm test` 1277 pass; biome, `tsc` and build pass; Playwright expense and referrer specs 58 pass. CI and the DEV deployment are recorded below.
 - Follow-ups: EXP-PEND-25 (make the borrower-page line tappable), with EXP-PEND-17.
 
 ## Checks
@@ -35,6 +35,11 @@ Owner, 10 November 2026: "The payee can be some existing borrower, like referrer
 | CI, `86a5371`: `Database migrations` push run 42859457634 | Four rebuild groups passed; the guards failed only on the push-diff step (V142 edited since the previous push, so it is added against main and unapplied); explained in a pull request comment |
 | CI, `86a5371`: `Database migrations` dispatched run 42864647539 | Pass, guards passed |
 | CI, `8822f0c` | Pass: `Development checks` run 42868639160 (check, lint, three Chromium e2e shards and three iPhone WebKit e2e shards; terraform not selected); PWA only, so `Database migrations` not triggered |
+| CI, `f123135`: `Database migrations` run 42888498687 | Pass, all jobs (guards and four groups) |
+| CI, `f123135`: `Development checks` | Pass |
+| CI, `d622826`: `Development checks` run 42892384471 | Pass |
+| CI, `d622826`: `Database migrations` run 42892374657 | Pass |
+| V143 DEV deployment and test | Pass, see DEV deployment evidence |
 | Earlier CI failures, fixed | phase5 on `1b8c692` (run 42856801410), fixed by `de86092`; migrations on `de86092` (run 42857508827, ACL drift from the grant), fixed by `86a5371` |
 | `dictionary.py validate` | Pass after the five dictionary updates (Dewey) |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey) |
@@ -52,6 +57,15 @@ Forge, 10 November 2026 (UTC). Package: `86a5371`; Hosting redeployed from `8822
 - Hosting redeploy from `8822f0c` (PWA only, EXP-PEND-13 to 16; Forge): build-version `23ce7aaa9f3ac044fbd4607b`, entry `/assets/index-DuLE99Pn.js`, deployed 17:48:32Z to 17:48:40Z as version `b38755a8e1a44367` (rollback `a87e2d7e285d4aa0`); services unchanged; smoke passed.
 - Read latency after R140: a `GET /api/offline-dataset` 503 (9.7 s) and one `command_store_unavailable` statement timeout at 17:40:57Z to 17:41:06Z on command `00098-wlm` coincided with two simultaneous full offline syncs (Echo's WebKit and Chase's Chromium sessions). Sequential DEV reads afterwards (Chase, 5 each): expense list median 709 ms, detail 312 ms, cash position 301 ms, dashboard 444 ms, offline-dataset chunks 0.4 to 1.4 s, no errors. Local EXPLAIN ANALYZE with 6,000 expenses and 3,000 cutover rows (Byte): the cutover check is a primary-key index-only lookup or one hash anti-join; expense reads unchanged within noise, cash position +2.7 ms for `expensesPayable`. Not attributed to R140.
 
+### V143 and payee follow-up (Forge, Chase, Echo; 10 November 2026 UTC)
+- Package `f123135`. Backup at V142: `dev-refresh-c7fe138f9a304de8ab2b4c6336ca06c8` (SHA-256 `f13896d0...1b0e`, restore test passed, 39 tables matched). Owner window 19:51:42Z to 19:59:19Z, including `mw_app_dev_journal_owner` (owns `pwa_submit_operation_v2`). V143 applied 19:51:57Z, validate ok, schema 143.
+- Image: Cloud Build `7d5979fc-a73d-4598-8e68-4fd24caedd01`, digest `sha256:8f6cc65f3f01331823793d7b92ed2f3cb5aa4de04352be10667d7f4c378727de`. Terraform plan 0 add, 3 change, 0 destroy, applied 19:59:54Z to 20:00:42Z, generation `1794340849006810` (previous `1794332078823352`). Revisions: read `00082-qwm`, command `00099-kff`, chat `00051-5qf`. Hosting `3d9507907c6ff1ef`, build version `439b4bd3f85ad7466b59198d`. Smoke ok, no ERROR logs.
+- Redeploy of `d622826` (Echo's EXP-PEND-26 to 29; Forge): image `f979e392-8045-48e4-b343-f09cc6c1287a`, digest `sha256:3253145209a6f2d12be4b624b8a20d0f74498faae2e91ee7d2d7a6db7fc1e71a`. Terraform 0/3/0 applied 20:21:04Z to 20:21:40Z, generation `1794342106741977` (previous `1794340849006810`). Revisions: read `00083-fvv`, command `00100-rxc`, chat `00052-q5n`. Hosting `a6461044acd84007`, build version `849de7bd69a1b750506d095c`. Smoke ok.
+- Rollback: services generation `1794340849006810`, or `1794332078823352` for the pre-V143 image (only after a migration restoring the V142 bodies); Hosting `3d9507907c6ff1ef`; DEV backups at V142 (above) and V141.
+- Functional test (Chase): a pending 60 baht expense with payee R120 Test Referrer (referrer) stored the link and the name snapshot, borrower `expensesOwed` went 0 to 60 with 1 item, and a replay was idempotent. Borrower search `isReferrer` was correct. An unknown id gave 422 `invalid_reference`; an id plus a name gave 400 `invalid_request`. An 8-key update kept the link (amount 65). Paying took owed back to 0. A typed payee "Dad (R140 DEV test)" for 90 baht was left pending. A throwaway borrower with a pending expense could not be deleted (422 `record_requires_reconciliation`, the borrower route's foreign key mapping) and was cleaned up afterwards. Browser: tile "ค้างจ่าย · payee", one Payee row with a link, and the borrower page "ค่าใช้จ่ายค้างจ่าย ฿45 · 1 รายการ".
+- UX check (Echo, WebKit iPhone, Thai, read-only): EXP-PEND-18 to 25 as intended. Fixed in `d622826`: 26 typed-name row first with at most 8 results and Show more; 27 referrers first; 28 a chosen referrer labelled Referrer; 29 no trailing " -" in expense borrower labels (`services/business/expenses.mjs` only). A rebate payee now showing the borrower's live name was judged an improvement (an old rebate shows a renamed referrer's new name).
+- Left in DEV for the owner: pending 45 baht `ac2b759e...` (payee R120 Test Referrer), 90 baht `86fb7b82...` (Dad (R140 DEV test)), 120 baht `fdf1b7b2...`; paid 65 baht `4888d101...` and 55 baht `6f28d9e2...`.
+
 ## Not run
 No PROD action, authenticated PROD read or financial write. CI on `8822f0c` is pending. The WebKit service worker bypassed the read-only write block: one `POST /api/notifications/offline-dataset` reached the DEV command service per run, with no expense writes; the DEV test account's language is now Thai. Known DEV limit, not R140: an expense dated 2026-11-09 or later is refused with `record_requires_reconciliation` by the existing rule "Expense allocation requires a positive A/B contribution pool on its date", because DEV's contribution pool ends before 9 November; use a date on or before 8 November in DEV.
 
@@ -62,4 +76,4 @@ Git baseline: `b669c0d`, the commit before this batch. DEV image and Hosting: se
 - A pending expense paid later puts its cash movement on the Expense Date, not the pay date. Is that acceptable? A separate pay date needs a new column (follow-up only if the owner wants it).
 
 ## Remaining work
-The owner's review in DEV; the cash-date decision; Echo's follow-up EXP-PEND-17 if wanted; CI result on `8822f0c`; promotion only on the owner's instruction. Before PROD, confirm `mw_app_prod` can SELECT `r005_cash_cutover_sources` (the V142 preflight refuses otherwise; the recorded PROD ACL lists it).
+The owner's review in DEV; the cash-date decision; Echo's follow-ups EXP-PEND-17 and 25 (tappable payable and owed lines) and 7, 10 to 12 (pay date, pay form, undo; they depend on the pay-date decision) if wanted; CI result on `8822f0c`; promotion only on the owner's instruction. Before PROD, confirm `mw_app_prod` can SELECT `r005_cash_cutover_sources` (the V142 preflight refuses otherwise; the recorded PROD ACL lists it).
