@@ -8,14 +8,16 @@ import {codePointCompare} from '../lib/offline-dataset-digest.mjs';
 import {ToolError} from './errors.mjs';
 import {Dec} from './grounding.mjs';
 import {bangkokIso} from './prompt.mjs';
+import {MAX_GROUP} from './proposals.mjs';
 import {RESULT_LIMIT,ROW_CAP} from './sql-guard.mjs';
 
 export const TOOL_WORKERS=4;
 const HIDDEN=new Set(['_RowNumber']);
 const RESULT_CAP=262144,ARGUMENTS_CAP=16384;
 const STR={type:'string'},STRINGS={type:'array',items:STR};
-const spec=(name,description,properties)=>Object.freeze({type:'function',name,description,
- inputSchema:{type:'object',properties,required:Object.keys(properties),additionalProperties:false}});
+/** Every property is required unless named in `optional` (R106 D12 chunks: propose_action's `more`). */
+const spec=(name,description,properties,optional=[])=>Object.freeze({type:'function',name,description,
+ inputSchema:{type:'object',properties,required:Object.keys(properties).filter(key=>!optional.includes(key)),additionalProperties:false}});
 
 /** Read-only release: descriptions of conversation_tools.py with the write (api_action/reviewer) wording removed. */
 export const TOOLS=Object.freeze([
@@ -36,19 +38,24 @@ export const TOOLS=Object.freeze([
   +'loan close calculation, by exact loan Row ID; report the charge-balance payoff of the business rules. '
   +'Returns eligible=false with the reason for any other loan.',{loan_id:STR}),
 ]);
-/** R106: the write proposal tools (one generic proposal over the static command catalogue). */
+/** R106: the write proposal tools (one generic proposal over the static command catalogue). D12 chunks (owner,
+ * 10 November 2026): a model request is cut at 110 s by the relay, so a long proposal arrives in calls of at most
+ * PROPOSE_CHUNK changes with more:true; the host holds them and builds the one group on the call without more. */
+export const PROPOSE_CHUNK=25;
 export const WRITE_TOOLS=Object.freeze([
  spec('action_catalogue','The app write commands the Partner can confirm. Empty operation lists them; an operation name returns its fields (type, allowed values, required, host-filled).',{operation:STR}),
- spec('propose_action','Propose every change the Partner asked for in this message, in ONE call (1 to 20 changes); they appear on one card and nothing changes until the Partner taps Confirm. '
+ spec('propose_action','Propose every change the Partner asked for in this message (1 to '+MAX_GROUP+' changes in all); they appear on one card and nothing changes until the Partner taps Confirm. '
+  +'Up to '+PROPOSE_CHUNK+' changes per call; set more:true while changes of this message remain, and omit more (or false) on the last call: the card is created only then. '
   +'Only on an explicit instruction in the current message. Each change: operation, target_id (the record Row ID; empty for a create; the borrower for payment.record) and inputs, a JSON object '
-  +'with only the fields the Partner gave (decimal strings for amounts, YYYY-MM-DD dates); never give ids, versions, splits or other host-filled fields. One call per turn; never split a request across turns. '
-  +'A payment or loan close must be the only change for its borrower in a call.',
-  {changes:{type:'array',items:{type:'object',properties:{operation:STR,target_id:STR,inputs:STR},required:['operation','target_id','inputs'],additionalProperties:false}}}),
+  +'with only the fields the Partner gave (decimal strings for amounts, YYYY-MM-DD dates); never give ids, versions, splits or other host-filled fields. One card per turn; never split a request across turns. '
+  +'A payment or loan close must be the only change for its borrower on the card. If any propose_action call fails, nothing is held: send every change again.',
+  {changes:{type:'array',items:{type:'object',properties:{operation:STR,target_id:STR,inputs:STR},required:['operation','target_id','inputs'],additionalProperties:false}},
+   more:{type:'boolean',description:'true while changes of this message remain to be sent'}},['more']),
 ]);
-/** D12: the model's changes[] -> [{operation,target,values}], 1..20, each inputs a JSON object of at most 16 KB. */
+/** D12: the model's changes[] -> [{operation,target,values}], 1..MAX_GROUP, each inputs a JSON object of at most 16 KB. */
 export function parseChanges(changes){
  if(!Array.isArray(changes)||changes.length<1)throw new ToolError('NO_CHANGES');
- if(changes.length>20)throw new ToolError('TOO_MANY_CHANGES');
+ if(changes.length>MAX_GROUP)throw new ToolError('TOO_MANY_CHANGES');
  return changes.map(change=>{
   if(!plainObject(change)||Object.keys(change).sort().join(',')!=='inputs,operation,target_id'||typeof change.operation!=='string'||typeof change.target_id!=='string'||typeof change.inputs!=='string'
    ||Buffer.byteLength(change.inputs)>16384)throw new ToolError('INVALID_CHANGES');
@@ -109,10 +116,10 @@ export function toolSummary(name,args,value){
  * writes (R106): {catalogue(operation), propose({operation,target,values})} for a turn allowed to propose (both write
  * tools declared), or {refuse:true} for one that is not (propose_action only, answering REVIEWER_REQUIRED); null when
  * chat writes are off (no write tool).
- * @param {{readProvider:{catalogue:Function,query:Function},sqlTool:{query:Function,payoff:Function},actor:{issuer:string,subject:string,partnerId:string},signal?:AbortSignal,now?:()=>number,tools?:readonly any[],writes?:{catalogue?:Function,propose?:Function,refuse?:boolean}|null}} options */
+ * @param {{readProvider:{catalogue:Function,query:Function},sqlTool:{query:Function,payoff:Function},actor:{issuer:string,subject:string,partnerId:string},signal?:AbortSignal,now?:()=>number,tools?:readonly any[],writes?:{catalogue?:Function,propose?:Function,reset?:Function,refuse?:boolean}|null}} options */
 export function createChatTools({readProvider,sqlTool,actor,signal,now=Date.now,tools:readTools=TOOLS,writes=null}){
  const tools=writes?.refuse?[...readTools,WRITE_TOOLS[1]]:writes?[...readTools,...WRITE_TOOLS]:readTools;
- let proposed=false;
+ let proposed=false,proposing=Promise.resolve();
  const observations={},journal=[],journalIds=new Set(),cache=new Map();
  const context={workload:{issuer:actor.issuer,subject:actor.subject},signal};
  let schema=null;
@@ -216,15 +223,29 @@ export function createChatTools({readProvider,sqlTool,actor,signal,now=Date.now,
   if(writes?.refuse&&name==='propose_action')return REVIEWER_REQUIRED;
   if(writes&&!writes.refuse&&name==='action_catalogue')return writes.catalogue(a.operation);
   if(writes&&!writes.refuse&&name==='propose_action'){
-   // One group per turn (D9, D12): a second call fails before any read, even within the same round.
-   if(proposed)throw new ToolError('ONE_PROPOSAL_PER_TURN');
-   proposed=true;
-   let changes;
-   try{changes=parseChanges(a.changes);}catch(error){proposed=false;throw error;}
-   try{return await writes.propose({changes});}
-   catch(error){if(!(error instanceof ToolError&&error.message==='ONE_PROPOSAL_PER_TURN'))proposed=false;throw error;}
+   // D12 chunks: calls run one at a time in call order (a round runs tools in parallel), so held chunks are
+   // complete before the final call builds the group.
+   const turn=proposing.then(()=>proposeOnce(a));
+   proposing=turn.catch(()=>{});
+   return turn;
   }
   throw new ToolError('TOOL_NOT_PERMITTED');
+ }
+ /** One group per turn (D9, D12): only the final call (no more) latches the turn; a later call fails before any read.
+  * A more:true call is held by the bridge and does not latch. Any failure of a propose call (its arguments, a chunk
+  * or the final call) empties the held lines (writes.reset) and releases the latch, so the model sends every change
+  * again; only ONE_PROPOSAL_PER_TURN (a card already made this turn) keeps the latch. */
+ async function proposeOnce(a){
+  if(proposed)throw new ToolError('ONE_PROPOSAL_PER_TURN');
+  const more=a.more===true;
+  if(!more)proposed=true;
+  try{
+   if(a.more!==undefined&&typeof a.more!=='boolean')throw new ToolError('INVALID_CHANGES');
+   return await writes.propose({changes:parseChanges(a.changes),more});
+  }catch(error){
+   if(error instanceof ToolError&&error.message==='ONE_PROPOSAL_PER_TURN'&&!more)throw error;
+   proposed=false;writes.reset?.();throw error;
+  }
  }
  function journalId(round,index,call){
   let id=call.id||`gemini-${round}-${index}`;
@@ -244,8 +265,8 @@ export function createChatTools({readProvider,sqlTool,actor,signal,now=Date.now,
    const ready=calls.map((call,index)=>{
     emit('tool',{callId:ids[index],name:call.name,state:'running'});
     const definition=tools.find(t=>t.name===call.name);
-    const keys=Object.keys(definition?.inputSchema.properties??{}).sort().join(',');
-    if(!definition||!plainObject(call.args)||Object.keys(call.args).sort().join(',')!==keys){outcomes[index]={error:new ToolError('UNSUPPORTED_TOOL_OR_ARGUMENTS')};return false;}
+    const known=Object.keys(definition?.inputSchema.properties??{}),required=definition?.inputSchema.required??[];
+    if(!definition||!plainObject(call.args)||Object.keys(call.args).some(key=>!known.includes(key))||required.some(key=>!Object.hasOwn(call.args,key))){outcomes[index]={error:new ToolError('UNSUPPORTED_TOOL_OR_ARGUMENTS')};return false;}
     return true;
    });
    let next=0;

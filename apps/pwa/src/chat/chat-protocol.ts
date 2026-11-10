@@ -120,13 +120,13 @@ export type ProposalView={state:ProposalState;canConfirm:boolean;canCancel:boole
 /**
  * The card's state machine (D7, Echo): pending counts down and expires on the client clock too; Confirm and Cancel
  * need a connection and no request in flight (CWR-08); unknown is polled and never offers a retry; a settled state is
- * final. `seen` (CWR-01): Confirm stays disabled until the card has been fully visible for a moment.
+ * final. Owner, 10 November 2026: no visibility gate (CWR-01 withdrawn); Confirm is enabled as soon as the card is ready.
  */
-export function proposalView(proposal:ChatProposal,{now=Date.now(),online=true,busy=false,seen=true}:{now?:number;online?:boolean;busy?:boolean;seen?:boolean}={}):ProposalView{
+export function proposalView(proposal:ChatProposal,{now=Date.now(),online=true,busy=false}:{now?:number;online?:boolean;busy?:boolean}={}):ProposalView{
  const remaining=Math.max(0,Math.floor((Date.parse(proposal.expiresAt)-now)/1000));
  const state:ProposalState=proposal.state==='pending'&&remaining<=0?'expired':proposal.state;
  const code=state==='expired'?'proposal_expired':state==='cancelled'?'proposal_cancelled':state==='unknown'?'outcome_unknown':proposal.outcome?.code??null;
- return {state,canConfirm:state==='pending'&&online&&!busy&&seen,canCancel:state==='pending'&&online&&!busy,poll:state==='unknown'||state==='executing'&&!busy,remainingSeconds:state==='pending'?remaining:0,code};
+ return {state,canConfirm:state==='pending'&&online&&!busy,canCancel:state==='pending'&&online&&!busy,poll:state==='unknown'||state==='executing'&&!busy,remainingSeconds:state==='pending'?remaining:0,code};
 }
 /** The proposal shown for a message: a newer local copy (confirm, cancel, poll) wins over the row's. */
 export function mergeProposal(row:ChatProposal|null|undefined,local:ChatProposal|undefined){
@@ -135,22 +135,16 @@ export function mergeProposal(row:ChatProposal|null|undefined,local:ChatProposal
  return final(row)&&!final(local)?row:local;
 }
 /** Polls an unknown (or executing) proposal until it settles or 5 minutes pass; read errors count as still unknown. */
-export async function pollProposal(read:()=>Promise<ChatProposal>,{intervalMs=PROPOSAL_POLL_MS,timeoutMs=PROPOSAL_POLL_LIMIT_MS,now=Date.now,sleep,signal}:{intervalMs?:number;timeoutMs?:number;now?:()=>number;sleep?:(ms:number,signal?:AbortSignal)=>Promise<void>;signal?:AbortSignal}={}):Promise<ChatProposal|null>{
+export async function pollProposal(read:()=>Promise<ChatProposal>,{intervalMs=PROPOSAL_POLL_MS,firstDelayMs=intervalMs,timeoutMs=PROPOSAL_POLL_LIMIT_MS,now=Date.now,sleep,signal}:{intervalMs?:number;firstDelayMs?:number;timeoutMs?:number;now?:()=>number;sleep?:(ms:number,signal?:AbortSignal)=>Promise<void>;signal?:AbortSignal}={}):Promise<ChatProposal|null>{
  const wait=sleep??((ms:number,abort?:AbortSignal)=>new Promise<void>((resolve,reject)=>{const timer=setTimeout(resolve,ms);abort?.addEventListener('abort',()=>{clearTimeout(timer);reject(abort.reason)},{once:true})}));
  const deadline=now()+timeoutMs;
- for(;;){
-  if(now()+intervalMs>deadline)return null;
-  await wait(intervalMs,signal);
+ // firstDelayMs 0: read at once (a dropped confirm stream must not leave the card on its local guess for a poll interval).
+ for(let delay=firstDelayMs;;delay=intervalMs){
+  if(now()+delay>deadline)return null;
+  await wait(delay,signal);
   if(signal?.aborted)throw signal.reason;
   try{const value=await read();if(value.state!=='unknown'&&value.state!=='executing')return value}catch(error){if(signal?.aborted||(error as {fatal?:boolean})?.fatal)throw error}
  }
-}
-
-/** CWR-01/D12: whether the visible spans seen so far ([top, bottom] in card pixels) cover the whole card (2 px slack). */
-export function seenThrough(spans:[number,number][],height:number,slack=2){
- let reach=0;
- for(const [top,bottom] of [...spans].sort((a,b)=>a[0]-b[0])){if(top>reach+slack)return false;reach=Math.max(reach,bottom)}
- return spans.length>0&&reach>=height-slack;
 }
 
 /** D12: one card for a group of lines. */
@@ -171,13 +165,20 @@ export type GroupView={state:GroupState;lines:LineView[];pending:number;remainin
  * The group card's state machine (D12 with D7 per line): each line's state from proposalView (client-side expiry);
  * once a line of the group settled, a pending line is "notrun" (still runnable) and an expired one "skipped" (CW3-02); Confirm runs the pending lines
  * (all of them, or "N remaining" once some settled); unknown or executing lines are polled, never re-confirmed.
+ * `running` (R138, Chase's DEV finding): this device's Confirm is in flight or its stream dropped and the group has not
+ * been read back yet. The streamed `line` events report settled lines only, so the lines not yet reached are still
+ * pending locally; without the flag that reads as "partial" with "Confirm N remaining" while the server is still running
+ * the group. While running and a line is open, the group is shown executing (no Confirm, no Cancel, waiting chips).
  */
-export function groupView(lines:ChatProposal[],options:{now?:number;online?:boolean;busy?:boolean;seen?:boolean}={}):GroupView{
+export function groupView(lines:ChatProposal[],options:{now?:number;online?:boolean;busy?:boolean;running?:boolean}={}):GroupView{
  const views=lines.map(line=>proposalView(line,options));
  const states=views.map(view=>view.state);
- const settled=states.some(state=>SETTLED_LINE.includes(state));
+ const derived=groupState(states);
+ // An unknown line keeps its own state (checking, never confirmable); running only replaces the local guess.
+ const running=!!options.running&&derived!=='unknown'&&states.some(state=>['pending','executing'].includes(state));
+ const settled=!running&&states.some(state=>SETTLED_LINE.includes(state));
  const pending=states.filter(state=>state==='pending').length;
- const state=groupState(states);
+ const state=running?'executing':derived;
  const live=state!=='executing'&&state!=='unknown';
  return {state,lines:states.map(line=>settled&&line==='pending'?'notrun':settled&&line==='expired'?'skipped':line),pending,remaining:settled&&pending>0,
   canConfirm:live&&pending>0&&views.some(view=>view.canConfirm),canCancel:live&&pending>0&&views.some(view=>view.canCancel),
@@ -188,10 +189,34 @@ export function isGroup(value:unknown):value is {id:string;state:GroupState;line
  const item=value as {id?:unknown;lines?:unknown}|null;
  return !!item&&typeof item==='object'&&typeof item.id==='string'&&Array.isArray(item.lines)&&item.lines.length>0&&item.lines.every(isProposal);
 }
-/** Polls a group until no line is unknown or executing, or 5 minutes pass (the service reconciles on each read). */
-export async function pollGroup(read:()=>Promise<ChatProposal[]>,options:{intervalMs?:number;timeoutMs?:number;now?:()=>number;sleep?:(ms:number,signal?:AbortSignal)=>Promise<void>;signal?:AbortSignal}={}):Promise<ChatProposal[]|null>{
- const value=await pollProposal(async()=>{const lines=await read();const state=groupState(lines.map(line=>line.state));return {...lines[0],state:state==='unknown'||state==='executing'?state:'done',lines} as ChatProposal&{lines:ChatProposal[]}},options);
+const openLine=(line:ChatProposal)=>line.state==='executing'||line.state==='unknown';
+/** Polls a group until no line is unknown or executing (or `until` says so), or 5 minutes pass (the service reconciles
+ * on each read). */
+export async function pollGroup(read:()=>Promise<ChatProposal[]>,{until=lines=>!lines.some(openLine),...options}:{until?:(lines:ChatProposal[])=>boolean;intervalMs?:number;firstDelayMs?:number;timeoutMs?:number;now?:()=>number;sleep?:(ms:number,signal?:AbortSignal)=>Promise<void>;signal?:AbortSignal}={}):Promise<ChatProposal[]|null>{
+ const value=await pollProposal(async()=>{const lines=await read();return {...lines[0],state:until(lines)?'done':'executing',lines} as ChatProposal&{lines:ChatProposal[]}},options);
  return value?(value as ChatProposal&{lines:ChatProposal[]}).lines:null;
+}
+/**
+ * R138 (Chase): a group shown on this device may still be running on the service: some lines settled and others open
+ * (pending and not expired, executing or unknown). That is the card's local copy after its own Confirm, or after the
+ * thread was left and reopened mid-run (the workspace keeps the local copies), so the card reads it back at once.
+ */
+export function groupInFlight(lines:ChatProposal[],now=Date.now()){
+ return lines.some(line=>SETTLED_LINE.includes(line.state))&&lines.some(line=>openLine(line)||line.state==='pending'&&Date.parse(line.expiresAt)>now);
+}
+/**
+ * R138 (Chase): when a running group may be treated as stopped after a read. Not while a line is executing or unknown;
+ * at once when no line is left to run (all settled, expired or cancelled); otherwise only after two reads in a row with
+ * pending lines and nothing running, so the moment between one line's settle and the next claim is not taken as a
+ * stop (a real stop: the 270 s deadline, or a line the service did not reach).
+ */
+export function runningEnded(now:()=>number=Date.now){
+ let quiet=0;
+ return (lines:ChatProposal[])=>{
+  if(lines.some(openLine)){quiet=0;return false}
+  if(!lines.some(line=>line.state==='pending'&&Date.parse(line.expiresAt)>now()))return true;
+  quiet+=1;return quiet>=2;
+ };
 }
 
 export type Outcome={state:'pending'}|{state:'done';user:ChatMessage;assistant:ChatMessage}|{state:'gone'};

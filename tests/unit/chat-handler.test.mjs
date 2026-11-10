@@ -589,9 +589,9 @@ test('D12: an unknown line mid-group: the others run, the group is unknown, a GE
  group=(await (await s.call(proposalPath(T1,head),{headers:jwt('a')})).json()).item;assert.equal(group.state,'done');
 });
 
-test('D12: the 180 s deadline leaves the remaining lines pending; a second confirm runs only those; a concurrent confirm gets 409',async t=>{
+test('D12: the 270 s deadline (GROUP_DEADLINE_MS) leaves the remaining lines pending; a second confirm runs only those; a concurrent confirm gets 409',async t=>{
  let offset=0;const clock=()=>Date.now()+offset;
- const {svc,store,s,head}=await groupTurn({now:clock,onPost:()=>{offset+=100000;}});t.after(s.close);
+ const {svc,store,s,head}=await groupTurn({now:clock,onPost:()=>{offset+=135000;}});t.after(s.close);
  let group=(await (await confirmGroup(s,head)).json()).item;
  assert.deepEqual(group.lines.map(l=>l.state),['done','done','pending','pending','pending','pending']);assert.equal(group.state,'partial','pending lines left: not done');assert.equal(svc.posts(),2);
  // Another confirm while a line of the group runs: 409, nothing posted.
@@ -608,12 +608,57 @@ test('D12: the 180 s deadline leaves the remaining lines pending; a second confi
 
 test('D12: cancel on the head cancels every pending line and leaves settled lines',async t=>{
  let offset=0;
- const {svc,s,head}=await groupTurn({now:()=>Date.now()+offset,onPost:()=>{offset+=200000;}});t.after(s.close);
+ const {svc,s,head}=await groupTurn({now:()=>Date.now()+offset,onPost:()=>{offset+=270000;}});t.after(s.close);
  let group=(await (await confirmGroup(s,head)).json()).item;assert.deepEqual(group.lines.map(l=>l.state),['done','pending','pending','pending','pending','pending']);
  group=(await (await s.call(proposalPath(T1,head,'/cancel'),{method:'POST',body:{},headers:jwt('a')})).json()).item;
  assert.deepEqual(group.lines.map(l=>l.state),['done','cancelled','cancelled','cancelled','cancelled','cancelled']);assert.equal(svc.posts(),1);
 });
 
+// D12 chunks (owner, 10 November 2026): a long proposal arrives in calls with more:true; the group is stored once.
+const proposeChunk=(changes,more,id)=>({functionCall:{name:'propose_action',id,args:more===undefined?{changes}:{changes,more}}});
+const chunkTurn=async calls=>{
+ const svc=groupService(),store=proposalStore();
+ const s=await server({cfg:writeConfig,store,commandFetch:svc.fetch,script:[...calls.map(call=>[chunk([call],{finishReason:'STOP',usage:USAGE})]),reply('Done.')]});
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ const r=await s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:M1,text:'Raise the interest of the six charges to 150'},headers:{Accept:'text/event-stream',...jwt('a')}});
+ return {s,store,...await events(r)};
+};
+test('D12 chunks: two more:true calls and the final call make one group, stored and announced once',async t=>{
+ const {s,store,list,names}=await chunkTurn([proposeChunk(sixChanges.slice(0,2),true,'w1'),proposeChunk(sixChanges.slice(2,4),true,'w2'),proposeChunk(sixChanges.slice(4),undefined,'w3')]);t.after(s.close);
+ assert.equal(names.filter(n=>n==='proposal').length,1);
+ const proposals=list.find(([n])=>n==='proposal')[1].proposals;
+ assert.deepEqual(proposals.map(p=>[p.card.target.id,p.card.group.index,p.card.group.count]),[1,2,3,4,5,6].map((n,i)=>[`C${n}`,i,6]));
+ assert.equal(store.proposals.size,6);assert.ok(proposals.every(p=>p.messageId===M1&&p.card.group.id===proposals[0].id));
+ assert.equal(s.logs.filter(l=>l.event==='chat_proposal_created').length,1);
+});
+test('D12 chunks: 101 changes across calls are refused at the final call and nothing is stored',async t=>{
+ const many=Array.from({length:95},()=>sixChanges[0]);
+ const {s,store,names,list}=await chunkTurn([proposeChunk(sixChanges,true,'w1'),proposeChunk(many,false,'w2')]);t.after(s.close);
+ assert.deepEqual(list.filter(([n,d])=>n==='tool'&&d.state!=='running').map(([,d])=>d.state),['ok','error']);
+ assert.equal(names.includes('proposal'),false);assert.equal(store.proposals.size,0);
+ assert.equal(s.logs.some(l=>l.event==='chat_proposal_created'),false);
+});
+test('D12 chunks: a failed final call stores nothing and holds nothing; a later final call makes its own group',async t=>{
+ const {s,store,list,names}=await chunkTurn([proposeChunk(sixChanges.slice(0,2),true,'w1'),proposeChunk(sixChanges.slice(1,2),undefined,'w2'),proposeChunk(sixChanges.slice(2,3),undefined,'w3')]);t.after(s.close);
+ const tools=list.filter(([n,d])=>n==='tool'&&d.state!=='running').map(([,d])=>d.state);
+ assert.deepEqual(tools,['ok','error','ok'],'DUPLICATE_TARGET:3 across the chunks');
+ assert.equal(names.filter(n=>n==='proposal').length,1);
+ const proposals=list.find(([n])=>n==='proposal')[1].proposals;
+ assert.deepEqual(proposals.map(p=>[p.card.target.id,p.card.group.count]),[['C3',1]]);assert.equal(store.proposals.size,1);
+});
+test('D12 chunks (Chase repro 1): a final call refused for its arguments empties the held lines; resending every change makes one group',async t=>{
+ const {s,store,list,names}=await chunkTurn([proposeChunk(sixChanges.slice(0,2),true,'w1'),proposeChunk([],undefined,'w2'),proposeChunk(sixChanges.slice(0,3),undefined,'w3')]);t.after(s.close);
+ assert.deepEqual(list.filter(([n,d])=>n==='tool'&&d.state!=='running').map(([,d])=>d.state),['ok','error','ok'],'NO_CHANGES, then no DUPLICATE_TARGET on the resend');
+ assert.equal(names.filter(n=>n==='proposal').length,1);
+ assert.deepEqual(list.find(([n])=>n==='proposal')[1].proposals.map(p=>[p.card.target.id,p.card.group.count]),[['C1',3],['C2',3],['C3',3]]);assert.equal(store.proposals.size,3);
+});
+test('D12 chunks (Chase repro 2): a failed more:true chunk empties the earlier chunks too; resending every change makes one group',async t=>{
+ const missing={operation:'charge.update',target_id:'X1',inputs:JSON.stringify({interestDue:'150'})};
+ const {s,store,list,names}=await chunkTurn([proposeChunk(sixChanges.slice(0,2),true,'w1'),proposeChunk([missing],true,'w2'),proposeChunk(sixChanges.slice(0,3),undefined,'w3')]);t.after(s.close);
+ assert.deepEqual(list.filter(([n,d])=>n==='tool'&&d.state!=='running').map(([,d])=>d.state),['ok','error','ok']);
+ assert.equal(names.filter(n=>n==='proposal').length,1);
+ assert.deepEqual(list.find(([n])=>n==='proposal')[1].proposals.map(p=>[p.card.target.id,p.card.group.count]),[['C1',3],['C2',3],['C3',3]]);assert.equal(store.proposals.size,3);
+});
 test('D12: the derived group state: done only when every line is done; partial when some are; failed when none is',async()=>{
  const {groupState}=await import('../../services/chat/proposals.mjs');
  const of=(...states)=>groupState(states.map(state=>({state})));

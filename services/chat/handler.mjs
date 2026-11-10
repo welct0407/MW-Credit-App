@@ -20,7 +20,7 @@ import {storeError} from './store.mjs';
 import {runTurn,failureText} from './engine.mjs';
 import {ToolError} from './errors.mjs';
 import {createCommandClient} from './command-client.mjs';
-import {loadCatalogue,catalogueView,createProposalPlanner,executeGroup,reconcileGroup,cancelGroup,loadGroup,assertIdle,publicProposal,needsPurpose} from './proposals.mjs';
+import {loadCatalogue,catalogueView,createProposalPlanner,executeGroup,reconcileGroup,cancelGroup,loadGroup,assertIdle,publicProposal,needsPurpose,MAX_GROUP} from './proposals.mjs';
 import {chosenPurpose} from './payment-plan.mjs';
 import {transliterate,transliterationInput,TransliterateError} from './transliterate.mjs';
 
@@ -72,11 +72,24 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   // CWR-05: a Partner who may not propose gets the fixed refusal tool; no planner, client or store write exists.
   if(!writer.allowed)return {refuse:true};
   const planner=createProposalPlanner({client:commandClient(authorization,wake),actor:{partnerId:writer.partnerId}});
+  // D12 chunks: lines planned from more:true calls, held in memory for this turn only (nothing is stored before the
+  // final call); the final call or any failed propose call empties them (the tool bridge calls reset for failures it
+  // finds itself, such as malformed changes).
+  let held=[];
   return {
    catalogue:operation=>catalogueView(catalogue,operation),
-   /** D12: the turn's changes as one group (one card). */
-   async propose({changes}){
-    const planned=await planner.proposeGroup(changes);
+   reset(){held=[];},
+   /** D12: the turn's changes as one group (one card); with more, a chunk is planned and held, and the call without
+    * more plans its own changes, applies the group rules to all of them and stores the group once. */
+   async propose({changes,more=false}){
+    const before=held;held=[];
+    if(before.length+changes.length>MAX_GROUP)throw new ToolError('TOO_MANY_CHANGES');
+    const lines=await planner.planLines(changes,before.length,more||before.length>0||changes.length>1);
+    if(more){
+     held=[...before,...lines];
+     return {accepted:lines.length,total:held.length,note:'Held; nothing is shown yet. Send the rest, then a call without more.'};
+    }
+    const planned=planner.finishGroup([...before,...lines]);
     let stored;
     try{stored=await store.createProposal(principal,thread,{group:planned.map(line=>({id:line.id,messageId:claim.message.id,kind:line.kind,operation:line.operation,command:line.command,card:line.card}))});}
     catch(error){

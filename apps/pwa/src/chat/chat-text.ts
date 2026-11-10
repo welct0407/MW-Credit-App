@@ -186,5 +186,4 @@ export function groupSummaryText({done,failed,notRun}:{done:number;failed:number
  const parts=thai?[[done,`สำเร็จ ${done}`],[failed,`ไม่ได้บันทึก ${failed}`],[notRun,`ไม่ได้ทำ ${notRun}`]]:[[done,`${done} done`],[failed,`${failed} not saved`],[notRun,`${notRun} not run`]];
  return parts.filter(([count])=>count).map(([,text])=>text).join(' · ');
 }
-export const armHintText=(thai:boolean)=>thai?'เลื่อนดูทุกรายการก่อนยืนยัน':'Scroll through all changes to confirm';
 export const groupProgressText=(done:number,count:number,thai:boolean)=>thai?`กำลังบันทึก ${done}/${count}…`:`Saving ${done} of ${count}…`;
