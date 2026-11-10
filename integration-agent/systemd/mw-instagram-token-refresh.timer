@@ -1,0 +1,11 @@
+[Unit]
+Description=Check the Instagram access token daily at 04:23 Asia/Bangkok (renews when 7 days old)
+
+[Timer]
+OnCalendar=*-*-* 04:23:00 Asia/Bangkok
+Persistent=true
+RandomizedDelaySec=10min
+Unit=mw-instagram-token-refresh.service
+
+[Install]
+WantedBy=timers.target

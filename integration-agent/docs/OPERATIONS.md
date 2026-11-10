@@ -81,6 +81,15 @@ Do not store credentials in the repository, VM metadata, startup scripts, or sys
 
 Instagram secrets belong in `/etc/mw-integration-agent/secrets` with root ownership, group `mwagent`, directory mode `0750`, and file mode `0640`. The live config references those files and must not contain secret values.
 
+### Instagram access token renewal (since 10 November 2026)
+
+The long-lived Instagram token lasts 60 days; on 10 November 2026 an unrenewed token expired and every poll failed with `HTTP 401, code 190` ([change note](../Change%20Logs/CHANGE_NOTES_INSTAGRAM_TOKEN_RENEWAL_2026-11-10.md)). Secret Manager `mw-instagram-access-token` is now the master copy and `instagram-access-token.txt` the local copy the agent reads. `mw-instagram-token-refresh.timer` (daily 04:23 Bangkok, `Persistent=true`) runs `scripts/instagram-token-refresh.py`, installed root-owned at `/opt/mw-instagram-token-refresh/` and run as root with the system Python (standard library only): it installs the latest secret version into the file when they differ, and when the file is 7 days old renews the token with Meta (`ig_refresh_token`), adds the new token as a secret version first, then rewrites the file and destroys versions older than the newest three. The VM identity holds `secretAccessor` and `secretVersionManager` on that secret only (`infrastructure/ecosystem-debian/instagram-token.tf`). The collector's `ig_token` component pages through `MW | Debian component unhealthy` when the file is over 10 days old.
+
+- Manual rotation (for example after a password change or revocation): generate a token in the Meta app dashboard, add it as a new version of `mw-instagram-access-token` in the Cloud console, then `sudo systemctl start mw-instagram-token-refresh.service` (or wait for the next daily run). Do not edit the file directly: the next run replaces it with the latest secret version.
+- Readback: `journalctl -u mw-instagram-token-refresh.service -n 3 -o cat` prints one JSON line (`action` `none`, `synced` or `refreshed`, version number, file age); errors name only a fixed reason such as `META_REFRESH_HTTP400_CODE190`.
+- Force a renewal (the token must be at least 24 hours old): `sudo /usr/bin/python3 -I /opt/mw-instagram-token-refresh/instagram-token-refresh.py --force`.
+- Install or update: copy the script and both `systemd/mw-instagram-token-refresh.*` units (root, 0755 and 0644), `systemd-analyze verify`, `daemon-reload`, `systemctl enable --now mw-instagram-token-refresh.timer`. Rollback: `systemctl disable --now mw-instagram-token-refresh.timer`; the file keeps working until its token expires.
+
 ## Verification
 
 ```bash
