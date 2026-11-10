@@ -382,3 +382,112 @@ test('R112 PWA: the card\'s choice becomes the Confirm purpose only for a choice
  assert.equal(choicePurpose({...options,forward:null,split:false},{kind:'forward'}),null);
  assert.equal(choicePurpose(undefined,{kind:'forward'}),null);
 });
+
+// R139 (PROD group 066fdc4f): carry-forward versions. A fake command service with the V141 lab's version rules: a loan's
+// version hashes its row and its charges (any charge create, update or delete moves it); a charge's version hashes the
+// charge and its loan row (a loan.update moves every charge of the loan; a sibling charge's change does not).
+function liveService(){
+ const loans={L1:{...loanItem},L2:{...loanItem,id:'L2'}},row={L1:1,L2:1},agg={L1:1,L2:1};
+ const charges={C1:{loanId:'L1',interestDue:'100.00',own:1},C2:{loanId:'L1',interestDue:'100.00',own:1},C3:{loanId:'L2',interestDue:'100.00',own:1}};
+ const calls=[],journal=new Map(),posts=[],reads=new Map();
+ const hex=(...parts)=>parts.map(n=>String(n).padStart(8,'0')).join('').padStart(64,'0');
+ const loanVersion=id=>hex(1,row[id],agg[id]),chargeVersion=id=>hex(2,row[charges[id].loanId],charges[id].own,Number(id.slice(1)));
+ const chargeItem=id=>({id,loanId:charges[id].loanId,chargeDate:'2026-10-29',principalDue:'0.00',interestDue:charges[id].interestDue,lateChargeDue:'0.00',notes:null,borrowerId:'B1',borrowerName:'สมชาย',borrowerDescription:null,version:chargeVersion(id)});
+ const svc={calls,posts,loans,charges,row,agg,afterPost:_command=>{},afterGet:(_path,_count)=>{}};
+ const get=async path=>{
+  calls.push(['GET',path]);const count=(reads.get(path)??0)+1;reads.set(path,count);
+  let answer={status:404,data:{ok:false,code:'not_found'}};
+  let m=/^\/api\/loan-records\/(L\d)$/.exec(path);if(m&&loans[m[1]])answer=ok({item:{...loans[m[1]],version:loanVersion(m[1])}});
+  m=/^\/api\/charge-records\/(C\d+)$/.exec(path);if(m&&charges[m[1]])answer=ok({item:chargeItem(m[1])});
+  if(path==='/api/borrower-options')answer=ok(accounts);if(path==='/api/borrower-records/B1')answer=ok({item:{id:'B1',name:'สมชาย',description:'Somchai'}});
+  svc.afterGet(path,count);return answer;
+ };
+ const outcome=(status,code=null)=>({kind:'recorded',originalOutcome:{status,code,result:null,recordedAt:'2026-11-10T03:00:00.000Z'}});
+ const apply=command=>{
+  const {operation,targetId,expectedVersion,inputs}=command;
+  if(!operation)return outcome('posted');   // a payment command (no loan of this group)
+  if(operation!=='charge.create'&&(operation.startsWith('loan.')?loanVersion(targetId):charges[targetId]&&chargeVersion(targetId))!==expectedVersion)return outcome('rejected','source_conflict');
+  if(operation==='charge.delete'){agg[charges[targetId].loanId]++;delete charges[targetId];}
+  else if(operation==='charge.create'){charges['C'+(Object.keys(charges).length+10)]={loanId:inputs.loanId,interestDue:inputs.interestDue,own:1};agg[inputs.loanId]++;}
+  else if(operation==='charge.update'){charges[targetId].interestDue=inputs.interestDue;charges[targetId].own++;agg[charges[targetId].loanId]++;}
+  else if(operation==='loan.update'){Object.assign(loans[targetId],inputs);row[targetId]++;}
+  return outcome('applied');
+ };
+ svc.client={get,post:async()=>({status:404,data:{}}),status:async(_kind,id)=>journal.get(id)??{kind:'unresolved'},
+  submit:async(_kind,text)=>{const command=JSON.parse(text);posts.push(command);calls.push(['POST',command.operation??'payment']);const data=apply(command);journal.set(command.requestId,data);svc.afterPost(command);return {result:'recorded',status:200,data};}};
+ svc.outside=loan=>{agg[loan]++;};   // another Partner's payment or charge on the loan
+ return svc;
+}
+function memoryGroup(lines){
+ const rows=new Map(lines.map(({scope:_scope,...line})=>[line.id,{...line,threadId:'T',state:'pending',attempts:0,claimedAt:null,expiresAt:new Date(Date.now()+900000).toISOString()}]));
+ const store={
+  claimProposal:async(_p,_t,id)=>{const row=rows.get(id);if(row.state!=='pending')return {claimed:false,proposal:row};row.state='executing';row.attempts++;row.claimedAt=new Date().toISOString();return {claimed:true,proposal:row,command:row.command};},
+  settleProposal:async(_p,_t,id,settlement)=>Object.assign(rows.get(id),settlement),
+ };
+ return {store,rows,lines:()=>[...rows.values()].map(row=>({...row}))};
+}
+const runGroup=async(svc,group)=>{
+ const {executeGroup}=await import('../../services/chat/proposals.mjs');const logs=[],lines=group.lines(),before=svc.calls.length;
+ const result=await executeGroup({store:group.store,principal:{},thread:'T',id:lines[0].id,client:svc.client,log:r=>logs.push(r),lines});
+ return {result,logs,calls:svc.calls.slice(before),states:result.lines.map(l=>[l.state,l.outcome?.code??null]),repinned:logs.filter(l=>l.event==='chat_proposal_repinned')};
+};
+const plan=(svc,changes)=>createProposalPlanner({client:svc.client,actor:{partnerId:'P1'},newId:ids()}).planLines(changes,0,true);
+const del=target=>({operation:'charge.delete',target,values:{}}),autoOff=target=>({operation:'loan.update',target,values:{autoChargeEnabled:false}});
+const create=loanId=>({operation:'charge.create',target:'',values:{loanId,chargeDate:'2026-11-12',principalDue:'0',interestDue:'90'}});
+const pinned=line=>JSON.parse(line.command).expectedVersion;
+test('R139: the PROD group shape (charge deletes, loan.update "Automatic charges" off, charge creates on two loans) is all done; each loan.update carries its own group\'s version with the old and new hash logged',async()=>{
+ const svc=liveService();
+ const lines=await plan(svc,[del('C1'),del('C3'),autoOff('L1'),autoOff('L2'),create('L1'),create('L2')]);
+ assert.deepEqual([lines[0].card.target.loanId,lines[1].card.target.loanId,lines[4].card.target.loanId],['L1','L2','L1'],'charge cards name their loan');
+ const {states,repinned}=await runGroup(svc,memoryGroup(lines));
+ assert.deepEqual(states,Array(6).fill(['done',null]));assert.equal(svc.loans.L1.autoChargeEnabled,false);assert.equal(svc.loans.L2.autoChargeEnabled,false);
+ assert.deepEqual(repinned.map(l=>[l.proposal,l.operation,l.from]),[[lines[2].id,'loan.update',pinned(lines[2])],[lines[3].id,'loan.update',pinned(lines[3])]]);
+ assert.ok(repinned.every(l=>/^[0-9a-f]{64}$/.test(l.to)&&l.to!==l.from));
+ assert.deepEqual([svc.posts[2].requestId,svc.posts[2].expectedVersion,svc.posts[2].inputs],[lines[2].id,repinned[0].to,JSON.parse(lines[2].command).inputs],'same request id and inputs, the carried version');
+});
+test('R139: a change to the loan from outside the group before Confirm: the loan.update keeps its pinned version and fails source_conflict',async()=>{
+ const svc=liveService();
+ const lines=await plan(svc,[del('C1'),autoOff('L1')]);
+ svc.outside('L1');
+ const {states,repinned}=await runGroup(svc,memoryGroup(lines));
+ assert.deepEqual(states,[['done',null],['failed','source_conflict']]);assert.deepEqual(repinned,[]);assert.equal(svc.posts[1].expectedVersion,pinned(lines[1]));
+});
+test('R139: a change from outside the group between two earlier lines (the version read before a line is not the carried one): source_conflict',async()=>{
+ const svc=liveService();
+ const lines=await plan(svc,[del('C1'),del('C2'),autoOff('L1')]);
+ // Reads of L1: the proposal, the Confirm start, before the first delete, after it (carried: read 4); then another
+ // Partner changes the loan, so the read before the second delete is not the carried version.
+ svc.afterGet=(path,count)=>{if(path==='/api/loan-records/L1'&&count===4)svc.outside('L1');};
+ const {states,repinned}=await runGroup(svc,memoryGroup(lines));
+ assert.deepEqual(states,[['done',null],['done',null],['failed','source_conflict']]);assert.deepEqual(repinned,[]);
+});
+test('R139: charge lines after charge lines are not re-read (a sibling charge\'s change does not move their version)',async()=>{
+ const svc=liveService();
+ const lines=await plan(svc,[del('C1'),{operation:'charge.update',target:'C2',values:{interestDue:'150'}}]);
+ const {states,calls}=await runGroup(svc,memoryGroup(lines));
+ assert.deepEqual(states,[['done',null],['done',null]]);assert.deepEqual(calls.filter(([method])=>method==='GET'),[]);
+});
+test('R139: a charge.delete after a loan.update on its loan is carried forward (its version includes the loan row)',async()=>{
+ const svc=liveService();
+ const lines=await plan(svc,[autoOff('L1'),del('C2')]);
+ const {states,repinned,calls}=await runGroup(svc,memoryGroup(lines));
+ assert.deepEqual(states,[['done',null],['done',null]]);assert.deepEqual(repinned.map(l=>[l.operation,l.from]),[['charge.delete',pinned(lines[1])]]);
+ assert.ok(calls.filter(([method])=>method==='GET').every(([,path])=>path==='/api/charge-records/C2'));
+});
+test('R139: a payment line affects no other line (nothing re-read, nothing carried)',async()=>{
+ const svc=liveService();
+ const [update]=await plan(svc,[autoOff('L1')]);
+ const PID='00000000-0000-4000-8000-0000000000ff';
+ const payment={id:PID,kind:'payment',operation:'payment.record',card:{version:1,operation:'payment.record',target:{type:'borrower',id:'B2',label:'Other'},values:[],changes:[],consequences:[]},command:JSON.stringify({requestId:PID,schemaVersion:11})};
+ const {states,repinned,calls}=await runGroup(svc,memoryGroup([payment,update]));
+ assert.deepEqual(states,[['done',null],['done',null]]);assert.deepEqual(repinned,[]);assert.deepEqual(calls.filter(([method])=>method==='GET'),[]);
+});
+test('R139: a line already claimed once is never re-pinned (only reconciled)',async()=>{
+ const svc=liveService();
+ const lines=await plan(svc,[del('C1'),autoOff('L1')]);
+ const group=memoryGroup(lines);
+ Object.assign(group.rows.get(lines[0].id),{state:'done'});delete svc.charges.C1;svc.outside('L1');
+ Object.assign(group.rows.get(lines[1].id),{state:'unknown',attempts:1,claimedAt:new Date(Date.now()-60000).toISOString()});
+ const {states,calls}=await runGroup(svc,group);
+ assert.deepEqual(states.map(([state])=>state),['done','unknown']);assert.equal(svc.posts.length,0);assert.deepEqual(calls,[],'no read and no POST');
+});
