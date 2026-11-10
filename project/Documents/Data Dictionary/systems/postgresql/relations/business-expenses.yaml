@@ -128,7 +128,8 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": null
-      "comment": null
+      "comment": "R140: who is paid: a typed name, or the payee borrower's name when the expense was saved (a snapshot; reads\
+        \ show the live borrower name through \"Ref Payee Borrower\")."
     "Ref Payee Borrower":
       "schema": "public"
       "relation": "Business Expenses"
@@ -146,7 +147,8 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": "{mw_notify_owner_prod=r/postgres}"
-      "comment": null
+      "comment": "R140: the borrower who is paid: the referrer of a referral rebate, or the borrower chosen as payee of a\
+        \ manual expense (null when the payee is a typed name)."
     "Ref Related Borrower":
       "schema": "public"
       "relation": "Business Expenses"
@@ -1541,4 +1543,12 @@
   "/content/columns/Ref Paid By Cash Holder/comment":
     "reference": "database/migrations/V142__pending_manual_expense.sql (R140)"
     "reason": "R140 pending manual expense: V142 comments on the two payer columns"
+    "state": "value"
+  "/content/columns/Payee Name/comment":
+    "reference": "database/migrations/V143__manual_expense_payee_borrower.sql (R140)"
+    "reason": "R140 follow-up: V143 comments on the payee columns"
+    "state": "value"
+  "/content/columns/Ref Payee Borrower/comment":
+    "reference": "database/migrations/V143__manual_expense_payee_borrower.sql (R140)"
+    "reason": "R140 follow-up: V143 comments on the payee columns"
     "state": "value"

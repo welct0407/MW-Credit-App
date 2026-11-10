@@ -13,6 +13,17 @@ Owner request of 10 November 2026: "for expenses, if it's referral expenses crea
 - Records (Dewey): Data Dictionary routine definitions for the four routines (`systems/postgresql/routines/`, source definitions from V142, applied with the dictionary tool; the PROD capture follows the PROD apply) and the two payer column comments in `systems/postgresql/relations/business-expenses.yaml`; `database/README.md` (V142), `project/Documents/PWA_Data_Model_Overview.md` (Expenses), `project/Documents/Solution_Design.md` (R140 paragraph), `project/Documents/Release_Tracker.md` (R140 scope, Open), `project/Documents/Development_Changes.md`. The `r005_cash_cutover_sources` relation entry already lists `mw_app_prod` SELECT from the PROD capture and is unchanged.
 - Commits: `1b8c692` (batch), `de86092` (phase5 F10-C01 expects the pinned-schema 422 for a null account), `86a5371` (V142 grants nothing; preflight guard), `8822f0c` (Echo EXP-PEND-13 list chip colour, 14 button underline, 15 Mark as paid form title with scroll and focus, 16 disabled Pending option styling).
 
+## Payee follow-up (f123135)
+Owner, 10 November 2026: "The payee can be some existing borrower, like referrers, or someone else like Dad." Byte, commit `f123135`.
+- SQL: `database/migrations/V143__manual_expense_payee_borrower.sql` replaces `pwa_submit_operation_v2` (optional last key `payeeBorrowerId` on `expense.create` and `expense.update`; the canonical form includes it only when sent) and `pwa_apply_expense_v2` (a borrower given must exist, else P5B04, and `payeeName` must be null; the row links `"Ref Payee Borrower"` and snapshots the borrower name into `"Payee Name"`; null means a typed name and no link; absent means create has no link and update keeps the link unless the name changes; Manual rows only, a referral rebate is P5B05). It comments `"Payee Name"` and `"Ref Payee Borrower"`. A borrower delete while payee is still refused (P5B05). No table, column or grant.
+- Reads: borrower details `expensesOwedAmount` and `expensesOwedCount` (pending manual expenses paid to that borrower, separate from rebates owed); borrower search `isReferrer`.
+- Chat: optional `payeeBorrowerId`, the card shows the borrower name; earlier 8-key proposals stay valid.
+- PWA (Echo EXP-PEND-18 to 25): one Payee field that searches borrowers (Referrer tag) or offers "Use ..." as a typed name; it never fills Related Borrower; list tile shows "ค้างจ่าย" with the payee; detail has one Payee row; review screen; the borrower page shows "Expenses owed" and the amount and item count when above 0.
+- Behaviour change: a referral rebate's detail now shows the borrower's live name as payee, not the captured `"Payee Name"`.
+- Records (Dewey): dictionary text of `pwa_submit_operation_v2` and `pwa_apply_expense_v2` and the two payee column comments in `business-expenses.yaml` (source definitions; the PROD capture follows the PROD apply); `database/README.md` (V143), `PWA_Data_Model_Overview.md`, `Solution_Design.md`, `Release_Tracker.md`, `Development_Changes.md`.
+- Tests (Byte, local): migrations, phase5 and receiving groups pass; `npm test` 1277 pass; biome, `tsc` and build pass; Playwright expense and referrer specs 58 pass. CI and the DEV deployment and test: to be added.
+- Follow-ups: EXP-PEND-25 (make the borrower-page line tappable), with EXP-PEND-17.
+
 ## Checks
 | Command | Result |
 | --- | --- |
