@@ -281,8 +281,10 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
    catch{throw new ToolError('INVALID_COMMAND');}
    const {values:shown,changes}=await cardFields(entry.builder==='correction'?entry.fields.filter(f=>f.name!=='receiptMode'||inputs.receiptMode!=='preserve'):entry.fields,
     entry.builder==='correction'?{...inputs.fields,receiptMode:inputs.receiptMode}:command.inputs,before);
+   // R139: a charge line names its loan on the card, so Confirm all knows which loan a done charge.delete changed (re-pin).
+   const chargeLoan=operation.startsWith('charge.')?dig(response,'item.loanId')??/** @type {any} */(command.inputs).loanId:null;
    const card={version:1,operation,label:entry.label,confirmLabel:confirmLabel(entry,command.inputs),destructive:entry.destructive===true,
-    target:{type:operation.split('.')[0],id:targetId,label:await title(entry,response,{...values,id:targetId})},
+    target:{type:operation.split('.')[0],id:targetId,label:await title(entry,response,{...values,id:targetId}),...(typeof chargeLoan==='string'?{loanId:chargeLoan}:{})},
     values:shown,changes:entry.target==='new'?[]:changes,consequences:entry.consequences.map(code=>consequence(code,command.inputs))};
    if(entry.builder==='correction')card.split=inputs.fields.allocations?.map(row=>({chargeId:row.chargeId,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,lateCharge:row.lateCharge??'0',loanDisplayKey:null,projected:false}))??[];
    // D12: what the group rules need. The borrower a line touches (payments and closes must be alone for theirs).
@@ -406,6 +408,7 @@ function recorded(proposal,command,data){
  if(['applied','posted'].includes(o.status))return {state:'done',outcome,record:recordFor(proposal,command,o)};
  return {state:'failed',outcome:{...outcome,code:outcome.code??'request_rejected'},record:null};
 }
+const toolCode=error=>error.message==='COMMAND_UNAVAILABLE'?'command_unavailable':error.message.toLowerCase().replace(/[^a-z0-9_]/g,'_').slice(0,80);
 const failed=code=>({state:'failed',outcome:{status:'not_applied',code,result:null,recordedAt:null},record:null});
 const unknown=reason=>({state:'unknown',outcome:{status:'unknown',code:'outcome_unknown',result:null,recordedAt:null,reason},record:null});
 
@@ -416,9 +419,9 @@ const unknown=reason=>({state:'unknown',outcome:{status:'unknown',code:'outcome_
  * A busy refusal settles failed command_busy only on the first attempt: services/payment-command/store.mjs run()
  * answers 409 command_busy only for a lock or try-lock refusal before COMMIT after a confirmed ROLLBACK (no quarantine),
  * so nothing was applied (lines 86-92, DB-LOCK-01); any later attempt settles unknown.
- * @param {{store:any,principal:any,thread:string,id:string,client:any,log?:(record:object)=>void,now?:()=>number,purpose?:any}} input
+ * @param {{store:any,principal:any,thread:string,id:string,client:any,log?:(record:object)=>void,now?:()=>number,purpose?:any,repin?:((proposal:any,command:any)=>any)|null}} input
  */
-export async function executeProposal({store,principal,thread,id,client,log=()=>{},now=Date.now,purpose=null}){
+export async function executeProposal({store,principal,thread,id,client,log=()=>{},now=Date.now,purpose=null,repin=null}){
  const claim=await store.claimProposal(principal,thread,id);
  if(!claim.claimed)return reconcileProposal({store,principal,thread,proposal:claim.proposal,client,now,log});
  const proposal=claim.proposal,first=proposal.attempts===1;
@@ -440,7 +443,13 @@ export async function executeProposal({store,principal,thread,id,client,log=()=>
  let text=claim.command;
  if(command?.purposeRequired){
   try{command=await paymentCommandFor({client,stored:command,purpose});text=JSON.stringify(command);}
-  catch(error){if(error instanceof ToolError)return settle(failed(error.message==='COMMAND_UNAVAILABLE'?'command_unavailable':error.message.toLowerCase().replace(/[^a-z0-9_]/g,'_').slice(0,80)));throw error;}
+  catch(error){if(error instanceof ToolError)return settle(failed(toolCode(error)));throw error;}
+ }
+ // R139: a line whose loan an earlier line of its group changed posts with the version carried forward from that line's
+ // own write (carryForward; same request id and inputs); otherwise the pinned version, which fails as before.
+ if(repin&&command&&!command.purposeRequired){
+  try{const next=await repin(proposal,command);if(next){command=next;text=JSON.stringify(next);}}
+  catch(error){if(error instanceof ToolError)return settle(failed(toolCode(error)));throw error;}
  }
  const answer=await client.submit(proposal.kind,text);
  if(answer.result==='recorded')return settle(recorded(proposal,command,answer.data));
@@ -472,6 +481,92 @@ export async function reconcileProposal({store,principal,thread,proposal,client,
  if(!settlement)return publicProposal(proposal);
  log({event:'chat_proposal_reconciled',thread,proposal:proposal.id,operation:proposal.operation,state:settlement.state,code:settlement.outcome?.code??null});
  return publicProposal(await store.settleProposal(principal,thread,proposal.id,settlement));
+}
+
+/** R139: the lines whose expectedVersion an earlier line of their own group can move (V141 lab, Chase): a loan line's
+ * version hashes the loan row with its charges and repayments; a charge line's version hashes the charge and its loan
+ * row. charge.create carries no version; loan.close and the booking and model-input loan operations are not carried. */
+const PINNED_LOAN=['loan.update','loan.delete','loan.undo-default'],PINNED_CHARGE=['charge.update','charge.delete'];
+/** The loan a pinned line's version depends on: a loan line's target, a charge line's loan as its card names it
+ * (card.target.loanId; a card from before R139 has none and is not carried). null for any other line. */
+function pinnedLoan(line){
+ const operation=line.operation??'',target=line.card?.target??{};
+ if(PINNED_LOAN.includes(operation))return typeof target.id==='string'?target.id:null;
+ if(PINNED_CHARGE.includes(operation))return typeof target.loanId==='string'?target.loanId:null;
+ return null;
+}
+/** The loans whose charges a charge line changes: its loan, and for an update that moves the charge the new loan too. */
+function chargeLoans(line){
+ const card=line.card??{};
+ if(!(line.operation??'').startsWith('charge.')||typeof card.target?.loanId!=='string')return [];
+ const moved=card.values?.find(value=>value.field==='loanId')?.value;
+ return [...new Set([card.target.loanId,...(typeof moved==='string'?[moved]:[])])];
+}
+/** Whether `earlier` moves the version `later` is pinned to: a loan line by a charge line on its loan (a charge create,
+ * update or delete changes the loan's version only, not its sibling charges'); a charge line by a loan.update of its loan
+ * (the loan row; loan.default and loan.undo-default also rewrite the charges themselves, so they are never carried).
+ * Payment lines move nothing here (they are alone for their borrower). */
+function affects(earlier,later){
+ const loan=pinnedLoan(later);
+ if(!loan)return false;
+ if(PINNED_LOAN.includes(later.operation))return chargeLoans(earlier).includes(loan);
+ return earlier.operation==='loan.update'&&earlier.card?.target?.id===loan;
+}
+/**
+ * R139 (PROD group 066fdc4f): carry-forward versions for one Confirm run, so a group absorbs only its own writes.
+ * start: for each pending pinned line an earlier pending line of the group affects, read its target's version (base).
+ * before(i)/after(i): around each earlier line, re-read the versions of the later lines it affects; the version read
+ * just before must equal the carried one (else something outside the group changed the record: that line is no longer
+ * carried), and after a done line the new version is carried forward. An earlier line whose outcome is not known, or a
+ * failed read, stops carrying for the lines it affects. repin(i): when the line runs (first attempt only, in
+ * executeProposal), a carried version replaces the pinned expectedVersion only if the base read at the start equals the
+ * pinned one (nothing outside the group changed it between the card and Confirm). Reads use the Partner's token.
+ */
+function carryForward({lines,client,catalogue,log,thread}){
+ const carried=new Map();
+ const runnable=line=>line.state==='pending';
+ async function read(line){
+  const entry=catalogue.entries.get(line.operation);
+  if(!entry?.read||typeof line.card?.target?.id!=='string')return null;
+  let answer;
+  try{answer=await client.get(template(entry.read,{id:line.card.target.id}));}
+  catch(error){if(error instanceof CommandUnavailable||error instanceof ToolError)return null;throw error;}
+  const version=answer?.status===200?answer.data?.item?.version:null;
+  return typeof version==='string'&&HASH.test(version)?version:null;
+ }
+ const affected=index=>[...carried.keys()].filter(at=>at>index&&!carried.get(at).broken&&affects(lines[index],lines[at]));
+ return {
+  async start(){
+   for(const [at,later] of lines.entries()){
+    if(!runnable(later)||!pinnedLoan(later)||!lines.some((earlier,index)=>index<at&&runnable(earlier)&&affects(earlier,later)))continue;
+    const base=await read(later);
+    carried.set(at,{base,version:base,broken:base===null});
+   }
+  },
+  async before(index){
+   if(!runnable(lines[index]))return [];
+   const list=affected(index);
+   for(const at of list){const entry=carried.get(at);const now=await read(lines[at]);if(now===null||now!==entry.version)entry.broken=true;}
+   return list.filter(at=>!carried.get(at).broken);
+  },
+  async after(list,state){
+   for(const at of list){
+    const entry=carried.get(at);
+    if(state==='done'){const now=await read(lines[at]);if(now===null)entry.broken=true;else entry.version=now;}
+    else if(!['failed','expired','cancelled'].includes(state))entry.broken=true;
+   }
+  },
+  repin(index){
+   const entry=carried.get(index);
+   if(!entry)return null;
+   return (proposal,command)=>{
+    if(entry.broken||entry.base!==command.expectedVersion||entry.version===command.expectedVersion)return null;
+    let next;try{next=canonicalOperation({...command,expectedVersion:entry.version});}catch{throw new ToolError('INVALID_COMMAND');}
+    log({event:'chat_proposal_repinned',thread,proposal:proposal.id,operation:proposal.operation,from:command.expectedVersion,to:entry.version});
+    return next;
+   };
+  },
+ };
 }
 
 /** D12: Confirm all runs at most this long from the confirm start; lines not yet claimed by then stay pending
@@ -511,24 +606,29 @@ export async function loadGroup({store,principal,thread,id}){
  * reconciled only; a recorded result wins; settled lines are reported as they are). A failed or unknown line does not
  * stop the group. Lines not reached within GROUP_DEADLINE_MS stay pending. A confirm while a line of the group runs
  * (another tab) answers 409 proposal_executing. onLine receives {index,id,state,code?,record?} after each line.
- * @param {{store:any,principal:any,thread:string,id:string,client:any,log?:(record:object)=>void,now?:()=>number,deadlineMs?:number,onLine?:(line:object)=>void,lines?:any[],purpose?:any}} input
+ * @param {{store:any,principal:any,thread:string,id:string,client:any,log?:(record:object)=>void,now?:()=>number,deadlineMs?:number,onLine?:(line:object)=>void,lines?:any[],purpose?:any,catalogue?:any}} input
  */
-export async function executeGroup({store,principal,thread,id,client,log=()=>{},now=Date.now,deadlineMs=GROUP_DEADLINE_MS,onLine=()=>{},lines:loaded,purpose=null}){
+export async function executeGroup({store,principal,thread,id,client,log=()=>{},now=Date.now,deadlineMs=GROUP_DEADLINE_MS,onLine=()=>{},lines:loaded,purpose=null,catalogue=loadCatalogue()}){
  const started=now();
  const lines=loaded??await loadGroup({store,principal,thread,id});
  assertIdle(lines,now);
  const out=lines.map(publicProposal);
  let claimed=false;
+ // R139: carry-forward versions, so a later line absorbs only the earlier lines' own writes to its loan.
+ const carry=carryForward({lines,client,catalogue,log,thread});
+ await carry.start();
  for(const [index,line] of lines.entries()){
   if(line.state==='pending'&&now()-started>=deadlineMs)break;
   if(['pending','unknown','executing'].includes(line.state)){
-   try{out[index]=await executeProposal({store,principal,thread,id:line.id,client,log,now,purpose:needsPurpose(line)?purpose:null});}
+   const later=await carry.before(index);
+   try{out[index]=await executeProposal({store,principal,thread,id:line.id,client,log,now,purpose:needsPurpose(line)?purpose:null,repin:carry.repin(index)});}
    catch(error){
     // Another confirm took a line between our read and our claim: the first one answers 409, a later one stops here.
     if(error?.message==='proposal_executing'){if(!claimed)throw error;break;}
     throw error;
    }
    claimed=true;
+   await carry.after(later,out[index].state);
   }
   const item=out[index];
   onLine({index,id:item.id,state:item.state,...(item.outcome?.code?{code:item.outcome.code}:{}),...(item.record?{record:item.record}:{})});

@@ -659,6 +659,42 @@ test('D12 chunks (Chase repro 2): a failed more:true chunk empties the earlier c
  assert.equal(names.filter(n=>n==='proposal').length,1);
  assert.deepEqual(list.find(([n])=>n==='proposal')[1].proposals.map(p=>[p.card.target.id,p.card.group.count]),[['C1',3],['C2',3],['C3',3]]);assert.equal(store.proposals.size,3);
 });
+test('R139: Confirm all carries a charge line\'s version forward after a loan.update on its loan, reading the charge with the Partner\'s own token',async t=>{
+ let loanVersion=1;const calls=[],journal=new Map(),hex=n=>n.toString(16).padStart(64,'0');
+ const loan={id:'L1',borrowerId:'B-OUM',loanDate:'2026-10-01',principal:'10000.00',transferFee:null,disbursingAccountId:'CA1',type:'ดอกเบี้ยรายวัน',dueDate:null,dailyPayment:null,
+  fixedInterest:null,currentDailyInterest:'100.00',paymentInterval:1,arrangement:null,autoChargeEnabled:true,scheduleAnchor:null,borrowerDisplayName:'Oum'};
+ const charge=()=>({id:'C1',loanId:'L1',chargeDate:'2026-10-29',principalDue:'0.00',interestDue:'100.00',lateChargeDue:'0.00',notes:null,borrowerId:'B-OUM',borrowerName:'Oum',borrowerDescription:null,version:hex(loanVersion*10+1)});
+ const fetch=async(url,init)=>{
+  const path=url.slice(COMMAND_URL.length);calls.push({path,method:init.method,authorization:init.headers.Authorization});
+  const reply=(status,data)=>new Response(JSON.stringify(data),{status});
+  if(path==='/api/loan-records/L1')return reply(200,{item:{...loan,version:hex(loanVersion*10)}});
+  if(path==='/api/charge-records/C1')return reply(200,{item:charge()});
+  if(path==='/api/borrower-options')return reply(200,{referrers:[],accounts:[{id:'CA1',label:'Cash box'}]});
+  const status=/^\/api\/operations\/([0-9a-f-]{36})$/.exec(path);if(status)return reply(200,journal.get(status[1])??{kind:'unresolved'});
+  if(path==='/api/operations'&&init.method==='POST'){
+   const body=JSON.parse(init.body),current=body.operation==='loan.update'?hex(loanVersion*10):charge().version;
+   const ok=body.expectedVersion===current;if(ok)loanVersion++;
+   const recorded={kind:'recorded',originalOutcome:ok?{status:'applied',code:null,result:{id:body.targetId},recordedAt:'2026-11-10T03:00:00.000Z'}:{status:'rejected',code:'source_conflict'}};
+   journal.set(body.requestId,recorded);return reply(200,recorded);
+  }
+  return reply(404,{ok:false,code:'not_found'});
+ };
+ const changes=[{operation:'loan.update',target_id:'L1',inputs:JSON.stringify({autoChargeEnabled:false})},{operation:'charge.update',target_id:'C1',inputs:JSON.stringify({interestDue:'150'})}];
+ const s=await server({cfg:writeConfig,store:proposalStore(),commandFetch:fetch,script:[[chunk([proposeMany(changes)],{finishReason:'STOP',usage:USAGE})],reply('Card ready.')]});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ const out=await (await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M1,text:'Stop automatic charges on L1 and set the charge to 150'},headers:jwt('a')})).json();
+ const head=out.assistant.proposals[0].id,before=calls.length;
+ const group=(await (await s.call(proposalPath(T1,head,'/confirm'),{method:'POST',body:{},headers:jwt('a')})).json()).item;
+ assert.deepEqual(group.lines.map(l=>l.state),['done','done']);
+ const run=calls.slice(before),posts=run.filter(c=>c.method==='POST');
+ assert.deepEqual(posts.length,2);
+ const reads=run.filter(c=>c.method==='GET'&&c.path==='/api/charge-records/C1');
+ assert.equal(reads.length,3,'the Confirm start, before the loan.update and after it');assert.ok(reads.every(c=>c.authorization==='Bearer jwt.a.sig'));
+ assert.ok(run.indexOf(reads[2])>run.indexOf(posts[0])&&run.indexOf(reads[2])<run.indexOf(posts[1]));
+ assert.ok(run.filter(c=>c.method==='GET'&&!c.path.startsWith('/api/operations/')).every(c=>c.path==='/api/charge-records/C1'),'no other record read');
+ const log=s.logs.find(l=>l.event==='chat_proposal_repinned');
+ assert.deepEqual([log.operation,log.from,log.to],['charge.update',hex(11),hex(21)],'pinned at the proposal, carried from the loan.update');
+});
 test('D12: the derived group state: done only when every line is done; partial when some are; failed when none is',async()=>{
  const {groupState}=await import('../../services/chat/proposals.mjs');
  const of=(...states)=>groupState(states.map(state=>({state})));

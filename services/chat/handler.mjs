@@ -322,13 +322,13 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
      if(purpose===null)throw invalid('purpose_required');
      try{chosenPurpose(choosing.card.purposeOptions,purpose);}catch{throw invalid('purpose_not_offered');}
     }
-    if(!/text\/event-stream/i.test(req.headers.accept??''))return reply(200,{item:await executeGroup({store,principal,thread,id,client,log,now,lines,purpose})});
+    if(!/text\/event-stream/i.test(req.headers.accept??''))return reply(200,{item:await executeGroup({store,principal,thread,id,client,log,now,lines,purpose,catalogue})});
     // Confirm as Server-Sent Events: line after each line, then group and done (the request runs to its end).
     res.statusCode=200;res.setHeader('Content-Type','text/event-stream; charset=utf-8');res.setHeader('Cache-Control','no-store');res.setHeader('X-Accel-Buffering','no');res.flushHeaders?.();
     const write=text=>{if(!res.destroyed&&!res.writableEnded)res.write(text);};
     const event=(name,data)=>write(`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`);
     const ping=setInterval(()=>write(': ping\n\n'),pingMs);
-    try{const group=await executeGroup({store,principal,thread,id,client,log,now,lines,purpose,onLine:line=>event('line',line)});event('group',{state:group.state,group});}
+    try{const group=await executeGroup({store,principal,thread,id,client,log,now,lines,purpose,catalogue,onLine:line=>event('line',line)});event('group',{state:group.state,group});}
     catch(error){log({event:'chat_proposal_group_failed',thread,proposal:id,reason:error?.name});event('error',{code:error?.message==='proposal_executing'?'proposal_executing':'unavailable'});}
     finally{clearInterval(ping);event('done',{});if(!res.writableEnded)res.end();}
     return;
