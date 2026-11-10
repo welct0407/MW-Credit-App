@@ -38,7 +38,7 @@ Use the same A–F responsibilities above. The orchestrator is the main conversa
 | Name | Model ID | Effort |
 | --- | --- | --- |
 | Main conversation — Orchestrator | `claude-opus-5-5` | high |
-| Archie (A — Architect) | `claude-fable-5-1` | medium |
+| Archie (A — Architect) | `claude-fable-5-2` | medium |
 | Byte (B — Coding) | `claude-opus-5-5` | high; medium for text/style/layout-only changes |
 | Chase (C — Testing) | `claude-sonnet-5-5` | medium |
 | Dewey (D — Miscellaneous / Delivery and Documentation) | `claude-sonnet-5-5` | medium |
@@ -47,13 +47,13 @@ Use the same A–F responsibilities above. The orchestrator is the main conversa
 
 Set effort explicitly through supported tool controls. Apply these task-specific escalations without a separate model-selection approval, unless the owner has explicitly fixed that task's setting. A running worker keeps the setting it started with; when an escalation cannot be applied to it, replace it under the same name as the [roster](PWA_Orchestration.md#named-workers-started-once-per-session) allows and disclose the restart:
 
-- **A → Fable 5.1 / high** for financial or reconciliation design, migrations that rewrite existing data, access-model changes, or concurrency/retry semantics.
-- **B → Fable 5.1 / medium** for difficult financial logic, concurrency or migrations.
+- **A → Fable 5.2 / high** for financial or reconciliation design, migrations that rewrite existing data, access-model changes, or concurrency/retry semantics.
+- **B → Fable 5.2 / medium** for difficult financial logic, concurrency or migrations.
 - **C → Opus 5.5 / high** for subtle authorization, reconciliation or race-condition investigations.
 - **E → Opus 5.5 / high** for new pages or flows, or shared navigation/responsive layout effects.
 - **F → Opus 5.5 / high** for ambiguous IAM/networking failures or shared DEV/PROD infrastructure changes.
 
-If Fable 5.1 is unavailable to the account or tool, use **Opus 5.5 / high** for A (default or escalated) and **Opus 5.5 / xhigh** for an escalated B, and disclose the fallback once.
+If Fable 5.2 is unavailable to the account or tool, use **Opus 5.5 / high** for A (default or escalated) and **Opus 5.5 / xhigh** for an escalated B, and disclose the fallback once.
 
 Scope escalation to the affected assignment; subsequent routine assignments return to their defaults. A model escalation grants no additional production, data or service authority. Evaluate this starting allocation against actual task results; do not assume matching effort labels give matching behavior across providers.
 
