@@ -23,7 +23,7 @@ before(async()=>{
  const proof=await attestDisposableApplicationTarget({adminPool:admin,expectedDirectory:process.env.PAYMENT_REHEARSAL_DIRECTORY,runtimeUser:user,expectedVersion:head});
  store=createApplicationRoleCommandStore({pool:app,targetAttestation:proof,ownerTesting:true});
  fixture=await seedPaymentFixture(admin,'R140-EXP');await admin.query('UPDATE "Partners" SET "Login Email"=$1 WHERE "Row ID"=$2',[OWNER_EMAIL,fixture.actorId]);
- // The reads exclude R005 cutover sources from pending: the application role reads that table only (V142 grant, app-role policy).
+ // The reads exclude R005 cutover sources from pending: the application role reads that table only (app-role policy read-only class).
  const access=(await admin.query(`SELECT has_table_privilege('mw_app_dev','public.r005_cash_cutover_sources','SELECT') AS r,has_table_privilege('mw_app_dev','public.r005_cash_cutover_sources','INSERT') AS w`)).rows[0];
  assert.deepEqual(access,{r:true,w:false});
 });

@@ -14,9 +14,10 @@
 --  3. guard_source_cash_account: for a Manual row an account is required only when a holder is set.
 --  4. guard_opening_included_source: Lisa's default account is filled in only when a holder is set, the row is not Manual or
 --     the row is a cutover source (before V142 any update of a pending row would have paid it silently).
---  5. Comments on the two payer columns (the chat schema digest carries them), and SELECT on r005_cash_cutover_sources for
---     mw_app_<env> (the app-role policy already classifies the table read-only; the PWA reads exclude cutover rows from
---     pending; granted here because PROD has no post-migrate reconciliation, as V98 did; idempotent).
+--  5. Comments on the two payer columns (the chat schema digest carries them). No grant: the PWA reads exclude cutover rows
+--     from pending and need SELECT on r005_cash_cutover_sources for mw_app_<env>, which the app-role policy classifies
+--     read-only and DEV (post-migrate reconcile) and PROD (recorded ACL) already hold; the preflight refuses an environment
+--     whose app role reads "Business Expenses" but not that table, so the reads cannot break after the apply.
 -- Rollback: a later migration restores the V141 bodies; pending rows created meanwhile must be paid or deleted first,
 -- because the V141 guards refuse any update of a positive Manual expense without a payer.
 
@@ -28,7 +29,11 @@ BEGIN
   problems:=problems||'V142 needs V141'::text; END IF;
  IF EXISTS(SELECT 1 FROM unnest(ARRAY['public.pwa_apply_expense_v2(text)','public.guard_source_cash_holder()','public.guard_source_cash_account()','public.guard_opening_included_source()']) f
    WHERE position('R140' IN pg_get_functiondef(f::regprocedure))>0) THEN problems:=problems||'V142: a routine is already patched'::text; END IF;
- IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_app_'||suffix) THEN problems:=problems||format('V142 needs the role mw_app_%s',suffix); END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_app_'||suffix) THEN problems:=problems||format('V142 needs the role mw_app_%s',suffix);
+ -- A provisioned app role (one that reads "Business Expenses") must read the cutover identities too (the pending rule). A
+ -- disposable rebuild before its role reconcile grants neither and passes.
+ ELSIF has_table_privilege('mw_app_'||suffix,'public."Business Expenses"','SELECT') AND NOT has_table_privilege('mw_app_'||suffix,'public.r005_cash_cutover_sources','SELECT') THEN
+  problems:=problems||format('mw_app_%s reads "Business Expenses" but not r005_cash_cutover_sources (grant SELECT per the app-role policy first)',suffix); END IF;
  IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname=current_user AND rolsuper) THEN
   FOR r IN SELECT DISTINCT pg_get_userbyid(p.proowner) AS owner FROM pg_proc p WHERE p.oid IN ('public.pwa_apply_expense_v2(text)'::regprocedure,
     'public.guard_source_cash_holder()'::regprocedure,'public.guard_source_cash_account()'::regprocedure,'public.guard_opening_included_source()'::regprocedure) LOOP
@@ -85,17 +90,13 @@ SELECT pg_temp.v142_patch('public.guard_opening_included_source()',ARRAY[
    AND (NEW."Ref Paid By Cash Holder" IS NOT NULL OR (NEW."Amount"::numeric>0 AND (NEW."Source Type" IS DISTINCT FROM 'Manual'
     OR EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=NEW."Row ID")))) THEN$n$]);
 
--- 5. Comments and the cutover read.
+-- 5. Comments.
 COMMENT ON COLUMN public."Business Expenses"."Ref Paid By Cash Account" IS 'R140: the cash account that paid the expense. Null on a Manual expense above zero that is no R005 cutover source means pending payment: no cash movement until an account is set (the movement is then dated on the Expense Date).';
 COMMENT ON COLUMN public."Business Expenses"."Ref Paid By Cash Holder" IS 'R140: the holder of "Ref Paid By Cash Account" (derived from it). Null together with the account on a Manual expense above zero that is no R005 cutover source means pending payment.';
-DO $grant$
-BEGIN
- EXECUTE format('GRANT SELECT ON public.r005_cash_cutover_sources TO %I','mw_app_'||CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END);
-END $grant$;
 
 -- Self-check: owner, ACL, security, volatility, configuration and comment unchanged; every patch in place.
 DO $check$
-DECLARE bad text; app text:='mw_app_'||CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;
+DECLARE bad text;
 BEGIN
  SELECT string_agg(o.routine,', ') INTO bad FROM v142_routines o JOIN pg_proc p ON p.oid=o.routine::regprocedure
   WHERE pg_get_userbyid(p.proowner)<>o.owner OR p.prosecdef<>o.definer OR p.provolatile<>o.volatile OR p.proconfig IS DISTINCT FROM o.config
@@ -109,7 +110,4 @@ BEGIN
  IF position($c$holder IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B07'$c$ IN pg_get_functiondef('public.pwa_apply_expense_v2(text)'::regprocedure))>0
   OR position($c$ERRCODE='P5B07'$c$ IN pg_get_functiondef('public.pwa_apply_expense_v2(text)'::regprocedure))=0 THEN
   RAISE EXCEPTION 'V142: pwa_apply_expense_v2 must keep P5B07 for an invalid account only'; END IF;
- IF NOT has_table_privilege(app,'public.r005_cash_cutover_sources','SELECT') OR has_table_privilege(app,'public.r005_cash_cutover_sources','INSERT')
-  OR has_table_privilege(app,'public.r005_cash_cutover_sources','UPDATE') OR has_table_privilege(app,'public.r005_cash_cutover_sources','DELETE') THEN
-  RAISE EXCEPTION 'V142: % must read r005_cash_cutover_sources only',app; END IF;
 END $check$;
