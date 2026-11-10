@@ -1,0 +1,25 @@
+[Unit]
+Description=M&W Instagram access token: sync from Secret Manager and renew with Meta when 7 days old
+# Owner instruction 10 November 2026. Runs as root because the token file is root:mwagent 0640 in a
+# root-owned directory; the script is root-owned at /opt/mw-instagram-token-refresh and uses only the
+# standard library. The VM identity holds secretAccessor and secretVersionManager on this one secret
+# (infrastructure/ecosystem-debian/instagram-token.tf). The only writable path is the secrets directory.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -I /opt/mw-instagram-token-refresh/instagram-token-refresh.py
+TimeoutStartSec=5min
+UMask=0077
+CapabilityBoundingSet=CAP_CHOWN
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/etc/mw-integration-agent/secrets

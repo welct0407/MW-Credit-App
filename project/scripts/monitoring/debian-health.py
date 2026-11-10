@@ -188,6 +188,23 @@ def polling_status(service, timer, monotonic_now, epoch_now, last_success, max_r
     return (2 if failed else 1), last_success
 
 
+IG_TOKEN_RENEWED_SECONDS = 10 * 86400
+IG_TOKEN_EXPIRY_NEAR_SECONDS = 50 * 86400
+
+
+def ig_token_status(path, epoch_now, stat=os.stat):
+    """Instagram token age from the token file's modification time (never its content).
+
+    mw-instagram-token-refresh renews the long-lived token (60 days) and rewrites the file every 7 days, and an
+    owner rotation through Secret Manager also rewrites it. Healthy while renewed within 10 days; Degraded
+    (pages, with about 50 days left) after that; Down after 50 days. A future time (clock skew) is Unknown.
+    """
+    age = epoch_now - stat(path).st_mtime
+    if age < -300:
+        return 4
+    return 1 if age <= IG_TOKEN_RENEWED_SECONDS else 2 if age <= IG_TOKEN_EXPIRY_NEAR_SECONDS else 0
+
+
 def fetch(url, headers=None):
     with urllib.request.urlopen(urllib.request.Request(url, headers=headers or {}), timeout=15) as r:
         return r.read().decode()
@@ -790,6 +807,8 @@ def main():
             service, timer, monotonic_now, epoch_now, saved if type(saved) is int else None, journal_success=journal)
         return status
     check('polling', lambda: polling() if config.get('conversation_poll_enabled') else 3)
+    check('ig_token', lambda: ig_token_status(config['instagram_token_file'], time.time())
+          if config.get('conversation_poll_enabled') else 3)
     audit_relay = relay_snapshot(config, job)
     result['audit_relay'] = audit_relay['status']
     check('daily_jobs', lambda: combine([job('mw-cash-statement', 90000, 3600),

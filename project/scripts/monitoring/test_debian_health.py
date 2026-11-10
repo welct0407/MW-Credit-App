@@ -38,6 +38,24 @@ class TimerHealthTests(unittest.TestCase):
         service.update(kw)
         return health.timer_status(service,timer or {'LoadState':'loaded','ActiveState':'active'},1000,dt.datetime(2026,9,22,12),180,300)
 
+class IgTokenStatusTests(unittest.TestCase):
+    NOW = 1_800_000_000
+    def status(self, age_days):
+        return health.ig_token_status('/x', self.NOW, stat=lambda path: Mock(st_mtime=self.NOW - age_days * 86400))
+    def test_renewed_within_ten_days_is_healthy(self):
+        self.assertEqual(self.status(0), 1)
+        self.assertEqual(self.status(10), 1)
+    def test_not_renewed_pages_as_degraded(self):
+        self.assertEqual(self.status(10.01), 2)
+        self.assertEqual(self.status(50), 2)
+    def test_near_expiry_is_down(self):
+        self.assertEqual(self.status(50.01), 0)
+    def test_future_time_is_unknown(self):
+        self.assertEqual(self.status(-1), 4)
+    def test_missing_file_raises_for_unknown(self):
+        with self.assertRaises(FileNotFoundError):
+            health.ig_token_status('/nonexistent/instagram-access-token.txt', self.NOW)
+
 class PollingStatusTests(unittest.TestCase):
     """IG polling runs about every 70 s: one failed run is Degraded, Down only when polling has stopped."""
     EPOCH=1800000000
