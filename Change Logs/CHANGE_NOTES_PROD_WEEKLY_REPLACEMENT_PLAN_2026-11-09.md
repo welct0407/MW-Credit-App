@@ -6,7 +6,7 @@ The owner asked to turn one borrower's overdue balance of THB 27,000 into THB 3,
 ## Changes
 - `loan_manager_prod`, `public."Charges"` of one borrower's eight open Daily Interest loans, in one transaction at about 12:58Z as `postgres` through the IAP tunnel (`scripts/database/cloud-db-tunnel.sh`). Integrity, history and row-change triggers stayed enabled.
 - Before: 81 overdue unpaid charges (16 September to 22 October 2026) from the earlier replacement plan, remaining THB 17,069 principal and THB 9,931 interest.
-- 69 unpaid charges with no payment were deleted. 9 partly paid charges were reduced to the amounts already paid. 3 charges that only carry zero-amount allocations from posted payments were set to zero and kept, which matches the rule `charge.update` uses (P5B06). A note was appended to each of these 12 charges.
+- 69 unpaid charges with no payment were deleted. 9 partly paid charges were reduced to the amounts already paid. 3 charges that only carry zero-amount allocations from posted payments were set to zero and kept, which matches the rule `charge.update` uses (P5B06). A note was appended to each of these 12 charges. The 3 zeroed charges were deleted on 10 November 2026 ([change note](CHANGE_NOTES_PROD_ZERO_CHARGE_CLEANUP_2026-11-10.md)).
 - 64 charges were created: 8 Fridays × 8 loans. 13 November to 25 December 2026 are THB 3,500 each, and 1 January 2027 is the final THB 2,500. Each payment is split by each loan's share, using cumulative largest-remainder whole-baht rounding, so each loan's principal and interest totals equal what it owed before. Each new charge carries the plan note.
 - Loan fields, payments, allocations and cash were not changed.
 
