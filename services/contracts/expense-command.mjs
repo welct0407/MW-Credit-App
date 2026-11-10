@@ -17,6 +17,6 @@ export function canonicalExpenseFields(input,{create=false}={}){
  }
  if(typeof result.category!=='string'||!result.category.trim()||(create&&!expenseCategories.includes(result.category)))throw Error('invalid_request');
  if(BigInt(result.amount)<0&&(typeof result.notes!=='string'||!result.notes.trim()))throw Error('invalid_request');
- if(create&&BigInt(result.amount)>0&&result.paidByAccountId===null)throw Error('invalid_request');
+ // R140 (V142): a positive expense without paidByAccountId is pending payment (no cash movement until an account is set).
  return result;
 }

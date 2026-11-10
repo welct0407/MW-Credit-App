@@ -43,6 +43,8 @@ INSERT INTO am_expected_tables VALUES
   ('mw_chat_owner_dev','public.pwa_chat_threads','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_chat_owner_dev','public.pwa_chat_tool_calls','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_app_dev','public.pwa_row_changes','SELECT'),
+  -- V142 (R140): the expense reads exclude R005 cutover sources from pending payment (the app-role policy's read-only class).
+  ('mw_app_dev','public.r005_cash_cutover_sources','SELECT'),
   ('mw_business_audit_owner','agent_audit.exports','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_business_audit_owner','agent_audit.row_changes','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_jobs_owner_dev','public.pwa_job_runs','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),

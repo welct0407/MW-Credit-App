@@ -10,6 +10,8 @@ CREATE FUNCTION pg_temp.source_delta(k text) RETURNS numeric LANGUAGE sql AS $$
 $$;
 UPDATE "Business Expenses" SET "Amount"=11::money WHERE "Row ID"='R005-OLD-E';
 DO $$ BEGIN ASSERT pg_temp.source_delta('R005-OLD-E')=-1,'expense increases opening outflow only by delta'; END $$;
+-- R140 V142: a cutover source without a payer is never pending; its edit keeps the opening fill (Lisa's default account).
+DO $$ BEGIN ASSERT (SELECT "Ref Paid By Cash Account"='CI-LISA' AND "Ref Paid By Cash Holder"='ch:lisa' FROM "Business Expenses" WHERE "Row ID"='R005-OLD-E'),'cutover expense keeps the opening fill'; END $$;
 UPDATE "Business Expenses" SET "Amount"=11::money WHERE "Row ID"='R005-OLD-E';
 DO $$ BEGIN ASSERT pg_temp.source_delta('R005-OLD-E')=-1,'no duplicate on repeated save'; END $$;
 UPDATE "Business Expenses" SET "Expense Date"="Expense Date"-1 WHERE "Row ID"='R005-OLD-E';

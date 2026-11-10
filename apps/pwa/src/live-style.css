@@ -771,6 +771,8 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 /* Echo BR-1: the Referrer page action keeps its caption on phones. */
 .referrer-owed .record-action:not(#_){width:auto;flex:0 0 auto;padding:7px 10px}.live-shell .referrer-owed .record-action-label:not(#_),.referrer-owed .record-action-label:not(#_){display:inline}
 .rebate-chip{display:inline-block;margin-top:2px;font-size:13px;font-weight:600;color:#3c4650}.rebate-chip-pending{color:#8a4b00}
+/* R140 (V142, Echo EXP-PEND-9): Mark as paid on a pending manual expense, full width and at least 44px, the primary action colours. */
+.expense-mark-paid{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin:8px 0 0;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font:inherit;font-weight:600}.expense-mark-paid:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .rebate-settle-list{min-width:0;max-width:100%;border:1px solid #d5dbe0;border-radius:6px;padding:4px 10px}
 /* Echo PAY-1: beat .borrower-record label{display:block;margin:12px 0} so each tick row stays one row of 44 px or more. */
 .borrower-record label.rebate-settle-row{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;gap:10px;align-items:center;min-height:44px;margin:0;border-bottom:1px solid #eef1f3}

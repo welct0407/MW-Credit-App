@@ -1469,7 +1469,7 @@
     "en": "New expense",
     "th": "เพิ่มค่าใช้จ่าย"
    },
-   "description": "Record a business expense.",
+   "description": "Record a business expense. paidByAccountId is the paying account; omitted (null) on an expense above zero means pending payment: the expense is recorded with no cash movement until it is paid with expense.update and an account (the cash is then dated on the expense date).",
    "target": "new",
    "inputs": "merge",
    "fields": [
@@ -1582,7 +1582,7 @@
     "en": "Edit expense",
     "th": "แก้ไขค่าใช้จ่าย"
    },
-   "description": "Change expense fields; give only the fields that change.",
+   "description": "Change expense fields; give only the fields that change. To pay an expense pending payment give paidByAccountId (the cash is dated on the expense date); paidByAccountId null on an expense above zero makes it pending payment again (no cash movement).",
    "target": "record",
    "read": "/api/expense-records/{id}",
    "title": [

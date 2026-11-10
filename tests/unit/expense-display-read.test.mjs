@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readExpenseRecord} from '../../services/business/expenses.mjs';
+import {expensePendingSql} from '../../services/business/rebate-state.mjs';
+import {readManagementPosition} from '../../services/business/management-position.mjs';
 test('expense display keeps parameterized source lookup, bilingual left joins and absent labels',async()=>{
  let count=0;const client={query:async(sql,args)=>{count++;assert.deepEqual(args,['synthetic-expense']);if(count===1){assert.match(sql,/LEFT JOIN public\."Borrowers" payee/);assert.match(sql,/coalesce\(payee\."Description"/);assert.match(sql,/coalesce\(b\."Description"/);assert.match(sql,/WHERE e\."Row ID"=\$1/);return {rows:[{id:'synthetic-expense',sourceType:'Manual',payeeBorrowerLabel:'Thai - English',relatedBorrowerLabel:null,relatedLoanId:null}]}}return {rows:[]}}};
  const item=await readExpenseRecord(client,'synthetic-expense');assert.equal(item.payeeBorrowerLabel,'Thai - English');assert.equal(item.relatedBorrowerLabel,null);assert.equal(count,2);assert.deepEqual(item.reimbursements,[]);
@@ -23,4 +25,30 @@ test('R120 a referral rebate reads its applied terms through to_jsonb (null befo
  const v2=await readExpenseRecord(client,'rr1:L-3');assert.equal(v2.rebateRate,50);assert.equal(v2.rebateCap,1500);
  first=true;const legacy={query:async()=>{if(first){first=false;return {rows:[{id:'rr1:L-4',sourceType:'Referral Rebate',amount:'30',ruleVersion:'REFERRAL_REBATE_V1',rebateRate:null,rebateCap:null,offsetPaymentId:null,relatedLoanId:null}]}}return {rows:[]}}};
  const v1=await readExpenseRecord(legacy,'rr1:L-4');assert.equal(v1.rebateRate,null);assert.equal(v1.rebateCap,null);
+});
+// R140 (V142): a manual expense pending payment (Manual, above zero, no payer holder or account, no R005 cutover source).
+test('R140 the pending rule: Manual, above zero, no payer, not a cutover source',()=>{
+ const sql=expensePendingSql('e');
+ assert.match(sql,/e\."Source Type"='Manual'/);assert.match(sql,/e\."Amount"::numeric>0/);
+ assert.match(sql,/e\."Ref Paid By Cash Holder" IS NULL AND e\."Ref Paid By Cash Account" IS NULL/);
+ assert.match(sql,/NOT EXISTS\(SELECT 1 FROM public\.r005_cash_cutover_sources r005 WHERE r005\.source_type='Business Expense' AND r005\.source_row_id=e\."Row ID"\)/);
+});
+test('R140 an expense record carries paymentState and, while pending, pendingAmount (the amount); rebateState stays the rebate rule',async()=>{
+ let first=true;const client={query:async sql=>{if(first){first=false;
+  assert.match(sql,/CASE WHEN \(e\."Source Type"='Manual'[\s\S]*\) THEN 'pending' END AS "paymentState"/);
+  assert.match(sql,/coalesce\(CASE WHEN e\."Source Type" IS DISTINCT FROM 'Referral Rebate' THEN NULL[\s\S]*,CASE WHEN \(e\."Source Type"='Manual'[\s\S]*\) THEN e\."Amount"::numeric END\)::numeric\(20,2\)::text AS "pendingAmount"/);
+  return {rows:[{id:'E-PEND',sourceType:'Manual',amount:'500.00',paymentState:'pending',pendingAmount:'500.00',rebateState:null,paidByAccountId:null,paidByAccountLabel:null,offsetPaymentId:null,relatedLoanId:null}]}}return {rows:[]}}};
+ const item=await readExpenseRecord(client,'E-PEND');
+ assert.equal(item.paymentState,'pending');assert.equal(item.pendingAmount,'500.00');assert.equal(item.rebateState,null);assert.equal(item.canEdit,true);assert.equal(item.canDelete,true);
+});
+test('R140 the cash position adds expensesPayable beside rebatesPayable',async()=>{
+ const client={query:async sql=>{
+  if(/"Operating Income MTD"/.test(sql))return {rows:[{principalWriteOffsMtdPresent:false}]};
+  if(/FROM public\."Cash Account Balances"|FROM public\."Cash Holder Balances"/.test(sql))return {rows:[]};
+  if(/x\."Source Type"='Referral Rebate'/.test(sql))return {rows:[{amount:'300.00',count:1}]};
+  if(/WHERE \(x\."Source Type"='Manual'/.test(sql)){assert.match(sql,/sum\(x\."Amount"::numeric\)/);assert.match(sql,/r005_cash_cutover_sources/);return {rows:[{amount:'750.00',count:2}]};}
+  if(/Asia\/Bangkok/.test(sql))return {rows:[{day:'2026-11-10'}]};
+  throw Error('unexpected read '+sql.slice(0,80));}};
+ const position=await readManagementPosition(client);
+ assert.deepEqual(position.rebatesPayable,{amount:'300.00',count:1});assert.deepEqual(position.expensesPayable,{amount:'750.00',count:2});
 });

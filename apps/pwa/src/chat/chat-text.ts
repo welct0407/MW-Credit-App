@@ -126,6 +126,8 @@ export function consequenceText(item:{code:string},thai:boolean,amount?:string){
  if(item.code==='settles_all_due')return thai?'ชำระรายการเรียกเก็บที่ครบกำหนดทั้งหมดของผู้กู้รายนี้':'Settles every due charge of this borrower.';
  if(item.code==='loan_close_payoff')return (thai?'ปิดสินเชื่อด้วยยอดปิด ':'Closes the loan with the payoff of ')+(amount??'');
  if(item.code==='replaces_plan')return thai?'แทนที่รายการรับชำระและการจัดสรรเดิม':'Replaces the recorded payment and its allocation.';
+ // R140 (V142): an expense recorded without a paying account.
+ if(item.code==='pending_payment')return thai?'ค้างจ่าย — ยังไม่มีรายการเงินสด':'Pending payment — no cash movement.';
  if(item.code==='destructive')return thai?'การเปลี่ยนแปลงนี้ลบหรือย้อนกลับข้อมูล และยกเลิกจากแชทไม่ได้':'This deletes or reverses records and cannot be undone from chat.';
  return '';
 }

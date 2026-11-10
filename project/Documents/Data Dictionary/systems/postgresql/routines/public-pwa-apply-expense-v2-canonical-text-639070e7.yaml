@@ -39,8 +39,8 @@
       \ Holder\";\r\n ELSIF i->>'paidByAccountId' IS NOT NULL THEN\r\n SELECT ca.\"Ref Cash Holder\" INTO holder FROM public.\"\
       Cash Accounts\" ca JOIN public.\"Cash Holders\" h ON h.\"Row ID\"=ca.\"Ref Cash Holder\" WHERE ca.\"Row ID\"=i->>'paidByAccountId'\
       \ AND ca.\"Active\" IS TRUE AND h.\"Active\" IS TRUE AND h.\"Row ID\" IN('ch:dad','ch:lisa','ch:tommy');IF NOT FOUND\
-      \ THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\n END IF;\r\n IF op='expense.create' AND (i->>'amount')::numeric>0\
-      \ AND holder IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\n END IF;\r\n BEGIN\r\n IF op='expense.create'\
+      \ THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;\r\n END IF;\r\n /* R140 V142: a positive expense without an account\
+      \ is created pending payment (no cash movement until it is paid). */\r\n END IF;\r\n BEGIN\r\n IF op='expense.create'\
       \ THEN INSERT INTO public.\"Business Expenses\"(\"Row ID\",\"Expense Date\",\"Expense Category\",\"Amount\",\"Payee\
       \ Name\",\"Ref Related Borrower\",\"Ref Related Loan\",\"Notes\",\"Ref Paid By Cash Account\",\"Ref Paid By Cash Holder\"\
       ,\"Source Type\",\"Created By\") VALUES(target,(i->>'expenseDate')::date,i->>'category',(i->>'amount')::numeric::money,i->>'payeeName',i->>'relatedBorrowerId',i->>'relatedLoanId',i->>'notes',i->>'paidByAccountId',holder,'Manual',a->>'loginEmail');\r\
@@ -71,8 +71,7 @@
     "extension": null
 "evidence":
   "/content/definition/definition":
-    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-LOCK-03: V94 replaces the inline advisory key hashtextextended(kind||':'||target,0) with public.pwa_lock_key_v1(kind,target)\
-      \ (bit-identical key; owner, security mode, search_path, ACL and comment unchanged). Applied in DEV on 17 October 2026\
-      \ (loan_manager_dev, V94); applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
+    "reference": "database/migrations/V142__pending_manual_expense.sql (R140)"
+    "reason": "R140 pending manual expense: V142 replaces the routine in place (source definition; PROD capture follows the\
+      \ PROD apply)"
     "state": "value"

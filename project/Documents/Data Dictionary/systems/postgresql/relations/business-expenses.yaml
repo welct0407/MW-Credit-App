@@ -416,7 +416,8 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": null
-      "comment": null
+      "comment": "R140: the holder of \"Ref Paid By Cash Account\" (derived from it). Null together with the account on a\
+        \ Manual expense above zero that is no R005 cutover source means pending payment."
     "Ref Paid By Cash Account":
       "schema": "public"
       "relation": "Business Expenses"
@@ -434,7 +435,9 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": null
-      "comment": null
+      "comment": "R140: the cash account that paid the expense. Null on a Manual expense above zero that is no R005 cutover\
+        \ source means pending payment: no cash movement until an account is set (the movement is then dated on the Expense\
+        \ Date)."
     "Ref Offset Payment":
       "schema": "public"
       "relation": "Business Expenses"
@@ -1530,3 +1533,12 @@
       "comment": null
   "policies": {}
   "dependencies": []
+"evidence":
+  "/content/columns/Ref Paid By Cash Account/comment":
+    "reference": "database/migrations/V142__pending_manual_expense.sql (R140)"
+    "reason": "R140 pending manual expense: V142 comments on the two payer columns"
+    "state": "value"
+  "/content/columns/Ref Paid By Cash Holder/comment":
+    "reference": "database/migrations/V142__pending_manual_expense.sql (R140)"
+    "reason": "R140 pending manual expense: V142 comments on the two payer columns"
+    "state": "value"

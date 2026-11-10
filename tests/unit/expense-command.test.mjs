@@ -7,7 +7,9 @@ test('expense codec preserves signed whole money and exact notes with governed c
  assert.equal(canonicalExpenseFields({...input,amount:'-10',paidByAccountId:null},{create:true}).amount,'-10');
  for(const amount of ['0','-0','10.01','01'])assert.throws(()=>canonicalExpenseFields({...input,amount}));
  for(const notes of [null,'  \n'])assert.throws(()=>canonicalExpenseFields({...input,amount:'-10',notes}));
- assert.throws(()=>canonicalExpenseFields({...input,paidByAccountId:null},{create:true}));
+ // R140 (V142): a positive expense without an account is pending payment, on create and on update.
+ assert.equal(canonicalExpenseFields({...input,paidByAccountId:null},{create:true}).paidByAccountId,null);
+ assert.equal(canonicalExpenseFields({...input,paidByAccountId:null}).paidByAccountId,null);
 });
 test('expense codec permits legacy category for source comparison but forbids source-owned input',()=>{
  assert.equal(canonicalExpenseFields({...input,category:'Retained legacy category'}).category,'Retained legacy category');

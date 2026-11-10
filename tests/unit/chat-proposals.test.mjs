@@ -122,6 +122,26 @@ test('creates: a host UUID target, required fields named, defaults applied; dele
  assert.deepEqual(JSON.parse(deletion.command).inputs,{});assert.equal(JSON.parse(deletion.command).expectedVersion,W);
 });
 
+test('R140 an expense without a paying account is proposed pending payment; paying it or a historical row says nothing',async()=>{
+ const expense=(id,extra)=>ok({item:{id,expenseDate:'2026-10-30',category:'Other / อื่น ๆ',amount:'150.00',payeeName:null,relatedBorrowerId:null,relatedLoanId:null,notes:null,version:W,...extra}});
+ const {client}=service({...base,'GET /api/expense-records/E1':expense('E1',{paidByAccountId:null,paymentState:'pending'}),'GET /api/expense-records/E2':expense('E2',{paidByAccountId:'CA1',paymentState:null}),
+  'GET /api/expense-records/E3':expense('E3',{paidByAccountId:null,paymentState:null})});
+ const planner=createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()});
+ const created=await planner.propose({operation:'expense.create',target:'',values:{expenseDate:'2026-10-30',category:'Transportation / ค่าเดินทาง',amount:'150'}});
+ assert.equal(JSON.parse(created.command).inputs.paidByAccountId,null);assert.deepEqual(created.card.consequences,[{code:'pending_payment'}]);
+ assert.deepEqual(created.card.values.map(v=>v.field),['expenseDate','category','amount']);
+ const negative=await planner.propose({operation:'expense.create',target:'',values:{expenseDate:'2026-10-30',category:'Other / อื่น ๆ',amount:'-20',notes:'Adjustment'}});
+ assert.deepEqual(negative.card.consequences,[],'a negative adjustment is never pending');
+ const pay=await planner.propose({operation:'expense.update',target:'E1',values:{paidByAccountId:'CA2'}});
+ assert.deepEqual(pay.card.consequences,[]);assert.deepEqual(pay.card.changes.map(c=>[c.field,c.before,c.after]),[['paidByAccountId',null,'CA2']]);
+ const edit=await planner.propose({operation:'expense.update',target:'E1',values:{amount:'200'}});
+ assert.deepEqual(edit.card.consequences,[{code:'pending_payment'}],'still pending after the edit');
+ const unpay=await planner.propose({operation:'expense.update',target:'E2',values:{paidByAccountId:null}});
+ assert.deepEqual(unpay.card.consequences,[{code:'pending_payment'}],'back to pending');
+ const legacy=await planner.propose({operation:'expense.update',target:'E3',values:{amount:'200'}});
+ assert.deepEqual(legacy.card.consequences,[],'a historical row without a payer is not pending');
+});
+
 test('loan.close: the payoff, plan hash and date come from the close preview; the payoff consequence',async()=>{
  const {client}=service({...base,'GET /api/loan-records/L1/close-preview':ok({sourceVersion:W,businessDate:'2026-10-30',amount:'10300',planHash:'c'.repeat(64),accounts:accounts.accounts})});
  const planner=createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()});

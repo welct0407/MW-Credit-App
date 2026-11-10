@@ -1548,7 +1548,9 @@ BEGIN
   END IF;
  ELSIF kind='Business Expense' THEN
   IF NEW."Ref Paid By Cash Account" IS NULL AND OLD."Ref Paid By Cash Account" IS NULL
-   AND (NEW."Amount"::numeric>0 OR NEW."Ref Paid By Cash Holder" IS NOT NULL) THEN
+   -- R140 V142: a pending Manual expense (no payer, not a cutover source) stays pending when it is edited.
+   AND (NEW."Ref Paid By Cash Holder" IS NOT NULL OR (NEW."Amount"::numeric>0 AND (NEW."Source Type" IS DISTINCT FROM 'Manual'
+    OR EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=NEW."Row ID")))) THEN
    NEW."Ref Paid By Cash Account":=public.r051_historical_account(NEW."Ref Paid By Cash Account",NEW."Ref Paid By Cash Holder");
    SELECT "Ref Cash Holder" INTO NEW."Ref Paid By Cash Holder" FROM public."Cash Accounts" WHERE "Row ID"=NEW."Ref Paid By Cash Account";
   END IF;
@@ -1711,7 +1713,8 @@ BEGIN
 
   END IF;
   -- R005 negative accounting-only adjustments have no holder/account movement.
-  required_account:=(TG_OP='INSERT' OR account_id IS DISTINCT FROM old_account) AND (NEW."Amount"::numeric>0 OR selected_holder IS NOT NULL);
+  -- R140 V142: a Manual expense without holder and account is pending payment.
+  required_account:=(TG_OP='INSERT' OR account_id IS DISTINCT FROM old_account) AND ((NEW."Amount"::numeric>0 AND NEW."Source Type" IS DISTINCT FROM 'Manual') OR selected_holder IS NOT NULL);
  ELSE
   account_id:=nullif(btrim(NEW."Ref Paid From Cash Account"),''); selected_holder:='ch:lisa';
   IF TG_OP='UPDATE' THEN
@@ -1766,7 +1769,8 @@ BEGIN
   IF NOT legacy THEN
    IF NEW."Source Type"='Referral Rebate' AND NEW."Ref Paid By Cash Holder" IS DISTINCT FROM 'ch:lisa' THEN
     RAISE EXCEPTION 'Referral rebate cash payer is fixed to Lisa'; END IF;
-   IF NEW."Amount"::numeric>0 AND NEW."Ref Paid By Cash Holder" IS NULL THEN RAISE EXCEPTION 'New positive expenses require an explicit cash payer'; END IF;
+   -- R140 V142: a Manual expense without a payer is pending payment.
+   IF NEW."Source Type" IS DISTINCT FROM 'Manual' AND NEW."Amount"::numeric>0 AND NEW."Ref Paid By Cash Holder" IS NULL THEN RAISE EXCEPTION 'New positive expenses require an explicit cash payer'; END IF;
   END IF;
  END IF;
  RETURN NEW;
@@ -3136,7 +3140,7 @@ BEGIN
  ELSIF i->>'paidByAccountId' IS NOT NULL THEN
  SELECT ca."Ref Cash Holder" INTO holder FROM public."Cash Accounts" ca JOIN public."Cash Holders" h ON h."Row ID"=ca."Ref Cash Holder" WHERE ca."Row ID"=i->>'paidByAccountId' AND ca."Active" IS TRUE AND h."Active" IS TRUE AND h."Row ID" IN('ch:dad','ch:lisa','ch:tommy');IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
  END IF;
- IF op='expense.create' AND (i->>'amount')::numeric>0 AND holder IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
+ /* R140 V142: a positive expense without an account is created pending payment (no cash movement until it is paid). */
  END IF;
  BEGIN
  IF op='expense.create' THEN INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name","Ref Related Borrower","Ref Related Loan","Notes","Ref Paid By Cash Account","Ref Paid By Cash Holder","Source Type","Created By") VALUES(target,(i->>'expenseDate')::date,i->>'category',(i->>'amount')::numeric::money,i->>'payeeName',i->>'relatedBorrowerId',i->>'relatedLoanId',i->>'notes',i->>'paidByAccountId',holder,'Manual',a->>'loginEmail');
