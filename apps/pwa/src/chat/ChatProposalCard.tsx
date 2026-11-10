@@ -3,7 +3,7 @@ import {Icon} from '../Icon';
 import {wholeBaht} from '../display-money';
 import {displayDateWithYear} from '../display-date';
 import {savedRejectionMessage} from '../offline-sync';
-import {choicePurpose,groupView,pollGroup,proposalView,type CardField,type ChatProposal,type LineView,type PurposeChoice,type PurposeOptions} from './chat-protocol';
+import {choicePurpose,groupInFlight,groupView,pollGroup,proposalView,runningEnded,type CardField,type ChatProposal,type LineView,type PurposeChoice,type PurposeOptions} from './chat-protocol';
 import {dateRange,forwardRuns,runAmount,shortDate} from '../pay-forward-text';
 import {ChatAccessError,ChatHttpError,cancelProposalGroup,confirmProposalGroup,getProposalGroup,type ChatAccess} from './chat-client';
 import {consequenceText,destructiveCounts,destructiveTagText,destructiveWarningText,groupConfirmText,groupCountText,groupProgressText,groupSummaryText,lineChipText,pair,proposalButtons,proposalCodeText,proposalCountdown,proposalStateText,proposalUnresolvedText,savedAtText,unchangedText} from './chat-text';
@@ -105,6 +105,10 @@ export function ChatProposalCard({lines,access,thai,online,onChange,onOpenRecord
  const openable=(record:ChatProposal['record'])=>!!record&&!!onOpenRecord&&(canOpenRecord?.(record)??true);
  const t=(en:string,th:string)=>thai?th:en;
  const [busy,setBusy]=useState(false),[note,setNote]=useState<string|null>(null),[unresolved,setUnresolved]=useState(false),[recheck,setRecheck]=useState(0),[,setTick]=useState(0);
+ // R138: the group may be running on the service: this device's Confirm is in flight, its stream dropped, or the card
+ // (re)mounted on local copies with settled and open lines (the thread was left and reopened mid-run). It is shown
+ // executing and read back at once until runningEnded says the run stopped.
+ const [running,setRunning]=useState(()=>groupInFlight(lines)),runningRef=useRef(running);runningRef.current=running;
  const accessRef=useRef(access);accessRef.current=access;
  const changeRef=useRef(onChange);changeRef.current=onChange;
  const linesRef=useRef(lines);linesRef.current=lines;
@@ -121,7 +125,7 @@ export function ChatProposalCard({lines,access,thai,online,onChange,onOpenRecord
  const purpose=choicePurpose(options,choice);
  // CH-4: the RP-2 hint describes Confirm while no choice is made.
  const remainderHelp='chat-remainder-help-'+first.id;
- const baseView=groupView(lines,{online,busy});
+ const baseView=groupView(lines,{online,busy,running});
  const view=options&&!purpose?{...baseView,canConfirm:false}:baseView;
  // CW3-04: while a line is checking (unknown) or running, no Confirm and no countdown.
  const waiting=view.pending>0&&view.state!=='unknown'&&view.state!=='executing'&&(view.state==='pending'||view.remaining);
@@ -133,26 +137,32 @@ export function ChatProposalCard({lines,access,thai,online,onChange,onOpenRecord
  useEffect(()=>{
   if(!view.poll&&!recheck)return;
   const controller=new AbortController();setUnresolved(false);
-  void pollGroup(async()=>{const group=await getProposalGroup(accessRef.current,threadId,headId,controller.signal);changeRef.current(group.lines);return group.lines},{signal:controller.signal})
-   .then(value=>{if(!controller.signal.aborted&&!value)setUnresolved(true)})
-   .catch(()=>{if(!controller.signal.aborted)setUnresolved(true)});
+  // R138: while running, the first read is immediate and replaces the local guess; running ends when runningEnded
+  // says so (or the poll gives up), not on the first read, which may fall between two lines.
+  const asRunning=runningRef.current;
+  void pollGroup(async()=>{const group=await getProposalGroup(accessRef.current,threadId,headId,controller.signal);changeRef.current(group.lines);return group.lines},
+   {signal:controller.signal,...(asRunning?{firstDelayMs:0,until:runningEnded()}:{})})
+   .then(value=>{if(controller.signal.aborted)return;setRunning(false);if(!value)setUnresolved(true)})
+   .catch(()=>{if(!controller.signal.aborted){setRunning(false);setUnresolved(true)}});
   return()=>controller.abort();
  },[headId,view.poll,recheck]);
  async function act(kind:'confirm'|'cancel'){
   if(busy||(kind==='confirm'&&!view.canConfirm)||(kind==='cancel'&&!view.canCancel))return;
   setBusy(true);setNote(null);
+  // R138: the lines a confirm has not reached yet stay "running", not "not run", until the group is read back.
+  if(kind==='confirm')setRunning(true);
   try{
    if(kind==='cancel'){changeRef.current((await cancelProposalGroup(accessRef.current,threadId,headId)).lines);return}
    const group=await confirmProposalGroup(accessRef.current,threadId,headId,line=>{
     changeRef.current(linesRef.current.map(item=>item.id===line.id?{...item,state:line.state,outcome:line.code!==undefined?{code:line.code}:item.outcome,record:line.record??item.record}:item));
    },undefined,options?purpose:null);
-   if(group)changeRef.current(group.lines);else setRecheck(n=>n+1);
+   if(group){changeRef.current(group.lines);setRunning(false)}else setRecheck(n=>n+1);
   }catch(error){
    // A ChatAccessError is a 401 answer (these routes keep 403 local): the chat handler verifies the session before any
    // claim, so nothing ran and the card stays as it is (tests/unit/chat-handler.test.mjs, 401 on Confirm).
-   if(error instanceof ChatAccessError)return;
+   if(error instanceof ChatAccessError){setRunning(false);return}
    if(error instanceof ChatHttpError&&error.status===409&&error.code==='proposal_executing'){setNote(proposalCodeText('proposal_executing',thai));setRecheck(n=>n+1);return}
-   if(error instanceof ChatHttpError&&error.status===403){setNote(proposalCodeText(error.code,thai)??failureLine(error.code,thai));return}
+   if(error instanceof ChatHttpError&&error.status===403){setRunning(false);setNote(proposalCodeText(error.code,thai)??failureLine(error.code,thai));return}
    // No answer: read the group back (reconciled by the service); a line is never resent from here.
    if(kind==='confirm')setRecheck(n=>n+1);
    else setNote(t('Cancel not confirmed. Try again.','ยังยกเลิกไม่สำเร็จ ลองอีกครั้ง'));

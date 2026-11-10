@@ -6,7 +6,7 @@ import {runInNewContext} from 'node:vm';
 import {chatOriginAllowed,liveConfiguration} from '../../apps/pwa/src/environment.ts';
 // R090 PWA chat: the pure protocol, markdown and wording modules (no imports, so each transpiles on its own).
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/chat/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
-const {listedDefault,threadModel,createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup}=await load('chat-protocol.ts');
+const {listedDefault,threadModel,createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup,groupInFlight,runningEnded}=await load('chat-protocol.ts');
 const {parseMarkdown,parseInline,tableCells}=await load('markdown.ts');
 const {modelFallbackText,failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons,lineChipText,groupConfirmText,unchangedText,groupProgressText,groupSummaryText,destructiveKind,destructiveCounts,destructiveTagText,destructiveWarningText}=await load('chat-text.ts');
 const sse=(chunks,end=true)=>{const events=[];const parser=createSseParser((name,data)=>events.push([name,data]));for(const chunk of chunks)parser.push(chunk);if(end)parser.end();return events};
@@ -237,6 +237,42 @@ test('D12 group view: Confirm all, then N remaining; skipped lines; unknown poll
  assert.equal(groupView([line(0),line(1)],{now:T0}).canConfirm,true,'a pending online group confirms at once (no arm gate)');
  assert.equal(groupView(Array.from({length:100},(_,i)=>line(i)),{now:T0}).canConfirm,true,'a 100-line group');
  assert.equal(isGroup({id:'g0',state:'pending',lines:[line(0)]}),true);assert.equal(isGroup({id:'g0',lines:[]}),false);assert.equal(isGroup({id:'g0',lines:[{id:'x'}]}),false);
+});
+test('R138: while this device runs a confirm, lines not reached yet are running, not "not run"; no Confirm N remaining',()=>{
+ const lines=[line(0,{state:'done'}),line(1,{state:'done'}),line(2)];
+ let v=groupView(lines,{now:T0,busy:true,running:true});
+ assert.deepEqual([v.state,v.lines,v.remaining,v.canConfirm,v.canCancel,v.poll],['executing',['done','done','pending'],false,false,false,false],'own stream in flight');
+ v=groupView(lines,{now:T0,running:true});
+ assert.deepEqual([v.state,v.canConfirm,v.poll],['executing',false,true],'stream dropped: read back, never confirm');
+ v=groupView(lines,{now:T0});assert.deepEqual([v.state,v.remaining,v.canConfirm],['partial',true,true],'read back as partial: Confirm N remaining');
+ assert.equal(groupView([line(0,{state:'done'}),line(1,{state:'failed'})],{now:T0,running:true}).state,'partial','every line settled: the real state');
+ assert.deepEqual([groupView([line(0,{state:'done'}),line(1,{state:'unknown'}),line(2)],{now:T0,running:true}).state,groupView([line(0,{state:'unknown'})],{now:T0,running:true}).poll],['unknown',true],'an unknown line stays checking');
+});
+test('R138: a poll may read at once (firstDelayMs 0), then every interval',async()=>{
+ let clock=0;const sleeps=[];const answers=[[line(0,{state:'executing'})],[line(0,{state:'done'})]];let reads=0;
+ const value=await pollGroup(async()=>answers[reads++],{firstDelayMs:0,now:()=>clock,sleep:async ms=>{sleeps.push(ms);clock+=ms}});
+ assert.deepEqual(sleeps,[0,3000]);assert.deepEqual(value.map(l=>l.state),['done']);
+});
+test('R138 (Chase): a mounted group with settled and open lines is in flight; a running group ends only when nothing is left to run or after two quiet reads',()=>{
+ const expired={expiresAt:new Date(T0-1000).toISOString()};
+ assert.equal(groupInFlight([line(0,{state:'done'}),line(1)],T0),true,'done + pending (left mid-run, local copies)');
+ assert.equal(groupInFlight([line(0,{state:'failed'}),line(1,{state:'executing'})],T0),true);
+ assert.equal(groupInFlight([line(0),line(1)],T0),false,'nothing confirmed yet');
+ assert.equal(groupInFlight([line(0,{state:'done'}),line(1,{state:'failed'})],T0),false,'all settled');
+ assert.equal(groupInFlight([line(0,{state:'done'}),line(1,{state:'pending',...expired})],T0),false,'left lines expired');
+ let ended=runningEnded(()=>T0);
+ assert.equal(ended([line(0,{state:'done'}),line(1,{state:'executing'}),line(2)]),false,'a line runs');
+ assert.equal(ended([line(0,{state:'done'}),line(1,{state:'done'}),line(2)]),false,'between two claims: keep reading');
+ assert.equal(ended([line(0,{state:'done'}),line(1,{state:'executing'}),line(2)]),false,'running again resets the count');
+ assert.equal(ended([line(0,{state:'done'}),line(1,{state:'done'}),line(2)]),false);
+ assert.equal(ended([line(0,{state:'done'}),line(1,{state:'done'}),line(2)]),true,'a second quiet read: the run stopped (deadline)');
+ ended=runningEnded(()=>T0);
+ assert.equal(ended([line(0,{state:'done'}),line(1,{state:'failed'}),line(2,{state:'pending',...expired})]),true,'nothing left to run');
+});
+test('R138: pollGroup with until keeps reading while lines are pending between claims',async()=>{
+ let clock=0,reads=0;const answers=[[line(0,{state:'done'}),line(1)],[line(0,{state:'done'}),line(1,{state:'executing'})],[line(0,{state:'done'}),line(1,{state:'done'})]];
+ const value=await pollGroup(async()=>answers[reads++],{firstDelayMs:0,until:runningEnded(()=>T0),now:()=>clock,sleep:async ms=>{clock+=ms}});
+ assert.equal(reads,3);assert.deepEqual(value.map(l=>l.state),['done','done']);
 });
 test('D12 group polling: until no line is unknown or executing',async()=>{
  let clock=0,reads=0;const answers=[[line(0,{state:'done'}),line(1,{state:'unknown'})],[line(0,{state:'done'}),line(1,{state:'done'})]];
