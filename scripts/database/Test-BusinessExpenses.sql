@@ -87,6 +87,21 @@ SELECT pg_temp.exp_assert((SELECT bool_and("Partner A Expense"+"Partner B Expens
 -- R140 V142: an automatic referral rebate keeps its fixed payer (Lisa); only Manual rows may be pending payment.
 SELECT pg_temp.exp_assert((SELECT bool_and("Ref Paid By Cash Holder"='ch:lisa') FROM "Business Expenses" WHERE "Source Type"='Referral Rebate'),'R140 referral rebates keep Lisa as payer');
 SELECT pg_temp.exp_reject($q$UPDATE "Business Expenses" SET "Ref Paid By Cash Holder"=NULL,"Ref Paid By Cash Account"=NULL WHERE "Ref Related Loan"='EX15-CAP'$q$,'A cash account is required');
+-- R140 V143: a payee borrower on an expense.update of a referral rebate is the existing P5B05 (Manual rows only).
+INSERT INTO "Partners"("Row ID","Partner Name","Partner Role","Login Email") VALUES('EX15-ACT','Synthetic expense actor','A','ex15-actor@example.invalid');
+GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
+REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements FROM mw_app_dev;
+REVOKE USAGE,UPDATE ON SEQUENCE pwa_row_changes_seq_seq FROM mw_app_dev;
+GRANT EXECUTE ON FUNCTION public.pwa_submit_operation_v2(text) TO mw_app_dev;
+SELECT set_config('ex.rebate_payee','{"contractVersion":2,"requestId":"b1430000-0000-4000-8000-0000000000e1","actor":{"issuer":"https://ex.invalid","subject":"ex-owner","partnerId":"EX15-ACT","loginEmail":"ex15-actor@example.invalid"},'
+ ||'"command":{"schemaVersion":1,"operation":"expense.update","targetType":"expense","targetId":'||to_json(x."Row ID")::text||',"expectedVersion":'||to_json(public.pwa_expense_version_v2(x."Row ID"))::text
+ ||',"predecessorRequestId":null,"inputs":{"expenseDate":'||to_json(x."Expense Date"::text)::text||',"category":'||to_json(x."Expense Category")::text||',"amount":"660","payeeName":null,"relatedBorrowerId":null,"relatedLoanId":null,"notes":null,"paidByAccountId":null,"payeeBorrowerId":"EX15-OTHER"}},"receipt":null}',true)
+ FROM "Business Expenses" x WHERE x."Ref Related Loan"='EX15-NORMAL';
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('ex.out_rebate_payee',public.pwa_submit_operation_v2(current_setting('ex.rebate_payee'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SELECT pg_temp.exp_assert(current_setting('ex.out_rebate_payee')::jsonb#>>'{originalOutcome,code}'='dependency_conflict','R140 V143 a referral rebate takes no payee borrower (P5B05)');
+SELECT pg_temp.exp_assert((SELECT "Ref Payee Borrower"='EX15-REF' FROM "Business Expenses" WHERE "Ref Related Loan"='EX15-NORMAL'),'R140 V143 the rebate keeps its payee');
 SELECT 'Business expense regression passed' AS result;
 ROLLBACK;
 
@@ -222,5 +237,68 @@ UPDATE "Business Expenses" SET "Ref Paid By Cash Account"='CI-LISA' WHERE "Row I
 SET CONSTRAINTS ALL IMMEDIATE;
 SELECT pg_temp.pe_assert((SELECT "Ref Paid By Cash Holder"='ch:lisa' FROM "Business Expenses" WHERE "Row ID"='PE-SQL') AND pg_temp.pe_ledger('PE-SQL')=1,'8: setting the account derives the holder and moves cash');
 SELECT pg_temp.pe_reject($q$UPDATE "Business Expenses" SET "Ref Paid By Cash Account"=NULL WHERE "Row ID"='PE-SQL'$q$,'A cash account is required');
+
+-- R140 V143: the payee borrower (optional last input payeeBorrowerId). The 9-key command; payee 'absent' leaves the key out.
+INSERT INTO "Borrowers"("Row ID","Borrower Name","Description") VALUES('PE-BOR','SYNTHETIC PE PAYEE','Payee');
+CREATE FUNCTION pg_temp.pe_cmdp(request text,op text,target text,amount text,payee_name text,payee text) RETURNS text LANGUAGE sql AS $f$
+ SELECT '{"contractVersion":2,"requestId":'||to_json(request)::text||',"actor":{"issuer":"https://pe.invalid","subject":"pe-owner","partnerId":"PE-ACT","loginEmail":"pe-actor@example.invalid"},'
+  ||'"command":{"schemaVersion":1,"operation":'||to_json(op)::text||',"targetType":"expense","targetId":'||to_json(target)::text
+  ||',"expectedVersion":'||CASE WHEN op='expense.create' THEN 'null' ELSE coalesce(to_json(public.pwa_expense_version_v2(target))::text,'null') END
+  ||',"predecessorRequestId":null,"inputs":{"expenseDate":'||to_json(to_char((SELECT d FROM pe_day)-1,'YYYY-MM-DD'))::text||',"category":"Other / อื่น ๆ","amount":'||to_json(amount)::text
+  ||',"payeeName":'||coalesce(to_json(payee_name)::text,'null')||',"relatedBorrowerId":null,"relatedLoanId":null,"notes":null,"paidByAccountId":null'
+  ||CASE WHEN payee='absent' THEN '' ELSE ',"payeeBorrowerId":'||coalesce(to_json(payee)::text,'null') END||'}},"receipt":null}' $f$;
+CREATE FUNCTION pg_temp.pe_payee(id text) RETURNS text LANGUAGE sql AS $f$ SELECT coalesce("Ref Payee Borrower",'-')||'|'||coalesce("Payee Name",'-') FROM "Business Expenses" WHERE "Row ID"=id $f$;
+-- 9. Create pending with a borrower payee: the link and the borrower's name as a snapshot; a replay; an unknown borrower;
+-- a borrower together with a typed name is not a canonical command.
+SELECT set_config('pe.p_create',pg_temp.pe_cmdp('b1430000-0000-4000-8000-000000000001','expense.create','c1430000-0000-4000-8000-000000000001','90',NULL,'PE-BOR'),true),
+ set_config('pe.p_unknown',pg_temp.pe_cmdp('b1430000-0000-4000-8000-000000000002','expense.create','c1430000-0000-4000-8000-000000000002','90',NULL,'PE-NOBODY'),true),
+ set_config('pe.p_both',pg_temp.pe_cmdp('b1430000-0000-4000-8000-000000000003','expense.create','c1430000-0000-4000-8000-000000000003','90','Typed','PE-BOR'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN
+ PERFORM set_config('pe.out_p_create',public.pwa_submit_operation_v2(current_setting('pe.p_create'))::text,false);
+ PERFORM set_config('pe.out_p_replay',public.pwa_submit_operation_v2(current_setting('pe.p_create'))::text,false);
+ PERFORM set_config('pe.out_p_unknown',public.pwa_submit_operation_v2(current_setting('pe.p_unknown'))::text,false);
+ BEGIN PERFORM public.pwa_submit_operation_v2(current_setting('pe.p_both'));PERFORM set_config('pe.out_p_both','accepted',false);
+ EXCEPTION WHEN SQLSTATE '22023' THEN PERFORM set_config('pe.out_p_both','invalid',false); END;
+END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.pe_assert(pg_temp.pe_status('p_create')='applied','9: create with a payee borrower applied');
+SELECT pg_temp.pe_assert(pg_temp.pe_payee('c1430000-0000-4000-8000-000000000001')='PE-BOR|SYNTHETIC PE PAYEE','9: the link and the name snapshot');
+SELECT pg_temp.pe_assert(pg_temp.pe_pending('c1430000-0000-4000-8000-000000000001'),'9: pending payment');
+SELECT pg_temp.pe_assert(current_setting('pe.out_p_replay')::jsonb->'originalOutcome'=current_setting('pe.out_p_create')::jsonb->'originalOutcome','9: a 9-key replay returns the recorded outcome');
+SELECT pg_temp.pe_assert(pg_temp.pe_status('p_unknown')='rejected' AND pg_temp.pe_code('p_unknown')='invalid_reference','9: an unknown payee borrower (P5B04)');
+SELECT pg_temp.pe_assert(current_setting('pe.out_p_both')='invalid' AND NOT EXISTS(SELECT 1 FROM "Business Expenses" WHERE "Row ID"='c1430000-0000-4000-8000-000000000003'),'9: a borrower and a typed name is refused');
+-- 10. The rebates owed reads ignore a manual expense owed to a borrower.
+SELECT pg_temp.pe_assert(public.pwa_rebates_owed_v1('PE-BOR')=0 AND public.pwa_rebate_pending_v1('c1430000-0000-4000-8000-000000000001') IS NULL,'10: rebates owed unchanged');
+-- 11. An 8-key edit with the stored name keeps the link; 12. an 8-key edit with another name clears it.
+SELECT set_config('pe.p_keep',pg_temp.pe_cmdp('b1430000-0000-4000-8000-000000000011','expense.update','c1430000-0000-4000-8000-000000000001','95','SYNTHETIC PE PAYEE','absent'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('pe.out_p_keep',public.pwa_submit_operation_v2(current_setting('pe.p_keep'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SELECT pg_temp.pe_assert(pg_temp.pe_status('p_keep')='applied' AND pg_temp.pe_payee('c1430000-0000-4000-8000-000000000001')='PE-BOR|SYNTHETIC PE PAYEE','11: an 8-key edit keeps the link');
+SELECT set_config('pe.p_rename',pg_temp.pe_cmdp('b1430000-0000-4000-8000-000000000012','expense.update','c1430000-0000-4000-8000-000000000001','95','Dad','absent'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('pe.out_p_rename',public.pwa_submit_operation_v2(current_setting('pe.p_rename'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SELECT pg_temp.pe_assert(pg_temp.pe_status('p_rename')='applied' AND pg_temp.pe_payee('c1430000-0000-4000-8000-000000000001')='-|Dad','12: an 8-key edit with another name clears the link');
+-- 13. Link again (9 keys), then null with a typed name clears it.
+SELECT set_config('pe.p_link',pg_temp.pe_cmdp('b1430000-0000-4000-8000-000000000013','expense.update','c1430000-0000-4000-8000-000000000001','95',NULL,'PE-BOR'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('pe.out_p_link',public.pwa_submit_operation_v2(current_setting('pe.p_link'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SELECT pg_temp.pe_assert(pg_temp.pe_status('p_link')='applied' AND pg_temp.pe_payee('c1430000-0000-4000-8000-000000000001')='PE-BOR|SYNTHETIC PE PAYEE','13: linked again');
+-- 14. Deleting the payee borrower is the clean dependency_conflict (P5B05), not a raw foreign key error.
+SELECT set_config('pe.p_delete','{"contractVersion":2,"requestId":"b1430000-0000-4000-8000-000000000014","actor":{"issuer":"https://pe.invalid","subject":"pe-owner","partnerId":"PE-ACT","loginEmail":"pe-actor@example.invalid"},'
+ ||'"command":{"schemaVersion":1,"operation":"borrower.delete","targetType":"borrower","targetId":"PE-BOR","expectedVersion":'||to_json(public.pwa_borrower_version_v2('PE-BOR'))::text||',"predecessorRequestId":null,"inputs":{}},"receipt":null}',true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('pe.out_p_delete',public.pwa_submit_operation_v2(current_setting('pe.p_delete'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SELECT pg_temp.pe_assert(pg_temp.pe_status('p_delete')='rejected' AND pg_temp.pe_code('p_delete')='dependency_conflict' AND EXISTS(SELECT 1 FROM "Borrowers" WHERE "Row ID"='PE-BOR'),'14: a payee borrower cannot be deleted (P5B05)');
+SELECT set_config('pe.p_clear',pg_temp.pe_cmdp('b1430000-0000-4000-8000-000000000015','expense.update','c1430000-0000-4000-8000-000000000001','95','Lisa',NULL),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('pe.out_p_clear',public.pwa_submit_operation_v2(current_setting('pe.p_clear'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SELECT pg_temp.pe_assert(pg_temp.pe_status('p_clear')='applied' AND pg_temp.pe_payee('c1430000-0000-4000-8000-000000000001')='-|Lisa','13: payeeBorrowerId null with a typed name clears the link');
 SELECT 'Pending manual expense regression passed' AS result;
 ROLLBACK;

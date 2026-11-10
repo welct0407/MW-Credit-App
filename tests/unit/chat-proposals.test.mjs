@@ -142,6 +142,28 @@ test('R140 an expense without a paying account is proposed pending payment; payi
  assert.deepEqual(legacy.card.consequences,[],'a historical row without a payer is not pending');
 });
 
+test('R140 (V143) payeeBorrowerId is optional: given, the command has 9 keys, the typed name is cleared and the card names the borrower; absent, 8 keys',async()=>{
+ const expense=(id,extra)=>ok({item:{id,expenseDate:'2026-10-30',category:'Other / อื่น ๆ',amount:'150.00',payeeName:'สมชาย',payeeBorrowerId:'B1',relatedBorrowerId:null,relatedLoanId:null,notes:null,paidByAccountId:null,paymentState:'pending',version:W,...extra}});
+ const {client}=service({...base,'GET /api/expense-records/E1':expense('E1')});
+ const planner=createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()});
+ const created=await planner.propose({operation:'expense.create',target:'',values:{expenseDate:'2026-10-30',category:'Transportation / ค่าเดินทาง',amount:'150',payeeBorrowerId:'B1'}});
+ const inputs=JSON.parse(created.command).inputs;
+ assert.deepEqual(Object.keys(inputs),['expenseDate','category','amount','payeeName','relatedBorrowerId','relatedLoanId','notes','paidByAccountId','payeeBorrowerId']);
+ assert.equal(inputs.payeeName,null);assert.equal(inputs.payeeBorrowerId,'B1');
+ assert.deepEqual(created.card.values.find(v=>v.field==='payeeBorrowerId'),{field:'payeeBorrowerId',label:{en:'Payee borrower',th:'ผู้รับเงิน (ผู้กู้)'},type:'borrower',value:'B1',display:'สมชาย - Somchai'});
+ const typed=await planner.propose({operation:'expense.create',target:'',values:{expenseDate:'2026-10-30',category:'Transportation / ค่าเดินทาง',amount:'150',payeeName:'Dad'}});
+ assert.equal('payeeBorrowerId' in JSON.parse(typed.command).inputs,false,'an 8-key command, as before');
+ await assert.rejects(planner.propose({operation:'expense.create',target:'',values:{expenseDate:'2026-10-30',category:'Other / อื่น ๆ',amount:'150',payeeName:'Dad',payeeBorrowerId:'B1'}}),/INVALID_COMMAND/);
+ // An edit that keeps the payee stays 8 keys (the link is kept server-side); a typed name alone is 8 keys too (it clears the link).
+ const edit=JSON.parse((await planner.propose({operation:'expense.update',target:'E1',values:{amount:'200'}})).command);
+ assert.equal('payeeBorrowerId' in edit.inputs,false);assert.equal(edit.inputs.payeeName,'สมชาย');
+ const unlink=await planner.propose({operation:'expense.update',target:'E1',values:{payeeBorrowerId:null,payeeName:'Dad'}});
+ assert.deepEqual([JSON.parse(unlink.command).inputs.payeeBorrowerId,JSON.parse(unlink.command).inputs.payeeName],[null,'Dad']);
+ // A stored 8-key proposal from before V143 is still a canonical command.
+ assert.doesNotThrow(()=>canonicalOperation({requestId:'00000000-0000-4000-8000-0000000000aa',operation:'expense.create',targetId:'00000000-0000-4000-8000-0000000000ab',expectedVersion:null,predecessorRequestId:null,receiptId:null,
+  inputs:{expenseDate:'2026-10-30',category:'Other / อื่น ๆ',amount:'150',payeeName:'Dad',relatedBorrowerId:null,relatedLoanId:null,notes:null,paidByAccountId:'CA1'}}));
+});
+
 test('loan.close: the payoff, plan hash and date come from the close preview; the payoff consequence',async()=>{
  const {client}=service({...base,'GET /api/loan-records/L1/close-preview':ok({sourceVersion:W,businessDate:'2026-10-30',amount:'10300',planHash:'c'.repeat(64),accounts:accounts.accounts})});
  const planner=createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()});

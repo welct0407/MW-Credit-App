@@ -54,7 +54,7 @@ export function catalogueView(catalogue,operation){
  const entry=catalogue.entries.get(operation);
  if(!entry)throw new ToolError(Object.hasOwn(catalogue.excluded,operation)?'UNSUPPORTED_OPERATION':'UNKNOWN_OPERATION');
  return {operation,label:entry.label.en,description:entry.description,destructive:entry.destructive,target:entry.target,
-  fields:entry.fields.filter(f=>!f.hidden).map(f=>({name:f.name,type:f.type,...(f.values?{values:f.values}:{}),...(f.required&&!f.host?{required:true}:{}),...(f.host?{host:true}:{}),...(f.default!==undefined?{default:f.default}:f.defaultFrom?{default:f.defaultFrom.note}:{}),label:f.label.en}))};
+  fields:entry.fields.filter(f=>!f.hidden).map(f=>({name:f.name,type:f.type,...(f.values?{values:f.values}:{}),...(f.required&&!f.host?{required:true}:{}),...(f.host?{host:true}:{}),...(f.optional?{optional:true}:{}),...(f.default!==undefined?{default:f.default}:f.defaultFrom?{default:f.defaultFrom.note}:{}),label:f.label.en}))};
 }
 
 /** Canonical form of a money-like decimal text (trailing fraction zeros dropped), or null when it is not one. */
@@ -262,6 +262,10 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
     const merge=entry.inputs==='merge'&&item!==null;
     if(merge)before={};
     for(const field of entry.fields){
+     // R140 (V143): an optional field (the R128 optional-key pattern, e.g. payeeBorrowerId) is in the command only when the
+     // model gives it, so an 8-key command keeps its meaning; given a value, the fields it names in `nulls` become null
+     // unless the model gives them too (a borrower payee carries no typed payee name).
+     if(field.optional&&!Object.hasOwn(values,field.name))continue;
      let value;
      if(field.host){
       const source=field.host.read?await get(template(field.host.read,{...values,id:targetId})):response;
@@ -278,6 +282,7 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
      if(value===null&&field.required)throw new ToolError(`MISSING_FIELD:${field.name}`);
      inputs[field.name]=value;
     }
+    for(const field of entry.fields)if(field.optional&&inputs[field.name]!=null)for(const name of field.nulls??[])if(!Object.hasOwn(values,name))inputs[name]=null;
     if(merge&&same(inputs,before))throw new ToolError('NO_CHANGE');
    }
    let command;

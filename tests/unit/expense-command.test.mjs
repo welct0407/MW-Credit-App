@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {canonicalExpenseFields,expenseCategories} from '../../services/contracts/expense-command.mjs';
+import {canonicalOperation,operationIdentity} from '../../services/contracts/operation-command.mjs';
 const input={expenseDate:'2026-10-09',category:expenseCategories[0],amount:'10',payeeName:null,relatedBorrowerId:null,relatedLoanId:null,notes:' ไทย\n exact ',paidByAccountId:'fixture-account'};
 test('expense codec preserves signed whole money and exact notes with governed create requirements',()=>{
  assert.deepEqual(canonicalExpenseFields(input,{create:true}),input);
@@ -14,6 +15,21 @@ test('expense codec preserves signed whole money and exact notes with governed c
 test('expense codec permits legacy category for source comparison but forbids source-owned input',()=>{
  assert.equal(canonicalExpenseFields({...input,category:'Retained legacy category'}).category,'Retained legacy category');
  assert.throws(()=>canonicalExpenseFields({...input,category:'Retained legacy category'},{create:true}));
- for(const key of ['sourceType','paidByHolderId','payeeBorrowerId','partnerAShare'])assert.throws(()=>canonicalExpenseFields({...input,[key]:'forged'}));
+ for(const key of ['sourceType','paidByHolderId','partnerAShare'])assert.throws(()=>canonicalExpenseFields({...input,[key]:'forged'}));
  assert.throws(()=>canonicalExpenseFields({...input,expenseDate:'2026-02-30'}));
+});
+test('R140 (V143) payeeBorrowerId is an optional last key: a borrower without a typed name, null with free text, absent stays 8 keys',()=>{
+ const linked=canonicalExpenseFields({...input,payeeName:null,payeeBorrowerId:'B-1'},{create:true});
+ assert.deepEqual(Object.keys(linked),['expenseDate','category','amount','payeeName','relatedBorrowerId','relatedLoanId','notes','paidByAccountId','payeeBorrowerId']);
+ assert.equal(linked.payeeBorrowerId,'B-1');
+ assert.equal(canonicalExpenseFields({...input,payeeName:'Dad',payeeBorrowerId:null}).payeeBorrowerId,null);
+ assert.equal('payeeBorrowerId' in canonicalExpenseFields(input),false,'an older 8-key command stays 8 keys');
+ assert.throws(()=>canonicalExpenseFields({...input,payeeName:'Typed',payeeBorrowerId:'B-1'}),/invalid_request/,'a borrower and a typed name');
+ for(const bad of ['','a\nb','x'.repeat(257),42,true])assert.throws(()=>canonicalExpenseFields({...input,payeeName:null,payeeBorrowerId:bad}),/invalid_request/,String(bad));
+ // The canonical JSON puts payeeBorrowerId last, after paidByAccountId, and only when it was given.
+ const base={requestId:'00000000-0000-4000-8000-000000000001',operation:'expense.create',targetId:'00000000-0000-4000-8000-000000000002',expectedVersion:null,predecessorRequestId:null,receiptId:null};
+ const actor={issuer:'https://synthetic.invalid',subject:'s',partnerId:'P1',loginEmail:'p1@example.invalid'};
+ const nine=operationIdentity({...base,inputs:{...input,payeeName:null,payeeBorrowerId:'B-1'}},actor).canonicalJson,eight=operationIdentity({...base,inputs:input},actor).canonicalJson;
+ assert.match(nine,/"paidByAccountId":"fixture-account","payeeBorrowerId":"B-1"\}\}/);assert.match(eight,/"paidByAccountId":"fixture-account"\}\}/);
+ assert.equal(canonicalOperation({...base,operation:'expense.update',targetId:'E-1',expectedVersion:'a'.repeat(64),inputs:{...input,payeeName:null,payeeBorrowerId:'B-1'}}).inputs.payeeBorrowerId,'B-1');
 });

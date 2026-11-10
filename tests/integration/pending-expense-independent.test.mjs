@@ -61,3 +61,29 @@ test('a manual expense is created pending payment, replays, reads as pending, is
  const deleted=await store.operation(principal,{...command,requestId:randomUUID(),operation:'expense.delete',expectedVersion:fresh.item.version,inputs:{}});
  assert.equal(deleted.originalOutcome.status,'applied',JSON.stringify(deleted));assert.deepEqual(await ledger(command.targetId),[]);
 });
+
+test('R140 V143 a pending expense paid to a borrower shows as owed on that borrower until it is paid; 9-key replay; 8-key edit keeps the link',async()=>{
+ const options=await store.expenseOptions(principal);assert.equal(options.status,200,JSON.stringify(options));
+ const owed=async()=>{const answer=await store.borrowerRecord(principal,fixture.borrowerId);assert.equal(answer.status,200,JSON.stringify(answer));return [answer.item.details.expensesOwedAmount,answer.item.details.expensesOwedCount,answer.item.details.referrerUnpaidAmount];};
+ const before=await owed();
+ const name=(await admin.query('SELECT "Borrower Name" AS name FROM public."Borrowers" WHERE "Row ID"=$1',[fixture.borrowerId])).rows[0].name;
+ const command={requestId:randomUUID(),operation:'expense.create',targetId:randomUUID(),expectedVersion:null,predecessorRequestId:null,receiptId:null,
+  inputs:{expenseDate:options.businessDate,category:'Other / อื่น ๆ',amount:'25',payeeName:null,relatedBorrowerId:null,relatedLoanId:null,notes:null,paidByAccountId:null,payeeBorrowerId:fixture.borrowerId}};
+ const created=await store.operation(principal,command);assert.equal(created.originalOutcome?.status,'applied',JSON.stringify(created));
+ assert.deepEqual(await store.operation(principal,command),created,'a 9-key replay returns the recorded outcome');
+ const pending=(await store.expenseRecord(principal,command.targetId)).item;
+ assert.deepEqual([pending.payeeBorrowerId,pending.payeeName,pending.paymentState],[fixture.borrowerId,name,'pending']);
+ const during=await owed();
+ assert.deepEqual(during,[(Number(before[0])+25).toFixed(2),before[1]+1,before[2]],'owed to the borrower; referral rebates owed unchanged');
+ // An older 8-key edit with the stored name keeps the link.
+ const {payeeBorrowerId:_omit,...eight}=command.inputs;
+ const edited=await store.operation(principal,{...command,requestId:randomUUID(),operation:'expense.update',expectedVersion:pending.version,inputs:{...eight,payeeName:name,notes:'kept'}});
+ assert.equal(edited.originalOutcome?.status,'applied',JSON.stringify(edited));
+ const kept=(await store.expenseRecord(principal,command.targetId)).item;assert.equal(kept.payeeBorrowerId,fixture.borrowerId);
+ const paid=await store.operation(principal,{...command,requestId:randomUUID(),operation:'expense.update',expectedVersion:kept.version,inputs:{...command.inputs,notes:'kept',paidByAccountId:fixture.receivingAccountId}});
+ assert.equal(paid.originalOutcome?.status,'applied',JSON.stringify(paid));
+ assert.deepEqual(await owed(),before,'paid: no longer owed');
+ const fresh=(await store.expenseRecord(principal,command.targetId)).item;
+ const deleted=await store.operation(principal,{...command,requestId:randomUUID(),operation:'expense.delete',expectedVersion:fresh.version,inputs:{}});
+ assert.equal(deleted.originalOutcome?.status,'applied',JSON.stringify(deleted));
+});

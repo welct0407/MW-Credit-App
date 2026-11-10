@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readExpenseRecord} from '../../services/business/expenses.mjs';
 import {expensePendingSql} from '../../services/business/rebate-state.mjs';
 import {readManagementPosition} from '../../services/business/management-position.mjs';
+import {readBorrowerRecord} from '../../services/business/borrowers.mjs';
 test('expense display keeps parameterized source lookup, bilingual left joins and absent labels',async()=>{
  let count=0;const client={query:async(sql,args)=>{count++;assert.deepEqual(args,['synthetic-expense']);if(count===1){assert.match(sql,/LEFT JOIN public\."Borrowers" payee/);assert.match(sql,/coalesce\(payee\."Description"/);assert.match(sql,/coalesce\(b\."Description"/);assert.match(sql,/WHERE e\."Row ID"=\$1/);return {rows:[{id:'synthetic-expense',sourceType:'Manual',payeeBorrowerLabel:'Thai - English',relatedBorrowerLabel:null,relatedLoanId:null}]}}return {rows:[]}}};
  const item=await readExpenseRecord(client,'synthetic-expense');assert.equal(item.payeeBorrowerLabel,'Thai - English');assert.equal(item.relatedBorrowerLabel,null);assert.equal(count,2);assert.deepEqual(item.reimbursements,[]);
@@ -51,4 +52,15 @@ test('R140 the cash position adds expensesPayable beside rebatesPayable',async()
   throw Error('unexpected read '+sql.slice(0,80));}};
  const position=await readManagementPosition(client);
  assert.deepEqual(position.rebatesPayable,{amount:'300.00',count:1});assert.deepEqual(position.expensesPayable,{amount:'750.00',count:2});
+});
+test('R140 (V143) a borrower record carries the manual expenses owed to it (pending, payee link), apart from referral rebates',async()=>{
+ const seen=[];const client={query:async sql=>{seen.push(sql);
+  if(/to_jsonb\(b\)\?'Referral Rebate Rate'/.test(sql))return {rows:[{id:'B-1',termsPresent:false}]};
+  if(/"Total Amount Loaned"/.test(sql))return {rows:[{expensesOwedAmount:'90.00',expensesOwedCount:2,referrerUnpaidAmount:'0.00'}]};
+  return {rows:[]};}};
+ const record=await readBorrowerRecord(client,'B-1');
+ assert.deepEqual([record.details.expensesOwedAmount,record.details.expensesOwedCount,record.details.referrerUnpaidAmount],['90.00',2,'0.00']);
+ const sql=seen.find(s=>/"Total Amount Loaned"/.test(s));
+ assert.match(sql,/CROSS JOIN LATERAL \(SELECT coalesce\(sum\(x\."Amount"::numeric\),0\)::numeric\(20,2\)::text AS amount,count\(\*\)::int AS count FROM public\."Business Expenses" x WHERE x\."Ref Payee Borrower"=b\."Row ID" AND \(x\."Source Type"='Manual'/);
+ assert.match(sql,/eo\.amount AS "expensesOwedAmount",eo\.count AS "expensesOwedCount"/);
 });

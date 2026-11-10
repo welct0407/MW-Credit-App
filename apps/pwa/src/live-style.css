@@ -775,6 +775,14 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .expense-mark-paid{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin:8px 0 0;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font:inherit;font-weight:600;text-decoration:none}
 /* R140 EXP-PEND-13: the list tile's grey small text must not hide a pending chip (manual expense or referral rebate). */
 .expense-tile .rebate-chip-pending{color:#8a4b00}
+/* R140 V143 (Echo EXP-PEND-18 to 22): the Payee field (a borrower or a typed name) and the payee on a list tile. */
+.expense-payee{border:0;padding:0;margin:0 0 12px}.expense-payee legend{font-weight:700;margin-bottom:6px}
+.expense-payee-search{display:flex;align-items:flex-end;gap:6px}.expense-payee-search label{flex:1;min-width:0}
+.expense-payee-results{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.expense-payee-results button{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;width:100%;text-align:left;overflow-wrap:anywhere}
+.expense-payee-tag{flex:0 0 auto;font-size:12px;font-weight:600;color:#565656;border:1px solid #c8cdd2;border-radius:10px;padding:1px 8px}
+.expense-payee-chosen{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;margin:0;overflow-wrap:anywhere}.expense-payee-chosen small{color:#565656}
+.expense-tile>span{min-width:0}.expense-tile .expense-chip-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expense-tile .expense-tile-payee{color:#666;font-weight:400}
 /* R140 EXP-PEND-16: Pending is disabled for an amount of zero or less; the rollover-day disabled look. */
 .expense-payment-options input:disabled+span{color:#8a8f94;background:#f2f2f2;border-color:#d5dbe0;cursor:not-allowed}.expense-mark-paid:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .rebate-settle-list{min-width:0;max-width:100%;border:1px solid #d5dbe0;border-radius:6px;padding:4px 10px}
