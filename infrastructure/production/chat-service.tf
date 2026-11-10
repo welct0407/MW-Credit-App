@@ -64,7 +64,7 @@ variable "chat_models" {
     turnTimeoutSeconds    = 240
     historyTokenLimit     = 150000
     seedChars             = 40000
-    maxOutputTokens       = 16384
+    maxOutputTokens       = 32768 # 100-line proposal groups (Opus 5.5 streams up to 128K)
     models = [
       # R108: Claude only (owner decision; Gemini stays for receipt OCR on the VM). Served through the
       # VM relay, so listed only while chat_relay.enabled (filtered in local.chat_models_list).

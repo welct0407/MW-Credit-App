@@ -114,8 +114,8 @@ export function confirmLabel(entry,values){
  return [...label.en].length<=32&&[...label.th].length<=32&&!label.en.includes('{')?label:null;
 }
 
-/** D12: a group holds 1..20 lines. */
-export const MAX_GROUP=20;
+/** D12: a group holds 1..MAX_GROUP lines (owner, 10 November 2026: 100, V141). */
+export const MAX_GROUP=100;
 /** Every id-like string a command refers to (its target and input values, nested), for DEPENDS_ON_NEW_RECORD. */
 function refsOf(command,own=null){
  const refs=new Set();
@@ -299,21 +299,42 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
     scope:{key:created?null:`${operation.split('.')[0]}:${targetId}`,borrowerId:typeof borrowerId==='string'?borrowerId:null,unresolved,created,refs:refsOf(command,created)}};
   },
   /**
-   * D12: one turn's changes as one group of 1..20 lines (one card, Confirm all). Each line is planned exactly as a
-   * single proposal; then the group rules: no target twice (DUPLICATE_TARGET), no line using an id another line
-   * creates (DEPENDS_ON_NEW_RECORD), and a payment or loan close is the only line for its borrower
-   * (PAYMENT_LINE_ALONE; fail closed: a group of several with a payment or close refuses any line whose borrower could
-   * not be resolved, LINE_<n>:BORROWER_UNRESOLVED). Errors of a group of several name the line: LINE_<n>:<code> or <code>:<n>.
+   * D12: one turn's changes as one group of 1..MAX_GROUP (100) lines (one card, Confirm all): planLines, then
+   * finishGroup. The chat bridge calls the two itself when the model sends the changes in chunks (more:true).
    * @param {{operation:string,target:string,values:Record<string,any>}[]} changes
    */
   async proposeGroup(changes){
    if(!Array.isArray(changes)||changes.length<1)throw new ToolError('NO_CHANGES');
    if(changes.length>MAX_GROUP)throw new ToolError('TOO_MANY_CHANGES');
-   const several=changes.length>1,lines=[];
+   return this.finishGroup(await this.planLines(changes));
+  },
+  /**
+   * D12: each change planned exactly as a single proposal. offset is the number of lines already held from earlier
+   * chunks of the turn, so errors name the line in the whole group: LINE_<offset+n>:<code> (unnamed only for a lone change).
+   * @param {{operation:string,target:string,values:Record<string,any>}[]} changes
+   * @param {number} [offset]
+   * @param {boolean} [several] whether the group may hold more than one line (default: offset>0 or several changes)
+   */
+  async planLines(changes,offset=0,several=offset>0||changes.length>1){
+   const lines=[];
    for(const [index,change] of changes.entries()){
     try{lines.push(await this.propose(change));}
-    catch(error){if(several&&error instanceof ToolError)throw new ToolError(`LINE_${index+1}:${error.message}`);throw error;}
+    catch(error){if(several&&error instanceof ToolError)throw new ToolError(`LINE_${offset+index+1}:${error.message}`);throw error;}
    }
+   return lines;
+  },
+  /**
+   * D12: the group rules over every planned line of the turn: 1..MAX_GROUP lines (TOO_MANY_CHANGES), a payment waiting
+   * for its remainder choice alone (PURPOSE_LINE_ALONE), no target twice (DUPLICATE_TARGET), no line using an id
+   * another line creates (DEPENDS_ON_NEW_RECORD), and a payment or loan close is the only line for its borrower
+   * (PAYMENT_LINE_ALONE; fail closed: a group of several with a payment or close refuses any line whose borrower could
+   * not be resolved, LINE_<n>:BORROWER_UNRESOLVED); then card.group {id, index, count, ids} on each line.
+   * @param {any[]} lines planLines results in the model's order
+   */
+  finishGroup(lines){
+   if(!Array.isArray(lines)||lines.length<1)throw new ToolError('NO_CHANGES');
+   if(lines.length>MAX_GROUP)throw new ToolError('TOO_MANY_CHANGES');
+   const several=lines.length>1;
    // R112: a payment waiting for its remainder choice is the only line of its card (Confirm carries one purpose).
    if(several){const at=lines.findIndex(line=>/** @type {any} */(line.card).purposeOptions);if(at>=0)throw new ToolError(`PURPOSE_LINE_ALONE:${at+1}`);}
    const keys=new Map(),created=new Map(lines.filter(l=>l.scope.created).map((l,i)=>[l.scope.created,i]));
@@ -453,8 +474,9 @@ export async function reconcileProposal({store,principal,thread,proposal,client,
  return publicProposal(await store.settleProposal(principal,thread,proposal.id,settlement));
 }
 
-/** D12: Confirm all runs at most this long from the confirm start; lines not yet claimed by then stay pending. */
-export const GROUP_DEADLINE_MS=180000;
+/** D12: Confirm all runs at most this long from the confirm start; lines not yet claimed by then stay pending
+ * ("Confirm N remaining"). 270 s, inside the chat service's 300 s Cloud Run request timeout (100-line groups). */
+export const GROUP_DEADLINE_MS=270000;
 const SETTLED=['done','failed'];
 /** D12: operations on records that belong to a borrower (PAYMENT_LINE_ALONE needs the borrower of each). */
 const BORROWER_OWNED=['borrower','loan','charge','payment','assessment'];

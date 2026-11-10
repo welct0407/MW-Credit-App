@@ -1353,7 +1353,11 @@ export async function executeBusinessHosting(plan,{request,approvalReference}){
 // Order: SQL first, then the images. The live readback is the chat-era one with the current chat check (R102's, with
 // the R108 Claude-only menu); unchanged services must read back on their pinned image and revision. Anything the derivation cannot express (a new service, a
 // non-image Terraform action, infrastructure changes, recognizer wiring, images before SQL, a new scope) still needs a
-// hand-written kind.
+// hand-written kind, with one exception (R138 onwards): a chat engine settings change. When the infrastructure changes are
+// only chat-service.tf and its test (GENERIC_CHAT_SETTINGS_FILES), the chat update in the plan may also change the
+// CHAT_MODELS_JSON value, and only its bounded engine settings (GENERIC_CHAT_SETTINGS_KEYS, e.g. maxOutputTokens): the
+// models, default and every other field stay as before and still pass the current chat rule. It rides a chat image change
+// (action `chat.modelsJson` after `chat.image`), and the live readback must show the planned value.
 const GENERIC_SCHEMA=36,GENERIC_RULE='generic-v1',GENERIC_FIRST=105;
 const genericRelease=release=>typeof release==='string'&&/^R[0-9]{3}$/.test(release)&&Number(release.slice(1))>=GENERIC_FIRST;
 export const GENERIC_ROLES=Object.freeze(['read','command','notify','jobs','chat']);
@@ -1368,6 +1372,10 @@ export const GENERIC_ROLE_ENTRIES=Object.freeze({
  chat:Object.freeze(['services/chat/server.mjs'])});
 const genericImageInputs=['services','Dockerfile','.dockerignore','.gcloudignore','package.json','package-lock.json','cloudbuild-command.yaml','cloudbuild-business.yaml'];
 const genericInfrastructure=['infrastructure/production','infrastructure/modules'];
+// R138: the only infrastructure files a generic package may carry, and the CHAT_MODELS_JSON fields such a change may set
+// (the integer bounds of services/chat/config.mjs CHAT_BOUNDS and the chat_models validation in chat-service.tf).
+export const GENERIC_CHAT_SETTINGS_FILES=Object.freeze(['infrastructure/production/chat-service.tf','infrastructure/production/tests/chat-service.tftest.hcl']);
+export const GENERIC_CHAT_SETTINGS_KEYS=Object.freeze({requestTimeoutSeconds:[30,240],turnTimeoutSeconds:[60,240],historyTokenLimit:[50000,400000],seedChars:[0,200000],maxOutputTokens:[1024,65536]});
 const underAny=(file,prefixes)=>prefixes.some(prefix=>file===prefix||file.startsWith(prefix+'/'));
 // Relative references a module makes: static and side-effect imports, re-exports, literal dynamic imports (also JSDoc
 // import() types, an over-approximation) and `new URL('./file', import.meta.url)` files read at run time.
@@ -1475,7 +1483,34 @@ async function readPlanExport(m,L){
  requireValue(plainObject(json)&&Array.isArray(json.resource_changes),L+' plan JSON export unreadable');
  return json;
 }
-async function readGenericPlan(m,L){
+const parseJson=value=>{try{return JSON.parse(value);}catch{return null;}};
+/** R138: a CHAT_MODELS_JSON change limited to the bounded engine settings; the result still passes the current chat rule. */
+function validateChatSettingsChange(previous,next,L){
+ requireValue(plainObject(previous)&&plainObject(next)&&exact(Object.keys(next).sort(),Object.keys(previous).sort())&&chatModelsAre(next,R108_CHAT_MODEL_IDS)&&isDeepStrictEqual(next.models,previous.models)&&next.default===previous.default,L+' generic plan CHAT_MODELS_JSON must keep the models, the default and the current chat rule');
+ const edited=Object.keys(next).filter(key=>!isDeepStrictEqual(next[key],previous[key]));
+ requireValue(edited.length>0&&edited.every(key=>Object.hasOwn(GENERIC_CHAT_SETTINGS_KEYS,key)&&Number.isSafeInteger(next[key])&&next[key]>=GENERIC_CHAT_SETTINGS_KEYS[key][0]&&next[key]<=GENERIC_CHAT_SETTINGS_KEYS[key][1])&&next.turnTimeoutSeconds>=next.requestTimeoutSeconds,L+' generic plan CHAT_MODELS_JSON may change only bounded engine settings ('+Object.keys(GENERIC_CHAT_SETTINGS_KEYS).join(', ')+'): changes '+(edited.join(', ')||'nothing'));
+}
+/** The chat update with a chat engine settings change (R138): the image and, in its env, only the CHAT_MODELS_JSON value. */
+function readGenericChatChange(rc,L){
+ const {before,after,after_unknown:unknown}=rc.change,t=unknown?.template,c=t?.[0]?.containers?.[0];
+ requireValue(![t,t?.[0],t?.[0]?.containers,c].includes(true)&&!anyTrue(c?.env)&&!anyTrue(c?.resources),L+' plan env or resources unknown on chat');
+ const diffs=planDiffs(withoutEnv(before),withoutEnv(after),withoutEnv(unknown));
+ requireValue(diffs.every(d=>d==='template.0.containers.0.image'),L+' generic plan may change images and chat settings only: '+rc.address+' changes '+diffs.join(', '));
+ const was=envByName(envList(before)),now=envByName(envList(after));
+ requireValue(was&&now,L+' plan env unreadable on chat');
+ const added=[...now.keys()].filter(name=>!was.has(name)),removed=[...was.keys()].filter(name=>!now.has(name)),edited=[...now.keys()].filter(name=>was.has(name)&&!isDeepStrictEqual(now.get(name),was.get(name)));
+ requireValue(added.length===0&&removed.length===0&&edited.every(name=>name==='CHAT_MODELS_JSON'),L+' generic plan may change only CHAT_MODELS_JSON in the chat env: adds '+(added.join(', ')||'nothing')+', removes '+(removed.join(', ')||'nothing')+', changes '+(edited.join(', ')||'nothing'));
+ const out=diffs.length?['chat.image']:[];
+ if(edited.length){
+  const entry=now.get('CHAT_MODELS_JSON');
+  requireValue(entry.value_source==null||(Array.isArray(entry.value_source)&&entry.value_source.length===0),L+' generic plan CHAT_MODELS_JSON must be a plain value');
+  validateChatSettingsChange(parseJson(was.get('CHAT_MODELS_JSON').value),parseJson(entry.value),L);
+  out.push('chat.modelsJson');
+ }
+ requireValue(out.length>0,L+' generic plan chat update changes nothing');
+ return out;
+}
+async function readGenericPlan(m,L,{chatSettings=false}={}){
  const json=await readPlanExport(m,L);
  const changed=[];
  for(const rc of json.resource_changes){
@@ -1483,18 +1518,28 @@ async function readGenericPlan(m,L){
   if(exact(actions,['no-op'])||exact(actions,['read']))continue;
   const role=/^mw-credit-app-(read|command|notify|jobs|chat)-prod$/.exec(rc?.change?.after?.name??'')?.[1];
   requireValue(rc.type==='google_cloud_run_v2_service'&&exact(actions,['update'])&&role&&rc.change.before?.name===rc.change.after.name,L+' generic plan may change images only: '+(rc?.address??'unknown resource'));
+  requireValue(!changed.some(action=>action.startsWith(role+'.')),L+' generic plan changes '+role+' twice');
+  if(role==='chat'&&chatSettings){changed.push(...readGenericChatChange(rc,L));continue;}
   const diffs=planDiffs(rc.change.before,rc.change.after,rc.change.after_unknown);
   requireValue(diffs.length>0&&diffs.every(d=>d==='template.0.containers.0.image'),L+' generic plan may change images only: '+rc.address+' changes '+diffs.join(', '));
-  requireValue(!changed.includes(role+'.image'),L+' generic plan changes '+role+' twice');changed.push(role+'.image');
+  changed.push(role+'.image');
  }
- return GENERIC_ROLES.map(role=>role+'.image').filter(action=>changed.includes(action));
+ return [...GENERIC_ROLES.map(role=>role+'.image'),'chat.modelsJson'].filter(action=>changed.includes(action));
+}
+/** The planned CHAT_MODELS_JSON value (after apply), read back from the plan export (R138 live check). */
+async function plannedChatModels(m,L){
+ const json=await readPlanExport(m,L),rc=json.resource_changes.find(x=>x?.change?.after?.name==='mw-credit-app-chat-prod');
+ const value=envByName(envList(rc?.change?.after))?.get('CHAT_MODELS_JSON')?.value;
+ return parseJson(value);
 }
 export async function genericHostingPlan(m,{requireApplied=true,git=sourceGit}={}){
  requireValue(genericKindMatches(m)&&m.environment==='prod','wrong generic package kind');
  const L=m.release,facts=deriveGenericRelease(m,git);
  validateGenericSource(m,git,L);
  requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
- requireValue(facts.infrastructure.length===0,L+' generic kind cannot carry infrastructure changes: '+facts.infrastructure.join(', '));
+ // R138: only a chat engine settings change (chat-service.tf and its test) may carry infrastructure files.
+ requireValue(facts.infrastructure.every(file=>GENERIC_CHAT_SETTINGS_FILES.includes(file)),L+' generic kind cannot carry infrastructure changes: '+facts.infrastructure.filter(file=>!GENERIC_CHAT_SETTINGS_FILES.includes(file)).join(', '));
+ const chatSettings=facts.infrastructure.length>0;
  validateR074Ci(m.applicationCi,m,git,L,genericDeliveryAllowed);
  const recovery=m.rollback;recoveryHosting(recovery);
  if(m.scope==='frontend-only'){
@@ -1514,9 +1559,12 @@ export async function genericHostingPlan(m,{requireApplied=true,git=sourceGit}={
  requireValue(m.build?.sourceCommit===m.sourceCommit&&m.build.status==='SUCCESS'&&imagePattern.test(m.build.image??'')&&typeof m.build.id==='string'&&m.build.id.length>0,L+' PROD image provenance required');
  requireValue(exact(m.recognition,{activation:'enabled',url:R075_RECOGNIZER_URL}),L+' unchanged enabled receipt recognition wiring required');
  const actions=m.plan?.actions;
- requireValue(Array.isArray(actions)&&actions.every(action=>typeof action==='string'&&GENERIC_ROLES.some(role=>action===role+'.image')),L+' generic plan may change images only');
- const planned=await readGenericPlan(m,L);
- requireValue(exact(planned,roles.map(role=>role+'.image'))&&exact(actions,planned)&&exact(m.plan.counts,{add:0,change:roles.length,destroy:0}),L+' reviewed plan must change exactly the images of '+roles.join(', ')+' (the plan JSON changes '+(planned.join(', ')||'nothing')+')');
+ requireValue(Array.isArray(actions)&&actions.every(action=>typeof action==='string'&&(GENERIC_ROLES.some(role=>action===role+'.image')||(chatSettings&&action==='chat.modelsJson'))),L+' generic plan may change images only');
+ const planned=await readGenericPlan(m,L,{chatSettings});
+ // A chat settings change rides the chat image change (the chat service is updated once, so counts stay one per role).
+ const settings=planned.includes('chat.modelsJson');
+ requireValue(!settings||roles.includes('chat'),L+' generic chat settings change needs a chat image change');
+ requireValue(exact(planned,[...roles.map(role=>role+'.image'),...(settings?['chat.modelsJson']:[])])&&exact(actions,planned)&&exact(m.plan.counts,{add:0,change:roles.length,destroy:0}),L+' reviewed plan must change exactly the images of '+roles.join(', ')+(chatSettings?' (and may change the chat settings)':'')+' (the plan JSON changes '+(planned.join(', ')||'nothing')+')');
  requireValue(plainObject(recovery?.services)&&exact(Object.keys(recovery.services).sort(),[...GENERIC_ROLES].sort()),L+' recovery pins exactly the five services');
  for(const role of GENERIC_ROLES)requireValue(imagePattern.test(recovery.services[role]?.image??'')&&revisionOf(role).test(recovery.services[role]?.revision??'')&&(!roles.includes(role)||recovery.services[role].image!==m.build.image),'service recovery pin required');
  if(m.status==='applied'){
@@ -1535,7 +1583,15 @@ export async function genericHostingPlan(m,{requireApplied=true,git=sourceGit}={
 export async function verifyGenericLivePackage(m,options={}){
  const L=m.release;
  // R107 moved command and chat to request-based CPU; the generic kind cannot change that (no infrastructure changes).
- if(m.scope!=='frontend-only'){await verifyChatRuntimeLive(m,options,L,{allowed:genericDeliveryAllowed,liveChat:'current',requestCpu:true});return;}
+ if(m.scope!=='frontend-only'){
+  const live=await verifyChatRuntimeLive(m,options,L,{allowed:genericDeliveryAllowed,liveChat:'current',requestCpu:true});
+  // R138: a chat settings change must read back live exactly as planned.
+  if(Array.isArray(m.plan?.actions)&&m.plan.actions.includes('chat.modelsJson')){
+   const env=Object.fromEntries((live.chat.template?.containers?.[0]?.env??[]).map(x=>[x.name,x.value])),planned=await plannedChatModels(m,L);
+   requireValue(planned!==null&&isDeepStrictEqual(parseJson(env.CHAT_MODELS_JSON),planned),L+' live chat CHAT_MODELS_JSON must equal the planned value');
+  }
+  return;
+ }
  const {token,request=fetch,readGithub,git=sourceGit}=options;
  const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
  await verifyPerJobCiLive(m,gh,git,L,genericDeliveryAllowed);

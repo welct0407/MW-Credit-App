@@ -4244,10 +4244,10 @@ DECLARE partner text:=public.pwa_chat_actor_v1(actor); t public.pwa_chat_threads
 BEGIN
  IF NOT EXISTS(SELECT 1 FROM public."Partners" x WHERE x."Row ID"=partner AND x."AI Reviewer" IS TRUE) THEN RAISE EXCEPTION 'reviewer_required' USING ERRCODE='42501'; END IF;
  IF proposal IS NULL OR jsonb_typeof(proposal)<>'object' THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
- -- D12: {group:[line, ...]} (1..20 lines) or the V118 single line.
+ -- D12 (V141: 1..100 lines): {group:[line, ...]} or the V118 single line.
  grouped:=(SELECT array_agg(key) FROM jsonb_object_keys(proposal) key)=ARRAY['group']::text[];
  lines:=CASE WHEN grouped THEN proposal->'group' ELSE jsonb_build_array(proposal) END;
- IF jsonb_typeof(lines)<>'array' OR jsonb_array_length(lines) NOT BETWEEN 1 AND 20 THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ IF jsonb_typeof(lines)<>'array' OR jsonb_array_length(lines) NOT BETWEEN 1 AND 100 THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
  n:=jsonb_array_length(lines);head:=lines->0->>'id';
  FOR line IN SELECT value FROM jsonb_array_elements(lines) LOOP
   IF jsonb_typeof(line)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(line) key) IS DISTINCT FROM ARRAY['card','command','id','kind','messageId','operation']::text[]

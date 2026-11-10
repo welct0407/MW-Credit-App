@@ -6,9 +6,9 @@ import {runInNewContext} from 'node:vm';
 import {chatOriginAllowed,liveConfiguration} from '../../apps/pwa/src/environment.ts';
 // R090 PWA chat: the pure protocol, markdown and wording modules (no imports, so each transpiles on its own).
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/chat/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
-const {listedDefault,threadModel,createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup,seenThrough}=await load('chat-protocol.ts');
+const {listedDefault,threadModel,createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup}=await load('chat-protocol.ts');
 const {parseMarkdown,parseInline,tableCells}=await load('markdown.ts');
-const {modelFallbackText,failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons,lineChipText,groupConfirmText,unchangedText,groupProgressText,groupSummaryText,destructiveKind,destructiveCounts,destructiveTagText,destructiveWarningText,armHintText}=await load('chat-text.ts');
+const {modelFallbackText,failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons,lineChipText,groupConfirmText,unchangedText,groupProgressText,groupSummaryText,destructiveKind,destructiveCounts,destructiveTagText,destructiveWarningText}=await load('chat-text.ts');
 const sse=(chunks,end=true)=>{const events=[];const parser=createSseParser((name,data)=>events.push([name,data]));for(const chunk of chunks)parser.push(chunk);if(end)parser.end();return events};
 
 test('SSE parser reads events across chunk boundaries, CRLF, multi-line data and pings',()=>{
@@ -164,9 +164,9 @@ test('turn reducer: the proposal event precedes the reply, and the reply keeps i
 test('card states: pending counts down and expires; Confirm needs a connection; unknown polls; settled is final',()=>{
  let v=proposalView(proposal(),{now:T0+60000});
  assert.deepEqual(v,{state:'pending',canConfirm:true,canCancel:true,poll:false,remainingSeconds:840,code:null});
- // CWR-08: both buttons need a connection; CWR-01: Confirm waits until the card was seen.
+ // CWR-08: both buttons need a connection. Owner, 10 November 2026: no visibility gate, a ready card confirms at once.
  assert.equal(proposalView(proposal(),{now:T0,online:false}).canConfirm,false);assert.equal(proposalView(proposal(),{now:T0,online:false}).canCancel,false);
- assert.deepEqual([proposalView(proposal(),{now:T0,seen:false}).canConfirm,proposalView(proposal(),{now:T0,seen:false}).canCancel],[false,true]);
+ assert.deepEqual([proposalView(proposal(),{now:T0}).canConfirm,proposalView(proposal(),{now:T0}).canCancel],[true,true]);
  assert.equal(proposalView(proposal(),{now:T0,busy:true}).canConfirm,false);
  v=proposalView(proposal(),{now:T0+15*60000});assert.deepEqual([v.state,v.canConfirm,v.code,v.remainingSeconds],['expired',false,'proposal_expired',0]);
  assert.deepEqual([proposalView(proposal({state:'unknown'}),{now:T0}).poll,proposalView(proposal({state:'unknown'}),{now:T0}).code],[true,'outcome_unknown']);
@@ -234,7 +234,8 @@ test('D12 group view: Confirm all, then N remaining; skipped lines; unknown poll
  v=groupView([line(0,{state:'done'}),line(1),line(2)],{now:T0+15*60000});
  assert.deepEqual([v.lines,v.canConfirm,v.remaining],[['done','skipped','skipped'],false,false],'expired leftovers are skipped, not offered');
  assert.equal(groupView([line(0),line(1)],{now:T0,online:false}).canConfirm,false);
- assert.equal(groupView([line(0),line(1)],{now:T0,seen:false}).canConfirm,false);
+ assert.equal(groupView([line(0),line(1)],{now:T0}).canConfirm,true,'a pending online group confirms at once (no arm gate)');
+ assert.equal(groupView(Array.from({length:100},(_,i)=>line(i)),{now:T0}).canConfirm,true,'a 100-line group');
  assert.equal(isGroup({id:'g0',state:'pending',lines:[line(0)]}),true);assert.equal(isGroup({id:'g0',lines:[]}),false);assert.equal(isGroup({id:'g0',lines:[{id:'x'}]}),false);
 });
 test('D12 group polling: until no line is unknown or executing',async()=>{
@@ -252,15 +253,7 @@ test('D12 group wording: Confirm 6 changes, Confirm N remaining, line chips, unc
  assert.deepEqual([lineChipText('notrun',false),lineChipText('notrun',true),lineChipText('skipped',false),lineChipText('skipped',true)],['Not run yet','ยังไม่ทำ','Skipped','ข้าม']);
  assert.equal(groupSummaryText({done:4,failed:0,notRun:2},false),'4 done · 2 not run');assert.equal(groupSummaryText({done:4,failed:0,notRun:2},true),'สำเร็จ 4 · ไม่ได้ทำ 2');
  assert.equal(groupSummaryText({done:2,failed:1,notRun:3},false),'2 done · 1 not saved · 3 not run');assert.equal(groupSummaryText({done:0,failed:2,notRun:0},false),'2 not saved');
- assert.equal(armHintText(false),'Scroll through all changes to confirm');assert.equal(armHintText(true),'เลื่อนดูทุกรายการก่อนยืนยัน');
  assert.equal(unchangedText(4,false),'+4 unchanged');assert.equal(groupProgressText(2,6,false),'Saving 2 of 6…');
-});
-test('CWR-01/D12: a card is seen once every part has been in view, at once or scrolled through',()=>{
- assert.equal(seenThrough([[0,400]],400),true);
- assert.equal(seenThrough([[0,700]],1400),false,'a tall card half in view');
- assert.equal(seenThrough([[0,700],[650,1400]],1400),true,'scrolled through');
- assert.equal(seenThrough([[700,1400],[0,500]],1400),false,'a gap is not seen');
- assert.equal(seenThrough([],400),false);
 });
 test('CW3-01: destructive lines are named by kind, counted in the warning and in Confirm',()=>{
  assert.deepEqual(['charge.delete','settlement.reverse','settlement.cancel','loan.default','charge.update'].map(destructiveKind),['delete','reverse','cancel','default','other']);

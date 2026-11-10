@@ -646,7 +646,7 @@ RESET SESSION AUTHORIZATION;
 SET SESSION AUTHORIZATION v104_chat_other;
 SELECT pg_temp.expect(format('SELECT public.pwa_chat_proposal_claim_v1(%L::jsonb,%L::uuid,%L::uuid)',pg_temp.actor('a'),'91111111-1111-4111-8111-111111111111','a0000006-0000-4000-8000-000000000006'),'42501');
 RESET SESSION AUTHORIZATION;
--- L. V119 (R106 D12): groups of 1..20 lines in one transaction, one time; 21 lines, duplicate ids, a broken group index
+-- L. V119 (R106 D12), V141 (1..100 lines): groups of 1..100 lines in one transaction, one time; 101 lines, duplicate ids, a broken group index
 -- and mixed messages refused; one group per turn (23505); a new group supersedes the earlier pending one; the reply
 -- carries "proposals" ordered by index; the V118 single-line form still works.
 CREATE FUNCTION pg_temp.group_lines(head_prefix text,message uuid,n integer,break_at integer DEFAULT -1) RETURNS jsonb LANGUAGE sql VOLATILE AS $$
@@ -662,19 +662,19 @@ DECLARE a jsonb:=pg_temp.actor('a'); r jsonb; k4 uuid:='94444444-4444-4444-8444-
 BEGIN
  PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',k4,'model','gemini-4-argon'));
  PERFORM public.pwa_chat_turn_begin_v1(a,k4,jsonb_build_object('id',g1,'text','Edit the six charges'));
- PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000021',g1,21)),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000101',g1,101)),'22023','invalid_request');
  PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000003',g1,3,2)),'22023','invalid_request');
  PERFORM pg_temp.expect(format(create_sql,a,k4,jsonb_build_object('group',(pg_temp.group_lines('b0000002',g1,2)->'group')||jsonb_build_array(pg_temp.group_lines('b0000002',g1,2)->'group'->0))),'22023','invalid_request');
  PERFORM pg_temp.expect(format(create_sql,a,k4,jsonb_set(pg_temp.group_lines('b0000004',g1,2),'{group,1,messageId}',to_jsonb(g2::text))),'22023','invalid_request');
  PERFORM pg_temp.expect(format(create_sql,a,k4,'{"group":[]}'),'22023','invalid_request');
- r:=public.pwa_chat_proposal_create_v1(a,k4,pg_temp.group_lines('b0000020',g1,20));
- IF jsonb_typeof(r) IS DISTINCT FROM 'array' OR jsonb_array_length(r) IS DISTINCT FROM 20 OR r#>>'{0,id}' IS DISTINCT FROM 'b0000020-0000-4000-8000-000000000000'
-  OR r#>>'{19,card,group,index}' IS DISTINCT FROM '19' OR EXISTS(SELECT 1 FROM jsonb_array_elements(r) x WHERE x->>'state' IS DISTINCT FROM 'pending' OR x->>'createdAt' IS DISTINCT FROM r#>>'{0,createdAt}' OR x->>'expiresAt' IS DISTINCT FROM r#>>'{0,expiresAt}') THEN
-  RAISE EXCEPTION 'group of 20 %',r; END IF;
+ r:=public.pwa_chat_proposal_create_v1(a,k4,pg_temp.group_lines('b0000100',g1,100));
+ IF jsonb_typeof(r) IS DISTINCT FROM 'array' OR jsonb_array_length(r) IS DISTINCT FROM 100 OR r#>>'{0,id}' IS DISTINCT FROM 'b0000100-0000-4000-8000-000000000000'
+  OR r#>>'{99,card,group,index}' IS DISTINCT FROM '99' OR EXISTS(SELECT 1 FROM jsonb_array_elements(r) x WHERE x->>'state' IS DISTINCT FROM 'pending' OR x->>'createdAt' IS DISTINCT FROM r#>>'{0,createdAt}' OR x->>'expiresAt' IS DISTINCT FROM r#>>'{0,expiresAt}') THEN
+  RAISE EXCEPTION 'group of 100 %',r; END IF;
  PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000001',g1,1)),'23505','one_proposal_per_turn');
  PERFORM public.pwa_chat_turn_complete_v1(a,g1,pg_temp.assistant('ok'),pg_temp.history(0,0,2),'[]');
  r:=public.pwa_chat_message_v1(a,k4,g1)->'assistant'->'proposals';
- IF jsonb_array_length(r) IS DISTINCT FROM 20 OR (SELECT string_agg(y.x->'card'->'group'->>'index',',' ORDER BY y.o) FROM jsonb_array_elements(r) WITH ORDINALITY y(x,o)) IS DISTINCT FROM (SELECT string_agg(i::text,',' ORDER BY i) FROM generate_series(0,19) i) THEN
+ IF jsonb_array_length(r) IS DISTINCT FROM 100 OR (SELECT string_agg(y.x->'card'->'group'->>'index',',' ORDER BY y.o) FROM jsonb_array_elements(r) WITH ORDINALITY y(x,o)) IS DISTINCT FROM (SELECT string_agg(i::text,',' ORDER BY i) FROM generate_series(0,99) i) THEN
   RAISE EXCEPTION 'reply proposals in index order %',r; END IF;
  -- A new group supersedes the earlier pending one; a group of one; the V118 single-line form in a later turn.
  PERFORM public.pwa_chat_turn_begin_v1(a,k4,jsonb_build_object('id',g2,'text','Only one'));
@@ -687,8 +687,10 @@ BEGIN
 END $$;
 RESET SESSION AUTHORIZATION;
 DO $$ BEGIN
- IF (SELECT count(DISTINCT created_at) FROM public.pwa_chat_proposals WHERE id::text LIKE 'b0000020-%') IS DISTINCT FROM 1
-  OR (SELECT count(*) FROM public.pwa_chat_proposals WHERE id::text LIKE 'b0000020-%') IS DISTINCT FROM 20 THEN RAISE EXCEPTION 'one group of 20 rows with one created_at'; END IF;
+ IF (SELECT count(DISTINCT created_at) FROM public.pwa_chat_proposals WHERE id::text LIKE 'b0000100-%') IS DISTINCT FROM 1
+  OR (SELECT count(*) FROM public.pwa_chat_proposals WHERE id::text LIKE 'b0000100-%') IS DISTINCT FROM 100 THEN RAISE EXCEPTION 'one group of 100 rows with one created_at'; END IF;
+ IF (SELECT count(*) FROM public.pwa_chat_proposals WHERE id::text LIKE 'b0000100-%' AND state='cancelled' AND cancel_reason='superseded') IS DISTINCT FROM 100 THEN
+  RAISE EXCEPTION 'the next group supersedes all 100 pending lines'; END IF;
 END $$;
 DO $$ BEGIN
  IF (SELECT count(*) FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.proname LIKE 'pwa\_chat\_proposal%' AND has_function_privilege('mw_chat_api_dev',p.oid,'EXECUTE')) IS DISTINCT FROM 5

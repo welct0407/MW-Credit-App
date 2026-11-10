@@ -2535,6 +2535,54 @@ test('generic R105 refuses non-contiguous or edited migrations and infrastructur
  {const {m}=await genericRuntimePackage(t,{r105:{'database/migrations/V117__b.sql':'-- edited\n'}});await assert.rejects(genericHostingPlan(m),/R105 may only add new versioned migrations/);}
  {const {m}=await genericRuntimePackage(t,{r105:{'infrastructure/production/runtime.tf':'# x\n'}});await assert.rejects(genericHostingPlan(m),/R105 generic kind cannot carry infrastructure changes: infrastructure\/production\/runtime.tf/);}
 });
+// R138: a generic package whose only infrastructure change is chat-service.tf (and its test) may change the chat
+// CHAT_MODELS_JSON engine settings (maxOutputTokens 16384 to 32768) with the chat image; anything wider is refused.
+const chatSettingsPlan=(edit=models=>models,more=json=>json)=>planJson(['read','command','chat'],j=>{
+ const rc=j.resource_changes.find(x=>x.address.includes('chat'));
+ rc.change.before.template[0].containers[0].env.push({name:'CHAT_MODELS_JSON',value:JSON.stringify(r108Models)});
+ rc.change.after.template[0].containers[0].env.push({name:'CHAT_MODELS_JSON',value:JSON.stringify(edit(structuredClone(r108Models)))});
+ return more(j);});
+test('generic chat settings change (R138): chat-service.tf only, CHAT_MODELS_JSON bounded settings with the chat image; refusals and live readback',async t=>{
+ const {m,root,image}=await genericRuntimePackage(t,{r105:{'infrastructure/production/chat-service.tf':'# maxOutputTokens 32768\n','infrastructure/production/tests/chat-service.tftest.hcl':'# test\n'}});
+ assert.deepEqual(deriveGenericRelease(m).infrastructure,['infrastructure/production/chat-service.tf','infrastructure/production/tests/chat-service.tftest.hcl']);
+ const use=async(x,json)=>{await writePlanJson(x,root,json,'plan-'+createHash('sha256').update(JSON.stringify(json)).digest('hex').slice(0,8)+'.json');return x;};
+ const raised=models=>({...models,maxOutputTokens:32768});
+ m.plan.actions=['read.image','command.image','chat.image','chat.modelsJson'];await use(m,chatSettingsPlan(raised));
+ assert.equal((await genericHostingPlan(m)).site,site);
+ // The image-only plan stays valid with the tf change (the settings change is optional); then the manifest must not claim it.
+ {const x=await use(structuredClone(m),planJson(['read','command','chat']));await assert.rejects(genericHostingPlan(x),/R105 reviewed plan must change exactly the images of read, command, chat \(and may change the chat settings\)/);x.plan.actions=['read.image','command.image','chat.image'];assert.equal((await genericHostingPlan(x)).site,site);}
+ for(const [json,pattern] of [
+  [chatSettingsPlan(models=>({...raised(models),models:[...models.models,{id:'claude-sonnet-5-5',label:'Sonnet',available:true}]})),/R105 generic plan CHAT_MODELS_JSON must keep the models, the default and the current chat rule/],
+  [chatSettingsPlan(models=>({...raised(models),maxRounds:24})),/R105 generic plan CHAT_MODELS_JSON must keep the models, the default and the current chat rule/],
+  [chatSettingsPlan(models=>({...models,thinkingLevel:'HIGH'})),/R105 generic plan CHAT_MODELS_JSON must keep/],
+  [chatSettingsPlan(models=>({...models,maxOutputTokens:131072})),/R105 generic plan CHAT_MODELS_JSON may change only bounded engine settings .*: changes maxOutputTokens/],
+  [chatSettingsPlan(models=>({...models,location:'us-central1'})),/R105 generic plan CHAT_MODELS_JSON must keep/],
+  [chatSettingsPlan(models=>({...models,seedChars:-1})),/R105 generic plan CHAT_MODELS_JSON may change only bounded engine settings .*: changes seedChars/],
+  [chatSettingsPlan(models=>({...models,maxOutputTokens:'32768'})),/R105 generic plan CHAT_MODELS_JSON may change only bounded engine settings .*: changes maxOutputTokens/],
+  [chatSettingsPlan(models=>({...models,requestTimeoutSeconds:240,turnTimeoutSeconds:200})),/R105 generic plan CHAT_MODELS_JSON may change only bounded engine settings/],
+  [chatSettingsPlan(raised,j=>{j.resource_changes.find(x=>x.address.includes('chat')).change.after.template[0].containers[0].env.push({name:'CHAT_EXTRA',value:'1'});return j;}),/R105 generic plan may change only CHAT_MODELS_JSON in the chat env: adds CHAT_EXTRA/],
+  [chatSettingsPlan(raised,j=>{j.resource_changes.find(x=>x.address.includes('chat')).change.after.template[0].timeout='600s';return j;}),/R105 generic plan may change images and chat settings only: .* changes .*template.0.timeout/],
+  [chatSettingsPlan(raised,j=>{j.resource_changes.find(x=>x.address.includes('chat')).change.after_unknown.template=[{containers:[{env:true}]}];return j;}),/R105 plan env or resources unknown on chat/],
+  // The settings change is chat only: a CHAT_MODELS_JSON on another service is an ordinary non-image change.
+  [chatSettingsPlan(raised,j=>{const rc=j.resource_changes.find(x=>x.address.includes('read'));rc.change.after.template[0].containers[0].env.push({name:'CHAT_MODELS_JSON',value:'{}'});return j;}),/R105 generic plan may change images only: google_cloud_run_v2_service.runtime\["read"\]/]])
+  await assert.rejects(genericHostingPlan(await use(structuredClone(m),json)),pattern,String(pattern));
+ // Any other infrastructure file still needs a hand-written kind, and without the tf change the settings change is refused.
+ {const other=await genericRuntimePackage(t,{r105:{'infrastructure/production/chat-service.tf':'# x\n','infrastructure/production/runtime.tf':'# x\n'}});await assert.rejects(genericHostingPlan(other.m),/R105 generic kind cannot carry infrastructure changes: infrastructure\/production\/runtime.tf$/);}
+ {const plain=await genericRuntimePackage(t),x=await use(plain.m,chatSettingsPlan(raised));x.plan.actions=['read.image','command.image','chat.image','chat.modelsJson'];await assert.rejects(genericHostingPlan(x),/R105 generic plan may change images only/);}
+ // A settings change without a chat image change is refused (the chat service would get a new revision on its old image).
+ // Here R105 changes only the jobs runner (notify and jobs), so chat keeps its image.
+ {const only=await genericRuntimePackage(t,{r105:{'infrastructure/production/chat-service.tf':'# x\n','services/chat/assets/rules.md':'rules\n','services/payment-command/store.mjs':"import {a} from '../api/read.mjs';\nexport const b=1;\n",'services/jobs/runner.mjs':'export const j=2;\n'}});
+  assert.deepEqual(deriveGenericRelease(only.m).changedRoles,['notify','jobs']);
+  const json=planJson(['notify','jobs','chat'],j=>{const c=j.resource_changes.find(x=>x.address.includes('chat')).change;c.after.template[0].containers[0].image='old';
+   c.before.template[0].containers[0].env.push({name:'CHAT_MODELS_JSON',value:JSON.stringify(r108Models)});c.after.template[0].containers[0].env.push({name:'CHAT_MODELS_JSON',value:JSON.stringify(raised(r108Models))});return j;});
+  const x=await use(only.m,json);x.plan.actions=['notify.image','jobs.image','chat.modelsJson'];x.plan.counts.change=2;
+  await assert.rejects(genericHostingPlan(x),/R105 generic chat settings change needs a chat image change/);}
+ // Live: the planned CHAT_MODELS_JSON must be what chat runs.
+ const {make}=chatLive(m,image),pinned=Object.fromEntries(['notify','jobs'].map(role=>[role,m.rollback.services[role].image]));
+ const good={image:pinned,models:raised(r108Models),env:{chat:[{name:'CHAT_RELAY_URL',value:R102_CHAT_RELAY_URL}]},vpc:{chat:r102ChatVpc},commandCpuIdle:true,chatCpuIdle:true};
+ await verifyGenericLivePackage(m,{token:'t',request:make(good),readGithub:r074Readback(m).readGithub});
+ await assert.rejects(verifyGenericLivePackage(m,{token:'t',request:make({...good,models:r108Models}),readGithub:r074Readback(m).readGithub}),/R105 live chat CHAT_MODELS_JSON must equal the planned value/);
+});
 test('generic R105 live readback: chat-era checks with the current chat rule (R108 Claude-only menu) and request-based CPU (R107); unchanged services on their pins',async t=>{
  const {m,image}=await genericRuntimePackage(t);
  const {make}=chatLive(m,image),pinned=Object.fromEntries(['notify','jobs'].map(role=>[role,m.rollback.services[role].image]));

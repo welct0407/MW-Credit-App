@@ -6,8 +6,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {canonicalOperation} from '../../services/contracts/operation-command.mjs';
 import {canonicalCommand} from '../../services/contracts/payment-command.mjs';
-import {loadCatalogue,catalogueView,createProposalPlanner,fieldValue} from '../../services/chat/proposals.mjs';
-import {createChatTools,WRITE_TOOLS,TOOLS} from '../../services/chat/tools.mjs';
+import {loadCatalogue,catalogueView,createProposalPlanner,fieldValue,MAX_GROUP,GROUP_DEADLINE_MS} from '../../services/chat/proposals.mjs';
+import {createChatTools,WRITE_TOOLS,TOOLS,PROPOSE_CHUNK} from '../../services/chat/tools.mjs';
 import {ToolError} from '../../services/chat/errors.mjs';
 
 const V='a'.repeat(64),W='b'.repeat(64);
@@ -187,17 +187,17 @@ test('tool bridge: write tools only with writes; one group per turn; the proposa
  const writes={catalogue:op=>({operations:[op]}),propose:async input=>{proposals++;seen.push(input);if(input.changes[0].operation==='bad')throw new ToolError('NO_CHANGE');return {proposals:[{id:'p',card:{values:[{value:'1500'}]}}]};}};
  const tools=createChatTools({readProvider:{},sqlTool:{},actor,writes});
  assert.deepEqual(tools.specs().map(t=>t.name),[...TOOLS,...WRITE_TOOLS].map(t=>t.name));
- assert.deepEqual(Object.keys(WRITE_TOOLS[1].inputSchema.properties),['changes']);
+ assert.deepEqual(Object.keys(WRITE_TOOLS[1].inputSchema.properties),['changes','more']);assert.deepEqual(WRITE_TOOLS[1].inputSchema.required,['changes'],'more is optional');
  const call=(name,args,id)=>({name,args,id}),change=(operation,inputs='{}')=>({operation,target_id:'L1',inputs});
  // A failed proposal does not use the turn's one group; malformed changes are refused before any read.
  let results=await tools.runRound([call('propose_action',{changes:[change('bad')]},'1')],{deadline:Date.now()+5000,round:1});
  assert.deepEqual(results.map(r=>r.value),['NO_CHANGE']);
  results=await tools.runRound([call('propose_action',{changes:[change('x','not json')]},'2'),call('propose_action',{changes:[change('x','[1]')]},'2b'),call('propose_action',{changes:[]},'2c'),
-  call('propose_action',{changes:Array.from({length:21},()=>change('loan.update'))},'2d'),call('propose_action',{changes:[{operation:'x',target_id:'L1'}]},'2e')],{deadline:Date.now()+5000,round:1});
+  call('propose_action',{changes:Array.from({length:101},()=>change('loan.update'))},'2d'),call('propose_action',{changes:[{operation:'x',target_id:'L1'}]},'2e')],{deadline:Date.now()+5000,round:1});
  assert.deepEqual(results.map(r=>r.value),['INVALID_VALUES','INVALID_VALUES','NO_CHANGES','TOO_MANY_CHANGES','INVALID_CHANGES']);
  results=await tools.runRound([call('propose_action',{changes:[change('loan.update','{"principal":"1500"}'),change('charge.update','{"notes":"x"}')]},'3'),call('propose_action',{changes:[change('loan.update')]},'4')],{deadline:Date.now()+5000,round:2});
  assert.equal(results[0].error,false);assert.equal(results[0].value.observation,'observation-1');assert.equal(results[1].value,'ONE_PROPOSAL_PER_TURN');
- assert.deepEqual(seen.at(-1),{changes:[{operation:'loan.update',target:'L1',values:{principal:'1500'}},{operation:'charge.update',target:'L1',values:{notes:'x'}}]});
+ assert.deepEqual(seen.at(-1),{changes:[{operation:'loan.update',target:'L1',values:{principal:'1500'}},{operation:'charge.update',target:'L1',values:{notes:'x'}}],more:false});
  results=await tools.runRound([call('action_catalogue',{operation:''},'5')],{deadline:Date.now()+5000,round:3});
  assert.deepEqual(results[0].value,{operations:['']});
  assert.equal(proposals,2);assert.ok(tools.observations['observation-1'].proposals);
@@ -210,7 +210,7 @@ test('opening request: recent_actions only for a turn that may propose (D10); th
  const rows=[{operation:'expense.create',target:null,state:'done',code:null,settled_at:'2026-10-30T03:00:00.000Z'}];
  assert.deepEqual(JSON.parse(openingRequest({...base,recentActions:rows})).recent_actions,rows);
  assert.match(ASSISTANT_INSTRUCTIONS,/I can only read records for you; use the app screens\./);
- assert.match(ASSISTANT_INSTRUCTIONS,/explicitly asks for it/);assert.match(ASSISTANT_INSTRUCTIONS,/never a split/);assert.match(ASSISTANT_INSTRUCTIONS,/ONE propose_action call/);assert.match(ASSISTANT_INSTRUCTIONS,/only change for its borrower/);
+ assert.match(ASSISTANT_INSTRUCTIONS,/explicitly asks for it/);assert.match(ASSISTANT_INSTRUCTIONS,/never a split/);assert.match(ASSISTANT_INSTRUCTIONS,/on ONE card/);assert.match(ASSISTANT_INSTRUCTIONS,/at most 25 changes, with more:true on every call but the last/);assert.match(ASSISTANT_INSTRUCTIONS,/If any propose_action call fails, nothing is held/);assert.match(ASSISTANT_INSTRUCTIONS,/only change for its borrower/);
 });
 
 test('CWR-05: a Partner who may not propose has propose_action only, answering REVIEWER_REQUIRED without any read',async()=>{
@@ -246,6 +246,55 @@ test('D12: six charge edits become one group of six lines with card.group indexe
  });
  assert.equal(new Set(lines.map(l=>l.id)).size,6);assert.equal('scope' in lines[0],false);
 });
+test('D12 (owner, 10 November 2026): a group of 100 lines is one card; MAX_GROUP is 100',async()=>{
+ assert.equal(MAX_GROUP,100);
+ const charges=Object.fromEntries(Array.from({length:100},(_,i)=>[`GET /api/charge-records/H${i+1}`,ok({item:{id:`H${i+1}`,loanId:'L1',chargeDate:'2026-10-29',principalDue:'0.00',interestDue:'100.00',lateChargeDue:'0.00',
+  notes:null,borrowerId:'B-OUM',borrowerName:'Oum',borrowerDescription:null,version:V}})]));
+ const {client}=service({...base,...charges});
+ const lines=await createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()}).proposeGroup(Array.from({length:100},(_,i)=>({operation:'charge.update',target:`H${i+1}`,values:{interestDue:'150'}})));
+ assert.equal(lines.length,100);assert.equal(new Set(lines.map(l=>l.id)).size,100);
+ lines.forEach((line,index)=>{assert.deepEqual(line.card.group,{id:lines[0].id,index,count:100,ids:lines.map(l=>l.id)});assert.equal(line.card.target.id,`H${index+1}`);});
+});
+test('D12 chunks: planLines numbers lines across chunks; finishGroup builds one group of the summed lines; Confirm all runs 270 s',async()=>{
+ const {client}=service({...base,...oumCharges});
+ const planner=createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()});
+ const edits=sixEdits();
+ const first=await planner.planLines(edits.slice(0,2),0,true),second=await planner.planLines(edits.slice(2,4),2,true),last=await planner.planLines(edits.slice(4),4,true);
+ const lines=planner.finishGroup([...first,...second,...last]);
+ assert.equal(lines.length,6);
+ lines.forEach((line,index)=>{assert.deepEqual(line.card.group,{id:lines[0].id,index,count:6,ids:lines.map(l=>l.id)});assert.equal(line.card.target.id,`C${index+1}`);assert.equal('scope' in line,false);});
+ await assert.rejects(planner.planLines([{operation:'charge.update',target:'C9',values:{interestDue:'1'}}],4,true),/^ToolError: LINE_5:TARGET_NOT_FOUND$/,'numbering continues across chunks');
+ await assert.rejects(planner.planLines([{operation:'charge.update',target:'C9',values:{interestDue:'1'}}]),/^ToolError: TARGET_NOT_FOUND$/,'a lone change keeps its plain code');
+ assert.throws(()=>planner.finishGroup([...first,...first]),/^ToolError: DUPLICATE_TARGET:3$/,'group rules span the chunks');
+ assert.throws(()=>planner.finishGroup(Array.from({length:101},()=>first[0])),/^ToolError: TOO_MANY_CHANGES$/);
+ assert.throws(()=>planner.finishGroup([]),/^ToolError: NO_CHANGES$/);
+ assert.equal(GROUP_DEADLINE_MS,270000);assert.equal(PROPOSE_CHUNK,25);
+});
+test('D12 chunks: the tool bridge holds more:true calls without latching, runs propose calls in call order, and latches only on a final call that succeeds',async()=>{
+ const actor={issuer:'iss',subject:'s',partnerId:'P1'};
+ const seen=[];let failFinal=true;
+ const writes={catalogue:()=>({}),propose:async input=>{
+  seen.push([input.changes[0].target,input.more]);
+  await new Promise(resolve=>setTimeout(resolve,input.more?10:0));
+  if(!input.more&&failFinal){failFinal=false;throw new ToolError('DUPLICATE_TARGET:3');}
+  return input.more?{accepted:input.changes.length}:{proposals:[{id:'p'}]};
+ }};
+ const tools=createChatTools({readProvider:{},sqlTool:{},actor,writes});
+ const call=(args,id)=>({name:'propose_action',args,id}),change=target=>({operation:'charge.update',target_id:target,inputs:'{}'});
+ let results=await tools.runRound([call({changes:[change('C1')],more:true},'1'),call({changes:[change('C2')],more:true},'2'),call({changes:[change('C3')]},'3')],{deadline:Date.now()+5000,round:1});
+ assert.deepEqual(seen,[['C1',true],['C2',true],['C3',false]],'call order although the round runs in parallel');
+ assert.deepEqual(results.map(r=>r.error),[false,false,true]);assert.equal(results[2].value,'DUPLICATE_TARGET:3');
+ // The failed final call does not use the turn's card; the next final call does, and any call after it is refused before any read.
+ results=await tools.runRound([call({changes:[change('C1')],more:false},'4')],{deadline:Date.now()+5000,round:2});assert.equal(results[0].error,false);
+ const before=seen.length;
+ results=await tools.runRound([call({changes:[change('C5')],more:true},'5'),call({changes:[change('C6')]},'6')],{deadline:Date.now()+5000,round:3});
+ assert.deepEqual(results.map(r=>r.value),['ONE_PROPOSAL_PER_TURN','ONE_PROPOSAL_PER_TURN']);assert.equal(seen.length,before);
+ // Chase: a call refused for its arguments (before the bridge plans anything) still empties the held lines and frees the turn.
+ let resets=0;const other=createChatTools({readProvider:{},sqlTool:{},actor,writes:{...writes,reset:()=>{resets++;}}});
+ results=await other.runRound([call({changes:[change('C1')],more:'yes'},'7'),call({changes:Array.from({length:101},()=>change('C1')),more:true},'8'),call({changes:[]},'9')],{deadline:Date.now()+5000,round:1});
+ assert.deepEqual(results.map(r=>r.value),['INVALID_CHANGES','TOO_MANY_CHANGES','NO_CHANGES']);assert.equal(resets,3);
+ results=await other.runRound([call({changes:[change('C1')]},'10')],{deadline:Date.now()+5000,round:2});assert.equal(results[0].error,false,'the latch was released');assert.equal(resets,3);
+});
 test('CW3-01: destructive lines come first in the group; the rest keep their order',async()=>{
  const {client}=service({...base,...oumCharges});
  const lines=await createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()}).proposeGroup([sixEdits()[0],sixEdits()[1],{operation:'charge.delete',target:'C3',values:{}},sixEdits()[3]]);
@@ -253,13 +302,13 @@ test('CW3-01: destructive lines come first in the group; the rest keep their ord
   [['charge.delete','C3',true,0],['charge.update','C1',false,1],['charge.update','C2',false,2],['charge.update','C4',false,3]]);
  assert.equal(lines[0].card.group.id,lines[0].id);assert.deepEqual(lines[1].card.group.ids,lines.map(l=>l.id));
 });
-test('D12: refusals: 21 lines, the same target twice, a line using a record another line creates, a payment or close with edits for its borrower',async()=>{
+test('D12: refusals: 101 lines, the same target twice, a line using a record another line creates, a payment or close with edits for its borrower',async()=>{
  const drafts={'POST /api/payment-drafts/B-OUM/select-all':ok({businessDate:'2026-10-30',borrower:{id:'B-OUM',displayName:'Oum'},charges:[{id:'C1',chargeDate:'2026-10-29',loanDisplayKey:'k',principalRemaining:'0',interestRemaining:'100',amountRemaining:'100'}],accounts:[{id:'CA1',label:'Cash box'}],preferredReceivingAccountId:'CA1'}),
   'POST /api/payment-drafts/B-OUM/auto-assign':ok({charges:[],allocations:[{chargeId:'C1',principal:'0',interest:'100',lateCharge:'0',expectedPrincipalRemaining:'0',expectedInterestRemaining:'100',expectedLateChargeRemaining:'0',chargeDate:'2026-10-29'}],unallocated:'0'}),
   'POST /api/payment-drafts/B-OUM/review':ok({}),
   'GET /api/loan-records/L1/close-preview':ok({sourceVersion:W,businessDate:'2026-10-30',amount:'10300',planHash:'c'.repeat(64),plan:{borrowerId:'B-OUM'}})};
  const planner=()=>createProposalPlanner({client:service({...base,...oumCharges,...drafts}).client,actor:{partnerId:'P1'},newId:ids()});
- await assert.rejects(planner().proposeGroup(Array.from({length:21},(_,i)=>({operation:'charge.update',target:`C${i%6+1}`,values:{interestDue:'150'}}))),/^ToolError: TOO_MANY_CHANGES$/);
+ await assert.rejects(planner().proposeGroup(Array.from({length:101},(_,i)=>({operation:'charge.update',target:`C${i%6+1}`,values:{interestDue:'150'}}))),/^ToolError: TOO_MANY_CHANGES$/);
  await assert.rejects(planner().proposeGroup([]),/NO_CHANGES/);
  await assert.rejects(planner().proposeGroup([sixEdits()[0],{operation:'charge.update',target:'C1',values:{notes:null}}]),/DUPLICATE_TARGET:2/);
  await assert.rejects(planner().proposeGroup([{operation:'payment.record',target:'B-OUM',values:{amountReceived:'100',paymentMethod:'Cash'}},sixEdits()[1]]),/PAYMENT_LINE_ALONE:1/);

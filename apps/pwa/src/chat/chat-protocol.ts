@@ -120,13 +120,13 @@ export type ProposalView={state:ProposalState;canConfirm:boolean;canCancel:boole
 /**
  * The card's state machine (D7, Echo): pending counts down and expires on the client clock too; Confirm and Cancel
  * need a connection and no request in flight (CWR-08); unknown is polled and never offers a retry; a settled state is
- * final. `seen` (CWR-01): Confirm stays disabled until the card has been fully visible for a moment.
+ * final. Owner, 10 November 2026: no visibility gate (CWR-01 withdrawn); Confirm is enabled as soon as the card is ready.
  */
-export function proposalView(proposal:ChatProposal,{now=Date.now(),online=true,busy=false,seen=true}:{now?:number;online?:boolean;busy?:boolean;seen?:boolean}={}):ProposalView{
+export function proposalView(proposal:ChatProposal,{now=Date.now(),online=true,busy=false}:{now?:number;online?:boolean;busy?:boolean}={}):ProposalView{
  const remaining=Math.max(0,Math.floor((Date.parse(proposal.expiresAt)-now)/1000));
  const state:ProposalState=proposal.state==='pending'&&remaining<=0?'expired':proposal.state;
  const code=state==='expired'?'proposal_expired':state==='cancelled'?'proposal_cancelled':state==='unknown'?'outcome_unknown':proposal.outcome?.code??null;
- return {state,canConfirm:state==='pending'&&online&&!busy&&seen,canCancel:state==='pending'&&online&&!busy,poll:state==='unknown'||state==='executing'&&!busy,remainingSeconds:state==='pending'?remaining:0,code};
+ return {state,canConfirm:state==='pending'&&online&&!busy,canCancel:state==='pending'&&online&&!busy,poll:state==='unknown'||state==='executing'&&!busy,remainingSeconds:state==='pending'?remaining:0,code};
 }
 /** The proposal shown for a message: a newer local copy (confirm, cancel, poll) wins over the row's. */
 export function mergeProposal(row:ChatProposal|null|undefined,local:ChatProposal|undefined){
@@ -144,13 +144,6 @@ export async function pollProposal(read:()=>Promise<ChatProposal>,{intervalMs=PR
   if(signal?.aborted)throw signal.reason;
   try{const value=await read();if(value.state!=='unknown'&&value.state!=='executing')return value}catch(error){if(signal?.aborted||(error as {fatal?:boolean})?.fatal)throw error}
  }
-}
-
-/** CWR-01/D12: whether the visible spans seen so far ([top, bottom] in card pixels) cover the whole card (2 px slack). */
-export function seenThrough(spans:[number,number][],height:number,slack=2){
- let reach=0;
- for(const [top,bottom] of [...spans].sort((a,b)=>a[0]-b[0])){if(top>reach+slack)return false;reach=Math.max(reach,bottom)}
- return spans.length>0&&reach>=height-slack;
 }
 
 /** D12: one card for a group of lines. */
@@ -172,7 +165,7 @@ export type GroupView={state:GroupState;lines:LineView[];pending:number;remainin
  * once a line of the group settled, a pending line is "notrun" (still runnable) and an expired one "skipped" (CW3-02); Confirm runs the pending lines
  * (all of them, or "N remaining" once some settled); unknown or executing lines are polled, never re-confirmed.
  */
-export function groupView(lines:ChatProposal[],options:{now?:number;online?:boolean;busy?:boolean;seen?:boolean}={}):GroupView{
+export function groupView(lines:ChatProposal[],options:{now?:number;online?:boolean;busy?:boolean}={}):GroupView{
  const views=lines.map(line=>proposalView(line,options));
  const states=views.map(view=>view.state);
  const settled=states.some(state=>SETTLED_LINE.includes(state));
