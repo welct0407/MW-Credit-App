@@ -12,6 +12,15 @@ After R140 the owner asked on 11 November 2026, "make both lines tappable in R14
 - Tests (Byte): unit `expense-display-read` and the new `expense-list-filter-local`; integration `pending-expense-independent` (filters, paging, totals equal to the Cash Position and the borrower page, cursor misuse 400); e2e `dataset-replay-independent` and `phase5-borrower-independent`.
 - Records (Dewey): this note, `Release_Tracker.md`, `Development_Changes.md`. No other document lists the expense list parameters. The R140 integration test `tests/integration/expense-offline-dataset-independent.test.mjs` (`8132d84`) is recorded in the R140 change note.
 
+## Rebates payable line (owner review in DEV, 11 Nov)
+Owner on the DEV review: "rebate payable can't be clicked. expenses payable can be clicked." The owner chose (asked): tapping it opens the Referrers list filtered to referrers still owed. Byte, `73eef152`; PWA and read service only; no SQL.
+- Read API: `GET /api/referrers?owed=1` lists referrers with `pwa_rebates_owed_v1` above 0 and returns the filter total (the count of referrers and the amount), which equals the Cash Position `rebatesPayable` before and after a settlement. Any other `owed` value, an unknown parameter or a repeated parameter is 400. There is no cursor (the list is not paged) and no offline filter (the offline bundle has no referrer list).
+- Cash Position: the "Rebates payable" line is a 44 px button "Show referrers owed rebates" (Thai: "ดูผู้แนะนำที่ค้างจ่ายค่าแนะนำ").
+- Referrers: a filter bar with the chip "Owed rebates" (Thai: "ค้างจ่ายค่าแนะนำ"), "N referrers · ฿X" and "x Clear filter"; empty state "No rebates owed." (Thai: "ไม่มีค่าแนะนำค้างจ่าย"); Back returns to Cash Position. After a settlement, Back re-reads the filtered list and the Cash Position.
+- Tests (Byte): unit `rebate-settlement.test.mjs`; integration `rebate-settlement-independent` (total equals `rebatesPayable`, a settled referrer leaves the list, `owed=yes` is 400); e2e `dataset-replay-independent` (tap, filter, clear, settle, empty, Cash Position 0).
+- Local checks (Byte): `npm test` 1295; typecheck, lint, builds and the receiving group pass; 8 e2e specs, 377 passed.
+- CI, DEV deployment and DEV test for this addition: to be added.
+
 ## Checks
 | Command | Result |
 | --- | --- |
