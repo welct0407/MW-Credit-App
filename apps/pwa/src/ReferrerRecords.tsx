@@ -13,6 +13,7 @@ import {shortDate} from './pay-forward-text';
 import {borrowerLabel} from './borrower-label';
 import {invalidateCachedReads,readCachedJson} from './read-cache';
 import {useContextRefresh} from './context-refresh';
+import {useDatasetRefresh} from './dataset-refresh';
 import {useEffect,useRef,useState} from 'react';
 import {useListReturn} from './list-return';
 import type {CommandAccess} from './SelectedCharges';
@@ -50,6 +51,9 @@ export function ReferrerRecords({access,thai,initialReferrerId,initialSettlement
  // biome-ignore lint/correctness/useExhaustiveDependencies: one read per page (list, a referrer, a settlement); the loaders are recreated every render
  useEffect(()=>{void reload();return()=>{generation.current++}},[referrerId,settlementId]);
  useContextRefresh(!paying&&!deleting&&!related,t('Refresh referrers','รีเฟรชผู้แนะนำ'),()=>void reload());
+ // R140 (owner, 11 November 2026): a write elsewhere (an expense, a payment, a settlement) refreshes the open page, and Back
+ // from a related record or a form reloads once if one happened while it was on top.
+ useDatasetRefresh(access,'records',!paying&&!deleting&&!related,()=>void reload());
  // Back from a referrer returns to the list where it was (the Borrowers page pattern).
  const openReferrer=(id:string,target:EventTarget)=>{listReturn.leave(target,{top:true});setEntry(false);setDetail(null);setReferrerId(id)};
  const closeReferrer=()=>{if(exit){exit();return;}generation.current++;setDetail(null);setReferrerId(null);setError(null);listReturn.restore()};

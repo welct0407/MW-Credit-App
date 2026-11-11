@@ -89,7 +89,7 @@ function harness({failing=null,walks={},failOnce=null,rejectVersions=false,patch
  if(reconciledAt!==undefined)repo.rows.set('meta:reconciled-at',reconciledAt);
  if(attempt!==undefined)repo.rows.set('meta:reconcile-tried-at',attempt);
  if(flags!==undefined)repo.rows.set('meta:reconcile-flags',flags);
- return {navigator,advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,diagnostics:()=>sandbox.exports.datasetDiagnostics(repo.scopeName),subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
+ return {exports:sandbox.exports,navigator,advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,diagnostics:()=>sandbox.exports.datasetDiagnostics(repo.scopeName),subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
 }
 const settled=async h=>{await until(()=>h.state().state==='ready'&&!h.state().domainsPending&&h.state().lastChecked!==null)};
 
@@ -152,6 +152,16 @@ test('an own write confirms records, collection and cash only, not a full cycle'
   h.window.dispatchEvent(new Event('mw-read-invalidated'));await until(()=>h.requests.length>0);await settled(h);
   assert.deepEqual([...new Set(h.requests.map(request=>request.domain))],['records'],'collection and cash were confirmed by the records versions answer');
   assert.ok(h.events.includes('cash:false')&&h.events.includes('collection:false'));
+ }finally{h.stop()}
+});
+test('R140: once a management path is used, an own write confirms management too; syncing is reported per domain',async()=>{
+ const h=harness();try{
+  await settled(h);h.requests.length=0;h.events.length=0;
+  assert.equal(h.exports.datasetDomainSyncing(h.repo.scopeName,'management'),false);
+  h.exports.noteDatasetDomainUsed('management');
+  h.window.dispatchEvent(new Event('mw-read-invalidated'));await until(()=>h.requests.length>0);await settled(h);
+  assert.ok(h.events.includes('management:false'),'management was confirmed with the own write');
+  assert.equal(h.exports.datasetDomainSyncing(h.repo.scopeName,'records'),false,'nothing is left marked in flight');
  }finally{h.stop()}
 });
 test('a bundle with a locally applied own write walks instead of accepting an unchanged answer',async()=>{

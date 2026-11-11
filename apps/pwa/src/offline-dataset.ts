@@ -117,6 +117,15 @@ const hasLocalRows=(value:any):boolean=>Array.isArray(value)?value.some(hasLocal
 export const DATASET_RECONCILE_DOMAINS=Object.freeze(['records','collection','cash','management']);
 export type DataCheckFlag={domain:string;checkedAt:number;notifiedAt:number|null};
 export const DATASET_CONFIRM_DOMAINS=Object.freeze(['records','collection','cash']);
+/** R140 (owner, 11 November 2026): once a management view was opened in this session, an own write also confirms the
+ * management domain, so Position, Financial and Analytics totals follow a write at once instead of on the 30 s poll. */
+let managementUsed=false;
+export function noteDatasetDomainUsed(domain:string){if(domain==='management')managementUsed=true}
+export const confirmDomains=()=>managementUsed?[...DATASET_CONFIRM_DOMAINS,'management']:[...DATASET_CONFIRM_DOMAINS];
+/** R140: the data domains being fetched now, per signed-in scope (their mw-offline-dataset-ready event follows). */
+const syncingDomains=new Map<string,Set<string>>();
+export function datasetDomainSyncing(scopeName:string|undefined,domain:string){return !!scopeName&&!!syncingDomains.get(scopeName)?.has(domain)}
+function markSyncing(scopeName:string,domain:string,on:boolean){let set=syncingDomains.get(scopeName);if(!set){if(!on)return;set=new Set();syncingDomains.set(scopeName,set)}if(on)set.add(domain);else set.delete(domain)}
 /** R064: online and background-prepare triggers recheck a domain only after this age; focus, visible-again,
  * the poll and manual sync bypass it (owner decision 17 October 2026). */
 export const DATASET_RECHECK_MIN_MS=10*1000;
@@ -309,7 +318,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   status();
  }
  async function run(task:string){
-  const isMedia=isMediaTask(task),flight=new AbortController(),mediaAt=isMedia?mediaVersion.get(task):undefined;active.set(task,flight);
+  const isMedia=isMediaTask(task),flight=new AbortController(),mediaAt=isMedia?mediaVersion.get(task):undefined;active.set(task,flight);if(!isMedia)markSyncing(repo.scopeName,task,true);
   const startedAt=Date.now(),record=isMedia?null:domainDiagnostics(diag,task);if(record){record.attempts++;record.lastAttemptAt=startedAt}
   let lastResponse:Response|null=null;
   // A starting records check also asks for the other domains' versions (applyVersions).
@@ -479,13 +488,13 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const tagged=error instanceof Error&&typeof (error as DatasetFailure).status==='number'?error as DatasetFailure:null;
    const failure={status:tagged?tagged.status:flight.signal.aborted?0:lastResponse?.status??0,code:tagged?tagged.code:flight.signal.aborted?'timeout':'client',durationMs:Date.now()-startedAt};
    if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task,failure);if(!isMedia)giveUp(task)}}}finally{
-   clearTimeout(timeout);if(active.get(task)===flight)active.delete(task);releaseVersions();
+   clearTimeout(timeout);if(active.get(task)===flight){active.delete(task);if(!isMedia)markSyncing(repo.scopeName,task,false)}releaseVersions();
    if(record&&!stopped){record.lastDurationMs=Date.now()-startedAt;if(lastResponse&&!failed.has(task)){record.lastStatus=lastResponse.status;record.lastCode=null}}
    // A full sync requested while this check ran walks the domain next; a forced walk that failed ends its part of the full sync.
    if(!stopped&&forceWalk.has(task)){if(forced&&failed.has(task))forceWalk.delete(task);else if(!forced&&!queue.includes(task)&&!failed.has(task))enqueue(task,true)}if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}
    if(!stopped){
     addMedia();const dataBusy=domainRunning();
-    if(!queue.length&&!dataBusy&&(recheck||recheckDomains.size)){const targets=recheck?[...new Set([...DATASET_CONFIRM_DOMAINS,...recheckDomains])]:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets,'invalidate');for(const domain of targets)enqueue(domain)}
+    if(!queue.length&&!dataBusy&&(recheck||recheckDomains.size)){const targets=recheck?[...new Set([...confirmDomains(),...recheckDomains])]:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets,'invalidate');for(const domain of targets)enqueue(domain)}
     if(!isMedia&&!dataBusy&&!queue.some(queued=>!isMediaTask(queued))&&!failedDomains().length&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();
     if(!isMedia&&!dataBusy&&!queue.some(queued=>!isMediaTask(queued)))closeCycle();
     status();if(queue.length&&!paused){if(continued)void pump();else schedule()}else if(failed.size)retryLater();else if(!active.size)void maybeReconcile()
@@ -504,11 +513,13 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   // server refused are asked for once more (their refusal markers are cleared).
   if(event?.type==='mw-offline-prepare'&&detail?.full&&!priority){fullSyncCheck=dataCheck.length>0;for(const domain of domains)forceWalk.add(domain);for(const path of media)completed.delete(path);refused.clear();void repo.clearDatasetMediaRefusals().catch(()=>{});failed.clear()}
   // R078 item 6: an own write is confirmed by checking the domains it touches (DATASET_CONFIRM_DOMAINS), not a
-  // full cycle; management follows on the regular poll. A domain already walking is confirmed after its walk.
+  // full cycle; management follows on the regular poll unless a management path was opened this session (R140: then it
+  // is confirmed too, so the Cash Position payables follow an expense). A domain already walking is confirmed after its walk.
   if(event?.type==='mw-read-invalidated'){
    failed.clear();invalidations++;
-   if(!active.size&&!queue.length){beginCycle(DATASET_CONFIRM_DOMAINS,'invalidate');for(const domain of DATASET_CONFIRM_DOMAINS)enqueue(domain)}
-   else for(const domain of DATASET_CONFIRM_DOMAINS){if(active.has(domain)||partials.has(domain))recheckDomains.add(domain);else if(!queue.includes(domain)){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}}
+   const confirm=confirmDomains().filter(domain=>(domains as readonly string[]).includes(domain));
+   if(!active.size&&!queue.length){beginCycle(confirm,'invalidate');for(const domain of confirm)enqueue(domain)}
+   else for(const domain of confirm){if(active.has(domain)||partials.has(domain))recheckDomains.add(domain);else if(!queue.includes(domain)){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}}
   }
   else{
    // A receipt still downloading or retrying does not block a sync of the data domains (pump takes them first).
