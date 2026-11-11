@@ -132,7 +132,7 @@ class RuntimeDeploymentTests(unittest.TestCase):
         self.assertEqual(package.retired_keys(cleaned), [])
         self.assertEqual((package.RETIRED_SERVICES, package.RETIRED_KEYS, package.RETIRED_PREFIXES),
                          (runtime.R091_SERVICES, runtime.R091_KEYS, runtime.R091_PREFIXES))
-        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R128_REVISIONS[1])
+        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R142_REVISIONS[1])
 
     def test_r102_adds_exactly_the_disabled_chat_relay(self):
         live = dict(self.catalogue, revision=32)
@@ -232,8 +232,8 @@ class RuntimeDeploymentTests(unittest.TestCase):
 
     def r128(self):
         """R128: the repository revision 36 catalogue as candidate; a live revision 35 shaped like PROD's."""
-        candidate = json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))
-        self.assertEqual(candidate['revision'], 36)
+        # The repository's revision 37 services are revision 36's (R142 changes no service): the revision 36 candidate.
+        candidate = dict(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8')), revision=36)
         live = json.loads(json.dumps(candidate)); live['revision'] = 35
         for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):
             live['services'][name]['enabled'] = True
@@ -262,6 +262,47 @@ class RuntimeDeploymentTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'R128 catalogue must keep every service'):
             self.prepared(catalogue=short, candidate=candidate)
         for old, new in ((34, 36), (36, 35)):
+            with self.subTest(live=old, candidate=new), self.assertRaisesRegex(RuntimeError, 'revision drift'):
+                self.prepared(catalogue=dict(live, revision=old), candidate=dict(candidate, revision=new))
+
+    def r142(self):
+        """R142: the repository revision 37 catalogue as candidate; a live revision 36 shaped like PROD's."""
+        candidate = json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))
+        self.assertEqual(candidate['revision'], 37)
+        live = json.loads(json.dumps(candidate)); live['revision'] = 36
+        for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):
+            live['services'][name]['enabled'] = True
+        return live, candidate
+
+    def test_r142_moves_the_revision_and_keeps_services_switches_and_the_receipt_routes(self):
+        live, candidate = self.r142()
+        callers = [{'email': 'mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '1' * 21,
+                    'provider': 'claude', 'fallback': 'gemini', 'qr_reference': True}]
+        config = dict(self.config, receipt_claude_model='claude-opus-5-5', receipt_claude_effort='low',
+                      receipt_recognition_callers=callers, receipt_cycle_fallback=None, receipt_cycle_qr_reference=False)
+        before = json.dumps([config, live, candidate], sort_keys=True)
+        cleaned, catalogue = self.prepared(config=config, catalogue=live, candidate=candidate)
+        self.assertEqual(catalogue, dict(live, revision=37))  # only the revision moves; the live switches stay
+        self.assertEqual(cleaned, dict(config, code_version=COMMIT))  # receipt_claude_* is not the retired claude_ prefix
+        self.assertEqual(json.dumps([config, live, candidate], sort_keys=True), before)
+        self.assertEqual(runtime.services_sha256(candidate['services']), runtime.R142_TEMPLATE_SHA256)
+        cleaned, _ = self.prepared(catalogue=live, candidate=candidate)
+        self.assertNotIn('receipt_claude_model', cleaned)  # absent on the host: stays absent (today's behaviour)
+
+    def test_r142_refuses_other_drift(self):
+        live, candidate = self.r142()
+        switched = json.loads(json.dumps(candidate)); switched['services']['receipt_recognition_api']['enabled'] = True
+        added = json.loads(json.dumps(candidate)); added['services']['extra_service'] = {'enabled': False, 'implemented': True}
+        for change in (switched, added):
+            with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, 'R142 candidate must keep'):
+                self.prepared(catalogue=live, candidate=change)
+        short = json.loads(json.dumps(live)); del short['services']['chat_messages_relay']
+        with self.assertRaisesRegex(RuntimeError, 'R142 catalogue must keep every service'):
+            self.prepared(catalogue=short, candidate=candidate)
+        drift = json.loads(json.dumps(live)); drift['services']['receipt_recognition_api']['implemented'] = False
+        with self.assertRaisesRegex(RuntimeError, 'Capability drift'):
+            self.prepared(catalogue=drift, candidate=candidate)
+        for old, new in ((35, 37), (37, 36)):
             with self.subTest(live=old, candidate=new), self.assertRaisesRegex(RuntimeError, 'revision drift'):
                 self.prepared(catalogue=dict(live, revision=old), candidate=dict(candidate, revision=new))
 

@@ -23,6 +23,12 @@ R128 (Instagram-approved Loan Close): the one accepted change of a live revision
 shape: the candidate's services are exactly the repository revision 35 template's (unchanged in 36), the live services match
 them and the live switches are kept. The new behaviour is behind the configuration switch loan_close_execution_enabled,
 which a deploy keeps as it is (absent means off; Forge sets it at promotion).
+R142 (Claude receipt reader and slip QR reference): the one accepted change of a live revision 36 to the candidate
+revision 37, the same shape: the candidate's services are exactly the repository revision 36 template's (unchanged in 37),
+the live services match them and the live switches are kept. The new behaviour is behind configuration a deploy keeps
+as it is: the receipt_claude_* settings, the optional route keys of receipt_recognition_callers entries and
+receipt_cycle_fallback / receipt_cycle_qr_reference / receipt_cycle_clean_text (absent means today's behaviour; receipt_claude_* is not the retired
+claude_ prefix).
 `deploy-shared-receipt-api.py` is the engine; this file supplies the preparation. The probe is the engine's
 read-only receipt-status GET (the native conversation probe left with the conversation)."""
 import copy
@@ -56,6 +62,9 @@ R119_TEMPLATE_SHA256=R112_TEMPLATE_SHA256
 R128_REVISIONS=(35,36)
 # The repository revision 35 catalogue's services, unchanged in revision 36 (the same template again).
 R128_TEMPLATE_SHA256=R112_TEMPLATE_SHA256
+R142_REVISIONS=(36,37)
+# The repository revision 36 catalogue's services, unchanged in revision 37 (the same template again).
+R142_TEMPLATE_SHA256=R112_TEMPLATE_SHA256
 
 
 def services_sha256(services):
@@ -74,6 +83,7 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
     r112=(catalogue.get('revision'),candidate.get('revision'))==R112_REVISIONS
     r119=(catalogue.get('revision'),candidate.get('revision'))==R119_REVISIONS
     r128=(catalogue.get('revision'),candidate.get('revision'))==R128_REVISIONS
+    r142=(catalogue.get('revision'),candidate.get('revision'))==R142_REVISIONS
     if r091:
         base.require(live-wanted==R091_SERVICES and wanted<=live,'R091 catalogue must drop exactly the retired conversation services')
     elif r102:
@@ -91,6 +101,10 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
         # Repository revision 36 against repository revision 35: no service definition or default switch changed.
         base.require(services_sha256(candidate['services'])==R128_TEMPLATE_SHA256,'R128 candidate must keep the revision 35 services and switches')
         base.require(live==wanted,'R128 catalogue must keep every service')
+    elif r142:
+        # Repository revision 37 against repository revision 36: no service definition or default switch changed.
+        base.require(services_sha256(candidate['services'])==R142_TEMPLATE_SHA256,'R142 candidate must keep the revision 36 services and switches')
+        base.require(live==wanted,'R142 catalogue must keep every service')
     else:
         base.require(catalogue.get('revision')==candidate.get('revision'),'Catalogue revision drift')
         base.require(live==wanted,'Service drift')
@@ -111,6 +125,9 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
     if r128:
         cat['revision']=candidate['revision']
         base.require(cat['services']==catalogue['services'],'R128 must keep the live switches')
+    if r142:
+        cat['revision']=candidate['revision']
+        base.require(cat['services']==catalogue['services'],'R142 must keep the live switches')
     if r102:
         cat['revision']=candidate['revision']
         for name in R102_SERVICES:cat['services'][name]=dict(candidate['services'][name])

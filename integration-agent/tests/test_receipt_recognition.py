@@ -26,8 +26,8 @@ RESULT = {'is_payment_receipt': True, 'transfer_successful': True, 'date': '2026
           'amount': '1500.00', 'currency': 'THB', 'reference': 'SYN123456', 'payer_name': 'MR. SYNTHETIC P***',
           'account_numbers': ['xxx-x-x4321-x']}
 GEMINI = {'gemini_project': 'clever-oasis-508610-n7', 'gemini_location': 'asia-southeast1', 'gemini_model': 'gemini-2.0-flash-001'}
-DEV = {'email': 'mw-credit-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '111111111111111111111'}
-PROD = {'email': 'mw-credit-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '222222222222222222222'}
+DEV = {'email': 'mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '111111111111111111111'}
+PROD = {'email': 'mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '222222222222222222222'}
 AUDIENCE = 'http://10.148.0.2:8790/v1/receipt-recognition'
 
 
@@ -439,7 +439,7 @@ class ConfigTests(unittest.TestCase):
                          'agent_database_relay_password_file': '/etc/mw-integration-agent/secrets/relay.txt'})
         catalogue = load_json(ROOT / 'service-catalogue.json')
         validate_catalogue(catalogue)
-        self.assertEqual(catalogue['revision'], 36)  # R102: chat_messages_relay (33); R112 (34), R119 (35) and R128 (36): no service change
+        self.assertEqual(catalogue['revision'], 37)  # R102: chat_messages_relay (33); R112 (34), R119 (35), R128 (36) and R142 (37): no service change
         self.assertEqual(catalogue['services']['receipt_recognition_api'], {'enabled': False, 'implemented': True})
         self.validator_knows_the_name(catalogue)
 
@@ -553,7 +553,7 @@ class ContractTests(unittest.TestCase):
         self.config_path, self.catalogue_path = root / 'config.json', root / 'catalogue.json'
         self.write()
         self.audits, self.slots = [], threading.BoundedSemaphore(api.CONCURRENCY)
-        self.recognize = patch.object(api, 'recognize', side_effect=lambda config, image, provider, deadline:
+        self.recognize = patch.object(api, 'recognize', side_effect=lambda config, image, provider, deadline, **_route:
                                       {'provider': provider, 'model': 'gemini-2.0-flash-001', 'result': dict(RESULT)})
         self.recognize.start(); self.addCleanup(self.recognize.stop)
         self.log = io.StringIO()
@@ -598,7 +598,7 @@ class ContractTests(unittest.TestCase):
         image = api.recognize.call_args.args[1]
         self.assertLess(api.recognize.call_args.kwargs['deadline'] - time.monotonic(), 40.0)
         self.assertTrue(image.startswith(b'\x89PNG'))  # canonical PNG, not the caller's bytes object
-        (config, caller, image_sha256, code, audited, _), = self.audits
+        (config, caller, image_sha256, code, audited, _, trace), = self.audits
         self.assertEqual((caller, image_sha256, code, audited['status']), (DEV, hashlib.sha256(body).hexdigest(), 200, 'recognized'))
 
     def test_jpeg_is_accepted(self):
@@ -787,6 +787,417 @@ class BindTests(unittest.TestCase):
             api.run_bounded(slots, lambda: (_ for _ in ()).throw(api.rejected('invalid_image')), 1)
         self.assertEqual(caught.exception.status, 400)
         self.assertTrue(slots.acquire(blocking=False)); slots.release()
+
+
+
+# R142: Claude provider, Gemini fallback, per-caller routes --------------------------------------------
+
+ORG = '00000000-0000-4000-8000-000000000000'
+RULES = {env: {'federation_rule_id': f'fdrl_synthetic{env}', 'service_account_id': f'svac_synthetic{env}',
+               'workspace_id': f'wrkspc_synthetic{env}', 'audience': f'https://api.anthropic.com/mw-credit-chat-{env}'}
+         for env in ('dev', 'prod')}
+CLAUDE = {'receipt_claude_model': 'claude-opus-5-5', 'chat_relay_wif_organization_id': ORG, 'chat_relay_wif': RULES}
+
+
+class Credentials:
+    """A stand-in for the federation credential provider: records calls, never exchanges."""
+    def __init__(self, error=None):
+        self.error, self.calls, self.invalidated = error, [], []
+
+    def headers(self, config, environment, deadline=None):
+        self.calls.append((environment, deadline))
+        if self.error:
+            raise self.error
+        return {'authorization': 'Bearer synthetic-' + environment}, RULES[environment]['federation_rule_id']
+
+    def invalidate(self, environment, authorization):
+        self.invalidated.append((environment, authorization))
+
+
+def claude_reply(value=RESULT, stop='end_turn', text=None):
+    blocks = [{'type': 'thinking', 'thinking': '', 'signature': 'x'}, {'type': 'text', 'text': text if text is not None else json.dumps(value)}]
+    return json.dumps({'id': 'msg_synthetic', 'type': 'message', 'role': 'assistant', 'content': blocks, 'stop_reason': stop}).encode()
+
+
+class ClaudeTests(unittest.TestCase):
+    def run_with(self, *outcomes, credentials=None, config=None, deadline=None, environment='dev', image=None):
+        from mw_integration_agent import receipt_provider_claude as claude
+        opener, credentials = FakeOpener(*outcomes), credentials or Credentials()
+        with patch.object(claude.http, 'opener', return_value=opener):
+            try:
+                value = claude.extract(config or CLAUDE, image or png(), deadline=deadline, environment=environment, credentials=credentials)
+            except RecognitionUnavailable as exc:
+                value = exc
+        return value, opener, credentials
+
+    def test_claude_body_is_adaptive_low_structured_without_sampling(self):
+        value, opener, credentials = self.run_with(claude_reply(), image=png((4000, 3000)))
+        self.assertEqual(value, RESULT)
+        self.assertEqual([c[0] for c in credentials.calls], ['dev'])
+        (request, timeout), = opener.requests
+        self.assertEqual((request.full_url, request.get_method()), ('https://api.anthropic.com/v1/messages', 'POST'))
+        headers = {k.lower(): v for k, v in request.header_items()}
+        self.assertEqual((headers['authorization'], headers['anthropic-version'], headers['content-type']),
+                         ('Bearer synthetic-dev', '2023-06-01', 'application/json'))
+        self.assertNotIn('x-api-key', headers)
+        self.assertLessEqual(timeout, 36)
+        body = json.loads(request.data)
+        self.assertEqual(set(body), {'model', 'max_tokens', 'thinking', 'output_config', 'messages'})  # no temperature/top_p/top_k
+        self.assertEqual((body['model'], body['max_tokens'], body['thinking']), ('claude-opus-5-5', 8000, {'type': 'adaptive'}))
+        self.assertEqual(body['output_config'], {'effort': 'low', 'format': {'type': 'json_schema', 'schema': SCHEMA}})
+        (message,) = body['messages']
+        image, prompt = message['content']
+        self.assertEqual((message['role'], prompt), ('user', {'type': 'text', 'text': receipt_image.PROMPT}))
+        self.assertEqual((image['type'], image['source']['type']), ('image', 'base64'))
+        with Image.open(io.BytesIO(base64.b64decode(image['source']['data']))) as sent:
+            self.assertEqual((sent.size, 'image/' + sent.format.lower()), ((1600, 1200), image['source']['media_type']))
+        value, opener, _ = self.run_with(claude_reply(), config={**CLAUDE, 'receipt_claude_effort': 'medium'})
+        self.assertEqual(json.loads(opener.requests[0][0].data)['output_config']['effort'], 'medium')
+
+    def test_claude_model_must_be_pinned(self):
+        from mw_integration_agent import receipt_provider_claude as claude
+        for model in ('claude-opus-5-5', 'claude-haiku-5-5', 'claude-sonnet-5', 'claude-opus-4-1'):
+            with self.subTest(model=model):
+                claude.validate({'receipt_claude_model': model})
+        for model in ('claude-opus-5-5-20261101', 'claude-opus-latest', 'claude-opus-5-5-latest', 'claude-3-5-sonnet', 'opus',
+                      'claude-mythos-5', 'claude-opus-5-5 ', 'models/claude-opus-5-5', None, ''):
+            with self.subTest(model=model), self.assertRaises(ConfigurationError):
+                claude.validate({'receipt_claude_model': model})
+        for effort in ('max', 'xhigh', 'LOW', None, ''):
+            with self.subTest(effort=effort), self.assertRaises(ConfigurationError):
+                claude.validate({'receipt_claude_model': 'claude-opus-5-5', 'receipt_claude_effort': effort})
+
+    def test_claude_non_end_turn_refusal_and_bad_json_are_unavailable(self):
+        for reply, cause in ((claude_reply(stop='refusal'), 'claude_refusal'), (claude_reply(stop='max_tokens'), 'claude_unfinished'),
+                             (claude_reply(stop='pause_turn'), 'claude_unfinished'), (claude_reply(text='not json'), 'claude_response_invalid'),
+                             (b'not json', 'claude_response_invalid'), (b'[]', 'claude_response_invalid'),
+                             (json.dumps({'stop_reason': 'end_turn', 'content': 'x'}).encode(), 'claude_response_invalid'),
+                             (http_error(529), 'claude_http_529'), (http_error(400), 'claude_http_400'),
+                             (urllib.error.URLError('reset'), 'claude_unreachable')):
+            with self.subTest(cause=cause, reply=str(reply)[:40]):
+                value, opener, _ = self.run_with(reply)
+                self.assertIsInstance(value, RecognitionUnavailable)
+                self.assertEqual((value.cause, value.reason, len(opener.requests)), (cause, 'provider_error', 1))  # one attempt, no retry
+        value, _, _ = self.run_with(TimeoutError())
+        self.assertEqual((value.cause, value.reason), ('claude_timeout', 'timeout'))
+        # A shape the shared check refuses is shape_invalid, as for every provider.
+        with self.assertRaises(RecognitionUnavailable) as caught:
+            receipt_image.checked(self.run_with(claude_reply({**RESULT, 'amount': 5}))[0])
+        self.assertEqual(caught.exception.cause, 'shape_invalid')
+
+    def test_claude_credentials_401_and_environment_key(self):
+        from mw_integration_agent import chat_relay_api as relay
+        value, opener, _ = self.run_with(claude_reply(), credentials=Credentials(relay.CredentialError('RELAY_FEDERATION_DENIED')))
+        self.assertEqual((value.cause, len(opener.requests)), ('claude_federation_denied', 0))
+        value, _, _ = self.run_with(claude_reply(), credentials=Credentials(ConfigurationError('placeholder')))
+        self.assertEqual(value.cause, 'claude_federation_config')
+        value, _, credentials = self.run_with(http_error(401))
+        self.assertEqual((value.cause, credentials.invalidated), ('claude_http_401', [('dev', 'Bearer synthetic-dev')]))
+        value, opener, _ = self.run_with(claude_reply(), deadline=time.monotonic() + 0.5)
+        self.assertEqual((value.reason, value.cause, len(opener.requests)), ('timeout', 'claude_timeout', 0))
+        with patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'synthetic'}):
+            value, opener, credentials = self.run_with(claude_reply())
+        self.assertEqual((value.cause, len(opener.requests), credentials.calls), ('claude_env_credential', 0, []))
+        with patch.dict('os.environ', {'ANTHROPIC_AUTH_TOKEN': 'synthetic'}), self.assertRaisesRegex(ConfigurationError, 'keyless'):
+            api.serve('/nonexistent/config.json', '/nonexistent/catalogue.json')
+
+    def test_checked_strips_format_characters(self):
+        dirty = {**RESULT, 'reference': 'SYN\u200b1234\u200c56', 'payer_name': '\ufeffMR. SYNTHETIC\u00ad P***',
+                 'account_numbers': ['xxx-x-x43\u200b21-x', '\u2060123'], 'amount': '1500.00\u200e'}
+        self.assertIs(receipt_image.checked(dirty), dirty)  # default: the reading exactly as before (owner decision, R142)
+        cleaned = receipt_image.checked(dirty, clean=True)
+        self.assertEqual((cleaned['reference'], cleaned['payer_name'], cleaned['account_numbers'], cleaned['amount']),
+                         ('SYN123456', 'MR. SYNTHETIC P***', ['xxx-x-x4321-x', '123'], '1500.00'))
+        self.assertIn('\u200b', dirty['reference'])  # a cleaned copy; the input is untouched
+        thai = {**RESULT, 'payer_name': 'นาย สังเคราะห์ ทดสอบ'}
+        self.assertEqual(receipt_image.checked(thai, clean=True), thai)  # Thai letters and marks are not format characters
+        for name in ('codex', 'gemini'):
+            with self.subTest(provider=name), patch(f'mw_integration_agent.receipt_provider_{name}.extract', return_value=dict(dirty)):
+                self.assertEqual(receipt_image.recognize(GEMINI, b'png', name)['result'], dirty)
+                self.assertEqual(receipt_image.recognize(GEMINI, b'png', name, clean_text=True)['result']['reference'], 'SYN123456')
+        with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_http_529')), \
+                patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(dirty)):
+            value = receipt_image.recognize({**GEMINI, **CLAUDE}, b'png', 'claude', fallback='gemini', clean_text=True)
+        self.assertEqual(value['result']['reference'], 'SYN123456')  # the fallback reading is cleaned on the same route
+
+    def test_clean_text_is_opt_in_per_caller_and_for_the_cycle(self):
+        dirty = {**RESULT, 'reference': 'SYN\u200b123456', 'payer_name': 'MR.\u200b SYNTHETIC'}
+        caller = recognizer_config('/tmp', receipt_recognition_callers=[{**DEV, 'clean_text': True}, PROD])
+        with patch('mw_integration_agent.receipt_provider_gemini.extract', side_effect=lambda *a, **k: dict(dirty)):
+            # A PROD caller without the key: U+200B passes through unchanged (today's behaviour).
+            self.assertEqual(api.recognise_image(caller, PROD, png(), time.monotonic() + 40)['result'], dirty)
+            cleaned = api.recognise_image(caller, caller['receipt_recognition_callers'][0], png(), time.monotonic() + 40)['result']
+        self.assertEqual((cleaned['reference'], cleaned['payer_name']), ('SYN123456', 'MR. SYNTHETIC'))
+        # The cycle: default unchanged; receipt_cycle_clean_text opts in.
+        config = {**GEMINI, 'receipt_extraction_provider': 'gemini'}
+        with patch('mw_integration_agent.receipt_provider_gemini.extract', side_effect=lambda *a, **k: dict(dirty)):
+            self.assertEqual(receipt_image.extract(config, b'png'), dirty)
+            self.assertEqual(receipt_image.extract({**config, 'receipt_cycle_clean_text': True}, b'png')['reference'], 'SYN123456')
+        with patch('mw_integration_agent.receipt_provider_codex.extract', side_effect=lambda *a, **k: dict(dirty)):
+            self.assertEqual(receipt_image.extract({}, b'png'), dirty)
+        # Booleans only.
+        example = load_json(ROOT / 'config.example.json')
+        self.assertIs(example['receipt_cycle_clean_text'], False)
+        validate_config({**example, 'receipt_cycle_clean_text': True})
+        for bad in ('true', 1, None):
+            with self.subTest(bad=bad), self.assertRaisesRegex(ConfigurationError, 'receipt_cycle_clean_text must be boolean'):
+                validate_config({**example, 'receipt_cycle_clean_text': bad})
+            with tempfile.TemporaryDirectory() as directory, self.subTest(caller=bad), \
+                    self.assertRaisesRegex(ConfigurationError, 'clean_text must be boolean'):
+                validate_config(recognizer_config(directory, receipt_recognition_callers=[{**DEV, 'clean_text': bad}]))
+        with tempfile.TemporaryDirectory() as directory:
+            validate_config(recognizer_config(directory, receipt_recognition_callers=[{**DEV, 'clean_text': True}, {**PROD, 'clean_text': False}]))
+
+    def test_claude_failure_falls_back_to_gemini_and_reports_gemini(self):
+        config = {**GEMINI, **CLAUDE}
+        for error in (RecognitionUnavailable(cause='claude_federation_denied'), RecognitionUnavailable('timeout', 'claude_timeout'),
+                      RecognitionUnavailable(cause='claude_http_529'), RecognitionUnavailable(cause='claude_refusal')):
+            with self.subTest(cause=error.cause), patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=error), \
+                    patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)) as vertex:
+                value = receipt_image.recognize(config, b'png', 'claude', deadline=time.monotonic() + 40, fallback='gemini', environment='dev')
+                self.assertEqual(value, {'provider': 'gemini', 'model': 'gemini-2.0-flash-001', 'result': RESULT, 'fallback_cause': error.cause})
+                vertex.assert_called_once()
+        # A Claude reply that fails the shared shape check falls back too.
+        with patch('mw_integration_agent.receipt_provider_claude.extract', return_value={**RESULT, 'amount': 1}), \
+                patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)):
+            self.assertEqual(receipt_image.recognize(config, b'png', 'claude', fallback='gemini')['fallback_cause'], 'shape_invalid')
+        # Served by Claude: Claude is reported; without fallback a Claude failure is final.
+        with patch('mw_integration_agent.receipt_provider_claude.extract', return_value=dict(RESULT)) as claude, \
+                patch('mw_integration_agent.receipt_provider_gemini.extract') as vertex:
+            self.assertEqual(receipt_image.recognize(config, b'png', 'claude', fallback='gemini', environment='dev'),
+                             {'provider': 'claude', 'model': 'claude-opus-5-5', 'result': RESULT})
+            self.assertEqual(claude.call_args.kwargs['environment'], 'dev')
+            vertex.assert_not_called()
+        with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_http_500')), \
+                patch('mw_integration_agent.receipt_provider_gemini.extract') as vertex, self.assertRaises(RecognitionUnavailable) as caught:
+            receipt_image.recognize(config, b'png', 'claude')
+        self.assertEqual(caught.exception.cause, 'claude_http_500')
+        vertex.assert_not_called()
+
+    def test_non_recognition_claude_exception_falls_back_with_class_cause(self):
+        config = {**GEMINI, **CLAUDE}
+        for error, cause in ((ConfigurationError('federation detail'), 'claude_ConfigurationError'), (RuntimeError('detail'), 'claude_RuntimeError'),
+                             (KeyError('secret-looking detail'), 'claude_KeyError')):
+            with self.subTest(cause=cause), patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=error), \
+                    patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)):
+                value = receipt_image.recognize(config, b'png', 'claude', fallback='gemini', environment='dev')
+            self.assertEqual((value['provider'], value['fallback_cause']), ('gemini', cause))
+            self.assertNotIn('detail', json.dumps(value))  # the class name only, never the message
+        # Both fail with other exceptions: unavailable (provider_error) with the joined class causes.
+        with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RuntimeError('x')), \
+                patch('mw_integration_agent.receipt_provider_gemini.extract', side_effect=ConfigurationError('y')), \
+                self.assertRaises(RecognitionUnavailable) as caught:
+            receipt_image.recognize(config, b'png', 'claude', fallback='gemini')
+        self.assertEqual((caught.exception.reason, caught.exception.cause), ('provider_error', 'claude_RuntimeError+gemini_ConfigurationError'))
+
+    def test_fallback_respects_deadline_split(self):
+        config = {**GEMINI, **CLAUDE}
+        deadline = time.monotonic() + 40
+        with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_timeout')) as claude, \
+                patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)) as vertex:
+            receipt_image.recognize(config, b'png', 'claude', deadline=deadline, fallback='gemini')
+        self.assertLessEqual(claude.call_args.kwargs['deadline'] - time.monotonic(), receipt_image.CLAUDE_PHASE)
+        self.assertEqual(receipt_image.CLAUDE_PHASE, 15)
+        self.assertEqual(vertex.call_args.kwargs['deadline'], deadline)  # Gemini keeps the rest (>= 25 s of 40 s)
+        self.assertNotIn('attempt_timeout', vertex.call_args.kwargs)
+        # The phase includes the token exchange: the provider bounds its whole call by the deadline it is given.
+        from mw_integration_agent import receipt_provider_claude as provider
+        seen = []
+
+        class Slow(Credentials):
+            def headers(self, config, environment, deadline=None):
+                seen.append((deadline, provider._left(provider.relay.EXCHANGE_TIMEOUT)))
+                return super().headers(config, environment, deadline)
+        phase = time.monotonic() + 3
+        with patch.object(provider.http, 'opener', return_value=FakeOpener(claude_reply())) as opener:
+            provider.extract(CLAUDE, png(), deadline=phase, credentials=Slow())
+        (given, exchange_timeout), = seen
+        self.assertEqual(given, phase)
+        self.assertLessEqual(exchange_timeout, 3)  # the exchange inherits the phase, not its own 10 s
+        self.assertLessEqual(opener.return_value.requests[0][1], 3)
+        self.assertIsNone(getattr(provider._bound, 'deadline', None))
+
+    def test_both_fail_unavailable_with_joined_cause(self):
+        config = {**GEMINI, **CLAUDE}
+        for vertex_error, reason in ((RecognitionUnavailable('timeout', 'vertex_timeout'), 'timeout'),
+                                     (RecognitionUnavailable(cause='vertex_http_503'), 'provider_error')):
+            with self.subTest(reason=reason), \
+                    patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_http_529')), \
+                    patch('mw_integration_agent.receipt_provider_gemini.extract', side_effect=vertex_error), \
+                    self.assertRaises(RecognitionUnavailable) as caught:
+                receipt_image.recognize(config, b'png', 'claude', fallback='gemini')
+            self.assertEqual((caught.exception.cause, caught.exception.reason), ('claude_http_529+' + vertex_error.cause, reason))
+            self.assertEqual(str(caught.exception), 'RECEIPT_EXTRACTION_UNAVAILABLE')
+
+    def test_cycle_default_unchanged(self):
+        config = load_json(ROOT / 'config.example.json')
+        self.assertEqual((config['receipt_extraction_provider'], config['receipt_cycle_fallback'], config['receipt_cycle_qr_reference']),
+                         ('codex', None, False))
+        with patch('mw_integration_agent.receipt_provider_codex.extract', return_value=dict(RESULT)) as codex, \
+                patch('mw_integration_agent.receipt_provider_claude.extract') as claude, \
+                patch('mw_integration_agent.receipt_qr.read') as qr:
+            self.assertEqual(receipt_image.extract(config, b'png'), RESULT)
+        codex.assert_called_once()
+        claude.assert_not_called()
+        qr.assert_not_called()
+        with patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)), \
+                patch('mw_integration_agent.receipt_qr.read') as qr:
+            self.assertEqual(receipt_image.extract({**GEMINI, 'receipt_extraction_provider': 'gemini'}, b'png'), RESULT)
+        qr.assert_not_called()
+
+    def test_cycle_claude_with_fallback_and_qr_is_two_audited_operations(self):
+        plans = []
+
+        class Activity:
+            def __init__(self, config, service, action, route, plan=None, effect=False):
+                plans.append((route, plan))
+
+            def __enter__(self):
+                return None
+
+            def __exit__(self, *_):
+                return False
+        config = {**GEMINI, **CLAUDE, 'receipt_extraction_provider': 'claude'}
+        with patch('mw_integration_agent.audit.activity', Activity), \
+                patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_http_529')) as claude, \
+                patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)) as vertex:
+            with self.assertRaises(RecognitionUnavailable):
+                receipt_image.extract(config, b'png')  # fallback off by default
+            vertex.assert_not_called()
+            started = time.monotonic()
+            with patch('mw_integration_agent.receipt_qr.read', return_value=('valid', ('014', 'QRREF123'))):
+                self.assertEqual(receipt_image.extract({**config, 'receipt_cycle_fallback': 'gemini', 'receipt_cycle_qr_reference': True}, b'png'),
+                                 {**RESULT, 'reference': 'QRREF123'})
+        # Claude: the cycle's per-attempt bound inside its total, PROD rule; Gemini: the rest of the same total.
+        self.assertEqual((claude.call_args.kwargs['attempt_timeout'], claude.call_args.kwargs['environment']), (25, 'prod'))
+        self.assertAlmostEqual(claude.call_args.kwargs['deadline'] - started, 60, delta=1)
+        self.assertEqual(vertex.call_args.kwargs['deadline'], claude.call_args.kwargs['deadline'])
+        claude_plan, gemini_plan = {'provider': 'claude', 'model': 'claude-opus-5-5'}, {'provider': 'gemini', 'model': 'gemini-2.0-flash-001'}
+        self.assertEqual(plans, [('internal', claude_plan), ('internal', claude_plan), ('internal', gemini_plan)])
+
+    def test_route_claude_requires_federation_rule(self):
+        with tempfile.TemporaryDirectory() as directory:
+            routed = [{**DEV, 'provider': 'claude', 'fallback': 'gemini', 'qr_reference': True}, PROD]
+            validate_config(recognizer_config(directory, receipt_recognition_callers=routed, **CLAUDE))
+            only_dev = {**CLAUDE, 'chat_relay_wif': {'dev': RULES['dev']}}
+            validate_config(recognizer_config(directory, receipt_recognition_callers=routed, **only_dev))  # PROD stays Gemini
+            for change in ({'chat_relay_wif': {'prod': RULES['prod']}}, {'chat_relay_wif_organization_id': ''},
+                           {'chat_relay_wif': {'dev': {**RULES['dev'], 'federation_rule_id': ''}}}, {'receipt_claude_model': None},
+                           {'receipt_claude_model': 'claude-opus-latest'}, {'receipt_claude_effort': 'max'}):
+                with self.subTest(change=change), self.assertRaises(ConfigurationError):
+                    validate_config(recognizer_config(directory, receipt_recognition_callers=routed, **{**CLAUDE, **change}))
+            # A global Claude route needs the rule of every caller's environment; an unknown environment is refused.
+            with self.assertRaises(ConfigurationError):
+                validate_config(recognizer_config(directory, receipt_recognition_provider='claude', **only_dev))
+            # The environment comes from the whole configured command-service email, never a substring of another one.
+            for email in ('mw-credit-app-other@clever-oasis-508610-n7.iam.gserviceaccount.com',
+                          'x-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com',
+                          'mw-credit-app-command-prod-x@clever-oasis-508610-n7.iam.gserviceaccount.com',
+                          'mw-credit-app-command-dev@other-project-123456.iam.gserviceaccount.com',
+                          'evil-mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com'):
+                other = {'email': email, 'subject': '333333333333333333333', 'provider': 'claude'}
+                self.assertIsNone(api.environment_of(other))
+                with self.subTest(email=email), self.assertRaisesRegex(ConfigurationError, 'command-dev or command-prod'):
+                    validate_config(recognizer_config(directory, receipt_recognition_callers=[other], **CLAUDE))
+            self.assertEqual((api.environment_of(DEV), api.environment_of(PROD)), ('dev', 'prod'))
+            for caller in ({**DEV, 'provider': 'codex'}, {**DEV, 'provider': 'openai'}, {**DEV, 'fallback': 'gemini'},
+                           {**DEV, 'provider': 'gemini', 'fallback': 'gemini'}, {**DEV, 'provider': 'claude', 'fallback': 'codex'},
+                           {**DEV, 'qr_reference': 'true'}, {**DEV, 'environment': 'dev'}):
+                with self.subTest(caller=caller), self.assertRaises(ConfigurationError):
+                    validate_config(recognizer_config(directory, receipt_recognition_callers=[caller], **CLAUDE))
+        # The cycle: claude needs the PROD rule and the model; fallback only gemini with claude; qr only a boolean.
+        config = load_json(ROOT / 'config.example.json')
+        validate_config({**config, **CLAUDE, 'receipt_extraction_provider': 'claude', 'receipt_cycle_fallback': 'gemini', 'receipt_cycle_qr_reference': True})
+        for change in ({'chat_relay_wif': {'dev': RULES['dev']}}, {'receipt_cycle_fallback': 'codex'}, {'receipt_cycle_qr_reference': 'yes'},
+                       {'receipt_extraction_provider': 'gemini', 'receipt_cycle_fallback': 'gemini'}):
+            with self.subTest(cycle=change), self.assertRaises(ConfigurationError):
+                validate_config({**config, **CLAUDE, 'receipt_extraction_provider': 'claude', **change})
+
+
+class RouteTests(ContractTests):
+    """The HTTP contract with per-caller routes (the recognize call itself is patched)."""
+
+    def test_dev_caller_routes_claude_prod_caller_gemini(self):
+        self.config['receipt_recognition_callers'] = [{**DEV, 'provider': 'claude', 'fallback': 'gemini', 'qr_reference': True}, PROD]
+        self.config.update(CLAUDE)
+        self.write()
+        api.recognize.side_effect = lambda config, image, provider, deadline, **route: {
+            'provider': 'claude', 'model': 'claude-opus-5-5', 'result': dict(RESULT), 'reference_source': 'qr',
+            'qr': {'bank': '014', 'used': True, 'reason': 'same'}}
+        status, reply = self.post()
+        self.assertEqual((status, reply['provider'], reply['model'], reply['result']), (200, 'claude', 'claude-opus-5-5', RESULT))
+        self.assertEqual(set(reply), {'status', 'provider', 'model', 'durationMs', 'imageSha256', 'result'})  # contract unchanged
+        call = api.recognize.call_args
+        self.assertEqual((call.args[2], call.kwargs['fallback'], call.kwargs['qr_reference'], call.kwargs['environment']),
+                         ('claude', 'gemini', True, 'dev'))
+        self.assertEqual(self.audits[-1][6], {'reference_source': 'qr', 'qr': {'bank': '014', 'used': True, 'reason': 'same'}})
+        api.recognize.side_effect = lambda config, image, provider, deadline, **route: {
+            'provider': provider, 'model': 'gemini-2.0-flash-001', 'result': dict(RESULT)}
+        status, reply = self.post(token=sign(claims(PROD)))
+        self.assertEqual((status, reply['provider']), (200, 'gemini'))
+        call = api.recognize.call_args
+        self.assertEqual((call.args[2], call.kwargs['fallback'], call.kwargs['qr_reference'], call.kwargs['environment']),
+                         ('gemini', None, False, 'prod'))
+
+    def test_caller_without_keys_unchanged(self):
+        status, reply = self.post()
+        self.assertEqual((status, reply['provider']), (200, 'gemini'))
+        call = api.recognize.call_args
+        self.assertEqual((call.args[2], call.kwargs['fallback'], call.kwargs['qr_reference']), ('gemini', None, False))
+        self.assertEqual(api.route(self.config, DEV), {'provider': 'gemini', 'fallback': None, 'qr_reference': False, 'clean_text': False,
+                                                       'environment': 'dev'})
+        self.assertFalse(api.recognize.call_args.kwargs['clean_text'])
+        self.assertEqual(self.audits[-1][6], {})
+
+    def test_fallback_reply_names_gemini(self):
+        self.config['receipt_recognition_callers'] = [{**DEV, 'provider': 'claude', 'fallback': 'gemini'}, PROD]
+        self.config.update(CLAUDE)
+        self.write()
+        api.recognize.side_effect = lambda *args, **route: {'provider': 'gemini', 'model': 'gemini-2.0-flash-001', 'result': dict(RESULT),
+                                                             'fallback_cause': 'claude_http_529'}
+        status, reply = self.post()
+        self.assertEqual((status, reply['provider'], reply['model']), (200, 'gemini', 'gemini-2.0-flash-001'))
+        self.assertEqual(self.audits[-1][6], {'fallback_cause': 'claude_http_529'})
+
+
+class RoutedAuditTests(unittest.TestCase):
+    def test_audit_records_routed_and_served_provider(self):
+        plans, events = [], []
+
+        class Activity:
+            def __init__(self, config, service, action, route, plan):
+                plans.append(plan)
+
+            def __enter__(self):
+                return 'op'
+
+            def __exit__(self, *_):
+                return False
+
+        class Transaction:
+            def __enter__(self):
+                return 'conn'
+
+            def __exit__(self, *_):
+                return False
+        config = {**GEMINI, **CLAUDE, 'receipt_recognition_callers': [{**DEV, 'provider': 'claude', 'fallback': 'gemini'}, PROD]}
+        dev = config['receipt_recognition_callers'][0]
+        with patch('mw_integration_agent.audit.activity', Activity), \
+                patch('mw_integration_agent.audit.event', lambda conn, op, kind, payload, route: events.append(payload)), \
+                patch('mw_integration_agent.state.transaction', lambda config: Transaction()):
+            api.audit_outcome(config, dev, 'a' * 64, 200, {'status': 'recognized', 'provider': 'gemini', 'model': 'gemini-2.0-flash-001'},
+                              time.monotonic(), {'fallback_cause': 'claude_timeout', 'reference_source': 'qr',
+                                                'qr': {'bank': '014', 'used': True, 'reason': 'replaced'}})
+            api.audit_outcome(config, PROD, 'b' * 64, 200, {'status': 'recognized', 'provider': 'gemini', 'model': 'gemini-2.0-flash-001'},
+                              time.monotonic())
+            api.audit_outcome(config, dev, None, 503, {'status': 'unavailable', 'reason': 'provider_error'}, time.monotonic())
+        self.assertEqual(plans[0], {'caller': DEV['email'], 'image_sha256': 'a' * 64, 'provider': 'claude', 'model': 'claude-opus-5-5'})
+        self.assertEqual({k: events[0][k] for k in ('served_provider', 'served_model', 'fallback_cause', 'reference_source', 'qr')},
+                         {'served_provider': 'gemini', 'served_model': 'gemini-2.0-flash-001', 'fallback_cause': 'claude_timeout',
+                          'reference_source': 'qr', 'qr': {'bank': '014', 'used': True, 'reason': 'replaced'}})
+        self.assertEqual((plans[1]['provider'], plans[1]['model']), ('gemini', 'gemini-2.0-flash-001'))
+        self.assertEqual((events[1]['served_provider'], events[1]['fallback_cause'], events[1]['qr']), ('gemini', None, None))
+        self.assertEqual((events[2]['served_provider'], events[2]['served_model']), (None, None))
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ name = "mw-integration-agent"
 version = "0.1.0"
 description = "Linux-native MW Credit integration agent foundation"
 requires-python = ">=3.13"
-dependencies = ["Pillow==11.3.0", "tzdata==2025.2", "psycopg[binary]==3.2.10", "typing-extensions==4.16.0"]
+dependencies = ["Pillow==11.3.0", "tzdata==2025.2", "psycopg[binary]==3.2.10", "typing-extensions==4.16.0", "zxing-cpp==3.1.1"]
 # requirements.lock is the hash-pinned closure of these dependencies (uv pip compile); CI and the
 # host installers use `pip install --require-hashes -r requirements.lock && pip install --no-deps .`.
 

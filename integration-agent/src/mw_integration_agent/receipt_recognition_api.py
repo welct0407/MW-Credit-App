@@ -2,17 +2,23 @@
 
 POST /v1/receipt-recognition takes raw PNG/JPEG bytes (at most 5 MB) with a matching
 X-Content-SHA256 header and a Google ID token from an allowed caller, runs the shared extraction
-module and returns the shape-checked result with the provider and pinned model. It never stores
+module and returns the shape-checked result with the provider and pinned model that served it. It never stores
 the image, reads no business database and does no account matching. Disabled configuration or
 catalogue entry fails closed (503 disabled), read per request. At most two extractions run at
 once (else 503 busy) and each request is bounded (503 timeout). GET /healthz needs no token and
 never calls a provider. The listener binds only to a private VPC address.
+
+R142: a caller entry may name its own route: `provider` (claude or gemini, else receipt_recognition_provider),
+`fallback` ('gemini', only with provider claude), `qr_reference` (true: a valid slip QR reference replaces the
+model's) and `clean_text` (true: invisible format characters are stripped from the reading). Absent keys keep the earlier behaviour. Claude reads with the chat relay's federation rule of the caller's
+environment (command-dev -> dev, command-prod -> prod). The result contract is unchanged.
 """
 import base64
 import hashlib
 import hmac
 import ipaddress
 import json
+import os
 import re
 import sys
 import threading
@@ -36,6 +42,11 @@ TYPES = {'image/png': b'\x89PNG\r\n\x1a\n', 'image/jpeg': b'\xff\xd8\xff'}
 ISSUERS = ('https://accounts.google.com', 'accounts.google.com')
 CERTS = 'https://www.googleapis.com/oauth2/v3/certs'
 CALLER_EMAIL = re.compile(r'[a-z0-9-]+@(?:[a-z0-9-]+\.iam|developer)\.gserviceaccount\.com')
+# R142: the federation rule a caller's Claude route uses, from the whole command-service email (fullmatch).
+CALLER_ENVIRONMENT = re.compile(r'mw-credit-app-command-(dev|prod)@clever-oasis-508610-n7\.iam\.gserviceaccount\.com')
+CALLER_KEYS = frozenset({'email', 'subject'})
+ROUTE_KEYS = frozenset({'provider', 'fallback', 'qr_reference', 'clean_text'})
+CALLER_PROVIDERS = ('claude', 'gemini')
 CLOCK_SKEW = 60
 FETCH_BACKOFF = 60  # seconds between Google key fetches, successful or failed
 # DER DigestInfo prefix for SHA-256 (RFC 8017, section 9.2 note 1).
@@ -48,27 +59,54 @@ def validate(config):
     """Recognizer and receipt-cycle provider settings; called from config.validate_config."""
     cycle = config.get('receipt_extraction_provider', 'codex')
     if cycle not in PROVIDERS:
-        raise ConfigurationError('receipt_extraction_provider must be codex or gemini')
+        raise ConfigurationError('receipt_extraction_provider must be codex, gemini or claude')
     if cycle == 'gemini':
         provider_module('gemini').validate(config)
-    if cycle == 'gemini' or 'receipt_cycle_gemini_attempt_seconds' in config or 'receipt_cycle_gemini_total_seconds' in config:
+    if cycle in ('gemini', 'claude') or 'receipt_cycle_gemini_attempt_seconds' in config or 'receipt_cycle_gemini_total_seconds' in config:
         provider_module('gemini').cycle_timeouts(config)
+    # R142: Claude settings are checked whenever present; a Claude route needs them and its federation rule.
+    if cycle == 'claude' or 'receipt_claude_model' in config or 'receipt_claude_effort' in config:
+        provider_module('claude').validate(config)
+    if cycle == 'claude':
+        federation(config, 'prod')  # the Instagram receipt cycle is PROD
+    fallback = config.get('receipt_cycle_fallback')
+    if fallback is not None:
+        if fallback != 'gemini' or cycle != 'claude':
+            raise ConfigurationError('receipt_cycle_fallback must be gemini, with receipt_extraction_provider claude')
+        provider_module('gemini').validate(config)
+    for key in ('receipt_cycle_qr_reference', 'receipt_cycle_clean_text'):
+        if type(config.get(key, False)) is not bool:
+            raise ConfigurationError(key + ' must be boolean')
+    from .receipt_qr import banks
+    banks(config)  # receipt_qr_reference_banks, whenever present
     if type(config.get('receipt_recognition_enabled', False)) is not bool:
         raise ConfigurationError('receipt_recognition_enabled must be boolean')
     if not config.get('receipt_recognition_enabled'):
         return
     provider = config.get('receipt_recognition_provider', 'gemini')
     if provider not in PROVIDERS:
-        raise ConfigurationError('receipt_recognition_provider must be codex or gemini')
-    if provider == 'gemini':
-        provider_module('gemini').validate(config)
+        raise ConfigurationError('receipt_recognition_provider must be codex, gemini or claude')
     if config.get('state_backend') != 'postgres':
         raise ConfigurationError('receipt recognition requires PostgreSQL audit')
     bind(config)
     audience = config.get('receipt_recognition_audience')
     if not isinstance(audience, str) or not re.fullmatch(r'https?://[A-Za-z0-9.:\[\]-]+(?:/[A-Za-z0-9._/-]*)?', audience) or len(audience) > 200:
         raise ConfigurationError('receipt_recognition_audience must be the recognizer URL')
-    callers(config)
+    for caller in callers(config):
+        chosen = route(config, caller)
+        if 'gemini' in (chosen['provider'], chosen['fallback']):
+            provider_module('gemini').validate(config)
+        if chosen['provider'] == 'claude':
+            provider_module('claude').validate(config)
+            federation(config, chosen['environment'])
+
+
+def federation(config, environment):
+    """The chat relay's federation rule of the environment (R142 reuses it); placeholders fail closed."""
+    if environment not in ('dev', 'prod'):
+        raise ConfigurationError('a Claude receipt route needs a command-dev or command-prod caller')
+    from .chat_relay_api import rule
+    return rule(config, environment)
 
 
 def bind(config):
@@ -90,15 +128,34 @@ def callers(config):
     if not isinstance(value, list) or not 1 <= len(value) <= 4:
         raise ConfigurationError('receipt_recognition_callers must list 1..4 callers')
     for caller in value:
-        if (not isinstance(caller, dict) or set(caller) != {'email', 'subject'}
+        if (not isinstance(caller, dict) or not CALLER_KEYS <= set(caller) or not set(caller) <= CALLER_KEYS | ROUTE_KEYS
                 or not isinstance(caller['email'], str) or not CALLER_EMAIL.fullmatch(caller['email'])
                 or not isinstance(caller['subject'], str) or not re.fullmatch(r'\d{10,30}', caller['subject'])):
             raise ConfigurationError('receipt_recognition_callers entries need a service account email and numeric subject')
+        if 'provider' in caller and caller['provider'] not in CALLER_PROVIDERS:
+            raise ConfigurationError('receipt_recognition_callers provider must be claude or gemini')
+        if 'fallback' in caller and (caller['fallback'] != 'gemini' or caller.get('provider') != 'claude'):
+            raise ConfigurationError('receipt_recognition_callers fallback must be gemini, with provider claude')
+        for key in ('qr_reference', 'clean_text'):
+            if key in caller and type(caller[key]) is not bool:
+                raise ConfigurationError(f'receipt_recognition_callers {key} must be boolean')
     return value
 
 
 def provider(config):
     return config.get('receipt_recognition_provider', 'gemini')
+
+
+def environment_of(caller):
+    match = CALLER_ENVIRONMENT.fullmatch(caller['email'])
+    return match.group(1) if match else None
+
+
+def route(config, caller):
+    """The caller's route: provider, fallback (None or 'gemini'), qr_reference, clean_text and federation environment."""
+    return {'provider': caller.get('provider', provider(config)), 'fallback': caller.get('fallback'),
+            'qr_reference': caller.get('qr_reference', False), 'clean_text': caller.get('clean_text', False),
+            'environment': environment_of(caller)}
 
 
 # Google ID token verification (RS256, Google signing keys, pinned claims) ----------------------
@@ -229,31 +286,41 @@ def run_bounded(slots, work, bound):
     return outcome['value']
 
 
-def recognise_image(config, raw, deadline):
+def recognise_image(config, caller, raw, deadline):
     try:
         image, _ = canonical_image(raw)
     except ConfigurationError:
         raise rejected('invalid_image') from None
+    chosen = route(config, caller)
     try:
-        return recognize(config, image, provider(config), deadline=deadline)
+        return recognize(config, image, chosen['provider'], deadline=deadline, fallback=chosen['fallback'],
+                         qr_reference=chosen['qr_reference'], environment=chosen['environment'] or 'prod',
+                         clean_text=chosen['clean_text'])
     except RecognitionUnavailable as exc:
         raise unavailable('timeout' if exc.reason == 'timeout' else 'provider_error', exc.cause) from None
     except ConfigurationError:
         raise unavailable('provider_error', 'provider_config') from None
 
 
-def audit_outcome(config, caller, image_sha256, status, body, started):
-    """One audit operation per authenticated request: caller, image hash, provider, model, duration, outcome."""
+def audit_outcome(config, caller, image_sha256, status, body, started, trace=None):
+    """One audit operation per authenticated request: caller, image hash, provider, model, duration, outcome.
+
+    The plan names the caller's routed provider and model; R142 adds what served it (JSON only, no columns):
+    served_provider, served_model, fallback_cause, reference_source and qr.
+    """
     from .audit import activity, event
     from .state import transaction
-    name = provider(config)
+    trace = trace or {}
+    name = route(config, caller)['provider']
     try:
         model = provider_module(name).model(config)
     except ConfigurationError:
         model = None
     plan = {'caller': caller['email'], 'image_sha256': image_sha256, 'provider': name, 'model': model}
     observed = {'outcome': body['status'], 'reason': body.get('reason'), 'http_status': status,
-                'duration_ms': int((time.monotonic() - started) * 1000)}
+                'duration_ms': int((time.monotonic() - started) * 1000),
+                'served_provider': body.get('provider'), 'served_model': body.get('model'),
+                **{key: trace.get(key) for key in ('fallback_cause', 'reference_source', 'qr')}}
     # Route 'internal': audit.events.route has a fixed CHECK list (V1) without provider names.
     try:
         with activity(config, SERVICE, 'PROCESS', 'internal', plan) as op:
@@ -312,7 +379,7 @@ def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BO
             if urlsplit(self.path).path != PATH:
                 self.respond(404, {'status': 'not_found'})
                 return
-            caller, image_sha256, self.image_sha256, cause = None, None, None, None
+            caller, image_sha256, self.image_sha256, self.trace, cause = None, None, None, {}, None
             try:
                 try:
                     config, enabled = self.controls()
@@ -330,13 +397,13 @@ def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BO
                 if caller is None:
                     raise Rejected(403, {'status': 'denied'}, 'token_rejected')
                 try:
-                    status, body = self.authorised(config, started)
+                    status, body = self.authorised(config, caller, started)
                     image_sha256, cause = body.get('imageSha256'), 'recognized'
                 except Rejected as exc:
                     status, body, cause = exc.status, exc.body, exc.cause
                     image_sha256 = self.image_sha256
                 try:
-                    audit(config, caller, image_sha256, status, body, started)
+                    audit(config, caller, image_sha256, status, body, started, self.trace)
                 except Exception as exc:
                     # Fail closed: a result whose audit row could not be written is not returned.
                     status, body = 503, {'status': 'unavailable', 'reason': 'provider_error'}
@@ -349,7 +416,7 @@ def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BO
             self.report(status, body, started, caller, cause)
             self.respond(status, body)
 
-        def authorised(self, config, started):
+        def authorised(self, config, caller, started):
             if self.headers.get('Transfer-Encoding'):
                 raise rejected('invalid_image')
             try:
@@ -373,7 +440,8 @@ def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BO
             if not raw.startswith(TYPES[kind]):
                 raise rejected('invalid_image')
             deadline = started + bound - PROVIDER_MARGIN
-            value = run_bounded(slots, lambda: recognise_image(config, raw, deadline), max(0.0, started + bound - time.monotonic()))
+            value = run_bounded(slots, lambda: recognise_image(config, caller, raw, deadline), max(0.0, started + bound - time.monotonic()))
+            self.trace = {key: value[key] for key in ('fallback_cause', 'reference_source', 'qr') if key in value}
             return 200, {'status': 'recognized', 'provider': value['provider'], 'model': value['model'],
                          'durationMs': int((time.monotonic() - started) * 1000), 'imageSha256': self.image_sha256,
                          'result': value['result']}
@@ -381,12 +449,17 @@ def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BO
 
 
 def serve(config_path, catalogue_path):
+    # R142: keyless, as the chat relay: an Anthropic API key or other credential in the environment is refused.
+    from .chat_relay_api import FORBIDDEN_ENVIRONMENT
+    present = [name for name in FORBIDDEN_ENVIRONMENT if os.environ.get(name)]
+    if present:
+        raise ConfigurationError('the receipt recognizer is keyless; unset ' + ', '.join(present))
     config = load_json(config_path)
     validate_config(config)
     validate_catalogue(load_json(catalogue_path))
     host, port = bind(config)
     # Load every request-path module now, so a later package replacement cannot mix versions in this process.
-    from . import audit, receipt_provider_codex, receipt_provider_gemini, state  # noqa: F401
+    from . import audit, chat_relay_api, receipt_provider_claude, receipt_provider_codex, receipt_provider_gemini, receipt_qr, state  # noqa: F401
     if state.enabled(config):
         import psycopg  # noqa: F401
     server = ThreadingHTTPServer((host, port), handler(config_path, catalogue_path))
