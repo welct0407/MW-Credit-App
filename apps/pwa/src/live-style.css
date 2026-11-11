@@ -812,6 +812,18 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .expense-form-actions>.operation-confirm-primary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
 .expense-form-actions>.operation-confirm-primary:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 @media (max-width:899px){.expense-form-cancel{display:none}}
+/* EXP-NEW-17: the field scrolls to just below the header; on a phone the action bar steps aside while editing text or a list is open. */
+.borrower-typeahead{scroll-margin-top:72px}
+@media (max-width:1050px){.form-sticky-actions.expense-form-actions-editing{display:none}}
+/* EXP-NEW-18: the review's action bar is a direct child of its section; like the forms (form>.form-sticky-actions) the
+   section must not be its own scroll container on a phone, or the bar's bottom offset lifts it over the last rows. */
+@media (max-width:1050px){.borrower-record:has(>.expense-form-actions){overflow:visible}}
+/* EXP-NEW-21: the action bar sticks on a desktop too; the Paid now / Pending choice is as wide as the inputs. */
+@media (min-width:1051px){.form-sticky-actions.expense-form-actions{position:sticky;bottom:0;z-index:3;margin:12px -8px 0;padding:8px;background:#fff;border-top:1px solid #ccc}}
+@media (min-width:900px){.expense-form .expense-payment-options{max-width:480px}}
+/* EXP-NEW-23: type-ahead rows: at most two lines, the English name smaller on the second, each with an ellipsis. */
+.borrower-typeahead-names{display:flex;flex-direction:column;min-width:0;flex:1}.borrower-typeahead-name,.borrower-typeahead-description{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.borrower-typeahead-description{font-size:13px;color:#4a5560}.borrower-typeahead-separator{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (min-width:900px){.expense-form-actions>button:first-child{flex:0 1 320px}.expense-form input:not([type=checkbox]):not([type=radio]),.expense-form select,.expense-form textarea{max-width:480px}.expense-form .expense-amount-input{max-width:480px}}.expense-tile .expense-chip-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expense-tile .expense-tile-payee{color:#666;font-weight:400}
 /* R140 EXP-PEND-16: Pending is disabled for an amount of zero or less; the rollover-day disabled look. */
 .expense-payment-options input:disabled+span{color:#8a8f94;background:#f2f2f2;border-color:#d5dbe0;cursor:not-allowed}.expense-mark-paid:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}

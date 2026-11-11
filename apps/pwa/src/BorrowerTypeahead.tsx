@@ -8,7 +8,7 @@ export type BorrowerOption={id:string;label?:string|null;description?:string|nul
 export const borrowerOptionLabel=(row:BorrowerOption,unnamed:string)=>[row.label,row.description].filter(value=>typeof value==='string'&&value.trim()).map(value=>(value as string).trim()).join(' - ')||unnamed;
 /** Referrers first, then by the shown label. */
 export const sortBorrowerOptions=(rows:BorrowerOption[],unnamed:string)=>[...rows].sort((a,b)=>Number(!!b.isReferrer)-Number(!!a.isReferrer)||borrowerOptionLabel(a,unnamed).localeCompare(borrowerOptionLabel(b,unnamed)));
-export function BorrowerTypeahead({label,thai,disabled,search,onChoose,onFreeText,online=()=>typeof navigator==='undefined'||navigator.onLine}:{label:string;thai:boolean;disabled?:boolean;
+export function BorrowerTypeahead({label,thai,disabled,search,onChoose,onFreeText,onOpenChange,online=()=>typeof navigator==='undefined'||navigator.onLine}:{label:string;thai:boolean;disabled?:boolean;onOpenChange?:(open:boolean)=>void;
  search:(query:string,signal:AbortSignal)=>Promise<BorrowerOption[]>;onChoose:(row:BorrowerOption,shown:string)=>void;onFreeText?:(text:string)=>void;online?:()=>boolean}){
  const t=(en:string,th:string)=>thai?th:en,unnamed=t('Unnamed borrower','ไม่ระบุชื่อผู้กู้'),id=useId(),root=useRef<HTMLDivElement|null>(null);
  const [query,setQuery]=useState(''),[results,setResults]=useState<BorrowerOption[]>([]),[open,setOpen]=useState(false),[active,setActive]=useState(-1),[showAll,setShowAll]=useState(false),[busy,setBusy]=useState(false),[offline,setOffline]=useState(false);
@@ -25,9 +25,17 @@ export function BorrowerTypeahead({label,thai,disabled,search,onChoose,onFreeTex
  type Row={key:string;text:ReactNode;choose:()=>void;className?:string};
  const rows:Row[]=[];
  if(text&&onFreeText)rows.push({key:'free',text:t('Use “'+text+'” as name','ใช้ชื่อ “'+text+'”'),choose:()=>{onFreeText(text);reset()},className:'expense-payee-typed'});
- for(const row of shown){const shownLabel=borrowerOptionLabel(row,unnamed);rows.push({key:'b-'+row.id,text:<><span>{shownLabel}</span>{row.isReferrer&&<small className="expense-payee-tag">{t('Referrer','ผู้แนะนำ')}</small>}</>,choose:()=>{onChoose(row,shownLabel);reset()}});}
+ for(const row of shown){const shownLabel=borrowerOptionLabel(row,unnamed),name=typeof row.label==='string'&&row.label.trim()?row.label.trim():null,english=typeof row.description==='string'&&row.description.trim()?row.description.trim():null;
+  // EXP-NEW-23: two lines at most: the name, then the English name smaller; each ends with an ellipsis. The text still reads "Thai - English".
+  rows.push({key:'b-'+row.id,text:<><span className="borrower-typeahead-names"><span className="borrower-typeahead-name">{name??english??unnamed}</span>{name&&english&&<><span className="borrower-typeahead-separator"> - </span><span className="borrower-typeahead-description">{english}</span></>}</span>{row.isReferrer&&<small className="expense-payee-tag">{t('Referrer','ผู้แนะนำ')}</small>}</>,choose:()=>{onChoose(row,shownLabel);reset()}});}
  if(more)rows.push({key:'more',text:t('Show more','แสดงเพิ่ม'),choose:()=>{setShowAll(true);setOpen(true)},className:'expense-payee-more'});
  const expanded=open&&!!text&&(rows.length>0||offline||busy);
+ // EXP-NEW-17: an opening list brings the field to the top of the visible area (scroll-margin-top clears the header) so its
+ // options sit above the keyboard; the form hides its sticky action bar while a list is open.
+ // biome-ignore lint/correctness/useExhaustiveDependencies: follows the open state only; onOpenChange is recreated by the parent
+ useEffect(()=>{onOpenChange?.(expanded);if(expanded)root.current?.scrollIntoView({block:'start',behavior:'auto'})},[expanded]);
+ // biome-ignore lint/correctness/useExhaustiveDependencies: closes the parent's state on unmount only
+ useEffect(()=>()=>onOpenChange?.(false),[]);
  function reset(){setQuery('');setResults([]);setOpen(false);setActive(-1);setShowAll(false)}
  function key(event:KeyboardEvent<HTMLInputElement>){
   if(event.key==='Enter'){event.preventDefault();if(expanded&&active>=0&&rows[active])rows[active].choose();return;}
