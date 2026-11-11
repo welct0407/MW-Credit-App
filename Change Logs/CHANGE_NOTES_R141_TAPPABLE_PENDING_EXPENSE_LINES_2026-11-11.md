@@ -52,7 +52,7 @@ Git baseline: `cccc3b3` plus the R140 closure; PROD baseline R140 `91f79ef7`. PR
 None.
 
 ## Remaining work
-- Owner acceptance in PROD (tapping the Cash Position "Expenses payable" and "Rebates payable" lines and the borrower "Expenses owed" line).
+- Owner acceptance in PROD: done. The owner confirmed on 11 November 2026, "it works in prod, close it".
 - Release closure prune (11 November 2026): deleted `Change Logs/CHANGE_NOTES_R138_CHAT_CONFIRM_AND_GROUP_100_2026-11-10.md` (outside the retention window R139, R140, R141); its inbound links in the release tracker, the environment inventory and the database README now point to commit `30546958`.
 
 ## PROD promotion record (Forge, 11 November 2026 UTC)
@@ -76,4 +76,4 @@ Authority: the owner's instruction of 11 November 2026, "move R141 to production
 - None recorded.
 
 ### Limitations
-- No authenticated PROD read (there is no sanctioned PROD token route), financial write, notification or job. PROD owner acceptance is pending. The tag record is part of this closure pull request.
+- No authenticated PROD read (there is no sanctioned PROD token route), financial write, notification or job. The owner accepted R141 in PROD on 11 November 2026 ("it works in prod, close it"). The tag record is part of this closure pull request.
