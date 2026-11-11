@@ -798,7 +798,21 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .expense-detail-group dl{margin:0}.expense-split-line,.expense-cash-row{margin:2px 0}.expense-split-basis{margin:4px 0 0;font-size:14px;color:#565656}
 .expense-settlement-link{display:block;margin-top:4px}
 .expense-record-info,.expense-record-info dl{font-size:14px;color:#565656}.expense-record-note{margin:6px 0 0;font-size:14px;color:#565656}
-@media (min-width:900px){.expense-detail-groups{grid-template-columns:1fr 1fr;align-items:start}.borrower-record button.expense-mark-paid{max-width:320px}}.expense-tile .expense-chip-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expense-tile .expense-tile-payee{color:#666;font-weight:400}
+@media (min-width:900px){.expense-detail-groups{grid-template-columns:1fr 1fr;align-items:start}.borrower-record button.expense-mark-paid{max-width:320px}}
+/* R140 (Echo EXP-NEW-1 to 16): the expense create and edit form and its review. */
+.expense-form .related-loans-heading.expense-form-heading,.borrower-record>.related-loans-heading.expense-form-heading{background:transparent}
+.expense-form .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.expense-form-group{margin:0 0 8px}.expense-form-group>h3{margin:14px 0 6px;font-size:16px}
+.field-error{margin:4px 0 0;font-size:14px;color:#b3261e}
+.expense-amount-input{display:flex;align-items:center;gap:6px}.expense-amount-input>span{font-weight:600}.expense-amount-input input{flex:1}
+.expense-negative{display:flex;align-items:center;gap:8px;min-height:44px}.expense-negative input{width:auto;min-height:0}
+.expense-draft-restored{margin:4px 0 8px;font-size:14px;color:#565656}
+.expense-clear{font-size:22px;line-height:1}
+.expense-form-actions>button:first-child{flex:1}
+.expense-form-actions>.operation-confirm-primary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
+.expense-form-actions>.operation-confirm-primary:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
+@media (max-width:899px){.expense-form-cancel{display:none}}
+@media (min-width:900px){.expense-form-actions>button:first-child{flex:0 1 320px}.expense-form input:not([type=checkbox]):not([type=radio]),.expense-form select,.expense-form textarea{max-width:480px}.expense-form .expense-amount-input{max-width:480px}}.expense-tile .expense-chip-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expense-tile .expense-tile-payee{color:#666;font-weight:400}
 /* R140 EXP-PEND-16: Pending is disabled for an amount of zero or less; the rollover-day disabled look. */
 .expense-payment-options input:disabled+span{color:#8a8f94;background:#f2f2f2;border-color:#d5dbe0;cursor:not-allowed}.expense-mark-paid:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .rebate-settle-list{min-width:0;max-width:100%;border:1px solid #d5dbe0;border-radius:6px;padding:4px 10px}
