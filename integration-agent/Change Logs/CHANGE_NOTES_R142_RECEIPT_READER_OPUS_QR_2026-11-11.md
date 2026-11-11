@@ -37,9 +37,15 @@ Built in source on branch `claude/compassionate-heisenberg-ras6py`, code commit 
 ## Pre-deploy baseline (Forge, captured 2026-11-11T17:49:39Z)
 Rollback baseline: agent `code_version` `246bcb93`, catalogue revision 36, DEV Hosting version `a3d0594cc8f5511f`, recognizer and chat relay healthy, `mw-integration-agent check` exit 0.
 
+## DEV deployment record (Forge, 11 November 2026, UTC)
+PR #288 merged into main as `d2de3330`. There is no DEV agent: the code is on the one live VM and DEV is switched by configuration.
+- Agent code: `d2de3330` deployed to `vm-mw-credit-agent` through `update-from-github.sh` (`246bcb93` to `d2de3330`), the hash-checked lock install (zxing-cpp 3.1.1) and `deploy-runtime.py`: freeze 18:25:51Z (rollback directory `runtime-20261111T182551434202Z`), install 18:25:56Z, activate 18:26:00Z to 18:26:05Z; catalogue revision 36 to 37. The temporary operator file was shredded. `check` exit 0, `/ready` `code_version` `d2de3330`, recognizer `/healthz` 200; the chat relay was not restarted by this step. Rollback: `deploy-runtime.py rollback --commit d2de3330` (the full hash is in the deploy log).
+- DEV activation: `config-only-change.py` tag `r142-dev-reader`, 18:26:48Z to 18:26:53Z. Only `receipt_claude_model`, `receipt_claude_effort`, `receipt_qr_reference_banks` and the `command-dev` caller entry changed (`provider` claude, `fallback` gemini, `qr_reference` true, `clean_text` true). The `command-prod` entry and `receipt_extraction_provider` (gemini) are unchanged and there are no `receipt_cycle_*` keys. `check` ok; recognizer and relay `/healthz` 200 (the relay restart is by design). Rollback: `config-only-change.py restore --tag r142-dev-reader`.
+- DEV Hosting: version `5554bf9a8655f648`, release `1794421701781000`, build-version R142 `4ec5fa9b7689cff209d71b2a`, entry `/assets/index-C7e6ViiP.js`, from PR head `29a7ba0` (tree equal to merge `d2de3330`; the bundle embeds `29a7ba0`); `--check` passed with 17 files; deployed 18:28:11Z to 18:28:22Z. Rollback: `a3d0594cc8f5511f`.
+- Pending: the first PROD-caller request after the deploy, which must be served by gemini; Chase's and Echo's DEV checks; the performance measurement.
+
 ## DEV activation
-Planned, not applied: the `command-dev` caller gets `provider` claude, `fallback` gemini, `qr_reference` true and `clean_text` true, plus `receipt_claude_model` `claude-opus-5-5`, `receipt_claude_effort` `low` and the default QR bank list. The `command-prod` caller and the cycle stay unchanged.
-Pending: not deployed or activated; CI, DEV deploy, DEV activation and the performance measurement are not done.
+Applied 11 November 2026 18:26:48Z to 18:26:53Z (see the DEV deployment record): the `command-dev` caller on Claude with Gemini fallback, QR reference and text cleaning; `receipt_claude_model` `claude-opus-5-5`, effort `low`, default QR bank list. The `command-prod` caller and the cycle are unchanged. Not yet measured: latency and VM load.
 
 ## PROD
 Pending owner approval. Not requested; the PROD caller and the Instagram receipt cycle stay on Gemini.
@@ -56,17 +62,19 @@ Pending owner approval. Not requested; the PROD caller and the Instagram receipt
 | Dewey, `node --test tests/unit/receipt-recognition-timing.test.mjs` (working tree on `c7f6488`) | Pass, 7 of 7 |
 | Dewey, agent unit tests in this cloud session | Environment limitation, not a failure: `psycopg` and `zxingcpp` are not installed here, so one config test and `test_receipt_qr` could not load; Byte's full run above covers them |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey, working tree) |
-| CI on the pull request | Pending |
+| CI, PR #288 | Pass: `Development checks` run 43075377547 (check, lint, 6 e2e shards) on the head `29a7ba0`; `Agent tests` run 43072193508 on `9c1f5329`. Earlier runs failed on a browser timer defect (`Illegal invocation` in `watchSlow`), fixed in `29a7ba08` |
+| DEV deployment | Pass: `check` exit 0 and ok, `/ready` `code_version` `d2de3330`, recognizer and relay `/healthz` 200, Hosting `--check` 17 files |
+| Chase and Echo DEV checks, first PROD-caller request (must be gemini), performance measurement | Pending |
 
 ## Not run
-CI, DEV deploy, DEV activation and the performance measurement (latency and VM load with the QR decoder); the 70 PostgreSQL lab suites skipped in Byte's run. A skipped check is not a pass.
+The performance measurement (latency and VM load with the QR decoder); the 70 PostgreSQL lab suites skipped in Byte's run. A skipped check is not a pass.
 
 ## Recovery
-Git baseline `c7f6488`. After activation, remove the route keys from the `command-dev` caller (or set its provider to `gemini`) by the config-only route; nothing in PROD changes.
+Git baseline `c7f6488` (code), agent `246bcb93` and catalogue revision 36 on the VM, Hosting `a3d0594cc8f5511f`. Rollback: `deploy-runtime.py rollback --commit d2de3330` for the code; `config-only-change.py restore --tag r142-dev-reader` for the configuration; redeploy the previous Hosting version. Or remove the route keys from the `command-dev` caller (or set its provider to `gemini`) by the config-only route; nothing in PROD changes.
 
 ## Open questions
 - PROD activation of the new reader, when the owner has reviewed DEV.
 - Bank or third-party slip verification is a later owner decision.
 
 ## Remaining work
-Implementation, DEV activation and checks. Then update, as affected: `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md` Current state, `integration-agent/SERVICE_CATALOGUE.md` and `service-catalogue.json`, `integration-agent/config.example.json` notes, `project/Documents/Environment_Inventory.md` (federation rule, DEV caller routing, VM version), `project/Documents/Solution_Design.md` Current state if receipt reading is described there, `project/Documents/Development_Changes.md` (active scope), the Data Dictionary only if the recognizer contract changes, and `project/Documents/Service_Account_Browser_Mapping.md` only if an identity changes.
+Chase's and Echo's DEV checks, the first PROD-caller request after the deploy and the performance measurement. Then update, as affected: `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md` Current state, `integration-agent/SERVICE_CATALOGUE.md` and `service-catalogue.json`, `integration-agent/config.example.json` notes, `project/Documents/Environment_Inventory.md` (federation rule, DEV caller routing, VM version), `project/Documents/Solution_Design.md` Current state if receipt reading is described there, `project/Documents/Development_Changes.md` (active scope), the Data Dictionary only if the recognizer contract changes, and `project/Documents/Service_Account_Browser_Mapping.md` only if an identity changes.
