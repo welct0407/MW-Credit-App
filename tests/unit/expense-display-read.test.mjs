@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readExpenseRecord} from '../../services/business/expenses.mjs';
+import {readExpenseRecord,readExpensePage} from '../../services/business/expenses.mjs';
 import {expensePendingSql} from '../../services/business/rebate-state.mjs';
 import {readManagementPosition} from '../../services/business/management-position.mjs';
 import {readBorrowerRecord} from '../../services/business/borrowers.mjs';
@@ -72,4 +72,19 @@ test('R140 (V144) paidDate is stored, else the settlement date, else the expense
  assert.equal((await read({storedPaidDate:null,paymentState:'pending'})).paidDate,null);
  assert.equal((await read({sourceType:'Referral Rebate',rebateState:'pending',storedPaidDate:null})).paidDate,null);
  const named=await read({payeeBorrowerId:'B',payeeBorrowerName:'สมชาย',payeeBorrowerDescription:'Somchai'});assert.deepEqual([named.payeeBorrowerName,named.payeeBorrowerDescription],['สมชาย','Somchai']);
+});
+test('R140 the expense list is newest first: date, then created at, then id; the cursor carries all three (version 2)',async()=>{
+ const seen=[];const rows=[{id:'E3',expenseDate:'2026-11-11',createdAt:'2026-11-11 10:00:02.5',sourceType:'Manual',amount:'1.00'},{id:'E2',expenseDate:'2026-11-11',createdAt:'2026-11-11 10:00:01',sourceType:'Manual',amount:'1.00'},{id:'E1',expenseDate:'2026-11-11',createdAt:'2026-11-11 09:00:00',sourceType:'Manual',amount:'1.00'}];
+ const client={query:async(sql,args)=>{seen.push([sql,args]);if(/ORDER BY e\."Expense Date" DESC/.test(sql))return {rows:args[0]===null?rows:rows.slice(2)};return {rows:[]}}};
+ const first=await readExpensePage(client,{limit:2});
+ assert.match(seen[0][0],/ORDER BY e\."Expense Date" DESC,e\."Created At" DESC,e\."Row ID" COLLATE "C" DESC LIMIT \$4/);
+ assert.match(seen[0][0],/\(e\."Expense Date",e\."Created At",e\."Row ID" COLLATE "C"\)<\(\$1::date,\$2::timestamp,\$3::text COLLATE "C"\)/);
+ assert.deepEqual(first.items.map(i=>i.id),['E3','E2']);
+ const cursor=JSON.parse(Buffer.from(first.nextCursor,'base64url').toString('utf8'));assert.deepEqual(cursor,{version:2,date:'2026-11-11',createdAt:'2026-11-11 10:00:01',id:'E2'});
+ const next=await readExpensePage(client,{limit:2,cursor:first.nextCursor});assert.deepEqual(next.items.map(i=>i.id),['E1']);assert.equal(next.nextCursor,null);
+ assert.deepEqual(seen.find(([sql,args])=>/ORDER BY/.test(sql)&&args[0]!==null)[1],['2026-11-11','2026-11-11 10:00:01','E2',3]);
+ // A version 1 cursor (date and id only) is refused; so is a malformed one.
+ const v1=Buffer.from(JSON.stringify({version:1,date:'2026-11-11',id:'E2'})).toString('base64url');
+ await assert.rejects(readExpensePage(client,{cursor:v1}),/invalid_request/);await assert.rejects(readExpensePage(client,{cursor:'not-json'}),/invalid_request/);
+ await assert.rejects(readExpensePage(client,{cursor:Buffer.from(JSON.stringify({version:2,date:'2026-11-11',createdAt:'yesterday',id:'E2'})).toString('base64url')}),/invalid_request/);
 });

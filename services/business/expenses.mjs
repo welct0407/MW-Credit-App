@@ -48,11 +48,18 @@ export async function readExpenseOptions(client){
  const accounts=(await client.query(`SELECT a."Row ID" id,a."Account Label" label,h."Row ID" AS "holderId",h."Holder Name" AS "holderLabel" FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE AND h."Row ID" IN('ch:dad','ch:lisa','ch:tommy') ORDER BY h."Sort Order",a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
  return {categories:expenseCategories,accounts,businessDate:(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day};
 }
+// R140 (owner, 11 November 2026): newest first: "Expense Date" DESC, then "Created At" DESC (the newest entry of a day on top),
+// then "Row ID" DESC (C collation) as the tie-break. The keyset cursor (version 2) carries all three; a version 1 cursor
+// (date and id only) cannot place a row within its day any more and is refused (invalid_request), so the list restarts.
+const expenseCursor=cursor=>{let after;try{after=JSON.parse(Buffer.from(cursor,'base64url').toString('utf8'))}catch{throw Error('invalid_request')}
+ if(!after||typeof after!=='object'||Object.keys(after).sort().join(',')!=='createdAt,date,id,version'||after.version!==2||!validBorrowerId(after.id)||!/^\d{4}-\d{2}-\d{2}$/.test(after.date)
+  ||typeof after.createdAt!=='string'||!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{1,6})?$/.test(after.createdAt))throw Error('invalid_request');
+ return after;};
 export async function readExpensePage(client,{limit=25,cursor=null}={}){
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
- let after=null;if(cursor!==null){try{after=JSON.parse(Buffer.from(cursor,'base64url').toString('utf8'));if(Object.keys(after).sort().join(',')!=='date,id,version'||after.version!==1||!validBorrowerId(after.id)||!/^\d{4}-\d{2}-\d{2}$/.test(after.date))throw Error()}catch{throw Error('invalid_request')}}
- const rows=(await client.query(`SELECT ${columns} ${joins} WHERE ($1::date IS NULL OR (e."Expense Date",e."Row ID" COLLATE "C")<($1::date,$2::text COLLATE "C")) ORDER BY e."Expense Date" DESC,e."Row ID" COLLATE "C" DESC LIMIT $3`,[after?.date??null,after?.id??null,limit+1])).rows;
+ const after=cursor===null?null:expenseCursor(cursor);
+ const rows=(await client.query(`SELECT ${columns} ${joins} WHERE ($1::date IS NULL OR (e."Expense Date",e."Created At",e."Row ID" COLLATE "C")<($1::date,$2::timestamp,$3::text COLLATE "C")) ORDER BY e."Expense Date" DESC,e."Created At" DESC,e."Row ID" COLLATE "C" DESC LIMIT $4`,[after?.date??null,after?.createdAt??null,after?.id??null,limit+1])).rows;
  const dates=await settlementDates(client,rows.map(r=>r.settlementId));for(const r of rows){const paid=dates.get(r.settlementId);r.settlementDate=paid?.date??null;r.settlementAccountLabel=paid?.accountLabel??null;}
  const more=rows.length>limit,items=rows.slice(0,limit).map(project),last=items.at(-1);
- return {items,nextCursor:more?Buffer.from(JSON.stringify({version:1,date:last.expenseDate,id:last.id})).toString('base64url'):null};
+ return {items,nextCursor:more?Buffer.from(JSON.stringify({version:2,date:last.expenseDate,createdAt:last.createdAt,id:last.id})).toString('base64url'):null};
 }

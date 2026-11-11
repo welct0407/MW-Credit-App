@@ -108,3 +108,19 @@ test('R140 V144 marking a pending expense paid with yesterday puts its cash on y
  const deleted=await store.operation(principal,{...command,requestId:randomUUID(),operation:'expense.delete',expectedVersion:record.version,inputs:{}});
  assert.equal(deleted.originalOutcome?.status,'applied',JSON.stringify(deleted));
 });
+
+test('R140 the expense list is newest first within a day (created at), and paging crosses the tie without gaps or repeats',async()=>{
+ const options=await store.expenseOptions(principal);assert.equal(options.status,200,JSON.stringify(options));
+ const day=(await admin.query("SELECT ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-30)::text AS day")).rows[0].day,ids=[];
+ // Ids in descending creation order would sort first by Row ID before the fix; created at must win.
+ for(const target of ['00000000-0000-4000-8000-00000000000a','ffffffff-ffff-4fff-bfff-fffffffffffa','88888888-8888-4888-8888-88888888888a']){
+  const command={requestId:randomUUID(),operation:'expense.create',targetId:target,expectedVersion:null,predecessorRequestId:null,receiptId:null,
+   inputs:{expenseDate:day,category:'Other / อื่น ๆ',amount:'5',payeeName:'Synthetic order',relatedBorrowerId:null,relatedLoanId:null,notes:null,paidByAccountId:fixture.receivingAccountId}};
+  const created=await store.operation(principal,command);assert.equal(created.originalOutcome?.status,'applied',JSON.stringify(created));ids.push(target);
+ }
+ const seen=[];let cursor=null;do{const page=await store.expenses(principal,{limit:2,cursor});assert.equal(page.status,200,JSON.stringify(page));seen.push(...page.items);cursor=page.nextCursor;}while(cursor&&seen.length<1000);
+ assert.equal(new Set(seen.map(i=>i.id)).size,seen.length,'no repeats across pages');
+ const mine=seen.filter(i=>ids.includes(i.id)).map(i=>i.id);assert.deepEqual(mine,[...ids].reverse(),'the newest entry of the day first');
+ for(let k=1;k<seen.length;k++){const a=seen[k-1],b=seen[k];assert.ok(a.expenseDate>b.expenseDate||(a.expenseDate===b.expenseDate&&(a.createdAt>b.createdAt||(a.createdAt===b.createdAt&&a.id>b.id))),'descending order at '+k);}
+ for(const id of ids){const item=(await store.expenseRecord(principal,id)).item;const deleted=await store.operation(principal,{requestId:randomUUID(),operation:'expense.delete',targetId:id,expectedVersion:item.version,predecessorRequestId:null,receiptId:null,inputs:{}});assert.equal(deleted.originalOutcome?.status,'applied');}
+});
