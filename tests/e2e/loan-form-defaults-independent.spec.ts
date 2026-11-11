@@ -83,8 +83,11 @@ test('V139 the Saved changes list names the cash pool for a blocked new loan, as
   await repository.savePending(id,{domain:'loan',command,borrowerLabel:'Synthetic borrower'});await repository.claimPending(id,'r136-test',true);
   await repository.settlePending(id,'r136-test',{state:'blocked',attempted:true,code:'insufficient_funds',outcome:{kind:'recorded',originalOutcome:{status:'rejected',code:'insufficient_funds',result:null}}});
   window.dispatchEvent(new Event('mw-offline-saved'))});
- const waiting=page.getByRole('button',{name:/^Waiting to sync,/}).filter({visible:true});
- if(!await waiting.count())await page.getByRole('button',{name:'Open navigation',exact:true}).click();
+ // The saved-changes button appears once the app has re-read the pending list after the event: wait for it (desktop) or for
+ // the navigation button (phone) before deciding, instead of counting at once (that raced and failed about 1 run in 4).
+ const waiting=page.getByRole('button',{name:/^Waiting to sync,/}).filter({visible:true}),navigation=page.getByRole('button',{name:'Open navigation',exact:true}).filter({visible:true});
+ await expect(waiting.or(navigation).first()).toBeVisible();
+ if(!await waiting.count())await navigation.click();
  await waiting.first().click();
  await expect(page.getByText('Could not apply: Not enough cash in the cash pool. Lower the amount or add contributed capital. (insufficient_funds)',{exact:true})).toBeVisible();
 });
