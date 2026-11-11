@@ -13,7 +13,7 @@ test('R111 a rebate settled by offset names its offset payment, the referrer loa
   assert.doesNotMatch(sql,/e\."Ref Offset Payment"/,'no direct column reference: a database before V122 still reads');
   return {rows:[{id:'rr1:L-1',sourceType:'Referral Rebate',amount:'1000',offsetPaymentId:'ro122:pwa:x',offsetAmount:'640',offsetLoanId:'L-0398',offsetLoanDate:'2026-10-03',offsetLoanPrincipal:'10000',offsetLoanOriginalRate:'3',offsetLoanBorrowerLabel:'Referrer - English',relatedLoanId:null}]}}return {rows:[]}}};
  const item=await readExpenseRecord(client,'rr1:L-1');
- assert.equal(item.offsetLoanLabel,'Referrer - English-฿10,000-03/10-3%');assert.equal(item.payableAmount,'360');assert.equal(item.offsetAmount,'640');
+ assert.equal(item.offsetLoanLabel,'Referrer - English-฿10,000-03/10-3%');assert.equal(item.offsetLoanTerms,'฿10,000-03/10-3%','R140: the terms without the borrower, for the viewer-language name');assert.equal(item.payableAmount,'360');assert.equal(item.offsetAmount,'640');
  assert.equal('offsetLoanDate' in item,false,'the label parts stay internal');assert.equal(item.canDelete,false);
  first=true;const plain={query:async()=>{if(first){first=false;return {rows:[{id:'rr1:L-2',sourceType:'Referral Rebate',amount:'300',offsetPaymentId:null,offsetAmount:null,offsetLoanId:null,relatedLoanId:null}]}}return {rows:[]}}};
  const payout=await readExpenseRecord(plain,'rr1:L-2');assert.equal(payout.offsetLoanLabel,null);assert.equal(payout.payableAmount,null);
@@ -65,7 +65,7 @@ test('R140 (V143) a borrower record carries the manual expenses owed to it (pend
  assert.match(sql,/eo\.amount AS "expensesOwedAmount",eo\.count AS "expensesOwedCount"/);
 });
 test('R140 (V144) paidDate is stored, else the settlement date, else the expense date; null while pending; payee names both ways',async()=>{
- const read=async row=>{let first=true;const client={query:async sql=>{if(first){first=false;assert.match(sql,/to_jsonb\(e\)->>'Paid Date' AS "storedPaidDate"/);assert.match(sql,/payee\."Borrower Name" AS "payeeBorrowerName",payee\."Description" AS "payeeBorrowerDescription"/);assert.match(sql,/b\."Borrower Name" AS "relatedBorrowerName",b\."Description" AS "relatedBorrowerDescription",lb\."Borrower Name" AS "relatedLoanBorrowerName",lb\."Description" AS "relatedLoanBorrowerDescription"/);
+ const read=async row=>{let first=true;const client={query:async sql=>{if(first){first=false;assert.match(sql,/to_jsonb\(e\)->>'Paid Date' AS "storedPaidDate"/);assert.match(sql,/payee\."Borrower Name" AS "payeeBorrowerName",payee\."Description" AS "payeeBorrowerDescription"/);assert.match(sql,/olb\."Borrower Name" AS "offsetLoanBorrowerName",olb\."Description" AS "offsetLoanBorrowerDescription"/);assert.match(sql,/b\."Borrower Name" AS "relatedBorrowerName",b\."Description" AS "relatedBorrowerDescription",lb\."Borrower Name" AS "relatedLoanBorrowerName",lb\."Description" AS "relatedLoanBorrowerDescription"/);
   return {rows:[{id:'E',sourceType:'Manual',amount:'5.00',expenseDate:'2026-11-01',offsetPaymentId:null,relatedLoanId:null,...row}]}}return {rows:[]}}};return readExpenseRecord(client,'E')};
  assert.equal((await read({storedPaidDate:'2026-11-06',paymentState:null})).paidDate,'2026-11-06');
  assert.equal((await read({storedPaidDate:null,paymentState:null})).paidDate,'2026-11-01');

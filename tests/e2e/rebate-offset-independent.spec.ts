@@ -214,6 +214,12 @@ test('R120 a preview without the terms (before V135) shows no basis line',async(
  const s=await setup(page);await openClose(page,s,rebate({profit:undefined,rate:undefined,cap:undefined,custom:undefined}));
  await expect(group(page)).toBeVisible();await expect(page.locator('main')).not.toContainText('interest and late charges');expect(s.writes).toHaveLength(0);
 });
+test('R140 Expenses: the offset loan names its borrower in the viewer language (list tile and record)',async({page})=>{
+ const s=await setup(page);s.expenseItem={...expenseOffsetC,offsetLoanLabel:'ผู้แนะนำจำลอง - Synthetic Referrer-฿10,000-03/10-3%',offsetLoanTerms:'฿10,000-03/10-3%',offsetLoanBorrowerName:'ผู้แนะนำจำลอง',offsetLoanBorrowerDescription:'Synthetic Referrer'};await openExpensesC(page);
+ await expect(page.locator('.borrower-card').first()).toContainText('Settled by offset · Synthetic Referrer-฿10,000-03/10-3%');await expect(page.locator('.borrower-card').first()).not.toContainText('ผู้แนะนำจำลอง');
+ await page.locator('.borrower-card').click();await expect(page.getByRole('button',{name:'Synthetic Referrer-฿10,000-03/10-3%',exact:true})).toBeVisible();
+ await chooseLanguagePreservingForm(page,'ไทย');await expect(page.getByRole('button',{name:'ผู้แนะนำจำลอง-฿10,000-03/10-3%',exact:true})).toBeVisible();expect(s.writes).toHaveLength(0);
+});
 for(const [label,item,expected] of [['a V2 referral rebate shows its Rebate terms',{...expenseOffsetC,ruleVersion:'REFERRAL_REBATE_V2',rebateRate:15,rebateCap:1500},'15% · maximum ฿1,500'],['a V1 referral rebate shows a dash',expenseOffsetC,'—']] as const)
  test('R120 Expenses: '+label,async({page})=>{
   const s=await setup(page);s.expenseItem=item;await openExpensesC(page);await page.locator('.borrower-card').click();
