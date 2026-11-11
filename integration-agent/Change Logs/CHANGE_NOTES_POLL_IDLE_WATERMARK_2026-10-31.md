@@ -35,4 +35,4 @@ Owner request of 31 October 2026 ("review the cloud sql db size … is the size 
 None.
 
 ## Remaining work
-- After a week, confirm the daily `audit-retention` deletions and `mw_agent` live rows fell to roughly a tenth.
+- None. Week readback, 11 November 2026 14:43Z (`codex-cloud-read`): about 4,000 to 5,600 operations written a day (4 to 10 November); nightly `audit-retention` deletions fell from about 30,000 (1 to 7 November) to about 3,500 (8 to 10 November); live rows `audit.operations` 68,152 (241,047 on 31 October), `audit.events` 142,875 (280,925). `mw_agent` stays 548 MB on disk, as expected: the freed space is reused, not returned.
