@@ -34,14 +34,16 @@ function route(raw) {
     if(correction){if([...url.searchParams.keys()].some(key=>!['targetLoanId','paymentDate','proposedBorrowerId'].includes(key)||url.searchParams.getAll(key).length!==1))return {invalid:true,operation:'unknown'};return {operation:'payment_record',paymentId:decodeURIComponent(correction[1]),preview:true,targetLoanId:url.searchParams.get('targetLoanId'),paymentDate:url.searchParams.get('paymentDate'),proposedBorrowerId:url.searchParams.get('proposedBorrowerId')};}
     const paged=url.pathname==='/api/expense-records'||/^\/api\/(payment-drafts\/[^/]+|borrowers\/[^/]+\/payments)$/.test(url.pathname);
     if(url.pathname==='/api/borrower-options'){if([...url.searchParams.keys()].some(key=>key!=='q')||url.searchParams.getAll('q').length>1)return {invalid:true,operation:'unknown'};return {operation:'borrower_options',query:url.searchParams.get('q')??''};}
-    if(url.search&&(!paged||[...url.searchParams.keys()].some(key=>!['limit','cursor','scope'].includes(key)||url.searchParams.getAll(key).length!==1)))return {invalid:true,operation:'unknown'};
+    // R141: the expense list also takes payment=pending and payeeBorrowerId (validated by the read; a bad value is 400).
+    const pageKeys=url.pathname==='/api/expense-records'?['limit','cursor','payment','payeeBorrowerId']:['limit','cursor','scope'];
+    if(url.search&&(!paged||[...url.searchParams.keys()].some(key=>!pageKeys.includes(key)||url.searchParams.getAll(key).length!==1)))return {invalid:true,operation:'unknown'};
     const pageOptions={limit:url.searchParams.has('limit')?Number(url.searchParams.get('limit')):25,cursor:url.searchParams.get('cursor'),scope:url.searchParams.get('scope')??'due'};
     if(url.pathname==='/api/borrower-options')return {operation:'borrower_options'};
     if(url.pathname==='/api/dashboard')return {operation:'dashboard'};
     if(url.pathname==='/api/preferences')return {operation:'preferences'};
     if(url.pathname==='/api/cash-overview')return {operation:'cash_overview'};
     if(url.pathname==='/api/expense-options')return {operation:'expense_options'};
-    if(url.pathname==='/api/expense-records')return {operation:'expense_list',options:pageOptions};
+    if(url.pathname==='/api/expense-records')return {operation:'expense_list',options:{limit:pageOptions.limit,cursor:pageOptions.cursor,payment:url.searchParams.get('payment'),payeeBorrowerId:url.searchParams.get('payeeBorrowerId')}};
     // R129 (V137): the Referrers page, a referrer's detail and one rebate settlement.
     if(url.pathname==='/api/referrers')return {operation:'referrer_list'};
     const referrer=/^\/api\/referrers\/([^/]+)$/.exec(url.pathname);

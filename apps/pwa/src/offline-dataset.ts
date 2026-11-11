@@ -729,7 +729,16 @@ export async function readOfflineDataset(access:Access,path:string):Promise<any|
   if(parts[1]==='borrowers'&&tail==='payments')return page((data.paymentHistory??[]).filter((row:any)=>row.borrowerId===id).sort(byDate('paymentDate')),url,bundle);
   if(parts[1]==='loan-records'&&['charges','payments'].includes(tail))return data.loanRelated?.[id]?page(data.loanRelated[id][tail]??[],url,bundle):null;
   if(route==='/api/loan-records')return page(filtered(data.loanList??[]),url,bundle);
-  /* R140: newest first, as the server: expense date, then created at, then id (all descending) */if(route==='/api/expense-records')return page([...(data.expenses??[])].sort((a,b)=>compare(b.expenseDate,a.expenseDate)||compare(b.createdAt??'',a.createdAt??'')||compare(b.id,a.id)),url,bundle);
+  /* R140: newest first, as the server: expense date, then created at, then id (all descending). R141: the server's filters
+   (payment=pending, payeeBorrowerId) and, on a filtered first page, their total; another value is the server's 400. */
+  if(route==='/api/expense-records'){
+   const payment=url.searchParams.get('payment'),payee=url.searchParams.get('payeeBorrowerId');
+   if(payment!==null&&payment!=='pending'||payee!==null&&!payee)return null;
+   const rows=[...(data.expenses??[])].filter((row:any)=>(payment===null||row.paymentState==='pending')&&(payee===null||row.payeeBorrowerId===payee)).sort((a,b)=>compare(b.expenseDate,a.expenseDate)||compare(b.createdAt??'',a.createdAt??'')||compare(b.id,a.id));
+   if(payment===null&&payee===null)return page(rows,url,bundle);
+   const first=!url.searchParams.has('cursor'),amount=first?sumAmounts(rows.map((row:any)=>row.amount)):null;
+   return page(rows,url,bundle,{filter:{payment,payeeBorrowerId:payee,...(first&&amount!==null?{total:{count:rows.length,amount}}:{})}});
+  }
   if(route==='/api/payment-records'){
    const borrowerId=url.searchParams.get('borrowerId'),unassigned=url.searchParams.get('unassigned')==='true',month=url.searchParams.get('month'),child=borrowerId!==null||unassigned;
    const payments=filtered((data.payments??[]).map((row:any)=>({...row,borrowerDisplayName:row.borrowerId==null?'Unavailable':(row.borrowerName??'')+' - '+(row.borrowerDescription??'')})));

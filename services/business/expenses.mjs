@@ -51,15 +51,29 @@ export async function readExpenseOptions(client){
 // R140 (owner, 11 November 2026): newest first: "Expense Date" DESC, then "Created At" DESC (the newest entry of a day on top),
 // then "Row ID" DESC (C collation) as the tie-break. The keyset cursor (version 2) carries all three; a version 1 cursor
 // (date and id only) cannot place a row within its day any more and is refused (invalid_request), so the list restarts.
-const expenseCursor=cursor=>{let after;try{after=JSON.parse(Buffer.from(cursor,'base64url').toString('utf8'))}catch{throw Error('invalid_request')}
- if(!after||typeof after!=='object'||Object.keys(after).sort().join(',')!=='createdAt,date,id,version'||after.version!==2||!validBorrowerId(after.id)||!/^\d{4}-\d{2}-\d{2}$/.test(after.date)
-  ||typeof after.createdAt!=='string'||!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{1,6})?$/.test(after.createdAt))throw Error('invalid_request');
+// R141 (owner, 11 November 2026): the list can be narrowed to expenses pending payment (payment=pending, the
+// expensePendingSql rule of the Cash Position and borrower totals) and to one payee borrower (payeeBorrowerId). A filtered
+// page carries its filter in the cursor ("filter"), and a cursor is accepted only by the same filter, so it cannot page
+// another list; an unfiltered cursor keeps the version 2 shape. A filtered first page also answers the filter's total
+// (count and amount over every matching row), the figure the tapped Cash Position or borrower line shows.
+const filterKey=({payment,payeeBorrowerId})=>[payment?'payment='+payment:'',payeeBorrowerId?'payee='+payeeBorrowerId:''].filter(Boolean).join('&');
+const expenseCursor=(cursor,filter)=>{let after;try{after=JSON.parse(Buffer.from(cursor,'base64url').toString('utf8'))}catch{throw Error('invalid_request')}
+ if(!after||typeof after!=='object'||Object.keys(after).sort().join(',')!==(filter?'createdAt,date,filter,id,version':'createdAt,date,id,version')||after.version!==2||!validBorrowerId(after.id)||!/^\d{4}-\d{2}-\d{2}$/.test(after.date)
+  ||typeof after.createdAt!=='string'||!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{1,6})?$/.test(after.createdAt)||filter&&after.filter!==filter)throw Error('invalid_request');
  return after;};
-export async function readExpensePage(client,{limit=25,cursor=null}={}){
+/** The list filter from request options: payment ('pending' or none) and payeeBorrowerId (a borrower id or none). */
+export function expenseListFilter({payment=null,payeeBorrowerId=null}={}){
+ if(payment!==null&&payment!=='pending'||payeeBorrowerId!==null&&!validBorrowerId(payeeBorrowerId))throw Error('invalid_request');
+ return {payment,payeeBorrowerId};
+}
+const filterSql=(pending,payee)=>`($${pending}::boolean IS NOT TRUE OR ${expensePendingSql('e')}) AND ($${payee}::text IS NULL OR e."Ref Payee Borrower"=$${payee}::text)`;
+export async function readExpensePage(client,{limit=25,cursor=null,payment=null,payeeBorrowerId=null}={}){
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
- const after=cursor===null?null:expenseCursor(cursor);
- const rows=(await client.query(`SELECT ${columns} ${joins} WHERE ($1::date IS NULL OR (e."Expense Date",e."Created At",e."Row ID" COLLATE "C")<($1::date,$2::timestamp,$3::text COLLATE "C")) ORDER BY e."Expense Date" DESC,e."Created At" DESC,e."Row ID" COLLATE "C" DESC LIMIT $4`,[after?.date??null,after?.createdAt??null,after?.id??null,limit+1])).rows;
+ const filter=expenseListFilter({payment,payeeBorrowerId}),key=filterKey(filter),pending=filter.payment==='pending';
+ const after=cursor===null?null:expenseCursor(cursor,key);
+ const rows=(await client.query(`SELECT ${columns} ${joins} WHERE ($1::date IS NULL OR (e."Expense Date",e."Created At",e."Row ID" COLLATE "C")<($1::date,$2::timestamp,$3::text COLLATE "C")) AND ${filterSql(5,6)} ORDER BY e."Expense Date" DESC,e."Created At" DESC,e."Row ID" COLLATE "C" DESC LIMIT $4`,[after?.date??null,after?.createdAt??null,after?.id??null,limit+1,pending,filter.payeeBorrowerId])).rows;
  const dates=await settlementDates(client,rows.map(r=>r.settlementId));for(const r of rows){const paid=dates.get(r.settlementId);r.settlementDate=paid?.date??null;r.settlementAccountLabel=paid?.accountLabel??null;}
  const more=rows.length>limit,items=rows.slice(0,limit).map(project),last=items.at(-1);
- return {items,nextCursor:more?Buffer.from(JSON.stringify({version:2,date:last.expenseDate,createdAt:last.createdAt,id:last.id})).toString('base64url'):null};
+ const total=key&&cursor===null?(await client.query(`SELECT count(*)::int AS count,coalesce(sum(e."Amount"::numeric),0)::numeric(20,2)::text AS amount FROM public."Business Expenses" e WHERE ${filterSql(1,2)}`,[pending,filter.payeeBorrowerId])).rows[0]:null;
+ return {items,nextCursor:more?Buffer.from(JSON.stringify({version:2,date:last.expenseDate,createdAt:last.createdAt,id:last.id,...(key?{filter:key}:{})})).toString('base64url'):null,...(key?{filter:{payment:filter.payment,payeeBorrowerId:filter.payeeBorrowerId,...(total?{total}:{})}}:{})};
 }

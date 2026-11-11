@@ -17,7 +17,7 @@ async function fixture(page:Page,uid:string,data:Record<string,any>={}){
 /** Commits a new bundle for one domain and announces it the way a completed check does (the write landed meanwhile). */
 const publish=(page:Page,domain:string,data:any)=>page.evaluate(async({domain,data,asOf,businessDate})=>{const repo=(window as any).__syncRepo;await repo.saveDataset(domain,{schemaVersion:1,domain,complete:true,sourceVersion:null,generation:'g-'+Math.random(),asOf,businessDate,data},await repo.readRevision());window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed:true}}))},{domain,data,asOf,businessDate});
 const select=(page:Page,name:string)=>page.evaluate(name=>(window as any).selectBackCase(name),name);
-type Reads=(path:string,method:string)=>any;
+type Reads=(path:string,method:string,url:URL)=>any;
 /** One seam for every request: the dataset protocol answered from `server`, operations, then the page's reads. */
 async function serve(page:Page,reads:Reads,server:{versions:Record<string,string>;data:Record<string,any>}={versions:Object.fromEntries(domains.map(d=>[d,OLD])),data:{}},log:string[]=[]){
  const chunk=(domain:string,patches:any[],sourceVersion:string)=>({schemaVersion:2,domain,generation:'g-'+sourceVersion.slice(0,4),startedAt:asOf,asOf,businessDate,sourceVersion,patches,nextCursor:null,complete:true,progress:{completed:1,total:1}});
@@ -32,7 +32,7 @@ async function serve(page:Page,reads:Reads,server:{versions:Record<string,string
    return r.fulfill({json:{...encodeDeltaChunk(chunk(domain,patches(server.data[domain]),current),body.need),...versions}});
   }
   if(path.startsWith('/api/operations')){if(method==='POST'){posted=true;return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})}return r.fulfill({json:posted?{kind:'recorded',originalOutcome:{status:'applied'}}:{kind:'unresolved'}})}
-  const body=await reads(path,method);
+  const body=await reads(path,method,url);
   return body===undefined?r.fulfill({json:{ok:true,items:[],nextCursor:null}}):body.__status?r.fulfill({status:body.__status,json:body}):r.fulfill({json:body});
  });
 }
@@ -151,7 +151,7 @@ test('Expenses: an expense saved offline appears when it syncs, on Back from the
  const server={versions:Object.fromEntries(domains.map(d=>[d,OLD])),data:{records:{expenses:[first]}} as Record<string,any>};
  await fixture(page,'replay-offline-sync',{records:{expenses:[first]}});
  // The server's reads answer its current rows (the write is applied before the request settles).
- await serve(page,(path,method)=>expenseReads(server.data.records.expenses)(path,method),server);
+ await serve(page,(path,method,url)=>expenseReads(server.data.records.expenses)(path,method,url),server);
  await start(page);await settled(page);await select(page,'prepared-expenses');
  await page.locator('[data-record-id="E-1"]').click();await expect(page.getByRole('button',{name:'Back to expenses'})).toBeVisible();
  // The queued create syncs: the server applies it, the settled request invalidates the reads and the records check walks.
@@ -163,4 +163,32 @@ test('Expenses: an expense saved offline appears when it syncs, on Back from the
  await page.getByRole('button',{name:'Back to expenses'}).click();
  await expect(page.locator('[data-record-id="E-OFFLINE"]')).toBeVisible();
  await page.evaluate(()=>(window as any).__stopPreparation());
+});
+
+// R141 (owner, 11 November 2026): the Cash Position "Expenses payable" line opens Expenses filtered to pending payment,
+// with the line's count and amount on the filter bar; Clear filter shows every expense; Back returns to Cash Position.
+test('R141 Cash Position: the Expenses payable line opens the pending expenses; Clear filter; Back returns to the line',async({page})=>{
+ const pendingA=expense('E-P1','2026-10-12',{amount:'15.00'}),pendingB=expense('E-P2','2026-10-11',{amount:'5.00',payeeName:'Synthetic second payee'}),paidRow=paid(expense('E-PAID','2026-10-13'));
+ const all=[paidRow,pendingA,pendingB],asked:string[]=[];
+ const body=position(2);body.expensesPayable={count:2,amount:'20.00'};
+ await fixture(page,'r141-position',{management:{position:body}});
+ await serve(page,(path,_method,url)=>{if(path==='/api/management/cash-position')return body;if(path==='/api/expense-records'){asked.push(url.search);const pending=url.searchParams.get('payment')==='pending',rows=all.filter(row=>!pending||row.paymentState==='pending');
+   return {ok:true,items:rows,nextCursor:null,...(pending?{filter:{payment:'pending',payeeBorrowerId:null,total:{count:rows.length,amount:'20.00'}}}:{})}}
+  return expenseReads(all)(path,_method,url)});
+ await select(page,'prepared-position');
+ const line=page.getByRole('button',{name:'Show pending expenses',exact:true});await expect(line).toContainText('Expenses payable · 2 expenses');await expect(line).toContainText('฿20');
+ expect((await line.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+ await line.click();
+ const bar=page.getByRole('group',{name:'Filter',exact:true});await expect(bar).toContainText('Pending payment');await expect(bar).toContainText('2 expenses · ฿20');
+ await expect(page.locator('.expense-tile')).toHaveCount(2);await expect(page.locator('[data-record-id="E-PAID"]')).toHaveCount(0);expect(asked).toContain('?payment=pending');
+ const clear=bar.getByRole('button',{name:'Clear filter',exact:true});expect((await clear.boundingBox())!.height).toBeGreaterThanOrEqual(44);await clear.click();
+ await expect(page.getByRole('group',{name:'Filter',exact:true})).toHaveCount(0);await expect(page.locator('.expense-tile')).toHaveCount(3);
+ await page.getByRole('button',{name:'Back to Cash Position'}).click();
+ await expect(page.getByRole('button',{name:'Show pending expenses',exact:true})).toBeVisible();await expect(page.locator('.expense-tile')).toHaveCount(0);
+});
+test('R141 a pending filter with nothing left says so',async({page})=>{
+ const body=position(1);await fixture(page,'r141-empty',{management:{position:body}});
+ await serve(page,(path,_method,url)=>path==='/api/management/cash-position'?body:path==='/api/expense-records'?{ok:true,items:[],nextCursor:null,...(url.searchParams.get('payment')?{filter:{payment:'pending',payeeBorrowerId:null,total:{count:0,amount:'0.00'}}}:{})}:undefined);
+ await select(page,'prepared-position');await page.getByRole('button',{name:'Show pending expenses',exact:true}).click();
+ await expect(page.getByText('No pending expenses.',{exact:true})).toBeVisible();await expect(page.getByRole('group',{name:'Filter',exact:true})).toContainText('0 expenses · ฿0');
 });
