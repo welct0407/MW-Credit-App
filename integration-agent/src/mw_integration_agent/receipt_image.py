@@ -1,13 +1,14 @@
 """Bounded Meta image download and isolated structured visual extraction.
 
 The prompt, schema, canonicalisation and host-side shape validation are shared; each provider
-(receipt_provider_codex, receipt_provider_gemini) only turns a canonical PNG into a candidate dict.
+(receipt_provider_codex, receipt_provider_gemini, receipt_provider_claude) only turns a canonical PNG into a candidate dict.
 """
 from __future__ import annotations
 
 import hashlib
 import io
 import time
+import unicodedata
 import urllib.parse
 import urllib.error
 import urllib.request
@@ -130,7 +131,10 @@ class RecognitionUnavailable(ConfigurationError):
         self.reason, self.cause = reason, cause or reason
 
 
-PROVIDERS = ('codex', 'gemini')
+PROVIDERS = ('codex', 'gemini', 'claude')
+# R142: the recognizer's Claude phase, token exchange included, when Gemini is its fallback; Gemini keeps the rest
+# of the 40 s provider deadline (at least 25 s).
+CLAUDE_PHASE = 15
 
 
 def provider_module(name):
@@ -138,6 +142,8 @@ def provider_module(name):
         from . import receipt_provider_codex as module
     elif name == 'gemini':
         from . import receipt_provider_gemini as module
+    elif name == 'claude':
+        from . import receipt_provider_claude as module
     else:
         raise ConfigurationError('UNKNOWN_RECEIPT_PROVIDER')
     return module
@@ -151,10 +157,26 @@ def extraction_provider(config):
     return name
 
 
+def cycle_fallback(config):
+    """R142: 'gemini' when a failed Claude cycle extraction falls back to Gemini; None (default) otherwise."""
+    return config.get('receipt_cycle_fallback')
+
+
+def cycle_qr_reference(config):
+    """R142: whether the cycle replaces the model's reference with a valid slip QR reference (default off)."""
+    return config.get('receipt_cycle_qr_reference', False) is True
+
+
+def visible(text):
+    """The text without invisible format characters (Unicode category Cf, e.g. U+200B zero-width space)."""
+    return ''.join(ch for ch in text if unicodedata.category(ch) != 'Cf')
+
+
 def checked(value):
     """Host-side shape validation shared by every provider: exactly the schema keys and their JSON types.
 
-    Business rules (amounts, references, account matching) stay with the caller (receipt_rules / PWA API).
+    Returns a cleaned copy: every string and account number without format characters (R142). Business rules
+    (amounts, references, account matching) stay with the caller (receipt_rules / PWA API).
     """
     if not isinstance(value, dict) or set(value) != set(SCHEMA['required']):
         raise RecognitionUnavailable(cause='shape_invalid')
@@ -168,43 +190,95 @@ def checked(value):
             valid = isinstance(item, list) and all(isinstance(n, str) for n in item)
         if not valid:
             raise RecognitionUnavailable(cause='shape_invalid')
-    return value
+    return {key: visible(item) if isinstance(item, str) else [visible(n) for n in item] if isinstance(item, list) else item
+            for key, item in value.items()}
 
 
-def recognize(config, image_data, provider=None, deadline=None, attempt_timeout=None):
-    """Unaudited extraction: result with the provider name and its pinned model.
-
-    The recognizer passes only its request deadline; the receipt cycle passes its own Gemini deadline
-    and per-attempt timeout (Codex takes neither option).
-    """
-    name = provider or extraction_provider(config)
+def _run(config, name, image_data, deadline, attempt_timeout, environment):
     module = provider_module(name)
     options = {} if attempt_timeout is None else {'attempt_timeout': attempt_timeout}
-    return {'provider': name, 'model': module.model(config),
-            'result': checked(module.extract(config, image_data, deadline=deadline, **options))}
+    if name == 'claude':
+        options['environment'] = environment
+    return module.model(config), checked(module.extract(config, image_data, deadline=deadline, **options))
+
+
+def recognize(config, image_data, provider=None, deadline=None, attempt_timeout=None, fallback=None, qr_reference=False,
+              environment='prod'):
+    """Unaudited extraction: result with the provider name and pinned model that actually served it.
+
+    The recognizer passes only its request deadline; the receipt cycle passes its own deadline and per-attempt
+    timeout (Codex takes neither option). R142: Claude reads with the federation rule of `environment`; with
+    fallback 'gemini' a failed Claude phase (at most CLAUDE_PHASE seconds) is followed by Gemini with the remaining
+    deadline, and the value gains fallback_cause. With qr_reference a valid slip QR reference of an allowlisted bank
+    replaces the model's and the value gains reference_source and qr (receipt_qr.apply).
+    """
+    name = provider or extraction_provider(config)
+    value = {}
+    if name == 'claude' and fallback == 'gemini':
+        now = time.monotonic()
+        phase = now + CLAUDE_PHASE if deadline is None else min(deadline, now + CLAUDE_PHASE)
+        try:
+            model, result = _run(config, 'claude', image_data, phase, attempt_timeout, environment)
+        except RecognitionUnavailable as first:
+            try:
+                model, result = _run(config, 'gemini', image_data, deadline, attempt_timeout, environment)
+            except RecognitionUnavailable as second:
+                raise RecognitionUnavailable(second.reason, first.cause + '+' + second.cause) from None
+            name, value['fallback_cause'] = 'gemini', first.cause
+    else:
+        model, result = _run(config, name, image_data, deadline, attempt_timeout, environment)
+    if qr_reference:
+        from .receipt_qr import apply
+        result, trace = apply(result, image_data, config)
+        value.update(trace)
+    return {'provider': name, 'model': model, 'result': result, **value}
 
 
 def cycle_plan(name):
-    """Audit plan of a cycle extraction: provider and pinned model, so codex and gemini runs are told apart."""
-    return lambda config, _image_data: {'provider': name, 'model': provider_module(name).model(config)}
+    """Audit plan of a cycle extraction: provider and pinned model, so codex, gemini and claude runs are told apart."""
+    return lambda config, *_args, **_kwargs: {'provider': name, 'model': provider_module(name).model(config)}
 
 
 @audited('receipt_image_extraction',route='codex',action='PROCESS',plan=cycle_plan('codex'))
 def _extract_codex(config, image_data):
-    return recognize(config, image_data, 'codex')['result']
+    return recognize(config, image_data, 'codex', qr_reference=cycle_qr_reference(config))['result']
 
 
-# audit.events.route has a fixed CHECK list without 'gemini'; the plan names the provider.
+# audit.events.route has a fixed CHECK list without 'gemini' or 'claude'; the plan names the provider.
 @audited('receipt_image_extraction',route='internal',action='PROCESS',plan=cycle_plan('gemini'))
-def _extract_gemini(config, image_data):
+def _extract_gemini(config, image_data, deadline=None):
     # The cycle is not interactive: its own, longer Gemini bounds (the recognizer keeps 18/17/12 s).
     module = provider_module('gemini')
     attempt, total = module.cycle_timeouts(config)
-    return recognize(config, image_data, 'gemini', deadline=time.monotonic() + total, attempt_timeout=attempt)['result']
+    deadline = time.monotonic() + total if deadline is None else deadline
+    return recognize(config, image_data, 'gemini', deadline=deadline, attempt_timeout=attempt,
+                     qr_reference=cycle_qr_reference(config))['result']
+
+
+@audited('receipt_image_extraction',route='internal',action='PROCESS',plan=cycle_plan('claude'))
+def _extract_claude(config, image_data, deadline):
+    # R142: the cycle's per-attempt bound inside its total (receipt_cycle_gemini_*), always with the PROD rule.
+    attempt, _ = provider_module('gemini').cycle_timeouts(config)
+    return recognize(config, image_data, 'claude', deadline=deadline, attempt_timeout=attempt,
+                     qr_reference=cycle_qr_reference(config), environment='prod')['result']
 
 
 def extract(config, image_data):
-    """Receipt cycle entry point: the configured provider's validated result (Codex by default)."""
-    if extraction_provider(config) == 'gemini':
+    """Receipt cycle entry point: the configured provider's validated result (Codex by default).
+
+    R142 Claude: one audited Claude operation; when it is unavailable and receipt_cycle_fallback is 'gemini', a
+    second audited Gemini operation with the rest of the same total deadline.
+    """
+    name = extraction_provider(config)
+    if name == 'claude':
+        _, total = provider_module('gemini').cycle_timeouts(config)
+        deadline = time.monotonic() + total
+        try:
+            return _extract_claude(config, image_data, deadline)
+        except RecognitionUnavailable:
+            if cycle_fallback(config) != 'gemini':
+                raise
+            return _extract_gemini(config, image_data, deadline)
+    if name == 'gemini':
         return _extract_gemini(config, image_data)
     return _extract_codex(config, image_data)

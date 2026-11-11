@@ -11,7 +11,7 @@ import {CompactPager} from './CompactPager';
 import {PaymentResult} from './PaymentResult';
 import {confirmOwnPayment,verifiedOwnReceipt,type OwnReceipt} from './own-write-apply';
 import {useOnline} from './online-status';
-import {RECOGNITION_DEADLINE_MS} from './recognition-timing';
+import {RECOGNITION_DEADLINE_MS,receiptStage,receiptStageText,useSlowStage} from './recognition-timing';
 import {endSentence} from './close-recognition';
 import type {OwnerOfflineRepository} from './owner-offline';
 import {useEffect,useRef,useState} from 'react';
@@ -131,6 +131,11 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  // R110: a remainder plan is the business day's, so its payment is dated today whatever the slip date.
  const paymentDate=draft?(!plan&&slipDate&&slipDays(draft.businessDate).includes(slipDate)?slipDate:draft.businessDate):'';
  const recognized=recognition?.phase==='done'?recognition:null;
+ // R142-UX-05/06: the receipt status line. Preparing is shown in the picker's slot (it clears this line); offline, a picked
+ // receipt stays on the device and is sent with the queued payment, unread.
+ const stage=receiptStage({preparing:preparingReceipt,uploading,reading:recognition?.phase==='reading',offline:queueEnabled&&(!!access.offlineOnly||!online)&&!!localImage&&!receipt&&!uploadFailed});
+ const stageText=receiptStageText(stage,useSlowStage(stage,recognition?.receiptId??null),thai);
+ const statusEmpty=stage?!stageText:!(recognition&&recognition.phase!=='reading');
  const amountMismatch=!!recognized?.slipAmount&&received!==''&&received!==recognized.slipAmount;
  const accountMismatch=!!recognized?.slipAccountId&&account!==''&&account!==recognized.slipAccountId;
  const duplicateReference=!!recognized?.referenceExists&&bankTransfer&&referenceText!==''&&referenceText===recognized.slipReference;
@@ -578,10 +583,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  </>}
  <label><span className="field-title">{t('Notes','หมายเหตุ')}</span><textarea value={notes} onChange={event=>setNotes(event.target.value)}/></label>
  {/* R076: recognition messages sit directly above the receipt preview so they are seen with the slip. */}
- {recognition?.phase==='reading'&&<p className="field-help" role="status">{t('Reading slip…','กำลังอ่านสลิป…')}</p>}
- {recognition?.phase==='failed'&&<p className="field-help" role="status">{t('Slip not read — enter details manually.','อ่านสลิปไม่ได้ — กรุณากรอกรายละเอียดเอง')}</p>}
- {recognition?.phase==='unconfirmed'&&<p className="field-help" role="status">{t('The slip does not show a completed transfer — enter details manually.','สลิปไม่แสดงการโอนที่สำเร็จ — กรุณากรอกรายละเอียดเอง')}</p>}
- {recognized&&<p className="field-help recognition-note" role="status">{recognized.filled?.length?<>{t('From slip','จากสลิป')}{recognized.provider?` (${recognized.provider})`:''}: {recognized.filled.map(field=>({amount:t('amount','ยอด'),account:t('account','บัญชี'),reference:t('reference','เลขอ้างอิง'),date:t('date','วันที่')})[field]).join(', ')}. {t('Check before review.','ตรวจสอบก่อนกดตรวจสอบรายการ')}</>:t('Slip read; no empty fields to fill. Check before review.','อ่านสลิปแล้ว ไม่มีช่องว่างให้กรอก ตรวจสอบก่อนกดตรวจสอบรายการ')}{recognized.autoSkipped?' '+t('Auto-assign skipped: allocations already entered.','ไม่ได้จัดสรรอัตโนมัติ เพราะมีการจัดสรรอยู่แล้ว'):''}{recognized.autoOutcome==='empty'?' '+t('Auto-assign found no charges due by today — allocate below.','ไม่มีรายการครบกำหนดภายในวันนี้ให้จัดสรรอัตโนมัติ — กรุณาจัดสรรด้านล่าง'):recognized.autoOutcome==='failed'?' '+t('Auto-assign did not run — use Auto-assign or allocate below.','จัดสรรอัตโนมัติไม่สำเร็จ — กด จัดสรรอัตโนมัติ หรือจัดสรรด้านล่าง'):''}</p>}
+ {/* R142-UX-05/08: one status element whose text each stage replaces (Uploading → Reading → result); never moves focus. */}
+ <p className={'field-help'+(!stage&&recognized?' recognition-note':'')} role="status" style={statusEmpty?{margin:0}:undefined}>{stage?stageText:(recognition?.phase==='failed'?t('Slip not read — enter details manually.','อ่านสลิปไม่ได้ — กรุณากรอกรายละเอียดเอง'):recognition?.phase==='unconfirmed'?t('The slip does not show a completed transfer — enter details manually.','สลิปไม่แสดงการโอนที่สำเร็จ — กรุณากรอกรายละเอียดเอง'):recognized?<>{recognized.filled?.length?<>{t('From slip','จากสลิป')}{recognized.provider?` (${recognized.provider})`:''}: {recognized.filled.map(field=>({amount:t('amount','ยอด'),account:t('account','บัญชี'),reference:t('reference','เลขอ้างอิง'),date:t('date','วันที่')})[field]).join(', ')}. {t('Check before review.','ตรวจสอบก่อนกดตรวจสอบรายการ')}</>:t('Slip read; no empty fields to fill. Check before review.','อ่านสลิปแล้ว ไม่มีช่องว่างให้กรอก ตรวจสอบก่อนกดตรวจสอบรายการ')}{recognized.autoSkipped?' '+t('Auto-assign skipped: allocations already entered.','ไม่ได้จัดสรรอัตโนมัติ เพราะมีการจัดสรรอยู่แล้ว'):''}{recognized.autoOutcome==='empty'?' '+t('Auto-assign found no charges due by today — allocate below.','ไม่มีรายการครบกำหนดภายในวันนี้ให้จัดสรรอัตโนมัติ — กรุณาจัดสรรด้านล่าง'):recognized.autoOutcome==='failed'?' '+t('Auto-assign did not run — use Auto-assign or allocate below.','จัดสรรอัตโนมัติไม่สำเร็จ — กด จัดสรรอัตโนมัติ หรือจัดสรรด้านล่าง'):''}</>:null)}</p>
  {typeof recognized?.dateNotUsed==='string'&&<p className="field-help" role="status">{recognized.dateNotUsed?endSentence(`${t('Slip date not used: ','ไม่ได้ใช้วันที่ตามสลิป: ')}${displayValue(recognized.dateNotUsed)}`):t('Slip date not used.','ไม่ได้ใช้วันที่ตามสลิป')}</p>}
  <ReceiptPicker thai={thai} attached={!!(receipt||localImage||uploadFailed||uploading)} preview={preview} busy={uploading} onPreparing={setPreparingReceipt} onPick={file=>void upload(file)} onRemove={()=>{uploadGeneration.current++;setReceipt(null);setLocalImage(null);setPreview(null);setUploadFailed(false);setUploading(false);setError('');setRecognition(null);setSlipDate(null);setTransferTime('')}}/>
  {localImage&&!receipt&&!access.offlineOnly&&<button type="button" className="secondary-button" disabled={uploading} onClick={()=>void upload(new File([localImage],'receipt',{type:localImage.type}))}>{t('Upload saved receipt','อัปโหลดหลักฐานที่บันทึกไว้')}</button>}

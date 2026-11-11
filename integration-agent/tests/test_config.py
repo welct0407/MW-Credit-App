@@ -204,7 +204,7 @@ class RetiredConversationTests(unittest.TestCase):
     def test_catalogue_refuses_the_retired_services(self):
         from mw_integration_agent.config import RETIRED_SERVICES
         catalogue = load_json(ROOT / "service-catalogue.json")
-        self.assertEqual(catalogue["revision"], 36)  # R102 added chat_messages_relay (33) after R091's revision 32; R112 (34), R119 (35) and R128 (36) change no service
+        self.assertEqual(catalogue["revision"], 37)  # R102 added chat_messages_relay (33) after R091's revision 32; R112 (34), R119 (35), R128 (36) and R142 (37) change no service
         self.assertEqual(RETIRED_SERVICES & set(catalogue["services"]), set())
         validate_catalogue(catalogue)
         for name in sorted(RETIRED_SERVICES):
