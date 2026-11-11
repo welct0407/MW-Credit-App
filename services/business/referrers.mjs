@@ -88,11 +88,16 @@ const refereeLabel=(name,description)=>[name,description].map(v=>v==null?'':Stri
 const referee=({name,description,...row})=>({borrowerId:row.borrowerId,borrowerLabel:refereeLabel(name,description),loanCount:row.loanCount,openLoanCount:row.openLoanCount,
  unpaidAmount:row.unpaidAmount,paidAmount:row.paidAmount,offsetAmount:row.offsetAmount,accruingAmount:row.accruingAmount});
 /** GET /api/referrers: every borrower who referred at least one borrower (D6), with what they are owed and accruing. */
-export async function readReferrers(client){
- const businessDate=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day;
- if(!await rebateSettlementSchema(client))return {items:[],businessDate};
- const rows=(await client.query(`${referrerSql('true')} ORDER BY r.id COLLATE "C" LIMIT ${REFERRER_LIMIT+1}`)).rows;
- return {items:rows.slice(0,REFERRER_LIMIT).map(item).sort(compareReferrers),businessDate};
+/** R141 (owner, 11 November 2026): owed=1 narrows the list to referrers still owed rebates (pwa_rebates_owed_v1 > 0) and
+ * answers the filter's total: the referrers and the amount they are owed, which is the Cash Position "Rebates payable"
+ * amount (every referral rebate's payee is a listed referrer, and pwa_rebates_owed_v1 sums pwa_rebate_pending_v1). */
+export async function readReferrers(client,{owed=null}={}){
+ if(owed!==null&&owed!=='1')throw Error('invalid_request');
+ const businessDate=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day,filtered=owed==='1';
+ if(!await rebateSettlementSchema(client))return {items:[],businessDate,...(filtered?{filter:{owed:true,total:{count:0,amount:'0.00'}}}:{})};
+ const rows=(await client.query(`${referrerSql('true')}${filtered?' WHERE public.pwa_rebates_owed_v1(r.id)>0':''} ORDER BY r.id COLLATE "C" LIMIT ${REFERRER_LIMIT+1}`)).rows;
+ const total=filtered?(await client.query(`SELECT count(*)::int AS count,${money('coalesce(sum(owed),0)')} AS amount FROM (SELECT public.pwa_rebates_owed_v1(p.payee) AS owed FROM (SELECT DISTINCT x."Ref Payee Borrower" AS payee FROM public."Business Expenses" x WHERE x."Source Type"='Referral Rebate' AND x."Ref Payee Borrower" IS NOT NULL) p) s WHERE owed>0`)).rows[0]:null;
+ return {items:rows.slice(0,REFERRER_LIMIT).map(item).sort(compareReferrers),businessDate,...(filtered?{filter:{owed:true,total}}:{})};
 }
 /** GET /api/referrers/:id: the referrer and its unpaid rebates, open referred loans, history and settle options; null (404)
  * when the borrower referred nobody and has no rebate history. */

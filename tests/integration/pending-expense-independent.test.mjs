@@ -124,3 +124,33 @@ test('R140 the expense list is newest first within a day (created at), and pagin
  for(let k=1;k<seen.length;k++){const a=seen[k-1],b=seen[k];assert.ok(a.expenseDate>b.expenseDate||(a.expenseDate===b.expenseDate&&(a.createdAt>b.createdAt||(a.createdAt===b.createdAt&&a.id>b.id))),'descending order at '+k);}
  for(const id of ids){const item=(await store.expenseRecord(principal,id)).item;const deleted=await store.operation(principal,{requestId:randomUUID(),operation:'expense.delete',targetId:id,expectedVersion:item.version,predecessorRequestId:null,receiptId:null,inputs:{}});assert.equal(deleted.originalOutcome?.status,'applied');}
 });
+
+test('R141 the expense list filters to pending payment and to one payee, pages by the same keyset, and binds the cursor to its filter',async()=>{
+ const options=await store.expenseOptions(principal);assert.equal(options.status,200,JSON.stringify(options));
+ const day=options.businessDate,ids=[];
+ const create=async(amount,payee,account=null)=>{const target=randomUUID();const created=await store.operation(principal,{requestId:randomUUID(),operation:'expense.create',targetId:target,expectedVersion:null,predecessorRequestId:null,receiptId:null,
+  inputs:{expenseDate:day,category:'Other / อื่น ๆ',amount,payeeName:payee?null:'Synthetic filter',relatedBorrowerId:null,relatedLoanId:null,notes:null,paidByAccountId:account,payeeBorrowerId:payee}});
+  assert.equal(created.originalOutcome?.status,'applied',JSON.stringify(created));ids.push(target);return target};
+ const all=async query=>{const seen=[];let cursor=null,first=null;do{const page=await store.expenses(principal,{limit:1,cursor,...query});assert.equal(page.status,200,JSON.stringify(page));first??=page;seen.push(...page.items);cursor=page.nextCursor}while(cursor&&seen.length<500);return {first,seen}};
+ const owedA=await create('11',fixture.borrowerId),owedB=await create('4',fixture.borrowerId),other=await create('9',null),paid=await create('3',fixture.borrowerId,fixture.receivingAccountId);
+ // payment=pending: only pending rows (every page), the same total as the Cash Position line; newest first, no repeats.
+ const pending=await all({payment:'pending'});
+ assert.ok(pending.seen.every(row=>row.paymentState==='pending'),'only pending rows');assert.equal(new Set(pending.seen.map(row=>row.id)).size,pending.seen.length);
+ assert.ok([owedA,owedB,other].every(id=>pending.seen.some(row=>row.id===id)));assert.equal(pending.seen.some(row=>row.id===paid),false);
+ const position=await store.management(principal,'cash-position');assert.equal(position.status,200,JSON.stringify(position));
+ assert.deepEqual(pending.first.filter.total,{count:position.expensesPayable.count,amount:position.expensesPayable.amount},'the filter total is the Cash Position line');
+ assert.equal(pending.first.filter.total.count,pending.seen.length);
+ for(let k=1;k<pending.seen.length;k++){const a=pending.seen[k-1],b=pending.seen[k];assert.ok(a.expenseDate>b.expenseDate||(a.expenseDate===b.expenseDate&&(a.createdAt>b.createdAt||(a.createdAt===b.createdAt&&a.id>b.id))),'descending order at '+k)}
+ // payment=pending + payeeBorrowerId: this payee's pending rows, the same total as the borrower's Expenses owed line.
+ const owed=await all({payment:'pending',payeeBorrowerId:fixture.borrowerId});
+ assert.deepEqual(owed.seen.map(row=>row.id).sort(),[owedA,owedB].sort());
+ const borrower=await store.borrowerRecord(principal,fixture.borrowerId);
+ assert.deepEqual(owed.first.filter.total,{count:borrower.item.details.expensesOwedCount,amount:borrower.item.details.expensesOwedAmount});
+ // payeeBorrowerId alone: paid and pending rows of that payee.
+ const payee=await all({payeeBorrowerId:fixture.borrowerId});assert.deepEqual(payee.seen.map(row=>row.id).filter(id=>ids.includes(id)).sort(),[owedA,owedB,paid].sort());
+ // A cursor pages only its own filter; bad values are 400.
+ const page=await store.expenses(principal,{limit:1,payment:'pending'});assert.ok(page.nextCursor);
+ for(const query of [{},{payeeBorrowerId:fixture.borrowerId},{payment:'pending',payeeBorrowerId:fixture.borrowerId}])assert.equal((await store.expenses(principal,{limit:1,cursor:page.nextCursor,...query})).status,400,JSON.stringify(query));
+ for(const query of [{payment:'paid'},{payment:''},{payeeBorrowerId:''}])assert.equal((await store.expenses(principal,{limit:25,...query})).status,400,JSON.stringify(query));
+ for(const id of ids){const item=(await store.expenseRecord(principal,id)).item;const deleted=await store.operation(principal,{requestId:randomUUID(),operation:'expense.delete',targetId:id,expectedVersion:item.version,predecessorRequestId:null,receiptId:null,inputs:{}});assert.equal(deleted.originalOutcome?.status,'applied',JSON.stringify(deleted))}
+});

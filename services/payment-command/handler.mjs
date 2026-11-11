@@ -33,17 +33,20 @@ function route(raw) {
     const correction=/^\/api\/payment-records\/([^/]+)\/correction-preview$/.exec(url.pathname);
     if(correction){if([...url.searchParams.keys()].some(key=>!['targetLoanId','paymentDate','proposedBorrowerId'].includes(key)||url.searchParams.getAll(key).length!==1))return {invalid:true,operation:'unknown'};return {operation:'payment_record',paymentId:decodeURIComponent(correction[1]),preview:true,targetLoanId:url.searchParams.get('targetLoanId'),paymentDate:url.searchParams.get('paymentDate'),proposedBorrowerId:url.searchParams.get('proposedBorrowerId')};}
     const paged=url.pathname==='/api/expense-records'||/^\/api\/(payment-drafts\/[^/]+|borrowers\/[^/]+\/payments)$/.test(url.pathname);
+    // R141: the referrer list takes owed=1 (referrers still owed rebates); its value is validated by the read (400).
+    if(url.pathname==='/api/referrers'){if([...url.searchParams.keys()].some(key=>key!=='owed')||url.searchParams.getAll('owed').length>1)return {invalid:true,operation:'unknown'};return {operation:'referrer_list',options:{owed:url.searchParams.get('owed')}};}
     if(url.pathname==='/api/borrower-options'){if([...url.searchParams.keys()].some(key=>key!=='q')||url.searchParams.getAll('q').length>1)return {invalid:true,operation:'unknown'};return {operation:'borrower_options',query:url.searchParams.get('q')??''};}
-    if(url.search&&(!paged||[...url.searchParams.keys()].some(key=>!['limit','cursor','scope'].includes(key)||url.searchParams.getAll(key).length!==1)))return {invalid:true,operation:'unknown'};
+    // R141: the expense list also takes payment=pending and payeeBorrowerId (validated by the read; a bad value is 400).
+    const pageKeys=url.pathname==='/api/expense-records'?['limit','cursor','payment','payeeBorrowerId']:['limit','cursor','scope'];
+    if(url.search&&(!paged||[...url.searchParams.keys()].some(key=>!pageKeys.includes(key)||url.searchParams.getAll(key).length!==1)))return {invalid:true,operation:'unknown'};
     const pageOptions={limit:url.searchParams.has('limit')?Number(url.searchParams.get('limit')):25,cursor:url.searchParams.get('cursor'),scope:url.searchParams.get('scope')??'due'};
     if(url.pathname==='/api/borrower-options')return {operation:'borrower_options'};
     if(url.pathname==='/api/dashboard')return {operation:'dashboard'};
     if(url.pathname==='/api/preferences')return {operation:'preferences'};
     if(url.pathname==='/api/cash-overview')return {operation:'cash_overview'};
     if(url.pathname==='/api/expense-options')return {operation:'expense_options'};
-    if(url.pathname==='/api/expense-records')return {operation:'expense_list',options:pageOptions};
+    if(url.pathname==='/api/expense-records')return {operation:'expense_list',options:{limit:pageOptions.limit,cursor:pageOptions.cursor,payment:url.searchParams.get('payment'),payeeBorrowerId:url.searchParams.get('payeeBorrowerId')}};
     // R129 (V137): the Referrers page, a referrer's detail and one rebate settlement.
-    if(url.pathname==='/api/referrers')return {operation:'referrer_list'};
     const referrer=/^\/api\/referrers\/([^/]+)$/.exec(url.pathname);
     if(referrer)return {operation:'referrer_record',borrowerId:decodeURIComponent(referrer[1])};
     const rebateSettlement=/^\/api\/rebate-settlements\/([^/]+)$/.exec(url.pathname);
@@ -175,7 +178,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       else if(target.operation==='expense_record')result=await store.expenseRecord(principal,target.expenseId);
       else if(target.operation==='expense_options')result=await store.expenseOptions(principal);
       else if(target.operation==='expense_list')result=await store.expenses(principal,target.options);
-      else if(target.operation==='referrer_list')result=await store.referrers(principal);
+      else if(target.operation==='referrer_list')result=await store.referrers(principal,target.options);
       else if(target.operation==='referrer_record')result=await store.referrerRecord(principal,target.borrowerId);
       else if(target.operation==='rebate_settlement_record')result=await store.rebateSettlementRecord(principal,target.settlementId);
       else if(target.operation==='collection_receipts')result=await store.collectionReceipts(principal,target.borrowerId,target.options);

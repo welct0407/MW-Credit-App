@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readExpenseRecord,readExpensePage} from '../../services/business/expenses.mjs';
+import {readExpenseRecord,readExpensePage,expenseListFilter} from '../../services/business/expenses.mjs';
+import {createServer} from 'node:http';
+import {createPaymentCommandHandler} from '../../services/payment-command/handler.mjs';
 import {expensePendingSql} from '../../services/business/rebate-state.mjs';
 import {readManagementPosition} from '../../services/business/management-position.mjs';
 import {readBorrowerRecord} from '../../services/business/borrowers.mjs';
@@ -82,9 +84,44 @@ test('R140 the expense list is newest first: date, then created at, then id; the
  assert.deepEqual(first.items.map(i=>i.id),['E3','E2']);
  const cursor=JSON.parse(Buffer.from(first.nextCursor,'base64url').toString('utf8'));assert.deepEqual(cursor,{version:2,date:'2026-11-11',createdAt:'2026-11-11 10:00:01',id:'E2'});
  const next=await readExpensePage(client,{limit:2,cursor:first.nextCursor});assert.deepEqual(next.items.map(i=>i.id),['E1']);assert.equal(next.nextCursor,null);
- assert.deepEqual(seen.find(([sql,args])=>/ORDER BY/.test(sql)&&args[0]!==null)[1],['2026-11-11','2026-11-11 10:00:01','E2',3]);
+ assert.deepEqual(seen.find(([sql,args])=>/ORDER BY/.test(sql)&&args[0]!==null)[1],['2026-11-11','2026-11-11 10:00:01','E2',3,false,null]);
+ assert.equal(first.filter,undefined,'an unfiltered page answers no filter');assert.equal(seen.filter(([sql])=>/count\(\*\)/.test(sql)).length,0,'and counts nothing');
  // A version 1 cursor (date and id only) is refused; so is a malformed one.
  const v1=Buffer.from(JSON.stringify({version:1,date:'2026-11-11',id:'E2'})).toString('base64url');
  await assert.rejects(readExpensePage(client,{cursor:v1}),/invalid_request/);await assert.rejects(readExpensePage(client,{cursor:'not-json'}),/invalid_request/);
  await assert.rejects(readExpensePage(client,{cursor:Buffer.from(JSON.stringify({version:2,date:'2026-11-11',createdAt:'yesterday',id:'E2'})).toString('base64url')}),/invalid_request/);
+});
+test('R141 the list filters to pending payment (the Cash Position rule) and to one payee; the cursor is bound to its filter',async()=>{
+ const seen=[];const rows=[{id:'E3',expenseDate:'2026-11-11',createdAt:'2026-11-11 10:00:02',sourceType:'Manual',amount:'15.00'},{id:'E2',expenseDate:'2026-11-10',createdAt:'2026-11-10 10:00:01',sourceType:'Manual',amount:'5.00'},{id:'E1',expenseDate:'2026-11-09',createdAt:'2026-11-09 09:00:00',sourceType:'Manual',amount:'1.00'}];
+ const client={query:async(sql,args)=>{seen.push([sql,args]);if(/ORDER BY e\."Expense Date" DESC/.test(sql))return {rows:args[0]===null?rows:rows.slice(2)};if(/count\(\*\)::int AS count/.test(sql))return {rows:[{count:3,amount:'21.00'}]};return {rows:[]}}};
+ const first=await readExpensePage(client,{limit:2,payment:'pending',payeeBorrowerId:'B-PAYEE'});
+ const [listSql,listArgs]=seen.find(([sql])=>/ORDER BY/.test(sql));
+ assert.ok(listSql.includes(`($5::boolean IS NOT TRUE OR ${expensePendingSql('e')}) AND ($6::text IS NULL OR e."Ref Payee Borrower"=$6::text)`),'the pending rule of the totals');
+ assert.match(listSql,/ORDER BY e\."Expense Date" DESC,e\."Created At" DESC,e\."Row ID" COLLATE "C" DESC LIMIT \$4/);
+ assert.deepEqual(listArgs,[null,null,null,3,true,'B-PAYEE']);
+ const [totalSql,totalArgs]=seen.find(([sql])=>/count\(\*\)::int AS count/.test(sql));
+ assert.ok(totalSql.includes(`($1::boolean IS NOT TRUE OR ${expensePendingSql('e')}) AND ($2::text IS NULL OR e."Ref Payee Borrower"=$2::text)`));assert.match(totalSql,/sum\(e\."Amount"::numeric\)/);assert.deepEqual(totalArgs,[true,'B-PAYEE']);
+ assert.deepEqual(first.filter,{payment:'pending',payeeBorrowerId:'B-PAYEE',total:{count:3,amount:'21.00'}});
+ const cursor=JSON.parse(Buffer.from(first.nextCursor,'base64url').toString('utf8'));assert.equal(cursor.filter,'payment=pending&payee=B-PAYEE');
+ // The next page of the same filter is accepted (no second total); any other filter, or none, refuses that cursor.
+ seen.length=0;const next=await readExpensePage(client,{limit:2,cursor:first.nextCursor,payment:'pending',payeeBorrowerId:'B-PAYEE'});
+ assert.deepEqual(next.items.map(i=>i.id),['E1']);assert.equal(next.filter.total,undefined);assert.equal(seen.filter(([sql])=>/count\(\*\)/.test(sql)).length,0);
+ for(const other of [{},{payment:'pending'},{payeeBorrowerId:'B-PAYEE'},{payment:'pending',payeeBorrowerId:'B-OTHER'}])await assert.rejects(readExpensePage(client,{cursor:first.nextCursor,...other}),/invalid_request/,JSON.stringify(other));
+ const plain=(await readExpensePage(client,{limit:2})).nextCursor;await assert.rejects(readExpensePage(client,{cursor:plain,payment:'pending'}),/invalid_request/,'an unfiltered cursor does not page a filtered list');
+ // Bad values are refused before any query.
+ for(const bad of [{payment:'paid'},{payment:''},{payeeBorrowerId:''},{payeeBorrowerId:'a\nb'},{payeeBorrowerId:'x'.repeat(500)}])assert.throws(()=>expenseListFilter(bad),/invalid_request/,JSON.stringify(bad));
+ assert.deepEqual(expenseListFilter({payment:'pending'}),{payment:'pending',payeeBorrowerId:null});
+});
+test('R141 route: GET /api/expense-records passes payment and payeeBorrowerId; other parameters are 400',async()=>{
+ const reached=[];const store={expenses:async(_principal,options)=>{reached.push(options);return {ok:true,status:200,items:[],nextCursor:null}}};
+ const handler=createPaymentCommandHandler({origins:['http://127.0.0.1:9'],verifyPrincipal:async()=>({ok:true,email:'owner@example.invalid',subject:'s'}),store});
+ const server=createServer((req,res)=>void handler(req,res));await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const call=path=>fetch('http://127.0.0.1:'+server.address().port+path,{headers:{authorization:'Bearer x'}});
+ try{
+  assert.equal((await call('/api/expense-records?payment=pending&payeeBorrowerId=B-1&limit=25')).status,200);
+  assert.deepEqual(reached.at(-1),{limit:25,cursor:null,payment:'pending',payeeBorrowerId:'B-1'});
+  assert.equal((await call('/api/expense-records')).status,200);assert.deepEqual(reached.at(-1),{limit:25,cursor:null,payment:null,payeeBorrowerId:null});
+  for(const path of ['/api/expense-records?scope=due','/api/expense-records?payee=B-1','/api/expense-records?payment=pending&payment=pending'])assert.equal((await call(path)).status,400,path);
+  assert.equal(reached.length,2);
+ }finally{await new Promise(resolve=>server.close(resolve))}
 });

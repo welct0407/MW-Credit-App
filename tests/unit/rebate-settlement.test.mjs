@@ -84,9 +84,12 @@ test('routes: GET /api/referrers, /api/referrers/:id and /api/rebate-settlements
   assert.equal((await call('/api/referrers')).status,200);
   assert.equal((await call('/api/referrers/RS%20R')).status,200);
   assert.equal((await call('/api/rebate-settlements/c1111111-1111-4111-8111-111111111111')).status,200);
-  assert.deepEqual(reached,[['referrers'],['referrerRecord','RS R'],['rebateSettlementRecord','c1111111-1111-4111-8111-111111111111']]);
+  assert.deepEqual(reached,[['referrers',{owed:null}],['referrerRecord','RS R'],['rebateSettlementRecord','c1111111-1111-4111-8111-111111111111']]);
   assert.equal((await call('/api/referrers','POST')).status,405);assert.equal((await call('/api/rebate-settlements/x','DELETE')).status,405);
   assert.equal((await call('/api/referrers?q=Mai')).status,400);
+  // R141: owed=1 is passed to the read (which refuses another value); a repeated or other parameter is 400 here.
+  assert.equal((await call('/api/referrers?owed=1')).status,200);assert.deepEqual(reached.at(-1),['referrers',{owed:'1'}]);
+  for(const path of ['/api/referrers?owed=1&owed=1','/api/referrers?owed=1&q=x'])assert.equal((await call(path)).status,400,path);
  }finally{await new Promise(resolve=>server.close(resolve))}
 });
 test('PROD defect (R129): the record builders read through the offline bulk client, which takes scalar parameters only',async()=>{
@@ -104,4 +107,15 @@ test('a 503 names its cause in the log: error class, SQLSTATE, the first message
  logUnavailable('command_store_unavailable',Object.assign(Error('Invalid internal bulk read\nsecond line'),{code:'P0001'}),{readonly:true},write);
  logUnavailable('command_store_unavailable',Error('offline_read_cancelled'),{},write);
  assert.deepEqual(lines,[{readonly:true,error:'Error',sqlState:'P0001',message:'Invalid internal bulk read',severity:'ERROR',event:'command_store_unavailable'}]);
+});
+test('R141 owed=1 lists referrers still owed rebates (pwa_rebates_owed_v1 > 0) with the owed total of every rebate payee',async()=>{
+ const seen=[];const client={query:async sql=>{seen.push(sql);if(sql.includes('to_regclass'))return {rows:[{present:true}]};if(/AS day/.test(sql)||/BUSINESS|day/.test(sql)&&!/WITH referrers/.test(sql)&&!/count\(\*\)::int AS count/.test(sql))return {rows:[{day:'2026-11-05'}]};
+  if(/count\(\*\)::int AS count/.test(sql))return {rows:[{count:2,amount:'400.00'}]};return {rows:[]}}};
+ const owed=await readReferrers(client,{owed:'1'});
+ const list=seen.find(sql=>sql.includes('WITH referrers'));assert.match(list,/ WHERE public\.pwa_rebates_owed_v1\(r\.id\)>0 ORDER BY r\.id COLLATE "C" LIMIT 201$/);
+ const total=seen.find(sql=>/count\(\*\)::int AS count/.test(sql));
+ assert.match(total,/public\.pwa_rebates_owed_v1\(p\.payee\) AS owed FROM \(SELECT DISTINCT x\."Ref Payee Borrower" AS payee FROM public\."Business Expenses" x WHERE x\."Source Type"='Referral Rebate'/);assert.match(total,/WHERE owed>0$/);
+ assert.deepEqual(owed.filter,{owed:true,total:{count:2,amount:'400.00'}});
+ seen.length=0;const all=await readReferrers(client);assert.equal(all.filter,undefined);assert.ok(!seen.some(sql=>/pwa_rebates_owed_v1\(r\.id\)>0/.test(sql)||/count\(\*\)::int AS count/.test(sql)));
+ for(const bad of ['0','true','',' 1'])await assert.rejects(readReferrers(client,{owed:bad}),/invalid_request/,bad);
 });

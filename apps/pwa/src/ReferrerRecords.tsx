@@ -27,10 +27,12 @@ type Related={kind:'expense'|'payment'|'borrower'|'loan';id:string};
  */
 /** Opened in place from another page (the Borrower page, an expense's settlement), onExit and exitLabel are that page's Back
  * until the user navigates within Referrers (Echo NAV-1). */
-export function ReferrerRecords({access,thai,initialReferrerId,initialSettlementId,onExit,exitLabel}:{access:CommandAccess;thai:boolean;readOrigin?:string;initialReferrerId?:string;initialSettlementId?:string;onExit?:()=>void;exitLabel?:string}){
+/** R141 (owner, 11 November 2026): opened from the Cash Position "Rebates payable" line with owed, the list shows only the
+ * referrers still owed rebates (owed=1) with the server's total; onExit and exitLabel are then the list's Back. */
+export function ReferrerRecords({access,thai,initialReferrerId,initialSettlementId,onExit,exitLabel,owed}:{access:CommandAccess;thai:boolean;readOrigin?:string;initialReferrerId?:string;initialSettlementId?:string;onExit?:()=>void;exitLabel?:string;owed?:boolean}){
  const t=(en:string,th:string)=>thai?th:en;
  const [entry,setEntry]=useState(!!onExit&&!!(initialReferrerId||initialSettlementId)),exit=entry&&onExit?onExit:null;
- const [list,setList]=useState<{items:Referrer[];businessDate:string}|null>(null),[query,setQuery]=useState('');
+ const [list,setList]=useState<{items:Referrer[];businessDate:string;filter?:{owed:boolean;total?:{count:number;amount:string}}}|null>(null),[query,setQuery]=useState('');
  const [referrerId,setReferrerId]=useState<string|null>(initialReferrerId??null),[detail,setDetail]=useState<any>(null);
  const [settlementId,setSettlementId]=useState<string|null>(initialSettlementId??null),[settlement,setSettlement]=useState<any>(null);
  const [paying,setPaying]=useState(false),[deleting,setDeleting]=useState<any>(null),[related,setRelated]=useState<Related|null>(null);
@@ -38,13 +40,14 @@ export function ReferrerRecords({access,thai,initialReferrerId,initialSettlement
  // R131: Back returns to the opened row of the list, of a referrer and of a settlement; the three share this section, so an
  // opened page starts at the top of it.
  const listReturn=useListReturn(),detailReturn=useListReturn(),settlementReturn=useListReturn();
+ const owedRef=useRef(!!owed),[owedShown,setOwedShown]=useState(!!owed),listExit=!!onExit&&!initialReferrerId&&!initialSettlementId;
  const offline=access.offlineOnly||!navigator.onLine,networkTitle=t('Needs the network','ต้องเชื่อมต่ออินเทอร์เน็ต');
  async function read(path:string,apply:(data:any)=>void,failure:string,policy?:'network-only'){
   const current=++generation.current,controller=new AbortController();setBusy(true);setError(null);
   try{const {response,data}=await readCachedJson<any>(access,path,{signal:controller.signal,...(policy?{policy}:{}),onCached:data=>{if(current===generation.current){apply(data);setBusy(false)}}});
    if(current!==generation.current)return;if(response.status===404){apply(null);setError(t('No longer available.','ไม่พบรายการนี้แล้ว'));return;}if(!response.ok)throw Error();apply(data);}
   catch{if(current===generation.current)setError(failure)}finally{if(current===generation.current)setBusy(false)}}
- const loadList=(policy?:'network-only')=>read('/api/referrers',setList,t('Referrers unavailable.','ไม่สามารถโหลดผู้แนะนำ'),policy);
+ const loadList=(policy?:'network-only')=>read(owedRef.current?'/api/referrers?owed=1':'/api/referrers',setList,t('Referrers unavailable.','ไม่สามารถโหลดผู้แนะนำ'),policy);
  const loadDetail=(id:string,policy?:'network-only')=>read('/api/referrers/'+encodeURIComponent(id),setDetail,t('Referrer details unavailable.','ไม่สามารถโหลดรายละเอียดผู้แนะนำ'),policy);
  const loadSettlement=(id:string,policy?:'network-only')=>read('/api/rebate-settlements/'+encodeURIComponent(id),data=>setSettlement(data?.item??null),t('Settlement details unavailable.','ไม่สามารถโหลดรายการจ่าย'),policy);
  const reload=(policy?:'network-only')=>settlementId?loadSettlement(settlementId,policy):referrerId?loadDetail(referrerId,policy):loadList(policy);
@@ -102,10 +105,13 @@ export function ReferrerRecords({access,thai,initialReferrerId,initialSettlement
     return <button type="button" className="borrower-card referrer-line" key={key} data-record-id={key} onClick={event=>open(event.currentTarget)}><span>{text}<small>{shortDate(h.date,thai)}</small></span></button>}):<p>{t('No settlements yet','ยังไม่มีการจ่าย')}</p>}
    </>}</section>;}
  const rows=(list?.items??[]).filter(row=>matchesReferrer(row,query));
- return <section className="borrower-record referrer-records" aria-busy={busy}><div className="section-heading root-record-heading"><h2>{t('Referrers','ผู้แนะนำ')}</h2></div>
+ const owedTotal=owedShown?list?.filter?.total??null:null;
+ const clearOwed=()=>{owedRef.current=false;setOwedShown(false);setList(null);void loadList()};
+ return <section className="borrower-record referrer-records" aria-busy={busy}>{listExit&&onExit&&<HeaderBack navigationKey="referrers-owed" aria-label={exitLabel??t('Back','กลับ')} onClick={onExit}/>}<div className="section-heading root-record-heading"><h2>{t('Referrers','ผู้แนะนำ')}</h2></div>
+  {owedShown&&<fieldset className="expense-filter-bar" aria-label={t('Filter','ตัวกรอง')}><span className="rebate-chip rebate-chip-pending">{t('Owed rebates','ค้างจ่ายค่าแนะนำ')}</span>{owedTotal&&<span className="expense-filter-total">{t(owedTotal.count+(owedTotal.count===1?' referrer':' referrers')+' · '+wholeBaht(owedTotal.amount),owedTotal.count+' ผู้แนะนำ · '+wholeBaht(owedTotal.amount))}</span>}<button type="button" className="icon-action expense-filter-clear" aria-label={t('Clear filter','ล้างตัวกรอง')} title={t('Clear filter','ล้างตัวกรอง')} disabled={busy} onClick={clearOwed}><Icon name="close"/></button></fieldset>}
   <label className="referrer-search"><span className="field-title">{t('Search referrers','ค้นหาผู้แนะนำ')}</span><input type="search" value={query} autoComplete="off" onChange={event=>setQuery(event.target.value)}/></label>
   {failure}{list&&<p className="field-help" role="status">{t(rows.length+(rows.length===1?' referrer':' referrers'),'ผู้แนะนำ '+rows.length+' ราย')}</p>}
   {rows.map(row=><button type="button" className="borrower-card referrer-row" key={row.id} data-record-id={row.id} disabled={busy} onClick={event=>openReferrer(row.id,event.currentTarget)}><span className="referrer-row-name">{borrowerLabel(row.name,row.description)}{row.terms.custom&&<small>{row.terms.rate}% · {t('max ','สูงสุด ')+wholeBaht(row.terms.cap)}</small>}</span>
    <span className="referrer-row-figures"><span className={Number(row.unpaidAmount)>0?'referrer-unpaid':'referrer-unpaid muted'}>{unpaidLine(row)}</span><span className={row.accruingLoanCount===0?'muted':undefined}>{accruingLine(row)}</span></span></button>)}
-  {list&&!rows.length&&!busy&&<p>{query?t('No referrers match.','ไม่พบผู้แนะนำที่ตรงกัน'):t('No referrers yet.','ยังไม่มีผู้แนะนำ')}</p>}</section>;
+  {list&&!rows.length&&!busy&&<p className={owedShown&&!query?'live-empty':undefined} role={owedShown&&!query?'status':undefined}>{query?t('No referrers match.','ไม่พบผู้แนะนำที่ตรงกัน'):owedShown?t('No rebates owed.','ไม่มีค่าแนะนำค้างจ่าย'):t('No referrers yet.','ยังไม่มีผู้แนะนำ')}</p>}</section>;
 }
