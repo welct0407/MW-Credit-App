@@ -42,4 +42,6 @@ test('R140 (V144) paidDate is an optional last key after payeeBorrowerId: a date
  assert.throws(()=>canonicalExpenseFields({...input,paidByAccountId:null,paidDate:'2026-10-10'}),/invalid_request/,'a paid date needs an account');
  for(const bad of ['2026-02-30','10/10/2026','',7])assert.throws(()=>canonicalExpenseFields({...input,paidDate:bad}),/invalid_request/,String(bad));
  assert.equal('paidDate' in canonicalExpenseFields(input),false,'absent stays absent');
+ // R140 (V145): not before the expense date; the same day is fine.
+ assert.throws(()=>canonicalExpenseFields({...input,paidDate:'2026-10-08'}),/invalid_request/);assert.equal(canonicalExpenseFields({...input,paidDate:'2026-10-09'}).paidDate,'2026-10-09');
 });

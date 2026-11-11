@@ -33,6 +33,8 @@ if (-not $IsWindows -and (Test-Selected 'migrations')) {
     if ($LASTEXITCODE) { throw 'V130 legacy loss pair checks failed' }
     & python3 "$PSScriptRoot/Test-MigrationsCloud.py" --pre-target 143 --pre-sql scripts/database/Test-PaidDate-Before.sql --sql scripts/database/Test-PaidDate.sql --sql-only
     if ($LASTEXITCODE) { throw 'V144 paid date upgrade checks failed' }
+    & python3 "$PSScriptRoot/Test-MigrationsCloud.py" --pre-target 144 --pre-sql scripts/database/Test-PaidDateOrder-Before.sql --sql scripts/database/Test-PaidDateOrder.sql --sql-only
+    if ($LASTEXITCODE) { throw 'V145 paid date order upgrade checks failed' }
 }
 
 if ($IsWindows -and (Test-Selected 'migrations')) {
@@ -58,6 +60,8 @@ if ($IsWindows -and (Test-Selected 'migrations')) {
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 9 -PreMigrationSqlFile scripts/database/Test-WriteOffLegacyPair-Before.sql -TestSqlFile scripts/database/Test-WriteOffLegacyPair.sql
 
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 143 -PreMigrationSqlFile scripts/database/Test-PaidDate-Before.sql -TestSqlFile scripts/database/Test-PaidDate.sql
+
+& "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 144 -PreMigrationSqlFile scripts/database/Test-PaidDateOrder-Before.sql -TestSqlFile scripts/database/Test-PaidDateOrder.sql
 }
 
 if (Test-Selected 'receiving') {

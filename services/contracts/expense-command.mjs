@@ -25,6 +25,8 @@ export function canonicalExpenseFields(input,{create=false}={}){
  // R140 (V143): a borrower payee (an existing borrower, checked under lock) carries no typed name; the name is its snapshot.
  if(payeeKey&&result.payeeBorrowerId!==null&&result.payeeName!==null)throw Error('invalid_request');
  if(paidKey&&result.paidDate!==null&&result.paidByAccountId===null)throw Error('invalid_request');
+ // R140 (V145): a paid date is never before the expense date (the database refuses a later conflict as invalid_date).
+ if(paidKey&&result.paidDate!==null&&result.paidDate<result.expenseDate)throw Error('invalid_request');
  // R140 (V142): a positive expense without paidByAccountId is pending payment (no cash movement until an account is set).
  return result;
 }

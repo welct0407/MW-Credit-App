@@ -428,5 +428,26 @@ SELECT pg_temp.pd_assert(pg_temp.pd_status('unpay')='applied' AND pg_temp.pd_pai
 UPDATE "Business Expenses" SET "Paid Date"=(SELECT d FROM pd_day)-2 WHERE "Row ID"='c1440000-0000-4000-8000-000000000012';
 SET CONSTRAINTS ALL IMMEDIATE;
 SELECT pg_temp.pd_assert(pg_temp.pd_cash('c1440000-0000-4000-8000-000000000012')=((SELECT d FROM pd_day)-2)::text||'|70|CI-DAD','3: a paid date set by SQL moves the cash row');
+-- 4. R140 V145: a paid date is never before the expense date. In the command itself: not canonical; an 8-key edit that moves
+-- the expense date after the stored paid date: P5B08; the same date: accepted.
+SELECT set_config('pd.before',pg_temp.pd_cmd('b1450000-0000-4000-8000-000000000001','expense.update','c1440000-0000-4000-8000-000000000011',(SELECT d FROM pd_day)-4,'CI-DAD',to_char((SELECT d FROM pd_day)-5,'YYYY-MM-DD')),true),
+ set_config('pd.same',pg_temp.pd_cmd('b1450000-0000-4000-8000-000000000002','expense.update','c1440000-0000-4000-8000-000000000011',(SELECT d FROM pd_day)-4,'CI-DAD',to_char((SELECT d FROM pd_day)-4,'YYYY-MM-DD')),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN
+ BEGIN PERFORM public.pwa_submit_operation_v2(current_setting('pd.before'));PERFORM set_config('pd.out_before','accepted',false);
+ EXCEPTION WHEN SQLSTATE '22023' THEN PERFORM set_config('pd.out_before','invalid',false); END;
+ PERFORM set_config('pd.out_same',public.pwa_submit_operation_v2(current_setting('pd.same'))::text,false);
+END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.pd_assert(current_setting('pd.out_before')='invalid','4: a paid date before the expense date in the command is refused');
+SELECT pg_temp.pd_assert(pg_temp.pd_status('same')='applied' AND pg_temp.pd_paid('c1440000-0000-4000-8000-000000000011')=((SELECT d FROM pd_day)-4)::text,'4: the same date is accepted');
+SELECT set_config('pd.move',replace(pg_temp.pd_cmd('b1450000-0000-4000-8000-000000000003','expense.update','c1440000-0000-4000-8000-000000000011',(SELECT d FROM pd_day)-2,'CI-DAD','absent'),'"notes":null','"notes":"moved"'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('pd.out_move',public.pwa_submit_operation_v2(current_setting('pd.move'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.pd_assert(pg_temp.pd_status('move')='rejected' AND pg_temp.pd_code('move')='invalid_date' AND (SELECT "Expense Date"=(SELECT d FROM pd_day)-4 FROM "Business Expenses" WHERE "Row ID"='c1440000-0000-4000-8000-000000000011'),'4: moving the expense date after the paid date is refused (P5B08)');
+SELECT pg_temp.pd_reject($q$UPDATE "Business Expenses" SET "Paid Date"="Expense Date"-1 WHERE "Row ID"='c1440000-0000-4000-8000-000000000012'$q$,'A paid date cannot be before the expense date');
 SELECT 'Pool fallback and paid date regression passed' AS result;
 ROLLBACK;

@@ -343,6 +343,9 @@ BEGIN
    IF NEW."Paid Date" IS NOT NULL AND (NEW."Ref Paid By Cash Account" IS NULL
      OR EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=NEW."Row ID")) THEN
      RAISE EXCEPTION 'A paid date belongs to a paid manual expense'; END IF;
+   -- R140 V145: a paid date is never before the expense date, checked when either date is written (existing rows stay).
+   IF NEW."Paid Date"<NEW."Expense Date" AND (TG_OP='INSERT' OR NEW."Paid Date" IS DISTINCT FROM OLD."Paid Date" OR NEW."Expense Date" IS DISTINCT FROM OLD."Expense Date") THEN
+     RAISE EXCEPTION 'A paid date cannot be before the expense date'; END IF;
    NEW."Allocation Basis":='Expense Date Contribution Ratio';
  END IF;
  IF NEW."Ref Related Loan" IS NOT NULL AND NEW."Ref Related Borrower" IS NOT NULL AND
@@ -3162,7 +3165,7 @@ BEGIN
  ELSIF op='expense.update' THEN UPDATE public."Business Expenses" SET "Expense Date"=(i->>'expenseDate')::date,"Expense Category"=i->>'category',"Amount"=(i->>'amount')::numeric::money,"Payee Name"=payee_name,"Ref Payee Borrower"=payee,"Paid Date"=paid,"Ref Related Borrower"=i->>'relatedBorrowerId',"Ref Related Loan"=i->>'relatedLoanId',"Notes"=i->>'notes',"Ref Paid By Cash Account"=i->>'paidByAccountId',"Ref Paid By Cash Holder"=holder WHERE "Row ID"=target;
  ELSE DELETE FROM public."Business Expenses" WHERE "Row ID"=target;END IF;
  EXCEPTION WHEN foreign_key_violation THEN RAISE EXCEPTION USING ERRCODE='P5B05';WHEN SQLSTATE 'P0001' THEN GET STACKED DIAGNOSTICS message=MESSAGE_TEXT;
- IF message='Correct linked reimbursement before changing expense away from a positive Tommy-paid expense' THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSIF message='Related loan does not belong to related borrower' THEN RAISE EXCEPTION USING ERRCODE='P5B04';ELSIF message='A paid date belongs to a paid manual expense' THEN RAISE EXCEPTION USING ERRCODE='P5B08';ELSIF message IN('Expense allocation requires a positive A/B contribution pool on its allocation date','A negative manual adjustment requires an explanatory note') THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;END;
+ IF message='Correct linked reimbursement before changing expense away from a positive Tommy-paid expense' THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSIF message='Related loan does not belong to related borrower' THEN RAISE EXCEPTION USING ERRCODE='P5B04';ELSIF message IN('A paid date belongs to a paid manual expense','A paid date cannot be before the expense date' /* R140 V145 */) THEN RAISE EXCEPTION USING ERRCODE='P5B08';ELSIF message IN('Expense allocation requires a positive A/B contribution pool on its allocation date','A negative manual adjustment requires an explanatory note') THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;END;
  RETURN jsonb_build_object('operation',op,'targetType','expense','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);
 END $$;
 
@@ -6850,7 +6853,7 @@ BEGIN
  IF k IN('expenseDate','category','amount') AND jsonb_typeof(i->k) IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'expense required';END IF;
  IF k IN('relatedBorrowerId','relatedLoanId','paidByAccountId','payeeBorrowerId') AND i->k<>'null'::jsonb AND (octet_length(i->>k) NOT BETWEEN 1 AND 256 OR i->>k~'[[:cntrl:]]') THEN RAISE EXCEPTION 'expense reference';END IF;
  input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||coalesce(to_json(i->>k)::text,'null');END LOOP;input_text:=input_text||'}';
- IF i->>'expenseDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'expenseDate')::date)::text<>i->>'expenseDate' OR btrim(i->>'category')='' OR i->>'amount'!~'^-?[1-9][0-9]*$' OR abs((i->>'amount')::numeric)>92233720368547758 THEN RAISE EXCEPTION 'expense input';END IF; IF i->>'payeeBorrowerId' IS NOT NULL AND i->'payeeName'<>'null'::jsonb THEN RAISE EXCEPTION 'expense payee';END IF; IF i->>'paidDate' IS NOT NULL AND (i->>'paidDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paidDate')::date)::text<>i->>'paidDate' OR i->>'paidByAccountId' IS NULL) THEN RAISE EXCEPTION 'expense paid date';END IF; /* R140 V144: a paid date is a valid date and needs an account */ /* R140 V143: a borrower payee carries no typed name */
+ IF i->>'expenseDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'expenseDate')::date)::text<>i->>'expenseDate' OR btrim(i->>'category')='' OR i->>'amount'!~'^-?[1-9][0-9]*$' OR abs((i->>'amount')::numeric)>92233720368547758 THEN RAISE EXCEPTION 'expense input';END IF; IF i->>'payeeBorrowerId' IS NOT NULL AND i->'payeeName'<>'null'::jsonb THEN RAISE EXCEPTION 'expense payee';END IF; IF i->>'paidDate' IS NOT NULL AND (i->>'paidDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paidDate')::date)::text<>i->>'paidDate' OR i->>'paidByAccountId' IS NULL OR (i->>'paidDate')::date<(i->>'expenseDate')::date /* R140 V145 */) THEN RAISE EXCEPTION 'expense paid date';END IF; /* R140 V144: a paid date is a valid date and needs an account */ /* R140 V143: a borrower payee carries no typed name */
  ELSIF op='rebate-settlement.create' THEN
  -- R129: whole pending rebates of one referrer (1 to 200 distinct expense ids, ascending), date, Lisa's account, method,
  -- optional bank reference (Bank Transfer only) and notes.
