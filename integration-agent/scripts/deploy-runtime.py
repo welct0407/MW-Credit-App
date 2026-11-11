@@ -27,7 +27,7 @@ R142 (Claude receipt reader and slip QR reference): the one accepted change of a
 revision 37, the same shape: the candidate's services are exactly the repository revision 36 template's (unchanged in 37),
 the live services match them and the live switches are kept. The new behaviour is behind configuration a deploy keeps
 as it is: the receipt_claude_* settings, the optional route keys of receipt_recognition_callers entries and
-receipt_cycle_fallback / receipt_cycle_qr_reference (absent means today's behaviour; receipt_claude_* is not the retired
+receipt_cycle_fallback / receipt_cycle_qr_reference / receipt_cycle_clean_text (absent means today's behaviour; receipt_claude_* is not the retired
 claude_ prefix).
 `deploy-shared-receipt-api.py` is the engine; this file supplies the preparation. The probe is the engine's
 read-only receipt-status GET (the native conversation probe left with the conversation)."""

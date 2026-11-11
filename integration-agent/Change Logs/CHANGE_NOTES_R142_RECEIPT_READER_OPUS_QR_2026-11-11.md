@@ -7,7 +7,7 @@ A borrower slip on 11 November 2026 was held as PAYER_UNRESOLVED because the cur
 - New receipt provider Claude Opus 5.5 (`claude-opus-5-5`), adaptive thinking, effort low, the shared `SCHEMA` and `PROMPT`, the same 1600 px prepared image.
 - Keyless Anthropic workload identity federation, as the chat relay does.
 - Gemini stays the automatic fallback when Claude is unavailable (timeout, 5xx, refusal, invalid shape).
-- Invisible format characters (Unicode category Cf, for example U+200B) are stripped from model text fields before the shape check.
+- Invisible format characters (Unicode category Cf, for example U+200B) are stripped from model text fields before the shape check, opt-in per route (`clean_text` on the caller entry, `receipt_cycle_clean_text` for the cycle; default off; a Claude route does not enable it by itself).
 - The reference is read from the slip QR when present and CRC-valid; precedence against the OCR reference and any recognizer contract change are Archie's decisions.
 - DEV caller routed to the new reader; PROD caller and the Instagram receipt cycle unchanged.
 - Out of scope unless Archie finds it necessary: I/l folding in duplicate checks, a bank verification API, payer-name data fixes.
@@ -26,12 +26,19 @@ Aggregate results only; no slip images, names, accounts or references are kept i
 ## Changes
 Built in source on branch `claude/compassionate-heisenberg-ras6py`, code commit `64c23d8`.
 - Design (Archie): the recognizer result contract stays unchanged (no rolling-compatibility step). The QR reference replaces the model's reference only for allowlisted banks (default 002, 004, 006, 014, 030; 025 TrueMoney excluded because its QR carries a different identifier). Federation reuses the chat relay rule of the caller's environment. Routing is per caller, off by default, so PROD and the cycle are unchanged.
-- Implementation (Byte), integration agent: `receipt_provider_claude.py` (Opus 5.5, adaptive thinking, effort low, keyless, one attempt); `receipt_image.py` (provider list, 15 s Claude phase inside the 40 s deadline, Gemini fallback, invisible-character stripping, QR hook); `receipt_qr.py` (zxing-cpp 3.1.1, strict validation); `receipt_recognition_api.py` (caller route keys `provider`, `fallback`, `qr_reference`; cycle `claude`; audit `observed` gains `served_provider`, `served_model`, `fallback_cause`, `reference_source`, `qr`); `config.example.json` (`receipt_claude_model`, `receipt_claude_effort`, `receipt_cycle_fallback`, `receipt_cycle_qr_reference`, `receipt_qr_reference_banks`); `pyproject.toml` and `requirements.lock`; catalogue revision 37 (services unchanged) and a `deploy-runtime.py` 36 to 37 clause.
+- Implementation (Byte), integration agent: `receipt_provider_claude.py` (Opus 5.5, adaptive thinking, effort low, keyless, one attempt); `receipt_image.py` (provider list, 15 s Claude phase inside the 40 s deadline, Gemini fallback, opt-in invisible-character stripping `checked(value, clean=False)`, QR hook); `receipt_qr.py` (zxing-cpp 3.1.1, strict validation); `receipt_recognition_api.py` (caller route keys `provider`, `fallback`, `qr_reference`, `clean_text`; cycle `claude`; audit `observed` gains `served_provider`, `served_model`, `fallback_cause`, `reference_source`, `qr`); `config.example.json` (`receipt_claude_model`, `receipt_claude_effort`, `receipt_cycle_fallback`, `receipt_cycle_qr_reference`, `receipt_cycle_clean_text`, `receipt_qr_reference_banks`); `pyproject.toml` and `requirements.lock`; catalogue revision 37 (services unchanged) and a `deploy-runtime.py` 36 to 37 clause.
 - Implementation (Byte, Echo), PWA: slip upload progress messages (R142-UX-05..10; copy in `recognition-timing.ts` and the five forms; "Preparing receipt..." stays only in the picker).
 - Tests: `tests/test_receipt_qr.py`, `tests/test_receipt_recognition.py`, `tests/test_config.py`, `tests/test_deploy_runtime.py`, `tests/unit/receipt-recognition-timing.test.mjs`.
 - Records (Dewey): this note, `Release_Tracker.md`, `Development_Changes.md`, `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md`, `Environment_Inventory.md` (planned state only).
 
+## Owner deploy decision
+11 November 2026: gate the invisible-character stripping, then merge PR #288 and deploy. There is no DEV agent, so the code goes to the one live VM; DEV is switched by configuration while PROD and the Instagram receipt cycle read exactly as today.
+
+## Pre-deploy baseline (Forge, captured 2026-11-11T17:49:39Z)
+Rollback baseline: agent `code_version` `246bcb93`, catalogue revision 36, DEV Hosting version `a3d0594cc8f5511f`, recognizer and chat relay healthy, `mw-integration-agent check` exit 0.
+
 ## DEV activation
+Planned, not applied: the `command-dev` caller gets `provider` claude, `fallback` gemini, `qr_reference` true and `clean_text` true, plus `receipt_claude_model` `claude-opus-5-5`, `receipt_claude_effort` `low` and the default QR bank list. The `command-prod` caller and the cycle stay unchanged.
 Pending: not deployed or activated; CI, DEV deploy, DEV activation and the performance measurement are not done.
 
 ## PROD

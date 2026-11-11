@@ -141,19 +141,20 @@ Source, 11 November 2026 (catalogue revision 37, services unchanged); built and 
 
 **Fallback and deadline.** With `fallback: gemini` a failed Claude phase (timeout, 5xx, refusal, invalid shape, federation failure) is followed by Gemini. The Claude phase, token exchange included, is capped at 15 s inside the 40 s recognizer provider deadline; Gemini keeps the rest (at least 25 s). The value gains `fallback_cause`; if both fail the causes are joined and the caller sees "recognition unavailable" as before. The cycle uses `receipt_cycle_fallback` inside its own total deadline, as two audited operations.
 
-**Invisible characters.** The shared shape check strips Unicode category Cf characters (for example U+200B) from every string and account number before any rule runs, for all providers.
+**Invisible characters.** Opt-in per route (default off, so existing readings are unchanged). With `clean_text` true on the caller entry, or `receipt_cycle_clean_text` true for the cycle, the shared shape check strips Unicode category Cf characters (for example U+200B) from every string and account number before any rule runs. A Claude route does not turn it on by itself; after a fallback Gemini follows the same route setting.
 
 **Slip QR reference.** `receipt_qr.py` decodes the QR from the canonical PNG with zxing-cpp 3.1.1 (pinned in `pyproject.toml` and `requirements.lock`, hash-checked). It accepts exactly one distinct payload that is ASCII, at most 512 characters, strict TLV with tag 91 last, CRC16-CCITT-FALSE valid, `51` equal to `TH`, API id `000001` and a transaction reference of 6 to 100 letters or digits. Anything else, a decoder failure or a missing decoder counts as no QR and never fails recognition. The QR reference replaces the model's reference only when the sending bank code is allowlisted by `receipt_qr_reference_banks` (default 002, 004, 006, 014, 030). Bank 025 (TrueMoney) is excluded because its QR carries a different identifier. The QR carries no amount, name, account or time and does not prove a slip is genuine. Duplicate checks, I/l folding and bank verification are unchanged and out of scope.
 
 **Contract.** The result keys and the response of `POST /v1/receipt-recognition` are unchanged, so the command services need no rolling-compatibility step; `provider` and `model` name what served the slip.
 
-**Routing.** Each `receipt_recognition_callers` entry may add route keys `provider` (`claude` or `gemini`, else `receipt_recognition_provider`), `fallback` (`gemini`, only with `provider` `claude`) and `qr_reference` (boolean, default false). Absent keys keep today's behaviour. DEV first means only the `command-dev` entry is given `claude` with `fallback` `gemini` and `qr_reference` true; the `command-prod` entry and the cycle stay unchanged. The cycle's switches are `receipt_extraction_provider` `claude`, `receipt_cycle_fallback` (`gemini` or null) and `receipt_cycle_qr_reference`, all off by default.
+**Routing.** Each `receipt_recognition_callers` entry may add route keys `provider` (`claude` or `gemini`, else `receipt_recognition_provider`), `fallback` (`gemini`, only with `provider` `claude`) and `qr_reference` and `clean_text` (booleans, default false). Absent keys keep today's behaviour. DEV first means only the `command-dev` entry is given `claude` with `fallback` `gemini`, `qr_reference` true and `clean_text` true; the `command-prod` entry and the cycle stay unchanged. The cycle's switches are `receipt_extraction_provider` `claude`, `receipt_cycle_fallback` (`gemini` or null), `receipt_cycle_qr_reference` and `receipt_cycle_clean_text`, all off by default.
 
 | Setting | Meaning |
 | --- | --- |
 | `receipt_claude_model` | Fixed Claude model id, `claude-opus-5-5` in the example. |
 | `receipt_claude_effort` | `low` (default), `medium` or `high`. |
 | `receipt_cycle_fallback` | `null` (default) or `gemini`; only with `receipt_extraction_provider` `claude`. |
+| `receipt_cycle_clean_text` | Boolean, default false: the cycle strips invisible characters. |
 | `receipt_cycle_qr_reference` | Boolean, default false: the cycle applies the QR reference. |
 | `receipt_qr_reference_banks` | List of up to 20 three-digit bank codes allowed to replace the reference; default `002`, `004`, `006`, `014`, `030`. |
 

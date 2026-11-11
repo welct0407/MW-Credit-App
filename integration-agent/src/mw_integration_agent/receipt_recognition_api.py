@@ -9,8 +9,8 @@ once (else 503 busy) and each request is bounded (503 timeout). GET /healthz nee
 never calls a provider. The listener binds only to a private VPC address.
 
 R142: a caller entry may name its own route: `provider` (claude or gemini, else receipt_recognition_provider),
-`fallback` ('gemini', only with provider claude) and `qr_reference` (true: a valid slip QR reference replaces the
-model's). Absent keys keep the earlier behaviour. Claude reads with the chat relay's federation rule of the caller's
+`fallback` ('gemini', only with provider claude), `qr_reference` (true: a valid slip QR reference replaces the
+model's) and `clean_text` (true: invisible format characters are stripped from the reading). Absent keys keep the earlier behaviour. Claude reads with the chat relay's federation rule of the caller's
 environment (command-dev -> dev, command-prod -> prod). The result contract is unchanged.
 """
 import base64
@@ -45,7 +45,7 @@ CALLER_EMAIL = re.compile(r'[a-z0-9-]+@(?:[a-z0-9-]+\.iam|developer)\.gserviceac
 # R142: the federation rule a caller's Claude route uses, from the whole command-service email (fullmatch).
 CALLER_ENVIRONMENT = re.compile(r'mw-credit-app-command-(dev|prod)@clever-oasis-508610-n7\.iam\.gserviceaccount\.com')
 CALLER_KEYS = frozenset({'email', 'subject'})
-ROUTE_KEYS = frozenset({'provider', 'fallback', 'qr_reference'})
+ROUTE_KEYS = frozenset({'provider', 'fallback', 'qr_reference', 'clean_text'})
 CALLER_PROVIDERS = ('claude', 'gemini')
 CLOCK_SKEW = 60
 FETCH_BACKOFF = 60  # seconds between Google key fetches, successful or failed
@@ -74,8 +74,9 @@ def validate(config):
         if fallback != 'gemini' or cycle != 'claude':
             raise ConfigurationError('receipt_cycle_fallback must be gemini, with receipt_extraction_provider claude')
         provider_module('gemini').validate(config)
-    if type(config.get('receipt_cycle_qr_reference', False)) is not bool:
-        raise ConfigurationError('receipt_cycle_qr_reference must be boolean')
+    for key in ('receipt_cycle_qr_reference', 'receipt_cycle_clean_text'):
+        if type(config.get(key, False)) is not bool:
+            raise ConfigurationError(key + ' must be boolean')
     from .receipt_qr import banks
     banks(config)  # receipt_qr_reference_banks, whenever present
     if type(config.get('receipt_recognition_enabled', False)) is not bool:
@@ -135,8 +136,9 @@ def callers(config):
             raise ConfigurationError('receipt_recognition_callers provider must be claude or gemini')
         if 'fallback' in caller and (caller['fallback'] != 'gemini' or caller.get('provider') != 'claude'):
             raise ConfigurationError('receipt_recognition_callers fallback must be gemini, with provider claude')
-        if 'qr_reference' in caller and type(caller['qr_reference']) is not bool:
-            raise ConfigurationError('receipt_recognition_callers qr_reference must be boolean')
+        for key in ('qr_reference', 'clean_text'):
+            if key in caller and type(caller[key]) is not bool:
+                raise ConfigurationError(f'receipt_recognition_callers {key} must be boolean')
     return value
 
 
@@ -150,9 +152,10 @@ def environment_of(caller):
 
 
 def route(config, caller):
-    """The caller's route: provider, fallback (None or 'gemini'), qr_reference and federation environment."""
+    """The caller's route: provider, fallback (None or 'gemini'), qr_reference, clean_text and federation environment."""
     return {'provider': caller.get('provider', provider(config)), 'fallback': caller.get('fallback'),
-            'qr_reference': caller.get('qr_reference', False), 'environment': environment_of(caller)}
+            'qr_reference': caller.get('qr_reference', False), 'clean_text': caller.get('clean_text', False),
+            'environment': environment_of(caller)}
 
 
 # Google ID token verification (RS256, Google signing keys, pinned claims) ----------------------
@@ -291,7 +294,8 @@ def recognise_image(config, caller, raw, deadline):
     chosen = route(config, caller)
     try:
         return recognize(config, image, chosen['provider'], deadline=deadline, fallback=chosen['fallback'],
-                         qr_reference=chosen['qr_reference'], environment=chosen['environment'] or 'prod')
+                         qr_reference=chosen['qr_reference'], environment=chosen['environment'] or 'prod',
+                         clean_text=chosen['clean_text'])
     except RecognitionUnavailable as exc:
         raise unavailable('timeout' if exc.reason == 'timeout' else 'provider_error', exc.cause) from None
     except ConfigurationError:

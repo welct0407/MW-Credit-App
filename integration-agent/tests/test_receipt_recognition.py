@@ -904,15 +904,49 @@ class ClaudeTests(unittest.TestCase):
     def test_checked_strips_format_characters(self):
         dirty = {**RESULT, 'reference': 'SYN\u200b1234\u200c56', 'payer_name': '\ufeffMR. SYNTHETIC\u00ad P***',
                  'account_numbers': ['xxx-x-x43\u200b21-x', '\u2060123'], 'amount': '1500.00\u200e'}
-        cleaned = receipt_image.checked(dirty)
+        self.assertIs(receipt_image.checked(dirty), dirty)  # default: the reading exactly as before (owner decision, R142)
+        cleaned = receipt_image.checked(dirty, clean=True)
         self.assertEqual((cleaned['reference'], cleaned['payer_name'], cleaned['account_numbers'], cleaned['amount']),
                          ('SYN123456', 'MR. SYNTHETIC P***', ['xxx-x-x4321-x', '123'], '1500.00'))
         self.assertIn('\u200b', dirty['reference'])  # a cleaned copy; the input is untouched
         thai = {**RESULT, 'payer_name': 'นาย สังเคราะห์ ทดสอบ'}
-        self.assertEqual(receipt_image.checked(thai), thai)  # Thai letters and marks are not format characters
+        self.assertEqual(receipt_image.checked(thai, clean=True), thai)  # Thai letters and marks are not format characters
         for name in ('codex', 'gemini'):
             with self.subTest(provider=name), patch(f'mw_integration_agent.receipt_provider_{name}.extract', return_value=dict(dirty)):
-                self.assertEqual(receipt_image.recognize(GEMINI, b'png', name)['result']['reference'], 'SYN123456')
+                self.assertEqual(receipt_image.recognize(GEMINI, b'png', name)['result'], dirty)
+                self.assertEqual(receipt_image.recognize(GEMINI, b'png', name, clean_text=True)['result']['reference'], 'SYN123456')
+        with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_http_529')), \
+                patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(dirty)):
+            value = receipt_image.recognize({**GEMINI, **CLAUDE}, b'png', 'claude', fallback='gemini', clean_text=True)
+        self.assertEqual(value['result']['reference'], 'SYN123456')  # the fallback reading is cleaned on the same route
+
+    def test_clean_text_is_opt_in_per_caller_and_for_the_cycle(self):
+        dirty = {**RESULT, 'reference': 'SYN\u200b123456', 'payer_name': 'MR.\u200b SYNTHETIC'}
+        caller = recognizer_config('/tmp', receipt_recognition_callers=[{**DEV, 'clean_text': True}, PROD])
+        with patch('mw_integration_agent.receipt_provider_gemini.extract', side_effect=lambda *a, **k: dict(dirty)):
+            # A PROD caller without the key: U+200B passes through unchanged (today's behaviour).
+            self.assertEqual(api.recognise_image(caller, PROD, png(), time.monotonic() + 40)['result'], dirty)
+            cleaned = api.recognise_image(caller, caller['receipt_recognition_callers'][0], png(), time.monotonic() + 40)['result']
+        self.assertEqual((cleaned['reference'], cleaned['payer_name']), ('SYN123456', 'MR. SYNTHETIC'))
+        # The cycle: default unchanged; receipt_cycle_clean_text opts in.
+        config = {**GEMINI, 'receipt_extraction_provider': 'gemini'}
+        with patch('mw_integration_agent.receipt_provider_gemini.extract', side_effect=lambda *a, **k: dict(dirty)):
+            self.assertEqual(receipt_image.extract(config, b'png'), dirty)
+            self.assertEqual(receipt_image.extract({**config, 'receipt_cycle_clean_text': True}, b'png')['reference'], 'SYN123456')
+        with patch('mw_integration_agent.receipt_provider_codex.extract', side_effect=lambda *a, **k: dict(dirty)):
+            self.assertEqual(receipt_image.extract({}, b'png'), dirty)
+        # Booleans only.
+        example = load_json(ROOT / 'config.example.json')
+        self.assertIs(example['receipt_cycle_clean_text'], False)
+        validate_config({**example, 'receipt_cycle_clean_text': True})
+        for bad in ('true', 1, None):
+            with self.subTest(bad=bad), self.assertRaisesRegex(ConfigurationError, 'receipt_cycle_clean_text must be boolean'):
+                validate_config({**example, 'receipt_cycle_clean_text': bad})
+            with tempfile.TemporaryDirectory() as directory, self.subTest(caller=bad), \
+                    self.assertRaisesRegex(ConfigurationError, 'clean_text must be boolean'):
+                validate_config(recognizer_config(directory, receipt_recognition_callers=[{**DEV, 'clean_text': bad}]))
+        with tempfile.TemporaryDirectory() as directory:
+            validate_config(recognizer_config(directory, receipt_recognition_callers=[{**DEV, 'clean_text': True}, {**PROD, 'clean_text': False}]))
 
     def test_claude_failure_falls_back_to_gemini_and_reports_gemini(self):
         config = {**GEMINI, **CLAUDE}
@@ -1110,7 +1144,9 @@ class RouteTests(ContractTests):
         self.assertEqual((status, reply['provider']), (200, 'gemini'))
         call = api.recognize.call_args
         self.assertEqual((call.args[2], call.kwargs['fallback'], call.kwargs['qr_reference']), ('gemini', None, False))
-        self.assertEqual(api.route(self.config, DEV), {'provider': 'gemini', 'fallback': None, 'qr_reference': False, 'environment': 'dev'})
+        self.assertEqual(api.route(self.config, DEV), {'provider': 'gemini', 'fallback': None, 'qr_reference': False, 'clean_text': False,
+                                                       'environment': 'dev'})
+        self.assertFalse(api.recognize.call_args.kwargs['clean_text'])
         self.assertEqual(self.audits[-1][6], {})
 
     def test_fallback_reply_names_gemini(self):

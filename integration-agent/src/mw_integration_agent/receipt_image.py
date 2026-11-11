@@ -162,6 +162,11 @@ def cycle_fallback(config):
     return config.get('receipt_cycle_fallback')
 
 
+def cycle_clean_text(config):
+    """R142: whether the cycle strips invisible format characters from the model's text (default off)."""
+    return config.get('receipt_cycle_clean_text', False) is True
+
+
 def cycle_qr_reference(config):
     """R142: whether the cycle replaces the model's reference with a valid slip QR reference (default off)."""
     return config.get('receipt_cycle_qr_reference', False) is True
@@ -172,11 +177,13 @@ def visible(text):
     return ''.join(ch for ch in text if unicodedata.category(ch) != 'Cf')
 
 
-def checked(value):
+def checked(value, clean=False):
     """Host-side shape validation shared by every provider: exactly the schema keys and their JSON types.
 
-    Returns a cleaned copy: every string and account number without format characters (R142). Business rules
-    (amounts, references, account matching) stay with the caller (receipt_rules / PWA API).
+    The value is returned as it is, unless the route opted in to clean text (R142: caller clean_text, cycle
+    receipt_cycle_clean_text; default off, so readings stay exactly as before): then a cleaned copy, every string and
+    account number without format characters. Business rules (amounts, references, account matching) stay with the
+    caller (receipt_rules / PWA API).
     """
     if not isinstance(value, dict) or set(value) != set(SCHEMA['required']):
         raise RecognitionUnavailable(cause='shape_invalid')
@@ -190,6 +197,8 @@ def checked(value):
             valid = isinstance(item, list) and all(isinstance(n, str) for n in item)
         if not valid:
             raise RecognitionUnavailable(cause='shape_invalid')
+    if not clean:
+        return value
     return {key: visible(item) if isinstance(item, str) else [visible(n) for n in item] if isinstance(item, list) else item
             for key, item in value.items()}
 
@@ -199,23 +208,24 @@ def failure_cause(exc, provider):
     return exc.cause if isinstance(exc, RecognitionUnavailable) else f'{provider}_{type(exc).__name__}'
 
 
-def _run(config, name, image_data, deadline, attempt_timeout, environment):
+def _run(config, name, image_data, deadline, attempt_timeout, environment, clean_text=False):
     module = provider_module(name)
     options = {} if attempt_timeout is None else {'attempt_timeout': attempt_timeout}
     if name == 'claude':
         options['environment'] = environment
-    return module.model(config), checked(module.extract(config, image_data, deadline=deadline, **options))
+    return module.model(config), checked(module.extract(config, image_data, deadline=deadline, **options), clean_text)
 
 
 def recognize(config, image_data, provider=None, deadline=None, attempt_timeout=None, fallback=None, qr_reference=False,
-              environment='prod'):
+              environment='prod', clean_text=False):
     """Unaudited extraction: result with the provider name and pinned model that actually served it.
 
     The recognizer passes only its request deadline; the receipt cycle passes its own deadline and per-attempt
     timeout (Codex takes neither option). R142: Claude reads with the federation rule of `environment`; with
     fallback 'gemini' a failed Claude phase (at most CLAUDE_PHASE seconds) is followed by Gemini with the remaining
     deadline, and the value gains fallback_cause. With qr_reference a valid slip QR reference of an allowlisted bank
-    replaces the model's and the value gains reference_source and qr (receipt_qr.apply).
+    replaces the model's and the value gains reference_source and qr (receipt_qr.apply). With clean_text every provider's
+    text loses invisible format characters (checked); without it the reading is exactly as before.
     """
     name = provider or extraction_provider(config)
     value = {}
@@ -223,16 +233,16 @@ def recognize(config, image_data, provider=None, deadline=None, attempt_timeout=
         now = time.monotonic()
         phase = now + CLAUDE_PHASE if deadline is None else min(deadline, now + CLAUDE_PHASE)
         try:
-            model, result = _run(config, 'claude', image_data, phase, attempt_timeout, environment)
+            model, result = _run(config, 'claude', image_data, phase, attempt_timeout, environment, clean_text)
         except Exception as first:  # any Claude failure falls back, not only RecognitionUnavailable
             try:
-                model, result = _run(config, 'gemini', image_data, deadline, attempt_timeout, environment)
+                model, result = _run(config, 'gemini', image_data, deadline, attempt_timeout, environment, clean_text)
             except Exception as second:
                 reason = second.reason if isinstance(second, RecognitionUnavailable) else 'provider_error'
                 raise RecognitionUnavailable(reason, failure_cause(first, 'claude') + '+' + failure_cause(second, 'gemini')) from None
             name, value['fallback_cause'] = 'gemini', failure_cause(first, 'claude')
     else:
-        model, result = _run(config, name, image_data, deadline, attempt_timeout, environment)
+        model, result = _run(config, name, image_data, deadline, attempt_timeout, environment, clean_text)
     if qr_reference:
         from .receipt_qr import apply
         result, trace = apply(result, image_data, config)
@@ -247,7 +257,7 @@ def cycle_plan(name):
 
 @audited('receipt_image_extraction',route='codex',action='PROCESS',plan=cycle_plan('codex'))
 def _extract_codex(config, image_data):
-    return recognize(config, image_data, 'codex', qr_reference=cycle_qr_reference(config))['result']
+    return recognize(config, image_data, 'codex', qr_reference=cycle_qr_reference(config), clean_text=cycle_clean_text(config))['result']
 
 
 # audit.events.route has a fixed CHECK list without 'gemini' or 'claude'; the plan names the provider.
@@ -258,7 +268,7 @@ def _extract_gemini(config, image_data, deadline=None):
     attempt, total = module.cycle_timeouts(config)
     deadline = time.monotonic() + total if deadline is None else deadline
     return recognize(config, image_data, 'gemini', deadline=deadline, attempt_timeout=attempt,
-                     qr_reference=cycle_qr_reference(config))['result']
+                     qr_reference=cycle_qr_reference(config), clean_text=cycle_clean_text(config))['result']
 
 
 @audited('receipt_image_extraction',route='internal',action='PROCESS',plan=cycle_plan('claude'))
@@ -266,7 +276,7 @@ def _extract_claude(config, image_data, deadline):
     # R142: the cycle's per-attempt bound inside its total (receipt_cycle_gemini_*), always with the PROD rule.
     attempt, _ = provider_module('gemini').cycle_timeouts(config)
     return recognize(config, image_data, 'claude', deadline=deadline, attempt_timeout=attempt,
-                     qr_reference=cycle_qr_reference(config), environment='prod')['result']
+                     qr_reference=cycle_qr_reference(config), environment='prod', clean_text=cycle_clean_text(config))['result']
 
 
 def extract(config, image_data):
