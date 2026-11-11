@@ -31,8 +31,13 @@ export function receiptStageText(stage:ReceiptStage,slow:boolean,thai:boolean):s
  return null;
 }
 
-/** Calls onSlow once when the stage has lasted its threshold; returns the cancel function (none for a stage without one). */
-export function watchSlow(stage:ReceiptStage,onSlow:()=>void,timers:{set:typeof setTimeout;clear:typeof clearTimeout}={set:setTimeout,clear:clearTimeout}):()=>void{
+/**
+ * Calls onSlow once when the stage has lasted its threshold; returns the cancel function (none for a stage without one).
+ * The default timers are plain function calls: a browser throws "Illegal invocation" for setTimeout called as a method.
+ */
+type Timers={set:(run:()=>void,ms:number)=>unknown;clear:(timer:any)=>void};
+const globalTimers:Timers={set:(run,ms)=>setTimeout(run,ms),clear:timer=>clearTimeout(timer)};
+export function watchSlow(stage:ReceiptStage,onSlow:()=>void,timers:Timers=globalTimers):()=>void{
  const ms=slowAfter(stage);
  if(ms==null)return ()=>{};
  const timer=timers.set(onSlow,ms);

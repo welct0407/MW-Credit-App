@@ -134,3 +134,12 @@ test('R142 Close Loan: the offline message follows the reactive online state, no
  assert.match(close,/import \{useOnline\} from '\.\/online-status';/);
  assert.match(close,/offline:queueEnabled&&\(!!access\.offlineOnly\|\|!online\)&&!!receiptImage/);
 });
+
+test('R142 regression: the default slow timers are called as plain functions (browsers throw "Illegal invocation" otherwise)',()=>{
+ const realSet=globalThis.setTimeout,realClear=globalThis.clearTimeout,calls=[];
+ // Browser-like timers: called with any receiver other than the global object (or none), they throw.
+ globalThis.setTimeout=function(_run,ms){if(this!==undefined&&this!==globalThis)throw new TypeError('Illegal invocation');calls.push(ms);return 7};
+ globalThis.clearTimeout=function(id){if(this!==undefined&&this!==globalThis)throw new TypeError('Illegal invocation');calls.push('clear '+id)};
+ try{watchSlow('uploading',()=>{})();watchSlow('reading',()=>{})()}finally{globalThis.setTimeout=realSet;globalThis.clearTimeout=realClear}
+ assert.deepEqual(calls,[UPLOAD_SLOW_MS,'clear 7',READING_SLOW_MS,'clear 7']);
+});
