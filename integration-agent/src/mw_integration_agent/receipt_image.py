@@ -194,6 +194,11 @@ def checked(value):
             for key, item in value.items()}
 
 
+def failure_cause(exc, provider):
+    """A short internal cause: the provider's own cause, else the exception class name (never its message)."""
+    return exc.cause if isinstance(exc, RecognitionUnavailable) else f'{provider}_{type(exc).__name__}'
+
+
 def _run(config, name, image_data, deadline, attempt_timeout, environment):
     module = provider_module(name)
     options = {} if attempt_timeout is None else {'attempt_timeout': attempt_timeout}
@@ -219,12 +224,13 @@ def recognize(config, image_data, provider=None, deadline=None, attempt_timeout=
         phase = now + CLAUDE_PHASE if deadline is None else min(deadline, now + CLAUDE_PHASE)
         try:
             model, result = _run(config, 'claude', image_data, phase, attempt_timeout, environment)
-        except RecognitionUnavailable as first:
+        except Exception as first:  # any Claude failure falls back, not only RecognitionUnavailable
             try:
                 model, result = _run(config, 'gemini', image_data, deadline, attempt_timeout, environment)
-            except RecognitionUnavailable as second:
-                raise RecognitionUnavailable(second.reason, first.cause + '+' + second.cause) from None
-            name, value['fallback_cause'] = 'gemini', first.cause
+            except Exception as second:
+                reason = second.reason if isinstance(second, RecognitionUnavailable) else 'provider_error'
+                raise RecognitionUnavailable(reason, failure_cause(first, 'claude') + '+' + failure_cause(second, 'gemini')) from None
+            name, value['fallback_cause'] = 'gemini', failure_cause(first, 'claude')
     else:
         model, result = _run(config, name, image_data, deadline, attempt_timeout, environment)
     if qr_reference:

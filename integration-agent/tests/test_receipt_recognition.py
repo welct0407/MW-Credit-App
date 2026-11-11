@@ -26,8 +26,8 @@ RESULT = {'is_payment_receipt': True, 'transfer_successful': True, 'date': '2026
           'amount': '1500.00', 'currency': 'THB', 'reference': 'SYN123456', 'payer_name': 'MR. SYNTHETIC P***',
           'account_numbers': ['xxx-x-x4321-x']}
 GEMINI = {'gemini_project': 'clever-oasis-508610-n7', 'gemini_location': 'asia-southeast1', 'gemini_model': 'gemini-2.0-flash-001'}
-DEV = {'email': 'mw-credit-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '111111111111111111111'}
-PROD = {'email': 'mw-credit-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '222222222222222222222'}
+DEV = {'email': 'mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '111111111111111111111'}
+PROD = {'email': 'mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '222222222222222222222'}
 AUDIENCE = 'http://10.148.0.2:8790/v1/receipt-recognition'
 
 
@@ -940,6 +940,22 @@ class ClaudeTests(unittest.TestCase):
         self.assertEqual(caught.exception.cause, 'claude_http_500')
         vertex.assert_not_called()
 
+    def test_non_recognition_claude_exception_falls_back_with_class_cause(self):
+        config = {**GEMINI, **CLAUDE}
+        for error, cause in ((ConfigurationError('federation detail'), 'claude_ConfigurationError'), (RuntimeError('detail'), 'claude_RuntimeError'),
+                             (KeyError('secret-looking detail'), 'claude_KeyError')):
+            with self.subTest(cause=cause), patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=error), \
+                    patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)):
+                value = receipt_image.recognize(config, b'png', 'claude', fallback='gemini', environment='dev')
+            self.assertEqual((value['provider'], value['fallback_cause']), ('gemini', cause))
+            self.assertNotIn('detail', json.dumps(value))  # the class name only, never the message
+        # Both fail with other exceptions: unavailable (provider_error) with the joined class causes.
+        with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RuntimeError('x')), \
+                patch('mw_integration_agent.receipt_provider_gemini.extract', side_effect=ConfigurationError('y')), \
+                self.assertRaises(RecognitionUnavailable) as caught:
+            receipt_image.recognize(config, b'png', 'claude', fallback='gemini')
+        self.assertEqual((caught.exception.reason, caught.exception.cause), ('provider_error', 'claude_RuntimeError+gemini_ConfigurationError'))
+
     def test_fallback_respects_deadline_split(self):
         config = {**GEMINI, **CLAUDE}
         deadline = time.monotonic() + 40
@@ -1039,9 +1055,17 @@ class ClaudeTests(unittest.TestCase):
             # A global Claude route needs the rule of every caller's environment; an unknown environment is refused.
             with self.assertRaises(ConfigurationError):
                 validate_config(recognizer_config(directory, receipt_recognition_provider='claude', **only_dev))
-            other = {'email': 'mw-credit-app-other@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '333333333333333333333', 'provider': 'claude'}
-            with self.assertRaisesRegex(ConfigurationError, 'command-dev or command-prod'):
-                validate_config(recognizer_config(directory, receipt_recognition_callers=[other], **CLAUDE))
+            # The environment comes from the whole configured command-service email, never a substring of another one.
+            for email in ('mw-credit-app-other@clever-oasis-508610-n7.iam.gserviceaccount.com',
+                          'x-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com',
+                          'mw-credit-app-command-prod-x@clever-oasis-508610-n7.iam.gserviceaccount.com',
+                          'mw-credit-app-command-dev@other-project-123456.iam.gserviceaccount.com',
+                          'evil-mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com'):
+                other = {'email': email, 'subject': '333333333333333333333', 'provider': 'claude'}
+                self.assertIsNone(api.environment_of(other))
+                with self.subTest(email=email), self.assertRaisesRegex(ConfigurationError, 'command-dev or command-prod'):
+                    validate_config(recognizer_config(directory, receipt_recognition_callers=[other], **CLAUDE))
+            self.assertEqual((api.environment_of(DEV), api.environment_of(PROD)), ('dev', 'prod'))
             for caller in ({**DEV, 'provider': 'codex'}, {**DEV, 'provider': 'openai'}, {**DEV, 'fallback': 'gemini'},
                            {**DEV, 'provider': 'gemini', 'fallback': 'gemini'}, {**DEV, 'provider': 'claude', 'fallback': 'codex'},
                            {**DEV, 'qr_reference': 'true'}, {**DEV, 'environment': 'dev'}):

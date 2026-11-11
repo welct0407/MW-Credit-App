@@ -42,7 +42,8 @@ TYPES = {'image/png': b'\x89PNG\r\n\x1a\n', 'image/jpeg': b'\xff\xd8\xff'}
 ISSUERS = ('https://accounts.google.com', 'accounts.google.com')
 CERTS = 'https://www.googleapis.com/oauth2/v3/certs'
 CALLER_EMAIL = re.compile(r'[a-z0-9-]+@(?:[a-z0-9-]+\.iam|developer)\.gserviceaccount\.com')
-CALLER_ENVIRONMENT = re.compile(r'command-(dev|prod)@')  # R142: the federation rule a caller's Claude route uses
+# R142: the federation rule a caller's Claude route uses, from the whole command-service email (fullmatch).
+CALLER_ENVIRONMENT = re.compile(r'mw-credit-app-command-(dev|prod)@clever-oasis-508610-n7\.iam\.gserviceaccount\.com')
 CALLER_KEYS = frozenset({'email', 'subject'})
 ROUTE_KEYS = frozenset({'provider', 'fallback', 'qr_reference'})
 CALLER_PROVIDERS = ('claude', 'gemini')
@@ -144,7 +145,7 @@ def provider(config):
 
 
 def environment_of(caller):
-    match = CALLER_ENVIRONMENT.search(caller['email'])
+    match = CALLER_ENVIRONMENT.fullmatch(caller['email'])
     return match.group(1) if match else None
 
 

@@ -1,6 +1,7 @@
 import test,{mock} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import ts from 'typescript';
 import {createRecognizerClient,RECOGNITION_UPSTREAM_TIMEOUT_MS} from '../../services/receipts/recognizer-client.mjs';
 import {RECOGNITION_DEADLINE_MS,UPLOAD_SLOW_MS,READING_SLOW_MS,receiptStage,receiptStageText,watchSlow} from '../../apps/pwa/src/recognition-timing.ts';
 
@@ -99,4 +100,37 @@ test('R142 one status element per form, reused in place, focus never moved, pick
  assert.match(picker,/aria-busy=\{busy\|\|preparing\}/);
  // No progress bar (R142-UX-07), no banner or toast (R142-UX-09).
  for(const source of [receive,close,correction,manual])assert.doesNotMatch(source,/<progress|role="progressbar"/);
+});
+
+// useSlowStage under a minimal hook runner (no DOM in the unit suite): useState, useEffect with deps and cleanups.
+function hookRunner(hook){
+ const states=[],effects=[];let cursor=0,effect=0,queue=[];
+ const react={useState(initial){const index=cursor++;if(!(index in states))states[index]=initial;return [states[index],value=>{states[index]=typeof value==='function'?value(states[index]):value}]},
+  useEffect(run,deps){const index=effect++,old=effects[index];if(!old||deps.some((dep,at)=>!Object.is(dep,old.deps[at])))queue.push(()=>{old?.cleanup?.();effects[index]={deps,cleanup:run()}})}};
+ return {react,render(...args){cursor=effect=0;queue=[];globalThis.__receiptReact=react;hook(...args);for(const run of queue)run();cursor=effect=0;return hook(...args)}};
+}
+
+test('R142 regression: a later upload in the same form starts not slow after an earlier slow one',async()=>{
+ const source=ts.transpileModule((await pwa('recognition-timing.ts')).replace("import {useEffect,useState} from 'react';",'const {useEffect,useState}={useEffect:(...a)=>globalThis.__receiptReact.useEffect(...a),useState:(...a)=>globalThis.__receiptReact.useState(...a)};'),
+  {compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+ const {useSlowStage}=await import('data:text/javascript,'+encodeURIComponent(source));
+ const runner=hookRunner(useSlowStage);
+ mock.timers.enable({apis:['setTimeout']});
+ try{
+  assert.equal(runner.render('uploading',null),false);
+  mock.timers.tick(UPLOAD_SLOW_MS);assert.equal(runner.render('uploading',null),true,'first upload turns slow');
+  assert.equal(runner.render('reading','r1'),false,'the next stage never inherits the slow flag');
+  assert.equal(runner.render(null,null),false);
+  assert.equal(runner.render('uploading',null),false,'a later upload starts with "Uploading receipt…"');
+  mock.timers.tick(UPLOAD_SLOW_MS-1);assert.equal(runner.render('uploading',null),false);
+  mock.timers.tick(1);assert.equal(runner.render('uploading',null),true);
+  assert.equal(runner.render(null,null),false);assert.equal(runner.render('reading','r2'),false);
+  mock.timers.tick(READING_SLOW_MS);assert.equal(runner.render('reading','r2'),true);
+ }finally{mock.timers.reset()}
+});
+
+test('R142 Close Loan: the offline message follows the reactive online state, not a one-off navigator.onLine read',async()=>{
+ const close=await pwa('LoanClose.tsx');
+ assert.match(close,/import \{useOnline\} from '\.\/online-status';/);
+ assert.match(close,/offline:queueEnabled&&\(!!access\.offlineOnly\|\|!online\)&&!!receiptImage/);
 });

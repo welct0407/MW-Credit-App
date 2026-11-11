@@ -41,10 +41,11 @@ export function watchSlow(stage:ReceiptStage,onSlow:()=>void,timers:{set:typeof 
 
 /**
  * True once the current stage (with its key, e.g. the receipt id) has lasted its threshold. The slow flag belongs to the
- * stage that went slow, so a new stage never shows the previous stage's "Still …" text, not even for one render.
+ * stage that went slow, so a new stage never shows the previous stage's "Still …" text, not even for one render, and it
+ * is cleared when that stage ends, so a later occurrence of the same stage (the next upload) starts not slow.
  */
 export function useSlowStage(stage:ReceiptStage,key:string|null=null):boolean{
  const id=stage?stage+':'+(key??''):null,[slowId,setSlowId]=useState<string|null>(null);
- useEffect(()=>id?watchSlow(stage,()=>setSlowId(id)):undefined,[id,stage]);
+ useEffect(()=>{if(!id)return;const cancel=watchSlow(stage,()=>setSlowId(id));return ()=>{cancel();setSlowId(old=>old===id?null:old)}},[id,stage]);
  return !!id&&slowId===id;
 }
