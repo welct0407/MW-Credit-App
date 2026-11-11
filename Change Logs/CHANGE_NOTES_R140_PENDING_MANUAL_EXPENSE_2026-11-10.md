@@ -134,11 +134,11 @@ No PROD action, authenticated PROD read or financial write. CI on `8822f0c` is p
 Git baseline: `b669c0d`, the commit before this batch; PROD baseline R139 `d1acb883`. PROD: services settings generation `1794305807490273`, then Hosting `daa9c69a7ae05e1c`; the database is forward-fix only (dropping `"Paid Date"` would be destructive and needs approval; V142 to V145 roll back through a later migration that restores the V141 to V144 bodies, after pending rows created meanwhile are paid or deleted); restore point: the PROD backup at V141 in the promotion record. DEV: the DEV rollbacks are in the DEV deployment evidence.
 
 ## Open questions
-- Legacy V1 and V2 "paid at close" referral rebates are dated on the close date, and their real pay dates are not stored. Re-dating them (a per-row financial correction through convert-then-settle) needs the owner to name the rows and dates.
+- Legacy V1 and V2 "paid at close" referral rebates are dated on the close date, and their real pay dates are not stored. Owner decision of 11 November 2026: "leave the old rebates as they are"; no re-dating.
 
 ## Remaining work
 - Owner acceptance in PROD: done. The owner confirmed on 11 November 2026, "it works in prod, close it".
-- Owner decision: re-dating legacy V1 and V2 referral rebates (above).
+- Owner decision: re-dating legacy V1 and V2 referral rebates. Decided 11 November 2026: leave them as they are.
 - Follow-ups: EXP-PEND-17 and 25 (tappable Expenses payable and Expenses owed lines); EXP-PEND-7 and 10 to 12 (pay form, undo); the Collection board and other pages that read once lag only while a profile is still on its first download.
 - Release closure prune (11 November 2026): deleted `Change Logs/CHANGE_NOTES_R137_LONG_OVERDUE_SINCE_LAST_PAYMENT_2026-11-09.md` (outside the retention window); its inbound links in the release tracker, the environment inventory and the database README now point to commit `cccc3b3`.
 
