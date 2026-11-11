@@ -29,7 +29,9 @@ Owner on the DEV review: "rebate payable can't be clicked. expenses payable can 
 | Byte's local checks | Pass: `npm test` 1294 pass and 1 skipped; typecheck; lint; builds; the receiving group; 14 e2e specs, 561 passed |
 | CI, PR #286 head `5a9c9f2f` | Pass: `Development checks` run 43022545287 (check, lint, three Chromium and three iPhone WebKit e2e shards), `Database migrations` run 43022475359 (guards and four rebuild groups); records-only `0d3a6641` also green |
 | DEV deployment and test | Pass, see DEV deployment evidence |
-| `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey) |
+| `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey, closure) |
+| PROD promotion | Pass, see the PROD promotion record below |
+| Release tag | `R141` on `c983e68a66835069ad7ff4683e78a3b57382071a`, Release tag run [43036520116](https://github.com/welct0407/MW-Credit-App/actions/runs/43036520116) (succeeded at 14:14:33Z; GitHub Release published) |
 
 ## DEV deployment evidence
 Forge, 11 November 2026 (UTC), package `5a9c9f2f`; no SQL (DEV stays V145).
@@ -41,13 +43,37 @@ Forge, 11 November 2026 (UTC), package `5a9c9f2f`; no SQL (DEV stays V145).
 - DEV test (Chase, Pixel 7 Chromium, Thai, real UI; one write): Cash Position "ค่าใช้จ่ายค้างจ่าย" (12 / ฿907) opened the filtered list in 0.8 s with the bar "ค้างจ่าย | 12 รายการ · ฿907" and only pending tiles; Clear filter restored the full list; Back returned to Cash Position. R120 Test Referrer's "ค่าใช้จ่ายค้างจ่าย ฿45 · 1 รายการ" opened the list filtered to that payee in 0.6 s. Mark as paid on that row (request `8b8555f1-89e3-41e7-b066-c9a78cfceee4`, applied in 2.4 s), then Back: the bar read "0 รายการ · ฿0" within 1.7 s and the borrower's owed line was gone. A borrower with no pending expenses shows no line.
 
 ## Not run
-No PROD action. CI and the DEV test are pending.
+No authenticated PROD read, financial write, notification or job (see the PROD promotion record).
 
 ## Recovery
-Git baseline: `main` at `cccc3b3` plus the R140 closure. Roll back the DEV images and Hosting to the previous generation recorded in the DEV deployment evidence. No SQL.
+Git baseline: `cccc3b3` plus the R140 closure; PROD baseline R140 `91f79ef7`. PROD: services settings generation `1794397099475916`, then Hosting `544eee09024fe6b2`; no SQL. DEV: the rollbacks are in the DEV deployment evidence.
 
 ## Open questions
 None.
 
 ## Remaining work
-CI, the DEV deployment and test, and the owner's review in DEV; promotion only on the owner's instruction.
+- Owner acceptance in PROD (tapping the Cash Position "Expenses payable" and "Rebates payable" lines and the borrower "Expenses owed" line).
+- Release closure prune (11 November 2026): deleted `Change Logs/CHANGE_NOTES_R138_CHAT_CONFIRM_AND_GROUP_100_2026-11-10.md` (outside the retention window R139, R140, R141); its inbound links in the release tracker, the environment inventory and the database README now point to commit `30546958`.
+
+## PROD promotion record (Forge, 11 November 2026 UTC)
+Authority: the owner's instruction of 11 November 2026, "move R141 to production", relayed by the orchestrator as the scoped PROD approval for R141: the changed images, the settings apply, Hosting and the technical records. No SQL, so no backup and no owner window. No payment, notification or job was forced, and no financial correction or other data write was made; the smoke is read-only. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Step | Result |
+| --- | --- |
+| Freeze | 14:07:34Z; package `c983e68a66835069ad7ff4683e78a3b57382071a` (PR #286 head), merged to `main` as `30546958`. Baseline R140 `91f79ef7`. Roles read, command, chat; notify and jobs unchanged; no SQL and no infrastructure change. Next unused number R143 (R142 opened by the closure pull request) |
+| Target | Project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017`, database `loan_manager_prod`, services `mw-credit-app-*-prod`, Hosting site `mw-credit-prod-737787224638`, registry `mw-credit-app-prod` |
+| Baseline capture | Revisions read `00054-psb`, command `00059-kpf`, chat `00038-ztc` on `dee20b50...`; notify `00029-2nb`, jobs `00029-9dp` on `f8cb243b...`; settings generation `1794397099475916`; Hosting `544eee09024fe6b2` (R140); Flyway 145 `verify` at 14:08:50Z (nothing pending) |
+| Image | Cloud Build `984dd1f3-3e23-452d-aa52-a21d606f028c` (14:08:59Z to 14:09:32Z), digest `sha256:848b26b9bc12b0cef148c6a2794125d5c09497ff8bc9f1cd5338ea3a78d70e18` |
+| SQL | None; PROD stays at Flyway 145 (no migration, so no backup) |
+| Terraform | Plan 0 add, 3 change, 0 destroy (image only), applied 14:10:21Z to 14:10:57Z, settings generation `1794406264137132` (previous `1794397099475916`), re-plan clean. Revisions read `00055-sq2`, command `00060-mtz`, chat `00039-9px`; notify and jobs unchanged |
+| Hosting | Generic runner as `mw-credit-unattended-admin`, `--apply` 14:12:23Z to 14:13:07Z: version `83ca72cd9ec80625`, release `1794406380802000`, build-version R141 `649988a6519dbf68c9ae2f09`, entry `/assets/index-CjTQb4h8.js`, 18 files, package sha256 `7545f803...`; PROD origins only |
+| CI receipts | `Development checks` run 43031154506 and `Database migrations` run 43031148944 on `73eef152`; Terraform evidence run 42763518963 on `456a6c9`; `c983e68a` run 43033447438 success |
+| Smoke (read-only) | Both origins serve R141; the root is `no-store`; the entry and `sw.js` return 200; `/health` 200, unauthenticated 401, CORS 204; unauthenticated `GET /api/expense-records?payment=pending` and `GET /api/referrers?owed=1` return 401 (the routes exist and need sign-in); no ERROR logs 14:07Z to 14:13:33Z |
+| Rollback | Services settings generation `1794397099475916`, then Hosting `544eee09024fe6b2`; no SQL. Private records in `gs://mw-credit-operator-private-737787224638/promotion-packages/r141/` and `promotion-receipts/R141-HOSTING-RECEIPT.json` |
+| Tag | `R141` on `c983e68a66835069ad7ff4683e78a3b57382071a`, created by the Release tag workflow run [43036520116](https://github.com/welct0407/MW-Credit-App/actions/runs/43036520116) (succeeded at 14:14:33Z; GitHub Release published) |
+
+### Deviations
+- None recorded.
+
+### Limitations
+- No authenticated PROD read (there is no sanctioned PROD token route), financial write, notification or job. PROD owner acceptance is pending. The tag record is part of this closure pull request.
