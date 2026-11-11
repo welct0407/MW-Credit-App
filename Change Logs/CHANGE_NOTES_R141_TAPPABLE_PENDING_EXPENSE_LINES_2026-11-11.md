@@ -16,12 +16,18 @@ After R140 the owner asked on 11 November 2026, "make both lines tappable in R14
 | Command | Result |
 | --- | --- |
 | Byte's local checks | Pass: `npm test` 1294 pass and 1 skipped; typecheck; lint; builds; the receiving group; 14 e2e specs, 561 passed |
-| CI, PR #286 head | To be added |
-| DEV deployment and test | To be added, see DEV deployment evidence |
+| CI, PR #286 head `5a9c9f2f` | Pass: `Development checks` run 43022545287 (check, lint, three Chromium and three iPhone WebKit e2e shards), `Database migrations` run 43022475359 (guards and four rebuild groups); records-only `0d3a6641` also green |
+| DEV deployment and test | Pass, see DEV deployment evidence |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey) |
 
 ## DEV deployment evidence
-To be added by Forge (image, Terraform, Hosting, smoke) and Chase's DEV test.
+Forge, 11 November 2026 (UTC), package `5a9c9f2f`; no SQL (DEV stays V145).
+- Image: Cloud Build `313f3e3b-9049-474b-bb4d-8a6298cdde38`, digest `sha256:f24b158bd3203b28953d294f940524a4f0d4478b67ae55b73291888a2b644fa0`.
+- Terraform: 0 add, 3 change, 0 destroy (image only on read, command, chat), applied 12:55:44Z to 12:56:21Z, clean re-plan; settings generation `1794401786919940` (previous `1794381248339048`); revisions read `00088-6mt`, command `00105-wlr`, chat `00057-mmf`; notify and jobs unchanged.
+- Hosting: version `99f4e84fd8c1d515` (build version `e2c6168b6d89aeecac7a9a4d`, labelled R141), 12:57:14Z to 12:57:22Z.
+- Smoke: both origins serve R141; `/health` 200, unauthenticated 401, CORS 204; no ERROR logs. `GET /api/expense-records?payment=pending` returned 12 pending items with `filter.total` 12 / ฿907.00 (equal to the items' pending amounts); `limit=5` paged with a cursor; `payment=bogus` 400; the unfiltered list has no `filter` object.
+- Rollback: settings generation `1794381248339048`, Hosting `e10fabf0d9950dd3`.
+- DEV test (Chase, Pixel 7 Chromium, Thai, real UI; one write): Cash Position "ค่าใช้จ่ายค้างจ่าย" (12 / ฿907) opened the filtered list in 0.8 s with the bar "ค้างจ่าย | 12 รายการ · ฿907" and only pending tiles; Clear filter restored the full list; Back returned to Cash Position. R120 Test Referrer's "ค่าใช้จ่ายค้างจ่าย ฿45 · 1 รายการ" opened the list filtered to that payee in 0.6 s. Mark as paid on that row (request `8b8555f1-89e3-41e7-b066-c9a78cfceee4`, applied in 2.4 s), then Back: the bar read "0 รายการ · ฿0" within 1.7 s and the borrower's owed line was gone. A borrower with no pending expenses shows no line.
 
 ## Not run
 No PROD action. CI and the DEV test are pending.
