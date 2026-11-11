@@ -168,8 +168,9 @@ def transient(exc):
     return isinstance(exc, (urllib.error.URLError, TimeoutError, socket.timeout, ConnectionError))
 
 
-def extract(config, image_data, deadline=None, attempt_timeout=ATTEMPT_TIMEOUT):
-    sent, mime_type = downscaled(image_data)
+def extract(config, image_data, deadline=None, attempt_timeout=ATTEMPT_TIMEOUT, prepared_image=None):
+    # R142: only the Claude route's fallback passes the image it already prepared; every Gemini-only route downscales here.
+    sent, mime_type = prepared_image or downscaled(image_data)
     url, data = endpoint(config), json.dumps(body(sent, model(config), mime_type), separators=(',', ':')).encode()
     deadline = time.monotonic() + 2 * attempt_timeout if deadline is None else deadline
     for number in (1, 2):

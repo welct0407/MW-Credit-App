@@ -917,7 +917,7 @@ class ClaudeTests(unittest.TestCase):
                 self.assertEqual(receipt_image.recognize(GEMINI, b'png', name, clean_text=True)['result']['reference'], 'SYN123456')
         with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_http_529')), \
                 patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(dirty)):
-            value = receipt_image.recognize({**GEMINI, **CLAUDE}, b'png', 'claude', fallback='gemini', clean_text=True)
+            value = receipt_image.recognize({**GEMINI, **CLAUDE}, png(), 'claude', fallback='gemini', clean_text=True)
         self.assertEqual(value['result']['reference'], 'SYN123456')  # the fallback reading is cleaned on the same route
 
     def test_clean_text_is_opt_in_per_caller_and_for_the_cycle(self):
@@ -954,23 +954,26 @@ class ClaudeTests(unittest.TestCase):
                       RecognitionUnavailable(cause='claude_http_529'), RecognitionUnavailable(cause='claude_refusal')):
             with self.subTest(cause=error.cause), patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=error), \
                     patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)) as vertex:
-                value = receipt_image.recognize(config, b'png', 'claude', deadline=time.monotonic() + 40, fallback='gemini', environment='dev')
-                self.assertEqual(value, {'provider': 'gemini', 'model': 'gemini-2.0-flash-001', 'result': RESULT, 'fallback_cause': error.cause})
+                value = receipt_image.recognize(config, png(), 'claude', deadline=time.monotonic() + 40, fallback='gemini', environment='dev')
+                self.assertEqual({k: v for k, v in value.items() if not k.endswith('_ms')},
+                                 {'provider': 'gemini', 'model': 'gemini-2.0-flash-001', 'result': RESULT, 'fallback_cause': error.cause})
+                self.assertEqual(vertex.call_args.kwargs['prepared_image'][1], 'image/jpeg')  # the fallback reuses the Claude image
                 vertex.assert_called_once()
         # A Claude reply that fails the shared shape check falls back too.
         with patch('mw_integration_agent.receipt_provider_claude.extract', return_value={**RESULT, 'amount': 1}), \
                 patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)):
-            self.assertEqual(receipt_image.recognize(config, b'png', 'claude', fallback='gemini')['fallback_cause'], 'shape_invalid')
+            self.assertEqual(receipt_image.recognize(config, png(), 'claude', fallback='gemini')['fallback_cause'], 'shape_invalid')
         # Served by Claude: Claude is reported; without fallback a Claude failure is final.
         with patch('mw_integration_agent.receipt_provider_claude.extract', return_value=dict(RESULT)) as claude, \
                 patch('mw_integration_agent.receipt_provider_gemini.extract') as vertex:
-            self.assertEqual(receipt_image.recognize(config, b'png', 'claude', fallback='gemini', environment='dev'),
-                             {'provider': 'claude', 'model': 'claude-opus-5-5', 'result': RESULT})
+            value = receipt_image.recognize(config, png(), 'claude', fallback='gemini', environment='dev')
+            self.assertEqual({k: value[k] for k in ('provider', 'model', 'result')}, {'provider': 'claude', 'model': 'claude-opus-5-5', 'result': RESULT})
+            self.assertEqual(set(value), {'provider', 'model', 'result', 'prepare_ms', 'model_ms'})
             self.assertEqual(claude.call_args.kwargs['environment'], 'dev')
             vertex.assert_not_called()
         with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_http_500')), \
                 patch('mw_integration_agent.receipt_provider_gemini.extract') as vertex, self.assertRaises(RecognitionUnavailable) as caught:
-            receipt_image.recognize(config, b'png', 'claude')
+            receipt_image.recognize(config, png(), 'claude')
         self.assertEqual(caught.exception.cause, 'claude_http_500')
         vertex.assert_not_called()
 
@@ -980,22 +983,84 @@ class ClaudeTests(unittest.TestCase):
                              (KeyError('secret-looking detail'), 'claude_KeyError')):
             with self.subTest(cause=cause), patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=error), \
                     patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)):
-                value = receipt_image.recognize(config, b'png', 'claude', fallback='gemini', environment='dev')
+                value = receipt_image.recognize(config, png(), 'claude', fallback='gemini', environment='dev')
             self.assertEqual((value['provider'], value['fallback_cause']), ('gemini', cause))
             self.assertNotIn('detail', json.dumps(value))  # the class name only, never the message
         # Both fail with other exceptions: unavailable (provider_error) with the joined class causes.
         with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RuntimeError('x')), \
                 patch('mw_integration_agent.receipt_provider_gemini.extract', side_effect=ConfigurationError('y')), \
                 self.assertRaises(RecognitionUnavailable) as caught:
-            receipt_image.recognize(config, b'png', 'claude', fallback='gemini')
+            receipt_image.recognize(config, png(), 'claude', fallback='gemini')
         self.assertEqual((caught.exception.reason, caught.exception.cause), ('provider_error', 'claude_RuntimeError+gemini_ConfigurationError'))
+
+    def test_claude_route_prepares_once_jpeg_only_even_when_it_falls_back(self):
+        from mw_integration_agent import receipt_provider_claude as claude
+        config, image = {**GEMINI, **CLAUDE}, png((1290, 2017))
+        with patch.object(claude, 'prepared', wraps=claude.prepared) as prepare, \
+                patch.object(gemini, 'downscaled', wraps=gemini.downscaled) as downscale, \
+                patch.object(claude, 'CREDENTIALS', Credentials()), \
+                patch.object(gemini.http, 'opener', return_value=FakeOpener(http_error(529), vertex_reply())) as opener, \
+                patch.object(gemini.http, 'access_token', return_value='t'):
+            value = receipt_image.recognize(config, image, 'claude', deadline=time.monotonic() + 40, fallback='gemini', environment='dev')
+        self.assertEqual((value['provider'], value['fallback_cause'], prepare.call_count, downscale.call_count), ('gemini', 'claude_http_529', 1, 0))
+        self.assertIsInstance(value['prepare_ms'], int)
+        self.assertIsInstance(value['model_ms'], int)
+        (claude_request, _), (vertex_request, _) = opener.return_value.requests  # one shared http module: Claude, then Gemini
+        claude_image = json.loads(claude_request.data)['messages'][0]['content'][0]['source']
+        sent = json.loads(vertex_request.data)['contents'][0]['parts'][0]['inlineData']
+        self.assertEqual((claude_image['media_type'], claude_image['data']), (sent['mimeType'], sent['data']))  # the same prepared bytes
+        self.assertEqual(sent['mimeType'], 'image/jpeg')
+        with Image.open(io.BytesIO(base64.b64decode(sent['data']))) as reused:
+            self.assertEqual((reused.format, max(reused.size)), ('JPEG', 1600))
+        # JPEG only: no PNG attempt and no optimize pass, whatever would be smaller.
+        data, mime = claude.prepared(image)
+        self.assertEqual((mime, data[:3]), ('image/jpeg', b'\xff\xd8\xff'))
+        with patch.object(Image.Image, 'save', autospec=True, side_effect=lambda im, fp, format=None, **kw: fp.write(b'x')) as save:
+            claude.prepared(image)
+        self.assertEqual([(c.kwargs.get('format'), c.kwargs.get('optimize')) for c in save.call_args_list], [('JPEG', None)])
+        with self.assertRaises(RecognitionUnavailable) as caught:
+            claude.prepared(b'not an image')
+        self.assertEqual(caught.exception.cause, 'image_prepare_failed')
+
+    def test_gemini_only_routes_still_downscale_unchanged(self):
+        image = png((1290, 2017))
+        with patch.object(gemini, 'downscaled', wraps=gemini.downscaled) as downscale, \
+                patch('mw_integration_agent.receipt_provider_claude.prepared') as prepare, \
+                patch.object(gemini.http, 'opener', return_value=FakeOpener(vertex_reply(), vertex_reply())) as opener, \
+                patch.object(gemini.http, 'access_token', return_value='t'):
+            value = receipt_image.recognize(GEMINI, image, 'gemini', deadline=time.monotonic() + 40)
+            receipt_image.extract({**GEMINI, 'receipt_extraction_provider': 'gemini'}, image)
+        self.assertEqual((downscale.call_count, prepare.call_count), (2, 0))
+        self.assertEqual(set(value), {'provider', 'model', 'result'})  # no Claude timings on this route
+        expected = gemini.body(*gemini.downscaled(image)[:1], 'gemini-2.0-flash-001', gemini.downscaled(image)[1])
+        self.assertEqual(json.loads(opener.return_value.requests[0][0].data), expected)  # the request exactly as before
+
+    def test_phase_timer_starts_after_preparation(self):
+        clock = [1000.0]
+        seen = {}
+
+        def slow_prepare(_image):
+            clock[0] += 20  # a slow preparation on a busy VM
+            return b'jpeg', 'image/jpeg'
+
+        def claude_call(config, image_data, deadline=None, **options):
+            seen['remaining'], seen['image'] = deadline - clock[0], options['prepared_image']
+            return dict(RESULT)
+        with patch.object(receipt_image.time, 'monotonic', lambda: clock[0]), \
+                patch('mw_integration_agent.receipt_provider_claude.prepared', side_effect=slow_prepare), \
+                patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=claude_call), \
+                patch('mw_integration_agent.receipt_provider_gemini.extract') as vertex:
+            value = receipt_image.recognize({**GEMINI, **CLAUDE}, b'png', 'claude', deadline=clock[0] + 40, fallback='gemini')
+        self.assertEqual((value['provider'], value['prepare_ms'], seen['remaining'], seen['image']),
+                         ('claude', 20000, receipt_image.CLAUDE_PHASE, (b'jpeg', 'image/jpeg')))
+        vertex.assert_not_called()
 
     def test_fallback_respects_deadline_split(self):
         config = {**GEMINI, **CLAUDE}
         deadline = time.monotonic() + 40
         with patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_timeout')) as claude, \
                 patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)) as vertex:
-            receipt_image.recognize(config, b'png', 'claude', deadline=deadline, fallback='gemini')
+            receipt_image.recognize(config, png(), 'claude', deadline=deadline, fallback='gemini')
         self.assertLessEqual(claude.call_args.kwargs['deadline'] - time.monotonic(), receipt_image.CLAUDE_PHASE)
         self.assertEqual(receipt_image.CLAUDE_PHASE, 15)
         self.assertEqual(vertex.call_args.kwargs['deadline'], deadline)  # Gemini keeps the rest (>= 25 s of 40 s)
@@ -1025,7 +1090,7 @@ class ClaudeTests(unittest.TestCase):
                     patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_http_529')), \
                     patch('mw_integration_agent.receipt_provider_gemini.extract', side_effect=vertex_error), \
                     self.assertRaises(RecognitionUnavailable) as caught:
-                receipt_image.recognize(config, b'png', 'claude', fallback='gemini')
+                receipt_image.recognize(config, png(), 'claude', fallback='gemini')
             self.assertEqual((caught.exception.cause, caught.exception.reason), ('claude_http_529+' + vertex_error.cause, reason))
             self.assertEqual(str(caught.exception), 'RECEIPT_EXTRACTION_UNAVAILABLE')
 
@@ -1062,11 +1127,11 @@ class ClaudeTests(unittest.TestCase):
                 patch('mw_integration_agent.receipt_provider_claude.extract', side_effect=RecognitionUnavailable(cause='claude_http_529')) as claude, \
                 patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)) as vertex:
             with self.assertRaises(RecognitionUnavailable):
-                receipt_image.extract(config, b'png')  # fallback off by default
+                receipt_image.extract(config, png())  # fallback off by default
             vertex.assert_not_called()
             started = time.monotonic()
             with patch('mw_integration_agent.receipt_qr.read', return_value=('valid', ('014', 'QRREF123'))):
-                self.assertEqual(receipt_image.extract({**config, 'receipt_cycle_fallback': 'gemini', 'receipt_cycle_qr_reference': True}, b'png'),
+                self.assertEqual(receipt_image.extract({**config, 'receipt_cycle_fallback': 'gemini', 'receipt_cycle_qr_reference': True}, png()),
                                  {**RESULT, 'reference': 'QRREF123'})
         # Claude: the cycle's per-attempt bound inside its total, PROD rule; Gemini: the rest of the same total.
         self.assertEqual((claude.call_args.kwargs['attempt_timeout'], claude.call_args.kwargs['environment']), (25, 'prod'))

@@ -8,6 +8,7 @@ API key path and an Anthropic credential in the process environment is refused. 
 recognizer falls back to Gemini instead. Every failure is RecognitionUnavailable with a claude_* cause.
 """
 import base64
+import io
 import json
 import os
 import re
@@ -17,11 +18,13 @@ import time
 import urllib.error
 import urllib.request
 
+from PIL import Image
+
 from . import chat_relay_api as relay
 from . import http
 from .config import ConfigurationError
 from .receipt_image import PROMPT, SCHEMA, RecognitionUnavailable
-from .receipt_provider_gemini import downscaled
+from .receipt_provider_gemini import JPEG_QUALITY, MAX_SIDE
 
 URL = 'https://api.anthropic.com/v1/messages'
 ATTEMPT_TIMEOUT = 36  # the whole Claude call, token exchange included, when no shorter bound is given
@@ -55,6 +58,22 @@ def exchange(body):
 
 # Separate from the chat relay's provider (another process anyway); tokens stay in this process's memory.
 CREDENTIALS = relay.CredentialProvider(identity=identity, exchange=exchange)
+
+
+def prepared(image_data):
+    """R142 (DEV measurement): the Claude route's image, prepared once before the Claude phase starts. The same Lanczos
+    resize to a long side of at most MAX_SIDE as Gemini's `downscaled`, encoded as JPEG quality 85 only: no PNG attempt and
+    no optimize pass (the PNG optimize cost seconds on the VM's shared vCPU). Gemini-only routes keep `downscaled`."""
+    try:
+        with Image.open(io.BytesIO(image_data)) as source:
+            image = source.convert('RGB')
+        if max(image.size) > MAX_SIDE:
+            image.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
+        output = io.BytesIO()
+        image.save(output, format='JPEG', quality=JPEG_QUALITY)
+    except Exception as exc:
+        raise RecognitionUnavailable(cause='image_prepare_failed') from exc
+    return output.getvalue(), 'image/jpeg'
 
 
 def validate(config):
@@ -106,12 +125,16 @@ def credential_cause(code):
     return 'claude_' + code.lower().removeprefix('relay_')
 
 
-def extract(config, image_data, deadline=None, attempt_timeout=ATTEMPT_TIMEOUT, environment='prod', credentials=None):
-    """The candidate dict of one Claude call, bounded by min(deadline, now + attempt_timeout) including the exchange."""
+def extract(config, image_data, deadline=None, attempt_timeout=ATTEMPT_TIMEOUT, environment='prod', credentials=None, prepared_image=None):
+    """The candidate dict of one Claude call, bounded by min(deadline, now + attempt_timeout) including the exchange.
+
+    prepared_image is (bytes, mime type) from `prepared`, made by the caller before its timer started; without it the
+    image is prepared here, before this call's own bound is taken.
+    """
     if any(os.environ.get(name) for name in relay.FORBIDDEN_ENVIRONMENT):
         raise RecognitionUnavailable(cause='claude_env_credential')
     model_id, level = model(config), effort(config)
-    sent, mime_type = downscaled(image_data)
+    sent, mime_type = prepared_image or prepared(image_data)
     data = json.dumps(body(sent, model_id, level, mime_type), separators=(',', ':')).encode()
     now = time.monotonic()
     deadline = now + attempt_timeout if deadline is None else min(deadline, now + attempt_timeout)

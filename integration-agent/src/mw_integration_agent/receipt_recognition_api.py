@@ -306,7 +306,7 @@ def audit_outcome(config, caller, image_sha256, status, body, started, trace=Non
     """One audit operation per authenticated request: caller, image hash, provider, model, duration, outcome.
 
     The plan names the caller's routed provider and model; R142 adds what served it (JSON only, no columns):
-    served_provider, served_model, fallback_cause, reference_source and qr.
+    served_provider, served_model, fallback_cause, reference_source and qr, and on the Claude route prepare_ms and model_ms.
     """
     from .audit import activity, event
     from .state import transaction
@@ -320,7 +320,9 @@ def audit_outcome(config, caller, image_sha256, status, body, started, trace=Non
     observed = {'outcome': body['status'], 'reason': body.get('reason'), 'http_status': status,
                 'duration_ms': int((time.monotonic() - started) * 1000),
                 'served_provider': body.get('provider'), 'served_model': body.get('model'),
-                **{key: trace.get(key) for key in ('fallback_cause', 'reference_source', 'qr')}}
+                **{key: trace.get(key) for key in ('fallback_cause', 'reference_source', 'qr')},
+                # R142 Claude route latency (aggregate milliseconds; absent on other routes).
+                **{key: trace[key] for key in ('prepare_ms', 'model_ms') if key in trace}}
     # Route 'internal': audit.events.route has a fixed CHECK list (V1) without provider names.
     try:
         with activity(config, SERVICE, 'PROCESS', 'internal', plan) as op:
@@ -441,7 +443,7 @@ def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BO
                 raise rejected('invalid_image')
             deadline = started + bound - PROVIDER_MARGIN
             value = run_bounded(slots, lambda: recognise_image(config, caller, raw, deadline), max(0.0, started + bound - time.monotonic()))
-            self.trace = {key: value[key] for key in ('fallback_cause', 'reference_source', 'qr') if key in value}
+            self.trace = {key: value[key] for key in ('fallback_cause', 'reference_source', 'qr', 'prepare_ms', 'model_ms') if key in value}
             return 200, {'status': 'recognized', 'provider': value['provider'], 'model': value['model'],
                          'durationMs': int((time.monotonic() - started) * 1000), 'imageSha256': self.image_sha256,
                          'result': value['result']}
