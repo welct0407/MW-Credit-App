@@ -102,7 +102,7 @@ Source, 18 October 2026 (catalogue revision 29); implemented, not enabled. The c
 
 | Setting | Meaning |
 | --- | --- |
-| `receipt_extraction_provider` | Instagram receipt cycle provider, `codex` (default) or `gemini`. Changing it is its own owner authorization. |
+| `receipt_extraction_provider` | Instagram receipt cycle provider, `codex` (default), `gemini` or `claude` (R142). Changing it is its own owner authorization. |
 | `receipt_cycle_image_budget_seconds` | Time budget for the image phase of one receipt run: pending images are processed one after another until none is left or the budget is spent. Integer, default 60, allowed 10..180. A run can exceed it by one image (budget plus the 60 s Gemini total at worst). |
 | `receipt_archive_alert_seconds` | A job still PENDING with its evidence archive incomplete for longer than this sends the reviewers a hold-style alert without changing the job. Integer, default 3600, allowed 600..86400. |
 | `receipt_recognition_enabled` | Recognizer switch; the catalogue entry `receipt_recognition_api` must also be enabled. Both are read per request. |
@@ -132,3 +132,31 @@ Enabling requires the PostgreSQL audit backend. The service needs Vertex AI enab
 **Rollout.** Catalogue revision 29 needs the same two-step route as revision 28: `deploy-runtime.py` refuses a live catalogue whose revision or service names differ from the repository, and the installed validator rejects the unknown name `receipt_recognition_api`. First install code that knows the name while the live catalogue stays at revision 28, then add the key (disabled) by the config-only route; the owner chooses the exact route at activation.
 
 **Recovery.** Set `receipt_recognition_enabled=false` or disable the catalogue entry (effective on the next request), then `systemctl disable --now mw-receipt-recognition.service`. Callers treat any failure as "recognition unavailable" and the form continues manually.
+
+### Claude Opus 5.5 reader and slip QR reference (R142)
+
+Source, 11 November 2026 (catalogue revision 37, services unchanged); built and not deployed or activated. Owner scope: DEV build and DEV activation only; the PROD caller and the Instagram receipt cycle stay on their current provider until a separate owner approval. Evidence and decisions: [R142 change note](../Change%20Logs/CHANGE_NOTES_R142_RECEIPT_READER_OPUS_QR_2026-11-11.md).
+
+**Claude provider.** `receipt_provider_claude.py` makes one Anthropic Messages API call with the shared prompt and schema as structured output, adaptive thinking at the configured effort and the same 1600 px downscaled image as Gemini (`MAX_SIDE` is unchanged). It checks `stop_reason` and the response size, makes one attempt and never retries; the recognizer falls back instead. Credentials are keyless: it exchanges a Google ID token through the chat relay's workload identity federation rule of the caller's environment (`command-dev` uses the dev rule, `command-prod` the prod rule; the cycle always uses the prod rule). There is no API key path, and an Anthropic credential in the process environment is refused at start-up validation. Model ids are fixed (no date suffix or alias).
+
+**Fallback and deadline.** With `fallback: gemini` a failed Claude phase (timeout, 5xx, refusal, invalid shape, federation failure) is followed by Gemini. The Claude phase, token exchange included, is capped at 15 s inside the 40 s recognizer provider deadline; Gemini keeps the rest (at least 25 s). The value gains `fallback_cause`; if both fail the causes are joined and the caller sees "recognition unavailable" as before. The cycle uses `receipt_cycle_fallback` inside its own total deadline, as two audited operations.
+
+**Invisible characters.** The shared shape check strips Unicode category Cf characters (for example U+200B) from every string and account number before any rule runs, for all providers.
+
+**Slip QR reference.** `receipt_qr.py` decodes the QR from the canonical PNG with zxing-cpp 3.1.1 (pinned in `pyproject.toml` and `requirements.lock`, hash-checked). It accepts exactly one distinct payload that is ASCII, at most 512 characters, strict TLV with tag 91 last, CRC16-CCITT-FALSE valid, `51` equal to `TH`, API id `000001` and a transaction reference of 6 to 100 letters or digits. Anything else, a decoder failure or a missing decoder counts as no QR and never fails recognition. The QR reference replaces the model's reference only when the sending bank code is allowlisted by `receipt_qr_reference_banks` (default 002, 004, 006, 014, 030). Bank 025 (TrueMoney) is excluded because its QR carries a different identifier. The QR carries no amount, name, account or time and does not prove a slip is genuine. Duplicate checks, I/l folding and bank verification are unchanged and out of scope.
+
+**Contract.** The result keys and the response of `POST /v1/receipt-recognition` are unchanged, so the command services need no rolling-compatibility step; `provider` and `model` name what served the slip.
+
+**Routing.** Each `receipt_recognition_callers` entry may add route keys `provider` (`claude` or `gemini`, else `receipt_recognition_provider`), `fallback` (`gemini`, only with `provider` `claude`) and `qr_reference` (boolean, default false). Absent keys keep today's behaviour. DEV first means only the `command-dev` entry is given `claude` with `fallback` `gemini` and `qr_reference` true; the `command-prod` entry and the cycle stay unchanged. The cycle's switches are `receipt_extraction_provider` `claude`, `receipt_cycle_fallback` (`gemini` or null) and `receipt_cycle_qr_reference`, all off by default.
+
+| Setting | Meaning |
+| --- | --- |
+| `receipt_claude_model` | Fixed Claude model id, `claude-opus-5-5` in the example. |
+| `receipt_claude_effort` | `low` (default), `medium` or `high`. |
+| `receipt_cycle_fallback` | `null` (default) or `gemini`; only with `receipt_extraction_provider` `claude`. |
+| `receipt_cycle_qr_reference` | Boolean, default false: the cycle applies the QR reference. |
+| `receipt_qr_reference_banks` | List of up to 20 three-digit bank codes allowed to replace the reference; default `002`, `004`, `006`, `014`, `030`. |
+
+**Audit.** The `observed` JSON of the recognition audit operation gains `served_provider`, `served_model`, `fallback_cause`, `reference_source` (`qr` or `model`) and `qr` with `bank`, `used` and `reason` (`same`, `replaced`, `bank_not_allowlisted`, `none`, `invalid` or `error`). The reference itself is never recorded; no audit column changes.
+
+**Recovery.** Remove `provider`, `fallback` and `qr_reference` from the caller entry (or set the entry's provider to `gemini`) by the config-only route, effective on the next request; for the cycle set `receipt_extraction_provider` back and the two cycle switches off. Neither needs a code rollback or a service restart beyond the normal config reload.

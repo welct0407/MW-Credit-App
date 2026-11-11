@@ -24,14 +24,15 @@ Aggregate results only; no slip images, names, accounts or references are kept i
 - Decision: keep `MAX_SIDE` 1600 and the current preparation. A full-resolution test on 61 larger slips gave no material gain.
 
 ## Changes
-Placeholders, filled as the work lands.
-- Design (Archie): pending.
-- Implementation (Byte): pending.
-- Infrastructure (Forge): pending (federation rule and audience for receipts, VM runtime).
-- Records (Dewey): this note and `project/Documents/Release_Tracker.md` now; other evolving documents after implementation (see Remaining work).
+Built in source on branch `claude/compassionate-heisenberg-ras6py`, code commit `64c23d8`.
+- Design (Archie): the recognizer result contract stays unchanged (no rolling-compatibility step). The QR reference replaces the model's reference only for allowlisted banks (default 002, 004, 006, 014, 030; 025 TrueMoney excluded because its QR carries a different identifier). Federation reuses the chat relay rule of the caller's environment. Routing is per caller, off by default, so PROD and the cycle are unchanged.
+- Implementation (Byte), integration agent: `receipt_provider_claude.py` (Opus 5.5, adaptive thinking, effort low, keyless, one attempt); `receipt_image.py` (provider list, 15 s Claude phase inside the 40 s deadline, Gemini fallback, invisible-character stripping, QR hook); `receipt_qr.py` (zxing-cpp 3.1.1, strict validation); `receipt_recognition_api.py` (caller route keys `provider`, `fallback`, `qr_reference`; cycle `claude`; audit `observed` gains `served_provider`, `served_model`, `fallback_cause`, `reference_source`, `qr`); `config.example.json` (`receipt_claude_model`, `receipt_claude_effort`, `receipt_cycle_fallback`, `receipt_cycle_qr_reference`, `receipt_qr_reference_banks`); `pyproject.toml` and `requirements.lock`; catalogue revision 37 (services unchanged) and a `deploy-runtime.py` 36 to 37 clause.
+- Implementation (Byte, Echo), PWA: slip upload progress messages (R142-UX-05..10; copy in `recognition-timing.ts` and the five forms; "Preparing receipt..." stays only in the picker).
+- Tests: `tests/test_receipt_qr.py`, `tests/test_receipt_recognition.py`, `tests/test_config.py`, `tests/test_deploy_runtime.py`, `tests/unit/receipt-recognition-timing.test.mjs`.
+- Records (Dewey): this note, `Release_Tracker.md`, `Development_Changes.md`, `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md`, `Environment_Inventory.md` (planned state only).
 
 ## DEV activation
-Pending.
+Pending: not deployed or activated; CI, DEV deploy, DEV activation and the performance measurement are not done.
 
 ## PROD
 Pending owner approval. Not requested; the PROD caller and the Instagram receipt cycle stay on Gemini.
@@ -39,13 +40,22 @@ Pending owner approval. Not requested; the PROD caller and the Instagram receipt
 ## Checks
 | Command | Result |
 | --- | --- |
-| | |
+| `uv pip compile pyproject.toml --generate-hashes --python-version 3.13` (Byte, `c7f6488` plus the diff that became `64c23d8`, byte-identical) | Pass: adds only zxing-cpp 3.1.1 (hash equals the bake-off wheel) |
+| `ruff check --no-cache integration-agent` 0.16.8 (Byte, same tree) | Pass |
+| Agent `python -m unittest discover -s tests` on a pinned-lock, non-editable install (Byte, same tree) | Pass: 866 passed, 70 skipped (PostgreSQL lab suites) |
+| `mw-integration-agent check --config config.example.json --catalogue service-catalogue.json` (Byte, same tree) | Pass: ok |
+| PWA `npm run typecheck`, `npm run lint`, `npm test` (Byte, same tree) | Pass: 1299 passed, 1 skipped |
+| QR gate on real slips of the last 30 days, zxing-cpp 3.1.1 with `canonical_image` at `c7f6488` (Chase, local scratchpad, deleted afterwards) | Pass: 318 of 319 decoded and valid against the gate of 304 or more (OpenCV's count); the one failure is an MPO image `canonical_image` already rejects. Decode time per slip p50 0.20 s, p90 0.38 s. QR reference equals the checked printed reference on 314 of 318: 3 SCB l/I cases where the QR is right and 1 bank-code 025 (TrueMoney) slip whose QR carries a different identifier, which is why the allowlist excludes 025 |
+| Dewey, `node --test tests/unit/receipt-recognition-timing.test.mjs` (working tree on `c7f6488`) | Pass, 7 of 7 |
+| Dewey, agent unit tests in this cloud session | Environment limitation, not a failure: `psycopg` and `zxingcpp` are not installed here, so one config test and `test_receipt_qr` could not load; Byte's full run above covers them |
+| `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey, working tree) |
+| CI on the pull request | Pending |
 
 ## Not run
-Pending.
+CI, DEV deploy, DEV activation and the performance measurement (latency and VM load with the QR decoder); the 70 PostgreSQL lab suites skipped in Byte's run. A skipped check is not a pass.
 
 ## Recovery
-Pending. Expected: the Git baseline, and routing the DEV caller back to Gemini by configuration.
+Git baseline `c7f6488`. After activation, remove the route keys from the `command-dev` caller (or set its provider to `gemini`) by the config-only route; nothing in PROD changes.
 
 ## Open questions
 - PROD activation of the new reader, when the owner has reviewed DEV.
