@@ -33,3 +33,13 @@ test('R140 (V143) payeeBorrowerId is an optional last key: a borrower without a 
  assert.match(nine,/"paidByAccountId":"fixture-account","payeeBorrowerId":"B-1"\}\}/);assert.match(eight,/"paidByAccountId":"fixture-account"\}\}/);
  assert.equal(canonicalOperation({...base,operation:'expense.update',targetId:'E-1',expectedVersion:'a'.repeat(64),inputs:{...input,payeeName:null,payeeBorrowerId:'B-1'}}).inputs.payeeBorrowerId,'B-1');
 });
+test('R140 (V144) paidDate is an optional last key after payeeBorrowerId: a date with an account, null, or absent',()=>{
+ const paid=canonicalExpenseFields({...input,paidDate:'2026-10-10'});
+ assert.deepEqual(Object.keys(paid).slice(-2),['paidByAccountId','paidDate']);assert.equal(paid.paidDate,'2026-10-10');
+ const both=canonicalExpenseFields({paidDate:'2026-10-10',...input,payeeName:null,payeeBorrowerId:'B-1'});
+ assert.deepEqual(Object.keys(both).slice(-3),['paidByAccountId','payeeBorrowerId','paidDate'],'key order: payeeBorrowerId, then paidDate');
+ assert.equal(canonicalExpenseFields({...input,paidByAccountId:null,paidDate:null}).paidDate,null);
+ assert.throws(()=>canonicalExpenseFields({...input,paidByAccountId:null,paidDate:'2026-10-10'}),/invalid_request/,'a paid date needs an account');
+ for(const bad of ['2026-02-30','10/10/2026','',7])assert.throws(()=>canonicalExpenseFields({...input,paidDate:bad}),/invalid_request/,String(bad));
+ assert.equal('paidDate' in canonicalExpenseFields(input),false,'absent stays absent');
+});

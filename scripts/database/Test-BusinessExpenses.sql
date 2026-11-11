@@ -63,7 +63,10 @@ UPDATE "Cash Pool Contributions" SET "Amount"=70000::money WHERE "Row ID"='EX15-
 UPDATE "Cash Pool Contributions" SET "Amount"=30000::money WHERE "Row ID"='EX15-CB';
 SET CONSTRAINTS ALL IMMEDIATE;
 SELECT pg_temp.exp_assert((SELECT "Partner A Expense"::numeric=350 AND "Partner B Expense"::numeric=150 FROM "Business Expenses" WHERE "Row ID"='EX15-M'),'manual correction 350/150');
-SELECT pg_temp.exp_reject($q$INSERT INTO "Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Ref Paid By Cash Account") VALUES('EX15-BAD',current_date-30,'Other',500::money,'CI-LISA')$q$,'positive A/B contribution pool');
+-- R140 V144: a date before the first contribution uses the earliest valid A/B pool (70/30 here) instead of refusing.
+INSERT INTO "Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Ref Paid By Cash Account") VALUES('EX15-EARLY',current_date-30,'Other',500::money,'CI-LISA');
+SELECT pg_temp.exp_assert((SELECT "Partner A Expense"::numeric=350 AND "Partner B Expense"::numeric=150 FROM "Business Expenses" WHERE "Row ID"='EX15-EARLY'),'R140 V144 before the first contribution: the earliest pool');
+DELETE FROM "Business Expenses" WHERE "Row ID"='EX15-EARLY';
 UPDATE "Business Expenses" SET "Amount"=501::money,"Partner A Expense"=999::money WHERE "Row ID"='EX15-M';
 SELECT pg_temp.exp_assert((SELECT "Partner A Expense"::numeric=351 AND "Partner B Expense"::numeric=150 FROM "Business Expenses" WHERE "Row ID"='EX15-M'),'whole baht and forged cache replaced');
 -- Price(0) in the current GUI rounds each repayment's partner profit before SUM.
@@ -102,6 +105,8 @@ DO $$ BEGIN PERFORM set_config('ex.out_rebate_payee',public.pwa_submit_operation
 RESET SESSION AUTHORIZATION;
 SELECT pg_temp.exp_assert(current_setting('ex.out_rebate_payee')::jsonb#>>'{originalOutcome,code}'='dependency_conflict','R140 V143 a referral rebate takes no payee borrower (P5B05)');
 SELECT pg_temp.exp_assert((SELECT "Ref Payee Borrower"='EX15-REF' FROM "Business Expenses" WHERE "Ref Related Loan"='EX15-NORMAL'),'R140 V143 the rebate keeps its payee');
+-- R140 V144: a referral rebate never carries a paid date.
+SELECT pg_temp.exp_reject($q$UPDATE "Business Expenses" SET "Paid Date"=current_date WHERE "Ref Related Loan"='EX15-CAP'$q$,'system-managed');
 SELECT 'Business expense regression passed' AS result;
 ROLLBACK;
 
@@ -301,4 +306,127 @@ DO $$ BEGIN PERFORM set_config('pe.out_p_clear',public.pwa_submit_operation_v2(c
 RESET SESSION AUTHORIZATION;
 SELECT pg_temp.pe_assert(pg_temp.pe_status('p_clear')='applied' AND pg_temp.pe_payee('c1430000-0000-4000-8000-000000000001')='-|Lisa','13: payeeBorrowerId null with a typed name clears the link');
 SELECT 'Pending manual expense regression passed' AS result;
+ROLLBACK;
+
+-- R140 V144: the allocation pool (A/B partners only, nearest valid pool) and the paid date of a manual expense, through
+-- SQL and the governed commands (the DEV command IAM user); synthetic rows; everything rolls back.
+BEGIN;
+SET LOCAL TIME ZONE 'Asia/Bangkok';
+\ir Test-CashAccountFixtures.sql
+CREATE FUNCTION pg_temp.pd_assert(ok boolean,label text) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'V144 test failed: %',label; END IF; END $$;
+CREATE FUNCTION pg_temp.pd_reject(command text,expected text) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN
+ BEGIN EXECUTE command; EXCEPTION WHEN OTHERS THEN
+ IF position(expected in SQLERRM)=0 THEN RAISE; END IF; RETURN; END;
+ RAISE EXCEPTION 'Expected rejection: %',expected;
+END $$;
+CREATE TEMP TABLE pd_day ON COMMIT DROP AS SELECT (transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date AS d;
+GRANT SELECT ON pd_day TO PUBLIC;
+INSERT INTO public."Partners"("Row ID","Partner Role") VALUES('PD-A','A'),('PD-B','B'),('PD-T','Test');
+INSERT INTO public."Partners"("Row ID","Partner Name","Partner Role","Login Email") VALUES('PD-ACT','Synthetic V144 actor','A','pd-actor@example.invalid');
+-- 1. Pool. With only a non-A/B contribution there is no A/B pool on any date: refused.
+INSERT INTO public."Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('PD-CT','PD-T',(SELECT d FROM pd_day)-60,'Contribution',99000::money);
+SELECT pg_temp.pd_assert(NOT EXISTS(SELECT 1 FROM "Cash Pool Contributions" c JOIN "Partners" p ON p."Row ID"=c."Ref Partner" WHERE p."Partner Role" IN ('A','B')),'1: no A/B contribution in the fixture');
+SELECT pg_temp.pd_reject($q$SELECT public.partner_pool_share_at_date(current_date,'A')$q$,'positive A/B contribution pool');
+-- A 60/40 pool from day-40; A withdraws everything on day-20 (pool 40000, A 0: valid, 0/100); B withdraws everything on
+-- day-10 (pool 0: invalid, falls back to day-20's 0/100); A contributes again on day-5 (A 10000, B 0: 100/0).
+INSERT INTO public."Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES
+ ('PD-CA','PD-A',(SELECT d FROM pd_day)-40,'Contribution',60000::money),('PD-CB','PD-B',(SELECT d FROM pd_day)-40,'Contribution',40000::money);
+SELECT pg_temp.pd_assert(public.partner_pool_share_at_date((SELECT d FROM pd_day)-30,'A')=0.6,'1: the non-A/B contribution is ignored (60/40)');
+SELECT pg_temp.pd_assert(public.partner_pool_share_at_date((SELECT d FROM pd_day)-50,'A')=0.6 AND public.partner_pool_share_at_date((SELECT d FROM pd_day)-50,'B')=0.4,'1: before the first contribution: the earliest pool');
+INSERT INTO public."Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES
+ ('PD-WA','PD-A',(SELECT d FROM pd_day)-20,'Withdrawal',60000::money),('PD-WB','PD-B',(SELECT d FROM pd_day)-10,'Withdrawal',40000::money),
+ ('PD-CA2','PD-A',(SELECT d FROM pd_day)-5,'Contribution',10000::money);
+SELECT pg_temp.pd_assert(public.partner_pool_share_at_date((SELECT d FROM pd_day)-15,'A')=0,'1: A withdrew: 0/100');
+SELECT pg_temp.pd_assert(public.partner_pool_share_at_date((SELECT d FROM pd_day)-8,'A')=0 AND public.partner_pool_share_at_date((SELECT d FROM pd_day)-8,'B')=1,'1: zero pool falls back to the latest earlier valid pool');
+SELECT pg_temp.pd_assert(public.partner_pool_share_at_date((SELECT d FROM pd_day),'A')=1,'1: a later valid pool');
+-- The V143 formula on every valid date equals the new one (normal splits unchanged).
+SELECT pg_temp.pd_assert(NOT EXISTS(SELECT 1 FROM generate_series((SELECT d FROM pd_day)-45,(SELECT d FROM pd_day),'1 day') g(day) CROSS JOIN LATERAL (
+  SELECT sum(CASE WHEN c."Transaction Type"='Contribution' THEN c."Amount"::numeric ELSE -c."Amount"::numeric END) FILTER (WHERE p."Partner Role" IN ('A','B')) pool,
+   coalesce(sum(CASE WHEN c."Transaction Type"='Contribution' THEN c."Amount"::numeric ELSE -c."Amount"::numeric END) FILTER (WHERE p."Partner Role"='A'),0) a,
+   coalesce(sum(CASE WHEN c."Transaction Type"='Contribution' THEN c."Amount"::numeric ELSE -c."Amount"::numeric END) FILTER (WHERE p."Partner Role"='B'),0) b
+  FROM "Cash Pool Contributions" c JOIN "Partners" p ON p."Row ID"=c."Ref Partner" WHERE c."Contribution Date"<=g.day::date) o
+  WHERE o.pool>0 AND o.a>=0 AND o.b>=0 AND public.partner_pool_share_at_date(g.day::date,'A')<>o.a/o.pool),'1: valid dates keep the V143 share');
+-- 2. The contribution command: Partner A or B only (P5B04); A is accepted.
+GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
+REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements FROM mw_app_dev;
+REVOKE USAGE,UPDATE ON SEQUENCE pwa_row_changes_seq_seq FROM mw_app_dev;
+GRANT EXECUTE ON FUNCTION public.pwa_submit_operation_v2(text) TO mw_app_dev;
+CREATE FUNCTION pg_temp.pd_actor() RETURNS text LANGUAGE sql AS $f$ SELECT '{"issuer":"https://pd.invalid","subject":"pd-owner","partnerId":"PD-ACT","loginEmail":"pd-actor@example.invalid"}' $f$;
+CREATE FUNCTION pg_temp.pd_contribution(request text,target text,partner text) RETURNS text LANGUAGE sql AS $f$
+ SELECT '{"contractVersion":2,"requestId":'||to_json(request)::text||',"actor":'||pg_temp.pd_actor()||',"command":{"schemaVersion":1,"operation":"capital-contribution.create","targetType":"capital-contribution","targetId":'||to_json(target)::text
+  ||',"expectedVersion":null,"predecessorRequestId":null,"inputs":{"partnerId":'||to_json(partner)::text||',"contributionDate":'||to_json(to_char((SELECT d FROM pd_day),'YYYY-MM-DD'))::text||',"transactionType":"Contribution","amount":"100","notes":null}},"receipt":null}' $f$;
+-- The canonical expense command; payee absent; paid 'absent' leaves the paidDate key out.
+CREATE FUNCTION pg_temp.pd_cmd(request text,op text,target text,day date,account text,paid text) RETURNS text LANGUAGE sql AS $f$
+ SELECT '{"contractVersion":2,"requestId":'||to_json(request)::text||',"actor":'||pg_temp.pd_actor()||',"command":{"schemaVersion":1,"operation":'||to_json(op)::text||',"targetType":"expense","targetId":'||to_json(target)::text
+  ||',"expectedVersion":'||CASE WHEN op='expense.create' THEN 'null' ELSE coalesce(to_json(public.pwa_expense_version_v2(target))::text,'null') END
+  ||',"predecessorRequestId":null,"inputs":{"expenseDate":'||to_json(to_char(day,'YYYY-MM-DD'))::text||',"category":"Other / อื่น ๆ","amount":"70","payeeName":null,"relatedBorrowerId":null,"relatedLoanId":null,"notes":null,"paidByAccountId":'||coalesce(to_json(account)::text,'null')
+  ||CASE WHEN paid='absent' THEN '' ELSE ',"paidDate":'||coalesce(to_json(paid)::text,'null') END||'}},"receipt":null}' $f$;
+CREATE FUNCTION pg_temp.pd_status(name text) RETURNS text LANGUAGE sql AS $f$ SELECT current_setting('pd.out_'||name)::jsonb#>>'{originalOutcome,status}' $f$;
+CREATE FUNCTION pg_temp.pd_code(name text) RETURNS text LANGUAGE sql AS $f$ SELECT current_setting('pd.out_'||name)::jsonb#>>'{originalOutcome,code}' $f$;
+CREATE FUNCTION pg_temp.pd_cash(id text) RETURNS text LANGUAGE sql AS $f$ SELECT coalesce(string_agg("Movement Date"::text||'|'||"Amount"::numeric::bigint::text||'|'||"Ref From Cash Account",',' ORDER BY "Row ID"),'none') FROM "Cash Ledger" WHERE "Ref Business Expense"=id $f$;
+CREATE FUNCTION pg_temp.pd_paid(id text) RETURNS text LANGUAGE sql AS $f$ SELECT coalesce("Paid Date"::text,'null') FROM "Business Expenses" WHERE "Row ID"=id $f$;
+SELECT set_config('pd.contrib_t',pg_temp.pd_contribution('b1440000-0000-4000-8000-000000000001','c1440000-0000-4000-8000-000000000001','PD-T'),true),
+ set_config('pd.contrib_a',pg_temp.pd_contribution('b1440000-0000-4000-8000-000000000002','c1440000-0000-4000-8000-000000000002','PD-A'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN
+ PERFORM set_config('pd.out_contrib_t',public.pwa_submit_operation_v2(current_setting('pd.contrib_t'))::text,false);
+ PERFORM set_config('pd.out_contrib_a',public.pwa_submit_operation_v2(current_setting('pd.contrib_a'))::text,false);
+END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.pd_assert(pg_temp.pd_status('contrib_t')='rejected' AND pg_temp.pd_code('contrib_t')='invalid_reference' AND NOT EXISTS(SELECT 1 FROM "Cash Pool Contributions" WHERE "Row ID"='c1440000-0000-4000-8000-000000000001'),'2: a non-A/B partner contribution is refused (P5B04)');
+SELECT pg_temp.pd_assert(pg_temp.pd_status('contrib_a')='applied','2: a Partner A contribution is accepted');
+-- 3. Paid date. A pending expense (day-3) paid with paidDate day-1: one ledger row on day-1; a paid-now create: the Expense
+-- Date; a future paid date: P5B08; a paid date without an account: not a canonical command; an 8-key edit keeps the date;
+-- back to pending clears it and removes the row; a direct SQL paid date on a pending row is refused.
+SELECT set_config('pd.pending',pg_temp.pd_cmd('b1440000-0000-4000-8000-000000000011','expense.create','c1440000-0000-4000-8000-000000000011',(SELECT d FROM pd_day)-3,NULL,'absent'),true),
+ set_config('pd.now',pg_temp.pd_cmd('b1440000-0000-4000-8000-000000000012','expense.create','c1440000-0000-4000-8000-000000000012',(SELECT d FROM pd_day)-3,'CI-DAD','absent'),true),
+ set_config('pd.nodate',pg_temp.pd_cmd('b1440000-0000-4000-8000-000000000013','expense.create','c1440000-0000-4000-8000-000000000013',(SELECT d FROM pd_day)-3,NULL,to_char((SELECT d FROM pd_day),'YYYY-MM-DD')),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN
+ PERFORM set_config('pd.out_pending',public.pwa_submit_operation_v2(current_setting('pd.pending'))::text,false);
+ PERFORM set_config('pd.out_now',public.pwa_submit_operation_v2(current_setting('pd.now'))::text,false);
+ BEGIN PERFORM public.pwa_submit_operation_v2(current_setting('pd.nodate'));PERFORM set_config('pd.out_nodate','accepted',false);
+ EXCEPTION WHEN SQLSTATE '22023' THEN PERFORM set_config('pd.out_nodate','invalid',false); END;
+END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.pd_assert(pg_temp.pd_status('pending')='applied' AND pg_temp.pd_cash('c1440000-0000-4000-8000-000000000011')='none' AND pg_temp.pd_paid('c1440000-0000-4000-8000-000000000011')='null','3: pending, no cash, no paid date');
+SELECT pg_temp.pd_assert(pg_temp.pd_status('now')='applied' AND pg_temp.pd_cash('c1440000-0000-4000-8000-000000000012')=((SELECT d FROM pd_day)-3)::text||'|70|CI-DAD' AND pg_temp.pd_paid('c1440000-0000-4000-8000-000000000012')='null','3: paid now: cash on the Expense Date');
+SELECT pg_temp.pd_assert(current_setting('pd.out_nodate')='invalid','3: a paid date without an account is refused');
+SELECT pg_temp.pd_reject($q$UPDATE "Business Expenses" SET "Paid Date"=current_date WHERE "Row ID"='c1440000-0000-4000-8000-000000000011'$q$,'A paid date belongs to a paid manual expense');
+SELECT set_config('pd.future',pg_temp.pd_cmd('b1440000-0000-4000-8000-000000000014','expense.update','c1440000-0000-4000-8000-000000000011',(SELECT d FROM pd_day)-3,'CI-DAD',to_char((SELECT d FROM pd_day)+1,'YYYY-MM-DD')),true),
+ set_config('pd.pay',pg_temp.pd_cmd('b1440000-0000-4000-8000-000000000015','expense.update','c1440000-0000-4000-8000-000000000011',(SELECT d FROM pd_day)-3,'CI-DAD',to_char((SELECT d FROM pd_day)-1,'YYYY-MM-DD')),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN
+ PERFORM set_config('pd.out_future',public.pwa_submit_operation_v2(current_setting('pd.future'))::text,false);
+ PERFORM set_config('pd.out_pay',public.pwa_submit_operation_v2(current_setting('pd.pay'))::text,false);
+ PERFORM set_config('pd.out_pay_replay',public.pwa_submit_operation_v2(current_setting('pd.pay'))::text,false);
+END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.pd_assert(pg_temp.pd_status('future')='rejected' AND pg_temp.pd_code('future')='invalid_date','3: a future paid date (P5B08)');
+SELECT pg_temp.pd_assert(pg_temp.pd_status('pay')='applied' AND pg_temp.pd_paid('c1440000-0000-4000-8000-000000000011')=((SELECT d FROM pd_day)-1)::text
+ AND pg_temp.pd_cash('c1440000-0000-4000-8000-000000000011')=((SELECT d FROM pd_day)-1)::text||'|70|CI-DAD','3: paid with a date: the cash on that date');
+SELECT pg_temp.pd_assert(current_setting('pd.out_pay_replay')::jsonb->'originalOutcome'=current_setting('pd.out_pay')::jsonb->'originalOutcome','3: a replay returns the recorded outcome');
+SELECT set_config('pd.keep',replace(pg_temp.pd_cmd('b1440000-0000-4000-8000-000000000016','expense.update','c1440000-0000-4000-8000-000000000011',(SELECT d FROM pd_day)-4,'CI-DAD','absent'),'"notes":null','"notes":"edited"'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('pd.out_keep',public.pwa_submit_operation_v2(current_setting('pd.keep'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.pd_assert(pg_temp.pd_status('keep')='applied' AND pg_temp.pd_paid('c1440000-0000-4000-8000-000000000011')=((SELECT d FROM pd_day)-1)::text
+ AND pg_temp.pd_cash('c1440000-0000-4000-8000-000000000011')=((SELECT d FROM pd_day)-1)::text||'|70|CI-DAD','3: an 8-key edit (expense date moved) keeps the paid date and its cash day');
+SELECT set_config('pd.unpay',pg_temp.pd_cmd('b1440000-0000-4000-8000-000000000017','expense.update','c1440000-0000-4000-8000-000000000011',(SELECT d FROM pd_day)-4,NULL,'absent'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('pd.out_unpay',public.pwa_submit_operation_v2(current_setting('pd.unpay'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.pd_assert(pg_temp.pd_status('unpay')='applied' AND pg_temp.pd_paid('c1440000-0000-4000-8000-000000000011')='null' AND pg_temp.pd_cash('c1440000-0000-4000-8000-000000000011')='none','3: back to pending clears the date and removes the cash row');
+-- A direct SQL paid date on a paid row moves its cash (the trigger fires on "Paid Date").
+UPDATE "Business Expenses" SET "Paid Date"=(SELECT d FROM pd_day)-2 WHERE "Row ID"='c1440000-0000-4000-8000-000000000012';
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.pd_assert(pg_temp.pd_cash('c1440000-0000-4000-8000-000000000012')=((SELECT d FROM pd_day)-2)::text||'|70|CI-DAD','3: a paid date set by SQL moves the cash row');
+SELECT 'Pool fallback and paid date regression passed' AS result;
 ROLLBACK;

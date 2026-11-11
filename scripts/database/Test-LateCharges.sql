@@ -86,6 +86,10 @@ BEGIN
    JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND NOT t.tgisinternal) a USING(relation,trigger_name)
    -- R129 (V137): the comparison covers the tables of V131; a later table (pwa_rebate_settlements) brings its own triggers.
    WHERE EXISTS(SELECT 1 FROM lc_before.tables x WHERE x.name=quote_ident(coalesce(a.relation,b.relation)))
+    -- R140 (V144): the "Business Expenses" cash trigger also fires on the new "Paid Date" (same name, timing and function).
+    AND NOT (a.relation='Business Expenses' AND b.relation='Business Expenses' AND a.trigger_name='zz_cash_source' AND b.trigger_name='zz_cash_source'
+     AND (a.trigger_type,a.enabled,a.is_deferrable,a.is_initially_deferred)=(b.trigger_type,b.enabled,b.is_deferrable,b.is_initially_deferred)
+     AND a.definition=replace(b.definition,'"Ref Paid By Cash Account" ON','"Ref Paid By Cash Account", "Paid Date" ON'))
     AND (a.trigger_name IS NULL OR b.trigger_name IS NULL OR (a.trigger_type,a.enabled,a.is_deferrable,a.is_initially_deferred,a.definition) IS DISTINCT FROM (b.trigger_type,b.enabled,b.is_deferrable,b.is_initially_deferred,b.definition))) THEN
   RAISE EXCEPTION 'FAILED: a user trigger changed'; END IF;
 END $$;

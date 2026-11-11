@@ -143,7 +143,7 @@ test('R140 an expense without a paying account is proposed pending payment; payi
 });
 
 test('R140 (V143) payeeBorrowerId is optional: given, the command has 9 keys, the typed name is cleared and the card names the borrower; absent, 8 keys',async()=>{
- const expense=(id,extra)=>ok({item:{id,expenseDate:'2026-10-30',category:'Other / อื่น ๆ',amount:'150.00',payeeName:'สมชาย',payeeBorrowerId:'B1',relatedBorrowerId:null,relatedLoanId:null,notes:null,paidByAccountId:null,paymentState:'pending',version:W,...extra}});
+ const expense=(id,extra)=>ok({item:{id,expenseDate:'2026-10-30',category:'Other / อื่น ๆ',amount:'150.00',payeeName:'สมชาย',payeeBorrowerId:'B1',relatedBorrowerId:null,relatedLoanId:null,notes:null,paidByAccountId:null,paymentState:'pending',storedPaidDate:null,version:W,...extra}});
  const {client}=service({...base,'GET /api/expense-records/E1':expense('E1')});
  const planner=createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()});
  const created=await planner.propose({operation:'expense.create',target:'',values:{expenseDate:'2026-10-30',category:'Transportation / ค่าเดินทาง',amount:'150',payeeBorrowerId:'B1'}});
@@ -159,6 +159,11 @@ test('R140 (V143) payeeBorrowerId is optional: given, the command has 9 keys, th
  assert.equal('payeeBorrowerId' in edit.inputs,false);assert.equal(edit.inputs.payeeName,'สมชาย');
  const unlink=await planner.propose({operation:'expense.update',target:'E1',values:{payeeBorrowerId:null,payeeName:'Dad'}});
  assert.deepEqual([JSON.parse(unlink.command).inputs.payeeBorrowerId,JSON.parse(unlink.command).inputs.payeeName],[null,'Dad']);
+ // R140 (V144): an optional paid date goes last and shows on the card; without an account it is not a command.
+ const paid=await planner.propose({operation:'expense.update',target:'E1',values:{paidByAccountId:'CA2',paidDate:'2026-10-31'}});
+ assert.deepEqual(Object.keys(JSON.parse(paid.command).inputs).slice(-2),['paidByAccountId','paidDate']);
+ assert.deepEqual(paid.card.changes.map(c=>[c.field,c.before,c.after]),[['paidByAccountId',null,'CA2'],['paidDate',null,'2026-10-31']]);
+ await assert.rejects(planner.propose({operation:'expense.update',target:'E1',values:{paidDate:'2026-10-31'}}),/INVALID_COMMAND/);
  // A stored 8-key proposal from before V143 is still a canonical command.
  assert.doesNotThrow(()=>canonicalOperation({requestId:'00000000-0000-4000-8000-0000000000aa',operation:'expense.create',targetId:'00000000-0000-4000-8000-0000000000ab',expectedVersion:null,predecessorRequestId:null,receiptId:null,
   inputs:{expenseDate:'2026-10-30',category:'Other / อื่น ๆ',amount:'150',payeeName:'Dad',relatedBorrowerId:null,relatedLoanId:null,notes:null,paidByAccountId:'CA1'}}));

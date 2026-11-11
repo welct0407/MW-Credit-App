@@ -87,3 +87,24 @@ test('R140 V143 a pending expense paid to a borrower shows as owed on that borro
  const deleted=await store.operation(principal,{...command,requestId:randomUUID(),operation:'expense.delete',expectedVersion:fresh.version,inputs:{}});
  assert.equal(deleted.originalOutcome?.status,'applied',JSON.stringify(deleted));
 });
+
+test('R140 V144 marking a pending expense paid with yesterday puts its cash on yesterday\'s statement; replay is idempotent',async()=>{
+ const options=await store.expenseOptions(principal);assert.equal(options.status,200,JSON.stringify(options));
+ const yesterday=(await admin.query("SELECT ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-1)::text AS day")).rows[0].day,earlier=(await admin.query("SELECT ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-3)::text AS day")).rows[0].day;
+ const command={requestId:randomUUID(),operation:'expense.create',targetId:randomUUID(),expectedVersion:null,predecessorRequestId:null,receiptId:null,
+  inputs:{expenseDate:earlier,category:'Other / อื่น ๆ',amount:'33',payeeName:'Synthetic paid later',relatedBorrowerId:null,relatedLoanId:null,notes:null,paidByAccountId:null}};
+ assert.equal((await store.operation(principal,command)).originalOutcome?.status,'applied');
+ const pending=(await store.expenseRecord(principal,command.targetId)).item;assert.equal(pending.paidDate,null);
+ const pay={...command,requestId:randomUUID(),operation:'expense.update',expectedVersion:pending.version,inputs:{...command.inputs,paidByAccountId:fixture.receivingAccountId,paidDate:yesterday}};
+ const paid=await store.operation(principal,pay);assert.equal(paid.originalOutcome?.status,'applied',JSON.stringify(paid));
+ assert.deepEqual(await store.operation(principal,pay),paid,'a replay returns the recorded outcome');
+ assert.deepEqual(await ledger(command.targetId),[{origin:'System',day:yesterday,amount:'33.00',account:fixture.receivingAccountId}]);
+ const record=(await store.expenseRecord(principal,command.targetId)).item;assert.deepEqual([record.paidDate,record.storedPaidDate,record.paymentState],[yesterday,yesterday,null]);
+ const statement=await store.cashStatement(principal,{accountId:fixture.receivingAccountId,date:yesterday,limit:100});
+ assert.equal(statement.status,200,JSON.stringify(statement));
+ assert.ok(statement.items.some(row=>row.sourceKey==='EXPENSE:'+command.targetId||String(row.id).endsWith(command.targetId)),'the expense is on yesterday\'s statement');
+ const other=await store.cashStatement(principal,{accountId:fixture.receivingAccountId,date:earlier,limit:100});
+ assert.equal(other.items.some(row=>row.sourceKey==='EXPENSE:'+command.targetId||String(row.id).endsWith(command.targetId)),false,'not on the expense date');
+ const deleted=await store.operation(principal,{...command,requestId:randomUUID(),operation:'expense.delete',expectedVersion:record.version,inputs:{}});
+ assert.equal(deleted.originalOutcome?.status,'applied',JSON.stringify(deleted));
+});

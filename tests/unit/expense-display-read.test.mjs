@@ -64,3 +64,12 @@ test('R140 (V143) a borrower record carries the manual expenses owed to it (pend
  assert.match(sql,/CROSS JOIN LATERAL \(SELECT coalesce\(sum\(x\."Amount"::numeric\),0\)::numeric\(20,2\)::text AS amount,count\(\*\)::int AS count FROM public\."Business Expenses" x WHERE x\."Ref Payee Borrower"=b\."Row ID" AND \(x\."Source Type"='Manual'/);
  assert.match(sql,/eo\.amount AS "expensesOwedAmount",eo\.count AS "expensesOwedCount"/);
 });
+test('R140 (V144) paidDate is stored, else the settlement date, else the expense date; null while pending; payee names both ways',async()=>{
+ const read=async row=>{let first=true;const client={query:async sql=>{if(first){first=false;assert.match(sql,/to_jsonb\(e\)->>'Paid Date' AS "storedPaidDate"/);assert.match(sql,/payee\."Borrower Name" AS "payeeBorrowerName",payee\."Description" AS "payeeBorrowerDescription"/);
+  return {rows:[{id:'E',sourceType:'Manual',amount:'5.00',expenseDate:'2026-11-01',offsetPaymentId:null,relatedLoanId:null,...row}]}}return {rows:[]}}};return readExpenseRecord(client,'E')};
+ assert.equal((await read({storedPaidDate:'2026-11-06',paymentState:null})).paidDate,'2026-11-06');
+ assert.equal((await read({storedPaidDate:null,paymentState:null})).paidDate,'2026-11-01');
+ assert.equal((await read({storedPaidDate:null,paymentState:'pending'})).paidDate,null);
+ assert.equal((await read({sourceType:'Referral Rebate',rebateState:'pending',storedPaidDate:null})).paidDate,null);
+ const named=await read({payeeBorrowerId:'B',payeeBorrowerName:'สมชาย',payeeBorrowerDescription:'Somchai'});assert.deepEqual([named.payeeBorrowerName,named.payeeBorrowerDescription],['สมชาย','Somchai']);
+});
