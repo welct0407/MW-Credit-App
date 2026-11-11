@@ -147,7 +147,15 @@ test('Referrers list and detail: owed, accruing at custom terms (0 and 3,000 rec
  assert.equal(detail.referees[0].borrowerLabel,'SYNTHETIC REFERRED '+t.id+' 1');
  assertRefereesSum(detail);
  assert.equal(detail.settleOptions.defaultAccountId,await lisaAccount());assert.ok(detail.settleOptions.accounts.length>=1);assert.equal(detail.settleOptions.businessDate,today);
+ // R141: owed=1 lists the referrers still owed rebates; its total is the Cash Position Rebates payable amount.
+ const owedList=async()=>{const answer=await store.referrers(principal,{owed:'1'});assert.equal(answer.status,200,JSON.stringify(answer).slice(0,300));const position=await store.management(principal,'cash-position');assert.equal(position.status,200);
+  assert.ok(answer.items.every(r=>Number(r.unpaidAmount)>0),'only owed referrers');assert.equal(answer.filter.total.count,answer.items.length);
+  assert.equal(answer.filter.total.amount,position.rebatesPayable.amount,'the filter total is the Rebates payable line');
+  assert.equal(answer.items.reduce((sum,r)=>sum+Number(r.unpaidAmount),0).toFixed(2),answer.filter.total.amount);return answer};
+ assert.ok((await owedList()).items.some(r=>r.id===t.referrer),'the owed referrer is listed');
+ assert.equal((await store.referrers(principal,{owed:'yes'})).status,400);
  const settled=await store.operation(principal,await settleCommand(t.referrer,['rr1:'+t.loans[0]],{paymentMethod:'Cash',bankReference:null}));assert.equal(settled.originalOutcome?.status,'applied',JSON.stringify(settled));
+ assert.equal((await owedList()).items.some(r=>r.id===t.referrer),false,'settled: no longer owed');
  const later=await store.referrerRecord(principal,t.referrer);
  assert.deepEqual(later.history.map(h=>[h.kind,h.amount,h.rebateCount??null,h.paymentMethod??null]),[['settlement','450.00',1,'Cash'],['paid-at-close','300.00',null,null]],'newest first: the settlement, then the legacy row');
  assert.equal(later.referrer.paidToDate,'750.00');assert.equal(later.referrer.unpaidAmount,'0.00');

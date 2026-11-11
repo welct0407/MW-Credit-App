@@ -284,7 +284,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async expenseOptions(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpenseOptions(client)}),true)},
     async expenses(principal,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readExpensePage(client,options)}),true)},
     // R129 (V137): the Referrers page, a referrer's detail and one rebate settlement (the expense reads' access gate).
-    async referrers(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readReferrers(client)}),true)},
+    async referrers(principal,options={}){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readReferrers(client,options)}),true)},
     async referrerRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const value=await readReferrerRecord(client,id);return value?{ok:true,value}:failure(404,'not_found')},true)},
     async rebateSettlementRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const value=await readRebateSettlement(client,id);return value?{ok:true,value}:failure(404,'not_found')},true)},
     async paymentImage(principal,id,source='preferred'){

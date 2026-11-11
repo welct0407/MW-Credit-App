@@ -1,6 +1,6 @@
 import {test,expect,type Page,type Route} from './fixtures/test';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
-import {referrerRoute,referrerMaiDetail,rebateExpenses,accruingLoans} from './fixtures/referrers-fixture';
+import {referrerRoute,referrerMaiDetail,referrerMai,referrerPond,rebateExpenses,accruingLoans,REFERRERS_BUSINESS_DATE} from './fixtures/referrers-fixture';
 
 // R140 (owner, 11 November 2026): "after insert/update, then go back to previous page, the numbers should be reflecting
 // the updated result" without a manual refresh. A list whose saved data changed while a form or a record was on top
@@ -19,7 +19,7 @@ const publish=(page:Page,domain:string,data:any)=>page.evaluate(async({domain,da
 const select=(page:Page,name:string)=>page.evaluate(name=>(window as any).selectBackCase(name),name);
 type Reads=(path:string,method:string,url:URL)=>any;
 /** One seam for every request: the dataset protocol answered from `server`, operations, then the page's reads. */
-async function serve(page:Page,reads:Reads,server:{versions:Record<string,string>;data:Record<string,any>}={versions:Object.fromEntries(domains.map(d=>[d,OLD])),data:{}},log:string[]=[]){
+async function serve(page:Page,reads:Reads,server:{versions:Record<string,string>;data:Record<string,any>}={versions:Object.fromEntries(domains.map(d=>[d,OLD])),data:{}},log:string[]=[],onWrite?:(body:any)=>void){
  const chunk=(domain:string,patches:any[],sourceVersion:string)=>({schemaVersion:2,domain,generation:'g-'+sourceVersion.slice(0,4),startedAt:asOf,asOf,businessDate,sourceVersion,patches,nextCursor:null,complete:true,progress:{completed:1,total:1}});
  const patches=(data:any)=>Object.entries(data??{}).map(([key,value])=>({key,mode:Array.isArray(value)?'append':'replace',value}));
  let posted=false;
@@ -31,7 +31,7 @@ async function serve(page:Page,reads:Reads,server:{versions:Record<string,string
    if(body.sourceVersion===current&&!body.cursor)return r.fulfill({json:{...chunk(domain,[],current),schemaVersion:3,unchanged:true,values:{},...versions}});
    return r.fulfill({json:{...encodeDeltaChunk(chunk(domain,patches(server.data[domain]),current),body.need),...versions}});
   }
-  if(path.startsWith('/api/operations')){if(method==='POST'){posted=true;return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})}return r.fulfill({json:posted?{kind:'recorded',originalOutcome:{status:'applied'}}:{kind:'unresolved'}})}
+  if(path.startsWith('/api/operations')){if(method==='POST'){posted=true;onWrite?.(r.request().postDataJSON());return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})}return r.fulfill({json:posted?{kind:'recorded',originalOutcome:{status:'applied'}}:{kind:'unresolved'}})}
   const body=await reads(path,method,url);
   return body===undefined?r.fulfill({json:{ok:true,items:[],nextCursor:null}}):body.__status?r.fulfill({status:body.__status,json:body}):r.fulfill({json:body});
  });
@@ -191,4 +191,37 @@ test('R141 a pending filter with nothing left says so',async({page})=>{
  await serve(page,(path,_method,url)=>path==='/api/management/cash-position'?body:path==='/api/expense-records'?{ok:true,items:[],nextCursor:null,...(url.searchParams.get('payment')?{filter:{payment:'pending',payeeBorrowerId:null,total:{count:0,amount:'0.00'}}}:{})}:undefined);
  await select(page,'prepared-position');await page.getByRole('button',{name:'Show pending expenses',exact:true}).click();
  await expect(page.getByText('No pending expenses.',{exact:true})).toBeVisible();await expect(page.getByRole('group',{name:'Filter',exact:true})).toContainText('0 expenses · ฿0');
+});
+
+// R141 (owner, 11 November 2026): the Cash Position "Rebates payable" line opens the referrers still owed rebates (owed=1)
+// with the line's amount; settling from a referrer's page and Back leaves that referrer out, and Back to Cash Position shows
+// the line re-read. Clear filter shows every referrer.
+test('R141 Cash Position: the Rebates payable line opens the referrers owed rebates; settle, Back drops the referrer; Clear filter',async({page})=>{
+ let owedMai='400.00';const asked:string[]=[];
+ const body=()=>({...position(0),rebatesPayable:{count:Number(owedMai)>0?2:0,amount:owedMai}});
+ const mai=()=>({...referrerMai,unpaidAmount:owedMai,unpaidCount:Number(owedMai)>0?2:0});
+ await fixture(page,'r141-rebates',{management:{position:body()}});
+ await serve(page,(path,method,url)=>{if(method!=='GET')return undefined;if(path==='/api/management/cash-position')return body();
+  if(path==='/api/referrers'){asked.push(url.search);const items=[mai(),referrerPond],owed=url.searchParams.get('owed')==='1',rows=owed?items.filter(r=>Number(r.unpaidAmount)>0):items;
+   return {ok:true,items:rows,businessDate:REFERRERS_BUSINESS_DATE,...(owed?{filter:{owed:true,total:{count:rows.length,amount:Number(owedMai).toFixed(2)}}}:{})}}
+  if(path==='/api/referrers/R-MAI')return {ok:true,...referrerMaiDetail,referrer:mai(),unpaid:Number(owedMai)>0?referrerMaiDetail.unpaid:[]};
+  const r=referrerRoute(path);return r?{...r.body,...(r.status!==200?{__status:r.status}:{})}:undefined},undefined,[],written=>{if(written?.operation==='rebate-settlement.create')owedMai='0.00'});
+ await select(page,'prepared-position');
+ const line=page.getByRole('button',{name:'Show referrers owed rebates',exact:true});await expect(line).toContainText('Rebates payable · 2 rebates');await expect(line).toContainText('฿400');
+ expect((await line.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+ await line.click();
+ const bar=page.getByRole('group',{name:'Filter',exact:true});await expect(bar).toContainText('Owed rebates');await expect(bar).toContainText('1 referrer · ฿400');
+ expect(asked).toContain('?owed=1');await expect(page.locator('.referrer-row')).toHaveCount(1);
+ // Clear filter shows every referrer; the line opens the filtered list again.
+ await bar.getByRole('button',{name:'Clear filter',exact:true}).click();await expect(page.locator('.referrer-row')).toHaveCount(2);await expect(page.getByRole('group',{name:'Filter',exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Back to Cash Position'}).click();await line.click();await expect(page.locator('.referrer-row')).toHaveCount(1);
+ // Settle every owed rebate from the referrer's page, as today.
+ await page.locator('.referrer-row').first().click();await page.getByRole('button',{name:'Pay rebates ฿400'}).click();
+ await page.locator('.rebate-settle-footer button').click();await page.getByRole('button',{name:'Confirm',exact:true}).click();
+ await expect(page.getByRole('status').filter({hasText:'Paid ฿400 to'})).toBeVisible();
+ await page.getByRole('button',{name:'Back to referrer page',exact:true}).click();await expect(page.getByRole('heading',{name:'Settlement history'})).toBeVisible();
+ await page.getByRole('button',{name:'Back to referrers',exact:true}).click();
+ await expect(page.locator('.referrer-row')).toHaveCount(0);await expect(page.getByText('No rebates owed.',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Back to Cash Position'}).click();
+ await expect(page.getByRole('button',{name:'Show referrers owed rebates',exact:true})).toContainText('฿0');
 });
