@@ -63,10 +63,10 @@
       \ foreign_key_violation THEN RAISE EXCEPTION USING ERRCODE='P5B05';WHEN SQLSTATE 'P0001' THEN GET STACKED DIAGNOSTICS\
       \ message=MESSAGE_TEXT;\r\n IF message='Correct linked reimbursement before changing expense away from a positive Tommy-paid\
       \ expense' THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSIF message='Related loan does not belong to related borrower'\
-      \ THEN RAISE EXCEPTION USING ERRCODE='P5B04';ELSIF message='A paid date belongs to a paid manual expense' THEN RAISE\
-      \ EXCEPTION USING ERRCODE='P5B08';ELSIF message IN('Expense allocation requires a positive A/B contribution pool on\
-      \ its allocation date','A negative manual adjustment requires an explanatory note') THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE\
-      \ RAISE;END IF;END;\r\n RETURN jsonb_build_object('operation',op,'targetType','expense','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);\r\
+      \ THEN RAISE EXCEPTION USING ERRCODE='P5B04';ELSIF message IN('A paid date belongs to a paid manual expense','A paid\
+      \ date cannot be before the expense date' /* R140 V145 */) THEN RAISE EXCEPTION USING ERRCODE='P5B08';ELSIF message\
+      \ IN('Expense allocation requires a positive A/B contribution pool on its allocation date','A negative manual adjustment\
+      \ requires an explanatory note') THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;END;\r\n RETURN jsonb_build_object('operation',op,'targetType','expense','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);\r\
       \nEND $function$\n"
     "owner": "postgres"
     "language": "plpgsql"
@@ -84,7 +84,7 @@
     "extension": null
 "evidence":
   "/content/definition/definition":
-    "reference": "database/migrations/V144__expense_pool_fallback_and_paid_date.sql (R140)"
-    "reason": "R140 follow-up (owner feedback of 11 November 2026): V144 replaces the routine in place (source definition;\
-      \ PROD capture follows the PROD apply)"
+    "reference": "database/migrations/V145__expense_paid_date_not_before_expense_date.sql (R140)"
+    "reason": "R140 owner decision of 11 November 2026: V145 replaces the routine in place (paid date not before the expense\
+      \ date; source definition, PROD capture follows the PROD apply)"
     "state": "value"

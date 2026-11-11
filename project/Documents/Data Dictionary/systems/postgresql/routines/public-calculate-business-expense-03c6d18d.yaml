@@ -95,6 +95,9 @@
          IF NEW."Paid Date" IS NOT NULL AND (NEW."Ref Paid By Cash Account" IS NULL
            OR EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=NEW."Row ID")) THEN
            RAISE EXCEPTION 'A paid date belongs to a paid manual expense'; END IF;
+         -- R140 V145: a paid date is never before the expense date, checked when either date is written (existing rows stay).
+         IF NEW."Paid Date"<NEW."Expense Date" AND (TG_OP='INSERT' OR NEW."Paid Date" IS DISTINCT FROM OLD."Paid Date" OR NEW."Expense Date" IS DISTINCT FROM OLD."Expense Date") THEN
+           RAISE EXCEPTION 'A paid date cannot be before the expense date'; END IF;
          NEW."Allocation Basis":='Expense Date Contribution Ratio';
        END IF;
        IF NEW."Ref Related Loan" IS NOT NULL AND NEW."Ref Related Borrower" IS NOT NULL AND
@@ -123,7 +126,7 @@
     "extension": null
 "evidence":
   "/content/definition/definition":
-    "reference": "database/migrations/V144__expense_pool_fallback_and_paid_date.sql (R140)"
-    "reason": "R140 follow-up (owner feedback of 11 November 2026): V144 replaces the routine in place (source definition;\
-      \ PROD capture follows the PROD apply)"
+    "reference": "database/migrations/V145__expense_paid_date_not_before_expense_date.sql (R140)"
+    "reason": "R140 owner decision of 11 November 2026: V145 replaces the routine in place (paid date not before the expense\
+      \ date; source definition, PROD capture follows the PROD apply)"
     "state": "value"
