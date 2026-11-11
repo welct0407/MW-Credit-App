@@ -31,6 +31,28 @@ Built in source on branch `claude/compassionate-heisenberg-ras6py`, code commit 
 - Tests: `tests/test_receipt_qr.py`, `tests/test_receipt_recognition.py`, `tests/test_config.py`, `tests/test_deploy_runtime.py`, `tests/unit/receipt-recognition-timing.test.mjs`.
 - Records (Dewey): this note, `Release_Tracker.md`, `Development_Changes.md`, `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md`, `Environment_Inventory.md` (planned state only).
 
+## Performance (DEV measurement, 11 November 2026 UTC)
+Read-only, on `vm-mw-credit-agent`; aggregate figures only.
+- Run A: 100 random real slips, sequential, `nice` 19.
+
+| Route | Median | p90 | Notes |
+| --- | --- | --- | --- |
+| PROD route (gemini) | 9.1 s | 18.6 s | |
+| DEV route (claude + QR) | 10.0 s | 31.7 s | 82 served by Claude, 16 Gemini fallbacks (`claude_timeout`), 1 timeout |
+
+  QR valid on 98 of 98 decoded: same as the model on 93, replaced on 5. Peak memory 120 MB; both routes used about 7 s CPU per slip.
+- Run B: 30 slips at normal priority, per-stage medians (p90 in brackets): `canonical_image` 1.5 s (3.0); `downscaled` 7.0 s (13.8), CPU-bound because of the `optimize=True` PNG attempt; Claude API 3.2 s (7.1); Gemini API 1.4 s (2.9); QR 0.2 s (0.5).
+- Conclusion: the model change adds about 1.9 s at the median and 4 s at p90. The fallbacks were caused by the preparation step running inside the 15 s Claude phase. The live PROD baseline (last 30 days, 139 requests) is median 4.0 s, p90 6.4 s, max 25.3 s, with 2 provider timeouts; app uploads are pre-shrunk on the phone, so these runs on full-size slips overstate real latency.
+- Cost: about 0.015 USD per Claude slip; the measurement runs used about 2 USD.
+
+## Follow-up fix (Byte, uncommitted)
+The Claude route prepares the image once with the new `prepared()` (Lanczos, 1600 px, JPEG quality 85 only) before the phase timer starts, and a fallback to Gemini reuses those bytes. PROD and Gemini-only routes are unchanged. The audit gains `prepare_ms` and `model_ms` on the Claude route. Local timing on a 1290x2017 synthetic image: 0.077 s against 0.431 s for `downscaled`. Files: `receipt_image.py`, `receipt_provider_claude.py`, `receipt_provider_gemini.py`, `receipt_recognition_api.py`, `tests/test_receipt_recognition.py`.
+
+## DEV device check (Echo, iPhone WebKit)
+Items 1 to 4 pass: "Uploading" at 0.2 s, "Reading" at 1.6 s, "From slip (Claude)" at 4.7 s; the slow messages at 8 s and 10 s; the offline message; one polite status element with focus kept. Item 5 (loan close and manual receipt) was not checked live; those screens share the same helpers.
+- R142-UX-11: in WebKit the app's service worker hides requests from Playwright route blocks, so the write guard in the DEV sign-in recipe (`docs/Development.md`, step 4) did not stop writes on iPhone WebKit. One synthetic orphan receipt was uploaded to DEV (no payment). `docs/Development.md` step 4 now installs the guard with an init script and requires a probe request first.
+- Chase's DEV end-to-end results: pending.
+
 ## Owner deploy decision
 11 November 2026: gate the invisible-character stripping, then merge PR #288 and deploy. There is no DEV agent, so the code goes to the one live VM; DEV is switched by configuration while PROD and the Instagram receipt cycle read exactly as today.
 
@@ -64,10 +86,13 @@ Pending owner approval. Not requested; the PROD caller and the Instagram receipt
 | `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey, working tree) |
 | CI, PR #288 | Pass: `Development checks` run 43075377547 (check, lint, 6 e2e shards) on the head `29a7ba0`; `Agent tests` run 43072193508 on `9c1f5329`. Earlier runs failed on a browser timer defect (`Illegal invocation` in `watchSlow`), fixed in `29a7ba08` |
 | DEV deployment | Pass: `check` exit 0 and ok, `/ready` `code_version` `d2de3330`, recognizer and relay `/healthz` 200, Hosting `--check` 17 files |
-| Chase and Echo DEV checks, first PROD-caller request (must be gemini), performance measurement | Pending |
+| DEV performance measurement (Run A 100 slips, Run B 30 slips) | Done: see Performance; Claude route median 10.0 s and p90 31.7 s before the follow-up fix |
+| Follow-up fix: ruff, agent tests (146), `mw-integration-agent check` (Byte, uncommitted tree) | Pass: ruff clean, 146 tests, `check` ok |
+| Echo's DEV iPhone check, items 1 to 4 | Pass; item 5 not checked live |
+| Chase's DEV end-to-end results, first PROD-caller request (must be gemini) | Pending |
 
 ## Not run
-The performance measurement (latency and VM load with the QR decoder); the 70 PostgreSQL lab suites skipped in Byte's run. A skipped check is not a pass.
+The follow-up fix is not yet measured on the VM, and item 5 of Echo's check (loan close and manual receipt) was not checked live; the 70 PostgreSQL lab suites skipped in Byte's run. A skipped check is not a pass.
 
 ## Recovery
 Git baseline `c7f6488` (code), agent `246bcb93` and catalogue revision 36 on the VM, Hosting `a3d0594cc8f5511f`. Rollback: `deploy-runtime.py rollback --commit d2de3330` for the code; `config-only-change.py restore --tag r142-dev-reader` for the configuration; redeploy the previous Hosting version. Or remove the route keys from the `command-dev` caller (or set its provider to `gemini`) by the config-only route; nothing in PROD changes.
@@ -77,4 +102,4 @@ Git baseline `c7f6488` (code), agent `246bcb93` and catalogue revision 36 on the
 - Bank or third-party slip verification is a later owner decision.
 
 ## Remaining work
-Chase's and Echo's DEV checks, the first PROD-caller request after the deploy and the performance measurement. Then update, as affected: `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md` Current state, `integration-agent/SERVICE_CATALOGUE.md` and `service-catalogue.json`, `integration-agent/config.example.json` notes, `project/Documents/Environment_Inventory.md` (federation rule, DEV caller routing, VM version), `project/Documents/Solution_Design.md` Current state if receipt reading is described there, `project/Documents/Development_Changes.md` (active scope), the Data Dictionary only if the recognizer contract changes, and `project/Documents/Service_Account_Browser_Mapping.md` only if an identity changes.
+Chase's DEV end-to-end results, the first PROD-caller request after the deploy, deploying and re-measuring the follow-up fix, and the PROD decision. Then update, as affected: `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md` Current state, `integration-agent/SERVICE_CATALOGUE.md` and `service-catalogue.json`, `integration-agent/config.example.json` notes, `project/Documents/Environment_Inventory.md` (federation rule, DEV caller routing, VM version), `project/Documents/Solution_Design.md` Current state if receipt reading is described there, `project/Documents/Development_Changes.md` (active scope), the Data Dictionary only if the recognizer contract changes, and `project/Documents/Service_Account_Browser_Mapping.md` only if an identity changes.
