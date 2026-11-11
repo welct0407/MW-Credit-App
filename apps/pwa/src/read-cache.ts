@@ -31,7 +31,12 @@ const SEEN_PATHS_MAX=128;
 const changeCounters=new Map<string,number>(),seenCounters=new Map<string,number>();
 export const datasetChangeCount=(scopeName:string|undefined,domain:string)=>scopeName?changeCounters.get(scopeName+'|'+domain)??0:0;
 function datasetChanged(event:Event){const detail=(event as CustomEvent).detail;if(!detail?.scopeName||!detail.domain||detail.changed===false)return;const key=detail.scopeName+'|'+detail.domain;changeCounters.set(key,(changeCounters.get(key)??0)+1)}
-if(typeof window!=='undefined'&&typeof window.addEventListener==='function')window.addEventListener('mw-offline-dataset-ready',datasetChanged);
+/** R140 (Chase on DEV): own writes settled in this tab (mw-read-invalidated). The saved data follows a write only after
+ * the confirming check, and not at all while that domain's first download is still walking, so a page that read the
+ * network before a write re-reads it after one (dataset-refresh.ts). */
+let ownWrites=0;
+export const ownWriteCount=()=>ownWrites;
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){window.addEventListener('mw-offline-dataset-ready',datasetChanged);window.addEventListener('mw-read-invalidated',()=>{ownWrites++})}
 function rememberSeen(key:string,count:number){seenCounters.delete(key);seenCounters.set(key,count);while(seenCounters.size>SEEN_PATHS_MAX)seenCounters.delete(seenCounters.keys().next().value!)}
 export function subscribeOfflineDataset<T=any>(access:Access,path:string,apply:(data:T)=>void,onMissing?:()=>void,options:{hold?:HoldScope}={}){
  const repository=access.offline,scope=repository?.scopeName,domain=routeDomain(new URL(path,access.origin).pathname),token=Symbol(path),key=scope+'|'+path;let active=true,generation=0;

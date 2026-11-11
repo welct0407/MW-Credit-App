@@ -76,9 +76,9 @@ function hookHarness(f,initial){
  const refs=[],deps=[],cleanups=[];let props=initial,index=0,refIndex=0;
  const react={useRef:value=>{const at=refIndex++;if(!(at in refs))refs[at]={current:value};return refs[at]},
   useEffect:(effect,list)=>{const at=index++;const before=deps[at];if(before&&list.length===before.length&&list.every((value,i)=>Object.is(value,before[i])))return;cleanups[at]?.();deps[at]=list;cleanups[at]=effect()??undefined}};
- const exports={},dependencies={react,'./read-cache':{datasetChangeCount:f.exports.datasetChangeCount},'./offline-dataset':f.offlineDataset};
+ const exports={},dependencies={react,'./read-cache':{datasetChangeCount:f.exports.datasetChangeCount,ownWriteCount:f.exports.ownWriteCount},'./offline-dataset':f.offlineDataset};
  runInNewContext(datasetRefresh,{exports,require:name=>dependencies[name],window:f.window});
- const render=next=>{if(next)props={...props,...next};index=0;refIndex=0;exports.useDatasetRefresh(f.access,props.domain,props.enabled,props.reload)};
+ const render=next=>{if(next)props={...props,...next};index=0;refIndex=0;exports.useDatasetRefresh(f.access,props.domain,props.enabled,props.reload,props.options)};
  render();return {render,unmount:()=>{for(const cleanup of cleanups)cleanup?.()}};
 }
 test('useDatasetRefresh reloads on a change while enabled and once after a missed change when enabled again',()=>{
@@ -94,4 +94,13 @@ test('useDatasetRefresh reloads on a change while enabled and once after a misse
  f.syncing.delete('records');f.ready('records',false);assert.equal(reloads,3,'an unchanged check that follows reloads the missed change');
  f.ready('records',false);assert.equal(reloads,3,'nothing missed, an unchanged check does not reload');
  hook.unmount();f.ready();assert.equal(reloads,3);
+});
+test('useDatasetRefresh reloads after an own write (settled in this tab), also while the domain is syncing; changes:false ignores checks',()=>{
+ const f=fixture();let reloads=0;const written=()=>f.window.dispatchEvent(new Event('mw-read-invalidated'));
+ const hook=hookHarness(f,{domain:'records',enabled:true,reload:()=>reloads++,options:{changes:false}});
+ f.ready();f.ready();assert.equal(reloads,0,'saved-data changes are left to the subscription');
+ written();assert.equal(reloads,1,'an own write while shown reloads from the server');
+ hook.render({enabled:false});written();f.syncing.add('records');hook.render({enabled:true});assert.equal(reloads,2,'Back after an own write reloads, even while the confirming check runs');
+ hook.render({enabled:false});hook.render({enabled:true});assert.equal(reloads,2,'nothing new, no reload');
+ hook.unmount();written();assert.equal(reloads,2);
 });

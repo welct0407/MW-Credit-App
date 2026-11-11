@@ -159,7 +159,9 @@ test('R140: once a management path is used, an own write confirms management too
   await settled(h);h.requests.length=0;h.events.length=0;
   assert.equal(h.exports.datasetDomainSyncing(h.repo.scopeName,'management'),false);
   h.exports.noteDatasetDomainUsed('management');
-  h.window.dispatchEvent(new Event('mw-read-invalidated'));await until(()=>h.requests.length>0);await settled(h);
+  h.window.dispatchEvent(new Event('mw-read-invalidated'));
+  assert.equal(h.exports.datasetDomainSyncing(h.repo.scopeName,'records'),true,'a queued confirm counts as syncing');
+  await until(()=>h.requests.length>0);await settled(h);
   assert.ok(h.events.includes('management:false'),'management was confirmed with the own write');
   assert.equal(h.exports.datasetDomainSyncing(h.repo.scopeName,'records'),false,'nothing is left marked in flight');
  }finally{h.stop()}

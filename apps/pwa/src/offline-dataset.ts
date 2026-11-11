@@ -122,10 +122,10 @@ export const DATASET_CONFIRM_DOMAINS=Object.freeze(['records','collection','cash
 let managementUsed=false;
 export function noteDatasetDomainUsed(domain:string){if(domain==='management')managementUsed=true}
 export const confirmDomains=()=>managementUsed?[...DATASET_CONFIRM_DOMAINS,'management']:[...DATASET_CONFIRM_DOMAINS];
-/** R140: the data domains being fetched now, per signed-in scope (their mw-offline-dataset-ready event follows). */
-const syncingDomains=new Map<string,Set<string>>();
-export function datasetDomainSyncing(scopeName:string|undefined,domain:string){return !!scopeName&&!!syncingDomains.get(scopeName)?.has(domain)}
-function markSyncing(scopeName:string,domain:string,on:boolean){let set=syncingDomains.get(scopeName);if(!set){if(!on)return;set=new Set();syncingDomains.set(scopeName,set)}if(on)set.add(domain);else set.delete(domain)}
+/** R140: whether a data domain has a check queued, in flight or a walk in progress (its mw-offline-dataset-ready
+ * follows, carrying any own write already settled), per signed-in scope; registered by the running coordinator. */
+const syncingProbes=new Map<string,(domain:string)=>boolean>();
+export function datasetDomainSyncing(scopeName:string|undefined,domain:string){return !!scopeName&&!!syncingProbes.get(scopeName)?.(domain)}
 /** R064: online and background-prepare triggers recheck a domain only after this age; focus, visible-again,
  * the poll and manual sync bypass it (owner decision 17 October 2026). */
 export const DATASET_RECHECK_MIN_MS=10*1000;
@@ -160,6 +160,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // R078: every task in flight with its abort controller. At most DATASET_DATA_FLIGHTS data domains run
  // at once (never the same domain twice); a receipt runs alone, only while no data domain is queued or in flight.
  const active=new Map<string,AbortController>();
+ const probe=(domain:string)=>active.has(domain)||queue.includes(domain)||partials.has(domain)||recheckDomains.has(domain)||recheck&&confirmDomains().includes(domain);syncingProbes.set(repo.scopeName,probe);
  // While a starting records check asks for every domain's source version, the other data domains wait
  // for that answer instead of each sending its own unchanged check.
  let versionsPending=false;
@@ -318,7 +319,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   status();
  }
  async function run(task:string){
-  const isMedia=isMediaTask(task),flight=new AbortController(),mediaAt=isMedia?mediaVersion.get(task):undefined;active.set(task,flight);if(!isMedia)markSyncing(repo.scopeName,task,true);
+  const isMedia=isMediaTask(task),flight=new AbortController(),mediaAt=isMedia?mediaVersion.get(task):undefined;active.set(task,flight);
   const startedAt=Date.now(),record=isMedia?null:domainDiagnostics(diag,task);if(record){record.attempts++;record.lastAttemptAt=startedAt}
   let lastResponse:Response|null=null;
   // A starting records check also asks for the other domains' versions (applyVersions).
@@ -488,7 +489,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const tagged=error instanceof Error&&typeof (error as DatasetFailure).status==='number'?error as DatasetFailure:null;
    const failure={status:tagged?tagged.status:flight.signal.aborted?0:lastResponse?.status??0,code:tagged?tagged.code:flight.signal.aborted?'timeout':'client',durationMs:Date.now()-startedAt};
    if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task,failure);if(!isMedia)giveUp(task)}}}finally{
-   clearTimeout(timeout);if(active.get(task)===flight){active.delete(task);if(!isMedia)markSyncing(repo.scopeName,task,false)}releaseVersions();
+   clearTimeout(timeout);if(active.get(task)===flight)active.delete(task);releaseVersions();
    if(record&&!stopped){record.lastDurationMs=Date.now()-startedAt;if(lastResponse&&!failed.has(task)){record.lastStatus=lastResponse.status;record.lastCode=null}}
    // A full sync requested while this check ran walks the domain next; a forced walk that failed ends its part of the full sync.
    if(!stopped&&forceWalk.has(task)){if(forced&&failed.has(task))forceWalk.delete(task);else if(!forced&&!queue.includes(task)&&!failed.has(task))enqueue(task,true)}if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}
@@ -639,7 +640,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const receiptCounts=()=>{const markers=[...refused.values()];return {downloaded:media.filter(path=>completed.has(path)).length,queued:queue.filter(isMediaTask).length+[...active.keys()].filter(isMediaTask).length,failed:[...failed].filter(isMediaTask).length,refused:media.filter(refusedNow).length,lastRefusalAt:markers.length?Math.max(...markers.map(marker=>marker.at)):null}};
  diag.receipts=receiptCounts;
  void initialize();
- return()=>{stopped=true;closeCycle();if(diag.receipts===receiptCounts)diag.receipts=null;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);for(const flight of active.values())flight.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
+ return()=>{stopped=true;if(syncingProbes.get(repo.scopeName)===probe)syncingProbes.delete(repo.scopeName);closeCycle();if(diag.receipts===receiptCounts)diag.receipts=null;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);for(const flight of active.values())flight.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
 }
 
 export const routeDomain=(route:string)=>route.startsWith('/api/management')?'management':route.startsWith('/api/cash-')||route==='/api/preferences'?'cash':route.startsWith('/api/notifications')?'notifications':route.startsWith('/api/collection')||route.includes('/upcoming')||route.includes('/collection-receipts')?'collection':'records';

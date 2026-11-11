@@ -150,7 +150,8 @@ test('Expenses: an expense saved offline appears when it syncs, on Back from the
  const first=expense('E-1','2026-10-10'),queued=expense('E-OFFLINE','2026-10-12',{payeeName:'Synthetic offline payee'});
  const server={versions:Object.fromEntries(domains.map(d=>[d,OLD])),data:{records:{expenses:[first]}} as Record<string,any>};
  await fixture(page,'replay-offline-sync',{records:{expenses:[first]}});
- await serve(page,expenseReads([first]),server);
+ // The server's reads answer its current rows (the write is applied before the request settles).
+ await serve(page,(path,method)=>expenseReads(server.data.records.expenses)(path,method),server);
  await start(page);await settled(page);await select(page,'prepared-expenses');
  await page.locator('[data-record-id="E-1"]').click();await expect(page.getByRole('button',{name:'Back to expenses'})).toBeVisible();
  // The queued create syncs: the server applies it, the settled request invalidates the reads and the records check walks.
