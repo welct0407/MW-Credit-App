@@ -19,7 +19,9 @@ Owner on the DEV review: "rebate payable can't be clicked. expenses payable can 
 - Referrers: a filter bar with the chip "Owed rebates" (Thai: "ค้างจ่ายค่าแนะนำ"), "N referrers · ฿X" and "x Clear filter"; empty state "No rebates owed." (Thai: "ไม่มีค่าแนะนำค้างจ่าย"); Back returns to Cash Position. After a settlement, Back re-reads the filtered list and the Cash Position.
 - Tests (Byte): unit `rebate-settlement.test.mjs`; integration `rebate-settlement-independent` (total equals `rebatesPayable`, a settled referrer leaves the list, `owed=yes` is 400); e2e `dataset-replay-independent` (tap, filter, clear, settle, empty, Cash Position 0).
 - Local checks (Byte): `npm test` 1295; typecheck, lint, builds and the receiving group pass; 8 e2e specs, 377 passed.
-- CI, DEV deployment and DEV test for this addition: to be added.
+- CI on `73eef152`: `Development checks` 43031154506 and `Database migrations` 43031148944 passed.
+- DEV deployment (Forge, 11 November 2026 UTC): image Cloud Build `a7dfb11c-41b1-4619-8a40-19147790cce6` (digest `sha256:096e4ff23328e893904c26bd308f097bda4a4cb650897e681cc71e3899c9046d`); Terraform 0 add, 3 change, 0 destroy, applied 13:51:07Z to 13:51:44Z, settings generation `1794405110933796` (previous `1794401786919940`); revisions read `00089-6lj`, command `00106-mjj`, chat `00058-kph`; Hosting `a3d0594cc8f5511f` (build version `04f958b02c7d6ae359650028`); smoke passed. `GET /api/referrers?owed=1` returned 1 referrer, ฿15.00, equal to the cash position `rebatesPayable`; `owed=2` 400. Rollback: settings generation `1794401786919940`, Hosting `99f4e84fd8c1d515`.
+- DEV test (Chase, read-only, Pixel 7 Chromium, Thai): the Cash Position line "ค่าแนะนำค้างจ่าย · 1 รายการ ฿15" opened Referrers in 0.75 s with the bar "ค้างจ่ายค่าแนะนำ | 1 ผู้แนะนำ · ฿15" and only R129 Test Referrer B listed; Clear filter listed all 16 referrers; Back returned to Cash Position; the referrer page showed the settle action (not used) and Back kept the filtered list. The Expenses payable line still opened 11 pending expenses (฿862). The owed referrer is left unsettled for the owner.
 
 ## Checks
 | Command | Result |
