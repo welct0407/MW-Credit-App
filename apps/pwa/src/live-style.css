@@ -782,7 +782,20 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .expense-payee-results button{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;width:100%;text-align:left;overflow-wrap:anywhere}
 .expense-payee-tag{flex:0 0 auto;font-size:12px;font-weight:600;color:#565656;border:1px solid #c8cdd2;border-radius:10px;padding:1px 8px}
 .expense-payee-chosen{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;margin:0;overflow-wrap:anywhere}.expense-payee-chosen small{color:#565656}
-.expense-tile>span{min-width:0}.expense-tile .expense-chip-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expense-tile .expense-tile-payee{color:#666;font-weight:400}
+.expense-tile>span{min-width:0}
+/* R140 (Echo EXP-REC-1 to 14): the expense record: summary card, Mark as paid under it, grouped rows, two columns from 900px. */
+.expense-summary{border:1px solid #d5dbe0;border-radius:8px;padding:8px 8px 10px 12px;margin-bottom:10px;background:#fafbfc}
+.expense-summary-top{display:flex;align-items:center;gap:8px}.expense-summary-top h2{flex:1;min-width:0;margin:0;font-size:18px;overflow-wrap:anywhere}
+.expense-summary-amount{font-size:22px;font-variant-numeric:tabular-nums;white-space:nowrap}.expense-summary-actions{display:flex;gap:2px}
+.expense-summary-actions .icon-action{min-width:44px;min-height:44px}
+.expense-summary-line{margin:4px 0 0;color:#444;overflow-wrap:anywhere}.expense-summary-line .rebate-chip{margin-top:0}
+.rebate-chip-paid{color:#256029}
+.borrower-record button.expense-mark-paid{margin:0 0 12px;text-decoration:none}
+.expense-detail-groups{display:grid;gap:4px 24px}.expense-detail-group h3{margin:14px 0 6px;font-size:16px}
+.expense-detail-group dl{margin:0}.expense-split-line,.expense-cash-row{margin:2px 0}.expense-split-basis{margin:4px 0 0;font-size:14px;color:#565656}
+.expense-settlement-link{margin:4px 0}
+.expense-record-info,.expense-record-info dl{font-size:14px;color:#565656}.expense-record-note{margin:6px 0 0;font-size:14px;color:#565656}
+@media (min-width:900px){.expense-detail-groups{grid-template-columns:1fr 1fr;align-items:start}.borrower-record button.expense-mark-paid{max-width:320px}}.expense-tile .expense-chip-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expense-tile .expense-tile-payee{color:#666;font-weight:400}
 /* R140 EXP-PEND-16: Pending is disabled for an amount of zero or less; the rollover-day disabled look. */
 .expense-payment-options input:disabled+span{color:#8a8f94;background:#f2f2f2;border-color:#d5dbe0;cursor:not-allowed}.expense-mark-paid:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .rebate-settle-list{min-width:0;max-width:100%;border:1px solid #d5dbe0;border-radius:6px;padding:4px 10px}
