@@ -793,7 +793,7 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .borrower-record button.expense-mark-paid{margin:0 0 12px;text-decoration:none}
 .expense-detail-groups{display:grid;gap:4px 24px}.expense-detail-group h3{margin:14px 0 6px;font-size:16px}
 .expense-detail-group dl{margin:0}.expense-split-line,.expense-cash-row{margin:2px 0}.expense-split-basis{margin:4px 0 0;font-size:14px;color:#565656}
-.expense-settlement-link{margin:4px 0}
+.expense-settlement-link{display:block;margin-top:4px}
 .expense-record-info,.expense-record-info dl{font-size:14px;color:#565656}.expense-record-note{margin:6px 0 0;font-size:14px;color:#565656}
 @media (min-width:900px){.expense-detail-groups{grid-template-columns:1fr 1fr;align-items:start}.borrower-record button.expense-mark-paid{max-width:320px}}.expense-tile .expense-chip-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expense-tile .expense-tile-payee{color:#666;font-weight:400}
 /* R140 EXP-PEND-16: Pending is disabled for an amount of zero or less; the rollover-day disabled look. */
