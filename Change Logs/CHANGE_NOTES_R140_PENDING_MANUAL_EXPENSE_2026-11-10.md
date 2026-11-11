@@ -139,7 +139,7 @@ Git baseline: `b669c0d`, the commit before this batch; PROD baseline R139 `d1acb
 ## Remaining work
 - Owner acceptance in PROD: done. The owner confirmed on 11 November 2026, "it works in prod, close it".
 - Owner decision: re-dating legacy V1 and V2 referral rebates. Decided 11 November 2026: leave them as they are.
-- Follow-ups: EXP-PEND-17 and 25 (tappable Expenses payable and Expenses owed lines); EXP-PEND-7 and 10 to 12 (pay form, undo); the Collection board and other pages that read once lag only while a profile is still on its first download.
+- Follow-ups: EXP-PEND-17 and 25 (tappable Expenses payable and Expenses owed lines); EXP-PEND-7 and 10 to 12 (pay form, undo); the Collection board and other pages that read the saved data lag behind the user's own non-payment writes while that domain is being fully re-read. Archie's code review (11 November 2026) found full re-reads more often than on a new device: the Collection domain on the first sync of each business day, Records when more than 8 borrowers changed since the last sync or after any delete, plus sign-in, Full sync, a bundle shape change or more than 7 days offline; the user's own payments are patched locally and are not delayed. Owner decision of 11 November 2026: keep it ("i'm ok with full download as in case any delta sync missed data, full download would catch them"); EXP-PEND-17 and 25 shipped in R141.
 - Release closure prune (11 November 2026): deleted `Change Logs/CHANGE_NOTES_R137_LONG_OVERDUE_SINCE_LAST_PAYMENT_2026-11-09.md` (outside the retention window); its inbound links in the release tracker, the environment inventory and the database README now point to commit `cccc3b3`.
 
 ## PROD promotion record (Forge, 11 November 2026 UTC)
