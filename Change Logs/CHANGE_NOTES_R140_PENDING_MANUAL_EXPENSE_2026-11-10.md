@@ -137,7 +137,7 @@ Git baseline: `b669c0d`, the commit before this batch; PROD baseline R139 `d1acb
 - Legacy V1 and V2 "paid at close" referral rebates are dated on the close date, and their real pay dates are not stored. Re-dating them (a per-row financial correction through convert-then-settle) needs the owner to name the rows and dates.
 
 ## Remaining work
-- Owner acceptance in PROD (the first real pending manual expense, its payment with a paid date, and the expenses list order).
+- Owner acceptance in PROD: done. The owner confirmed on 11 November 2026, "it works in prod, close it".
 - Owner decision: re-dating legacy V1 and V2 referral rebates (above).
 - Follow-ups: EXP-PEND-17 and 25 (tappable Expenses payable and Expenses owed lines); EXP-PEND-7 and 10 to 12 (pay form, undo); the Collection board and other pages that read once lag only while a profile is still on its first download.
 - Release closure prune (11 November 2026): deleted `Change Logs/CHANGE_NOTES_R137_LONG_OVERDUE_SINCE_LAST_PAYMENT_2026-11-09.md` (outside the retention window); its inbound links in the release tracker, the environment inventory and the database README now point to commit `cccc3b3`.
@@ -166,4 +166,4 @@ Authority: the owner's instruction of 11 November 2026, "move R140 to production
 - The first owner-authority restore call lacked the production arguments and was refused before connecting (no change); the re-run restored all 24 statements at 11:35:43Z.
 
 ### Limitations
-- No authenticated PROD read (there is no sanctioned PROD token route), financial write, notification or job. PROD owner acceptance is pending. The tag record is part of this closure pull request.
+- No authenticated PROD read (there is no sanctioned PROD token route), financial write, notification or job. The owner accepted R140 in PROD on 11 November 2026 ("it works in prod, close it"). The tag record is part of this closure pull request.
