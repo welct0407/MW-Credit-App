@@ -101,7 +101,9 @@ Owner, 11 November 2026: "after i create an expense, then click 'back' button to
 | V143 DEV deployment and test | Pass, see DEV deployment evidence |
 | Earlier CI failures, fixed | phase5 on `1b8c692` (run 42856801410), fixed by `de86092`; migrations on `de86092` (run 42857508827, ACL drift from the grant), fixed by `86a5371` |
 | `dictionary.py validate` | Pass after the five dictionary updates (Dewey) |
-| `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey) |
+| `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey, closure) |
+| PROD promotion | Pass, see the PROD promotion record below |
+| Release tag | Created: `R140` on `91f79ef7b85fa5263a782b047691c6d224732a74` ([Release tag run 43014137408](https://github.com/welct0407/MW-Credit-App/actions/runs/43014137408), 11:42:38Z, GitHub Release published) |
 
 ## DEV deployment evidence
 Forge, 10 November 2026 (UTC). Package: `86a5371`; Hosting redeployed from `8822f0c`.
@@ -129,11 +131,39 @@ Forge, 10 November 2026 (UTC). Package: `86a5371`; Hosting redeployed from `8822
 No PROD action, authenticated PROD read or financial write. CI on `8822f0c` is pending. The WebKit service worker bypassed the read-only write block: one `POST /api/notifications/offline-dataset` reached the DEV command service per run, with no expense writes; the DEV test account's language is now Thai. Known DEV limit, not R140: an expense dated 2026-11-09 or later is refused with `record_requires_reconciliation` by the existing rule "Expense allocation requires a positive A/B contribution pool on its date", because DEV's contribution pool ends before 9 November; use a date on or before 8 November in DEV.
 
 ## Recovery
-Git baseline: `b669c0d`, the commit before this batch. DEV image and Hosting: settings generation `1794302647577685` and Hosting `d48809b344706a34`. V142 is applied to DEV and stays; a later migration restores the V141 bodies, after pending rows created meanwhile are paid or deleted (the V141 guards refuse any update of a positive Manual expense without a payer). Fallback: the V141 backup.
+Git baseline: `b669c0d`, the commit before this batch; PROD baseline R139 `d1acb883`. PROD: services settings generation `1794305807490273`, then Hosting `daa9c69a7ae05e1c`; the database is forward-fix only (dropping `"Paid Date"` would be destructive and needs approval; V142 to V145 roll back through a later migration that restores the V141 to V144 bodies, after pending rows created meanwhile are paid or deleted); restore point: the PROD backup at V141 in the promotion record. DEV: the DEV rollbacks are in the DEV deployment evidence.
 
 ## Open questions
 - Legacy V1 and V2 "paid at close" referral rebates are dated on the close date, and their real pay dates are not stored. Re-dating them (a per-row financial correction through convert-then-settle) needs the owner to name the rows and dates.
-- A pending expense paid later puts its cash movement on the Expense Date, not the pay date. Is that acceptable? A separate pay date needs a new column (follow-up only if the owner wants it).
 
 ## Remaining work
-The owner's review in DEV; the cash-date decision; Echo's follow-ups EXP-PEND-17 and 25 (tappable payable and owed lines) and 7, 10 to 12 (pay date, pay form, undo; they depend on the pay-date decision) if wanted; CI result on `8822f0c`; promotion only on the owner's instruction. Before PROD, confirm `mw_app_prod` can SELECT `r005_cash_cutover_sources` (the V142 preflight refuses otherwise; the recorded PROD ACL lists it).
+- Owner acceptance in PROD (the first real pending manual expense, its payment with a paid date, and the expenses list order).
+- Owner decision: re-dating legacy V1 and V2 referral rebates (above).
+- Follow-ups: EXP-PEND-17 and 25 (tappable Expenses payable and Expenses owed lines); EXP-PEND-7 and 10 to 12 (pay form, undo); the Collection board and other pages that read once lag only while a profile is still on its first download.
+- Release closure prune (11 November 2026): deleted `Change Logs/CHANGE_NOTES_R137_LONG_OVERDUE_SINCE_LAST_PAYMENT_2026-11-09.md` (outside the retention window); its inbound links in the release tracker, the environment inventory and the database README now point to commit `cccc3b3`.
+
+## PROD promotion record (Forge, 11 November 2026 UTC)
+Authority: the owner's instruction of 11 November 2026, "move R140 to production", relayed by the orchestrator as the scoped PROD approval for R140: tested schema migrations V142 to V145, a verified backup, the standard temporary maintenance permissions, the changed images, the settings apply, Hosting and the technical records. No payment, notification or job was forced, and no financial correction or other data write was made; the smoke is read-only. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Step | Result |
+| --- | --- |
+| Freeze | 11:26:23Z; release R140; package `91f79ef7b85fa5263a782b047691c6d224732a74` (PR #284 head), merged to `main` as `cccc3b3`. Baseline R139 `d1acb883`. Roles read, command, chat; notify and jobs unchanged; no infrastructure change. Next unused number R142 (R141 opened by the closure pull request) |
+| Target | Project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017` (system id `7685391508477894672`), database `loan_manager_prod`, services `mw-credit-app-*-prod`, Hosting site `mw-credit-prod-737787224638`, registry `mw-credit-app-prod` |
+| Baseline capture | Flyway 141. Revisions read `00053-rhb`, command `00058-wll`, chat `00037-mvw` on `23478fa6...`; notify `00029-2nb`, jobs `00029-9dp` on `f8cb243b...`; settings generation `1794305807490273`; Hosting `daa9c69a7ae05e1c` (R139) |
+| Pre-V142 check | `has_table_privilege` for `mw_app_prod` on `r005_cash_cutover_sources` and on `"Business Expenses"` both true; nothing was granted |
+| Backup | At V141: `prod-promotion-6e3d3d4615af4eb4be94ef6eaa5c0e81`, 11:29:01Z to 11:31:36Z, sha256 `3ad62220a3acc93e61f579312843c0351c8d93ce97e65e47d1cb8fb432e7f7d7`, restore check passed, 39 tables matched |
+| Image | Cloud Build `46082f07-04d3-4d7c-9d5b-94da7ee3be20` (`cloudbuild-business.yaml`, git archive of `91f79ef7`), digest `sha256:dee20b507dd70f98919d0b593132842df79a3afe37ab0da64948772109017a16` |
+| SQL | Manifest `release-r140-v145-91f79ef7-prod.json` (145 migrations, grouped 141 to 145). Connect preflight 11:32:35Z; owner window 11:32:26Z to 11:35:43Z; check 11:33:10Z; apply 11:33:15Z to 11:34:50Z (installed 11:33:55Z); verify 11:35:23Z: schema 145, 145 history rows successful. Readback: `"Paid Date"` is a nullable date; rows with a paid date before the expense date: 0; `partner_pool_share_at_date(current_date,'A')` = 0.6; owners and the `zz_cash_source` trigger as designed; no residual owner memberships or CREATE on `public` |
+| Cash Ledger | Baseline 846 rows, full-row md5 `90a508b2...`, dates-and-amounts md5 `d01f37c5...`. After: 847 rows; the extra row is a live PWA payment receipt written 11:32:22Z (`cash:PAYMENT:pwa:85a3a6d5...`). Excluding it, the count and both md5s match |
+| Terraform | Plan 0 add, 3 change, 0 destroy (image only; plan sha256 `a999e80e...`), applied 11:37:36Z to 11:38:13Z, settings generation `1794397099475916` (previous `1794305807490273`), re-plan clean. Revisions read `00054-psb`, command `00059-kpf`, chat `00038-ztc`; notify and jobs unchanged |
+| Hosting | Generic runner as `mw-credit-unattended-admin`; `--apply` 11:40:00Z to 11:40:45Z: version `544eee09024fe6b2`, release `1794397238553000`, build-version R140 `d1fb9da74aea6d3209520690`, entry `/assets/index-CxR8oJKX.js`, 18 files, package sha256 `5c16a3a4...`; PROD origins only |
+| CI receipts | `Development checks` run 42999158423 on `8132d84`; Terraform evidence run 42763518963 on `456a6c9`; `Database migrations` run 42999151776 on `8132d84`; `91f79ef` run 43001425640 success |
+| Smoke (read-only) | `lm.mw-credit.com` and the `web.app` origin serve R140; the entry and `sw.js` return 200; read, command and chat `/health` return 200, unauthenticated requests 401, CORS preflight 204; no ERROR logs 11:26Z to 11:41Z |
+| Rollback | Services settings generation `1794305807490273`, then Hosting `daa9c69a7ae05e1c`; the database is forward-fix only (dropping `"Paid Date"` would be destructive and needs approval); restore point: the backup above. Private records in `gs://mw-credit-operator-private-737787224638/promotion-packages/r140/` and `promotion-receipts/R140-HOSTING-RECEIPT.json` |
+| Tag | `R140` on `91f79ef7b85fa5263a782b047691c6d224732a74`, created by the Release tag workflow run [43014137408](https://github.com/welct0407/MW-Credit-App/actions/runs/43014137408) at 11:42:38Z; the GitHub Release is published |
+
+### Deviations
+- The first owner-authority restore call lacked the production arguments and was refused before connecting (no change); the re-run restored all 24 statements at 11:35:43Z.
+
+### Limitations
+- No authenticated PROD read (there is no sanctioned PROD token route), financial write, notification or job. PROD owner acceptance is pending. The tag record is part of this closure pull request.
