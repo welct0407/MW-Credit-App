@@ -80,10 +80,11 @@
       \ THEN RAISE EXCEPTION 'preference date';END IF;\r\n input_text:='{\"language\":'||to_json(i->>'language')::text||',\"\
       statementAccountId\":'||coalesce(to_json(i->>'statementAccountId')::text,'null')||',\"statementDate\":'||coalesce(to_json(i->>'statementDate')::text,'null')||'}';\r\
       \n ELSIF op IN('expense.create','expense.update') THEN\r\n keys:=ARRAY['expenseDate','category','amount','payeeName','relatedBorrowerId','relatedLoanId','notes','paidByAccountId']||CASE\
-      \ WHEN i ? 'payeeBorrowerId' THEN ARRAY['payeeBorrowerId'] ELSE ARRAY[]::text[] END; /* R140 V143: the optional payee\
-      \ borrower, last */\r\n IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT\
-      \ array_agg(key ORDER BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION 'expense keys';END IF;\r\n input_text:='{';FOREACH\
-      \ k IN ARRAY keys LOOP\r\n IF jsonb_typeof(i->k) NOT IN('string','null') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION\
+      \ WHEN i ? 'payeeBorrowerId' THEN ARRAY['payeeBorrowerId'] ELSE ARRAY[]::text[] END||CASE WHEN i ? 'paidDate' THEN ARRAY['paidDate']\
+      \ ELSE ARRAY[]::text[] END; /* R140 V143: the optional payee borrower, last */ /* R140 V144: then the optional paid\
+      \ date */\r\n IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT array_agg(key\
+      \ ORDER BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION 'expense keys';END IF;\r\n input_text:='{';FOREACH k IN\
+      \ ARRAY keys LOOP\r\n IF jsonb_typeof(i->k) NOT IN('string','null') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION\
       \ 'expense field';END IF;\r\n IF k IN('expenseDate','category','amount') AND jsonb_typeof(i->k) IS DISTINCT FROM 'string'\
       \ THEN RAISE EXCEPTION 'expense required';END IF;\r\n IF k IN('relatedBorrowerId','relatedLoanId','paidByAccountId','payeeBorrowerId')\
       \ AND i->k<>'null'::jsonb AND (octet_length(i->>k) NOT BETWEEN 1 AND 256 OR i->>k~'[[:cntrl:]]') THEN RAISE EXCEPTION\
@@ -91,11 +92,14 @@
       \ LOOP;input_text:=input_text||'}';\r\n IF i->>'expenseDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'expenseDate')::date)::text<>i->>'expenseDate'\
       \ OR btrim(i->>'category')='' OR i->>'amount'!~'^-?[1-9][0-9]*$' OR abs((i->>'amount')::numeric)>92233720368547758 THEN\
       \ RAISE EXCEPTION 'expense input';END IF; IF i->>'payeeBorrowerId' IS NOT NULL AND i->'payeeName'<>'null'::jsonb THEN\
-      \ RAISE EXCEPTION 'expense payee';END IF; /* R140 V143: a borrower payee carries no typed name */\r\n ELSIF op='rebate-settlement.create'\
-      \ THEN\n -- R129: whole pending rebates of one referrer (1 to 200 distinct expense ids, ascending), date, Lisa's account,\
-      \ method,\n -- optional bank reference (Bank Transfer only) and notes.\n IF (SELECT array_agg(key ORDER BY key COLLATE\
-      \ \"C\") FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['bankReference','cashAccountId','expenseIds','notes','paymentMethod','referrerId','settlementDate']\
-      \ THEN RAISE EXCEPTION 'settlement keys';END IF;\n IF jsonb_typeof(i->'referrerId') IS DISTINCT FROM 'string' OR octet_length(i->>'referrerId')\
+      \ RAISE EXCEPTION 'expense payee';END IF; IF i->>'paidDate' IS NOT NULL AND (i->>'paidDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'\
+      \ OR ((i->>'paidDate')::date)::text<>i->>'paidDate' OR i->>'paidByAccountId' IS NULL) THEN RAISE EXCEPTION 'expense\
+      \ paid date';END IF; /* R140 V144: a paid date is a valid date and needs an account */ /* R140 V143: a borrower payee\
+      \ carries no typed name */\r\n ELSIF op='rebate-settlement.create' THEN\n -- R129: whole pending rebates of one referrer\
+      \ (1 to 200 distinct expense ids, ascending), date, Lisa's account, method,\n -- optional bank reference (Bank Transfer\
+      \ only) and notes.\n IF (SELECT array_agg(key ORDER BY key COLLATE \"C\") FROM jsonb_object_keys(i) key) IS DISTINCT\
+      \ FROM ARRAY['bankReference','cashAccountId','expenseIds','notes','paymentMethod','referrerId','settlementDate'] THEN\
+      \ RAISE EXCEPTION 'settlement keys';END IF;\n IF jsonb_typeof(i->'referrerId') IS DISTINCT FROM 'string' OR octet_length(i->>'referrerId')\
       \ NOT BETWEEN 1 AND 256 OR i->>'referrerId'~'[[:cntrl:]]'\n  OR jsonb_typeof(i->'cashAccountId') IS DISTINCT FROM 'string'\
       \ OR octet_length(i->>'cashAccountId') NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]'\n  OR jsonb_typeof(i->'settlementDate')\
       \ IS DISTINCT FROM 'string' OR i->>'settlementDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'settlementDate')::date)::text<>i->>'settlementDate'\n\
@@ -294,7 +298,7 @@
     "extension": null
 "evidence":
   "/content/definition/definition":
-    "reference": "database/migrations/V143__manual_expense_payee_borrower.sql (R140)"
-    "reason": "R140 follow-up: V143 replaces the routine in place (payee borrower; source definition, PROD capture follows\
-      \ the PROD apply)"
+    "reference": "database/migrations/V144__expense_pool_fallback_and_paid_date.sql (R140)"
+    "reason": "R140 follow-up (owner feedback of 11 November 2026): V144 replaces the routine in place (source definition;\
+      \ PROD capture follows the PROD apply)"
     "state": "value"

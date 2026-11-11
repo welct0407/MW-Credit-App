@@ -516,6 +516,26 @@
       "acl": "{mw_notify_owner_prod=r/postgres}"
       "comment": "R129: the settlement that paid this pending referral rebate (REFERRAL_REBATE_V3); null while pending, on\
         \ offset-only and legacy rows and on other expenses. Set and cleared by the settlement command only."
+    "Paid Date":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "Paid Date"
+      "ordinal": 27
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R140: the day a manual expense was paid (its cash movement date). Null means the cash moved on the Expense\
+        \ Date. Set only on a Manual expense with a paying account that is no R005 cutover source; null while pending and\
+        \ on referral rebates."
   "constraints":
     "Business Expenses_Allocation Basis_not_null":
       "schema": "public"
@@ -1453,7 +1473,7 @@
       "relation": "Business Expenses"
       "name": "zz_cash_source"
       "definition": "CREATE TRIGGER zz_cash_source AFTER INSERT OR UPDATE OF \"Amount\", \"Expense Date\", \"Ref Paid By Cash\
-        \ Holder\", \"Ref Paid By Cash Account\" ON \"Business Expenses\" FOR EACH ROW EXECUTE FUNCTION cash_source_changed('Business\
+        \ Holder\", \"Ref Paid By Cash Account\", \"Paid Date\" ON \"Business Expenses\" FOR EACH ROW EXECUTE FUNCTION cash_source_changed('Business\
         \ Expense')"
       "enabled": "O"
       "internal": false
@@ -1551,4 +1571,14 @@
   "/content/columns/Ref Payee Borrower/comment":
     "reference": "database/migrations/V143__manual_expense_payee_borrower.sql (R140)"
     "reason": "R140 follow-up: V143 comments on the payee columns"
+    "state": "value"
+  "/content/columns/Paid Date":
+    "reference": "database/migrations/V144__expense_pool_fallback_and_paid_date.sql (R140)"
+    "reason": "R140 follow-up (owner feedback of 11 November 2026): V144 adds the nullable column Paid Date and the trigger\
+      \ fires on it"
+    "state": "value"
+  "/content/triggers/zz_cash_source/definition":
+    "reference": "database/migrations/V144__expense_pool_fallback_and_paid_date.sql (R140)"
+    "reason": "R140 follow-up (owner feedback of 11 November 2026): V144 adds the nullable column Paid Date and the trigger\
+      \ fires on it"
     "state": "value"
