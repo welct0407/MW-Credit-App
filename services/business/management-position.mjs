@@ -1,4 +1,4 @@
-import {rebatePendingSql} from './rebate-state.mjs';
+import {expensePendingSql,rebatePendingSql} from './rebate-state.mjs';
 import {readCashOverview} from './cash.mjs';
 /** Read-only composition of the existing native cash providers. */
 export async function readManagementPosition(client){
@@ -9,7 +9,10 @@ export async function readManagementPosition(client){
  const rebatesPayable=(await client.query(`SELECT coalesce(sum(p.pending),0)::numeric(20,2)::text AS amount,count(*) FILTER (WHERE p.pending>0)::int AS count
   FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=to_jsonb(x)->>'Ref Offset Payment' CROSS JOIN LATERAL (SELECT ${rebatePendingSql('x','o')} AS pending) p
   WHERE x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3'`)).rows[0]??{amount:'0.00',count:0};
- return {...overview,holders,rebatesPayable:{amount:rebatesPayable.amount,count:rebatesPayable.count}};
+ // R140 (V142): manual expenses recorded and still pending payment (no payer yet, so no cash has moved for them).
+ const expensesPayable=(await client.query(`SELECT coalesce(sum(x."Amount"::numeric),0)::numeric(20,2)::text AS amount,count(*)::int AS count
+  FROM public."Business Expenses" x WHERE ${expensePendingSql('x')}`)).rows[0]??{amount:'0.00',count:0};
+ return {...overview,holders,rebatesPayable:{amount:rebatesPayable.amount,count:rebatesPayable.count},expensesPayable:{amount:expensesPayable.amount,count:expensesPayable.count}};
 }
 /** R115 Daily cash withdrawal: the holder is fixed; V127 checks every account of the command belongs to it. */
 export const CASH_WITHDRAWAL_HOLDER='ch:dad';

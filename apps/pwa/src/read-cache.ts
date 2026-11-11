@@ -1,6 +1,6 @@
 import {beginRequest} from './request-activity';
 import {recordClientEvent} from './client-events';
-import {readOfflineDataset,isOfflineDatasetCursor,refreshOfflineDataset,routeDomain,receiptMediaCandidates} from './offline-dataset';
+import {readOfflineDataset,isOfflineDatasetCursor,refreshOfflineDataset,routeDomain,receiptMediaCandidates,datasetDomainSyncing,noteDatasetDomainUsed} from './offline-dataset';
 import {commandOriginAllowed,chatOriginAllowed} from './environment';
 import {deferWhileInteracting,cancelDeferred,type HoldScope} from './interaction-hold';
 import type {OwnerOfflineRepository,CachedResponse} from './owner-offline';
@@ -22,13 +22,36 @@ function rememberHeld(key:string,at=Date.now()){
  while(heldWhenStopped.size>HELD_STOPPED_MAX)heldWhenStopped.delete(heldWhenStopped.keys().next().value!);
 }
 const takeHeld=(key:string)=>{const since=heldWhenStopped.get(key);heldWhenStopped.delete(key);return since!==undefined&&Date.now()-since<HELD_STOPPED_MS};
+/** R140 (owner, 11 November 2026: "after insert/update, then go back to previous page, the numbers should be reflecting the
+ * updated result"): a change counter per signed-in scope and data domain, bumped by one listener on every
+ * mw-offline-dataset-ready that changed the bundle. A view that was not subscribed when its domain changed (it was
+ * behind a form or a child record) re-reads the local bundle as soon as it subscribes again: each path remembers the
+ * counter it last saw (at most SEEN_PATHS_MAX paths, least recently used first out). No network request. */
+const SEEN_PATHS_MAX=128;
+const changeCounters=new Map<string,number>(),seenCounters=new Map<string,number>();
+export const datasetChangeCount=(scopeName:string|undefined,domain:string)=>scopeName?changeCounters.get(scopeName+'|'+domain)??0:0;
+function datasetChanged(event:Event){const detail=(event as CustomEvent).detail;if(!detail?.scopeName||!detail.domain||detail.changed===false)return;const key=detail.scopeName+'|'+detail.domain;changeCounters.set(key,(changeCounters.get(key)??0)+1)}
+/** R140 (Chase on DEV): own writes settled in this tab (mw-read-invalidated). The saved data follows a write only after
+ * the confirming check, and not at all while that domain's first download is still walking, so a page that read the
+ * network before a write re-reads it after one (dataset-refresh.ts). */
+let ownWrites=0;
+export const ownWriteCount=()=>ownWrites;
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){window.addEventListener('mw-offline-dataset-ready',datasetChanged);window.addEventListener('mw-read-invalidated',()=>{ownWrites++})}
+function rememberSeen(key:string,count:number){seenCounters.delete(key);seenCounters.set(key,count);while(seenCounters.size>SEEN_PATHS_MAX)seenCounters.delete(seenCounters.keys().next().value!)}
 export function subscribeOfflineDataset<T=any>(access:Access,path:string,apply:(data:T)=>void,onMissing?:()=>void,options:{hold?:HoldScope}={}){
  const repository=access.offline,scope=repository?.scopeName,domain=routeDomain(new URL(path,access.origin).pathname),token=Symbol(path),key=scope+'|'+path;let active=true,generation=0;
- const update=(event:Event)=>{const detail=(event as CustomEvent).detail;if(!active||!scope||detail?.scopeName!==scope||detail.domain!==domain||detail.changed===false)return;const current=++generation;
-  void readOfflineDataset(access,path).then(async data=>{if(!active||current!==generation)return;if(data!==null){const run=()=>{if(active&&current===generation)apply(data as T)};if(options.hold)deferWhileInteracting(token,options.hold,run);else run();return;}if(onMissing&&repository&&await repository.syncAuthorized()&&(await repository.readDataset(domain))?.complete&&active&&current===generation)onMissing()}).catch(()=>{});
+ noteDatasetDomainUsed?.(domain);
+ // An unchanged check still applies a change this path missed (it was skipped while that check was running).
+ const update=(event:Event)=>{const detail=(event as CustomEvent).detail;if(!active||!scope||detail?.scopeName!==scope||detail.domain!==domain)return;const now=datasetChangeCount(scope,domain);
+  if(detail.changed===false){const seen=seenCounters.get(key);if(seen===undefined||seen===now)return}rememberSeen(key,now);const current=++generation;
+  void readOfflineDataset(access,path).then(async data=>{if(!active||current!==generation)return;if(data!=null){const run=()=>{if(active&&current===generation)apply(data as T)};if(options.hold)deferWhileInteracting(token,options.hold,run);else run();return;}if(onMissing&&repository&&await repository.syncAuthorized()&&(await repository.readDataset(domain))?.complete&&active&&current===generation)onMissing()}).catch(()=>{});
  };
  window.addEventListener('mw-offline-dataset-ready',update);
  if(scope&&takeHeld(key))update(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:scope,domain,changed:true}}));
+ // R140: a change of this domain while this path was not subscribed is applied now (through the same hold), unless that
+ // domain is being fetched: its ready event follows. A path subscribed for the first time only starts remembering.
+ else if(scope){const seen=seenCounters.get(key),now=datasetChangeCount(scope,domain);
+  if(seen!==undefined&&seen!==now&&!datasetDomainSyncing?.(scope,domain))update(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:scope,domain,changed:true}}));else if(seen===undefined)rememberSeen(key,now)}
  return()=>{active=false;generation++;if(cancelDeferred(token)&&scope)rememberHeld(key);window.removeEventListener('mw-offline-dataset-ready',update)};
 }
 export type CachedReadResult<T>={response:Response;data:T;fromCache:boolean};
@@ -85,7 +108,8 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
   if(!value&&format==='blob')for(const candidate of receiptMediaCandidates(url)){value=await repository!.readDatasetMedia(candidate).catch(()=>null);if(value)break}
   if(!value&&format==='json'){
    const data=await readOfflineDataset(access,url.href).catch(()=>null),revision=await currentRevision();
-   if(data!==null&&revision!=null)value={data,format:'json',contentType:'application/json',savedAt:Date.now(),revision};
+   // R140: a bundle without the key (undefined) is a miss like null, never an empty answer handed to the page.
+   if(data!=null&&revision!=null)value={data,format:'json',contentType:'application/json',savedAt:Date.now(),revision};
   }
   if(value&&value.format===format&&!settled&&!controller.signal.aborted&&await repository!.syncAuthorized()&&await repository!.readRevision()===value.revision&&await currentCacheRevision()===cachedEpoch){
    cached=value;options.onCached?.(structuredClone(value.data));

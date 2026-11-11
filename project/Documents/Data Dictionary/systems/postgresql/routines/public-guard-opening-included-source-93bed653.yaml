@@ -43,7 +43,9 @@
         END IF;
        ELSIF kind='Business Expense' THEN
         IF NEW."Ref Paid By Cash Account" IS NULL AND OLD."Ref Paid By Cash Account" IS NULL
-         AND (NEW."Amount"::numeric>0 OR NEW."Ref Paid By Cash Holder" IS NOT NULL) THEN
+         -- R140 V142: a pending Manual expense (no payer, not a cutover source) stays pending when it is edited.
+         AND (NEW."Ref Paid By Cash Holder" IS NOT NULL OR (NEW."Amount"::numeric>0 AND (NEW."Source Type" IS DISTINCT FROM 'Manual'
+          OR EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=NEW."Row ID")))) THEN
          NEW."Ref Paid By Cash Account":=public.r051_historical_account(NEW."Ref Paid By Cash Account",NEW."Ref Paid By Cash Holder");
          SELECT "Ref Cash Holder" INTO NEW."Ref Paid By Cash Holder" FROM public."Cash Accounts" WHERE "Row ID"=NEW."Ref Paid By Cash Account";
         END IF;
@@ -73,3 +75,8 @@
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/definition/definition":
+    "reference": "database/migrations/V142__pending_manual_expense.sql (R140)"
+    "reason": "R140 pending manual expense: V142 replaces the routine in place (source definition; PROD capture follows the\
+      \ PROD apply)"
+    "state": "value"

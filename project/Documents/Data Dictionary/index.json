@@ -2189,6 +2189,10 @@
           "pointer": "/content/columns/Ref Rebate Settlement"
         },
         {
+          "subject": "Paid Date",
+          "pointer": "/content/columns/Paid Date"
+        },
+        {
           "subject": "Business Expenses_Allocation Basis_not_null",
           "pointer": "/content/constraints/Business Expenses_Allocation Basis_not_null"
         },

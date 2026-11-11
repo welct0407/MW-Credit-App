@@ -41,7 +41,8 @@
         IF NOT legacy THEN
          IF NEW."Source Type"='Referral Rebate' AND NEW."Ref Paid By Cash Holder" IS DISTINCT FROM 'ch:lisa' THEN
           RAISE EXCEPTION 'Referral rebate cash payer is fixed to Lisa'; END IF;
-         IF NEW."Amount"::numeric>0 AND NEW."Ref Paid By Cash Holder" IS NULL THEN RAISE EXCEPTION 'New positive expenses require an explicit cash payer'; END IF;
+         -- R140 V142: a Manual expense without a payer is pending payment.
+         IF NEW."Source Type" IS DISTINCT FROM 'Manual' AND NEW."Amount"::numeric>0 AND NEW."Ref Paid By Cash Holder" IS NULL THEN RAISE EXCEPTION 'New positive expenses require an explicit cash payer'; END IF;
         END IF;
        END IF;
        RETURN NEW;
@@ -65,3 +66,8 @@
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/definition/definition":
+    "reference": "database/migrations/V142__pending_manual_expense.sql (R140)"
+    "reason": "R140 pending manual expense: V142 replaces the routine in place (source definition; PROD capture follows the\
+      \ PROD apply)"
+    "state": "value"

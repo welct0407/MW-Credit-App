@@ -54,7 +54,7 @@ export function catalogueView(catalogue,operation){
  const entry=catalogue.entries.get(operation);
  if(!entry)throw new ToolError(Object.hasOwn(catalogue.excluded,operation)?'UNSUPPORTED_OPERATION':'UNKNOWN_OPERATION');
  return {operation,label:entry.label.en,description:entry.description,destructive:entry.destructive,target:entry.target,
-  fields:entry.fields.filter(f=>!f.hidden).map(f=>({name:f.name,type:f.type,...(f.values?{values:f.values}:{}),...(f.required&&!f.host?{required:true}:{}),...(f.host?{host:true}:{}),...(f.default!==undefined?{default:f.default}:f.defaultFrom?{default:f.defaultFrom.note}:{}),label:f.label.en}))};
+  fields:entry.fields.filter(f=>!f.hidden).map(f=>({name:f.name,type:f.type,...(f.values?{values:f.values}:{}),...(f.required&&!f.host?{required:true}:{}),...(f.host?{host:true}:{}),...(f.optional?{optional:true}:{}),...(f.default!==undefined?{default:f.default}:f.defaultFrom?{default:f.defaultFrom.note}:{}),label:f.label.en}))};
 }
 
 /** Canonical form of a money-like decimal text (trailing fraction zeros dropped), or null when it is not one. */
@@ -192,6 +192,10 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
   return parts.length?parts.join(' - ').slice(0,200):null;
  }
  const consequence=(code,inputs)=>code==='loan_close_payoff'?{code,amount:inputs.expectedAmount}:{code};
+ // R140 (V142): an expense above zero without a paying account is recorded pending payment (no cash movement); the card says so.
+ // An edit says so only for a row that is pending or paid now (a historical row without a payer is not pending).
+ const pendingExpense=(operation,inputs,response)=>inputs.paidByAccountId===null&&/^[1-9][0-9]*$/.test(inputs.amount)
+  &&(operation==='expense.create'||(operation==='expense.update'&&(dig(response,'item.paymentState')==='pending'||typeof dig(response,'item.paidByAccountId')==='string')));
 
  async function proposePayment(entry,target,values){
   const requestId=newId();
@@ -258,6 +262,10 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
     const merge=entry.inputs==='merge'&&item!==null;
     if(merge)before={};
     for(const field of entry.fields){
+     // R140 (V143): an optional field (the R128 optional-key pattern, e.g. payeeBorrowerId) is in the command only when the
+     // model gives it, so an 8-key command keeps its meaning; given a value, the fields it names in `nulls` become null
+     // unless the model gives them too (a borrower payee carries no typed payee name).
+     if(field.optional&&!Object.hasOwn(values,field.name))continue;
      let value;
      if(field.host){
       const source=field.host.read?await get(template(field.host.read,{...values,id:targetId})):response;
@@ -274,6 +282,7 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
      if(value===null&&field.required)throw new ToolError(`MISSING_FIELD:${field.name}`);
      inputs[field.name]=value;
     }
+    for(const field of entry.fields)if(field.optional&&inputs[field.name]!=null)for(const name of field.nulls??[])if(!Object.hasOwn(values,name))inputs[name]=null;
     if(merge&&same(inputs,before))throw new ToolError('NO_CHANGE');
    }
    let command;
@@ -285,7 +294,7 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
    const chargeLoan=operation.startsWith('charge.')?dig(response,'item.loanId')??/** @type {any} */(command.inputs).loanId:null;
    const card={version:1,operation,label:entry.label,confirmLabel:confirmLabel(entry,command.inputs),destructive:entry.destructive===true,
     target:{type:operation.split('.')[0],id:targetId,label:await title(entry,response,{...values,id:targetId}),...(typeof chargeLoan==='string'?{loanId:chargeLoan}:{})},
-    values:shown,changes:entry.target==='new'?[]:changes,consequences:entry.consequences.map(code=>consequence(code,command.inputs))};
+    values:shown,changes:entry.target==='new'?[]:changes,consequences:[...entry.consequences.map(code=>consequence(code,command.inputs)),...(pendingExpense(operation,command.inputs,response)?[{code:'pending_payment'}]:[])]};
    if(entry.builder==='correction')card.split=inputs.fields.allocations?.map(row=>({chargeId:row.chargeId,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,lateCharge:row.lateCharge??'0',loanDisplayKey:null,projected:false}))??[];
    // D12: what the group rules need. The borrower a line touches (payments and closes must be alone for theirs).
    const input=/** @type {Record<string,unknown>} */(command.inputs);

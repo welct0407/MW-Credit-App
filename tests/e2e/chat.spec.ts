@@ -489,9 +489,11 @@ test('R106: the confirmation card shows the server fields; Confirm is disabled o
   await context.setOffline(true);await expect(confirm).toBeDisabled();await expect(cancel).toBeDisabled();await expect(card.getByText('Connect to confirm or cancel.',{exact:true})).toBeVisible();
   await context.setOffline(false);await expect(confirm).toBeEnabled();await expect(cancel).toBeEnabled();
   s.confirmAnswer={state:'done',settledAt:new Date().toISOString(),outcome:{code:null},record:{type:'payment',id:'PM1',paymentId:'PM1'}};
+  // R140: a confirmed change invalidates the saved reads like a form's write, so open lists and totals refresh.
+  await page.evaluate(()=>{const w=window as any;w.__invalidated=0;window.addEventListener('mw-read-invalidated',()=>{w.__invalidated++})});
   await confirm.click();
   // CWR-07: the Done card shows the saved time (Bangkok).
-  await expect(card).toHaveAttribute('data-state','done');await expect(card.locator('.chat-proposal-state')).toHaveText(/^Saved \d\d:\d\d$/);await expect(card.locator('.chat-proposal-confirm')).toHaveCount(0);
+  await expect(card).toHaveAttribute('data-state','done');await expect.poll(()=>page.evaluate(()=>(window as any).__invalidated)).toBeGreaterThan(0);await expect(card.locator('.chat-proposal-state')).toHaveText(/^Saved \d\d:\d\d$/);await expect(card.locator('.chat-proposal-confirm')).toHaveCount(0);
   expect(s.proposalRequests.filter(r=>r.method==='POST')).toEqual([{method:'POST',path:`/api/chat/threads/${T1}/proposals/${P1}/confirm`,body:'{}',authorization:'present'}]);
   await card.scrollIntoViewIfNeeded();await page.screenshot({path:`${shots}/r106-card-done-${project}.png`,fullPage:false});
   // The record link opens the payment record over the thread (CW2-03: "Back to chat"); Back returns to the same

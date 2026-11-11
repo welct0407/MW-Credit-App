@@ -2,7 +2,9 @@
 -- rights except settlements): the DEV-only Partner row of the Claude Code test account. Idempotent: the row
 -- "claude-dev-test" is inserted, or brought back to exactly these values; a second run changes nothing (no write, so
 -- no business history row). Its "Partner Role" "Test" is neither A nor B, so the command service refuses it every
--- settlement operation (services/payment-command/store.mjs) and the A/B expense and settlement splits ignore it.
+-- settlement operation (services/payment-command/store.mjs). Since V144 (R140) the expense allocation pool counts A/B
+-- Partners only and the contribution command refuses a non-A/B Partner (P5B04, delete allowed): DEV tests must never record
+-- contributions for this Partner; use the existing Partners A and B.
 -- Refuses any database but loan_manager_dev (DEV and PROD share one instance; the database name is the target).
 -- R114 (owner-approved, DEV only): -v ai_reviewer=true makes the test Partner an AI Reviewer (the chat may then propose
 -- changes for it); the default false keeps the earlier row. Only true or false is accepted.

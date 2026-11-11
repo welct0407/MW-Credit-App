@@ -175,6 +175,11 @@ export function ChatProposalCard({lines,access,thai,online,onChange,onOpenRecord
  const label=several?groupCountText(count,thai):pair([first.card.label.en,first.card.label.th],thai);
  const targets=[...new Set(lines.map(line=>line.card.target.label).filter((value):value is string=>!!value))];
  const done=view.lines.filter(state=>state==='done').length,failed=view.lines.filter(state=>state==='failed').length,notRun=count-done-failed;
+ // R140 (owner, 11 November 2026): a confirmed chat change is a write like a form's; when a line settles as done here
+ // (streamed or read back), invalidate the saved reads so the offline dataset confirms and open lists refresh. Lines
+ // already done when the card first shows (thread history) were refreshed when they ran.
+ const doneSeen=useRef(done);
+ useEffect(()=>{if(done>doneSeen.current)void accessRef.current.offline?.invalidateReads().catch(()=>{});doneSeen.current=done},[done]);
  const single=proposalView(first,{online,busy});
  const saved=view.state==='done'?savedAtText(latestSaved(lines),thai):null;
  const stateText=view.state==='executing'?(several?groupProgressText(done+failed,count,thai):proposalStateText('executing',thai))

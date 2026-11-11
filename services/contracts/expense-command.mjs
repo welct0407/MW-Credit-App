@@ -3,13 +3,18 @@ export const expenseCategories=Object.freeze(['Collection Cost / ค่าใช
 export const expenseFields=Object.freeze(['expenseDate','category','amount','payeeName','relatedBorrowerId','relatedLoanId','notes','paidByAccountId']);
 /** Source-aware category/account compatibility is checked under lock, never inferred by the client. */
 export function canonicalExpenseFields(input,{create=false}={}){
- if(!input||Array.isArray(input)||Object.keys(input).sort().join(',')!==expenseFields.slice().sort().join(','))throw Error('invalid_request');
+ // R140 (V143): payeeBorrowerId is an optional last key (the R128 pattern): absent keeps the 8-key canonical form.
+ // R140 (V144): then paidDate, also optional (the day the cash moved; with an account only; absent keeps the server rule).
+ const has=key=>!!input&&typeof input==='object'&&Object.hasOwn(input,key),payeeKey=has('payeeBorrowerId'),paidKey=has('paidDate');
+ const keys=[...expenseFields,...(payeeKey?['payeeBorrowerId']:[]),...(paidKey?['paidDate']:[])];
+ if(!input||Array.isArray(input)||Object.keys(input).sort().join(',')!==keys.slice().sort().join(','))throw Error('invalid_request');
  const result={};
- for(const key of expenseFields){
+ for(const key of keys){
   const value=input[key];
   if(key==='amount'){
    if(typeof value!=='string'||! /^-?[1-9][0-9]*$/.test(value)||value.length>18||BigInt(value)>92233720368547758n||BigInt(value)<-92233720368547758n)throw Error('invalid_request');
-  }else if(key==='expenseDate'){
+  }else if(key==='expenseDate'||key==='paidDate'){
+   if(key==='paidDate'&&value===null){result[key]=value;continue;}
    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value)||value<'0001-01-01'||!Number.isFinite(Date.parse(value+'T00:00:00Z'))||new Date(value+'T00:00:00Z').toISOString().slice(0,10)!==value)throw Error('invalid_request');
   }else if(key.endsWith('Id')){if(value!==null&&!validBorrowerId(value))throw Error('invalid_request');}
   else if(value!==null&&(typeof value!=='string'||!value.isWellFormed()||value.includes('\0')||Buffer.byteLength(value)>65536))throw Error('invalid_request');
@@ -17,6 +22,11 @@ export function canonicalExpenseFields(input,{create=false}={}){
  }
  if(typeof result.category!=='string'||!result.category.trim()||(create&&!expenseCategories.includes(result.category)))throw Error('invalid_request');
  if(BigInt(result.amount)<0&&(typeof result.notes!=='string'||!result.notes.trim()))throw Error('invalid_request');
- if(create&&BigInt(result.amount)>0&&result.paidByAccountId===null)throw Error('invalid_request');
+ // R140 (V143): a borrower payee (an existing borrower, checked under lock) carries no typed name; the name is its snapshot.
+ if(payeeKey&&result.payeeBorrowerId!==null&&result.payeeName!==null)throw Error('invalid_request');
+ if(paidKey&&result.paidDate!==null&&result.paidByAccountId===null)throw Error('invalid_request');
+ // R140 (V145): a paid date is never before the expense date (the database refuses a later conflict as invalid_date).
+ if(paidKey&&result.paidDate!==null&&result.paidDate<result.expenseDate)throw Error('invalid_request');
+ // R140 (V142): a positive expense without paidByAccountId is pending payment (no cash movement until an account is set).
  return result;
 }

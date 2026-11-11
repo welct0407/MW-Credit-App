@@ -326,6 +326,8 @@ BEGIN
  IF TG_OP='INSERT' AND NEW."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'Rebate settlement links change only through a rebate settlement'; END IF;
  IF NEW."Source Type"='Referral Rebate' THEN
    IF TG_OP='INSERT' AND pg_trigger_depth()<2 THEN RAISE EXCEPTION 'Referral expenses require a qualifying loan-close event'; END IF;
+   -- R140 V144: a referral rebate moves its cash at close or settlement, never on a paid date.
+   IF NEW."Paid Date" IS NOT NULL THEN RAISE EXCEPTION 'A paid date belongs to a paid manual expense'; END IF;
    SELECT "Close Date" INTO allocation_date FROM public."Loans" WHERE "Row ID"=NEW."Ref Related Loan";
    IF allocation_date IS NULL THEN RAISE EXCEPTION 'Referral allocation requires a loan closing date'; END IF;
    NEW."Allocation Basis":='Closing Date Contribution Ratio';
@@ -337,6 +339,13 @@ BEGIN
      RAISE EXCEPTION 'A negative manual adjustment requires an explanatory note';
    END IF;
    allocation_date:=NEW."Expense Date";
+   -- R140 V144: a paid date needs a paying account (not pending) and no R005 cutover identity.
+   IF NEW."Paid Date" IS NOT NULL AND (NEW."Ref Paid By Cash Account" IS NULL
+     OR EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=NEW."Row ID")) THEN
+     RAISE EXCEPTION 'A paid date belongs to a paid manual expense'; END IF;
+   -- R140 V145: a paid date is never before the expense date, checked when either date is written (existing rows stay).
+   IF NEW."Paid Date"<NEW."Expense Date" AND (TG_OP='INSERT' OR NEW."Paid Date" IS DISTINCT FROM OLD."Paid Date" OR NEW."Expense Date" IS DISTINCT FROM OLD."Expense Date") THEN
+     RAISE EXCEPTION 'A paid date cannot be before the expense date'; END IF;
    NEW."Allocation Basis":='Expense Date Contribution Ratio';
  END IF;
  IF NEW."Ref Related Loan" IS NOT NULL AND NEW."Ref Related Borrower" IS NOT NULL AND
@@ -1548,7 +1557,9 @@ BEGIN
   END IF;
  ELSIF kind='Business Expense' THEN
   IF NEW."Ref Paid By Cash Account" IS NULL AND OLD."Ref Paid By Cash Account" IS NULL
-   AND (NEW."Amount"::numeric>0 OR NEW."Ref Paid By Cash Holder" IS NOT NULL) THEN
+   -- R140 V142: a pending Manual expense (no payer, not a cutover source) stays pending when it is edited.
+   AND (NEW."Ref Paid By Cash Holder" IS NOT NULL OR (NEW."Amount"::numeric>0 AND (NEW."Source Type" IS DISTINCT FROM 'Manual'
+    OR EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=NEW."Row ID")))) THEN
    NEW."Ref Paid By Cash Account":=public.r051_historical_account(NEW."Ref Paid By Cash Account",NEW."Ref Paid By Cash Holder");
    SELECT "Ref Cash Holder" INTO NEW."Ref Paid By Cash Holder" FROM public."Cash Accounts" WHERE "Row ID"=NEW."Ref Paid By Cash Account";
   END IF;
@@ -1711,7 +1722,8 @@ BEGIN
 
   END IF;
   -- R005 negative accounting-only adjustments have no holder/account movement.
-  required_account:=(TG_OP='INSERT' OR account_id IS DISTINCT FROM old_account) AND (NEW."Amount"::numeric>0 OR selected_holder IS NOT NULL);
+  -- R140 V142: a Manual expense without holder and account is pending payment.
+  required_account:=(TG_OP='INSERT' OR account_id IS DISTINCT FROM old_account) AND ((NEW."Amount"::numeric>0 AND NEW."Source Type" IS DISTINCT FROM 'Manual') OR selected_holder IS NOT NULL);
  ELSE
   account_id:=nullif(btrim(NEW."Ref Paid From Cash Account"),''); selected_holder:='ch:lisa';
   IF TG_OP='UPDATE' THEN
@@ -1766,7 +1778,8 @@ BEGIN
   IF NOT legacy THEN
    IF NEW."Source Type"='Referral Rebate' AND NEW."Ref Paid By Cash Holder" IS DISTINCT FROM 'ch:lisa' THEN
     RAISE EXCEPTION 'Referral rebate cash payer is fixed to Lisa'; END IF;
-   IF NEW."Amount"::numeric>0 AND NEW."Ref Paid By Cash Holder" IS NULL THEN RAISE EXCEPTION 'New positive expenses require an explicit cash payer'; END IF;
+   -- R140 V142: a Manual expense without a payer is pending payment.
+   IF NEW."Source Type" IS DISTINCT FROM 'Manual' AND NEW."Amount"::numeric>0 AND NEW."Ref Paid By Cash Holder" IS NULL THEN RAISE EXCEPTION 'New positive expenses require an explicit cash payer'; END IF;
   END IF;
  END IF;
  RETURN NEW;
@@ -2254,18 +2267,27 @@ CREATE FUNCTION public.partner_pool_share_at_date(p_date date, p_role text) RETU
     LANGUAGE plpgsql STABLE
     SET search_path TO 'pg_catalog', 'public'
     AS $$
-DECLARE pool numeric; a numeric; b numeric; unknown_count integer;
+DECLARE a numeric; b numeric;
 BEGIN
- SELECT sum(n),coalesce(sum(n) FILTER(WHERE role='A'),0),coalesce(sum(n) FILTER(WHERE role='B'),0),
-   count(*) FILTER(WHERE role IS NULL OR role NOT IN ('A','B'))
- INTO pool,a,b,unknown_count FROM (
- SELECT CASE WHEN c."Transaction Type"='Contribution' THEN c."Amount"::numeric ELSE -c."Amount"::numeric END n,
- p."Partner Role" role FROM public."Cash Pool Contributions" c
- LEFT JOIN public."Partners" p ON p."Row ID"=c."Ref Partner" WHERE c."Contribution Date"<=p_date) s;
- IF p_date IS NULL OR coalesce(pool,0)<=0 OR unknown_count>0 OR a<0 OR b<0 OR p_role NOT IN ('A','B') THEN
+ -- R140 V144: only Partners with role A or B count. The pool is a step function of the contribution dates: the state on
+ -- p_date is the one of the latest contribution date on or before it; when that state is not valid (pool not positive or a
+ -- side negative), the latest earlier valid state, else the earliest later one.
+ IF p_date IS NULL OR p_role IS NULL OR p_role NOT IN ('A','B') THEN
    RAISE EXCEPTION 'Expense allocation requires a positive A/B contribution pool on its allocation date';
  END IF;
- RETURN CASE WHEN p_role='A' THEN a/pool ELSE 1-a/pool END;
+ WITH day AS (
+  SELECT c."Contribution Date" AS d,
+   coalesce(sum(CASE WHEN c."Transaction Type"='Contribution' THEN c."Amount"::numeric ELSE -c."Amount"::numeric END) FILTER (WHERE p."Partner Role"='A'),0) AS da,
+   coalesce(sum(CASE WHEN c."Transaction Type"='Contribution' THEN c."Amount"::numeric ELSE -c."Amount"::numeric END) FILTER (WHERE p."Partner Role"='B'),0) AS db
+  FROM public."Cash Pool Contributions" c JOIN public."Partners" p ON p."Row ID"=c."Ref Partner" AND p."Partner Role" IN ('A','B')
+  WHERE c."Contribution Date" IS NOT NULL GROUP BY c."Contribution Date"),
+ state AS (SELECT d,sum(da) OVER (ORDER BY d) AS sa,sum(db) OVER (ORDER BY d) AS sb FROM day)
+ SELECT sa,sb INTO a,b FROM state WHERE sa+sb>0 AND sa>=0 AND sb>=0
+ ORDER BY (d<=p_date) DESC,CASE WHEN d<=p_date THEN d END DESC,d LIMIT 1;
+ IF NOT FOUND THEN
+   RAISE EXCEPTION 'Expense allocation requires a positive A/B contribution pool on its allocation date';
+ END IF;
+ RETURN CASE WHEN p_role='A' THEN a/(a+b) ELSE 1-a/(a+b) END;
 END $$;
 
 
@@ -3120,7 +3142,7 @@ CREATE FUNCTION public.pwa_apply_expense_v2(canonical text) RETURNS jsonb
     LANGUAGE plpgsql
     SET search_path TO 'pg_catalog', 'public'
     AS $$
-DECLARE e jsonb:=canonical::jsonb;c jsonb:=e->'command';i jsonb:=c->'inputs';a jsonb:=e->'actor';op text:=c->>'operation';target text:=c->>'targetId';old public."Business Expenses"%ROWTYPE;holder text;message text;categories text[]:=ARRAY['Collection Cost / ค่าใช้จ่ายติดตามหนี้','Transportation / ค่าเดินทาง','Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน','Software / Subscription / ค่าซอฟต์แวร์และสมาชิก','Other / อื่น ๆ','Referral Rebate / เงินคืนค่าแนะนำลูกค้า'];
+DECLARE e jsonb:=canonical::jsonb;c jsonb:=e->'command';i jsonb:=c->'inputs';a jsonb:=e->'actor';op text:=c->>'operation';target text:=c->>'targetId';old public."Business Expenses"%ROWTYPE;holder text;message text;payee text;payee_name text; /* R140 V143 */ paid date; /* R140 V144 */categories text[]:=ARRAY['Collection Cost / ค่าใช้จ่ายติดตามหนี้','Transportation / ค่าเดินทาง','Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน','Software / Subscription / ค่าซอฟต์แวร์และสมาชิก','Other / อื่น ๆ','Referral Rebate / เงินคืนค่าแนะนำลูกค้า'];
 BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
  PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('expense',target));
@@ -3136,14 +3158,14 @@ BEGIN
  ELSIF i->>'paidByAccountId' IS NOT NULL THEN
  SELECT ca."Ref Cash Holder" INTO holder FROM public."Cash Accounts" ca JOIN public."Cash Holders" h ON h."Row ID"=ca."Ref Cash Holder" WHERE ca."Row ID"=i->>'paidByAccountId' AND ca."Active" IS TRUE AND h."Active" IS TRUE AND h."Row ID" IN('ch:dad','ch:lisa','ch:tommy');IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
  END IF;
- IF op='expense.create' AND (i->>'amount')::numeric>0 AND holder IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
+ /* R140 V142: a positive expense without an account is created pending payment (no cash movement until it is paid). */ /* R140 V143: the payee is a borrower (key present: the link and the borrower's name as a snapshot) or a typed name; an update without the key keeps the stored link while the name is unchanged. */ payee_name:=i->>'payeeName'; IF i ? 'payeeBorrowerId' THEN payee:=i->>'payeeBorrowerId'; ELSIF op='expense.update' AND (i->>'payeeName') IS NOT DISTINCT FROM old."Payee Name" THEN payee:=old."Ref Payee Borrower"; END IF; IF i ? 'payeeBorrowerId' AND payee IS NOT NULL THEN SELECT "Borrower Name" INTO payee_name FROM public."Borrowers" WHERE "Row ID"=payee; IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF; END IF; /* R140 V144: the paid date: given (not after the Bangkok business date), else kept on an update that stays paid, else null (the Expense Date) */ IF i ? 'paidDate' THEN paid:=(i->>'paidDate')::date; IF paid>(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF; ELSIF op='expense.update' AND old."Ref Paid By Cash Account" IS NOT NULL AND i->>'paidByAccountId' IS NOT NULL THEN paid:=old."Paid Date"; END IF;
  END IF;
  BEGIN
- IF op='expense.create' THEN INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name","Ref Related Borrower","Ref Related Loan","Notes","Ref Paid By Cash Account","Ref Paid By Cash Holder","Source Type","Created By") VALUES(target,(i->>'expenseDate')::date,i->>'category',(i->>'amount')::numeric::money,i->>'payeeName',i->>'relatedBorrowerId',i->>'relatedLoanId',i->>'notes',i->>'paidByAccountId',holder,'Manual',a->>'loginEmail');
- ELSIF op='expense.update' THEN UPDATE public."Business Expenses" SET "Expense Date"=(i->>'expenseDate')::date,"Expense Category"=i->>'category',"Amount"=(i->>'amount')::numeric::money,"Payee Name"=i->>'payeeName',"Ref Related Borrower"=i->>'relatedBorrowerId',"Ref Related Loan"=i->>'relatedLoanId',"Notes"=i->>'notes',"Ref Paid By Cash Account"=i->>'paidByAccountId',"Ref Paid By Cash Holder"=holder WHERE "Row ID"=target;
+ IF op='expense.create' THEN INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name","Ref Related Borrower","Ref Related Loan","Notes","Ref Paid By Cash Account","Ref Paid By Cash Holder","Source Type","Created By","Ref Payee Borrower","Paid Date") VALUES(target,(i->>'expenseDate')::date,i->>'category',(i->>'amount')::numeric::money,payee_name,i->>'relatedBorrowerId',i->>'relatedLoanId',i->>'notes',i->>'paidByAccountId',holder,'Manual',a->>'loginEmail',payee,paid);
+ ELSIF op='expense.update' THEN UPDATE public."Business Expenses" SET "Expense Date"=(i->>'expenseDate')::date,"Expense Category"=i->>'category',"Amount"=(i->>'amount')::numeric::money,"Payee Name"=payee_name,"Ref Payee Borrower"=payee,"Paid Date"=paid,"Ref Related Borrower"=i->>'relatedBorrowerId',"Ref Related Loan"=i->>'relatedLoanId',"Notes"=i->>'notes',"Ref Paid By Cash Account"=i->>'paidByAccountId',"Ref Paid By Cash Holder"=holder WHERE "Row ID"=target;
  ELSE DELETE FROM public."Business Expenses" WHERE "Row ID"=target;END IF;
  EXCEPTION WHEN foreign_key_violation THEN RAISE EXCEPTION USING ERRCODE='P5B05';WHEN SQLSTATE 'P0001' THEN GET STACKED DIAGNOSTICS message=MESSAGE_TEXT;
- IF message='Correct linked reimbursement before changing expense away from a positive Tommy-paid expense' THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSIF message='Related loan does not belong to related borrower' THEN RAISE EXCEPTION USING ERRCODE='P5B04';ELSIF message IN('Expense allocation requires a positive A/B contribution pool on its allocation date','A negative manual adjustment requires an explanatory note') THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;END;
+ IF message='Correct linked reimbursement before changing expense away from a positive Tommy-paid expense' THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSIF message='Related loan does not belong to related borrower' THEN RAISE EXCEPTION USING ERRCODE='P5B04';ELSIF message IN('A paid date belongs to a paid manual expense','A paid date cannot be before the expense date' /* R140 V145 */) THEN RAISE EXCEPTION USING ERRCODE='P5B08';ELSIF message IN('Expense allocation requires a positive A/B contribution pool on its allocation date','A negative manual adjustment requires an explanatory note') THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;END;
  RETURN jsonb_build_object('operation',op,'targetType','expense','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);
 END $$;
 
@@ -3548,7 +3570,7 @@ BEGIN
   END;
   RETURN jsonb_build_object('operation',op,'targetType',kind,'targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);
  END IF;
- IF i ? 'partnerId' AND NOT EXISTS(SELECT 1 FROM public."Partners" WHERE "Row ID"=i->>'partnerId') THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;
+ IF i ? 'partnerId' AND NOT EXISTS(SELECT 1 FROM public."Partners" WHERE "Row ID"=i->>'partnerId') THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF; IF kind='capital-contribution' AND action<>'delete' AND NOT EXISTS(SELECT 1 FROM public."Partners" WHERE "Row ID"=i->>'partnerId' AND "Partner Role" IN ('A','B')) THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF; /* R140 V144: contributions come from Partner A or B only */
  IF kind='capital-contribution' AND action<>'delete' AND i->>'transactionType'='Withdrawal' THEN
  SELECT coalesce(sum(CASE WHEN "Transaction Type"='Contribution' THEN "Amount"::numeric ELSE -"Amount"::numeric END),0) INTO available FROM public."Cash Pool Contributions" WHERE "Ref Partner"=i->>'partnerId' AND "Contribution Date"<=(i->>'contributionDate')::date AND "Row ID"<>target;
  IF (i->>'amount')::numeric>available THEN RAISE EXCEPTION USING ERRCODE='P5B10';END IF;END IF;
@@ -6824,14 +6846,14 @@ BEGIN
  IF i->'statementDate'<>'null'::jsonb AND (i->>'statementDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'statementDate')::date)::text<>i->>'statementDate') THEN RAISE EXCEPTION 'preference date';END IF;
  input_text:='{"language":'||to_json(i->>'language')::text||',"statementAccountId":'||coalesce(to_json(i->>'statementAccountId')::text,'null')||',"statementDate":'||coalesce(to_json(i->>'statementDate')::text,'null')||'}';
  ELSIF op IN('expense.create','expense.update') THEN
- keys:=ARRAY['expenseDate','category','amount','payeeName','relatedBorrowerId','relatedLoanId','notes','paidByAccountId'];
+ keys:=ARRAY['expenseDate','category','amount','payeeName','relatedBorrowerId','relatedLoanId','notes','paidByAccountId']||CASE WHEN i ? 'payeeBorrowerId' THEN ARRAY['payeeBorrowerId'] ELSE ARRAY[]::text[] END||CASE WHEN i ? 'paidDate' THEN ARRAY['paidDate'] ELSE ARRAY[]::text[] END; /* R140 V143: the optional payee borrower, last */ /* R140 V144: then the optional paid date */
  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT array_agg(key ORDER BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION 'expense keys';END IF;
  input_text:='{';FOREACH k IN ARRAY keys LOOP
  IF jsonb_typeof(i->k) NOT IN('string','null') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION 'expense field';END IF;
  IF k IN('expenseDate','category','amount') AND jsonb_typeof(i->k) IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'expense required';END IF;
- IF k IN('relatedBorrowerId','relatedLoanId','paidByAccountId') AND i->k<>'null'::jsonb AND (octet_length(i->>k) NOT BETWEEN 1 AND 256 OR i->>k~'[[:cntrl:]]') THEN RAISE EXCEPTION 'expense reference';END IF;
+ IF k IN('relatedBorrowerId','relatedLoanId','paidByAccountId','payeeBorrowerId') AND i->k<>'null'::jsonb AND (octet_length(i->>k) NOT BETWEEN 1 AND 256 OR i->>k~'[[:cntrl:]]') THEN RAISE EXCEPTION 'expense reference';END IF;
  input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||coalesce(to_json(i->>k)::text,'null');END LOOP;input_text:=input_text||'}';
- IF i->>'expenseDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'expenseDate')::date)::text<>i->>'expenseDate' OR btrim(i->>'category')='' OR i->>'amount'!~'^-?[1-9][0-9]*$' OR abs((i->>'amount')::numeric)>92233720368547758 THEN RAISE EXCEPTION 'expense input';END IF;
+ IF i->>'expenseDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'expenseDate')::date)::text<>i->>'expenseDate' OR btrim(i->>'category')='' OR i->>'amount'!~'^-?[1-9][0-9]*$' OR abs((i->>'amount')::numeric)>92233720368547758 THEN RAISE EXCEPTION 'expense input';END IF; IF i->>'payeeBorrowerId' IS NOT NULL AND i->'payeeName'<>'null'::jsonb THEN RAISE EXCEPTION 'expense payee';END IF; IF i->>'paidDate' IS NOT NULL AND (i->>'paidDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paidDate')::date)::text<>i->>'paidDate' OR i->>'paidByAccountId' IS NULL OR (i->>'paidDate')::date<(i->>'expenseDate')::date /* R140 V145 */) THEN RAISE EXCEPTION 'expense paid date';END IF; /* R140 V144: a paid date is a valid date and needs an account */ /* R140 V143: a borrower payee carries no typed name */
  ELSIF op='rebate-settlement.create' THEN
  -- R129: whole pending rebates of one referrer (1 to 200 distinct expense ids, ascending), date, Lisa's account, method,
  -- optional bank reference (Bank Transfer only) and notes.
@@ -8345,7 +8367,7 @@ BEGIN
   SELECT "Loan Date","Principal Amount"::numeric,"Ref Disbursed From Cash Account" INTO d,amount,from_account FROM public."Loans" WHERE "Row ID"=p_id;
   movement:='Loan Disbursement'; source_key:='LOAN:'||p_id; loan_id:=p_id; from_holder:='ch:lisa';
  WHEN 'Business Expense' THEN
-  SELECT "Expense Date",abs("Amount"::numeric),CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Holder" END,
+  SELECT coalesce("Paid Date","Expense Date") /* R140 V144: the paid date, else the Expense Date */,abs("Amount"::numeric),CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Holder" END,
    CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Holder" END,"Created By",
    CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END,
    "Rule Version",(SELECT o."Amount Received"::numeric FROM public."Payments" o WHERE o."Row ID"=x."Ref Offset Payment" AND o."Status"='Posted')

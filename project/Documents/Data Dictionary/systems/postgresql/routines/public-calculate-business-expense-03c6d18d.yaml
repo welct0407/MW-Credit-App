@@ -78,6 +78,8 @@
        IF TG_OP='INSERT' AND NEW."Ref Rebate Settlement" IS NOT NULL THEN RAISE EXCEPTION 'Rebate settlement links change only through a rebate settlement'; END IF;
        IF NEW."Source Type"='Referral Rebate' THEN
          IF TG_OP='INSERT' AND pg_trigger_depth()<2 THEN RAISE EXCEPTION 'Referral expenses require a qualifying loan-close event'; END IF;
+         -- R140 V144: a referral rebate moves its cash at close or settlement, never on a paid date.
+         IF NEW."Paid Date" IS NOT NULL THEN RAISE EXCEPTION 'A paid date belongs to a paid manual expense'; END IF;
          SELECT "Close Date" INTO allocation_date FROM public."Loans" WHERE "Row ID"=NEW."Ref Related Loan";
          IF allocation_date IS NULL THEN RAISE EXCEPTION 'Referral allocation requires a loan closing date'; END IF;
          NEW."Allocation Basis":='Closing Date Contribution Ratio';
@@ -89,6 +91,13 @@
            RAISE EXCEPTION 'A negative manual adjustment requires an explanatory note';
          END IF;
          allocation_date:=NEW."Expense Date";
+         -- R140 V144: a paid date needs a paying account (not pending) and no R005 cutover identity.
+         IF NEW."Paid Date" IS NOT NULL AND (NEW."Ref Paid By Cash Account" IS NULL
+           OR EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type='Business Expense' AND source_row_id=NEW."Row ID")) THEN
+           RAISE EXCEPTION 'A paid date belongs to a paid manual expense'; END IF;
+         -- R140 V145: a paid date is never before the expense date, checked when either date is written (existing rows stay).
+         IF NEW."Paid Date"<NEW."Expense Date" AND (TG_OP='INSERT' OR NEW."Paid Date" IS DISTINCT FROM OLD."Paid Date" OR NEW."Expense Date" IS DISTINCT FROM OLD."Expense Date") THEN
+           RAISE EXCEPTION 'A paid date cannot be before the expense date'; END IF;
          NEW."Allocation Basis":='Expense Date Contribution Ratio';
        END IF;
        IF NEW."Ref Related Loan" IS NOT NULL AND NEW."Ref Related Borrower" IS NOT NULL AND
@@ -115,3 +124,9 @@
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null
+"evidence":
+  "/content/definition/definition":
+    "reference": "database/migrations/V145__expense_paid_date_not_before_expense_date.sql (R140)"
+    "reason": "R140 owner decision of 11 November 2026: V145 replaces the routine in place (paid date not before the expense\
+      \ date; source definition, PROD capture follows the PROD apply)"
+    "state": "value"

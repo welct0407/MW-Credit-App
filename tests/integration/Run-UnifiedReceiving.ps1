@@ -61,6 +61,12 @@ try {
   # R136: loan rollover (V138): the preview read, the apply with both receipts, replay, source_conflict and rollover_ineligible, same cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/loan-rollover-independent.test.mjs"
   if($LASTEXITCODE){throw 'Loan rollover integration checks failed'}
+  # R140: a manual expense pending payment (V142): create pending, replay, the reads, pay with expense.update, same cluster.
+  & node --test --test-concurrency=1 "$PSScriptRoot/pending-expense-independent.test.mjs"
+  if($LASTEXITCODE){throw 'Pending expense integration checks failed'}
+  # R140: a created and a paid expense reach the saved Expenses list and record (real store, dataset endpoint and PWA merge).
+  & node --test --test-concurrency=1 "$PSScriptRoot/expense-offline-dataset-independent.test.mjs"
+  if($LASTEXITCODE){throw 'Expense offline dataset integration checks failed'}
   # R112: the agent receipt command v9 (pay forward through the plan) through the real receipt API handler, on the same head cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/agent-receipt-pay-forward-independent.test.mjs"
   if($LASTEXITCODE){throw 'Agent receipt pay forward integration checks failed'}

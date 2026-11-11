@@ -47,6 +47,8 @@ test('R116 a borrower counterparty shows in the viewer language with fallback; a
  assert.deepEqual(ledgerEndpoints(disbursement,false),{from:'Dad SCB',to:'Synthetic Borrower'});
  assert.equal(borrowerNameFor({borrowerName:'ผู้กู้จำลอง',borrowerDescription:'  '},false),'ผู้กู้จำลอง');
  assert.equal(borrowerNameFor({borrowerName:null,borrowerDescription:'Synthetic Borrower'},true),'Synthetic Borrower');
+ // R140 (V144): the expense payee borrower uses the same rule (payeeBorrowerName / payeeBorrowerDescription).
+ assert.equal(borrowerNameFor({borrowerName:'สมชาย',borrowerDescription:'Somchai'},false),'Somchai');assert.equal(borrowerNameFor({borrowerName:'สมชาย',borrowerDescription:'Somchai'},true),'สมชาย');
  assert.deepEqual(ledgerEndpoints({...payment,borrowerName:null,borrowerDescription:null},true),{from:'—',to:'Dad TTB'});
  assert.deepEqual(ledgerEndpoints({...payment,borrowerId:null},false),{from:'—',to:'Dad TTB'});
  // A transfer between accounts never shows a borrower, and a missing account label stays "—" (not the borrower).

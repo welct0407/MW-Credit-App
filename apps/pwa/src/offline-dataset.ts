@@ -117,6 +117,15 @@ const hasLocalRows=(value:any):boolean=>Array.isArray(value)?value.some(hasLocal
 export const DATASET_RECONCILE_DOMAINS=Object.freeze(['records','collection','cash','management']);
 export type DataCheckFlag={domain:string;checkedAt:number;notifiedAt:number|null};
 export const DATASET_CONFIRM_DOMAINS=Object.freeze(['records','collection','cash']);
+/** R140 (owner, 11 November 2026): once a management view was opened in this session, an own write also confirms the
+ * management domain, so Position, Financial and Analytics totals follow a write at once instead of on the 30 s poll. */
+let managementUsed=false;
+export function noteDatasetDomainUsed(domain:string){if(domain==='management')managementUsed=true}
+export const confirmDomains=()=>managementUsed?[...DATASET_CONFIRM_DOMAINS,'management']:[...DATASET_CONFIRM_DOMAINS];
+/** R140: whether a data domain has a check queued, in flight or a walk in progress (its mw-offline-dataset-ready
+ * follows, carrying any own write already settled), per signed-in scope; registered by the running coordinator. */
+const syncingProbes=new Map<string,(domain:string)=>boolean>();
+export function datasetDomainSyncing(scopeName:string|undefined,domain:string){return !!scopeName&&!!syncingProbes.get(scopeName)?.(domain)}
 /** R064: online and background-prepare triggers recheck a domain only after this age; focus, visible-again,
  * the poll and manual sync bypass it (owner decision 17 October 2026). */
 export const DATASET_RECHECK_MIN_MS=10*1000;
@@ -151,6 +160,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // R078: every task in flight with its abort controller. At most DATASET_DATA_FLIGHTS data domains run
  // at once (never the same domain twice); a receipt runs alone, only while no data domain is queued or in flight.
  const active=new Map<string,AbortController>();
+ const probe=(domain:string)=>active.has(domain)||queue.includes(domain)||partials.has(domain)||recheckDomains.has(domain)||recheck&&confirmDomains().includes(domain);syncingProbes.set(repo.scopeName,probe);
  // While a starting records check asks for every domain's source version, the other data domains wait
  // for that answer instead of each sending its own unchanged check.
  let versionsPending=false;
@@ -485,7 +495,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(!stopped&&forceWalk.has(task)){if(forced&&failed.has(task))forceWalk.delete(task);else if(!forced&&!queue.includes(task)&&!failed.has(task))enqueue(task,true)}if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}
    if(!stopped){
     addMedia();const dataBusy=domainRunning();
-    if(!queue.length&&!dataBusy&&(recheck||recheckDomains.size)){const targets=recheck?[...new Set([...DATASET_CONFIRM_DOMAINS,...recheckDomains])]:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets,'invalidate');for(const domain of targets)enqueue(domain)}
+    if(!queue.length&&!dataBusy&&(recheck||recheckDomains.size)){const targets=recheck?[...new Set([...confirmDomains(),...recheckDomains])]:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets,'invalidate');for(const domain of targets)enqueue(domain)}
     if(!isMedia&&!dataBusy&&!queue.some(queued=>!isMediaTask(queued))&&!failedDomains().length&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();
     if(!isMedia&&!dataBusy&&!queue.some(queued=>!isMediaTask(queued)))closeCycle();
     status();if(queue.length&&!paused){if(continued)void pump();else schedule()}else if(failed.size)retryLater();else if(!active.size)void maybeReconcile()
@@ -504,11 +514,13 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   // server refused are asked for once more (their refusal markers are cleared).
   if(event?.type==='mw-offline-prepare'&&detail?.full&&!priority){fullSyncCheck=dataCheck.length>0;for(const domain of domains)forceWalk.add(domain);for(const path of media)completed.delete(path);refused.clear();void repo.clearDatasetMediaRefusals().catch(()=>{});failed.clear()}
   // R078 item 6: an own write is confirmed by checking the domains it touches (DATASET_CONFIRM_DOMAINS), not a
-  // full cycle; management follows on the regular poll. A domain already walking is confirmed after its walk.
+  // full cycle; management follows on the regular poll unless a management path was opened this session (R140: then it
+  // is confirmed too, so the Cash Position payables follow an expense). A domain already walking is confirmed after its walk.
   if(event?.type==='mw-read-invalidated'){
    failed.clear();invalidations++;
-   if(!active.size&&!queue.length){beginCycle(DATASET_CONFIRM_DOMAINS,'invalidate');for(const domain of DATASET_CONFIRM_DOMAINS)enqueue(domain)}
-   else for(const domain of DATASET_CONFIRM_DOMAINS){if(active.has(domain)||partials.has(domain))recheckDomains.add(domain);else if(!queue.includes(domain)){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}}
+   const confirm=confirmDomains().filter(domain=>(domains as readonly string[]).includes(domain));
+   if(!active.size&&!queue.length){beginCycle(confirm,'invalidate');for(const domain of confirm)enqueue(domain)}
+   else for(const domain of confirm){if(active.has(domain)||partials.has(domain))recheckDomains.add(domain);else if(!queue.includes(domain)){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}}
   }
   else{
    // A receipt still downloading or retrying does not block a sync of the data domains (pump takes them first).
@@ -628,7 +640,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const receiptCounts=()=>{const markers=[...refused.values()];return {downloaded:media.filter(path=>completed.has(path)).length,queued:queue.filter(isMediaTask).length+[...active.keys()].filter(isMediaTask).length,failed:[...failed].filter(isMediaTask).length,refused:media.filter(refusedNow).length,lastRefusalAt:markers.length?Math.max(...markers.map(marker=>marker.at)):null}};
  diag.receipts=receiptCounts;
  void initialize();
- return()=>{stopped=true;closeCycle();if(diag.receipts===receiptCounts)diag.receipts=null;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);for(const flight of active.values())flight.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
+ return()=>{stopped=true;if(syncingProbes.get(repo.scopeName)===probe)syncingProbes.delete(repo.scopeName);closeCycle();if(diag.receipts===receiptCounts)diag.receipts=null;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);for(const flight of active.values())flight.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
 }
 
 export const routeDomain=(route:string)=>route.startsWith('/api/management')?'management':route.startsWith('/api/cash-')||route==='/api/preferences'?'cash':route.startsWith('/api/notifications')?'notifications':route.startsWith('/api/collection')||route.includes('/upcoming')||route.includes('/collection-receipts')?'collection':'records';
@@ -717,7 +729,7 @@ export async function readOfflineDataset(access:Access,path:string):Promise<any|
   if(parts[1]==='borrowers'&&tail==='payments')return page((data.paymentHistory??[]).filter((row:any)=>row.borrowerId===id).sort(byDate('paymentDate')),url,bundle);
   if(parts[1]==='loan-records'&&['charges','payments'].includes(tail))return data.loanRelated?.[id]?page(data.loanRelated[id][tail]??[],url,bundle):null;
   if(route==='/api/loan-records')return page(filtered(data.loanList??[]),url,bundle);
-  if(route==='/api/expense-records')return page([...(data.expenses??[])].sort((a,b)=>compare(b.expenseDate,a.expenseDate)||compare(b.id,a.id)),url,bundle);
+  /* R140: newest first, as the server: expense date, then created at, then id (all descending) */if(route==='/api/expense-records')return page([...(data.expenses??[])].sort((a,b)=>compare(b.expenseDate,a.expenseDate)||compare(b.createdAt??'',a.createdAt??'')||compare(b.id,a.id)),url,bundle);
   if(route==='/api/payment-records'){
    const borrowerId=url.searchParams.get('borrowerId'),unassigned=url.searchParams.get('unassigned')==='true',month=url.searchParams.get('month'),child=borrowerId!==null||unassigned;
    const payments=filtered((data.payments??[]).map((row:any)=>({...row,borrowerDisplayName:row.borrowerId==null?'Unavailable':(row.borrowerName??'')+' - '+(row.borrowerDescription??'')})));

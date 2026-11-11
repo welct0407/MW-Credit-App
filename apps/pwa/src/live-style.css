@@ -771,6 +771,62 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 /* Echo BR-1: the Referrer page action keeps its caption on phones. */
 .referrer-owed .record-action:not(#_){width:auto;flex:0 0 auto;padding:7px 10px}.live-shell .referrer-owed .record-action-label:not(#_),.referrer-owed .record-action-label:not(#_){display:inline}
 .rebate-chip{display:inline-block;margin-top:2px;font-size:13px;font-weight:600;color:#3c4650}.rebate-chip-pending{color:#8a4b00}
+/* R140 (V142, Echo EXP-PEND-9): Mark as paid on a pending manual expense, full width and at least 44px, the primary action colours. */
+.expense-mark-paid{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin:8px 0 0;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font:inherit;font-weight:600;text-decoration:none}
+/* R140 EXP-PEND-13: the list tile's grey small text must not hide a pending chip (manual expense or referral rebate). */
+.expense-tile .rebate-chip-pending{color:#8a4b00}
+/* R140 V143 (Echo EXP-PEND-18 to 22): the Payee field (a borrower or a typed name) and the payee on a list tile. */
+.expense-payee{border:0;padding:0;margin:0 0 12px}.expense-payee legend{font-weight:700;margin-bottom:6px}
+.expense-payee-search{display:flex;align-items:flex-end;gap:6px}.expense-payee-search label{flex:1;min-width:0}
+.expense-payee-results{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.expense-payee-results button{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;width:100%;text-align:left;overflow-wrap:anywhere}
+/* R140 (owner, 11 November 2026): the borrower type-ahead's options (combobox listbox), 44px rows, the active row highlighted. */
+.expense-payee-results [role=option]{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:6px 10px;border:1px solid #d5dbe0;border-radius:6px;cursor:pointer;overflow-wrap:anywhere;color:#0b57d0}
+.expense-payee-results [role=option].active,.expense-payee-results [role=option]:hover{background:#eef3fd;border-color:#0b57d0}.borrower-typeahead-hint{margin:6px 0 0}
+.expense-payee-tag{flex:0 0 auto;font-size:12px;font-weight:600;color:#565656;border:1px solid #c8cdd2;border-radius:10px;padding:1px 8px}
+.expense-payee-chosen{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;margin:0;overflow-wrap:anywhere}.expense-payee-chosen small{color:#565656}
+.expense-tile>span{min-width:0}
+/* R140 (Echo EXP-REC-1 to 14): the expense record: summary card, Mark as paid under it, grouped rows, two columns from 900px. */
+.expense-summary{border:1px solid #d5dbe0;border-radius:8px;padding:8px 8px 10px 12px;margin-bottom:10px;background:#fafbfc}
+.expense-summary-top{display:flex;align-items:center;gap:8px}.expense-summary-top h2{flex:1;min-width:0;margin:0;font-size:18px;overflow-wrap:anywhere}
+.expense-summary-amount{font-size:22px;font-variant-numeric:tabular-nums;white-space:nowrap}.expense-summary-actions{display:flex;gap:2px}
+.expense-summary-actions .icon-action{min-width:44px;min-height:44px}
+.expense-summary-line{margin:4px 0 0;color:#444;overflow-wrap:anywhere}.expense-summary-line .rebate-chip{margin-top:0}
+.rebate-chip-paid{color:#256029}
+.borrower-record button.expense-mark-paid{margin:0 0 12px;text-decoration:none}
+.expense-detail-groups{display:grid;gap:4px 24px}.expense-detail-group h3{margin:14px 0 6px;font-size:16px}
+.expense-detail-group dl{margin:0}.expense-split-line,.expense-cash-row{margin:2px 0}.expense-split-basis{margin:4px 0 0;font-size:14px;color:#565656}
+.expense-settlement-link{display:block;margin-top:4px}
+.expense-record-info,.expense-record-info dl{font-size:14px;color:#565656}.expense-record-note{margin:6px 0 0;font-size:14px;color:#565656}
+@media (min-width:900px){.expense-detail-groups{grid-template-columns:1fr 1fr;align-items:start}.borrower-record button.expense-mark-paid{max-width:320px}}
+/* R140 (Echo EXP-NEW-1 to 16): the expense create and edit form and its review. */
+.expense-form .related-loans-heading.expense-form-heading,.borrower-record>.related-loans-heading.expense-form-heading{background:transparent}
+.expense-form .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.expense-form-group{margin:0 0 8px}.expense-form-group>h3{margin:14px 0 6px;font-size:16px}
+.field-error{margin:4px 0 0;font-size:14px;color:#b3261e}
+.expense-amount-input{display:flex;align-items:center;gap:6px}.expense-amount-input>span{font-weight:600}.expense-amount-input input{flex:1}
+.expense-negative{display:flex;align-items:center;gap:8px;min-height:44px}.expense-negative input{width:auto;min-height:0}
+.expense-draft-restored{margin:4px 0 8px;font-size:14px;color:#565656}
+.expense-clear{font-size:22px;line-height:1}
+.expense-form-actions>button:first-child{flex:1}
+.expense-form-actions>.operation-confirm-primary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
+.expense-form-actions>.operation-confirm-primary:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
+@media (max-width:899px){.expense-form-cancel{display:none}}
+/* EXP-NEW-17: the field scrolls to just below the header; on a phone the action bar steps aside while editing text or a list is open. */
+.borrower-typeahead{scroll-margin-top:72px}
+@media (max-width:1050px){.form-sticky-actions.expense-form-actions-editing{display:none}}
+/* EXP-NEW-18: the review's action bar is a direct child of its section; like the forms (form>.form-sticky-actions) the
+   section must not be its own scroll container on a phone, or the bar's bottom offset lifts it over the last rows. */
+@media (max-width:1050px){.borrower-record:has(>.expense-form-actions){overflow:visible}}
+/* EXP-NEW-21: the action bar sticks on a desktop too; the Paid now / Pending choice is as wide as the inputs. */
+@media (min-width:1051px){.form-sticky-actions.expense-form-actions{position:sticky;bottom:0;z-index:3;margin:12px -8px 0;padding:8px;background:#fff;border-top:1px solid #ccc}}
+@media (min-width:900px){.expense-form .expense-payment-options{max-width:480px}}
+/* EXP-NEW-23: type-ahead rows: at most two lines, the English name smaller on the second, each with an ellipsis. */
+.borrower-typeahead-names{display:flex;flex-direction:column;min-width:0;flex:1}.borrower-typeahead-name,.borrower-typeahead-description{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.borrower-typeahead-description{font-size:13px;color:#4a5560}.borrower-typeahead-separator{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (min-width:900px){.expense-form-actions>button:first-child{flex:0 1 320px}.expense-form input:not([type=checkbox]):not([type=radio]),.expense-form select,.expense-form textarea{max-width:480px}.expense-form .expense-amount-input{max-width:480px}}.expense-tile .expense-chip-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expense-tile .expense-tile-payee{color:#666;font-weight:400}
+/* R140 EXP-PEND-16: Pending is disabled for an amount of zero or less; the rollover-day disabled look. */
+.expense-payment-options input:disabled+span{color:#8a8f94;background:#f2f2f2;border-color:#d5dbe0;cursor:not-allowed}.expense-mark-paid:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .rebate-settle-list{min-width:0;max-width:100%;border:1px solid #d5dbe0;border-radius:6px;padding:4px 10px}
 /* Echo PAY-1: beat .borrower-record label{display:block;margin:12px 0} so each tick row stays one row of 44 px or more. */
 .borrower-record label.rebate-settle-row{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;gap:10px;align-items:center;min-height:44px;margin:0;border-bottom:1px solid #eef1f3}

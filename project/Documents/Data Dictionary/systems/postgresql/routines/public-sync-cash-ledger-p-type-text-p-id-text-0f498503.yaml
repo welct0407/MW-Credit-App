@@ -48,7 +48,7 @@
         SELECT "Loan Date","Principal Amount"::numeric,"Ref Disbursed From Cash Account" INTO d,amount,from_account FROM public."Loans" WHERE "Row ID"=p_id;
         movement:='Loan Disbursement'; source_key:='LOAN:'||p_id; loan_id:=p_id; from_holder:='ch:lisa';
        WHEN 'Business Expense' THEN
-        SELECT "Expense Date",abs("Amount"::numeric),CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Holder" END,
+        SELECT coalesce("Paid Date","Expense Date") /* R140 V144: the paid date, else the Expense Date */,abs("Amount"::numeric),CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Holder" END,
          CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Holder" END,"Created By",
          CASE WHEN "Amount"::numeric>0 THEN "Ref Paid By Cash Account" END, CASE WHEN "Amount"::numeric<0 THEN "Ref Paid By Cash Account" END,
          "Rule Version",(SELECT o."Amount Received"::numeric FROM public."Payments" o WHERE o."Row ID"=x."Ref Offset Payment" AND o."Status"='Posted')
@@ -96,3 +96,9 @@
     "acl": "{mw_ledger_owner_prod=X/mw_ledger_owner_prod,mw_app_prod=X/mw_ledger_owner_prod,mw_reviewer_dml=X/mw_ledger_owner_prod}"
     "comment": null
     "extension": null
+"evidence":
+  "/content/definition/definition":
+    "reference": "database/migrations/V144__expense_pool_fallback_and_paid_date.sql (R140)"
+    "reason": "R140 follow-up (owner feedback of 11 November 2026): V144 replaces the routine in place (source definition;\
+      \ PROD capture follows the PROD apply)"
+    "state": "value"

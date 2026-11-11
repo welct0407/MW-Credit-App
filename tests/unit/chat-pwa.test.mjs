@@ -198,6 +198,8 @@ test('card wording: chat-layer codes in both languages, command-service codes le
  assert.equal(proposalCountdown(840,false),'Expires in 14:00');assert.equal(proposalCountdown(65,true),'หมดอายุใน 1:05');
  assert.equal(proposalStateText('executing',false),'Saving…');assert.match(proposalUnresolvedText(false),/not confirmed/);assert.doesNotMatch(proposalUnresolvedText(false),/fail/i);
  assert.match(consequenceText({code:'loan_close_payoff'},false,'฿10,300'),/฿10,300/);assert.match(consequenceText({code:'settles_all_due'},true),/ทั้งหมด/);
+ // R140 (V142): an expense recorded without a paying account.
+ assert.equal(consequenceText({code:'pending_payment'},false),'Pending payment — no cash movement.');assert.equal(consequenceText({code:'pending_payment'},true),'ค้างจ่าย — ยังไม่มีรายการเงินสด');
 });
 
 test('CWR-02/07: the server Confirm label or plain Confirm; the saved time in Bangkok',()=>{
