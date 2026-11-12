@@ -17,7 +17,7 @@ Part of R144 component versioning ([project note](../../Change%20Logs/CHANGE_NOT
 | Adversarial review (Chase, same tree) | Pass (Chase, commit `080486f8`, tree `6e6493c4`): hostile build values give null in the agent `build_identity`; `debian-health.py` and `deploy-shared-receipt-api.py` assert no exact health body. Not verified: the agent `--release` on the real host |
 | CI on the pull request | Pending (PR `Development checks`) |
 ## Not run
-No Debian deploy in this batch; it waits for promotion. An agent deployed before this change reports no release and reads as unverified.
+Nothing further: the Debian deploy ran with the R144 promotion (see Deployment).
 
 ## Recovery
 Revert the commit; the added fields are read only by the drift check.
@@ -26,4 +26,17 @@ Revert the commit; the added fields are read only by the drift check.
 None.
 
 ## Remaining work
-Deploy with the R144 promotion.
+None for the agent.
+
+## Deployment (Forge, 12 November 2026 UTC)
+Authority: the owner's R144 production instruction ("Merge and promote R144 to production"), relayed by the orchestrator; it covers this deploy of the exact package commit `51ba52d36d9f5a1bd13960fd31b2b2919acfd70a`. Host `vm-mw-credit-agent` (project `clever-oasis-508610-n7`), over IAP SSH as `codex-cloud`. No config switch, cutoff, catalogue entry, route or job changed; no secret value is recorded.
+
+| Step | Result |
+| --- | --- |
+| Checkout | `update-from-github.sh` fast-forward `055e25fe` to `51ba52d3`; clean |
+| Dry-run | Changed modules `chat_relay_api.py`, `config.py`, `receipt_recognition_api.py`, `server.py`; units unchanged; agent schema applied through V11 (nothing missing, no drift) |
+| Operator access | The schema check needs an `mw_agent` operator connection file: temporary root-only `/root/r144-op` (`postgres` through the 5432 proxy, password piped on stdin from Secret Manager into a 0600 file, never printed), shredded 09:30:05Z |
+| Deploy | `deploy-runtime.py --release R144`: freeze 09:29:37Z (rollback directory `runtime-20261112T092937308158Z`), install 09:29:46Z, activate 09:29:51Z to 09:29:55Z (probe request `f53f201e-c45f-4ab6-8271-553607846608`), timers and the wake path resumed |
+| Chat relay | Not restarted by the helper; restarted by hand at 09:30:29Z so its `/healthz` serves the new package |
+| Verification | Config `code_version` `51ba52d3`, `code_release` R144; `/ready` ready with release R144 and commit `51ba52d3`; recognizer and relay `/healthz` ok, enabled, R144; `mw-integration-agent check` exit 0; no error-level journal entries for the receiver, recognizer and relay; worker heartbeats from 09:32Z report `code_version` `51ba52d3`; catalogue revision 37 |
+| Rollback | `deploy-runtime.py rollback --commit 51ba52d36d9f5a1bd13960fd31b2b2919acfd70a` restores `813462e7`, then restart `mw-chat-relay` |

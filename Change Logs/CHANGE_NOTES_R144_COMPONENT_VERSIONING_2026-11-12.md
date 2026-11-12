@@ -39,3 +39,34 @@ Seed fact not verified from a live target: the Metabase last-changed release (R1
 
 ## Remaining work
 Promotion steps listed under Not run, then the Checks table results from Byte and Chase.
+
+## PROD promotion record (Forge, 12 November 2026 UTC)
+Authority: the owner's instruction of 12 November 2026, "Merge and promote R144 to production", relayed by the orchestrator as the scoped PROD approval for R144: builds, the DEV and PROD images-only applies, the agent deploy, the Grafana apply, the Metabase stamp and the technical records. No SQL, so no backup and no owner window. No payment, notification or job was forced and no financial or borrower data was written. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Step | Result |
+| --- | --- |
+| Freeze | 09:16Z; package `51ba52d36d9f5a1bd13960fd31b2b2919acfd70a` (merge of PR #293, tree `7f9d4087` equal to the tested head `f1caa91b`, `Development checks` run 43186898321). Baseline R143 `055e25fe`. Changed: all five API images (Dockerfile and Cloud Build files are image inputs), the agent, the Grafana dashboards, the Metabase stamp; no SQL, no PWA and no Terraform source change. Next unused number R145 (opened by the closure pull request) |
+| Target | Project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017`, databases `loan_manager_dev` and `loan_manager_prod` (not touched), services `mw-credit-app-*-dev` and `mw-credit-app-*-prod`, registries `mw-credit-app` (DEV) and `mw-credit-app-prod`, state `mw-credit-app-tfstate-737787224638` and `mw-credit-app-prod-tfstate-737787224638` (prefixes `application` and `grafana`), host `vm-mw-credit-agent`, Grafana `monitor.mw-credit.com`, Metabase `reports.mw-credit.com` collection 10 |
+| DEV image | Cloud Build `e9f5e1f1-bcf2-4245-9d02-873b0c4f9ea9` (`cloudbuild-command.yaml`, `_MW_RELEASE=R144`, `_MW_SOURCE_COMMIT` the package), SUCCESS 09:18:28Z, digest `sha256:35bd60fe9fb21862b2cb13c13a4d0f1fce62c196211f6ede9c10859b56997189` |
+| DEV apply | Plan 0 add, 5 change, 0 destroy, image only on read, command, chat, notify and jobs (plan JSON compared field by field), applied 09:19:37Z to 09:20:13Z, re-plan clean, activation published. `/health`: read, command, chat and (with an identity token) notify report R144 and `51ba52d3`; jobs serves no `/health` through its front end (404 even authenticated) and runs the same digest |
+| Baseline capture (PROD) | 09:21:35Z: read `00055-sq2`, command `00060-mtz`, chat `00039-9px` on `848b26b9...` (R141); notify `00029-2nb`, jobs `00029-9dp` on `f8cb243b...` (R130); settings generation `1794406264137132`; Hosting `854b64df2b836f27` (R142); Flyway 145 |
+| PROD image | Cloud Build `b1e4786b-7831-4d54-b5cb-7e8b857fdc9b` (`cloudbuild-business.yaml` as `mw-credit-app-build-prod`; the release guard step passed), 09:22:13Z to 09:22:49Z, digest `sha256:63e5b48ffb983178a47e7eec08cd2553a3da4afe2c47b08c887c4d7b0d05cfbd` |
+| SQL | None; DEV and PROD stay at Flyway 145 (read back as `codex-cloud-read`) |
+| PROD apply | Plan 0 add, 5 change, 0 destroy, `template.containers.image` only on the five `mw-credit-app-*-prod` services (plan sha256 `b76aa5e7...`, JSON `bb3e1877...`), applied 09:25:31Z to 09:26:06Z, settings generation `1794475576840235`, re-plan clean. Revisions read `00056-82h`, command `00061-d9h`, notify `00030-285`, jobs `00030-29l`, chat `00040-2f7` |
+| Hosting | Not deployed: the PWA did not change in R144 (it stays R142, `854b64df2b836f27`) |
+| Agent | `51ba52d3`, see the [agent note](../integration-agent/Change%20Logs/CHANGE_NOTES_R144_AGENT_RELEASE_REPORTING_2026-11-12.md#deployment-forge-12-november-2026-utc) |
+| Grafana | Plan 0 add, 5 change, 0 destroy: `spec.tags` gains `release:R144` on the five dashboards, nothing else in the specs (provider metadata annotations and version are computed); applied 09:31:23Z to 09:31:37Z, re-plan no changes |
+| Metabase | `Stamp-Release.mjs --check` stamp null, `--apply --release R144` 09:32:05Z (changed, read back), `--check` stamp R144. The previous collection description is kept privately outside Git |
+| Smoke (read-only) | PROD `/health` 200 on read, command and chat with release R144 and `51ba52d3`, notify with an identity token; `lm.mw-credit.com` 200; no ERROR logs on the DEV or PROD services after the applies |
+| Tag | `R144` on `51ba52d3`, Release tag workflow on `main`, GitHub Release published 09:34:37Z with the "## Component versions" table |
+| Drift | `component-versions.mjs drift --env all --observed <private file> --strict`: 0 drift, 0 unverified (16 match, 5 vendor info). Credentialed facts were read read-only: notify `/health` with an identity token; jobs from its Cloud Run digest and the Cloud Build substitutions (same digest as notify); Flyway heads and `vendor-postgresql` as `codex-cloud-read` and `gcloud sql instances describe`; agent `/ready` over IAP SSH; Grafana tags with the provisioning token held in process; Metabase stamp from `--check` |
+| Rollback | DEV: private `dev.activation.before-r144.tfvars`, plan and publish. PROD: settings generation `1794406264137132` (the private `production.activation.before-r144.tfvars`), plan 0/5/0 and publish. Grafana: revert `DASHBOARD_RELEASE` and apply. Metabase: restore the saved description. Agent: `deploy-runtime.py rollback`. No SQL |
+
+### Deviations
+- The generic promotion runner (`deploy-business-hosting.mjs`) was not run: its apply step is the Hosting deploy, and the PWA did not change. The images went through the reviewed images-only Terraform plans, checked against the generic kind's plan rule (only `template.containers.image` on the five services) by a JSON comparison of each resource.
+- `drift` refuses to run between the tag and the closure pull request ("the Open release R144 is already tagged"), because it reads the Open release from the tracker at the commit. The 0/0 result came from a throwaway local clone with the tracker set to R145 Open (local commit only, deleted afterwards); after the closure pull request opens R145 it runs as documented. Pre-tag, with PROD expected at R143, the same facts gave the expected 8 drift and 0 unverified.
+- No `keep-r144-runtime` tag was added to the images (the convention lapsed after R118); the rollback digests are within the registry's newest-20 and 30-day retention.
+
+### Limitations
+- No authenticated PROD read beyond `/health` (no sanctioned PROD token route), financial write, notification or job. Owner acceptance pending.
+- The jobs service's `/health` is not reachable through its front end, so its release is inferred from its digest.
