@@ -113,12 +113,28 @@ jobs:
             git push origin "refs/tags/$TAG"
             echo "Created $TAG at $COMMIT"
           fi
+      - name: Derive component versions
+        # R144: the per-component versions (the last Rnnn that changed each component, with its native counter) at the
+        # tagged commit, computed without the release token in the environment. Best effort: a failure warns and leaves
+        # the file empty, and the release still publishes.
+        if: ${{ inputs.check_only != true }}
+        env:
+          TAG: ${{ inputs.tag }}
+          COMMIT: ${{ inputs.commit }}
+        run: |
+          set -uo pipefail
+          out="$RUNNER_TEMP/components.md"
+          if node scripts/promotion/component-versions.mjs derive --release "$TAG" --commit "$COMMIT" --format md >"$out" 2>"$RUNNER_TEMP/components.err" && grep -q '[^[:space:]]' "$out"; then
+            echo "Derived component versions for $TAG"
+          else
+            : >"$out"
+            echo "::warning::Component versions were not derived for $TAG; publishing without them ($(head -c 300 "$RUNNER_TEMP/components.err" | tr '\n' ' '))"
+          fi
       - name: Publish the GitHub Release
         if: ${{ inputs.check_only != true }}
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TAG_TOKEN }}
           TAG: ${{ inputs.tag }}
-          COMMIT: ${{ inputs.commit }}
           NOTES: ${{ inputs.notes }}
         run: |
           set -euo pipefail
@@ -128,12 +144,9 @@ jobs:
           git fetch --tags --quiet origin
           body="${NOTES:-$(git tag -l --format='%(contents)' "$TAG")}"
           [[ -n "${body//[[:space:]]/}" ]] || { echo "::error::Release body is empty"; exit 1; }
-          # R144: append the per-component versions (the last Rnnn that changed each component, with its native
-          # counter) derived from history at the tagged commit. Best effort: a failure warns and the release still publishes.
-          if components=$(node scripts/promotion/component-versions.mjs derive --release "$TAG" --commit "$COMMIT" --format md 2>"$RUNNER_TEMP/components.err") && [[ -n "${components//[[:space:]]/}" ]]; then
-            body="$body"$'\n\n## Component versions\n\n'"$components"
-          else
-            echo "::warning::Component versions were not derived for $TAG; publishing without them ($(head -c 300 "$RUNNER_TEMP/components.err" | tr '\n' ' '))"
+          # R144: the table comes from the token-free step above; empty means it was not derived.
+          if [ -s "$RUNNER_TEMP/components.md" ]; then
+            body="$body"$'\n\n## Component versions\n\n'"$(cat "$RUNNER_TEMP/components.md")"
           fi
           highest=$(git tag -l 'R[0-9][0-9][0-9]' --sort=-v:refname | head -1)
           latest=false; [ "$TAG" = "$highest" ] && latest=true

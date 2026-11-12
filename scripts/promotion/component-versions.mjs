@@ -31,7 +31,11 @@ export function gitIn(root){
   return r.stdout;
  };
 }
-const verifyCommit=(git,ref)=>{const out=git(['rev-parse','--verify','--quiet',ref+'^{commit}'],{allowFail:true});return out?out.trim():null;};
+// A commit argument is a 7 to 40 hex commit, HEAD or an Rnnn tag; nothing else (an option such as --output=…) reaches git,
+// and --end-of-options keeps even a valid value from being read as one.
+const COMMIT_REF=/^(?:[0-9a-f]{7,40}|HEAD|R\d{3})$/;
+export const validCommitRef=ref=>typeof ref==='string'&&COMMIT_REF.test(ref);
+const verifyCommit=(git,ref)=>{if(!validCommitRef(ref))return null;const out=git(['rev-parse','--verify','--quiet','--end-of-options',ref+'^{commit}'],{allowFail:true});return out?out.trim():null;};
 /** Local release tags → peeled commit. */
 export function releaseTags(git){
  const tags=new Map();
@@ -122,6 +126,7 @@ export function derive({git,registry,release,commit,walkFrom}){
  const tags=releaseTags(git),seed=walkFrom??registry.seedAsOf;
  if(!RELEASE.test(seed))fail('seed release invalid');
  if(num(release)<num(seed))fail(release+' is before the registry seed '+seed);
+ if(commit!==undefined&&commit!==null&&!validCommitRef(commit))fail('--commit must be a 7 to 40 character hex commit, HEAD or an Rnnn tag');
  const resolved=commit?verifyCommit(git,commit):tags.get(release);
  if(!resolved)fail(commit?'unknown commit '+commit:'--commit required ('+release+' is not tagged)');
  if(tags.has(release)&&tags.get(release)!==resolved)fail(release+' is tagged at '+tags.get(release)+', not '+resolved);
@@ -191,11 +196,13 @@ const dashboardTags=json=>{const value=JSON.parse(json);const tags=value?.spec?.
 export function checkSource({git,registry,root=REPO_ROOT,commit}){
  const tags=releaseTags(git),latest=latestTag(tags);
  if(!latest)fail('no release tag (shallow clone? run git fetch --tags)');
- const read=file=>commit?git(['show',commit+':'+file],{allowFail:true}):(()=>{try{return readFileSync(path.resolve(root,file),'utf8');}catch{return null;}})();
+ if(commit!==undefined&&!validCommitRef(commit))fail('--commit must be a 7 to 40 character hex commit, HEAD or an Rnnn tag');
+ const resolved=commit===undefined?undefined:verifyCommit(git,commit)??fail('unknown commit '+commit);
+ const read=file=>resolved?git(['show',resolved+':'+file],{allowFail:true}):(()=>{try{return readFileSync(path.resolve(root,file),'utf8');}catch{return null;}})();
  const open=openRelease(read(TRACKER_FILE)??fail('no release tracker'));
  const stamped=registry.components.filter(c=>c.stamp?.kind==='grafana-tag'&&c.stamp.checkSource);
  const problems=[],checked=[];
- const changed=commit?namesBetween(git,tags.get(latest),verifyCommit(git,commit)??fail('unknown commit '+commit)):namesBetween(git,tags.get(latest));
+ const changed=resolved?namesBetween(git,tags.get(latest),resolved):namesBetween(git,tags.get(latest));
  for(const c of stamped){
   const match=pathMatcher([c.stamp.files??'infrastructure/grafana/dashboards/*.json']),prefix=c.stamp.tagPrefix??'release:';
   for(const file of changed.filter(match)){
@@ -259,6 +266,7 @@ export function assess({git,component,descriptor,expected,fact}){
 export function expectations({git,registry,root=REPO_ROOT,commit}){
  const tags=releaseTags(git),latest=latestTag(tags);
  if(!latest)fail('no release tag (shallow clone? run git fetch --tags)');
+ if(commit!==undefined&&!validCommitRef(commit))fail('--commit must be a 7 to 40 character hex commit, HEAD or an Rnnn tag');
  const head=verifyCommit(git,commit??'HEAD')??fail('unknown commit');
  const open=openRelease(git(['show',head+':'+TRACKER_FILE],{allowFail:true})??readFileSync(path.resolve(root,TRACKER_FILE),'utf8'));
  if(num(open)<=num(latest))fail('the Open release '+open+' is already tagged');
@@ -302,7 +310,11 @@ function options(argv){
  return out;
 }
 export async function main(argv,{root=REPO_ROOT,stdout=console.log,fetchImpl}={}){
- const o=options(argv),command=o._[0],git=gitIn(root),registry=loadRegistry(root,o.registry??REGISTRY_FILE);
+ const o=options(argv),command=o._[0];
+ // Operator input is validated before any git call.
+ if(o.commit!==undefined&&!validCommitRef(o.commit))fail('--commit must be a 7 to 40 character hex commit, HEAD or an Rnnn tag');
+ for(const key of ['release','walk-from'])if(o[key]!==undefined&&!RELEASE.test(o[key]))fail('--'+key+' must look like R144');
+ const git=gitIn(root),registry=loadRegistry(root,o.registry??REGISTRY_FILE);
  if(command==='derive'){
   const result=derive({git,registry,release:o.release,commit:o.commit,walkFrom:o['walk-from']});
   if(!['md','json',undefined].includes(o.format))fail('--format md|json');

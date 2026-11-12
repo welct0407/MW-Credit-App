@@ -14,7 +14,8 @@ Part of R144 component versioning ([project note](../../Change%20Logs/CHANGE_NOT
 | Agent `ruff` (Byte, commit `080486f8`, tree `6e6493c4`) | Pass |
 | Agent unittest `deploy_runtime` 24, `server` 16, `chat_relay` 20, `receipt_recognition` 81, `config` 18 (Byte, same tree) | Pass, all OK |
 | `npm run check:docs` (Dewey) | Pass, 0 failures, 0 warnings |
-| Verification report (Chase) and CI on the pull request | Pending |
+| Adversarial review (Chase, same tree) | Pass (Chase, commit `080486f8`, tree `6e6493c4`): hostile build values give null in the agent `build_identity`; `debian-health.py` and `deploy-shared-receipt-api.py` assert no exact health body. Not verified: the agent `--release` on the real host |
+| CI on the pull request | Pending (PR `Development checks`) |
 ## Not run
 No Debian deploy in this batch; it waits for promotion. An agent deployed before this change reports no release and reads as unverified.
 
