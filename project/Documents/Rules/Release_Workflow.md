@@ -43,6 +43,18 @@ Prune in the closure pull request, in the same session that marks the release Re
 
 Relevant unresolved failures prevent “Released”; distinguish applied, verified and owner-accepted. Explicit owner deferrals remain visible. No current release requires AppSheet editor diagnostics, app modes, copying, source rebinding, App Upgrade, logo parity, bots or RC cleanup.
 
+## Component versions (R144 onwards)
+
+`Rnnn` stays the one ecosystem number. A component's version is the last release that changed it plus its own counter (Flyway version, catalogue revision, image digest, Hosting version, vendor version). The registry is [`scripts/promotion/components.json`](../../../scripts/promotion/components.json) and the tool is `scripts/promotion/component-versions.mjs` ([usage](../../../scripts/promotion/README.md#component-versions-r144-onwards)). Git tags, GitHub releases and the generic release kind are unchanged.
+
+At closure, after deployment is verified and the tag exists:
+1. `node scripts/promotion/component-versions.mjs derive --release Rnnn --commit <package commit> --format md` derives, from the files changed since the previous tag, which components this release changed (an unchanged component keeps its earlier release). Use the output in the closure notes.
+2. `render --write` fills the marked block in the [Environment Inventory](../Environment_Inventory.md#component-versions); `render --check` must pass. This ships in the closure pull request with the pin, promotion record and prune; it is not a separate pull request.
+3. The [Release tag workflow](../../../.github/workflows/release-tag.yml) appends the same `derive` table to the GitHub Release notes; nothing else about the tag changes.
+4. `drift --env dev|prod|all` compares the registry with the live targets using GET requests only. Public facts are read directly (`/build-version.json`, `/health`, Grafana and Metabase version endpoints); credentialed facts (Cloud Run image digest, Hosting version, Flyway, the agent `/ready`, Grafana tags, Metabase stamp) go in through `--observed file.json`, which holds values the operator read with the existing read-only identities. A missing fact is reported unverified, never guessed. Exit 1 means drift; with `--strict`, exit 2 means unverified facts remain. Run it after a deploy and record the result once in the promotion record.
+
+Source rules: a release that changes a Grafana dashboard must bump `DASHBOARD_RELEASE` in `project/scripts/monitoring/dashboards/lib.cjs` to the Open release and regenerate (the tag `release:Rnnn` follows); `check-source` fails when a Grafana dashboard changed since the last tag does not carry the `release:<Open Rnnn>` tag (set it when you change the dashboard, then Forge applies it). The Metabase stamp is `project/scripts/metabase/Stamp-Release.mjs`; `--check` is the default and `--apply` is a PROD write that belongs to promotion. Images take `MW_RELEASE_NUMBER` and `MW_SOURCE_COMMIT` as build arguments: DEV builds default to `dev`, and a PROD build (`cloudbuild-business.yaml`) must pass `_MW_RELEASE` matching `^R\d{3}$` (as the `live-prod` Hosting build already requires `MW_RELEASE_NUMBER`) or the build fails. The API `/health` and the agent `/ready` and `/healthz` report `release` and `commit`; the agent `deploy-runtime.py prepare` writes `code_release` beside `code_version`.
+
 ## Publication
 
 After coherent completion, review the intended diff, run the relevant checks and commit and push only the task's changes to the configured branch; this is standing publication authority. Preserve unrelated dirty work and exclude secrets, backups and dependencies. Use normal pushes, verify the remote result and report publication failures honestly. Never force-push or rewrite history.

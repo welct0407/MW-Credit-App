@@ -23,6 +23,8 @@ Template revision: 25 October 2026. One copy per release; reuse an existing reco
 | Version/environment and affected PROD smoke verified once | |
 | Final tag created on the package commit; actual outcome/changed owning facts recorded; closure pull request (freeze, record, tag record, prune) published once | |
 
+PROD image build: `gcloud builds submit --config cloudbuild-business.yaml --substitutions=_MW_RELEASE=Rnnn,_MW_SOURCE_COMMIT=<40 lowercase hex package commit>` plus the usual project, region, service account and source-staging flags; the build refuses unless `_MW_RELEASE` matches `^R\d{3}$` and `_MW_SOURCE_COMMIT` is 40 lowercase hex. At closure run the [component versions](../../../Documents/Rules/Release_Workflow.md#component-versions-r144-onwards) steps (derive, render, drift).
+
 For SQL add the tested migration commit/hashes, full pending set, schema/history check, verified backup and guarded runner result. For infrastructure add the reviewed plan and actual apply/readback. For scheduler/notification changes add ownership, recipient isolation and execution/delivery evidence relevant to the change. Omit unrelated sections; do not create another checklist or document every unchanged service.
 
 ## Close

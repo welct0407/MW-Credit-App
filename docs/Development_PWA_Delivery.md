@@ -12,7 +12,7 @@ Current live HTTP headers remain no-store. The worker separately caches only the
 
 ## Existing command image build identity
 For a changed command-service read adapter, build from the clean pinned source with:
-`gcloud builds submit --project clever-oasis-508610-n7 --region asia-southeast1 --config cloudbuild-command.yaml --service-account projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com --gcs-source-staging-dir gs://mw-credit-app-builds-737787224638/source --async`.
+`gcloud builds submit --project clever-oasis-508610-n7 --region asia-southeast1 --config cloudbuild-command.yaml --service-account projects/clever-oasis-508610-n7/serviceAccounts/mw-credit-app-build@clever-oasis-508610-n7.iam.gserviceaccount.com --gcs-source-staging-dir gs://mw-credit-app-builds-737787224638/source --substitutions=_MW_RELEASE=<Open Rnnn or dev>,_MW_SOURCE_COMMIT=$(git rev-parse HEAD) --async`.
 Use the existing dedicated builder and source bucket; omitting these selects a default compute identity/bucket that lacks the required source access. Pin the successful digest, review the existing image-only Terraform plan, then deliver the matched configured frontend. This does not grant new IAM or authorize PROD.
 
 ### Automatic startup and shared headers, 10 October 2026
