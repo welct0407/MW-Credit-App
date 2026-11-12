@@ -45,13 +45,23 @@ Read-only, on `vm-mw-credit-agent`; aggregate figures only.
 - Conclusion: the model change adds about 1.9 s at the median and 4 s at p90. The fallbacks were caused by the preparation step running inside the 15 s Claude phase. The live PROD baseline (last 30 days, 139 requests) is median 4.0 s, p90 6.4 s, max 25.3 s, with 2 provider timeouts; app uploads are pre-shrunk on the phone, so these runs on full-size slips overstate real latency.
 - Cost: about 0.015 USD per Claude slip; the measurement runs used about 2 USD.
 
-## Follow-up fix (Byte, uncommitted)
+## Performance after the fix (DEV re-measurement, 12 November 2026 UTC)
+The same 60 real slips through both routes, sequential, normal priority, read-only.
+
+| Route | Median | p90 | Max | CPU per slip (median / p90) | Served | Fallbacks |
+| --- | --- | --- | --- | --- | --- | --- |
+| PROD (Gemini, unchanged) | 5.9 s | 16.2 s | 28.0 s | 4.1 s / 13.8 s | gemini 60 of 60 | 0 |
+| DEV (Claude + QR) | 4.1 s | 6.2 s | 8.3 s | 1.0 s / 3.2 s | claude 60 of 60 | 0 |
+
+QR: same as the model on 59, replaced on 1. Peak memory 117 MB. Before the fix the DEV route had 16% fallbacks and p90 31.7 s.
+
+## Follow-up fix (Byte, PR #289, merged as `813462e7`)
 The Claude route prepares the image once with the new `prepared()` (Lanczos, 1600 px, JPEG quality 85 only) before the phase timer starts, and a fallback to Gemini reuses those bytes. PROD and Gemini-only routes are unchanged. The audit gains `prepare_ms` and `model_ms` on the Claude route. Local timing on a 1290x2017 synthetic image: 0.077 s against 0.431 s for `downscaled`. Files: `receipt_image.py`, `receipt_provider_claude.py`, `receipt_provider_gemini.py`, `receipt_recognition_api.py`, `tests/test_receipt_recognition.py`.
 
 ## DEV device check (Echo, iPhone WebKit)
 Items 1 to 4 pass: "Uploading" at 0.2 s, "Reading" at 1.6 s, "From slip (Claude)" at 4.7 s; the slow messages at 8 s and 10 s; the offline message; one polite status element with focus kept. Item 5 (loan close and manual receipt) was not checked live; those screens share the same helpers.
 - R142-UX-11: in WebKit the app's service worker hides requests from Playwright route blocks, so the write guard in the DEV sign-in recipe (`docs/Development.md`, step 4) did not stop writes on iPhone WebKit. One synthetic orphan receipt was uploaded to DEV (no payment). `docs/Development.md` step 4 now installs the guard with an init script and requires a probe request first.
-- Chase's DEV end-to-end results: pending.
+- Chase's DEV end-to-end results: see below.
 
 ## Owner deploy decision
 11 November 2026: gate the invisible-character stripping, then merge PR #288 and deploy. There is no DEV agent, so the code goes to the one live VM; DEV is switched by configuration while PROD and the Instagram receipt cycle read exactly as today.
@@ -66,11 +76,24 @@ PR #288 merged into main as `d2de3330`. There is no DEV agent: the code is on th
 - DEV Hosting: version `5554bf9a8655f648`, release `1794421701781000`, build-version R142 `4ec5fa9b7689cff209d71b2a`, entry `/assets/index-C7e6ViiP.js`, from PR head `29a7ba0` (tree equal to merge `d2de3330`; the bundle embeds `29a7ba0`); `--check` passed with 17 files; deployed 18:28:11Z to 18:28:22Z. Rollback: `a3d0594cc8f5511f`.
 - Pending: the first PROD-caller request after the deploy, which must be served by gemini; Chase's and Echo's DEV checks; the performance measurement.
 
+## Redeploy of the fix (Forge, 12 November 2026 UTC)
+Checkout `d2de3330` to `813462e7` (PR #289). Freeze 01:12:12Z (rollback directory `runtime-20261112T011212628770Z`); activate finished 01:12:37Z. `check` exit 0, `/ready` `code_version` `813462e7`, catalogue revision 37, recognizer `/healthz` 200, chat relay not restarted. The DEV route is intact; only `code_version` changed in the configuration. Rollback: `deploy-runtime.py rollback --commit 813462e7` (restores `d2de3330`).
+
+## DEV end-to-end (Chase, synthetic slips, documented DEV test token, DEV command service)
+All pass except case 4, which was not run.
+- Case 1, bank 004 QR: served by Claude, reference from the QR (same as the model).
+- Case 1b, printed reference differs: the QR replaced it.
+- Case 2, no QR: the model reference.
+- Case 3, bank 025: `bank_not_allowlisted`, model reference kept.
+- Case 4, forced Claude failure: not forced (there is no per-request way); covered by unit tests.
+- Case 5: no PROD-caller request since activation.
+- Latency: recognizer 2.5 to 3.7 s, command service 3.2 to 4.5 s, upload about 0.5 to 0.7 s. Chase deleted the four synthetic DEV receipt objects; no database writes.
+
 ## DEV activation
-Applied 11 November 2026 18:26:48Z to 18:26:53Z (see the DEV deployment record): the `command-dev` caller on Claude with Gemini fallback, QR reference and text cleaning; `receipt_claude_model` `claude-opus-5-5`, effort `low`, default QR bank list. The `command-prod` caller and the cycle are unchanged. Not yet measured: latency and VM load.
+Applied 11 November 2026 18:26:48Z to 18:26:53Z (see the DEV deployment record): the `command-dev` caller on Claude with Gemini fallback, QR reference and text cleaning; `receipt_claude_model` `claude-opus-5-5`, effort `low`, default QR bank list. The `command-prod` caller and the cycle are unchanged. Measured after the follow-up fix; see Performance after the fix.
 
 ## PROD
-Pending owner approval. Not requested; the PROD caller and the Instagram receipt cycle stay on Gemini.
+DEV accepted by tests (12 November 2026). PROD activation (the PROD caller, then the Instagram receipt cycle) is pending the owner. Not requested; the PROD caller and the Instagram receipt cycle stay on Gemini.
 
 ## Checks
 | Command | Result |
@@ -89,10 +112,13 @@ Pending owner approval. Not requested; the PROD caller and the Instagram receipt
 | DEV performance measurement (Run A 100 slips, Run B 30 slips) | Done: see Performance; Claude route median 10.0 s and p90 31.7 s before the follow-up fix |
 | Follow-up fix: ruff, agent tests (146), `mw-integration-agent check` (Byte, uncommitted tree) | Pass: ruff clean, 146 tests, `check` ok |
 | Echo's DEV iPhone check, items 1 to 4 | Pass; item 5 not checked live |
-| Chase's DEV end-to-end results, first PROD-caller request (must be gemini) | Pending |
+| CI, PR #289 | See the pull request; merged as `813462e7` |
+| DEV re-measurement after the fix, 60 slips (Forge) | Pass: Claude route median 4.1 s, p90 6.2 s, 60 of 60 served by Claude, 0 fallbacks |
+| Redeploy of `813462e7` | Pass: `check` exit 0, `/ready` `813462e7`, catalogue 37, recognizer `/healthz` 200 |
+| DEV end-to-end, cases 1, 1b, 2, 3 (Chase) | Pass; case 4 (forced Claude failure) not run, covered by unit tests; case 5 (first PROD-caller request, must be gemini) pending |
 
 ## Not run
-The follow-up fix is not yet measured on the VM, and item 5 of Echo's check (loan close and manual receipt) was not checked live; the 70 PostgreSQL lab suites skipped in Byte's run. A skipped check is not a pass.
+A forced Claude failure on the live route (case 4), and item 5 of Echo's check (loan close and manual receipt) was not checked live; the 70 PostgreSQL lab suites skipped in Byte's run. A skipped check is not a pass.
 
 ## Recovery
 Git baseline `c7f6488` (code), agent `246bcb93` and catalogue revision 36 on the VM, Hosting `a3d0594cc8f5511f`. Rollback: `deploy-runtime.py rollback --commit d2de3330` for the code; `config-only-change.py restore --tag r142-dev-reader` for the configuration; redeploy the previous Hosting version. Or remove the route keys from the `command-dev` caller (or set its provider to `gemini`) by the config-only route; nothing in PROD changes.
@@ -102,4 +128,4 @@ Git baseline `c7f6488` (code), agent `246bcb93` and catalogue revision 36 on the
 - Bank or third-party slip verification is a later owner decision.
 
 ## Remaining work
-Chase's DEV end-to-end results, the first PROD-caller request after the deploy, deploying and re-measuring the follow-up fix, and the PROD decision. Then update, as affected: `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md` Current state, `integration-agent/SERVICE_CATALOGUE.md` and `service-catalogue.json`, `integration-agent/config.example.json` notes, `project/Documents/Environment_Inventory.md` (federation rule, DEV caller routing, VM version), `project/Documents/Solution_Design.md` Current state if receipt reading is described there, `project/Documents/Development_Changes.md` (active scope), the Data Dictionary only if the recognizer contract changes, and `project/Documents/Service_Account_Browser_Mapping.md` only if an identity changes.
+The first PROD-caller request after the deploy (must be served by gemini), then the owner's PROD activation: the PROD caller first, then the Instagram receipt cycle. Then update, as affected: `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md` Current state, `integration-agent/SERVICE_CATALOGUE.md` and `service-catalogue.json`, `integration-agent/config.example.json` notes, `project/Documents/Environment_Inventory.md` (federation rule, DEV caller routing, VM version), `project/Documents/Solution_Design.md` Current state if receipt reading is described there, `project/Documents/Development_Changes.md` (active scope), the Data Dictionary only if the recognizer contract changes, and `project/Documents/Service_Account_Browser_Mapping.md` only if an identity changes.
