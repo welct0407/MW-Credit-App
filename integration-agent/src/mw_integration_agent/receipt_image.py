@@ -208,11 +208,13 @@ def failure_cause(exc, provider):
     return exc.cause if isinstance(exc, RecognitionUnavailable) else f'{provider}_{type(exc).__name__}'
 
 
-def _run(config, name, image_data, deadline, attempt_timeout, environment, clean_text=False):
+def _run(config, name, image_data, deadline, attempt_timeout, environment, clean_text=False, prepared_image=None):
     module = provider_module(name)
     options = {} if attempt_timeout is None else {'attempt_timeout': attempt_timeout}
     if name == 'claude':
         options['environment'] = environment
+    if prepared_image is not None:
+        options['prepared_image'] = prepared_image
     return module.model(config), checked(module.extract(config, image_data, deadline=deadline, **options), clean_text)
 
 
@@ -226,21 +228,32 @@ def recognize(config, image_data, provider=None, deadline=None, attempt_timeout=
     deadline, and the value gains fallback_cause. With qr_reference a valid slip QR reference of an allowlisted bank
     replaces the model's and the value gains reference_source and qr (receipt_qr.apply). With clean_text every provider's
     text loses invisible format characters (checked); without it the reading is exactly as before.
+
+    The Claude route prepares the model image once (receipt_provider_claude.prepared, JPEG only) before its phase timer
+    starts; its Gemini fallback reuses that image, and the value gains prepare_ms and model_ms. Every other route is
+    unchanged (each provider downscales the image itself).
     """
     name = provider or extraction_provider(config)
     value = {}
-    if name == 'claude' and fallback == 'gemini':
-        now = time.monotonic()
-        phase = now + CLAUDE_PHASE if deadline is None else min(deadline, now + CLAUDE_PHASE)
-        try:
-            model, result = _run(config, 'claude', image_data, phase, attempt_timeout, environment, clean_text)
-        except Exception as first:  # any Claude failure falls back, not only RecognitionUnavailable
+    if name == 'claude':
+        started = time.monotonic()
+        image = provider_module('claude').prepared(image_data)
+        ready = time.monotonic()
+        value['prepare_ms'] = int((ready - started) * 1000)
+        if fallback == 'gemini':
+            phase = ready + CLAUDE_PHASE if deadline is None else min(deadline, ready + CLAUDE_PHASE)
             try:
-                model, result = _run(config, 'gemini', image_data, deadline, attempt_timeout, environment, clean_text)
-            except Exception as second:
-                reason = second.reason if isinstance(second, RecognitionUnavailable) else 'provider_error'
-                raise RecognitionUnavailable(reason, failure_cause(first, 'claude') + '+' + failure_cause(second, 'gemini')) from None
-            name, value['fallback_cause'] = 'gemini', failure_cause(first, 'claude')
+                model, result = _run(config, 'claude', image_data, phase, attempt_timeout, environment, clean_text, image)
+            except Exception as first:  # any Claude failure falls back, not only RecognitionUnavailable
+                try:
+                    model, result = _run(config, 'gemini', image_data, deadline, attempt_timeout, environment, clean_text, image)
+                except Exception as second:
+                    reason = second.reason if isinstance(second, RecognitionUnavailable) else 'provider_error'
+                    raise RecognitionUnavailable(reason, failure_cause(first, 'claude') + '+' + failure_cause(second, 'gemini')) from None
+                name, value['fallback_cause'] = 'gemini', failure_cause(first, 'claude')
+        else:
+            model, result = _run(config, 'claude', image_data, deadline, attempt_timeout, environment, clean_text, image)
+        value['model_ms'] = int((time.monotonic() - ready) * 1000)
     else:
         model, result = _run(config, name, image_data, deadline, attempt_timeout, environment, clean_text)
     if qr_reference:
