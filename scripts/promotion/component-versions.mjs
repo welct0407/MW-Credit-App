@@ -190,6 +190,17 @@ export function render({git,registry,root=REPO_ROOT,file=INVENTORY_FILE,mode,rel
  writeFileSync(target,text.slice(0,block.start)+next+text.slice(block.end));return {changed:true,release};
 }
 
+/** R145: between the Release tag and the closure pull request the tracker still names the tagged release as Open. That
+ *  window is not an error: the latest tag is the released release (closure pending), and work after the tag belongs to the
+ *  next number, which the closure opens. Outside the window the Open release is the one in the tracker. A tracker Open
+ *  release below the latest tag is stale and fails closed. */
+export function releaseWindow(open,latest){
+ if(num(open)<num(latest))fail('tracker Open release '+open+' is behind the latest tag '+latest);
+ const pending=num(open)===num(latest);
+ return {open,latest,pending,next:pending?name(num(latest)+1):open};
+}
+export const pendingText=w=>'closure pending: the tracker\'s Open release '+w.open+' is already tagged; '+w.latest+' is the released release and work after its tag belongs to '+w.next;
+
 // ---- check-source: Grafana dashboards carry release:<Open> once changed after the last tag ----
 // A Grafana v2 resource keeps its tags in spec (infrastructure/grafana/dashboards/*.json); a classic export in dashboard.
 const dashboardTags=json=>{const value=JSON.parse(json);const tags=value?.spec?.tags??value?.dashboard?.tags??value?.tags;return Array.isArray(tags)?tags:[];};
@@ -199,7 +210,7 @@ export function checkSource({git,registry,root=REPO_ROOT,commit}){
  if(commit!==undefined&&!validCommitRef(commit))fail('--commit must be a 7 to 40 character hex commit, HEAD or an Rnnn tag');
  const resolved=commit===undefined?undefined:verifyCommit(git,commit)??fail('unknown commit '+commit);
  const read=file=>resolved?git(['show',resolved+':'+file],{allowFail:true}):(()=>{try{return readFileSync(path.resolve(root,file),'utf8');}catch{return null;}})();
- const open=openRelease(read(TRACKER_FILE)??fail('no release tracker'));
+ const win=releaseWindow(openRelease(read(TRACKER_FILE)??fail('no release tracker')),latest),open=win.next;
  const stamped=registry.components.filter(c=>c.stamp?.kind==='grafana-tag'&&c.stamp.checkSource);
  const problems=[],checked=[];
  const changed=resolved?namesBetween(git,tags.get(latest),resolved):namesBetween(git,tags.get(latest));
@@ -213,7 +224,7 @@ export function checkSource({git,registry,root=REPO_ROOT,commit}){
   }
  }
  if(problems.length)fail('dashboards changed since '+latest+' must carry the Open release tag:\n  '+problems.join('\n  '));
- return {open,latest,checked};
+ return {open,latest,checked,closurePending:win.pending?pendingText(win):null};
 }
 
 // ---- drift: GET-only comparison of the expected versions with live facts ----
@@ -262,18 +273,27 @@ export function assess({git,component,descriptor,expected,fact}){
  if(fact.native!=null&&expected.native!=null&&typeof expected.native!=='object')return nativeDiffers?{status:'drift',observed:String(fact.native),reason:'native differs'}:{status:'match',observed:String(fact.native)};
  return {status:'unverified',reason:fact.commit?'commit '+fact.commit.slice(0,8)+' not in this clone':'no release, commit or native reported'};
 }
-/** The expected state per environment: PROD the latest tag, DEV the Open release at `commit` (default HEAD). */
+/** The expected state per environment: PROD the latest tag, DEV the Open release at `commit` (default HEAD). In the closure
+ *  window (the tracker's Open release is already tagged) DEV expects the tag too, and a component changed after the tag is
+ *  compared with the tag (never a false match) and carries a note: it has no Open release until the closure. */
 export function expectations({git,registry,root=REPO_ROOT,commit}){
  const tags=releaseTags(git),latest=latestTag(tags);
  if(!latest)fail('no release tag (shallow clone? run git fetch --tags)');
  if(commit!==undefined&&!validCommitRef(commit))fail('--commit must be a 7 to 40 character hex commit, HEAD or an Rnnn tag');
  const head=verifyCommit(git,commit??'HEAD')??fail('unknown commit');
  const open=openRelease(git(['show',head+':'+TRACKER_FILE],{allowFail:true})??readFileSync(path.resolve(root,TRACKER_FILE),'utf8'));
- if(num(open)<=num(latest))fail('the Open release '+open+' is already tagged');
- const prod=derive({git,registry,release:latest,commit:tags.get(latest)}),dev=derive({git,registry,release:open,commit:head});
+ const win=releaseWindow(open,latest);
+ const prod=derive({git,registry,release:latest,commit:tags.get(latest)});
+ const dev=win.pending?prod:derive({git,registry,release:open,commit:head});
  const ref=(result,c)=>c.release===result.release?result.commit:c.release?tags.get(c.release)??null:null;
- const view=result=>new Map(result.components.map(c=>[c.id,{release:c.release,native:c.native,ref:ref(result,c)}]));
- return {open,latest,head,prod:view(prod),dev:view(dev)};
+ const after=new Set();
+ if(win.pending){
+  const base=tags.get(latest),changed=namesBetween(git,base,head),roleCache=new Map();
+  for(const c of registry.components)if((c.derive==='generic-role'||(c.paths??[]).length)&&touched(git,c,base,head,changed,roleCache))after.add(c.id);
+ }
+ const view=(result,notes)=>new Map(result.components.map(c=>[c.id,{release:c.release,native:c.native,ref:ref(result,c),
+  ...(notes&&after.has(c.id)?{note:'changed after '+latest+'; no Open release until the closure opens '+win.next}:{})}]));
+ return {open,latest,head,closurePending:win.pending?pendingText(win):null,prod:view(prod,false),dev:view(dev,true)};
 }
 export async function drift({git,registry,root=REPO_ROOT,env='all',observed={},commit,fetchImpl}){
  if(!['dev','prod','all'].includes(env))fail('--env dev|prod|all');
@@ -286,15 +306,16 @@ export async function drift({git,registry,root=REPO_ROOT,env='all',observed={},c
    const fact=descriptor?facts(body,descriptor):null;
    const expected=expect[envName].get(component.id)??null;
    const result=assess({git,component,descriptor,expected,fact});
-   rows.push({env:envName,id:component.id,expected:expected?.release??null,source,...result});
+   rows.push({env:envName,id:component.id,expected:expected?.release??null,source,...result,...(expected?.note?{note:expected.note}:{})});
   }
  }
  const count=status=>rows.filter(row=>row.status===status).length;
- return {open:expect.open,latest:expect.latest,commit:expect.head,rows,drift:count('drift'),unverified:count('unverified')};
+ return {open:expect.open,latest:expect.latest,commit:expect.head,closurePending:expect.closurePending,rows,drift:count('drift'),unverified:count('unverified')};
 }
 export function driftText(report){
- const lines=['Expected: prod = '+report.latest+' tags, dev = '+report.open+' at '+report.commit.slice(0,8)];
- for(const row of report.rows)if(row.status!=='n/a')lines.push([row.env.padEnd(4),row.id.padEnd(20),(row.expected??'–').padEnd(5),row.status.padEnd(10),(row.observed??'–')+(row.reason?' ('+row.reason+')':'')].join(' '));
+ const lines=[...(report.closurePending?['Info: '+report.closurePending]:[]),
+  'Expected: prod = '+report.latest+' tags, dev = '+(report.closurePending?report.latest:report.open)+' at '+report.commit.slice(0,8)];
+ for(const row of report.rows)if(row.status!=='n/a')lines.push([row.env.padEnd(4),row.id.padEnd(20),(row.expected??'–').padEnd(5),row.status.padEnd(10),(row.observed??'–')+(row.reason?' ('+row.reason+')':'')+(row.note?' ['+row.note+']':'')].join(' '));
  lines.push('drift '+report.drift+', unverified '+report.unverified);
  return lines.join('\n');
 }
@@ -326,7 +347,7 @@ export async function main(argv,{root=REPO_ROOT,stdout=console.log,fetchImpl}={}
   const result=render({git,registry,root,file:o.file??INVENTORY_FILE,mode:o.write?'write':'check',release:o.release,commit:o.commit});
   stdout(o.check?'render --check: ok ('+result.release+')':result.changed?'render --write: updated ('+result.release+')':'render --write: unchanged ('+result.release+')');return 0;
  }
- if(command==='check-source'){const result=checkSource({git,registry,root,commit:o.commit});stdout('check-source: ok (Open '+result.open+', since '+result.latest+': '+result.checked.length+' dashboard file(s) checked)');return 0;}
+ if(command==='check-source'){const result=checkSource({git,registry,root,commit:o.commit});if(result.closurePending)stdout('Info: '+result.closurePending);stdout('check-source: ok (Open '+result.open+', since '+result.latest+': '+result.checked.length+' dashboard file(s) checked)');return 0;}
  if(command==='drift'){
   const observed=o.observed?JSON.parse(readFileSync(path.resolve(o.observed),'utf8')):{};
   const report=await drift({git,registry,root,env:o.env??'all',observed,commit:o.commit,fetchImpl});

@@ -1,11 +1,12 @@
 // Documentation check (npm run check:docs). Usage: node scripts/check-docs.mjs [repo-root]
 // FAIL: broken relative Markdown links/anchors; deployment pins in current documents
 // outside the environment inventory; change notes from TEMPLATE_SINCE missing the template
-// headings. WARN: old unlinked change notes, uncited evidence files, an oversized AGENTS.md.
+// headings; a release tracker whose Open row scripts/build-live-dev.mjs cannot read. WARN: old unlinked change notes, uncited evidence files, an oversized AGENTS.md.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { openRelease } from './build-live-dev.mjs';
 
 // Current documents that must not carry deployment pins (globs; ** spans folders).
 const PIN_SCOPE = [
@@ -186,6 +187,12 @@ for (const f of evidence.filter((x) => !cited.has(x))) warn('Evidence files noth
 if (files.includes('AGENTS.md')) {
   const words = read('AGENTS.md').split(/\s+/).filter(Boolean).length;
   if (words > AGENTS_MAX_WORDS) warn(`AGENTS.md over ${AGENTS_MAX_WORDS} words`, `AGENTS.md has ${words} words`);
+}
+
+// 7. Release tracker (R145): the Open row must stay machine-readable (the DEV build label and component-versions.mjs read it).
+const TRACKER = 'project/Documents/Release_Tracker.md';
+if (files.includes(TRACKER)) {
+  try { openRelease(read(TRACKER)); } catch { fail(TRACKER, 1, 'no machine-readable "| New product work | **Rnnn — Open** |" row (scripts/build-live-dev.mjs openRelease)'); }
 }
 
 for (const line of failures) console.log(line);

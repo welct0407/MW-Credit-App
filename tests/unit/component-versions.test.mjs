@@ -120,7 +120,7 @@ test('render writes the marked block idempotently and --check detects edits',t=>
 
 test('check-source requires release:<Open> on dashboards changed since the last tag',t=>{
  const f=fixture(t);
- assert.deepEqual(checkSource({git:f.git,registry:f.registry,root:f.root}),{open:'R013',latest:'R012',checked:[]});
+ assert.deepEqual(checkSource({git:f.git,registry:f.registry,root:f.root}),{open:'R013',latest:'R012',checked:[],closurePending:null});
  put(f.root,{'infrastructure/grafana/dashboards/a.json':dashboard(['mw-credit'])+'\n'});
  assert.throws(()=>checkSource({git:f.git,registry:f.registry,root:f.root}),/a\.json: tags none, expected release:R013/);
  put(f.root,{'infrastructure/grafana/dashboards/a.json':dashboard(['mw-credit','release:R012'])});
@@ -195,4 +195,41 @@ test('operator --commit and --release values that are not a commit, HEAD or Rnnn
  assert.equal(derive({git:f.git,registry:f.registry,release:'R013',commit:'HEAD'}).commit,f.shas.head);
  assert.equal(derive({git:f.git,registry:f.registry,release:'R012',commit:'R012'}).commit,f.shas.R012);
  assert.equal(derive({git:f.git,registry:f.registry,release:'R013',commit:f.shas.head.slice(0,7)}).commit,f.shas.head);
+});
+
+test('closure window: the tracker still names the tagged release as Open; drift and check-source expect the tag',async t=>{
+ const f=fixture(t);
+ run(f.root,'tag','-a','R013','-m','R013'); // Release tag on HEAD before the closure pull request opens R014
+ const bodies={'https://prod.example.invalid/build-version.json':{release:'R013'},'https://dev.example.invalid/build-version.json':{release:'R013'},
+  'https://read-prod.example.invalid/health':{release:'R013',commit:f.shas.head},'https://read-dev.example.invalid/health':{release:'R013',commit:f.shas.head}};
+ const report=await drift({git:f.git,registry:f.registry,root:f.root,env:'all',fetchImpl:fetcher(bodies)});
+ assert.equal(report.latest,'R013');assert.match(report.closurePending,/Open release R013 is already tagged; R013 is the released release and work after its tag belongs to R014/);
+ const row=(env,id)=>report.rows.find(r=>r.env===env&&r.id===id);
+ for(const env of ['dev','prod'])for(const id of ['pwa','api-read']){assert.equal(row(env,id).expected,'R013');assert.equal(row(env,id).status,'match',env+' '+id);assert.equal(row(env,id).note,undefined);}
+ assert.equal(row('dev','schema').expected,'R012','an unchanged component keeps its release in the window');
+ const lines=[];assert.equal(await main(['drift','--env','dev'],{root:f.root,stdout:x=>lines.push(x),fetchImpl:fetcher(bodies)}),0);
+ assert.match(lines[0],/^Info: closure pending: /);assert.match(lines[0],/\nExpected: prod = R013 tags, dev = R013 at /);
+ // Work after the tag: DEV is compared with the tag (never a false match) and carries the note.
+ const after=commit(f.root,'after the tag',{'services/lib/shared.mjs':'export const shared=3;\n'});
+ const later={...bodies,'https://read-dev.example.invalid/health':{release:'R013',commit:after}};
+ const pending=await drift({git:f.git,registry:f.registry,root:f.root,env:'dev',fetchImpl:fetcher(later)});
+ const read=pending.rows.find(r=>r.id==='api-read');
+ assert.deepEqual([read.expected,read.status],['R013','drift']);assert.match(read.note,/changed after R013; no Open release until the closure opens R014/);
+ assert.equal(pending.rows.find(r=>r.id==='pwa').note,undefined);
+ // check-source in the window: a dashboard changed after the tag carries the next number.
+ assert.deepEqual(checkSource({git:f.git,registry:f.registry,root:f.root}).checked,[]);
+ put(f.root,{'infrastructure/grafana/dashboards/a.json':dashboard(['mw-credit','release:R013'])});
+ assert.throws(()=>checkSource({git:f.git,registry:f.registry,root:f.root}),/expected release:R014/);
+ put(f.root,{'infrastructure/grafana/dashboards/a.json':dashboard(['mw-credit','release:R014'])});
+ const ok=checkSource({git:f.git,registry:f.registry,root:f.root});assert.deepEqual([ok.open,ok.latest,ok.checked.length],['R014','R013',1]);assert.match(ok.closurePending,/closure pending/);
+ // The fail-closed checks stay: a missing tag is still refused.
+ run(f.root,'tag','-d','R011');
+ await assert.rejects(drift({git:f.git,registry:f.registry,root:f.root,env:'prod',fetchImpl:fetcher(bodies)}),/missing release tag R011/);
+});
+
+test('a tracker Open release below the latest tag fails closed in drift and check-source',async t=>{
+ const f=fixture(t);
+ run(f.root,'tag','-a','R013','-m','R013');run(f.root,'tag','-a','R014','-m','R014'); // tracker at HEAD still says R013
+ await assert.rejects(drift({git:f.git,registry:f.registry,root:f.root,env:'prod',fetchImpl:fetcher({})}),/tracker Open release R013 is behind the latest tag R014/);
+ assert.throws(()=>checkSource({git:f.git,registry:f.registry,root:f.root}),/tracker Open release R013 is behind the latest tag R014/);
 });
