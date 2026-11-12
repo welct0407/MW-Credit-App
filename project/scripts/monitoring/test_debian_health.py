@@ -436,6 +436,33 @@ class RecognizerTests(unittest.TestCase):
         self.assertNotIn('model:',''.join(health.recognizer_timing(codex,unit,1000,{},read=Mock(return_value='x = 1'))))
         self.assertNotIn('model:',''.join(health.recognizer_timing(codex,unit,1000,{},read=Mock(return_value='not toml ['))))
 
+    def test_r142_reports_the_prod_callers_route(self):
+        unit={'ActiveState':'active','ActiveEnterTimestampMonotonic':'400000000'}
+        dev={'email':'mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com','subject':'1'*21,'provider':'gemini'}
+        prod={'email':health.PROD_CALLER,'subject':'2'*21,'provider':'claude','fallback':'gemini','qr_reference':True}
+        config=dict(self.CONFIG,gemini_model='gemini-3.5-flash-lite',receipt_claude_model='claude-opus-5-5',receipt_recognition_callers=[dev,prod])
+        self.assertEqual(health.recognizer_timing(config,unit,1000,{}),
+                         {'provider':3,'fallback':1,'model:claude-opus-5-5':1,'restart_age_seconds':600})
+        # No route keys on the PROD caller (or no PROD caller): the global provider, no fallback field.
+        for callers in ([dev,{'email':health.PROD_CALLER,'subject':'2'*21}],[dev],None,'bad'):
+            self.assertEqual(health.recognizer_timing(dict(config,receipt_recognition_callers=callers),unit,1000,{}),
+                             {'provider':1,'model:gemini-3.5-flash-lite':1,'restart_age_seconds':600},callers)
+        # A similar but different caller email is not the PROD caller.
+        other=dict(prod,email='x-'+health.PROD_CALLER)
+        self.assertEqual(health.recognizer_timing(dict(config,receipt_recognition_callers=[other]),unit,1000,{})['provider'],1)
+        # A malformed Claude model is omitted; the numeric provider stays.
+        for bad in ('Claude Opus','claude/opus','a'*65,'',None,5):
+            self.assertEqual(health.recognizer_timing(dict(config,receipt_claude_model=bad),unit,1000,{}),
+                             {'provider':3,'fallback':1,'restart_age_seconds':600},bad)
+        series=health.timing_series('recognizer',health.recognizer_timing(config,unit,1000,{}),{},'t')
+        self.assertEqual(sorted(s['metric']['labels']['field'] for s in series),['fallback','model:claude-opus-5-5','provider','restart_age_seconds'])
+    def test_r142_receipt_cycle_route(self):
+        config={'gemini_model':'gemini-3.5-flash-lite','receipt_claude_model':'claude-opus-5-5'}
+        self.assertEqual(health.receipt_cycle_timing(dict(config,receipt_extraction_provider='claude',receipt_cycle_fallback='gemini')),
+                         {'provider':3,'fallback':1,'model:claude-opus-5-5':1})
+        self.assertEqual(health.receipt_cycle_timing(dict(config,receipt_extraction_provider='gemini')),{'provider':1,'model:gemini-3.5-flash-lite':1})
+        self.assertEqual(health.receipt_cycle_timing({},read=Mock(side_effect=PermissionError())),{'provider':2})  # codex default
+
 
 class GoogleApiTests(unittest.TestCase):
     def fetcher(self,answers,timeouts=None):
@@ -620,6 +647,7 @@ class CollectR089Tests(unittest.TestCase):
         self.assertEqual(timing['debian_snapshot'][0],{'age_seconds':72000})
         self.assertEqual(timing['audit_retention'][0],{'result':1,'age_seconds':100})
         self.assertEqual(timing['webhook_local'][0],{'code_version_match':1})
+        self.assertEqual(timing['receipt_cycle'][0],{'provider':2})  # codex default; no readable codex model here
         self.assertEqual(timing['pg_stat'][0],{'status':1,'top1_share_percent':12})
         self.assertEqual((timing['pwa_jobs'][0]['status'],timing['recognizer'][0]['restart_age_seconds']),(1,600))
         self.assertIsNotNone(timing['recognizer_call'][1])

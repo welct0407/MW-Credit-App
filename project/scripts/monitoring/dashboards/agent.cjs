@@ -43,7 +43,7 @@ function recognizer() {
     overrides: [byName('Running for', {unit: AGE.unit, decimals: AGE.decimals, mappings: [L.nullMap('No report')], color: {mode: 'fixed', fixedColor: COLOR.info}})],
     options: {reduceOptions: {calcs: ['last'], fields: L.namedFields(['Service', 'Running for']), values: false}}});
   const model = L.modelTile({id: 12, title: 'Recognizer · model', gridPos: pos(0, y + 7, 8, 5), component: 'recognizer',
-    description: 'The recognizer\'s configured provider and model from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable.'});
+    description: 'The recognizer\'s provider and model for the PROD caller\'s route (R142 per-caller routing: the mw-credit-app-command-prod entry\'s provider, else the global default) from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Claude · claude-opus-5-5; the provider alone when the model is not readable.'});
   const extractions = L.stat({id: 7, title: 'Recognizer · extractions 24 h', gridPos: pos(8, y + 1, 8, 8),
     description: 'Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts and unreadable amounts (both orange above 0). Outcome categories only.',
     targets: [ops('A', 'recognizer', [{key: 'extractions_24h', label: 'Extractions'}, {key: 'valid_24h', label: 'Valid'},

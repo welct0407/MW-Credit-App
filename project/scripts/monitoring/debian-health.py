@@ -315,7 +315,9 @@ PROVIDER_CODES = {'gemini': 1, 'codex': 2, 'claude': 3}
 MODEL_ID = re.compile(r'[a-z0-9][a-z0-9._-]{0,63}')
 # Config keys per provider, as the integration agent reads them; codex has no model key (its CLI reads the
 # `model` of <codex_home>/config.toml).
-RECOGNIZER_MODEL_KEYS = {'gemini': ('gemini_model', None)}
+RECOGNIZER_MODEL_KEYS = {'gemini': ('gemini_model', None), 'claude': ('receipt_claude_model', None)}
+# R142 per-caller routing: the recognizer reports the PROD command service's route (the one the owner uses).
+PROD_CALLER = 'mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com'
 
 
 def bounded_fetch(url, headers=None, timeout=NEW_CALL_SECONDS, limit=262144, clock=time.monotonic):
@@ -416,12 +418,38 @@ def model_field(config, provider, keys, read=lambda path: path.read_text()):
     return {'model:' + value: 1} if isinstance(value, str) and MODEL_ID.fullmatch(value) else {}
 
 
-def recognizer_timing(config, service, uptime, counts, read=lambda path: path.read_text()):
-    provider = config.get('receipt_recognition_provider', 'gemini')
-    fields = {'provider': PROVIDER_CODES.get(provider), 'restart_age_seconds': unit_age(service, uptime)}
+def prod_route(config):
+    """(provider, fallback) of the PROD caller's recognizer route (R142): the caller entry's own provider and fallback,
+    else the global receipt_recognition_provider and no fallback."""
+    default = config.get('receipt_recognition_provider', 'gemini')
+    callers = config.get('receipt_recognition_callers')
+    for caller in callers if isinstance(callers, list) else []:
+        if isinstance(caller, dict) and caller.get('email') == PROD_CALLER:
+            return caller.get('provider', default), caller.get('fallback')
+    return default, None
+
+
+def route_fields(config, provider, fallback, read):
+    """provider (and fallback, when set) codes and the provider's model:<id> field."""
+    fields = {'provider': PROVIDER_CODES.get(provider)}
+    if fallback is not None:
+        fields['fallback'] = PROVIDER_CODES.get(fallback)
     fields.update(model_field(config, provider, RECOGNIZER_MODEL_KEYS, read))
+    return fields
+
+
+def recognizer_timing(config, service, uptime, counts, read=lambda path: path.read_text()):
+    provider, fallback = prod_route(config)
+    fields = route_fields(config, provider, fallback, read)
+    fields['restart_age_seconds'] = unit_age(service, uptime)
     fields.update(counts or {})
     return fields
+
+
+def receipt_cycle_timing(config, read=lambda path: path.read_text()):
+    """worker_timing{receipt_cycle}: the Instagram receipt cycle's provider (receipt_extraction_provider, default codex),
+    fallback (receipt_cycle_fallback) and model, the same fields as the recognizer."""
+    return route_fields(config, config.get('receipt_extraction_provider', 'codex'), config.get('receipt_cycle_fallback'), read)
 
 
 def google_json(url, token, fetcher=bounded_fetch):
@@ -747,6 +775,7 @@ def collect_r089(config, token, uptime, now, result, polling_timing, extras, rep
     timing = []
     recognizer_unit = unit('mw-receipt-recognition.service') or {}
     timing.append(('recognizer', recognizer_timing(config, recognizer_unit, uptime, agent['recognizer']), None))
+    timing.append(('receipt_cycle', safely_call(lambda: receipt_cycle_timing(config), {}), None))
     notify, jobs = pwa_ops_fields((extras or {}).get('ops_health'), now)
     timing.append(('pwa_notify', notify, None))
     timing.append(('pwa_jobs', jobs, None))
