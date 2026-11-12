@@ -54,7 +54,8 @@ As built, on the settled tree (HEAD `4406a42` plus the batch, to be committed by
 | Offline collection lab at V146 (after the fix) | 4 pass, 1 skipped |
 | `npm test` after the CI fix | 1339 tests, 1338 pass, 1 skipped; typecheck and lint clean |
 | Full `npm test` 1337 tests, 1336 pass, 1 skipped before the last fix (the `chat-seen` test file grew since); the CI run is authoritative |
-| CI on the pull request, DEV migration, reader grant and deploy | Pending |
+| CI on the pull request: `Development checks` on head `8da0f73` (PR #300) | Pass (run 43291448699) |
+| DEV migration, reader grant, deploy and smoke | Done; see the [DEV deployment record](#dev-deployment-record-forge-12-november-2026-utc) |
 
 ## Not run
 - The wide Playwright suite locally: the pull request's `Development checks` run it.
@@ -64,8 +65,27 @@ As built, on the settled tree (HEAD `4406a42` plus the batch, to be committed by
 - The full `mw-db-ci` migrations group on the final tree: CI runs it.
 - `test_receipt_qr`: import error because `zxingcpp` is not installed in this session.
 - The faketime day-change offline case: skipped without the faketime lab.
-- DEV migration, the DEV reader grant, the DEV deploy and the synthetic summary rows: pending Forge.
+- The agent in DEV: there is no DEV agent, so agent V12, the service and the live model call were not run there.
 - Every PROD step (migration, images, Hosting, agent deploy, timer install, dry run, switch-on): not authorized.
+
+## DEV deployment record (Forge, 12 November 2026 UTC)
+Authority: the owner's scope for R146 (a DEV deploy and a few synthetic summary rows in DEV). Nothing in PROD was touched. Deployment pins (Hosting version, Cloud Run revisions, Flyway row) are only in the [Environment inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments). No secret value appears here.
+
+| Step | Result |
+| --- | --- |
+| Source | PR #300 head `8da0f73`, after its `Development checks` run 43291448699 passed |
+| Backup | DEV backup at V145, `dev-refresh-393289594cef445b89b6a610d93b28f6`; restore test passed (39 tables matched) |
+| Owner window | The six DEV owners, 19:43:35Z to 19:51:31Z |
+| Migration | V146 installed 19:44:01Z by the guarded runner; role reconcile 569 statements, 0 violations; validate clean; head 146 |
+| Access check | `mw_app_dev` has SELECT and INSERT on the table and EXECUTE on the function; the function is owned by `postgres` and is not a definer; `mw_integration_agent` cannot execute it |
+| Reader grants | The ten display columns only, no write, applied 19:51:51Z |
+| Images | Cloud Build image; Terraform plan 0 to add, 3 to change, 0 to destroy (image only: read, command, chat); applied; re-plan clean |
+| Hosting | DEV Hosting deployed about 19:56Z; `--check` passed; `.env.live-dev` shredded |
+| Smoke | `/health` on the three services reports R146 and the `8da0f739` commit; the agent route answers 404 in DEV (no policy); an unauthenticated read answers 401; no ERROR logs |
+| Agent | Agent V12 not applied in DEV (there is no DEV agent) |
+| Synthetic seed | 19:57:38Z through `pwa_put_group_chat_summary_v1` (`SET LOCAL ROLE postgres`; invented text; commands built with the repository's canonicaliser): (a) R112 SYNTHETIC CHAT FORWARD G, fresh, 4 points, mark; (b) R114 SYNTHETIC SPLIT S and R113 SYNTHETIC SPLIT B, one shared group, fresh, 3 points with an Other borrower point, marks; (c) R136 DEV test rollover borrower, last message 5 days ago, muted, no mark. Read-back matched |
+
+Cleanup: call the function once per synthetic key with `borrowerIds` `[]` and `summary` null (the script is kept outside the repository). Rollback: the previous DEV settings generation and Hosting version (in the inventory); V146 and the table may stay.
 
 ## Recovery
 Revert the pull request for files; nothing is deployed to PROD; the DEV table and synthetic rows are disposable. After a PROD promotion, rollback is the agent switch (summaries age into the muted state) and a Hosting rollback for the card.
