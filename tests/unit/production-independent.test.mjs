@@ -60,7 +60,7 @@ test('raw target and method adversaries never invoke auth or gain readiness/busi
   assert.equal((await request(f.server,'/api/session','GET',{Origin:'https://lm.mw-credit.com.attacker.invalid'})).status,403);
   assert.equal((await request(f.server,'/api/session','OPTIONS',{Origin:'https://lm.mw-credit.com','Access-Control-Request-Method':'GET','Access-Control-Request-Headers':'Authorization,X-Private'})).status,403);
   assert.equal(f.calls.length,0);
-  const health=await request(f.server,'/health');assert.deepEqual(JSON.parse(health.body),{status:'ok',mode:'foundation'});
+  const health=await request(f.server,'/health');assert.deepEqual(JSON.parse(health.body),{status:'ok',mode:'foundation',release:'dev',commit:'unknown'});
   const ids=f.logs.map(log=>log.requestId);assert.equal(new Set(ids).size,ids.length);
   assert.equal(f.logs.at(-1).requestId,health.headers['x-request-id']);
   for(const log of f.logs)assert.deepEqual(Object.keys(log).sort(),['code','event','operation','requestId','serviceRole','status']);
@@ -77,7 +77,7 @@ test('disabled-probe production dependency graph has no data driver, storage cli
  for(const file of ['config','principal','handler','runtime','server']){
   const source=await readFile(new URL('../../services/production/'+file+'.mjs',import.meta.url),'utf8');
   const imports=[...source.matchAll(/from ['"]([^'"]+)['"]/g)].map(match=>match[1]);
-  assert.ok(imports.every(name=>name.startsWith('node:')||name.startsWith('firebase-admin/')||/^\.\/(config|principal|handler|runtime)\.mjs$/.test(name)||['../api/session-check.mjs','../lib/http-boundary.mjs','../lib/firebase-claims.mjs','../lib/identity.mjs','../lib/log.mjs'].includes(name)),file+' '+imports);
+  assert.ok(imports.every(name=>name.startsWith('node:')||name.startsWith('firebase-admin/')||/^\.\/(config|principal|handler|runtime)\.mjs$/.test(name)||['../api/session-check.mjs','../lib/http-boundary.mjs','../lib/firebase-claims.mjs','../lib/identity.mjs','../lib/log.mjs','../lib/build-info.mjs'].includes(name)),file+' '+imports);
   assert.doesNotMatch(source,/\bimport\s*\(|createPool|new Pool|Storage\(|SELECT\s|saveReceipt|sendNotification/);
  }
 });

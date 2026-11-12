@@ -16,7 +16,7 @@ export function scheduledBoundary(value){
 }
 /** No browser route or caller-selected SQL; OIDC audience and scheduler are exact. */
 export async function createWorkerRuntime(env,dependencies){
- const config=loadWorkerConfig(env),build=buildInfo();
+ const config=loadWorkerConfig(env),build=buildInfo(env);
  const respond=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
  if(!config)return{handler:(req,res)=>req.method==='GET'&&req.url==='/health'?respond(res,200,{status:'ok',enabled:false,release:build.release,commit:build.commit}):respond(res,503,{error:'worker_disabled'}),close:async()=>{}};
  const pool=await dependencies.createPool(config),guardConnection=createWorkerConnectionGuard(config);

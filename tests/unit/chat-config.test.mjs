@@ -94,7 +94,7 @@ test('runtime: FOUNDATION_ROLE=chat installs only the chat handler after the gua
  assert.equal(runtime.enabled,true);assert.equal(transports,1);assert.match(queries[0],/mw_chat_api|pg_has_role/);
  const answer=async url=>{let status,body='';const res={statusCode:200,headersSent:false,setHeader(){},writeHead(s){status=s;},once(){},end(v){body+=v??'';status??=this.statusCode;}};
   await runtime.handler({method:'GET',url,headers:{}},res);return [status,body];};
- assert.deepEqual(await answer('/health'),[200,'{"ok":true}']);
+ assert.deepEqual(await answer('/health'),[200,'{"ok":true,"release":"dev","commit":"unknown"}']);
  assert.equal((await answer('/api/notifications'))[0],404);
  assert.equal((await answer('/api/command/status'))[0],404);
  assert.equal((await answer('/internal/agent/catalogue'))[0],404);
