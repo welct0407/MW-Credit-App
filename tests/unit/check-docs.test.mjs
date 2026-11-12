@@ -91,3 +91,12 @@ test('old unlinked change note and uncited evidence only warn', async (t) => {
   assert.match(r.out, /AGENTS\.md has \d+ words/);
   assert.match(r.out, /docs check: 0 failures, 3 warnings/);
 });
+
+test('a release tracker whose Open row openRelease() cannot read fails (R145)', async (t) => {
+  const tracker = (value) => ({ 'project/Documents/Release_Tracker.md': `# Release tracker\n\n| Item | Current value |\n| --- | --- |\n| New product work | ${value} |\n` });
+  const good = await check(t, tracker('**R145 — Open**'));
+  assert.equal(good.status, 0, good.out);
+  const bad = await check(t, tracker('**R145 — Open** (no scope yet)'));
+  assert.equal(bad.status, 1);
+  assert.match(bad.out, /^project\/Documents\/Release_Tracker\.md:1: no machine-readable "\| New product work \| \*\*Rnnn — Open\*\* \|" row/m);
+});

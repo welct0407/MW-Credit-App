@@ -226,3 +226,10 @@ test('closure window: the tracker still names the tagged release as Open; drift 
  run(f.root,'tag','-d','R011');
  await assert.rejects(drift({git:f.git,registry:f.registry,root:f.root,env:'prod',fetchImpl:fetcher(bodies)}),/missing release tag R011/);
 });
+
+test('a tracker Open release below the latest tag fails closed in drift and check-source',async t=>{
+ const f=fixture(t);
+ run(f.root,'tag','-a','R013','-m','R013');run(f.root,'tag','-a','R014','-m','R014'); // tracker at HEAD still says R013
+ await assert.rejects(drift({git:f.git,registry:f.registry,root:f.root,env:'prod',fetchImpl:fetcher({})}),/tracker Open release R013 is behind the latest tag R014/);
+ assert.throws(()=>checkSource({git:f.git,registry:f.registry,root:f.root}),/tracker Open release R013 is behind the latest tag R014/);
+});

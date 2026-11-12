@@ -192,9 +192,11 @@ export function render({git,registry,root=REPO_ROOT,file=INVENTORY_FILE,mode,rel
 
 /** R145: between the Release tag and the closure pull request the tracker still names the tagged release as Open. That
  *  window is not an error: the latest tag is the released release (closure pending), and work after the tag belongs to the
- *  next number, which the closure opens. Outside the window the Open release is the one in the tracker. */
+ *  next number, which the closure opens. Outside the window the Open release is the one in the tracker. A tracker Open
+ *  release below the latest tag is stale and fails closed. */
 export function releaseWindow(open,latest){
- const pending=num(open)<=num(latest);
+ if(num(open)<num(latest))fail('tracker Open release '+open+' is behind the latest tag '+latest);
+ const pending=num(open)===num(latest);
  return {open,latest,pending,next:pending?name(num(latest)+1):open};
 }
 export const pendingText=w=>'closure pending: the tracker\'s Open release '+w.open+' is already tagged; '+w.latest+' is the released release and work after its tag belongs to '+w.next;
