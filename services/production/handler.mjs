@@ -1,6 +1,8 @@
 import { beginRequest } from '../lib/http-boundary.mjs';
+import { buildInfo } from '../lib/build-info.mjs';
 /** Deliberately has no store/storage/command dependencies or business dispatch. */
 export function createProductionFoundationHandler({ config, verifyPrincipal, completionLogger = () => {} }) {
+  const build = buildInfo();
   return async (req, res) => {
     let operation = 'denied', code = 'foundation_disabled';
     // R102-DEV-01: accepts the PWA's X-MW-Wake-Deadline in the preflight (value unused; the foundation starts no wake).
@@ -13,7 +15,7 @@ export function createProductionFoundationHandler({ config, verifyPrincipal, com
     operation = req.url === '/health' ? 'health' : 'session';
     if (req.method === 'OPTIONS') return boundary.preflight() ? send(204) : send(403, { ok: false, code: 'origin_denied' });
     if (req.method !== 'GET') return send(405, { ok: false, code: 'method_not_allowed' });
-    if (req.url === '/health') return send(200, { status: 'ok', mode: 'foundation' });
+    if (req.url === '/health') return send(200, { status: 'ok', mode: 'foundation', release: build.release, commit: build.commit });
     try {
       const principal = await verifyPrincipal(req.headers.authorization);
       if (!principal.ok) return send(principal.status === 403 ? 403 : principal.status === 503 ? 503 : 401, { ok: false, code: ['sign_in_required', 'session_invalid', 'access_denied', 'session_check_unavailable'].includes(principal.code) ? principal.code : 'session_invalid' });

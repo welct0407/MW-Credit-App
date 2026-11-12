@@ -1,4 +1,5 @@
 import { beginRequest } from '../lib/http-boundary.mjs';
+import { buildInfo } from '../lib/build-info.mjs';
 const resultCodes = new Set(['origin_denied', 'method_not_allowed', 'invalid_request', 'sign_in_required', 'session_invalid', 'session_check_unavailable', 'access_denied', 'not_found', 'read_unavailable', 'source_unavailable', 'business_date_changed']);
 function operationFor(rawUrl) {
   try {
@@ -20,6 +21,7 @@ function operationFor(rawUrl) {
 }
 /** HTTP boundary: all data requests require a freshly verified ID token. */
 export function createReadHandler({ config, verifyPrincipal, store, completionLogger = () => {} }) {
+  const build = buildInfo();
   return async (req, res) => {
     let completionCode = 'unknown_error';let diagnostic={};
     const operation = req.method === 'OPTIONS' ? 'preflight' : operationFor(req.url);
@@ -34,7 +36,7 @@ export function createReadHandler({ config, verifyPrincipal, store, completionLo
     try {
       const url = new URL(req.url, 'http://request.invalid');
       if (url.searchParams.has('q') && !['/api/borrowers', '/api/collection'].includes(url.pathname)) return send(400, { ok: false, code: 'invalid_request' });
-      if (url.pathname === '/health') return send(200, { status: 'ok', environment: config.environment, service: 'borrower-read' });
+      if (url.pathname === '/health') return send(200, { status: 'ok', environment: config.environment, service: 'borrower-read', release: build.release, commit: build.commit });
       // R078: every recognised reader route is a GET read and skips the revocation round trip;
       // an unrecognised path keeps the checked path.
       const principal = operation === 'unknown' ? await verifyPrincipal(req.headers.authorization) : await verifyPrincipal(req.headers.authorization, { checkRevoked: false });

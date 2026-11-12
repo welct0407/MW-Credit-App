@@ -3,6 +3,7 @@ import { canonicalCommand } from '../contracts/payment-command.mjs';
 import { beginRequest } from '../lib/http-boundary.mjs';
 import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
 import { logUnavailable } from '../lib/log.mjs';
+import { buildInfo } from '../lib/build-info.mjs';
 const codes = new Set(['ok','origin_denied','method_not_allowed','invalid_request','body_too_large','sign_in_required','session_invalid','access_denied','not_found','command_conflict','command_rejected','receipt_unsupported','receipt_unavailable','receipt_conflict','selection_changed','plan_changed','selection_limit_exceeded','business_date_changed','payment_requires_reconciliation','source_changed','metadata_conflict','borrower_name_exists','borrower_name_required','operation_outcome_unknown','record_conflict','invalid_reference','record_requires_reconciliation','record_outcome_unknown','metadata_outcome_unknown','command_outcome_unknown','command_busy','command_unavailable','session_check_unavailable','body_timeout']);
 const MAX_BODY = 524288;
 codes.add('dataset_changed');
@@ -124,6 +125,7 @@ function recognitionWarning(recognition){
 /** No listener or runtime auth switch. A test-owned server binds this handler to loopback only. */
 /** @param {{origins:readonly string[],verifyPrincipal:any,store:any,completionLogger?:(record:object)=>void,bodyTimeoutMs?:{json:number,raw:number}}} options */
 function buildHandler({ origins, verifyPrincipal, store, completionLogger = () => {}, bodyTimeoutMs = {json:5000,raw:12000} }) {
+ const build=buildInfo();
   const allowedOrigins = Object.freeze([...origins]);
   const readBody=(req,raw=false)=>body(req,raw,bodyTimeoutMs[raw?'raw':'json']);
   return async (req, res) => {
@@ -143,7 +145,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if (boundary.originDenied) return reject(403, 'origin_denied');
     if (req.method === 'OPTIONS') return boundary.preflight() ? send(204) : reject(403, 'origin_denied');
     if (!['GET','POST','PATCH','DELETE'].includes(req.method)) return reject(405, 'method_not_allowed');
-    if(target.operation==='health')return req.method==='GET'?send(200,{ok:true}):reject(405,'method_not_allowed');
+    if(target.operation==='health')return req.method==='GET'?send(200,{ok:true,release:build.release,commit:build.commit}):reject(405,'method_not_allowed');
     let principal;
     try { principal = isReadRoute(target,req.method)?await verifyPrincipal(req.headers.authorization,{checkRevoked:false}):await verifyPrincipal(req.headers.authorization); } catch { return reject(401, 'session_invalid'); }
     if (!principal?.ok) return reject(principal?.status === 403 ? 403 : principal?.status === 503 ? 503 : 401, ['sign_in_required','session_invalid','access_denied','session_check_unavailable'].includes(principal?.code) ? principal.code : 'session_invalid');

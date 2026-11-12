@@ -3,6 +3,7 @@ import {createWorkerConnectionGuard} from './target.mjs';
 import {createNotificationWorker} from '../notifications/worker.mjs';
 import {createCanonicalJobRunner} from '../jobs/runner.mjs';
 import {createPostCommitWake} from '../notifications/postcommit.mjs';
+import {buildInfo} from '../lib/build-info.mjs';
 export function scheduledBoundary(value){
  // Scheduler supplies RFC3339, which permits numeric UTC offsets as well as Z.
  const match=typeof value==='string'&&/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.\d{1,9})?(Z|([+-])(\d{2}):(\d{2}))$/.exec(value);
@@ -15,9 +16,9 @@ export function scheduledBoundary(value){
 }
 /** No browser route or caller-selected SQL; OIDC audience and scheduler are exact. */
 export async function createWorkerRuntime(env,dependencies){
- const config=loadWorkerConfig(env);
+ const config=loadWorkerConfig(env),build=buildInfo();
  const respond=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
- if(!config)return{handler:(req,res)=>req.method==='GET'&&req.url==='/health'?respond(res,200,{status:'ok',enabled:false}):respond(res,503,{error:'worker_disabled'}),close:async()=>{}};
+ if(!config)return{handler:(req,res)=>req.method==='GET'&&req.url==='/health'?respond(res,200,{status:'ok',enabled:false,release:build.release,commit:build.commit}):respond(res,503,{error:'worker_disabled'}),close:async()=>{}};
  const pool=await dependencies.createPool(config),guardConnection=createWorkerConnectionGuard(config);
  try{
   const client=await pool.connect();try{await guardConnection(client);}finally{client.release();}
@@ -30,7 +31,7 @@ export async function createWorkerRuntime(env,dependencies){
   // R107: the jobs service already runs with request-based CPU, so its wake keeps the full in-request wait (no handoff).
   const wake=createPostCommitWake(config.dispatch??null,{handoffMs:null,log:record=>dependencies.log?.(record),...(dependencies.fetch?{fetch:dependencies.fetch}:{})});
   const handler=async(req,res)=>{
-   if(req.method==='GET'&&req.url==='/health')return respond(res,200,{status:'ok',enabled:true});
+   if(req.method==='GET'&&req.url==='/health')return respond(res,200,{status:'ok',enabled:true,release:build.release,commit:build.commit});
    const path=req.url,job=path==='/internal/jobs/daily-charges'?'daily-charges':path==='/internal/jobs/recent-analytics'?'recent-analytics':null;
    if(req.method!=='POST'||(config.role==='notify'?path!=='/internal/dispatch':!job))return respond(res,404,{error:'not_found'});
    let caller;
