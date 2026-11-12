@@ -14,6 +14,7 @@ As built, on the settled tree (HEAD `4406a42` plus the batch, to be committed by
 - `services/business/offline-dataset-delta.mjs` and `offline-dataset-chunks.mjs` (built): the table joins the `collection` domain only (key `borrower_id`); `business-offline-v9`, so every installed bundle walks once; bundle key `groupChatByBorrower`, an array of `{borrowerId, ...groupChat}`; a change-log key is mapped to its borrower before the records lookups. `services/api/collection-read-contract.mjs`: a malformed stored row reads null and there is no server age filter.
 - `apps/pwa/src/` (built): `CollectionChatSummary.tsx` (read-only card under the amounts, collapsed and expanded, stale after 72 hours hides the last-message line, per-field language fallback), the list mark kept on the name's last word (`NameWithChatMark`), `chat-seen.ts` (per-device key `mw-credit.chat-seen:<scope>`, entries older than 30 days dropped, unreadable or unwritable storage gives no marks), `CollectionRecords.tsx`, `offline-dataset.ts` (`groupChat` in the synthesised detail), the sample `SAMPLE-002` in `fixtures.ts` and `main.tsx`, `live-style.css` and `style.css`.
 - Documents (Dewey): `Release_Tracker.md` (scope), `Development_Changes.md`, `Solution_Design.md`, `PWA_Data_Model_Overview.md`, `database/README.md`, `docs/Development_Read_Service.md`, the agent documents, and the Data Dictionary `agent-api.yaml`, `human-api.yaml` and `application.yaml` by hand; the relation and routine records wait for the PROD capture (see Remaining work).
+- CI fix (PR #300, first `Development checks` run 43282611114 on head `3f439ad`, job "rebuild (phase5)"): `phase6-management-independent.test.mjs` ran the offline-delta source fingerprint on the management family pinned at V85 (plus the V114 views), where `pwa_group_chat_summaries` does not exist (42P01). In `services/business/offline-dataset-delta.mjs` the table is now an optional source: one catalog query checks that it exists and is readable, otherwise it is left out of the fingerprint (the collection version changes once when the table appears, and bundles walk then). `tests/unit/offline-dataset-delta.test.mjs` covers the absent table.
 - Review correction (Chase): `NameWithChatMark` could split a Thai name mid-character; the split is now `splitNameForMark` in `chat-seen.ts`, grapheme-based (`Intl.Segmenter`, with a code-point fallback that keeps combining marks, variation selectors and ZWJ), and the name text is always unchanged.
 - Review corrections (PWA part): seen storage that reads but refuses writes marks the scope unwritable for the session, so no marks are shown, and the seen event is still dispatched. The agent corrections are in the agent note.
 - Not changed: Terraform, IAM, secrets, Cloud Run configuration and the chat tool's read role.
@@ -47,7 +48,12 @@ As built, on the settled tree (HEAD `4406a42` plus the batch, to be committed by
 | `collection-chat-summary` spec, mobile and desktop Chromium | 4 passed |
 | `PLAYWRIGHT_WEBKIT=1` `--project=mobile-webkit` chat summary spec (real WebKit, iPhone 17 Pro Max) | 2 passed |
 | `npm run build` | ok |
-| Full `npm test` | 1337 tests, 1336 pass, 1 skipped before the last fix (the `chat-seen` test file grew since); the CI run is authoritative |
+| CI run 43282611114 on `3f439ad`, job "rebuild (phase5)" | Failed (42P01 in the management family at V85); fixed as described in Changes |
+| `Run-Phase5.ps1 -ManagementOnly` | Before the fix exit 1 (42P01); after it exit 0 (30 pass) |
+| `mw-db-ci` phase5, phase8 and receiving | Exit 0 |
+| Offline collection lab at V146 (after the fix) | 4 pass, 1 skipped |
+| `npm test` after the CI fix | 1339 tests, 1338 pass, 1 skipped; typecheck and lint clean |
+| Full `npm test` 1337 tests, 1336 pass, 1 skipped before the last fix (the `chat-seen` test file grew since); the CI run is authoritative |
 | CI on the pull request, DEV migration, reader grant and deploy | Pending |
 
 ## Not run

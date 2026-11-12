@@ -43,9 +43,20 @@ function sourceSql(source){
 }
 const queries=new Map();
 const fingerprintQuery=sources=>{const key=sources.join('\n');if(!queries.has(key))queries.set(key,sources.map(sourceSql).join(' UNION ALL '));return queries.get(key)};
+// Sources a database may not have yet. The suites that pin an older migration head (and a command image that meets a
+// database before V146, which the PROD order does not allow but a rollback can) must keep syncing: an absent or
+// unreadable optional table is left out of the fingerprint, exactly as the collection read answers null for it, and
+// domainVersion already hashes only the relations it was given. The version changes once when the table appears.
+const optionalSources=Object.freeze(['pwa_group_chat_summaries']);
+/** The requested sources this database has: every required one, and each optional one that exists and is readable. */
+async function availableSources(client,sources){
+ const wanted=optionalSources.filter(table=>sources.includes(table));if(!wanted.length)return sources;
+ const present=new Set((await client.query(`SELECT name FROM unnest($1::text[]) name WHERE COALESCE(has_table_privilege(to_regclass('public.'||quote_ident(name)),'SELECT'),false)`,[wanted])).rows.map(row=>row.name));
+ return sources.filter(source=>!wanted.includes(source)||present.has(source));
+}
 /** All requested source fingerprints from one statement (one snapshot, one scan per table). */
 async function readSourceFingerprints(client,sources){
- const rows=(await client.query(fingerprintQuery(sources))).rows;
+ const rows=(await client.query(fingerprintQuery(await availableSources(client,sources)))).rows;
  return new Map(rows.map(row=>[row.relation,row.fingerprint]));
 }
 function domainVersion(fingerprints,actor,domain,businessDate){
