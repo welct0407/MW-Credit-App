@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 import unittest
+from unittest.mock import patch
 
 SCRIPTS = Path(__file__).parents[1] / 'scripts'
 spec = importlib.util.spec_from_file_location('deploy_runtime', SCRIPTS / 'deploy-runtime.py')
@@ -37,6 +38,41 @@ class RuntimeDeploymentTests(unittest.TestCase):
         self.assertEqual(catalogue, self.catalogue)
         self.assertEqual(json.dumps([self.config, self.catalogue], sort_keys=True), before)
         self.assertEqual(self.prepared(config={k: v for k, v in self.config.items() if k != 'code_version'})[0]['code_version'], COMMIT)
+
+    def test_release_is_written_beside_code_version_and_validated(self):
+        # R144: --release Rnnn writes code_release; without it a stale code_release is dropped (unknown, not wrong).
+        config, _ = self.prepared(release='R144')
+        self.assertEqual(config, dict(self.config, code_version=COMMIT, code_release='R144'))
+        stale = dict(self.config, code_release='R140')
+        self.assertNotIn('code_release', self.prepared(config=stale)[0])
+        self.assertEqual(stale['code_release'], 'R140')  # input untouched
+        for bad in ('r144', 'R14', 'R1444', 'dev', 144, ''):
+            with self.subTest(release=bad), self.assertRaisesRegex(RuntimeError, 'Release must look like R144'):
+                self.prepared(release=bad)
+
+    def test_release_option_is_parsed_before_any_phase(self):
+        seen = {}
+        def engine():
+            seen['argv'] = list(runtime.sys.argv[1:])
+            seen['release'] = runtime.RELEASE['value']
+        original, argv0 = base.main, list(runtime.sys.argv)
+        base.main = engine
+        try:
+            for argv, release in ((['activate', '--commit', COMMIT, '--release', 'R144'], 'R144'),
+                                  (['activate', '--release=R145', '--commit', COMMIT], 'R145'),
+                                  (['dry-run', '--commit', COMMIT], None)):
+                with self.subTest(argv=argv):
+                    runtime.main(argv)
+                    self.assertEqual(seen, {'argv': [a for a in argv if 'R14' not in a and a != '--release'], 'release': release})
+            for argv in (['activate', '--release', 'r144'], ['activate', '--release'], ['activate', '--release', 'R144', '--release=R145']):
+                with self.subTest(argv=argv), self.assertRaises(RuntimeError):
+                    runtime.main(argv)
+            with patch.object(runtime, 'RELEASE', {'value': 'R144'}):
+                self.assertEqual(runtime.prepare(self.config, self.catalogue, self.candidate, COMMIT, None, None, None)[0]['code_release'], 'R144')
+        finally:
+            base.main = original
+            runtime.RELEASE['value'] = None
+            runtime.sys.argv[:] = argv0
 
     def test_drift_or_wrong_target_is_refused(self):
         drifted = json.loads(json.dumps(self.candidate))

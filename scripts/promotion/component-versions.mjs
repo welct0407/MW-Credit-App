@@ -18,7 +18,7 @@ export const REGISTRY_FILE='scripts/promotion/components.json';
 export const INVENTORY_FILE='project/Documents/Environment_Inventory.md';
 export const TRACKER_FILE='project/Documents/Release_Tracker.md';
 export const START='<!-- component-versions:start -->',END='<!-- component-versions:end -->';
-const RELEASE=/^R\d{3}$/,SHA=/^[0-9a-f]{40}$/,SHORT=/^[0-9a-f]{7,40}$/;
+const RELEASE=/^R\d{3}$/,SHORT=/^[0-9a-f]{7,40}$/;
 const fail=message=>{throw Error('component-versions: '+message);};
 const num=release=>Number(release.slice(1));
 const name=n=>'R'+String(n).padStart(3,'0');
@@ -43,12 +43,12 @@ export function releaseTags(git){
 }
 export const latestTag=tags=>[...tags.keys()].sort().at(-1)??null;
 const namesBetween=(git,from,to)=>git(['diff','--name-only','--no-renames','-z',from,...(to?[to]:[])]).split('\0').filter(Boolean);
-const escape=s=>s.replace(/[.+^${}()|[\]\\]/g,'\\$&');
+const escapeRegex=s=>s.replace(/[.+^${}()|[\]\\]/g,'\\$&');
 /** A path entry: a file or directory (prefix) without glob characters, else a glob (** any depth, * one segment, ? one char). */
 export function pathMatcher(entries){
  const tests=(entries??[]).map(entry=>{
   if(!/[*?]/.test(entry))return file=>file===entry||file.startsWith(entry.replace(/\/$/,'')+'/');
-  const source=entry.split(/(\*\*\/?|\*|\?)/).map(part=>part==='**/'?'(?:.*/)?':part==='**'?'.*':part==='*'?'[^/]*':part==='?'?'[^/]':escape(part)).join('');
+  const source=entry.split(/(\*\*\/?|\*|\?)/).map(part=>part==='**/'?'(?:.*/)?':part==='**'?'.*':part==='*'?'[^/]*':part==='?'?'[^/]':escapeRegex(part)).join('');
   const re=new RegExp('^'+source+'$');return file=>re.test(file);
  });
  return file=>tests.some(test=>test(file));
@@ -186,7 +186,8 @@ export function render({git,registry,root=REPO_ROOT,file=INVENTORY_FILE,mode,rel
 }
 
 // ---- check-source: Grafana dashboards carry release:<Open> once changed after the last tag ----
-const dashboardTags=json=>{const value=JSON.parse(json);const tags=value?.dashboard?.tags??value?.tags;return Array.isArray(tags)?tags:[];};
+// A Grafana v2 resource keeps its tags in spec (infrastructure/grafana/dashboards/*.json); a classic export in dashboard.
+const dashboardTags=json=>{const value=JSON.parse(json);const tags=value?.spec?.tags??value?.dashboard?.tags??value?.tags;return Array.isArray(tags)?tags:[];};
 export function checkSource({git,registry,root=REPO_ROOT,commit}){
  const tags=releaseTags(git),latest=latestTag(tags);
  if(!latest)fail('no release tag (shallow clone? run git fetch --tags)');
@@ -214,7 +215,9 @@ const field=(body,key)=>key?.split('.').reduce((v,k)=>v==null?undefined:v[k],bod
 /** Release, commit and native from a public body or an --observed entry, per the live descriptor's field names. */
 export function facts(body,descriptor){
  if(!body||typeof body!=='object')return null;
- let release=field(body,descriptor.field)??body.release;
+ // A list (the Grafana search API) contributes each item's field, e.g. every dashboard's tags.
+ const raw=Array.isArray(body)?body.map(item=>field(item,descriptor.field)):field(body,descriptor.field);
+ let release=raw??body.release;
  if(Array.isArray(release)||descriptor.tagPrefix){
   const prefix=descriptor.tagPrefix??'release:';
   const all=[release??body.tags??[]].flat(2).filter(tag=>typeof tag==='string'&&tag.startsWith(prefix)).map(tag=>tag.slice(prefix.length));
@@ -222,13 +225,13 @@ export function facts(body,descriptor){
  }
  if(typeof release==='string'&&!RELEASE.test(release))release=/MW release: (R\d{3})/.exec(release)?.[1]??(release==='mixed'?'mixed':undefined);
  const commit=field(body,descriptor.commit)??body.commit,native=field(body,descriptor.nativeField)??body.native;
- return {release:release??null,commit:typeof commit==='string'&&SHORT.test(commit)?commit:null,native:safe(native)??null};
+ return {release:release??null,commit:typeof commit==='string'&&SHORT.test(commit)?commit:null,native:safe(native)??null,value:safe(raw)};
 }
 async function fetchJson(url,{fetchImpl=fetch,timeoutMs=15000}={}){
  try{
   const response=await fetchImpl(url,{method:'GET',redirect:'error',headers:{accept:'application/json'},signal:AbortSignal.timeout(timeoutMs)});
   if(response.status!==200)return null;
-  const text=await response.text();if(text.length>65536)return null;
+  const text=await response.text();if(text.length>2*1024*1024)return null; // Metabase session properties are large (about 100 KB)
   return JSON.parse(text);
  }catch{return null;}
 }
@@ -236,7 +239,7 @@ const descriptorUrl=d=>typeof d?.url==='string'&&d.url?d.url+(d.path&&!d.url.end
 /** One component in one environment: match | drift | unverified | info | n/a, with a short reason. */
 export function assess({git,component,descriptor,expected,fact}){
  if(!descriptor)return {status:'n/a'};
- if(component.kind==='vendor')return fact?.native!=null||fact?.release?{status:'info',observed:String(fact.native??fact.release)}:{status:'unverified',reason:'not observed'};
+ if(component.kind==='vendor'){const value=fact?.native??fact?.value??null;return value!==null?{status:'info',observed:String(value)}:{status:'unverified',reason:'not observed'};}
  if(!expected)return {status:'unverified',reason:'no expectation'};
  if(!fact)return {status:'unverified',reason:descriptor.credentialed?'credentialed; not in --observed':'source unreadable'};
  const nativeDiffers=expected.native!=null&&typeof expected.native!=='object'&&fact.native!=null&&String(fact.native)!==String(expected.native);
@@ -267,15 +270,15 @@ export function expectations({git,registry,root=REPO_ROOT,commit}){
 export async function drift({git,registry,root=REPO_ROOT,env='all',observed={},commit,fetchImpl}){
  if(!['dev','prod','all'].includes(env))fail('--env dev|prod|all');
  const expect=expectations({git,registry,root,commit}),rows=[];
- for(const name of env==='all'?['dev','prod']:[env]){
+ for(const envName of env==='all'?['dev','prod']:[env]){
   for(const component of registry.components){
-   const descriptor=component.live?.[name]??null;
-   let body=observed?.[name]?.[component.id]??null,source=body?'observed':null;
+   const descriptor=component.live?.[envName]??null;
+   let body=observed?.[envName]?.[component.id]??null,source=body?'observed':null;
    if(!body&&descriptor&&!descriptor.credentialed&&descriptorUrl(descriptor)){body=await fetchJson(descriptorUrl(descriptor),{fetchImpl});source=body?'public':null;}
    const fact=descriptor?facts(body,descriptor):null;
-   const expected=expect[name].get(component.id)??null;
+   const expected=expect[envName].get(component.id)??null;
    const result=assess({git,component,descriptor,expected,fact});
-   rows.push({env:name,id:component.id,expected:expected?.release??null,source,...result});
+   rows.push({env:envName,id:component.id,expected:expected?.release??null,source,...result});
   }
  }
  const count=status=>rows.filter(row=>row.status===status).length;
