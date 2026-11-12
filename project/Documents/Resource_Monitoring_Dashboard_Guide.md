@@ -72,7 +72,7 @@ Variable: `env` (prod or dev, default prod) is hidden; the PROD and DEV links af
 | 29 (row), 30 | Recognitions · 24 h (one bar gauge per outcome; 'Clean' for none) | Count per outcome by the `warning` field: none, `amount_unreadable`, `amount_fractional`, `account_unmatched`, `account_ambiguous`, `slip_not_confirmed`, other | Log-based counter `mw_recognition_outcome_<env>`; no slip content |
 | 31 | Recognition route p95 · 24 h | Latency of the receipt recognition route | Red dashed at 45 s (route budget); the PWA deadline is 60 s |
 | 32 | Recognizer service | Service state only (health) | Links to Agent & Receipts |
-| 33 | Recognizer model | Provider with model, for example 'Gemini · gemini-3.5-flash-lite' (collector field `model:<id>`) | |
+| 33 | Recognizer model | Provider with model of the PROD caller's recognizer route, for example 'Claude · claude-opus-5-5' (collector field `model:<id>`; R142 per-caller routing) | |
 
 HTTP metrics do not prove job-boundary completion, push provider acceptance or device delivery; use 20, 21 and 22 for those.
 
@@ -86,7 +86,7 @@ Everything is Debian-backed except the webhook check and the two public status f
 | 2 | Receipts · queue over time | Receipt queue trend | Lines break at gaps over 6 minutes |
 | 14 | Receipts · ingress reviews | `ingress_review_open`; above 0 is orange | Closes the former known gap for the card |
 | 6 | Recognizer · service | Health and restart age | Paused (blue) when recognition is disabled |
-| 12 | Recognizer · model | Provider with model, for example 'Gemini · gemini-3.5-flash-lite' | From the collector field `model:<id>` |
+| 12 | Recognizer · model | Provider with model of the PROD caller's recognizer route, for example 'Claude · claude-opus-5-5' | From the collector field `model:<id>` |
 | 7 | Recognizer · extractions 24 h | Extractions, valid, timeouts and unreadable | Counts from the agent audit schema, no content |
 | 8 | Recognizer · extraction time | Duration of the newest extraction per run | Red dashed at 25 s (per-attempt bound) |
 | 9 | Agent workers and timers | State timeline: receipts, polling, daily jobs, audit relay, audit retention | Holds last state 2 min, 65 min or 25 h by job cadence |
