@@ -33,6 +33,8 @@ const LOG_METRIC = 'logging.googleapis.com/user/';
 
 const STALE_SECONDS = 360;
 const ALIGNED_STALE_SECONDS = 720;
+// R144: the release that last changed the dashboard definitions; bump it whenever a release changes any of them.
+const DASHBOARD_RELEASE = 'R144';
 const DASHBOARD_UIDS = ['mw-now', 'mw-pwa', 'mw-agent', 'mw-infra', 'mw-cost'];
 const DASHBOARD_TITLES = {
   'mw-now': 'Now', 'mw-pwa': 'PWA & APIs', 'mw-agent': 'Agent & Receipts',
@@ -389,7 +391,7 @@ function dashboard({uid, title, description, time, refresh, panels, templating =
       preload: false,
       refresh,
       schemaVersion: 42,
-      tags: ['mw-credit'],
+      tags: ['mw-credit', 'release:' + DASHBOARD_RELEASE],
       templating: {list: templating},
       time,
       timepicker: timepicker || {refresh_intervals: ['1m', '2m', '5m', '15m', '1h']},
@@ -613,7 +615,7 @@ function providerStatus({id, gridPos, title = 'Provider status', anthropic = fal
 module.exports = {
   OLD_DASHBOARD_LINK, MONITORING_DIR, REPO_ROOT, DASHBOARD_DIR, PROJECT, INSTANCE_ID, SQL_INSTANCE, SQL_DATABASE_ID, WEBHOOK_CHECK_ID,
   UPTIME_SINGAPORE_LOCATION, SCHEDULER_ATTEMPT_METRIC, SCHEDULER_STATUS_LABEL, SCHEDULER_HTTP_LABEL,
-  NUM_BACKENDS_DATABASE_LABEL, ALERT_FOLDER_UID, LOG_METRIC, STALE_SECONDS, ALIGNED_STALE_SECONDS, DASHBOARD_UIDS,
+  NUM_BACKENDS_DATABASE_LABEL, ALERT_FOLDER_UID, LOG_METRIC, STALE_SECONDS, ALIGNED_STALE_SECONDS, DASHBOARD_RELEASE, DASHBOARD_UIDS,
   DASHBOARD_TITLES, DS, ALLOWED_DATASOURCE_UIDS, ALLOWED_URL_HOSTS, RETIRED_DATASOURCE_UIDS, RETIRED_URL_HOSTS, FROM, TO, CHART_PERIOD, COLOR, STATE_TEXT,
   stateMappings, valueMap, nullMap, steps, encodeFilter, monitoringUrl, customFilter, sqlFilter, labelClause, col, target,
   inlineTarget, jq, receiptFields, stateSelector, rowSelector, stateRow, lookbackVariable, LOOKBACK_FROM, LOOKBACK_SECONDS, RANGE_START, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,

@@ -1,8 +1,11 @@
 # Exact-source command image build plus real container decoder/bootstrap smoke.
 # The deployed service separately proves real IAM/Firebase startup; no fake auth.
+# R144: the image reports its release and source commit. Submit with
+#   --substitutions=_MW_RELEASE=Rnnn,_MW_SOURCE_COMMIT=$(git rev-parse HEAD)
+# (a local-source submit has no $COMMIT_SHA); without them a DEV image reports dev/unknown.
 steps:
   - name: gcr.io/cloud-builders/docker
-    args: [build, -t, 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app/api:$BUILD_ID', .]
+    args: [build, --build-arg, 'MW_RELEASE_NUMBER=${_MW_RELEASE}', --build-arg, 'MW_SOURCE_COMMIT=${_MW_SOURCE_COMMIT}', -t, 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app/api:$BUILD_ID', .]
   - name: gcr.io/cloud-builders/docker
     args:
       - run
@@ -29,5 +32,8 @@ steps:
         console.log(JSON.stringify({workerDependenciesAndDisabledConfig:'passed',containerSharpDecode:'passed',bootstrapDependenciesAndMissingConfigFailClosed:'passed',liveIAMAndFirebase:'not exercised by this smoke'}));
 images:
   - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app/api:$BUILD_ID'
+substitutions:
+  _MW_RELEASE: dev
+  _MW_SOURCE_COMMIT: unknown
 options:
   logging: CLOUD_LOGGING_ONLY

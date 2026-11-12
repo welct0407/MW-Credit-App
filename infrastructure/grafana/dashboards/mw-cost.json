@@ -3763,7 +3763,8 @@
     "refresh": "1h",
     "schemaVersion": 42,
     "tags": [
-      "mw-credit"
+      "mw-credit",
+      "release:R144"
     ],
     "templating": {
       "list": []

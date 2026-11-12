@@ -41,6 +41,8 @@ for (const uid of L.DASHBOARD_UIDS) {
   const s = d.spec;
   assert.equal(s.timezone, 'Asia/Bangkok', uid + ' timezone');
   assert.ok(s.tags.includes('mw-credit'), uid + ' tag mw-credit');
+  assert.match(L.DASHBOARD_RELEASE, /^R\d{3}$/, 'dashboard release is Rnnn');
+  assert.deepEqual(s.tags, ['mw-credit', 'release:' + L.DASHBOARD_RELEASE], uid + ' tags are mw-credit and exactly one release tag');
   assert.ok(s.title && s.description, uid + ' title and description');
   // Link bar: five explicit links in a fixed order, no time or variables carried (Echo LINK-1..3), first on
   // every page so they keep their place; ENV-1: the PWA page adds its PROD / DEV switch after them.

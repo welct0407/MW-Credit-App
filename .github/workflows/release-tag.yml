@@ -8,8 +8,10 @@ name: Release tag
 # publish_only=true publishes the GitHub Release for a tag that already
 # exists (backfill of earlier releases); the tag is not touched and an
 # existing GitHub Release for it is refused. The release body is `notes`
-# when given, else the tag message. The release is marked latest only when
-# the tag is the highest Rnnn tag in the repository.
+# when given, else the tag message, followed (R144) by a "## Component
+# versions" section from scripts/promotion/component-versions.mjs; if that
+# derivation fails the run warns and publishes without it. The release is
+# marked latest only when the tag is the highest Rnnn tag in the repository.
 #
 # Needs the repository secret RELEASE_TAG_TOKEN: a fine-grained token for this
 # repository only, with Contents and Workflows read/write. The built-in
@@ -70,6 +72,10 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TAG_TOKEN }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: ${{ inputs.check_only != true }}
+        with:
+          node-version-file: .nvmrc
       - name: Validate and create the tag
         env:
           TAG: ${{ inputs.tag }}
@@ -112,6 +118,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TAG_TOKEN }}
           TAG: ${{ inputs.tag }}
+          COMMIT: ${{ inputs.commit }}
           NOTES: ${{ inputs.notes }}
         run: |
           set -euo pipefail
@@ -121,6 +128,13 @@ jobs:
           git fetch --tags --quiet origin
           body="${NOTES:-$(git tag -l --format='%(contents)' "$TAG")}"
           [[ -n "${body//[[:space:]]/}" ]] || { echo "::error::Release body is empty"; exit 1; }
+          # R144: append the per-component versions (the last Rnnn that changed each component, with its native
+          # counter) derived from history at the tagged commit. Best effort: a failure warns and the release still publishes.
+          if components=$(node scripts/promotion/component-versions.mjs derive --release "$TAG" --commit "$COMMIT" --format md 2>"$RUNNER_TEMP/components.err") && [[ -n "${components//[[:space:]]/}" ]]; then
+            body="$body"$'\n\n## Component versions\n\n'"$components"
+          else
+            echo "::warning::Component versions were not derived for $TAG; publishing without them ($(head -c 300 "$RUNNER_TEMP/components.err" | tr '\n' ' '))"
+          fi
           highest=$(git tag -l 'R[0-9][0-9][0-9]' --sort=-v:refname | head -1)
           latest=false; [ "$TAG" = "$highest" ] && latest=true
           printf '%s\n' "$body" > "$RUNNER_TEMP/notes.md"

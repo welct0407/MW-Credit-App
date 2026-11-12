@@ -1,8 +1,18 @@
 # Preparation artifact only. Submit the reviewed exact source commit with the
 # existing PROD builder identity; this config builds/smokes/pushes, never deploys.
+# R144: --substitutions=_MW_RELEASE=Rnnn,_MW_SOURCE_COMMIT=<40-hex commit> are required (no defaults that pass).
 steps:
+  # R144: a PROD image must carry its release (Rnnn) and the exact 40-hex source commit; refuse anything else.
   - name: gcr.io/cloud-builders/docker
-    args: [build, -t, 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app-prod/api:$BUILD_ID', .]
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        case '${_MW_RELEASE}' in R[0-9][0-9][0-9]) ;; *) echo '_MW_RELEASE must be Rnnn' >&2; exit 1;; esac
+        case '${_MW_SOURCE_COMMIT}' in *[!0-9a-f]*|'') echo '_MW_SOURCE_COMMIT must be a 40-hex commit' >&2; exit 1;; esac
+        test "$$(printf %s '${_MW_SOURCE_COMMIT}' | wc -c)" -eq 40 || { echo '_MW_SOURCE_COMMIT must be a 40-hex commit' >&2; exit 1; }
+  - name: gcr.io/cloud-builders/docker
+    args: [build, --build-arg, 'MW_RELEASE_NUMBER=${_MW_RELEASE}', --build-arg, 'MW_SOURCE_COMMIT=${_MW_SOURCE_COMMIT}', -t, 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app-prod/api:$BUILD_ID', .]
   - name: gcr.io/cloud-builders/docker
     args:
       - run
@@ -28,5 +38,8 @@ steps:
         console.log(JSON.stringify({businessDefaultOff:'passed',missingConfigFailsClosed:'passed',syntheticContainerDecoders:'passed',liveAuthIAMDatabaseReceiptAccess:'not exercised'}));
 images:
   - 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/mw-credit-app-prod/api:$BUILD_ID'
+substitutions:
+  _MW_RELEASE: unset
+  _MW_SOURCE_COMMIT: unset
 options:
   logging: CLOUD_LOGGING_ONLY
