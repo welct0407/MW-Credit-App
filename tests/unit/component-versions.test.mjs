@@ -1,9 +1,10 @@
 // R144 component versioning: scripts/promotion/component-versions.mjs on a synthetic fixture repository.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {derive,render,checkSource,drift,main,gitIn,loadRegistry,changedRoles,pathMatcher,facts,START,END} from '../../scripts/promotion/component-versions.mjs';
 import * as roles from '../../scripts/promotion/generic-roles.mjs';
@@ -176,4 +177,22 @@ test('facts reads only validated release, commit and native values; path entries
  assert.equal(facts(null,{}),null);
  const match=pathMatcher(['apps/pwa','index.html','infrastructure/grafana/dashboards/*.json','docs/**/x.md']);
  assert.deepEqual(['apps/pwa/a.ts','apps/pwa2/a.ts','index.html','infrastructure/grafana/dashboards/a.json','infrastructure/grafana/dashboards/sub/a.json','docs/x.md','docs/a/b/x.md'].map(match),[true,false,true,true,false,true,true]);
+});
+
+test('operator --commit and --release values that are not a commit, HEAD or Rnnn never reach git (exit 3)',async t=>{
+ const f=fixture(t),out=path.join(mkdtempSync(path.join(tmpdir(),'component-versions-out-')),'x');t.after(()=>rmSync(path.dirname(out),{recursive:true,force:true}));
+ const cli=fileURLToPath(new URL('../../scripts/promotion/component-versions.mjs',import.meta.url));
+ for(const args of [['derive','--release','R144','--commit','--output='+out],['check-source','--commit','--output='+out],['drift','--env','prod','--commit','-p'],['derive','--release','--output='+out]]){
+  const r=spawnSync(process.execPath,[cli,...args],{encoding:'utf8'});
+  assert.equal(r.status,3,args.join(' '));assert.match(r.stderr,/must be a 7 to 40 character hex commit, HEAD or an Rnnn tag|must look like R144/);
+ }
+ assert.equal(existsSync(out),false);
+ for(const bad of ['--output='+out,'main','HEAD~1','a'.repeat(41)]){
+  assert.throws(()=>derive({git:f.git,registry:f.registry,release:'R013',commit:bad}),/--commit must be/,bad);
+  assert.throws(()=>checkSource({git:f.git,registry:f.registry,root:f.root,commit:bad}),/--commit must be/,bad);
+  await assert.rejects(drift({git:f.git,registry:f.registry,root:f.root,env:'prod',commit:bad,fetchImpl:fetcher({})}),/--commit must be/,bad);
+ }
+ assert.equal(derive({git:f.git,registry:f.registry,release:'R013',commit:'HEAD'}).commit,f.shas.head);
+ assert.equal(derive({git:f.git,registry:f.registry,release:'R012',commit:'R012'}).commit,f.shas.R012);
+ assert.equal(derive({git:f.git,registry:f.registry,release:'R013',commit:f.shas.head.slice(0,7)}).commit,f.shas.head);
 });
