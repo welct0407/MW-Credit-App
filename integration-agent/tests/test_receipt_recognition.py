@@ -648,7 +648,7 @@ class ContractTests(unittest.TestCase):
                 self.assertEqual(self.post(), (503, {'status': 'unavailable', 'reason': 'disabled'}))
                 conn = http.client.HTTPConnection('127.0.0.1', self.httpd.server_address[1], timeout=10)
                 conn.request('GET', '/healthz')
-                self.assertEqual(json.loads(conn.getresponse().read()), {'status': 'ok', 'enabled': False})
+                self.assertEqual(json.loads(conn.getresponse().read()), {'status': 'ok', 'enabled': False, 'release': None, 'commit': None})
                 conn.close()
         api.recognize.assert_not_called()
 
@@ -656,8 +656,25 @@ class ContractTests(unittest.TestCase):
         conn = http.client.HTTPConnection('127.0.0.1', self.httpd.server_address[1], timeout=10)
         conn.request('GET', '/healthz')
         response = conn.getresponse()
-        self.assertEqual((response.status, json.loads(response.read())), (200, {'status': 'ok', 'enabled': True}))
+        self.assertEqual((response.status, json.loads(response.read())), (200, {'status': 'ok', 'enabled': True, 'release': None, 'commit': None}))
         conn.close()
+        api.recognize.assert_not_called()
+
+    def test_healthz_reports_release_and_commit(self):
+        # R144: the startup identity when serve() passed one, else the configuration's; malformed values read null.
+        def healthz():
+            conn = http.client.HTTPConnection('127.0.0.1', self.httpd.server_address[1], timeout=10)
+            conn.request('GET', '/healthz'); body = json.loads(conn.getresponse().read()); conn.close()
+            return body['release'], body['commit']
+        self.config.update(code_release='R144', code_version='a' * 40); self.write()
+        self.assertEqual(healthz(), ('R144', 'a' * 40))
+        self.config.update(code_release='R14', code_version='HEAD'); self.write()
+        self.assertEqual(healthz(), (None, None))
+        self.httpd.shutdown(); self.httpd.server_close()
+        self.httpd = ThreadingHTTPServer(('127.0.0.1', 0), api.handler(str(self.config_path), str(self.catalogue_path), keys=keys(),
+                                         slots=self.slots, identity={'release': 'R143', 'commit': 'b' * 40}))
+        threading.Thread(target=self.httpd.serve_forever, daemon=True).start()
+        self.assertEqual(healthz(), ('R143', 'b' * 40))
         api.recognize.assert_not_called()
 
     def test_busy_when_two_extractions_are_running(self):

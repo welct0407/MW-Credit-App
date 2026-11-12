@@ -70,7 +70,7 @@ test('HTTP foundation has no data or readiness paths, restrictive CORS and sanit
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const request=(path,method='GET',headers={})=>fetch(`http://127.0.0.1:${server.address().port}${path}`,{method,headers});
   try {
-    assert.deepEqual(await (await request('/health')).json(),{status:'ok',mode:'foundation'});
+    assert.deepEqual(await (await request('/health')).json(),{status:'ok',mode:'foundation',release:'dev',commit:'unknown'});
     assert.equal((await request('/api/session')).status,401);
     const session=await request('/api/session','GET',{Authorization:'Bearer owner'});
     assert.deepEqual(await session.json(),{ok:true,authenticated:true,mode:'foundation',capabilities:[],businessAccess:false,membershipVerified:false});

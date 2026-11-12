@@ -1,0 +1,493 @@
+{
+  "schemaVersion": 1,
+  "description": "Component registry (R144). Each component's version is the last Rnnn that changed it plus its native counter. Rnnn stays the one ecosystem number. Read by scripts/promotion/component-versions.mjs (derive, render, check-source, drift).",
+  "releasePattern": "^R\\d{3}$",
+  "seedAsOf": "R143",
+  "fields": {
+    "id": "Stable key, kebab-case.",
+    "label": "Human name used in the rendered table and the Release body.",
+    "kind": "app | api | schema | agent | monitoring | reporting | vendor.",
+    "paths": "Git paths (files, directories or globs) whose change means this component changed. Compared between the previous Rnnn tag and the release commit. Absent when derive is set.",
+    "derive": "generic-role: use genericRoleClosures/genericChangedRoles from deploy-business-hosting.mjs; requires role.",
+    "role": "One of read, command, notify, jobs, chat (GENERIC_ROLES).",
+    "native": "The component's own counter: flyway | catalogue-revision | image-digest | hosting-version | vendor | null.",
+    "nativeSource": "How the native value is read from the source tree at the release commit (file plus pattern or json pointer). Absent when the counter only exists live.",
+    "stamp": "Where the release is written for components that cannot self-report: grafana-tag (dashboard JSON tags contain release:Rnnn) or metabase-stamp (Stamp-Release.mjs).",
+    "live": "Per environment {dev, prod}: null when the environment has none. kind: build-version-json | health-json | ready-json | grafana-api | metabase-api | cloud-run | cloud-sql | hosting. url is set only where public; credentialed=true means the fact reaches drift only through --observed. field names the JSON member carrying the release (and commit, native where present).",
+    "seed": "Facts as of seedAsOf: release (last Rnnn that changed the component, from tags and records) and native (value, or {dev, prod} when it differs by environment, null when only live). verified=false marks a seed taken from records only."
+  },
+  "components": [
+    {
+      "id": "pwa",
+      "label": "PWA frontend",
+      "kind": "app",
+      "paths": [
+        "apps/pwa",
+        "public",
+        "index.html",
+        "vite.config.ts",
+        "scripts/hosting-headers.mjs",
+        "scripts/build-live-dev.mjs"
+      ],
+      "native": "hosting-version",
+      "live": {
+        "dev": {
+          "kind": "build-version-json",
+          "url": "https://dev-lm.mw-credit.com/build-version.json",
+          "field": "release",
+          "commit": "commit",
+          "credentialed": false,
+          "nativeKind": "hosting",
+          "nativeCredentialed": true
+        },
+        "prod": {
+          "kind": "build-version-json",
+          "url": "https://lm.mw-credit.com/build-version.json",
+          "field": "release",
+          "commit": "commit",
+          "credentialed": false,
+          "nativeKind": "hosting",
+          "nativeCredentialed": true
+        }
+      },
+      "seed": {
+        "release": "R142",
+        "native": null,
+        "verified": true,
+        "note": "Hosting version pins live only in Environment_Inventory.md; read live through the Hosting API."
+      }
+    },
+    {
+      "id": "api-read",
+      "label": "API read service",
+      "kind": "api",
+      "derive": "generic-role",
+      "role": "read",
+      "native": "image-digest",
+      "live": {
+        "dev": {
+          "kind": "health-json",
+          "service": "mw-credit-app-read-dev",
+          "path": "/health",
+          "url": "https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app/health",
+          "field": "release",
+          "commit": "commit",
+          "credentialed": false,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true
+        },
+        "prod": {
+          "kind": "health-json",
+          "service": "mw-credit-app-read-prod",
+          "path": "/health",
+          "url": "https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app/health",
+          "field": "release",
+          "commit": "commit",
+          "credentialed": false,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true
+        }
+      },
+      "seed": {
+        "release": "R141",
+        "native": null,
+        "verified": true,
+        "note": "Image digest and revision live only in Environment_Inventory.md; Cloud Run URL read with gcloud run services describe."
+      }
+    },
+    {
+      "id": "api-command",
+      "label": "API command service",
+      "kind": "api",
+      "derive": "generic-role",
+      "role": "command",
+      "native": "image-digest",
+      "live": {
+        "dev": {
+          "kind": "health-json",
+          "service": "mw-credit-app-command-dev",
+          "path": "/health",
+          "url": "https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app/health",
+          "field": "release",
+          "commit": "commit",
+          "credentialed": false,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true
+        },
+        "prod": {
+          "kind": "health-json",
+          "service": "mw-credit-app-command-prod",
+          "path": "/health",
+          "url": "https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app/health",
+          "field": "release",
+          "commit": "commit",
+          "credentialed": false,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true
+        }
+      },
+      "seed": {
+        "release": "R141",
+        "native": null,
+        "verified": true
+      }
+    },
+    {
+      "id": "api-notify",
+      "label": "Notification worker",
+      "kind": "api",
+      "derive": "generic-role",
+      "role": "notify",
+      "native": "image-digest",
+      "live": {
+        "dev": {
+          "kind": "health-json",
+          "service": "mw-credit-app-notify-dev",
+          "path": "/health",
+          "url": null,
+          "field": "release",
+          "commit": "commit",
+          "credentialed": true,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true,
+          "note": "IAM-protected (notify 403, jobs 404 unauthenticated); read through --observed."
+        },
+        "prod": {
+          "kind": "health-json",
+          "service": "mw-credit-app-notify-prod",
+          "path": "/health",
+          "url": null,
+          "field": "release",
+          "commit": "commit",
+          "credentialed": true,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true,
+          "note": "IAM-protected (notify 403, jobs 404 unauthenticated); read through --observed."
+        }
+      },
+      "seed": {
+        "release": "R130",
+        "native": null,
+        "verified": true,
+        "note": "R134 and R135 changed only package.json scripts, which genericChangedRoles ignores; matches the inventory (notify and jobs unchanged since R130). Image digest lives only in Environment_Inventory.md."
+      }
+    },
+    {
+      "id": "api-jobs",
+      "label": "Jobs worker",
+      "kind": "api",
+      "derive": "generic-role",
+      "role": "jobs",
+      "native": "image-digest",
+      "live": {
+        "dev": {
+          "kind": "health-json",
+          "service": "mw-credit-app-jobs-dev",
+          "path": "/health",
+          "url": null,
+          "field": "release",
+          "commit": "commit",
+          "credentialed": true,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true,
+          "note": "IAM-protected (notify 403, jobs 404 unauthenticated); read through --observed."
+        },
+        "prod": {
+          "kind": "health-json",
+          "service": "mw-credit-app-jobs-prod",
+          "path": "/health",
+          "url": null,
+          "field": "release",
+          "commit": "commit",
+          "credentialed": true,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true,
+          "note": "IAM-protected (notify 403, jobs 404 unauthenticated); read through --observed."
+        }
+      },
+      "seed": {
+        "release": "R130",
+        "native": null,
+        "verified": true,
+        "note": "R134 and R135 changed only package.json scripts, which genericChangedRoles ignores; matches the inventory (notify and jobs unchanged since R130). Image digest lives only in Environment_Inventory.md."
+      }
+    },
+    {
+      "id": "api-chat",
+      "label": "Chat service",
+      "kind": "api",
+      "derive": "generic-role",
+      "role": "chat",
+      "native": "image-digest",
+      "live": {
+        "dev": {
+          "kind": "health-json",
+          "service": "mw-credit-app-chat-dev",
+          "path": "/health",
+          "url": "https://mw-credit-app-chat-dev-pvrgvyg3oq-as.a.run.app/health",
+          "field": "release",
+          "commit": "commit",
+          "credentialed": false,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true
+        },
+        "prod": {
+          "kind": "health-json",
+          "service": "mw-credit-app-chat-prod",
+          "path": "/health",
+          "url": "https://mw-credit-app-chat-prod-pvrgvyg3oq-as.a.run.app/health",
+          "field": "release",
+          "commit": "commit",
+          "credentialed": false,
+          "nativeKind": "cloud-run",
+          "nativeCredentialed": true
+        }
+      },
+      "seed": {
+        "release": "R141",
+        "native": null,
+        "verified": true
+      }
+    },
+    {
+      "id": "schema",
+      "label": "Database schema (loan_manager)",
+      "kind": "schema",
+      "paths": [
+        "database/migrations"
+      ],
+      "native": "flyway",
+      "nativeSource": {
+        "file": "database/migrations",
+        "pattern": "highest V<n>__ file name"
+      },
+      "live": {
+        "dev": {
+          "kind": "cloud-sql",
+          "database": "loan_manager_dev",
+          "query": "max(version::int) from flyway_schema_history where success",
+          "url": null,
+          "credentialed": true
+        },
+        "prod": {
+          "kind": "cloud-sql",
+          "database": "loan_manager_prod",
+          "query": "max(version::int) from flyway_schema_history where success",
+          "url": null,
+          "credentialed": true
+        }
+      },
+      "seed": {
+        "release": "R140",
+        "native": 145,
+        "verified": true,
+        "note": "V145 is the highest migration and the last one added (R140: V142 to V145)."
+      }
+    },
+    {
+      "id": "agent",
+      "label": "Integration agent (Debian)",
+      "kind": "agent",
+      "paths": [
+        "integration-agent/src",
+        "integration-agent/service-catalogue.json",
+        "integration-agent/requirements.lock",
+        "integration-agent/pyproject.toml",
+        "integration-agent/systemd",
+        "integration-agent/database"
+      ],
+      "native": "catalogue-revision",
+      "nativeSource": {
+        "file": "integration-agent/service-catalogue.json",
+        "pointer": "/revision"
+      },
+      "live": {
+        "dev": null,
+        "prod": {
+          "kind": "ready-json",
+          "service": "vm-mw-credit-agent",
+          "path": "/ready",
+          "url": null,
+          "field": "release",
+          "commit": "code_version",
+          "nativeField": "catalogue_revision",
+          "credentialed": true
+        }
+      },
+      "seed": {
+        "release": "R142",
+        "native": 37,
+        "verified": true,
+        "note": "Deployed code 813462e7, catalogue revision 37 (R142). No DEV agent exists; the agent serves PROD only. /ready is on the VM and reaches drift through --observed."
+      }
+    },
+    {
+      "id": "grafana-dashboards",
+      "label": "Grafana dashboards",
+      "kind": "monitoring",
+      "paths": [
+        "infrastructure/grafana/dashboards",
+        "infrastructure/grafana/owned-services.tf.json"
+      ],
+      "native": null,
+      "stamp": {
+        "kind": "grafana-tag",
+        "tagPrefix": "release:",
+        "files": "infrastructure/grafana/dashboards/*.json",
+        "checkSource": true
+      },
+      "live": {
+        "dev": null,
+        "prod": {
+          "kind": "grafana-api",
+          "url": "https://monitor.mw-credit.com/api/search?type=dash-db",
+          "field": "tags",
+          "tagPrefix": "release:",
+          "credentialed": true
+        }
+      },
+      "seed": {
+        "release": "R143",
+        "native": null,
+        "verified": true,
+        "note": "mw-agent and mw-pwa last changed in R143. The release:Rnnn tag is added by the first change after R144; until then the live dashboards carry no release tag and read unverified."
+      }
+    },
+    {
+      "id": "metabase-reports",
+      "label": "Metabase reports",
+      "kind": "reporting",
+      "paths": [
+        "project/scripts/metabase"
+      ],
+      "native": null,
+      "stamp": {
+        "kind": "metabase-stamp",
+        "script": "project/scripts/metabase/Stamp-Release.mjs",
+        "applyIsProdWrite": true
+      },
+      "live": {
+        "dev": null,
+        "prod": {
+          "kind": "metabase-api",
+          "url": "https://reports.mw-credit.com",
+          "field": "stamp",
+          "credentialed": true
+        }
+      },
+      "seed": {
+        "release": "R137",
+        "native": null,
+        "verified": false,
+        "note": "Last project/scripts/metabase change in a tag diff is R137 (9 November 2026 Loan Reports scripts); PROD content was also changed by the 9 November decommission, which has no Rnnn. Unverified until the first --apply stamp."
+      }
+    },
+    {
+      "id": "vendor-metabase",
+      "label": "Metabase (vendor)",
+      "kind": "vendor",
+      "paths": [],
+      "native": "vendor",
+      "nativeSource": null,
+      "live": {
+        "dev": null,
+        "prod": {
+          "kind": "metabase-api",
+          "url": "https://reports.mw-credit.com/api/session/properties",
+          "field": "version.tag",
+          "credentialed": false
+        }
+      },
+      "seed": {
+        "release": null,
+        "native": "v0.63.18.1",
+        "verified": true,
+        "note": "Read live from /api/session/properties on 12 November 2026 (GET)."
+      }
+    },
+    {
+      "id": "vendor-grafana",
+      "label": "Grafana (vendor)",
+      "kind": "vendor",
+      "paths": [
+        "infrastructure/grafana/main.tf"
+      ],
+      "native": "vendor",
+      "nativeSource": {
+        "file": "infrastructure/grafana/main.tf",
+        "pattern": "grafana/grafana provider version (provider, not server)"
+      },
+      "live": {
+        "dev": null,
+        "prod": {
+          "kind": "grafana-api",
+          "url": "https://monitor.mw-credit.com/api/health",
+          "field": "version",
+          "credentialed": false
+        }
+      },
+      "seed": {
+        "release": "R089",
+        "native": "13.4.0",
+        "verified": false,
+        "note": "Release is the Terraform provider pin (main.tf, commit e05785e4); native is the server version read live from /api/health on 12 November 2026 (GET)."
+      }
+    },
+    {
+      "id": "vendor-postgresql",
+      "label": "PostgreSQL (Cloud SQL)",
+      "kind": "vendor",
+      "paths": [],
+      "native": "vendor",
+      "nativeSource": {
+        "file": "project/Documents/Environment_Inventory.md",
+        "pattern": "POSTGRES_<n>"
+      },
+      "live": {
+        "dev": {
+          "kind": "cloud-sql",
+          "instance": "mw-credit-pg-20261017",
+          "field": "databaseVersion",
+          "url": null,
+          "credentialed": true
+        },
+        "prod": {
+          "kind": "cloud-sql",
+          "instance": "mw-credit-pg-20261017",
+          "field": "databaseVersion",
+          "url": null,
+          "credentialed": true
+        }
+      },
+      "seed": {
+        "release": null,
+        "native": "POSTGRES_18",
+        "verified": true,
+        "note": "One shared instance (DEV and PROD databases); restored 17 October 2026, before the R-series records it."
+      }
+    },
+    {
+      "id": "vendor-node",
+      "label": "Node base image",
+      "kind": "vendor",
+      "paths": [
+        "Dockerfile"
+      ],
+      "native": "vendor",
+      "nativeSource": {
+        "file": "Dockerfile",
+        "pattern": "^FROM (node:[^ ]+)"
+      },
+      "live": {
+        "dev": null,
+        "prod": null
+      },
+      "seed": {
+        "release": "R063",
+        "native": "node:24.21.0-bookworm-slim",
+        "verified": true,
+        "note": "Source-declared only (Dockerfile, commit f3932b8c); the running image is covered by the api image digests."
+      }
+    }
+  ]
+}

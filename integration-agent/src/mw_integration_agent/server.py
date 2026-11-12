@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from .config import ConfigurationError, load_controls, load_json, load_secret, validate_catalogue, validate_config
+from .config import ConfigurationError, build_identity, load_controls, load_json, load_secret, validate_catalogue, validate_config
 from .journal import IngressJournal
 from .receipt_wake import wake, wakes
 from .webhook import extract_messages, verify_signature
@@ -34,7 +34,8 @@ def package_sha256(root: Path = PACKAGE) -> str:
 def record_startup(config: dict) -> dict:
     STARTUP.clear()
     STARTUP.update(pid=os.getpid(), started_at=datetime.now(UTC).isoformat(),
-                   code_version=config.get("code_version"), package_sha256=package_sha256())
+                   code_version=config.get("code_version"), package_sha256=package_sha256(),
+                   identity=build_identity(config))
     return STARTUP
 
 
@@ -91,8 +92,10 @@ def readiness(config_path: str, catalogue_path: str, budget: float | None = None
     thread.join(READY_BUDGET if budget is None else budget)
     done = dict(results)
     failed = [name for name in CHECKS if done.get(name) is not True]
+    identity = STARTUP.get("identity") or build_identity(None)
     body = {"ready": not failed, "code_version": STARTUP.get("code_version"),
-            "started_at": STARTUP.get("started_at"), "failed": failed}
+            "started_at": STARTUP.get("started_at"), "failed": failed,
+            "release": identity["release"], "commit": identity["commit"]}  # R144: the loaded code's release and commit
     if thread.is_alive():
         body["budget_exceeded"] = True
     return body

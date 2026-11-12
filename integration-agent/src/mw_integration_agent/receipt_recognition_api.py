@@ -28,7 +28,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
 from . import http
-from .config import ConfigurationError, load_controls, load_json, validate_catalogue, validate_config
+from .config import ConfigurationError, build_identity, load_controls, load_json, validate_catalogue, validate_config
 from .receipt_image import PROVIDERS, RecognitionUnavailable, canonical_image, provider_module, recognize
 
 SERVICE = 'receipt_recognition_api'
@@ -335,7 +335,7 @@ def audit_outcome(config, caller, image_sha256, status, body, started, trace=Non
         pass
 
 
-def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BOUND, audit=audit_outcome):
+def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BOUND, audit=audit_outcome, identity=None):
     keys = keys or Keys()
     slots = slots or threading.BoundedSemaphore(CONCURRENCY)
 
@@ -370,11 +370,14 @@ def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BO
             if urlsplit(self.path).path != '/healthz':
                 self.respond(404, {'status': 'not_found'})
                 return
+            config = None
             try:
-                enabled = self.controls()[1]
+                config, enabled = self.controls()
             except Exception:
                 enabled = False
-            self.respond(200, {'status': 'ok', 'enabled': enabled})
+            # R144: the release and commit this process started with (serve), else the configuration's.
+            build = identity or build_identity(config)
+            self.respond(200, {'status': 'ok', 'enabled': enabled, 'release': build['release'], 'commit': build['commit']})
 
         def do_POST(self):
             started = time.monotonic()
@@ -464,7 +467,7 @@ def serve(config_path, catalogue_path):
     from . import audit, chat_relay_api, receipt_provider_claude, receipt_provider_codex, receipt_provider_gemini, receipt_qr, state  # noqa: F401
     if state.enabled(config):
         import psycopg  # noqa: F401
-    server = ThreadingHTTPServer((host, port), handler(config_path, catalogue_path))
+    server = ThreadingHTTPServer((host, port), handler(config_path, catalogue_path, identity=build_identity(config)))
     server.daemon_threads = True
     try:
         server.serve_forever()

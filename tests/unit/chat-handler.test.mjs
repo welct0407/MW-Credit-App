@@ -106,7 +106,7 @@ const sql={functionCall:{name:'sql_query',id:'q1',args:{sql:'SELECT 1'}}};
 
 test('health, authentication, membership and CORS',async t=>{
  const s=await server();t.after(s.close);
- assert.deepEqual(await (await s.call('/health',{token:null})).json(),{ok:true});
+ assert.deepEqual(await (await s.call('/health',{token:null})).json(),{ok:true,release:'dev',commit:'unknown'});
  let r=await s.call('/api/chat/models',{token:null});assert.equal(r.status,401);assert.deepEqual(await r.json(),{error:'unauthorized',code:'sign_in_required'});
  r=await s.call('/api/chat/models',{token:'expired'});assert.equal(r.status,401);assert.equal((await r.json()).code,'session_invalid');
  r=await s.call('/api/chat/models',{token:'stranger'});assert.equal(r.status,403);assert.deepEqual(await r.json(),{error:'access_denied'});

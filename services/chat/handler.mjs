@@ -15,6 +15,7 @@
  * through the relay (transliterate.mjs); same token, origins and 'read' capability, nothing stored. */
 import {beginRequest} from '../lib/http-boundary.mjs';
 import {UUID_V4} from '../lib/ids.mjs';
+import {buildInfo} from '../lib/build-info.mjs';
 import {availableModel,providerFor} from './config.mjs';
 import {storeError} from './store.mjs';
 import {runTurn,failureText} from './engine.mjs';
@@ -61,7 +62,7 @@ const stripCursor=({sortAt:_sortAt,...item})=>item;
 /** @param {{config:any,verifyPrincipal:Function,store:ReturnType<import('./store.mjs').createChatStore>,createTools:(actor:any,writes?:any)=>any,transport:any,
  *  completionLogger?:(record:object)=>void,log?:(record:object)=>void,now?:()=>number,pingMs?:number,commandFetch?:typeof globalThis.fetch,sleep?:(ms:number)=>Promise<void>}} options */
 export function createChatHandler({config,verifyPrincipal,store,createTools,transport,completionLogger=()=>{},log=()=>{},now=Date.now,pingMs=PING_MS,commandFetch,sleep}){
- const chat=config.chat;
+ const chat=config.chat,build=buildInfo();
  if(!chat||!Array.isArray(config.origins)||config.origins.length<1)throw Error('Invalid chat handler configuration');
  // R106 D11: the catalogue loads only when the switch is on.
  const commandUrl=config.chatCommandUrl??null,catalogue=commandUrl?loadCatalogue():null;
@@ -175,7 +176,7 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
 
  return async(req,res)=>{
   let url;try{url=new URL(req.url,'http://local.invalid');}catch{res.statusCode=404;return res.end();}
-  if(req.method==='GET'&&req.url==='/health'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({ok:true}));}
+  if(req.method==='GET'&&req.url==='/health'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});return res.end(JSON.stringify({ok:true,release:build.release,commit:build.commit}));}
   let code='ok',route='unknown';
   const boundary=beginRequest(req,res,{origins:config.origins,methods:['GET','POST','PATCH'],headers:['Authorization','Content-Type','Accept','X-MW-Wake-Deadline'],logger:completionLogger,
    record:({requestId,status})=>({event:'chat_request',requestId,route,method:['GET','POST','PATCH','OPTIONS'].includes(req.method)?req.method:'OTHER',status,code,durationMs:boundary.durationMs()})});

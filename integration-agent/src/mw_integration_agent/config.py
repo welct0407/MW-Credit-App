@@ -30,6 +30,19 @@ PASSWORD_PORT = 5432
 IAM_PORT = 5433
 AUTH_MODES = ('password', 'iam')
 IAM_USER = r'[a-z][a-z0-9-]*@clever-oasis-508610-n7\.iam'
+# R144 component versioning: the release (code_release, written by deploy-runtime.py --release) and commit
+# (code_version) a process reports on /ready and /healthz; anything malformed reads as null, never echoed.
+RELEASE_PATTERN = re.compile(r'R[0-9]{3}')
+COMMIT_PATTERN = re.compile(r'[0-9a-f]{7,40}')
+
+
+def build_identity(config: dict[str, Any] | None) -> dict[str, str | None]:
+    config = config if isinstance(config, dict) else {}
+    release, commit = config.get('code_release'), config.get('code_version')
+    return {'release': release if isinstance(release, str) and RELEASE_PATTERN.fullmatch(release) else None,
+            'commit': commit if isinstance(commit, str) and COMMIT_PATTERN.fullmatch(commit) else None}
+
+
 # R091 (owner instruction of 23 October 2026): the Instagram Partner conversation, its native command
 # API, reviewer DML and the conversation providers are retired. A configuration that still carries one
 # of their keys is refused (fail closed), so the live file is cleaned deliberately (deploy-runtime.py

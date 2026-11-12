@@ -1,6 +1,8 @@
 """Code-only runtime deployment: the established freeze/install/activate/rollback with the receiver readiness gate.
 
 Every switch, cutoff and catalogue entry is preserved; only config code_version follows the pinned commit.
+R144 (component versioning): `--release Rnnn` (any phase, validated) also writes config code_release, which /ready and
+/healthz report beside the commit; a deploy without it drops a stale code_release (the release is then unknown, not wrong).
 R091 (Instagram Partner conversation retired): the one accepted change of a live catalogue revision 31 to the
 candidate revision 32 removes exactly the retired conversation services. R094: every deployment drops the retired
 conversation keys from the configuration, whatever the catalogue change (the package's validator refuses a
@@ -37,6 +39,7 @@ import importlib.util
 import json
 from pathlib import Path
 import re
+import sys
 spec=importlib.util.spec_from_file_location('receipt_deployment',Path(__file__).with_name('deploy-shared-receipt-api.py'))
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 
@@ -65,6 +68,9 @@ R128_TEMPLATE_SHA256=R112_TEMPLATE_SHA256
 R142_REVISIONS=(36,37)
 # The repository revision 36 catalogue's services, unchanged in revision 37 (the same template again).
 R142_TEMPLATE_SHA256=R112_TEMPLATE_SHA256
+# R144: the release of the commit being deployed, from --release (main); None leaves the release unknown.
+RELEASE_PATTERN=re.compile('R[0-9]{3}')
+RELEASE={'value':None}
 
 
 def services_sha256(services):
@@ -74,8 +80,10 @@ def services_sha256(services):
 def retired(key):return key in R091_KEYS or key.startswith(R091_PREFIXES)
 
 
-def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
+def prepare(config,catalogue,candidate,commit,origin,audience,cutoff,release=None):
+    release=RELEASE['value'] if release is None else release
     base.require(re.fullmatch('[0-9a-f]{40}',commit or '') is not None,'Exact commit required')
+    base.require(release is None or (isinstance(release,str) and RELEASE_PATTERN.fullmatch(release) is not None),'Release must look like R144')
     base.require(config.get('state_backend')=='postgres','PostgreSQL state backend required')
     live,wanted=set(catalogue['services']),set(candidate['services'])
     r091=(catalogue.get('revision'),candidate.get('revision'))==R091_REVISIONS
@@ -112,6 +120,8 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
     c=copy.deepcopy(config)
     for key in [k for k in c if retired(k)]:del c[key]
     c['code_version']=commit
+    if release is None:c.pop('code_release',None)
+    else:c['code_release']=release
     cat=copy.deepcopy(catalogue)
     if r091:
         cat['revision']=candidate['revision']
@@ -137,5 +147,28 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
 base.POINTER=Path('/var/lib/mw-integration-agent/rollback/runtime-current')
 base.PREFIX='runtime-'
 base.prepare=prepare
-if __name__ == '__main__':
+
+
+def main(argv=None):
+    """The engine's CLI plus R144 --release Rnnn (also --release=Rnnn), validated before any phase runs."""
+    argv=list(sys.argv[1:] if argv is None else argv)
+    rest,release,seen=[],None,0
+    i=0
+    while i<len(argv):
+        arg=argv[i]
+        if arg=='--release':
+            base.require(i+1<len(argv),'--release needs a value');release,seen,i=argv[i+1],seen+1,i+2;continue
+        if arg.startswith('--release='):
+            release,seen=arg.split('=',1)[1],seen+1
+        else:
+            rest.append(arg)
+        i+=1
+    base.require(seen<=1,'Give --release once')
+    base.require(release is None or RELEASE_PATTERN.fullmatch(release) is not None,'Release must look like R144')
+    RELEASE['value']=release
+    sys.argv=[sys.argv[0]]+rest
     base.main()
+
+
+if __name__ == '__main__':
+    main()

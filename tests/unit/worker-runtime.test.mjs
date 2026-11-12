@@ -23,7 +23,7 @@ test('worker exact environment identities and separation fail closed',()=>{
 test('disabled worker creates no pool, credentials or effect',async()=>{
  const runtime=await createWorkerRuntime({},new Proxy({},{get(){throw Error('dependency touched');}}));let code,body;
  runtime.handler({}, {writeHead(c){code=c;},end(b){body=JSON.parse(b);}});assert.equal(code,503);assert.equal(body.error,'worker_disabled');await runtime.close();
- runtime.handler({method:'GET',url:'/health'}, {writeHead(c,headers){code=c;assert.equal(headers['Cache-Control'],'no-store');},end(b){body=JSON.parse(b);}});assert.equal(code,200);assert.deepEqual(body,{status:'ok',enabled:false});
+ runtime.handler({method:'GET',url:'/health'}, {writeHead(c,headers){code=c;assert.equal(headers['Cache-Control'],'no-store');},end(b){body=JSON.parse(b);}});assert.equal(code,200);assert.deepEqual(body,{status:'ok',enabled:false,release:'dev',commit:'unknown'});
 });
 test('scheduler boundary preserves original Bangkok date/hour and rejects malformed calendar values',()=>{
  assert.deepEqual(scheduledBoundary('2026-10-11T17:05:00Z'),{day:'2026-10-12',hour:'00'});

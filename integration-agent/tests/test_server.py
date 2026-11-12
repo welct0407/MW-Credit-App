@@ -86,7 +86,22 @@ class ReceiverTests(unittest.TestCase):
     def test_ready_reports_code_version_and_no_failures(self):
         status, body = self.ready()
         self.assertEqual(status, 200)
-        self.assertEqual(body, {'ready': True, 'code_version': COMMIT, 'started_at': server.STARTUP['started_at'], 'failed': []})
+        self.assertEqual(body, {'ready': True, 'code_version': COMMIT, 'started_at': server.STARTUP['started_at'], 'failed': [],
+                                'release': None, 'commit': COMMIT})
+
+    def test_ready_reports_the_startup_release_and_commit(self):
+        # R144: deploy-runtime.py --release writes code_release; /ready reports what this process started with.
+        self.fixture.config.update(code_release='R144'); self.fixture.write(); server.record_startup(self.fixture.config)
+        self.fixture.config.update(code_release='R145'); self.fixture.write()
+        status, body = self.ready()
+        self.assertEqual((status, body['release'], body['commit']), (200, 'R144', COMMIT))
+        for bad in ('r144', 'R1444', 'dev', 7, '$(id)'):
+            with self.subTest(release=bad):
+                self.fixture.config.update(code_release=bad); self.fixture.write(); server.record_startup(self.fixture.config)
+                self.assertIsNone(self.ready()[1]['release'])
+        self.fixture.config.update(code_release='R144', code_version='not-a-commit')
+        server.record_startup(self.fixture.config)
+        self.assertEqual((server.STARTUP['identity']['release'], server.STARTUP['identity']['commit']), ('R144', None))
 
     def test_each_failed_check_is_named_without_detail(self):
         cases = {'config': lambda f: f.config.update(receiver_enabled=False),
@@ -101,14 +116,15 @@ class ReceiverTests(unittest.TestCase):
                 self.assertEqual(status, 503)
                 self.assertFalse(body['ready'])
                 self.assertIn(name, body['failed'])
-                self.assertEqual(set(body), {'ready', 'code_version', 'started_at', 'failed'})
+                self.assertEqual(set(body), {'ready', 'code_version', 'started_at', 'failed', 'release', 'commit'})
                 self.assertNotIn(self.directory.name, json.dumps(body))
         self.assertEqual(self.ready()[1]['failed'], ['current'])
 
     def test_replaced_package_is_not_current(self):
         with patch.object(server, 'package_sha256', return_value='0' * 64):
             self.assertEqual(self.ready(), (503, {'ready': False, 'code_version': COMMIT,
-                                                  'started_at': server.STARTUP['started_at'], 'failed': ['current']}))
+                                                  'started_at': server.STARTUP['started_at'], 'failed': ['current'],
+                                                  'release': None, 'commit': COMMIT}))
 
     def test_state_check_uses_postgres_transaction_only_for_postgres(self):
         with patch('mw_integration_agent.state.transaction') as transaction:

@@ -315,6 +315,22 @@ class ContractTests(unittest.TestCase):
         finally:
             conn.close()
 
+    def test_healthz_reports_release_and_commit_without_upstream(self):
+        # R144: the configuration's code_release/code_version unless serve() passed the startup identity.
+        self.config.update(code_release='R144', code_version='c' * 40); self.write()
+        self.start(Upstream())
+        conn = http.client.HTTPConnection('127.0.0.1', self.httpd.server_address[1], timeout=10)
+        conn.request('GET', '/healthz'); body = json.loads(conn.getresponse().read()); conn.close()
+        self.assertEqual(body, {'status': 'ok', 'enabled': True, 'release': 'R144', 'commit': 'c' * 40})
+        handler = relay.handler(str(self.config_path), str(self.catalogue_path), identity={'release': 'R143', 'commit': None})
+        server = ThreadingHTTPServer(('127.0.0.1', 0), handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(lambda: (server.shutdown(), server.server_close()))
+        conn = http.client.HTTPConnection('127.0.0.1', server.server_address[1], timeout=10)
+        conn.request('GET', '/healthz'); body = json.loads(conn.getresponse().read()); conn.close()
+        self.assertEqual((body['release'], body['commit']), ('R143', None))
+        self.assertEqual(self.upstream.requests, [])
+
     def test_dev_caller_streams_through_the_dev_rule_unchanged(self):
         self.start(Upstream(FakeResponse(200, chunks=SSE)))
         status, data, kind = self.post()
@@ -444,7 +460,7 @@ class ContractTests(unittest.TestCase):
         conn = http.client.HTTPConnection('127.0.0.1', self.httpd.server_address[1], timeout=10)
         conn.request('GET', '/healthz')
         response = conn.getresponse()
-        self.assertEqual((response.status, json.loads(response.read())), (200, {'status': 'ok', 'enabled': False}))
+        self.assertEqual((response.status, json.loads(response.read())), (200, {'status': 'ok', 'enabled': False, 'release': None, 'commit': None}))
         conn.close()
         self.assertEqual(self.upstream.requests, [])
 

@@ -35,6 +35,23 @@ From R105 a release needs no runner edit when it fits this kind. The package is 
 
 **Still needs a hand-written kind (a code edit):** a new service or role; a Terraform action other than an image or the chat settings change above (environment, scaling, IAM, VPC, a new resource) or any other change under `infrastructure/production` or `infrastructure/modules` (R106 is the example: four infrastructure files and an added chat env entry); a change to the receipt recognizer wiring; images before SQL (as R091); a new scope; a change to the chat rule; and growing the delivery allow-list.
 
+## Component versions (R144 onwards)
+
+`components.json` is the registry of the ecosystem's components (PWA, the five API services, schema, integration agent, Grafana dashboards, Metabase reports and the vendor rows). `Rnnn` stays the one ecosystem number; a component's version is the last `Rnnn` that changed it plus its native counter. Each entry has `id`, `label`, `kind`, `paths` or `derive: "generic-role"` with a `role` (read, command, notify, jobs, chat, the names in `GENERIC_ROLES`), `native` (`flyway`, `catalogue-revision`, `image-digest`, `hosting-version`, `vendor` or null), `live.dev` and `live.prod` (a source kind and public URL, or null where the environment has no such component) and `seed` (release and native value as of R143; `verified: false` marks a seed taken from records only). The field list is in the file's `fields` object. The API roles reuse `genericRoleClosures` and `genericChangedRoles` from `deploy-business-hosting.mjs`, so the changed services here equal the ones the promotion runner derives.
+
+```bash
+node scripts/promotion/component-versions.mjs derive --release R144 --commit <sha> --format md|json
+node scripts/promotion/component-versions.mjs render --write      # or --check; fills the marked block in Environment_Inventory.md
+node scripts/promotion/component-versions.mjs check-source        # Grafana dashboards changed since the last tag need release:<Open Rnnn>
+node scripts/promotion/component-versions.mjs drift --env dev|prod|all [--observed file.json] [--json] [--strict]
+```
+
+- `derive` compares the files changed since the previous `Rnnn` tag with each component's paths; an unchanged component keeps its earlier release and the native counter is read at the release commit (highest migration, catalogue `revision`).
+- `drift` makes GET requests only. Public facts (`build-version.json`, API `/health`, Grafana and Metabase version endpoints) are fetched; credentialed facts (Cloud Run digest, Hosting version, Flyway, agent `/ready`, Grafana tags, Metabase stamp) arrive through `--observed file.json`. A fact that is missing is unverified, not matched. Exact comparison needs a full clone with tags; when a live commit is absent locally, drift falls back to comparing the image's build release with the last-changed release, so a rebuilt-but-unchanged image reads as drift (fail-safe, never a false match). Exit codes: 0 ok, 1 drift, 2 unverified facts under `--strict`, 3 error.
+- `--commit` accepts only a 7 to 40 character hex commit, `HEAD` or an `Rnnn` tag (branch names and expressions such as `HEAD~1` are refused, exit 3); `--release` and `--walk-from` must be `Rnnn`.
+- The role derivation lives in `scripts/promotion/generic-roles.mjs`; `deploy-business-hosting.mjs` re-exports it. `derive --walk-from Rnnn` walks the tags from that release and cross-checks the registry seeds. `render --check` accepts a closure render made before its tag exists. `derive`, `render` and `drift` need the release tags locally (`git fetch --tags`) and fail closed without them.
+- Images get `MW_RELEASE_NUMBER` and `MW_SOURCE_COMMIT` as Docker build arguments (DEV default `dev`; `cloudbuild-business.yaml` requires `_MW_RELEASE` matching `^R\d{3}$`). Not run here: image builds, deployments, the Debian agent deploy, Grafana apply and the Metabase `Stamp-Release.mjs --apply` (a PROD write); they belong to promotion. Procedure: [Release workflow](../../project/Documents/Rules/Release_Workflow.md#component-versions-r144-onwards).
+
 ## Linux cloud sessions
 
 `deploy-business-hosting.mjs` runs unchanged from a Claude Code cloud session. The cloud account `codex-cloud` holds Token Creator on the pinned operator `mw-credit-unattended-admin`, so supply the operator token and the impersonation source token from gcloud:
