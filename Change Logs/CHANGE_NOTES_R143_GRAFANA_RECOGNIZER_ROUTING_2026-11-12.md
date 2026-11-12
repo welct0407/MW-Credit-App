@@ -42,4 +42,24 @@ Git baseline `761bcc24`. Collector: copy `debian-health.before-R143-20261112.py`
 None. The owner decided to add the Anthropic status (see Scope addition).
 
 ## Remaining work
-None. R143 stays Open for further owner scope; its closure needs no PROD application promotion.
+None. Owner acceptance, when it arrives, is recorded in the next closure or product pull request.
+
+## PROD promotion record (monitoring only, 12 November 2026 UTC)
+Authority: the owner's approval of 12 November 2026, "yes merge and deploy, add Anthropic status too", and the closing instruction "close R143 too". The promotion is the deployment already made and verified as recorded in the Deployment record above (collector on `vm-mw-credit-agent` and Grafana through `scripts/grafana/manage.py`). There is no PWA, Hosting, SQL, Cloud Run or agent business change, so no backup, image, Terraform or Hosting step applies. No financial write, notification or job was made. No secret value appears here.
+
+| Step | Result |
+| --- | --- |
+| Freeze | Package `main` `055e25fe0f6ec419d92e8522e55487af2ae83e7a` (merge of PR #291); baseline R142 `813462e7`. Next unused number R145 (R144 opened by this closure pull request) |
+| Deployment and verification | As recorded above: collector installed 02:46:49Z, Grafana applied 02:52:44Z to 02:52:58Z, re-plan clean, read-back `mw-agent` and `mw-pwa` version 15 |
+| Rollback | Restore the kept collector copy; Grafana revert plan or earlier dashboard versions (see Recovery) |
+| Tag | Annotated `R143` on `055e25fe0f6ec419d92e8522e55487af2ae83e7a`, created by the Release tag workflow; run id 43145187821 |
+
+### Deviations
+- None recorded.
+
+### Limitations
+- No application change, so there is no PROD smoke beyond the Grafana and Cloud Monitoring read-back above. Owner acceptance is pending.
+
+### Pruned in the closure pull request
+- Change note `Change Logs/CHANGE_NOTES_R140_PENDING_MANUAL_EXPENSE_2026-11-10.md` (outside the retention window of the open release and the three most recent Released releases: R143, R142, R141); links to it in the Release Tracker, the Environment Inventory, Development Changes, the Database README and Solution Design now point to its commit permalink at `88541486`.
+- The R143 section of Development Changes.
