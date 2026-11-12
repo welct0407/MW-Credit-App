@@ -93,7 +93,7 @@ All pass except case 4, which was not run.
 Applied 11 November 2026 18:26:48Z to 18:26:53Z (see the DEV deployment record): the `command-dev` caller on Claude with Gemini fallback, QR reference and text cleaning; `receipt_claude_model` `claude-opus-5-5`, effort `low`, default QR bank list. The `command-prod` caller and the cycle are unchanged. Measured after the follow-up fix; see Performance after the fix.
 
 ## PROD
-DEV accepted by tests (12 November 2026). PROD activation (the PROD caller, then the Instagram receipt cycle) is pending the owner. Not requested; the PROD caller and the Instagram receipt cycle stay on Gemini.
+DEV accepted by tests on 12 November 2026. The owner then instructed the PROD cutover (see the PROD promotion record below).
 
 ## Checks
 | Command | Result |
@@ -124,8 +124,33 @@ A forced Claude failure on the live route (case 4), and item 5 of Echo's check (
 Git baseline `c7f6488` (code), agent `246bcb93` and catalogue revision 36 on the VM, Hosting `a3d0594cc8f5511f`. Rollback: `deploy-runtime.py rollback --commit d2de3330` for the code; `config-only-change.py restore --tag r142-dev-reader` for the configuration; redeploy the previous Hosting version. Or remove the route keys from the `command-dev` caller (or set its provider to `gemini`) by the config-only route; nothing in PROD changes.
 
 ## Open questions
-- PROD activation of the new reader, when the owner has reviewed DEV.
+- None. Owner acceptance of the PROD receipt reader is recorded in the next closure or product pull request.
 - Bank or third-party slip verification is a later owner decision.
 
 ## Remaining work
-The first PROD-caller request after the deploy (must be served by gemini), then the owner's PROD activation: the PROD caller first, then the Instagram receipt cycle. Then update, as affected: `integration-agent/docs/RECEIPTS.md`, `integration-agent/README.md` Current state, `integration-agent/SERVICE_CATALOGUE.md` and `service-catalogue.json`, `integration-agent/config.example.json` notes, `project/Documents/Environment_Inventory.md` (federation rule, DEV caller routing, VM version), `project/Documents/Solution_Design.md` Current state if receipt reading is described there, `project/Documents/Development_Changes.md` (active scope), the Data Dictionary only if the recognizer contract changes, and `project/Documents/Service_Account_Browser_Mapping.md` only if an identity changes.
+Owner acceptance in PROD, and the first real PROD slip served by the Claude reader. Bank or third-party slip verification is a later owner decision.
+
+## PROD promotion record (Forge, 12 November 2026 UTC)
+Authority: the owner's instruction of 12 November 2026, "move everything to prod, app form and ig agent. finish all the cutover work and close the release", relayed by the orchestrator as the scoped PROD approval for R142: the Hosting deploy, the PROD configuration cutover of the receipt reader (the PROD caller and the Instagram receipt cycle) and the technical records. No SQL, no image or Terraform change. No payment, notification or job was forced and no financial write was made. No secret value, token, slip or borrower data appears here. Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md).
+
+| Step | Result |
+| --- | --- |
+| Freeze | PLACEHOLDER (Forge: freeze timestamp, start of promotion); package `main` `813462e7` (merge of PR #289; the agent code is already on the VM from the DEV deployment); baseline R141 `c983e68a`. Next unused number R144 (R143 opened by this closure pull request) |
+| Target | Project `clever-oasis-508610-n7`, database `loan_manager_prod` (no change), Hosting site `mw-credit-prod-737787224638`, agent VM `vm-mw-credit-agent` |
+| Baseline capture | PLACEHOLDER (Forge: Hosting version before, config sha before, `code_version`, catalogue revision) |
+| SQL, image, Terraform | None |
+| Hosting | PLACEHOLDER (Forge: version, release, build-version R142, entry, file count, package sha256, times) |
+| Configuration cutover | PLACEHOLDER (Forge: `config-only-change.py` tag `r142-prod-cutover`, times, the keys changed: the `command-prod` caller route and the Instagram receipt cycle keys; DEV route unchanged) |
+| Checks | PLACEHOLDER (Forge: `check`, `/ready`, recognizer and relay `/healthz`, read-only smoke, first PROD-caller request served by which provider) |
+| Rollback | PLACEHOLDER (Forge: `config-only-change.py restore --tag r142-prod-cutover`; previous Hosting version; code rollback `deploy-runtime.py rollback --commit 813462e7` restores `d2de3330`) |
+| Tag | PLACEHOLDER: annotated `R142` on `813462e7` through the Release tag workflow; run id to fill in (not yet started) |
+
+### Deviations
+- PLACEHOLDER (Forge: none, or list).
+
+### Limitations
+- PLACEHOLDER (Forge). Pending first real use: the first real slip through the PROD caller and the Instagram cycle on Claude, and the owner's acceptance. The tag record is part of the closure pull request.
+
+### Pruned in the closure pull request
+- Change note `Change Logs/CHANGE_NOTES_R139_CHAT_GROUP_REPIN_2026-11-10.md` (out of the retention window of the open release and the three most recent Released releases: R142, R141, R140); links to it in the Release Tracker and the Environment Inventory now point to its commit permalink at `813462e7`.
+- The R142 section of Development Changes (replaced by the R142 follow-up row).
