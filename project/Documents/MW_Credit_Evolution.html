@@ -180,7 +180,7 @@ details.tbl th { color: var(--muted); font-weight: 500; border-bottom: 1px solid
     <p class="lede">How the loan app and the services around it changed, from the first written record to today. Built from the Git history of the current repository and the four archived ones, the release tracker and the change notes.</p>
     <dl class="facts">
       <div><dt>Days on record</dt><dd>75</dd></div>
-      <div><dt>Releases</dt><dd>144</dd></div>
+      <div><dt>Tagged releases</dt><dd>140</dd></div>
       <div><dt>Commits</dt><dd>2,479</dd></div>
       <div><dt>Database migrations</dt><dd>145</dd></div>
     </dl>
@@ -232,7 +232,7 @@ details.tbl th { color: var(--muted); font-weight: 500; border-bottom: 1px solid
     <div class="eras" id="eras"></div>
   </section>
 
-  <p class="foot">Sources: commit history of MW-Credit-App, which contains the imported history of AppSheet-Loan-Project and MW-Integration-Agent; the archived MW-AI-Collection and MW-Partner-Operations repositories; the release tracker; and the change notes. Commits exclude merges. Release dates before R059 come from the release tracker and later ones from Git tags; R012 was merged into R011, so 144 of the 145 numbers were released. The AppSheet apps were in use before 29 August 2026, but no earlier date is recorded anywhere in these sources.</p>
+  <p class="foot">Sources: commit history of MW-Credit-App, which contains the imported history of AppSheet-Loan-Project and MW-Integration-Agent; the archived MW-AI-Collection and MW-Partner-Operations repositories; the release tracker; and the change notes. Commits exclude merges. Release dates are the dates on the Git tags; the tags for R001 to R058 were restored on 12 November 2026 on their original commits with their original dates. Of the 145 release numbers, 140 have a tag: R012 was merged into R011, and R016, R026, R055 and R056 were never tagged. The AppSheet apps were in use before 29 August 2026, but no earlier date is recorded anywhere in these sources.</p>
 </div>
 <div id="tip" hidden></div>
 
@@ -297,7 +297,7 @@ details.tbl th { color: var(--muted); font-weight: 500; border-bottom: 1px solid
   ];
 
   var COMMITS = {'08-30':6,'08-31':2,'09-01':1,'09-04':1,'09-08':1,'09-09':1,'09-10':7,'09-11':1,'09-12':4,'09-13':21,'09-14':14,'09-15':32,'09-16':32,'09-17':11,'09-18':29,'09-19':31,'09-20':59,'09-21':68,'09-22':45,'09-23':33,'09-24':58,'09-25':58,'09-26':34,'09-27':43,'09-28':5,'09-29':22,'09-30':1,'10-01':4,'10-02':34,'10-03':32,'10-04':58,'10-05':29,'10-06':19,'10-07':69,'10-08':91,'10-09':58,'10-10':22,'10-11':62,'10-12':46,'10-13':41,'10-14':95,'10-15':94,'10-16':135,'10-17':88,'10-18':59,'10-19':76,'10-20':25,'10-21':26,'10-22':78,'10-23':16,'10-24':18,'10-25':21,'10-26':34,'10-27':9,'10-28':32,'10-29':2,'10-30':15,'10-31':10,'11-01':26,'11-02':101,'11-03':77,'11-04':47,'11-05':21,'11-06':38,'11-07':9,'11-08':31,'11-09':24,'11-10':18,'11-11':42,'11-12':27};
-  var RELEASES = {'09-16':3,'09-17':1,'09-18':3,'09-19':2,'09-20':1,'09-21':3,'09-22':1,'09-24':12,'09-25':8,'09-26':9,'09-27':3,'09-29':2,'10-05':1,'10-07':1,'10-11':1,'10-12':1,'10-13':3,'10-14':3,'10-15':3,'10-16':5,'10-17':4,'10-18':5,'10-19':1,'10-20':6,'10-21':5,'10-22':1,'10-23':1,'10-24':5,'10-25':6,'10-28':3,'10-29':1,'10-30':1,'10-31':2,'11-01':1,'11-02':6,'11-03':3,'11-04':8,'11-05':4,'11-06':2,'11-07':2,'11-08':1,'11-09':2,'11-10':2,'11-11':2,'11-12':4};
+  var RELEASES = {'09-16':3,'09-17':1,'09-18':3,'09-19':2,'09-20':1,'09-21':3,'09-22':1,'09-24':10,'09-25':8,'09-26':9,'09-27':3,'09-29':2,'10-05':1,'10-07':1,'10-11':1,'10-12':1,'10-13':1,'10-14':3,'10-15':3,'10-16':5,'10-17':4,'10-18':5,'10-19':1,'10-20':6,'10-21':5,'10-22':1,'10-23':1,'10-24':5,'10-25':6,'10-28':3,'10-29':1,'10-30':1,'10-31':2,'11-01':1,'11-02':6,'11-03':3,'11-04':8,'11-05':4,'11-06':2,'11-07':2,'11-08':1,'11-09':2,'11-10':2,'11-11':2,'11-12':4};
 
   // ---------- chart ----------
   var o = [], tipData = [];
@@ -371,7 +371,7 @@ details.tbl th { color: var(--muted); font-weight: 500; border-bottom: 1px solid
     o.push('<text class="t-end" x="' + (x(pi) + dayW / 2) + '" y="' + (py - 5) + '" text-anchor="middle">' + peakText + '</text>');
   }
   hist(yC0, hC, cMax, COMMITS, '--bar', 'Commits per day', [50, 100], '10-16', '135 on 16 Oct');
-  hist(yR0, hR, rMax, RELEASES, '--accent', 'Releases per day', [6], '09-24', '12 on 24 Sep');
+  hist(yR0, hR, rMax, RELEASES, '--accent', 'Releases per day', [6], '09-24', '10 on 24 Sep');
 
   // one hover column per day across both histograms
   for (var i = 1; i < N; i++) {
@@ -440,10 +440,10 @@ details.tbl th { color: var(--muted); font-weight: 500; border-bottom: 1px solid
         ['21 Sep', 'agents', 1, 'Payment slips over Instagram', 'Borrowers send transfer slips to Instagram. The agent reads and validates them, a Partner approves or rejects, and approved payments are posted. R014 adds the AI Reviewer role, partial settlements and account-level cash balances.', 'R011–R014'],
         ['22 Sep', 'agents', 0, 'Partner conversations on Instagram', 'Partners can ask questions and request guarded borrower edits in persistent conversations. Every agent transaction is audited.', 'R015'],
         ['22 Sep', 'reports', 1, 'Metabase and Grafana arrive', 'Reporting moves to a private Metabase on Railway, starting with Overview and Cash. Grafana starts watching performance and cost.', 'R016'],
-        ['24–26 Sep', 'reports', 0, 'Three days of report releases', 'Twenty-eight release numbers in three days, nearly all report-only: capital yield, loan-cohort return, Collection Monitor, payment health, a custom borrower matrix chart, borrower pages and a Partners dashboard.', 'R017–R044'],
+        ['24–26 Sep', 'reports', 0, 'Three days of report releases', 'Twenty-seven tagged releases in three days, nearly all report-only: capital yield, loan-cohort return, Collection Monitor, payment health, a custom borrower matrix chart, borrower pages and a Partners dashboard.', 'R017–R044'],
         ['26 Sep', 'product', 0, 'Automatic daily interest', 'Daily interest charges are generated automatically, with bilingual labels in the operations app. Metabase gets automated backups and point-in-time recovery the same day.', 'R036'],
         ['27 Sep', 'reports', 0, 'Looker Studio retired', 'The legacy dashboard assets are retired after the Metabase migration. R046 and R047 add a receipt archive and a payment review screen.', 'R046 R047'],
-        ['28–29 Sep', 'product', 0, 'Upcoming charges', 'Projected charges and their summaries appear in Upcoming Charges, Collection and Borrowers.', 'R048 R049'],
+        ['29 Sep', 'product', 0, 'Upcoming charges', 'Projected charges and their summaries appear in Upcoming Charges, Collection and Borrowers.', 'R048 R049'],
         ['2–4 Oct', 'reports', 0, 'Grafana alerts reach an assistant', 'An owner-authenticated Grafana MCP Events bridge delivers alerts with durable retries. The minute dispatcher goes live on 3 October.', 'R050'],
         ['7 Oct', 'product', 0, 'The last AppSheet feature release', 'R051 closes with source edits, consistent historical openings and performance improvements. Everything after it is built outside AppSheet.', 'R051']
       ] },
@@ -492,6 +492,7 @@ details.tbl th { color: var(--muted); font-weight: 500; border-bottom: 1px solid
         ['9 Nov', 'reports', 0, 'Old report dashboards archived', 'Metabase dashboards 1 to 31 and 94 questions are archived. One Loan Reports dashboard remains.', ''],
         ['10 Nov', 'product', 0, 'Chat handles up to 100 changes per card', 'Confirm is clickable at once, and a group card can carry up to 100 changes.', 'R138 R139'],
         ['11 Nov', 'product', 0, 'Pending expenses', 'Expenses can be recorded as pending and paid on a chosen date, to a borrower or a typed payee. Pending lines open the matching filtered list.', 'R140 R141'],
+        ['12 Nov', 'tooling', 0, 'Early release tags restored', 'The release tags from R001 to R058 are put back on their original commits with their original dates, so the tag history now starts at R001 instead of R059.', 'R001–R058'],
         ['12 Nov', 'agents', 1, 'Slip reader moves to Claude Opus 5.5', 'The receipt reader runs on Claude Opus 5.5 with Gemini as fallback and uses the slip’s QR reference for listed banks. Component versioning makes the API and the agent report their release. R146 is open.', 'R142–R145']
       ] }
   ];
