@@ -400,9 +400,9 @@
       },
       "seed": {
         "release": null,
-        "native": null,
-        "verified": false,
-        "note": "Railway-hosted; version not recorded in the repository or the inventory. First drift run records it."
+        "native": "v0.63.18.1",
+        "verified": true,
+        "note": "Read live from /api/session/properties on 12 November 2026 (GET)."
       }
     },
     {
@@ -428,9 +428,9 @@
       },
       "seed": {
         "release": "R089",
-        "native": null,
+        "native": "13.4.0",
         "verified": false,
-        "note": "Terraform provider pin (main.tf, commit e05785e4); the Grafana server version is not recorded. First drift run records it."
+        "note": "Release is the Terraform provider pin (main.tf, commit e05785e4); native is the server version read live from /api/health on 12 November 2026 (GET)."
       }
     },
     {

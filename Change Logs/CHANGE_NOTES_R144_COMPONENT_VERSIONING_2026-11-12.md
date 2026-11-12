@@ -16,20 +16,25 @@ Owner request of 12 November 2026: "Engage the team and implement all your recom
 ## Checks
 | Command | Result |
 | --- | --- |
-| Unit tests for `component-versions.mjs` (Byte) | Pending |
-| `npm run test:monitoring` (Byte) | Pending |
+| `npm run lint`, `npm run typecheck` (Byte, commit `080486f8`, tree `6e6493c4`) | Pass |
+| `node --test` on the 14 affected unit files (Byte, same tree) | Pass, 256 pass, 0 fail |
+| `component-versions.mjs check-source` and `render --check` (Byte, same tree) | Pass: 5 dashboards carry `release:R144`; render ok |
+| Agent `ruff`; unittest `deploy_runtime` 24, `server` 16, `chat_relay` 20, `receipt_recognition` 81, `config` 18 (Byte, same tree) | Pass, all OK |
+| Three YAML files parse; PROD build guard on bad input (Forge) | Pass: refused 7 bad inputs, including unset defaults and quote injection |
+| `release-tag.yml` publish step, stub-tested (Forge) | Pass: appends the table; on failure warns and still publishes |
+| `npm run test:monitoring`; `business-hosting-delivery` and `package-manifest` tests (Forge) | Pass; 139 of 139 |
+| Live GET, read-only (Byte and Forge, 12 November 2026) | Pass: read, command and chat `/health` 200 unauthenticated in DEV and PROD, notify 403, jobs 404; `drift --env all`: 0 drift, 18 unverified (the deployed images predate R144); Metabase v0.63.18.1 and Grafana 13.4.0 recorded as the vendor seeds |
 | Verification report (Chase) | Pending |
-| `npm run check:docs` (Dewey) | Pending |
-| CI on the pull request | Pending |
-
+| `npm run check:docs` (Dewey) | Pass, 0 failures, 0 warnings |
+| CI on the pull request | Pending (PR `Development checks`) |
 ## Not run
-Deferred to promotion, not authorized in this batch: image builds and deployments, the Debian agent deploy, the Grafana apply, `Stamp-Release.mjs --apply` and the first live `drift` run. Until then the live services report no release and drift reads them as unverified.
+Docker build (no daemon here) and `Stamp-Release.mjs --check` (needs the Metabase admin key). Deferred to promotion, not authorized in this batch: image builds and deployments, the Debian agent deploy, the Grafana apply, `Stamp-Release.mjs --apply` and the first live `drift` run. Until then the live services report no release and drift reads them as unverified.
 
 ## Recovery
 Git baseline `055e25fe` (R143). Nothing live changed; revert the pull request.
 
 ## Open questions
-Seed facts not verified from live targets: Metabase and Grafana server versions, the Metabase last-changed release (R137 from tags). notify and jobs seed R130 (verified by Byte against tags; R134 and R135 changed only package.json scripts).
+Seed fact not verified from a live target: the Metabase last-changed release (R137 from tags). notify and jobs seed R130 (verified by Byte against tags; R134 and R135 changed only package.json scripts).
 
 ## Remaining work
 Promotion steps listed under Not run, then the Checks table results from Byte and Chase.
