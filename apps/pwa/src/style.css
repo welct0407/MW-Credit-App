@@ -1255,3 +1255,23 @@ button, .filters select { min-height: 44px; }
 .live-shell .back-button.icon-action{display:inline-flex;padding:10px;background:transparent;border:0}
 
 .app-icon{display:inline-block;flex:none;vertical-align:middle;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+
+/* R146 sample app only: the group chat summary card and list mark as live-style.css styles them (the sample app does not
+   load live-style.css). Keep in step with the R146 block there. */
+.collection-chat-summary{margin:8px 0;overflow-wrap:anywhere}
+.collection-chat-summary .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.collection-chat-summary .collection-chat-heading{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.collection-chat-summary .collection-chat-heading h3{margin:0;font-size:20px;min-width:0}
+.collection-chat-summary .collection-chat-meta{font-size:14px;line-height:1.4;color:#555;margin:2px 0}
+.collection-chat-summary .collection-chat-headline{margin:4px 0;line-height:1.4}
+.collection-chat-summary .collection-chat-points{list-style:none;margin:4px 0;padding:0;display:grid;gap:4px}
+.collection-chat-summary .collection-chat-points li{display:flex;align-items:flex-start;gap:8px;line-height:1.4}
+.collection-chat-summary .expense-payee-tag{flex:0 0 auto;font-size:12px;font-weight:600;color:#565656;border:1px solid #c8cdd2;border-radius:10px;padding:1px 8px;margin-top:1px;white-space:nowrap}
+.collection-chat-summary .collection-chat-points .expense-payee-tag{font-size:13px;padding:2px 8px}
+.collection-chat-summary .collection-chat-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-height:44px}
+.collection-chat-summary .collection-chat-foot .collection-chat-meta{flex:1 1 auto;min-width:0;margin:0}
+.collection-chat-name-end{white-space:nowrap}
+.collection-chat-summary .collection-chat-text{min-width:0}
+.collection-chat-summary .collection-chat-toggle{flex:0 0 auto;border:0;background:none;padding:0;text-align:left;color:inherit;min-height:44px;font:inherit;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.collection-chat-summary.stale .collection-chat-headline,.collection-chat-summary.stale .collection-chat-text{color:#555}
+.person .collection-chat-mark{width:16px;height:16px;margin-left:6px;vertical-align:-2px;color:#555}

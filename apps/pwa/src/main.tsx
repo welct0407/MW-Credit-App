@@ -3,7 +3,9 @@ import {limitAppZoom} from './zoom-guard';
 import {displayDate} from './display-date';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { Locale } from './fixtures';
+import { sampleGroupChats, sampleNow, type Locale } from './fixtures';
+import { CollectionChatSummary, NameWithChatMark } from './CollectionChatSummary';
+import { chatMarkShown } from './chat-seen';
 import { previewReadAdapter, toPreviewBorrower, previewBusinessDate as sampleDate, type PreviewAccessState, type PreviewBorrower as Borrower } from './preview-session';
 import './style.css';
 const prodLogoUrl = new URL('./assets/loan-manager-logo-prod-pink.png', import.meta.url).href;
@@ -19,6 +21,9 @@ function App() {
   const [accessState, setAccessState] = useState<PreviewAccessState>('allowed');
   const [locale, setLocale] = useState<Locale>('en');
   const [route, setRoute] = useState('collection');
+  // R146 sample: which sample summaries this preview session has shown (the live app keeps this per device), and the open cards.
+  const [chatSeen, setChatSeen] = useState<Record<string, string>>({}), [chatExpanded, setChatExpanded] = useState<Record<string, boolean>>({});
+  const chatNow = Date.parse(sampleNow);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [selected, setSelected] = useState<string | null>(null);
@@ -78,7 +83,7 @@ function App() {
     </span>
     <span className="person">
       <strong>
-        {b.name[locale]}
+        {route === 'collection' && chatMarkShown(chatSeen, b.id, sampleGroupChats[b.id]?.lastMessageAt, chatNow) ? <><NameWithChatMark name={b.name[locale]}/><span className="sr-only">{t(', New group chat summary', ', มีสรุปแชทกลุ่มใหม่')}</span></> : b.name[locale]}
       </strong>
       <span>
         {b.id} · {b.area[locale]}
@@ -314,6 +319,7 @@ function App() {
                     </strong>
                   </div>
                 </div>
+                {route === 'collection' && <CollectionChatSummary key={current.id} groupChat={sampleGroupChats[current.id] ?? null} borrowerId={current.id} thai={locale === 'th'} now={chatNow} expanded={!!chatExpanded[current.id]} onToggle={() => setChatExpanded(value => ({ ...value, [current.id]: !value[current.id] }))} onShown={at => setChatSeen(value => value[current.id] === at ? value : { ...value, [current.id]: at })}/>}
                 {current.note && <div className={'issue-note ' + (current.status === 'overdue' ? 'attention' : '')}>
                   <strong>
                     {t('Follow-up note', 'หมายเหตุการติดตาม')}

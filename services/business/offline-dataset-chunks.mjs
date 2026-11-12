@@ -17,7 +17,7 @@ import {readManagementAssessments} from './management-assessments.mjs';
 import {readManagementAnalytics,readAnalyticsOverview,readAnalyticsChart} from './management-analytics.mjs';
 import {readManagementPosition} from './management-position.mjs';
 import {readManagementOpenings} from './management-openings.mjs';
-import {readCollection,decodeCollectionCursor,collectionCte,collectionCteFor,collectionQualitySql,projectCollectionCharge} from '../api/collection-read-contract.mjs';
+import {readCollection,decodeCollectionCursor,collectionCte,collectionCteFor,collectionQualitySql,projectCollectionCharge,GROUP_CHAT_COLUMNS,groupChatAllowedSql,projectGroupChat} from '../api/collection-read-contract.mjs';
 import {lateChargeSchema} from '../lib/late-charge-schema.mjs';
 import {projectUpcomingEvent,validUpcomingDate} from '../api/upcoming-read-contract.mjs';
 import {readStandaloneUpcoming} from './upcoming.mjs';
@@ -129,12 +129,24 @@ const chargeColumns=`borrower_id,id,loan_id,payment_status,borrower_name,borrowe
 const chargeCte=async client=>collectionCteFor(await lateChargeSchema(client));
 const projectCharge=row=>({borrowerId:row.borrower_id,...projectCollectionCharge(row)});
 const receiptSql=where=>`${collectionCte} SELECT p."Row ID" id,p."Ref Borrower" AS "borrowerId",p."Payment Date"::text AS "paymentDate",p."Amount Received"::numeric::text amount,(nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL) AS "manualReceiptPresent",(nullif(btrim(p."Receipt Image"),'') IS NOT NULL) AS "agentReceiptPresent",(CASE WHEN nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL THEN p."Uploaded Receipt At" ELSE p."Receipt Received At" END)::text AS "receiptAt",array_agg(DISTINCT e.id) AS "chargeIds" FROM public."Payments" p JOIN public."Payment Allocations" a ON a."Ref Payment"=p."Row ID" JOIN eligible e ON e.id=a."Ref Charge" AND e.borrower_id=p."Ref Borrower" WHERE p."Status"='Posted' AND a."Allocated Amount"::numeric>0 AND ${where} GROUP BY p."Row ID" ORDER BY p."Row ID" COLLATE "C"`;
+// R146 (V146): the group chat summaries as rows {borrowerId, ...groupChat}, ordered by borrower; the detail read of the
+// offline bundle takes the borrower's row. A database before V146 or a caller without the grant gives no rows; a row that
+// is not the V146 shape is left out (display only), as the online read answers null for it.
+const groupChatColumns=GROUP_CHAT_COLUMNS.map(name=>'g.'+name).join(',');
+const groupChatAllowed=async client=>(await client.query(groupChatAllowedSql)).rows[0]?.allowed===true;
+const projectGroupChatRow=row=>{const value=projectGroupChat(row);return value?{borrowerId:row.borrower_id,...value}:null};
+async function groupChatByBorrower(c,_a,_stamp,state){
+ if(!await groupChatAllowed(c))return result([append('groupChatByBorrower',[])]);
+ const rows=(await c.query(`SELECT ${groupChatColumns} FROM public.pwa_group_chat_summaries g WHERE ($1::text IS NULL OR g.borrower_id COLLATE "C">$1 COLLATE "C") ORDER BY g.borrower_id COLLATE "C" LIMIT 129`,[text(state)])).rows;
+ return result([append('groupChatByBorrower',rows.slice(0,128).map(projectGroupChatRow).filter(Boolean))],rows.length>128?rows[127].borrower_id:null);
+}
 const collectionPhases=[
  page('items',(c,cursor)=>readCollection(c,{limit:100,after:decodeCollectionCursor(cursor,'collection')})),
  async(c,_a,stamp,state)=>{const rows=(await c.query(`${await chargeCte(c)} SELECT ${chargeColumns} FROM eligible WHERE ($3::text IS NULL OR id COLLATE "C">$3 COLLATE "C") ORDER BY id COLLATE "C" LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('charges',rows.slice(0,128).map(projectCharge))],rows.length>128?rows[127].id:null)},
  async(c,_a,_stamp,state)=>{const value=await readStandaloneUpcoming(c,{limit:100,cursor:text(state)}),{items,nextCursor,...metadata}=value;const {dateTotals,...context}=metadata;return result([...(state?[]:[replace('upcoming',{...metadata,items:[],nextCursor:null})]),append('upcoming',items,['items']),...items.map(row=>replace('upcomingDetailsByKey',{...context,borrowerId:row.borrowerId,borrowerLabel:row.label,dueDate:row.dueDate,totalCharge:row.totalCharge,items:[],nextCursor:null},[JSON.stringify([row.borrowerId,row.dueDate])]))],nextCursor)},
  upcomingDetail,borrowerUpcomingMetadata(),borrowerUpcomingEvents(),
- async(c,_a,stamp,state)=>{const rows=(await c.query(`${receiptSql('($3::text IS NULL OR p."Row ID" COLLATE "C">$3 COLLATE "C")')} LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('receipts',rows.slice(0,128))],rows.length>128?rows[127].id:null)}
+ async(c,_a,stamp,state)=>{const rows=(await c.query(`${receiptSql('($3::text IS NULL OR p."Row ID" COLLATE "C">$3 COLLATE "C")')} LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('receipts',rows.slice(0,128))],rows.length>128?rows[127].id:null)},
+ groupChatByBorrower
 ];
 
 /** from (R078 day change): only account-days on or after this date. */
@@ -361,19 +373,22 @@ function rowBudget(){
  const started=Date.now(),list=[];
  return {list,push(...items){list.push(...items);if(rowPatchValues(list)>4*MAX_CHUNK_VALUES||Date.now()-started>TARGETED_LIMITS.milliseconds)throw Error('targeted_limit')}};
 }
-const collectionRowTables=['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Cash Ledger','pwa_payment_commands'];
+const collectionRowTables=['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Cash Ledger','pwa_payment_commands','pwa_group_chat_summaries'];
 /** Collection works per borrower, through the records lookups. A Cash Accounts change, an unmapped table or a
  * hidden changed borrower walks. loans: the changed loans (the client checks they did not leave a borrower). */
 export async function resolveCollectionScope(client,changes){
  if(changes.some(row=>!collectionRowTables.includes(row.table)))return null;
- const scope=await resolveRecordsScope(client,changes);if(!scope)return null;
- const changed=sortIds(changes.filter(row=>row.table==='Borrowers').map(row=>row.key));
+ // R146: a group chat summary row is keyed by its borrower (stored, replaced or removed); the records lookups do not
+ // know the table, so its keys are mapped here and only the other changes go through them.
+ const chat=sortIds(changes.filter(row=>row.table==='pwa_group_chat_summaries').map(row=>row.key));
+ const scope=await resolveRecordsScope(client,changes.filter(row=>row.table!=='pwa_group_chat_summaries'));if(!scope)return null;
+ const changed=sortIds([...changes.filter(row=>row.table==='Borrowers').map(row=>row.key),...chat]);
  if(changed.length&&(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=ANY($1::text[]) AND "Hidden Flag" IS TRUE LIMIT 1',[changed])).rowCount)return null;
  // A changed payment also touches the borrowers whose charges it is allocated to or repays (receipts list it
  // under them, so a payment moved to another borrower leaves its old borrower's row).
  const payments=sortIds(changes.filter(row=>row.table==='Payments').map(row=>row.key));
  const charged=payments.length?(await client.query(`SELECT l."Ref Borrowers" AS id FROM public."Payment Allocations" a JOIN public."Charges" c ON c."Row ID"=a."Ref Charge" JOIN public."Loans" l ON l."Row ID"=c."Ref Loans" WHERE a."Ref Payment"=ANY($1::text[]) UNION SELECT l."Ref Borrowers" AS id FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" JOIN public."Loans" l ON l."Row ID"=c."Ref Loans" WHERE r."Ref Payment"=ANY($1::text[])`,[payments])).rows.map(row=>row.id):[];
- const borrowers=sortIds([...scope.borrowers,...charged]);if(borrowers.length>TARGETED_LIMITS.borrowers)return null;
+ const borrowers=sortIds([...scope.borrowers,...charged,...chat]);if(borrowers.length>TARGETED_LIMITS.borrowers)return null;
  return {borrowers,loans:sortIds(changes.filter(row=>row.table==='Loans').map(row=>row.key))};
 }
 /** items, upcoming and upcomingDetailsByKey whole; charges, receipts and borrowerUpcomingByKey for the borrowers. */
@@ -388,6 +403,9 @@ export async function readCollectionTargeted(client,actor,stamp,{borrowers}){
   patches.push(removeRows('borrowerUpcomingByKey',B.flatMap(id=>['borrower','collection'].map(scope=>JSON.stringify([scope,id])))),...await phasePages(borrowerUpcomingMetadata(B),client,actor,stamp),...await phasePages(borrowerUpcomingEvents(B),client,actor,stamp));
   const receipts=(await client.query(receiptSql('p."Ref Borrower"=ANY($3::text[])'),[stamp.businessDate,null,B])).rows;
   patches.push(replaceWhere('receipts','borrowerId',B,receipts,'id'));
+  // R146: the borrowers' group chat summaries (none left for a pruned or deleted row); items above carry chatSummaryAt.
+  const chats=await groupChatAllowed(client)?(await client.query(`SELECT ${groupChatColumns} FROM public.pwa_group_chat_summaries g WHERE g.borrower_id=ANY($1::text[]) ORDER BY g.borrower_id COLLATE "C"`,[B])).rows.map(projectGroupChatRow).filter(Boolean):[];
+  patches.push(replaceWhere('groupChatByBorrower','borrowerId',B,chats,'borrowerId'));
  }
  return patches.list;
 }

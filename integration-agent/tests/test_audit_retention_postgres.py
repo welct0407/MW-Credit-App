@@ -75,7 +75,7 @@ class RetentionPurgeTests(unittest.TestCase):
                 conn.execute(statement)
         cls.admin = {**server, 'dbname': 'mw_agent', 'autocommit': True}
         with psycopg.connect(**cls.admin) as conn:
-            assert state_migration.migrate(conn, MIGRATIONS)['applied'][-1] == 'V11__drop_conversation_journal.sql'
+            assert state_migration.migrate(conn, MIGRATIONS)['applied'][-1] == 'V12__group_chat_summary_state.sql'
             conn.execute('ALTER ROLE mw_agent_worker LOGIN')
             conn.execute('ALTER ROLE mw_agent_retention LOGIN')
             conn.execute('CREATE ROLE ' + LOGIN + ' LOGIN NOINHERIT')
@@ -470,7 +470,7 @@ class MaintIndexAdoptionTests(unittest.TestCase):
             adopted = conn.execute("SELECT 'runtime.maint_operation_state_last_event_idx'::regclass::oid").fetchone()[0]
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
                                                                           'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql', 'V9__recent_question_usage.sql', 'V10__recent_question_usage_match.sql',
-                                                                          'V11__drop_conversation_journal.sql'])
+                                                                          'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql'])
             rows = conn.execute('''SELECT c.relname,i.indisvalid,c.oid FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid
                 JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='runtime'
                 AND c.relname IN ('operation_state_last_event_idx','job_runs_operation_idx','maint_operation_state_last_event_idx',

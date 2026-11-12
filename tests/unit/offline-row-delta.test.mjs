@@ -86,3 +86,32 @@ test('inline values: every referenced value within the byte and count caps, none
  const many=Array.from({length:INLINE_VALUE_COUNT+1},(_,index)=>({id:'r'+index,borrowerId:'A'}));assert.deepEqual(encodeDeltaChunk(chunk(many),[],{inline:true}).values,{},'above the count cap: manifest + need');
  assert.equal(readDeltaRequest({inlineValues:true}).inlineValues,true);assert.throws(()=>readDeltaRequest({inlineValues:'yes'}),/invalid_request/);
 });
+
+// R146: the group chat summary in the collection domain (V146). Invented text only.
+test('R146 collection scope: a summary row is keyed by its borrower; it never reaches the records lookups; a hidden borrower walks',async()=>{
+ const {offlineSourceTables}=await import('../../services/business/offline-dataset-delta.mjs');
+ assert.ok(offlineSourceTables.collection.includes('pwa_group_chat_summaries'));
+ for(const domain of ['records','cash','management'])assert.equal(offlineSourceTables[domain].includes('pwa_group_chat_summaries'),false,domain+' does not read the summaries');
+ const lookups={Loans:[{key:'L1',borrowers:['B'],payment:null,expense:null,unassigned:false}]};
+ const only=fakeClient({lookups});
+ assert.deepEqual(await resolveCollectionScope(only,[{table:'pwa_group_chat_summaries',key:'A'}]),{borrowers:['A'],loans:[]});
+ assert.equal(only.queries.some(sql=>sql.includes('pwa_group_chat_summaries')),false,'the key is the borrower: no lookup of the table');
+ assert.deepEqual(await resolveCollectionScope(fakeClient({lookups}),[{table:'pwa_group_chat_summaries',key:'C'},{table:'Loans',key:'L1'},{table:'pwa_group_chat_summaries',key:'A'}]),{borrowers:['A','B','C'],loans:['L1']});
+ assert.equal(await resolveCollectionScope(fakeClient({lookups,hidden:['H']}),[{table:'pwa_group_chat_summaries',key:'H'}]),null,'a hidden borrower walks');
+ assert.equal(await resolveCollectionScope(fakeClient({lookups}),Array.from({length:TARGETED_LIMITS.borrowers+1},(_,index)=>({table:'pwa_group_chat_summaries',key:'X'+index}))),null,'more borrowers than the limit walk');
+ // Records does not know the table: its resolver walks rather than guess.
+ const {resolveRecordsScope}=await import('../../services/business/offline-dataset-chunks.mjs');
+ assert.equal(await resolveRecordsScope(fakeClient({lookups}),[{table:'pwa_group_chat_summaries',key:'A'}]),null);
+});
+test('R146 the summary rows travel as a replaceWhere patch by borrower: stored, replaced and removed, other borrowers untouched',()=>{
+ const row=(borrowerId,en)=>({borrowerId,headline:{th:'สรุป',en},points:[],lastSpeaker:{role:'partner'},lastMessageAt:'2026-11-12T07:05:00.000Z',generatedAt:'2026-11-12T07:32:00.000Z',messageCount:3,shared:false});
+ const data={groupChatByBorrower:[row('A','old A'),row('C','C')],items:[]};
+ const patch=value=>({key:'groupChatByBorrower',mode:'replaceWhere',field:'borrowerId',values:['A','B'],value,sort:'borrowerId'});
+ const stored=structuredClone(data);applyDatasetPatch(stored,patch([row('B','new B'),row('A','new A')]));
+ assert.deepEqual(stored.groupChatByBorrower.map(item=>[item.borrowerId,item.headline.en]),[['A','new A'],['B','new B'],['C','C']]);
+ const removed=structuredClone(data);applyDatasetPatch(removed,patch([]));
+ assert.deepEqual(removed.groupChatByBorrower.map(item=>item.borrowerId),['C'],'a pruned summary leaves the bundle');
+ const fresh={};applyDatasetPatch(fresh,patch([row('A','first')]));assert.equal(fresh.groupChatByBorrower.length,1);
+ assert.equal(deltaMovesRows(data,[patch([row('A','new A')])]),false,'summary rows have no id: never a moved row');
+ assert.throws(()=>applyDatasetPatch(structuredClone(data),patch([row('Z','outside the replaced set')])),/Invalid dataset patch/);
+});

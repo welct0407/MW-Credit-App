@@ -87,6 +87,46 @@ export function canonicalAgentCommand(input){
  if(!extension||a.objectKey!==`receipts/${input.environment}/${new Date(Number(a.capturedAt)*1000).toISOString().slice(0,10).replaceAll('-','/')}/${a.receiptId}/${a.rawSha256}.${extension}`)fail();
  return {schemaVersion:input.schemaVersion,requestId:input.requestId,environment:input.environment,reviewId:input.reviewId,mode:input.mode,borrowerId,cashAccountId,amountReceived:input.amountReceived,paymentDate:input.paymentDate,transferTime:input.transferTime,bankReference:input.bankReference,...(v8?{payerLines:input.payerLines===null?null:{before:input.payerLines.before,after:input.payerLines.after}}:{}),...plan,proposalSha256:input.proposalSha256,archiveEvidence:{receiptId:a.receiptId,objectKey:a.objectKey,generation:a.generation,rawSha256:a.rawSha256,mimeType:a.mimeType,sizeBytes:a.sizeBytes,capturedAt:a.capturedAt}};
 }
+// R146 group chat summary: the agent's display-only command (design section 7). Exact key sets, well-formed strings with no
+// control character (NUL, CR and LF included), lengths in code points (Thai is three bytes a character), sorted unique
+// borrower ids. pwa_put_group_chat_summary_v1 (V146) repeats every rule; nothing financial reads the result.
+const summaryFail=()=>{throw Error('invalid_summary_command');};
+const summaryExact=(value,keys)=>{if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!==[...keys].sort().join(','))summaryFail();};
+const summaryText=(value,max)=>{if(typeof value!=='string'||!value.isWellFormed()||!value.trim()||[...value].length>max||/[\u0000-\u001f\u007f]/.test(value))summaryFail();return value;};
+const summaryStamp=value=>{if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/.test(value)||!Number.isFinite(Date.parse(value)))summaryFail();return value;};
+const summarySpeaker=value=>{
+ const named=!!value&&['borrower','referrer'].includes(value.role);
+ summaryExact(value,named?['role','borrowerId']:['role']);
+ if(!['borrower','partner','referrer','business','other'].includes(value.role))summaryFail();
+ return named?{role:value.role,borrowerId:summaryText(value.borrowerId,256)}:{role:value.role};
+};
+export const groupChatSummaryRequestId=(environment,conversationKey,sourceSha256)=>{
+ const bytes=createHash('sha256').update(JSON.stringify(['mw-credit-agent-group-summary-v1',environment,conversationKey,sourceSha256])).digest().subarray(0,16);
+ bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+ const hex=bytes.toString('hex');return`${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+};
+export function canonicalGroupChatSummary(input){
+ summaryExact(input,['schemaVersion','requestId','environment','conversationKey','borrowerIds','sourceSha256','summary']);
+ if(input.schemaVersion!==1||!['dev','prod'].includes(input.environment)||typeof input.conversationKey!=='string'||!/^[0-9a-f]{32}$/.test(input.conversationKey)
+  ||typeof input.sourceSha256!=='string'||!/^[0-9a-f]{64}$/.test(input.sourceSha256)
+  ||input.requestId!==groupChatSummaryRequestId(input.environment,input.conversationKey,input.sourceSha256))summaryFail();
+ if(!Array.isArray(input.borrowerIds)||input.borrowerIds.length>20)summaryFail();
+ const borrowerIds=input.borrowerIds.map(value=>summaryText(value,256));
+ // Sorted and unique by code point, as the agent's sort and the SQL COLLATE "C" order are.
+ for(let i=1;i<borrowerIds.length;i++)if(Buffer.compare(Buffer.from(borrowerIds[i-1]),Buffer.from(borrowerIds[i]))>=0)summaryFail();
+ let summary=null;
+ if(input.summary!==null){
+  const s=input.summary;summaryExact(s,['windowFrom','lastMessageAt','generatedAt','messageCount','model','lastSpeaker','headline','points']);
+  if(!Number.isSafeInteger(s.messageCount)||s.messageCount<1||s.messageCount>100||typeof s.model!=='string'||!/^[a-z0-9][a-z0-9.-]{0,63}$/.test(s.model))summaryFail();
+  summaryExact(s.headline,['th','en']);
+  if(!Array.isArray(s.points)||s.points.length>4)summaryFail();
+  summary={windowFrom:summaryStamp(s.windowFrom),lastMessageAt:summaryStamp(s.lastMessageAt),generatedAt:summaryStamp(s.generatedAt),messageCount:s.messageCount,model:s.model,
+   lastSpeaker:summarySpeaker(s.lastSpeaker),headline:{th:summaryText(s.headline.th,160),en:summaryText(s.headline.en,160)},
+   points:s.points.map(point=>{summaryExact(point,['speaker','th','en']);return{speaker:summarySpeaker(point.speaker),th:summaryText(point.th,200),en:summaryText(point.en,200)};})};
+  if(Date.parse(summary.lastMessageAt)<Date.parse(summary.windowFrom))summaryFail();
+ }
+ return{schemaVersion:1,requestId:input.requestId,environment:input.environment,conversationKey:input.conversationKey,borrowerIds,sourceSha256:input.sourceSha256,summary};
+}
 export function agentIdentity(input,actor){
  const command=canonicalAgentCommand(input);
  exact(actor,['issuer','subject','partnerId','loginEmail']);

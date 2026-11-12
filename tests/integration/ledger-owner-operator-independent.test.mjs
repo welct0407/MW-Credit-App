@@ -133,7 +133,7 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
    // Cash Statement Context (keyed by "Ref Partner", seeded by the Partners trigger) and Loan Assessment SQL Lab are tracked too.
    assert.equal((await app.query(`SELECT count(*)::int n FROM public.pwa_row_changes WHERE table_name='Cash Statement Context' AND row_key='W4-A'`)).rows[0].n>0,true);
    assert.deepEqual((await admin.query(`SELECT tgname,tgenabled,count(*)::int n FROM pg_trigger WHERE tgname IN ('zzzzzzz_pwa_row_change','zzzzzzz_pwa_row_truncate') GROUP BY 1,2 ORDER BY 1`)).rows,
-    [{tgname:'zzzzzzz_pwa_row_change',tgenabled:'A',n:19},{tgname:'zzzzzzz_pwa_row_truncate',tgenabled:'A',n:19}],'19 ALWAYS row triggers and 19 ALWAYS truncate markers');
+    [{tgname:'zzzzzzz_pwa_row_change',tgenabled:'A',n:20},{tgname:'zzzzzzz_pwa_row_truncate',tgenabled:'A',n:20}],'20 ALWAYS row triggers and 20 ALWAYS truncate markers (V97: 19; V146 (R146): pwa_group_chat_summaries)');
    for(const sql of [`INSERT INTO public.pwa_row_changes(table_name,row_key) VALUES('Loans','x')`,`UPDATE public.pwa_row_changes SET row_key='x'`,`DELETE FROM public.pwa_row_changes`,`SELECT public.pwa_row_changes_prune_v1()`])await assert.rejects(app.query(sql),err=>err.code==='42501',sql);
   }finally{await app.end();}
  }finally{if(operator)operator.release();await operatorPool.end();await admin.end();}

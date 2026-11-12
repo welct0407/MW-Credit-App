@@ -15,7 +15,8 @@ helper = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(helper)
 
 TIMERS = {'mw-audit-relay.timer', 'mw-audit-retention.timer', 'mw-cash-statement-email-retry.timer', 'mw-cash-statement.timer',
-          'mw-conversation-poll.timer', 'mw-receipt-summary.timer', 'mw-resource-health.timer'}
+          'mw-conversation-poll.timer', 'mw-receipt-summary.timer', 'mw-resource-health.timer',
+          'mw-group-chat-summary.timer'}  # R146
 OLD = {'listen_host': '127.0.0.1', 'listen_port': 8000, 'receipt_recognition_enabled': True,
        'receipt_recognition_listen_host': '10.148.0.2', 'receipt_recognition_listen_port': 8790,
        'chat_relay_enabled': False, 'chat_relay_listen_host': '10.148.0.2', 'version': 'old'}

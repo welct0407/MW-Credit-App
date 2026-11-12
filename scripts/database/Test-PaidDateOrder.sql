@@ -2,6 +2,9 @@
 -- R140 V145 upgrade route at the head (after Test-PaidDateOrder-Before.sql at V144): a row whose paid date was already before
 -- its expense date stays readable and editable in unrelated fields (its cash day unchanged); changing either date applies
 -- the rule; a later paid date row behaves as before.
+-- The fixture was written on the Bangkok business date (Test-PaidDateOrder-Before.sql); read current_date the same way, or
+-- the route fails between 17:00 and 24:00 UTC, when the UTC date is a day behind.
+SET TIME ZONE 'Asia/Bangkok';
 BEGIN;
 CREATE FUNCTION pg_temp.pdo_reject(command text,expected text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN BEGIN EXECUTE command; EXCEPTION WHEN OTHERS THEN IF position(expected in SQLERRM)=0 THEN RAISE; END IF; RETURN; END;

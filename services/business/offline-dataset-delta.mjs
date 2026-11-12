@@ -20,7 +20,8 @@ export const offlineSourceTables=Object.freeze({
  // Request" and rewrites today's analytics row, so records hashes Statistics by identity and Daily
  // Analytics by content (without the refresh time): unchanged values give an unchanged version.
  records:Object.freeze([...collectionTables,'Cash Holders','Cash Ledger','Cash Pool Contributions','Settlements','Partners','Business Expenses','r008_cash_account_cutover','pwa_payment_commands','Statistics#identity','Daily Analytics#content']),
- collection:Object.freeze(collectionTables),
+ // R146: the collection list mark and detail card read pwa_group_chat_summaries (V146); records does not.
+ collection:Object.freeze([...collectionTables,'pwa_group_chat_summaries']),
  cash:Object.freeze(cashTables),
  // Management shows the analytics itself, so it hashes them like every other table.
  management:Object.freeze([...new Set([...cashTables,'Charges','Loan Assessment SQL Lab','Daily Analytics','Statistics'])]),
@@ -30,7 +31,7 @@ export const offlineDeterministicPages=Object.freeze({records:32,collection:2,ca
 const domainNames=Object.keys(offlineSourceTables);
 const allSources=[...new Set(Object.values(offlineSourceTables).flat())];
 // Each table's primary key; every other listed table is keyed by "Row ID".
-const primaryKeys={pwa_payment_commands:'request_id',r008_cash_account_cutover:'"Ref Cash Account"','Cash Statement Context':'"Ref Partner"'};
+const primaryKeys={pwa_group_chat_summaries:'borrower_id',pwa_payment_commands:'request_id',r008_cash_account_cutover:'"Ref Cash Account"','Cash Statement Context':'"Ref Partner"'};
 /** One aggregate per source, order-independent (no sort): row count plus the sum of a 64-bit
  * hash per row. (key, xmin) detects what to_jsonb(row)||xmin did: every INSERT, UPDATE or
  * DELETE creates or removes a tuple version with a fresh xmin, edit-then-revert included. */
@@ -55,7 +56,8 @@ function domainVersion(fingerprints,actor,domain,businessDate){
  // also across a day change (the client's v5 version can no longer match), so no saved list keeps the old shape.
  // v7 (R118): charges, drafts, related records and upcoming rows carry the late charge; every installed bundle walks once.
  // v8 (R120): borrower records carry the referral rebate terms and expenses the applied terms; every bundle walks once.
- return deltaValueHash(['business-offline-v8',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
+ // v9 (R146): collection items carry chatSummaryAt and the detail the group chat summary; every bundle walks once.
+ return deltaValueHash(['business-offline-v9',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
 }
 export async function readOfflineSourceVersion(client,actor,domain,businessDate){
  if(!offlineSourceTables[domain])throw Error('invalid_request');

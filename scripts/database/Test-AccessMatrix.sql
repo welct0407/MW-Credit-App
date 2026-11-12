@@ -43,6 +43,8 @@ INSERT INTO am_expected_tables VALUES
   ('mw_chat_owner_dev','public.pwa_chat_threads','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_chat_owner_dev','public.pwa_chat_tool_calls','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_app_dev','public.pwa_row_changes','SELECT'),
+  -- V146 (R146): the application role reads and writes the group chat summaries (the put runs with its rights).
+  ('mw_app_dev','public.pwa_group_chat_summaries','DELETE,INSERT,SELECT,UPDATE'),
   ('mw_business_audit_owner','agent_audit.exports','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_business_audit_owner','agent_audit.row_changes','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_jobs_owner_dev','public.pwa_job_runs','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
@@ -95,6 +97,8 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','pwa_pay_forward_plan_v1(text,numeric,date,jsonb)'),
   ('mw_app_dev','pwa_referral_rebate_projection_v1(text,jsonb)'),
   ('mw_app_dev','referral_rebate_terms(text)'),
+  -- V146 (R146): the group chat summary put.
+  ('mw_app_dev','pwa_put_group_chat_summary_v1(text)'),
   -- V137 (R129): the rebate state reads and the settlement version.
   ('mw_app_dev','pwa_rebate_pending_v1(text)'),
   ('mw_app_dev','pwa_rebates_owed_v1(text)'),
@@ -447,6 +451,21 @@ DO $$ BEGIN
    WHERE has_function_privilege(r,'public.pwa_convert_legacy_rebate_v1(text)','EXECUTE')) THEN RAISE EXCEPTION 'V137: only postgres may run the legacy rebate conversion'; END IF;
  IF EXISTS(SELECT 1 FROM unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege('mw_app_dev','public.pwa_rebate_settlements',p)) THEN
   RAISE EXCEPTION 'V137: the application role must read pwa_rebate_settlements only'; END IF;
+END $$;
+-- V146 (R146): the group chat summary put runs with the caller's rights (owner postgres, pinned search_path, no PUBLIC
+-- execution); only the application role (and the command login through it) writes the table; the reader login, the chat
+-- roles, the other owner roles and the reviewer hold nothing from the migration.
+DO $$ BEGIN
+ IF NOT (SELECT NOT prosecdef AND pg_get_userbyid(proowner)='postgres' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_put_group_chat_summary_v1(text)'::regprocedure)
+  OR (SELECT pg_get_userbyid(relowner) FROM pg_class WHERE oid='public.pwa_group_chat_summaries'::regclass)<>'postgres' THEN RAISE EXCEPTION 'V146: the put must be postgres''s invoker-rights function over postgres''s table'; END IF;
+ IF NOT has_function_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_put_group_chat_summary_v1(text)','EXECUTE')
+  OR NOT has_table_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_group_chat_summaries','INSERT') THEN RAISE EXCEPTION 'V146: the command login stores group chat summaries through mw_app_dev'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw-credit-app-read-dev@clever-oasis-508610-n7.iam','mw-credit-app-chat-dev@clever-oasis-508610-n7.iam','mw_chat_read_dev','mw_chat_api_dev','mw_reviewer_dml',
+    'mw_jobs_owner_dev','mw_notify_owner_dev','mw_ledger_owner_dev','mw_changes_owner_dev']) r
+   WHERE has_function_privilege(r,'public.pwa_put_group_chat_summary_v1(text)','EXECUTE') OR has_any_column_privilege(r,'public.pwa_group_chat_summaries','SELECT')
+    OR EXISTS(SELECT 1 FROM unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,'public.pwa_group_chat_summaries',p))) THEN
+  RAISE EXCEPTION 'V146: no migration-owned group chat summary access outside the application role'; END IF;
+ IF has_table_privilege('mw_app_dev','public.pwa_group_chat_summaries','TRUNCATE') THEN RAISE EXCEPTION 'V146: the application role must not truncate the summaries'; END IF;
 END $$;
 -- V133 (R118): column-grant parity. A role that reads an interest column column by column also reads its late-charge
 -- sibling (V132 added the late columns; a column-level grant does not cover a new column, which broke the DEV jobs owner).

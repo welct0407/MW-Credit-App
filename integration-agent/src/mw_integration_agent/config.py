@@ -228,6 +228,9 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigurationError('conversation_poll_recheck_enabled must be boolean')
     if config.get('conversation_poll_recheck_enabled') and not config.get('conversation_poll_enabled'):
         raise ConfigurationError('conversation_poll_recheck_enabled requires conversation_poll_enabled')
+    # R146: the group chat summary (default off); on, it needs the poll, the shared receipt API and the PROD federation rule.
+    from .group_chat_summary import validate as validate_group_chat_summary
+    validate_group_chat_summary(config)
     if type(config.get('receipt_summary_enabled', False)) is not bool:
         raise ConfigurationError('receipt_summary_enabled must be boolean')
     # R095 payer_name_cutoff: jobs created from it on compare and resolve the slip payer name (receipt_identity).
@@ -343,7 +346,7 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
                         "instagram_delivery", "email_fallback", "daily_briefing", "pattaya_weather", "daily_cash_statement",
                         "receipt_summary", "conversation_poll", "partner_receipt_review", "receipt_evidence",
                         "shared_receipt_payment_api", "audit_relay", "receipt_recognition_api",
-                        "chat_messages_relay"}:
+                        "chat_messages_relay", "group_chat_summary"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")

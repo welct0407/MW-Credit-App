@@ -74,11 +74,13 @@ def import_journals(conn, source, config, batch_id, source_commit):
     checks=[]
     for filename,mapping in TABLES.items():
         with sqlite3.connect((source/filename).resolve().as_uri()+'?mode=ro',uri=True) as old:
-            actual={r[0] for r in old.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}
-            expected=set(mapping)-{'ingress_work'}
+            # ingress_work and (R146, agent V12) group_chat_summary_state are not legacy import tables: never expected in a
+            # source journal, and a journal that has the lazily created summary table is not refused for it (it is not imported).
+            actual={r[0] for r in old.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}-{'group_chat_summary_state'}
+            expected=set(mapping)-{'ingress_work','group_chat_summary_state'}
             if actual-expected:raise ConfigurationError('UNMAPPED_SOURCE_TABLE:'+filename)
             for name,target in mapping.items():
-                if name=='ingress_work':continue
+                if name in ('ingress_work','group_chat_summary_state'):continue
                 present=name in actual
                 stream={'partner-notices.db':'receipt'}.get(filename)
                 relation=sql.Identifier('runtime',target)

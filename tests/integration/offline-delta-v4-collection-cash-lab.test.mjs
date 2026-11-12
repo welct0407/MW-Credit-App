@@ -5,7 +5,7 @@ import {randomUUID} from 'node:crypto';
 import {runInNewContext} from 'node:vm';
 import ts from 'typescript';
 import pg from 'pg';
-import {readOfflineDatasetDelta} from '../../services/business/offline-dataset-delta.mjs';
+import {readOfflineDatasetDelta,readOfflineSourceVersions} from '../../services/business/offline-dataset-delta.mjs';
 import {writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as shared from '../../services/lib/offline-dataset-digest.mjs';
@@ -112,7 +112,32 @@ async function build(q,tag){
  await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,20::money,current_date,'Lump Sum')`,[`CC-PAY0-${tag}-${seed}`,A]);
  return {seed,A,B,LA,LB,P,pay0:`CC-PAY0-${tag}-${seed}`};
 }
+/** R146: one agent command through pwa_put_group_chat_summary_v1 (text null = prune only). Invented text. */
+async function putSummary(q,key,borrowerIds,sha,text){
+ const speaker={role:'borrower',borrowerId:borrowerIds[0]};
+ const command={schemaVersion:1,requestId:randomUUID(),environment:'dev',conversationKey:key,borrowerIds,sourceSha256:sha,summary:text===null?null:{windowFrom:'2026-11-09T07:32:00Z',lastMessageAt:'2026-11-12T07:05:00Z',generatedAt:'2026-11-12T07:32:00Z',messageCount:5,model:'claude-opus-5-5',lastSpeaker:speaker,headline:{th:'สรุปสังเคราะห์',en:text},points:[{speaker,th:'ข้อความสังเคราะห์',en:'Synthetic point.'},{speaker:{role:'partner'},th:'ตกลง',en:'Agreed.'}]}};
+ return (await q('SELECT public.pwa_put_group_chat_summary_v1($1) AS value',[JSON.stringify({command})])).rows[0].value;
+}
 const domains=['collection','cash'];
+test('R146 a group chat summary write changes the collection source version only: records, cash and management stay unchanged',{skip:!disposable&&'set MW_V4_LAB_URL to a disposable 127.0.0.1 loan_manager_dev'},async()=>{
+ const client=new pg.Client({connectionString:url});await client.connect();
+ try{
+  const q=(sql,params)=>client.query(sql,params);await labFixtures(q);
+  const borrower='CC-GC-'+randomUUID().slice(0,8);await q(`INSERT INTO "Borrowers"("Row ID","Borrower Name","AI Collection Enabled") VALUES ($1,'Summary only',true)`,[borrower]);
+  const day=(await q(`SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day`)).rows[0].day;
+  const versions=()=>readOfflineSourceVersions(client,actor,day);
+  const before=await versions();
+  assert.equal((await putSummary(q,'c'.repeat(32),[borrower],'4'.repeat(64),'Only a summary changed.')).kind,'stored');
+  const stored=await versions();
+  assert.notEqual(stored.collection,before.collection,'a stored summary changes the collection version');
+  for(const domain of ['records','cash','management'])assert.equal(stored[domain],before[domain],domain+' is unchanged by a summary write');
+  assert.equal((await putSummary(q,'c'.repeat(32),[borrower],'4'.repeat(64),'Reworded.')).kind,'unchanged');
+  assert.deepEqual(await versions(),stored,'an unchanged post changes no version');
+  assert.equal((await putSummary(q,'c'.repeat(32),[],'4'.repeat(64),null)).pruned,1);
+  const pruned=await versions();assert.notEqual(pruned.collection,stored.collection);assert.equal(pruned.records,before.records);
+  await q('DELETE FROM public."Borrowers" WHERE "Row ID"=$1',[borrower]);
+ }finally{await client.end()}
+});
 test('collection and cash row-level deltas equal a fresh walk and reconcile to a match, whatever the change',{skip:!disposable&&'set MW_V4_LAB_URL to a disposable 127.0.0.1 loan_manager_dev'},async()=>{
  const client=new pg.Client({connectionString:url});await client.connect();
  try{
@@ -129,6 +154,21 @@ test('collection and cash row-level deltas equal a fresh walk and reconcile to a
    // A correction: the payment's date and amount change in place (the service refuses a direct edit; a repair under replica mode is still logged).
    ['payment correction (date and amount)',async()=>replica(async()=>q(`UPDATE "Payments" SET "Payment Date"=current_date-1,"Amount Received"=40::money,"Posted Amount"=40 WHERE "Row ID"=$1`,['CC-PAY1-'+seed])),{collection:'delta',cash:'delta'}],
    ['charge edited',async()=>q(`UPDATE "Charges" SET "Interest Due"=9::money WHERE "Row ID"=$1`,[`CC-CH-rows-${LB}-1`]),{collection:'delta',cash:null}],
+   // R146 (V146): the group chat summary. A stored summary is a collection delta (items whole, the borrower's summary row);
+   // the same source digest again changes nothing; a prune removes the row; cash never changes. Invented text.
+   ['borrowers enabled for AI collection (a Borrowers change; no summary yet)',async()=>q(`UPDATE "Borrowers" SET "AI Collection Enabled"=true WHERE "Row ID"=ANY($1::text[])`,[[A,B]]),{collection:null,cash:null}],
+   ['group chat summary stored',async()=>{assert.equal((await putSummary(q,'a'.repeat(32),[B],'1'.repeat(64),'Borrower asks to pay on Friday.')).kind,'stored')},{collection:'delta',cash:'unchanged'}],
+   ['the same summary posted again (unchanged: no row touched, no change-log row)',async()=>{
+     const row=states.collection.data.groupChatByBorrower.find(item=>item.borrowerId===B);assert.equal(row.headline.en,'Borrower asks to pay on Friday.');assert.equal(row.shared,false);
+     assert.equal(states.collection.data.items.find(item=>item.id===B).chatSummaryAt,'2026-11-12T07:05:00.000Z');assert.equal(states.collection.data.items.find(item=>item.id===A).chatSummaryAt,null);
+     assert.equal((await putSummary(q,'a'.repeat(32),[B],'1'.repeat(64),'Reworded, same source.')).kind,'unchanged')},{collection:'unchanged',cash:'unchanged'}],
+   ['summary replaced and a second borrower added (shared group)',async()=>{await putSummary(q,'a'.repeat(32),[A,B].sort(),'2'.repeat(64),'Both borrowers asked for more time.')},{collection:'delta',cash:'unchanged'}],
+   ['summary pruned for one borrower (null summary)',async()=>{
+     assert.deepEqual(states.collection.data.groupChatByBorrower.map(item=>[item.borrowerId,item.shared]),[A,B].sort().map(id=>[id,true]));
+     assert.equal((await putSummary(q,'a'.repeat(32),[A],'2'.repeat(64),null)).pruned,1)},{collection:'delta',cash:'unchanged'}],
+   ['a charge edit and a summary in one delta',async()=>{
+     assert.deepEqual(states.collection.data.groupChatByBorrower.map(item=>item.borrowerId),[A]);assert.equal(states.collection.data.items.find(item=>item.id===B).chatSummaryAt,null);
+     await q(`UPDATE "Charges" SET "Interest Due"=8::money WHERE "Row ID"=$1`,[`CC-CH-rows-${LB}-1`]);await putSummary(q,'b'.repeat(32),[B],'3'.repeat(64),'Borrower will pay tomorrow.')},{collection:'delta',cash:null}],
    ['two borrowers paid in one delta',async()=>{for(const [pay,borrower] of [['CC-PAY3-'+seed,A],['CC-PAY4-'+seed,B]])await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,6::money,current_date,'Lump Sum')`,[pay,borrower])},{collection:'delta',cash:'delta'}],
    ['payment clearing every due charge of a borrower (their collection items go)',async()=>{const due=(await q(`SELECT sum("Amount Remaining")::numeric::text AS total FROM public."Charges" WHERE "Ref Loans"=$1 AND "Charge Date"<=current_date`,[LA])).rows[0].total;await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,$3::numeric::money,current_date,'Lump Sum')`,['CC-PAY2-'+seed,A,due])},{collection:'delta',cash:'delta'}],
    ['new borrower with a loan and a due charge',async()=>{const n='CC-N-'+seed;await q(`INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES ($1,'New '||$2)`,[n,seed]);await q(`INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES ('CI-LISA',$1,$2,current_date-3,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false)`,['CC-NL-'+seed,n]);await q(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES ($1,$2,current_date,30::money,5::money)`,['CC-NCH-'+seed,'CC-NL-'+seed])},{collection:null,cash:null}],

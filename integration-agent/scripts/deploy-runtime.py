@@ -31,6 +31,10 @@ the live services match them and the live switches are kept. The new behaviour i
 as it is: the receipt_claude_* settings, the optional route keys of receipt_recognition_callers entries and
 receipt_cycle_fallback / receipt_cycle_qr_reference / receipt_cycle_clean_text (absent means today's behaviour; receipt_claude_* is not the retired
 claude_ prefix).
+R146 (group chat summary): the one accepted change of a live revision 37 to the candidate revision 38 adds exactly the
+group_chat_summary service, disabled (default deny; the same shape as R102). The live switches of every other service
+are kept; switching the service on is a separate owner authorization (group_chat_summary_enabled and the catalogue
+entry), after agent migration V12 and the unit files are in place.
 `deploy-shared-receipt-api.py` is the engine; this file supplies the preparation. The probe is the engine's
 read-only receipt-status GET (the native conversation probe left with the conversation)."""
 import copy
@@ -68,6 +72,8 @@ R128_TEMPLATE_SHA256=R112_TEMPLATE_SHA256
 R142_REVISIONS=(36,37)
 # The repository revision 36 catalogue's services, unchanged in revision 37 (the same template again).
 R142_TEMPLATE_SHA256=R112_TEMPLATE_SHA256
+R146_REVISIONS=(37,38)
+R146_SERVICES=frozenset({'group_chat_summary'})
 # R144: the release of the commit being deployed, from --release (main); None leaves the release unknown.
 RELEASE_PATTERN=re.compile('R[0-9]{3}')
 RELEASE={'value':None}
@@ -92,7 +98,11 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff,release=Non
     r119=(catalogue.get('revision'),candidate.get('revision'))==R119_REVISIONS
     r128=(catalogue.get('revision'),candidate.get('revision'))==R128_REVISIONS
     r142=(catalogue.get('revision'),candidate.get('revision'))==R142_REVISIONS
-    if r091:
+    r146=(catalogue.get('revision'),candidate.get('revision'))==R146_REVISIONS
+    if r146:
+        base.require(wanted-live==R146_SERVICES and live<=wanted,'R146 catalogue must add exactly group_chat_summary')
+        base.require(all(candidate['services'][k]=={'enabled':False,'implemented':True} for k in R146_SERVICES),'R146 group_chat_summary must arrive disabled')
+    elif r091:
         base.require(live-wanted==R091_SERVICES and wanted<=live,'R091 catalogue must drop exactly the retired conversation services')
     elif r102:
         base.require(wanted-live==R102_SERVICES and live<=wanted,'R102 catalogue must add exactly chat_messages_relay')
@@ -141,6 +151,9 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff,release=Non
     if r102:
         cat['revision']=candidate['revision']
         for name in R102_SERVICES:cat['services'][name]=dict(candidate['services'][name])
+    if r146:
+        cat['revision']=candidate['revision']
+        for name in R146_SERVICES:cat['services'][name]=dict(candidate['services'][name])
     return c,cat
 
 

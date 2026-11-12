@@ -20,6 +20,21 @@ export type Borrower = {
     }[];
 };
 export const sampleDate = '2026-10-07';
+/** R146 sample group chat summary (invented text) so the preview shows the card and the list mark. Times are on the
+ * sample business date; the preview's clock is sampleNow. */
+export const sampleNow = '2026-10-07T05:00:00Z';
+export const sampleGroupChats: Record<string, { headline: Record<Locale, string>; points: { speaker: { role: 'borrower' | 'partner' | 'referrer' | 'business' | 'other'; borrowerId?: string }; th: string; en: string }[]; lastSpeaker: { role: 'borrower' | 'partner' | 'referrer' | 'business' | 'other'; borrowerId?: string }; lastMessageAt: string; generatedAt: string; messageCount: number; shared: boolean }> = {
+    'SAMPLE-002': {
+        headline: { en: 'Borrower asks to pay 2,000 on Friday instead of today; partner agreed.', th: 'ผู้กู้ขอเลื่อนจ่าย 2,000 เป็นวันศุกร์ หุ้นส่วนตกลง' },
+        points: [
+            { speaker: { role: 'borrower', borrowerId: 'SAMPLE-002' }, en: 'Salary is late this week, will transfer on Friday.', th: 'เงินเดือนออกช้าสัปดาห์นี้ จะโอนวันศุกร์' },
+            { speaker: { role: 'partner' }, en: 'Agreed, and reminded that the late charge keeps running.', th: 'ตกลง และเตือนว่าค่าปรับยังเดินอยู่' },
+            { speaker: { role: 'referrer', borrowerId: 'SAMPLE-004' }, en: 'Says they will follow up in person if Friday passes without a transfer.', th: 'บอกว่าจะไปตามเองถ้าวันศุกร์ยังไม่โอน' },
+            { speaker: { role: 'business' }, en: 'Asked the partner to confirm the new date in the group.', th: 'ขอให้หุ้นส่วนยืนยันวันใหม่ในกลุ่ม' },
+        ],
+        lastSpeaker: { role: 'borrower', borrowerId: 'SAMPLE-002' }, lastMessageAt: '2026-10-07T03:05:00Z', generatedAt: '2026-10-07T03:32:00Z', messageCount: 14, shared: false,
+    },
+};
 export const borrowers: Borrower[] = [
     { id: 'SAMPLE-001', name: { en: 'Mali · Sample', th: 'มะลิ · ตัวอย่าง' }, initials: 'ML', area: { en: 'North district', th: 'เขตเหนือ' }, principal: 24000, status: 'due', loans: [{ id: 'DEMO-L001', principal: 24000, charges: [{ id: 'DEMO-C001', label: { en: 'Scheduled instalment', th: 'ค่างวดตามกำหนด' }, amount: 1200, date: '2026-10-07' }], nextDate: '2026-10-14' }] },
     { id: 'SAMPLE-002', name: { en: 'Somchai · Sample', th: 'สมชาย · ตัวอย่าง' }, initials: 'SC', area: { en: 'Central district', th: 'เขตกลาง' }, principal: 36000, status: 'overdue', note: { en: 'Sample issue: follow up on a missed instalment.', th: 'ปัญหาตัวอย่าง: ติดตามค่างวดที่เลยกำหนด' }, loans: [{ id: 'DEMO-L002', principal: 20000, charges: [{ id: 'DEMO-C002', label: { en: 'Missed instalment', th: 'ค่างวดที่เลยกำหนด' }, amount: 1500, date: '2026-10-05' }], nextDate: '2026-10-12' }, { id: 'DEMO-L003', principal: 16000, charges: [{ id: 'DEMO-C003', label: { en: 'Scheduled instalment', th: 'ค่างวดตามกำหนด' }, amount: 800, date: '2026-10-07' }], nextDate: '2026-10-14' }] },

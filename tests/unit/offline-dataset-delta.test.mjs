@@ -154,7 +154,7 @@ test('per-domain source sets keep every table a domain reads and leave out analy
  // The records dashboard reads olap_portfolio_summary: Statistics by row identity, Daily Analytics by content.
  for(const source of ['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Business Expenses','Cash Accounts','Cash Holders','Cash Ledger','Cash Pool Contributions','Settlements','Partners','r008_cash_account_cutover','pwa_payment_commands','Statistics#identity','Daily Analytics#content'])assert.ok(has('records',source),source);
  assert.equal(has('records','Statistics'),false);assert.equal(has('records','Daily Analytics'),false);
- assert.deepEqual([...offlineSourceTables.collection].sort(),['Borrowers','Cash Accounts','Charges','Loans','Payment Allocations','Payments','Repayments']);
+ assert.deepEqual([...offlineSourceTables.collection].sort(),['Borrowers','Cash Accounts','Charges','Loans','Payment Allocations','Payments','Repayments','pwa_group_chat_summaries']); // R146: the group chat summaries (V146)
  for(const source of ['Cash Statement Context','Borrowers','Cash Ledger','r008_cash_account_cutover'])assert.ok(has('cash',source),source);
  for(const source of ['Daily Analytics','Statistics','Loan Assessment SQL Lab','Charges',...offlineSourceTables.cash])assert.ok(has('management',source),source);
  for(const domain of ['collection','cash'])for(const source of ['Daily Analytics','Statistics','pwa_payment_commands'])assert.equal(offlineSourceTables[domain].some(item=>item.startsWith(source)),false,domain+' '+source);

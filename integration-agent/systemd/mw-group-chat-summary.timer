@@ -1,0 +1,10 @@
+[Unit]
+Description=Summarise due borrower group chats every two minutes (R146)
+
+[Timer]
+OnBootSec=3min
+OnUnitInactiveSec=2min
+Unit=mw-group-chat-summary.service
+
+[Install]
+WantedBy=timers.target

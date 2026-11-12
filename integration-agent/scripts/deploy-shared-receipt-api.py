@@ -34,8 +34,10 @@ RECOGNIZER = 'mw-receipt-recognition.service'
 OAUTH_BACKUP = 'secrets/outlook-email-oauth.json.bak'
 READY_TIMEOUT = 30
 # These oneshot workers can import the replaced package; they stay paused until the receiver is ready.
+# R146: mw-group-chat-summary imports the package too. Its timer is installed by hand, disabled (the helper installs
+# service and path files only), before the first deploy that pauses it.
 UNITS = ['mw-conversation-poll', 'mw-receipt-summary', 'mw-cash-statement',
-         'mw-cash-statement-email-retry', 'mw-audit-relay']
+         'mw-cash-statement-email-retry', 'mw-audit-relay', 'mw-group-chat-summary']
 # Path units start a worker on demand (R082 B1 receipt wake); paused, recorded and resumed exactly like the timers.
 PATHS = ['mw-receipt-wake.path']
 TRIGGERS = [u + '.timer' for u in UNITS] + PATHS

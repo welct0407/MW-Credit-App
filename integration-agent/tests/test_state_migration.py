@@ -52,6 +52,39 @@ class BackupTests(unittest.TestCase):
 
 
 class MigrateGuardTests(unittest.TestCase):
+    def test_import_ignores_the_group_chat_summary_state_table_of_a_source_journal(self):
+        # R146: the summary marker table is created lazily in a SQLite journal and is not a legacy import table. A source
+        # journal that has it is not refused as unmapped (and the table is not imported); any other stray table still is.
+        from unittest.mock import Mock
+        from mw_integration_agent.state import GROUP_CHAT_SUMMARY_STATE_SQLITE
+        tmp = tempfile.TemporaryDirectory(); self.addCleanup(tmp.cleanup)
+        self.source = Path(tmp.name) / 'state'; self.source.mkdir()
+        self.target = Path(tmp.name) / 'backup'
+        for name in TABLES:
+            with closing(sqlite3.connect(self.source / name)) as db, db:
+                if name == 'instagram-ingress.db':
+                    db.execute('CREATE TABLE receipts(payload_sha256 TEXT PRIMARY KEY)')
+                    db.execute('CREATE TABLE messages(message_id TEXT PRIMARY KEY)')
+                elif name == 'receipt-processing.db':
+                    db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
+                    db.execute("INSERT INTO group_chat_summary_state(conversation_id) VALUES ('synthetic-group')")
+                else:
+                    db.execute('CREATE TABLE marker(name TEXT)')
+        state_migration.backup_journals(self.source, self.target)
+        executed = []
+        conn = SimpleNamespace(execute=lambda query, params=(): executed.append(str(query)) or Mock(fetchone=Mock(return_value=None), fetchall=Mock(return_value=[])))
+        # Past the unmapped-table check: the first mapped table is what is missing, not the summary table.
+        with self.assertRaisesRegex(ConfigurationError, '^EXPECTED_SOURCE_TABLE_MISSING:receipt_cursor$'):
+            state_migration.import_journals(conn, self.target, {}, 'batch-1', 'synthetic')
+        self.assertFalse(any('group_chat_summary_state' in query for query in executed))
+        with closing(sqlite3.connect(self.target / 'receipt-processing.db')) as db, db:
+            db.execute('CREATE TABLE stray(name TEXT)')
+        manifest = json.loads((self.target / 'backup-manifest.json').read_text())
+        manifest['files']['receipt-processing.db'] = hashlib.sha256((self.target / 'receipt-processing.db').read_bytes()).hexdigest()
+        (self.target / 'backup-manifest.json').write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ConfigurationError, '^UNMAPPED_SOURCE_TABLE:receipt-processing.db$'):
+            state_migration.import_journals(conn, self.target, {}, 'batch-2', 'synthetic')
+
     def test_only_the_central_database_can_be_migrated(self):
         conn = SimpleNamespace(info=SimpleNamespace(dbname='loan_manager_prod'),
                                transaction=lambda: (_ for _ in ()).throw(AssertionError('no transaction on a wrong target')))
