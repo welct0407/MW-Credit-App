@@ -1,0 +1,386 @@
+[
+ {
+  "tag": "R001",
+  "commit": "90db4d370f4d5258c0e4b0ba99eec1dc3f0a5e91",
+  "date": "2026-09-16T19:55:04+07:00",
+  "released": "16 September 2026",
+  "message": "R001 released 16 September 2026: Composite original production baseline, reconciled by R003.\n\nNo tag existed for this release. Created on 12 November 2026 at the commit that closed the release, dated to that commit."
+ },
+ {
+  "tag": "R002",
+  "commit": "cde656694afdee834abed8af102fe2230395101c",
+  "date": "2026-09-16T22:47:15+07:00",
+  "released": "16 September 2026",
+  "message": "R002 released 16 September 2026: Loan capacity safeguard and borrower navigation.\n\nNo tag existed for this release. Created on 12 November 2026 at the commit that closed the release, dated to that commit."
+ },
+ {
+  "tag": "R003",
+  "commit": "1e7acaf08d525621f51fe910569f7a77addc6875",
+  "date": "2026-09-16T21:09:45+07:00",
+  "released": "16 September 2026",
+  "message": "R003 released 16 September 2026: Reconcile missing R001 AppSheet configuration.\n\nNo tag existed for this release. Created on 12 November 2026 at the commit that closed the release, dated to that commit."
+ },
+ {
+  "tag": "R004",
+  "commit": "a6a7821cd416699dd625df03705d1354a6942cca",
+  "date": "2026-09-17T00:47:09+07:00",
+  "released": "17 September 2026",
+  "message": "R004 released 17 September 2026: Bilingual referral expense category.\n\nNo tag existed for this release. Created on 12 November 2026 at the commit that closed the release, dated to that commit."
+ },
+ {
+  "tag": "R005",
+  "commit": "52078f3c29bdef8e3e84c75fa320a39f3b4e2252",
+  "date": "2026-09-18T11:43:25+07:00",
+  "released": "18 September 2026",
+  "message": "R005 released 18 September 2026: Cash custody, reversals and dashboard refinements.\n\nNo tag existed for this release. Created on 12 November 2026 at the commit that closed the release, dated to that commit."
+ },
+ {
+  "tag": "R006",
+  "commit": "233d382b94de3521f2db576e1a4b7b1427b0998a",
+  "date": "2026-09-18T15:03:22+07:00",
+  "released": "18 September 2026",
+  "message": "R006 released 18 September 2026: Four OLTP formula optimizations.\n\nNo tag existed for this release. Created on 12 November 2026 at the commit that closed the release, dated to that commit."
+ },
+ {
+  "tag": "R007",
+  "commit": "7fea96e739ac5c96c48a9e38b8f64cc3e95576d4",
+  "date": "2026-09-18T19:18:34+07:00",
+  "released": "18 September 2026",
+  "message": "R007 released 18 September 2026: SQL analytical views for OLAP.\n\nNo tag existed for this release. Created on 12 November 2026 at the commit that closed the release, dated to that commit."
+ },
+ {
+  "tag": "R008",
+  "commit": "ddd48886d59020e7e1b9890eaf8ad468c35daefb",
+  "date": "2026-09-19T10:56:04+07:00",
+  "released": "19 September 2026",
+  "message": "R008 released 19 September 2026: Cash accounts and account-aware payment commands, released after the correction audit.\n\nNo tag existed for this release. Created on 12 November 2026 at the commit that closed the release, dated to that commit."
+ },
+ {
+  "tag": "R009",
+  "commit": "c5d362e909d29cd4ae5c2ab741e6bc3b2ecc9ce6",
+  "date": "2026-09-19T22:02:54+07:00",
+  "released": "19 September 2026",
+  "message": "R009 released: PROD OLTP 3.000231, OLAP 1.100181, Flyway V26; RC1 App Upgrade and validated evidence\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R010",
+  "commit": "ed85afe188fcc96546a53ee1d2a8db4f72a04c6f",
+  "date": "2026-09-20T15:31:03+07:00",
+  "released": "20 September 2026",
+  "message": "R010 production release: Cash Account Statement and payment validation\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R011",
+  "commit": "c003ac9695526142d5d4670d027307767f8fd5e3",
+  "date": "2026-09-21T02:07:33+07:00",
+  "released": "21 September 2026",
+  "message": "R011 production release\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R013",
+  "commit": "2262598aad8c8b102aea8d219cd3d8684861ecec",
+  "date": "2026-09-21T13:24:07+07:00",
+  "released": "21 September 2026",
+  "message": "R013: payment receipt transaction time SQL-only production release\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R014",
+  "commit": "bed9ed7a49120df293adb4a73da1e0e8f5659fa5",
+  "date": "2026-09-21T21:46:44+07:00",
+  "released": "21 September 2026",
+  "message": "R014 production release: cash views, partial settlements, borrower UX and AI Reviewer\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R015",
+  "commit": "4d7ab0357dc2501930070e90c208f3c486c52607",
+  "date": "2026-09-22T14:19:43+07:00",
+  "released": "22 September 2026",
+  "message": "R015 PostgreSQL agent audit and reviewer operations verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R017",
+  "commit": "b9b40b9ab7a2f2fb56cbaeff4d4b33e6f3219f2b",
+  "date": "2026-09-24T12:23:17+07:00",
+  "released": "24 September 2026",
+  "message": "R017: capital yield on 6R; 23 checks and desktop/mobile verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R018",
+  "commit": "ce407b16b747a05d99d30477e182465c52f48c73",
+  "date": "2026-09-24T12:48:00+07:00",
+  "released": "24 September 2026",
+  "message": "R018: separate weekly Loan Return, 100 percent reference, 29 checks passed\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R019",
+  "commit": "07548b4be8395ef23ab17eb362d9b29afc49666d",
+  "date": "2026-09-24T13:09:42+07:00",
+  "released": "24 September 2026",
+  "message": "R019: corrected same-loan cohort return; 15 checks and desktop/mobile verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R020",
+  "commit": "a37d0b15570f78f39417d64f0dac8a93baaf95e0",
+  "date": "2026-09-24T14:39:08+07:00",
+  "released": "24 September 2026",
+  "message": "R020 compact 6R chart layout verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R021",
+  "commit": "c9183d17000cf620e3d1d29ada1f60e29eb7b946",
+  "date": "2026-09-24T16:49:03+07:00",
+  "released": "24 September 2026",
+  "message": "R021 live Performance summary metrics verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R022",
+  "commit": "df44d62796a241467a0d0524abc4a21a88325e58",
+  "date": "2026-09-24T17:04:51+07:00",
+  "released": "24 September 2026",
+  "message": "R022 selective Performance labels verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R023",
+  "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa",
+  "date": "2026-09-24T17:16:01+07:00",
+  "released": "24 September 2026",
+  "message": "R023 canonical Performance replacement verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time.",
+  "replace": true
+ },
+ {
+  "tag": "R024",
+  "commit": "dd22d81112d6496f28ac8fb8768405bdfa813621",
+  "date": "2026-09-24T17:43:41+07:00",
+  "released": "24 September 2026",
+  "message": "R024 Performance and Borrowers tab order verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R025",
+  "commit": "9a623878d11a06b119e867e291340e60066bc894",
+  "date": "2026-09-24T19:24:02+07:00",
+  "released": "24 September 2026",
+  "message": "R025: canonical Collection Monitor replacement\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R027",
+  "commit": "db3e77ce3a3bff84041b4b3a61537c3316907a10",
+  "date": "2026-09-24T23:43:14+07:00",
+  "released": "24 September 2026",
+  "message": "R027: verified payment-health SQL and parallel Borrower Health Review; original tabs retained\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R028",
+  "commit": "8fb56e19e4c7b11333336d8d6fdbb16dbbda3ae8",
+  "date": "2026-09-25T01:42:09+07:00",
+  "released": "25 September 2026",
+  "message": "R028: verified automatic SQL schedule categories and Metabase review\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R029",
+  "commit": "4c8481e9734eed60da15aea81b6bda36de877c7a",
+  "date": "2026-09-25T10:51:39+07:00",
+  "released": "25 September 2026",
+  "message": "R029: SQL V43 and native four-quadrant borrower matrix verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R030",
+  "commit": "a876a53e546352a79ffefc5a39dab118c506676d",
+  "date": "2026-09-25T12:04:38+07:00",
+  "released": "25 September 2026",
+  "message": "R030 custom borrower matrix deployed and verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R031",
+  "commit": "8951d5f05165c2e4d36b87720faaf74dfc1b6f78",
+  "date": "2026-09-25T12:39:00+07:00",
+  "released": "25 September 2026",
+  "message": "R031 muted category icons and nearby borrower labels verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R032",
+  "commit": "6b3aa3852e5e785d1ffb41228451101791167d05",
+  "date": "2026-09-25T15:08:52+07:00",
+  "released": "25 September 2026",
+  "message": "R032 distinct Cash Cow and Dog icons verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R033",
+  "commit": "a0e2b97bfc9824f4daa39f7fd65feca62cc21cbb",
+  "date": "2026-09-25T15:46:49+07:00",
+  "released": "25 September 2026",
+  "message": "R033 custom matrix accepted; native plot placement removed\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R034",
+  "commit": "33bfe6d17802adf70a1625eceb29b23af8ea3876",
+  "date": "2026-09-25T16:16:06+07:00",
+  "released": "25 September 2026",
+  "message": "R034 borrower matrix first and whole-baht display verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R035",
+  "commit": "0593b666ea39dd7a9c3391fcf7cef234dbbb6dbb",
+  "date": "2026-09-25T17:54:21+07:00",
+  "released": "25 September 2026",
+  "message": "R035: Metabase monitoring and additive borrower Portfolio/Detail; SQL V44; apps unchanged\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R036",
+  "commit": "e4e73106bcc8872b427336938f9098e59005cbbe",
+  "date": "2026-09-26T00:12:24+07:00",
+  "released": "26 September 2026",
+  "message": "R036: production V45 and OLTP3.000249; OLAP1.100202 unchanged; verified and RC retired\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R037",
+  "commit": "bb97328bd865bda346638ddea180a251daba3688",
+  "date": "2026-09-26T10:34:31+07:00",
+  "released": "26 September 2026",
+  "message": "R037 borrower contribution pies and lifetime daily rate; verified report-only release\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R038",
+  "commit": "de04bdf73da886267e77345b8b658e3118da9034",
+  "date": "2026-09-26T16:29:38+07:00",
+  "released": "26 September 2026",
+  "message": "R038 lifetime interest return on total original lending; verified report-only release\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R039",
+  "commit": "81439226c2f56639ac7804f12e03a48a31b12eee",
+  "date": "2026-09-26T16:38:25+07:00",
+  "released": "26 September 2026",
+  "message": "R039 restore both borrower amount bars alongside pies and lifetime ratios\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R040",
+  "commit": "14a2f945e7b9375e2392027476387d7b79134b30",
+  "date": "2026-09-26T20:37:50+07:00",
+  "released": "26 September 2026",
+  "message": "R040 borrower Portfolio refinements and Detail punctuality verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R041",
+  "commit": "b2bdc441bbe678c5406cc2c46b6843f293336dc8",
+  "date": "2026-09-26T21:30:18+07:00",
+  "released": "26 September 2026",
+  "message": "R041 borrower Detail presentation verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R042",
+  "commit": "291da0105df4b698defd10dacd0d4b0f2c2652e7",
+  "date": "2026-09-26T21:58:08+07:00",
+  "released": "26 September 2026",
+  "message": "R042 V46 full payment receipts and borrower Detail refinements verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R043",
+  "commit": "640db510d8a243635f209fcef34efeee0836f880",
+  "date": "2026-09-26T22:33:40+07:00",
+  "released": "26 September 2026",
+  "message": "R043 canonical borrower navigation verified\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R044",
+  "commit": "b5efd78be9f047b2ec8f5bb6350dbb3bd268c5b9",
+  "date": "2026-09-26T23:51:25+07:00",
+  "released": "26 September 2026",
+  "message": "R044 Partners: V47 and verified dashboard 249\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R045",
+  "commit": "23c007105714c6c56b8484968019abd17f7e9a03",
+  "date": "2026-09-27T01:27:36+07:00",
+  "released": "27 September 2026",
+  "message": "R045 Forecast and Planning: verified SQL V48 and Metabase tab262\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R046",
+  "commit": "5d9bb92859956d61bdaccf9db7906f260292c9bd",
+  "date": "2026-09-27T19:26:05+07:00",
+  "released": "27 September 2026",
+  "message": "R046 released: receipt backend and integrated production UI closure\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R047",
+  "commit": "5d9bb92859956d61bdaccf9db7906f260292c9bd",
+  "date": "2026-09-27T19:26:05+07:00",
+  "released": "27 September 2026",
+  "message": "R047 released: selected charges, receipt upload, labels and whole-baht displays\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R048",
+  "commit": "f9b5cb65aa15a1ce290bf2afb2a774af81a3ef56",
+  "date": "2026-09-29T13:51:35+07:00",
+  "released": "29 September 2026",
+  "message": "R048 released: OLTP 3.000260, OLAP 1.100208, PostgreSQL V55\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R049",
+  "commit": "4ae7e29389cac1512b6e63462054594d84e46a94",
+  "date": "2026-09-29T19:03:48+07:00",
+  "released": "29 September 2026",
+  "message": "R049 production release: upcoming charge summaries and drilldowns\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R050",
+  "commit": "0c8b2be115a612fc839173179daaae0ad5697cc1",
+  "date": "2026-10-05T11:55:25+00:00",
+  "released": "5 October 2026",
+  "message": "R050 owner-accepted closeout: deployed reporting, bridge, controller and V57/V58 evidence; mobile acceptance recorded 2026-10-05. R051 excluded; shutdown hold and Cloud status authentication limits retained.\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R051",
+  "commit": "8cf6a0a7cebb97115b288c6f4a8c50e899f1ada6",
+  "date": "2026-10-07T02:51:57+07:00",
+  "released": "7 October 2026",
+  "message": "R051 production verified: OLTP3.000270 OLAP1.100212 SQL77\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R052",
+  "commit": "b690ae59b923cc7cc150e5cb7507a5d1cac81230",
+  "date": "2026-10-11T23:21:11+07:00",
+  "released": "11 October 2026",
+  "message": "R052 released with owner-accepted genuine manual receipt follow-up\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R053",
+  "commit": "ff09caf67680a401663dda03031364f211086761",
+  "date": "2026-10-12T11:54:02+07:00",
+  "released": "12 October 2026",
+  "message": "R053 released: native API, notifications and jobs; owner accepts deferred natural-business checks\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R054",
+  "commit": "b1143e12f93f85bf0bae5f2d78d82e244de3724f",
+  "date": "2026-10-13T10:07:07+07:00",
+  "released": "13 October 2026",
+  "message": "R054 owner-accepted UI production closure 13 October 2026; unfinished credentials carried to R055\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R057",
+  "commit": "8f25a2c01c135a4637eb3499a04b36e05444bf97",
+  "date": "2026-10-14T00:08:36+07:00",
+  "released": "14 October 2026",
+  "message": "R057 technical AppSheet retirement: retained definitions and native services, owner license revocation pending\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ },
+ {
+  "tag": "R058",
+  "commit": "37e0be43b5001fab3872e2e23a9be4bea079e252",
+  "date": "2026-10-14T14:56:32+07:00",
+  "released": "14 October 2026",
+  "message": "R058 released 2026-10-14: Debian IG delivery attempts provider, email only on explicit messaging-window rejection. Runtime a8cf94999aee33e9762614241b31904a967b7cac verified 14:53 Bangkok. R059 Open, next R060.\n\nRestored on 12 November 2026 from the archived AppSheet-Loan-Project tag: same commit and message, dated to the original tag time."
+ }
+]
