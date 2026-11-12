@@ -135,21 +135,21 @@ Authority: the owner's instruction of 12 November 2026, "move everything to prod
 
 | Step | Result |
 | --- | --- |
-| Freeze | PLACEHOLDER (Forge: freeze timestamp, start of promotion); package `main` `813462e7` (merge of PR #289; the agent code is already on the VM from the DEV deployment); baseline R141 `c983e68a`. Next unused number R144 (R143 opened by this closure pull request) |
+| Freeze | Package `main` `813462e7` (merge of PR #289; the agent code is already on the VM from the DEV deployment), at the start of the baseline capture, 01:55Z; baseline R141 `c983e68a`. Scope check: the diff from `c983e68a` to `813462e7` touches only `apps/pwa/src`, one unit test, agent code and documents (no `services/`, SQL or infrastructure change). Next unused number R144 (R143 opened by the closure pull request) |
 | Target | Project `clever-oasis-508610-n7`, database `loan_manager_prod` (no change), Hosting site `mw-credit-prod-737787224638`, agent VM `vm-mw-credit-agent` |
-| Baseline capture | PLACEHOLDER (Forge: Hosting version before, config sha before, `code_version`, catalogue revision) |
+| Baseline capture | Read-only, 01:55Z: PROD Hosting `83ca72cd9ec80625` (R141); VM `code_version` `813462e7`, catalogue revision 37, configuration sha `9ea52e1d...`; recognizer and chat relay healthy; Cloud Run unchanged (read `00055-sq2`, command `00060-mtz`, chat `00039-9px`, notify `00029-2nb`, jobs `00029-9dp`); PROD Flyway 145. The last PROD-caller recognitions (11 November 09:11Z and 09:27Z) and the last cycle extraction (11 November 20:46Z) were served by Gemini |
 | SQL, image, Terraform | None |
-| Hosting | PLACEHOLDER (Forge: version, release, build-version R142, entry, file count, package sha256, times) |
-| Configuration cutover | PLACEHOLDER (Forge: `config-only-change.py` tag `r142-prod-cutover`, times, the keys changed: the `command-prod` caller route and the Instagram receipt cycle keys; DEV route unchanged) |
-| Checks | PLACEHOLDER (Forge: `check`, `/ready`, recognizer and relay `/healthz`, read-only smoke, first PROD-caller request served by which provider) |
-| Rollback | PLACEHOLDER (Forge: `config-only-change.py restore --tag r142-prod-cutover`; previous Hosting version; code rollback `deploy-runtime.py rollback --commit 813462e7` restores `d2de3330`) |
-| Tag | PLACEHOLDER: annotated `R142` on `813462e7` through the Release tag workflow; run id to fill in (not yet started) |
+| Hosting | Frontend-only package from the generic runner, built from a clean worktree at `813462e7`, package sha256 `ce77604cd120480de6c9eeb1decec9a39c196006d7edd4e285eb933fe6e889fe`; `--check` passed (18 files); applied 01:56:45Z to 01:57:20Z as `mw-credit-unattended-admin`: version `854b64df2b836f27`, release `1794448633524000`, build-version R142 `d7ff36b7e78d638fe2430fea`, entry `/assets/index-AHk9Zf_N.js`. Private records: `promotion-packages/r142/` and `promotion-receipts/R142-HOSTING-RECEIPT.json` in the operator bucket |
+| Configuration cutover | `config-only-change.py` tag `r142-prod-cutover`, applied 01:59:25Z to 01:59:30Z. The `command-prod` caller entry gained `provider` claude, `fallback` gemini, `qr_reference` true and `clean_text` true. Cycle: `receipt_extraction_provider` gemini to claude, `receipt_cycle_fallback` gemini, `receipt_cycle_qr_reference` true, `receipt_cycle_clean_text` true. Model, effort and banks unchanged. Validated with the deployed validator; one PROD federation token exchange as `mwagent` succeeded. New configuration sha `6c372229...` |
+| Checks | CI: `Development checks` run 43075377547 (check and e2e, head `29a7ba08`); Terraform run 42763518963 and `Database migrations` run 43031148944 are R141's input-equivalent runs; `Agent tests` runs 43072193508 and 43088397870. After the Hosting apply: both origins serve R142, `sw.js` `no-store`, read and command `/health` 200 and 401 without a token, chat 401 without a token, no PROD ERROR logs. After the cutover: `check` exit 0, `/ready` `813462e7`, recognizer and relay `/healthz` 200, all 8 timers and paths active, no agent errors |
+| Rollback | Configuration: `config-only-change.py restore --tag r142-prod-cutover`. Hosting: redeploy `83ca72cd9ec80625` (R141). Code: `deploy-runtime.py rollback --commit 813462e7` restores `d2de3330`. No SQL |
+| Tag | Annotated `R142` on `813462e765b54025bb78d9b4b154258a24c114c7`, created by the Release tag workflow run [43140243508](https://github.com/welct0407/MW-Credit-App/actions/runs/43140243508) (succeeded at 02:16:46Z; GitHub Release R142 published, latest) |
 
 ### Deviations
-- PLACEHOLDER (Forge: none, or list).
+- None recorded.
 
 ### Limitations
-- PLACEHOLDER (Forge). Pending first real use: the first real slip through the PROD caller and the Instagram cycle on Claude, and the owner's acceptance. The tag record is part of the closure pull request.
+- No financial write, forced job or test write in PROD. Pending first real use (watched 01:59Z to 02:14Z with no traffic created): a PROD-caller audit row served by Claude and a cycle extraction by Claude (the last DEV Claude row, 01:49:23Z, showed `prepare_ms` 69 and `model_ms` 3288), and the owner's acceptance. The tag record is part of the closure pull request.
 
 ### Pruned in the closure pull request
 - Change note `Change Logs/CHANGE_NOTES_R139_CHAT_GROUP_REPIN_2026-11-10.md` (out of the retention window of the open release and the three most recent Released releases: R142, R141, R140); links to it in the Release Tracker and the Environment Inventory now point to its commit permalink at `813462e7`.
