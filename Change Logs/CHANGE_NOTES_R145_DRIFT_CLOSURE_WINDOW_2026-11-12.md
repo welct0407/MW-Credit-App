@@ -27,7 +27,7 @@ Revert the pull request; the previous behavior only refuses to run in the closur
 None.
 
 ## Remaining work
-Owner acceptance in PROD. Nothing else.
+Owner acceptance: accepted by the owner in PROD on 12 November 2026 ("R144 and R145 accepted in prod"). Nothing else.
 
 ## PROD promotion record (Forge, 12 November 2026 UTC)
 Authority: the owner's instruction of 12 November 2026, "Fix the drift check in R145 and promote to prod", relayed by the orchestrator. Tooling only, so nothing was deployed: no image, Hosting, agent, SQL, Grafana or Metabase change, and no live write. No secret value appears here.

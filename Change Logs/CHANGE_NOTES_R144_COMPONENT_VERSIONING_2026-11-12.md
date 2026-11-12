@@ -38,7 +38,7 @@ Git baseline `055e25fe` (R143). Nothing live changed; revert the pull request.
 Seed fact not verified from a live target: the Metabase last-changed release (R137 from tags). notify and jobs seed R130 (verified by Byte against tags; R134 and R135 changed only package.json scripts).
 
 ## Remaining work
-Owner acceptance in PROD. R145 candidate: `drift` refuses to run between the tag and the closure pull request (it reads the Open release from the tracker and finds it already tagged); see the Deviations below and Development Changes.
+Owner acceptance: accepted by the owner in PROD on 12 November 2026 ("R144 and R145 accepted in prod"). The R145 candidate (fixed in R145): `drift` refuses to run between the tag and the closure pull request (it reads the Open release from the tracker and finds it already tagged); see the Deviations below and Development Changes.
 
 ## PROD promotion record (Forge, 12 November 2026 UTC)
 Authority: the owner's instruction of 12 November 2026, "Merge and promote R144 to production", relayed by the orchestrator as the scoped PROD approval for R144: builds, the DEV and PROD images-only applies, the agent deploy, the Grafana apply, the Metabase stamp and the technical records. No SQL, so no backup and no owner window. No payment, notification or job was forced and no financial or borrower data was written. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
