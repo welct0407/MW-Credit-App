@@ -4,7 +4,7 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R145 — Open** (no scope yet) |
+| New product work | **R145 — Open** |
 | Next unused number | **R146**, only opened in the R145 closure pull request |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 

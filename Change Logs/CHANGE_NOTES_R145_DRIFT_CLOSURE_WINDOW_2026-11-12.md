@@ -5,6 +5,7 @@ Owner request of 12 November 2026: "Fix the drift check in R145 and promote to p
 
 ## Changes
 - `scripts/promotion/component-versions.mjs` (Byte): when the tracker's Open release is already tagged, `drift` and every subcommand that reads the Open release treat that tag as the latest released release and print that closure is pending.
+- Defect found by Chase: the R144 closure (on `main` `2dd2223e`) wrote `| New product work | **R145 — Open** (no scope yet) |` in `Release_Tracker.md`, which `openRelease` in `scripts/build-live-dev.mjs` does not parse, so `build:live-dev`, `drift` and `check-source` threw "no Open release row". Fixed by restoring the canonical `| New product work | **R145 — Open** |` (the scope lives in the R145 paragraph); Byte adds a regression test that parses the real tracker.
 - Records (Dewey): `Release_Tracker.md` (R145 scope), `Development_Changes.md` (the R144 follow-up row marked addressed), `scripts/promotion/README.md` and `Release_Workflow.md` (drift can run right after the tag, before closure), this note.
 - Documents checked and unchanged: `Environment_Inventory.md` (no deployment pin or component change), Solution Design, data model and dictionary, monitoring documents.
 
