@@ -26,7 +26,7 @@ Revert the commit; the added fields are read only by the drift check.
 None.
 
 ## Remaining work
-None for the agent.
+None for the agent. Owner acceptance: accepted by the owner in PROD on 12 November 2026 ("R144 and R145 accepted in prod").
 
 ## Deployment (Forge, 12 November 2026 UTC)
 Authority: the owner's R144 production instruction ("Merge and promote R144 to production"), relayed by the orchestrator; it covers this deploy of the exact package commit `51ba52d36d9f5a1bd13960fd31b2b2919acfd70a`. Host `vm-mw-credit-agent` (project `clever-oasis-508610-n7`), over IAP SSH as `codex-cloud`. No config switch, cutoff, catalogue entry, route or job changed; no secret value is recorded.
