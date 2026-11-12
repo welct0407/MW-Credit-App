@@ -932,7 +932,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "The recognizer's configured provider and model from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable.",
+        "description": "The recognizer's provider and model for the PROD caller's route (R142 per-caller routing: the mw-credit-app-command-prod entry's provider, else the global default) from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Claude · claude-opus-5-5; the provider alone when the model is not readable.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1780,7 +1780,7 @@
           ]
         },
         "gridPos": {
-          "h": 12,
+          "h": 15,
           "w": 16,
           "x": 0,
           "y": 39
@@ -1980,7 +1980,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "Current public status only, no history: Railway (railway.instatus.com, hosts Metabase and the reports: Outage for a major-outage incident, Incident open, Maintenance in progress) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global).",
+        "description": "Current public status only, no history: Railway (railway.instatus.com, hosts Metabase and the reports: Outage for a major-outage incident, Incident open, Maintenance in progress) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global); Anthropic (status.claude.com, the Claude API component only, which reads PROD slips and serves the chat: Outage for a major outage or a critical incident, Incident open for an incident, degraded performance or partial outage, Maintenance in progress).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -2068,11 +2068,23 @@
                   "value": "Google Cloud"
                 }
               ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Anthropic"
+                }
+              ]
             }
           ]
         },
         "gridPos": {
-          "h": 9,
+          "h": 12,
           "w": 8,
           "x": 16,
           "y": 39
@@ -2142,6 +2154,29 @@
             "source": "url",
             "type": "json",
             "url": "https://status.cloud.google.com/incidents.json",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "status",
+                "text": "Anthropic",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "cfz10a9eaokjkd"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "# Anthropic public status (Statuspage, status.claude.com/api/v2/summary.json; status.anthropic.com answers\n# 301 to it and Grafana's Infinity proxy is pointed at the final host). R143: Claude Opus 5.5 reads PROD slips\n# and the chat uses Claude, both through api.anthropic.com, so only the component \"Claude API\n# (api.anthropic.com)\" (id k8w3r06qmzrp) counts; claude.ai, Console, Claude Code and the cloud-platform\n# components do not. Status codes as the Railway and Google Cloud rows: 0 Outage (the API component in\n# major_outage, or an open incident on it with impact critical), 2 Incident open (an open incident on the\n# API, or the API degraded or in partial outage), 3 Maintenance (an in-progress or verifying maintenance on\n# the API, or the API under_maintenance), 1 No incident (operational, nothing open), 4 Feed unreadable\n# (anything else, including a changed shape or a missing API component).\ndef objects($k): (.[$k] // []) | if type == \"array\" then [.[] | select(type == \"object\")] else null end;\ndef touches($id): [(.components // [])[]? | select(type == \"object\") | .id] | index($id) != null;\n\"k8w3r06qmzrp\" as $api |\nif type != \"object\" or objects(\"components\") == null or objects(\"incidents\") == null\n   or objects(\"scheduled_maintenances\") == null\n   or ([objects(\"components\")[] | select(.id == $api and (.status | type) == \"string\")] | length) != 1\nthen {name: \"Anthropic\", status: 4, details: \"Anthropic status feed unreadable or format changed.\"}\nelse\n  ([objects(\"components\")[] | select(.id == $api)][0].status) as $component |\n  [objects(\"incidents\")[] | select((.status // \"\") != \"resolved\" and (.status // \"\") != \"postmortem\" and touches($api))] as $incidents |\n  [objects(\"scheduled_maintenances\")[] | select((.status == \"in_progress\" or .status == \"verifying\") and touches($api))] as $maintenance |\n  {name: \"Anthropic\",\n   status: (if $component == \"major_outage\" or any($incidents[]; .impact == \"critical\") then 0\n            elif ($incidents | length) > 0 or $component == \"partial_outage\" or $component == \"degraded_performance\" then 2\n            elif ($maintenance | length) > 0 or $component == \"under_maintenance\" then 3\n            elif $component == \"operational\" then 1 else 4 end),\n   details: (if ($incidents | length) + ($maintenance | length) == 0 then \"Claude API: \" + $component + \".\"\n     else ([$incidents[] | (.name // \"Incident\") + \" · \" + ((.impact // .status // \"\") | tostring)] +\n           [$maintenance[] | (.name // \"Maintenance\") + \" · maintenance\"] | join(\"\\n\")) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://status.claude.com/api/v2/summary.json",
             "url_options": {
               "method": "GET"
             }
@@ -2215,7 +2250,7 @@
           "h": 3,
           "w": 8,
           "x": 16,
-          "y": 48
+          "y": 51
         },
         "id": 13,
         "options": {

@@ -184,7 +184,7 @@ function recognition() {
   service.links = [{targetBlank: false, title: 'Agent & Receipts', url: '/d/mw-agent'}];
   // READ-1: the provider and model id is long text, so it has its own tile at the text-tile size.
   const model = L.modelTile({id: 33, title: 'Recognizer model', gridPos: pos(16, y + 5, 8, RECOGNITION - 4), component: 'recognizer',
-    description: 'The recognizer\'s configured provider and model from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable.'});
+    description: 'The recognizer\'s provider and model for the PROD caller\'s route (R142 per-caller routing: the mw-credit-app-command-prod entry\'s provider, else the global default) from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Claude · claude-opus-5-5; the provider alone when the model is not readable.'});
   return [header, outcomes, latency, service, model];
 }
 

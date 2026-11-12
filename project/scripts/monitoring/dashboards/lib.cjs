@@ -65,7 +65,7 @@ const ALLOWED_DATASOURCE_UIDS = [
 ];
 const ALLOWED_URL_HOSTS = [
   'monitoring.googleapis.com', 'bigquery.googleapis.com',
-  'backboard.railway.com', 'api.frankfurter.dev', 'status.cloud.google.com', 'railway.instatus.com',
+  'backboard.railway.com', 'api.frankfurter.dev', 'status.cloud.google.com', 'railway.instatus.com', 'status.claude.com',
   'billingbudgets.googleapis.com', 'api.anthropic.com'
 ];
 
@@ -133,7 +133,7 @@ const POLICY = {
   // A name used for two metrics is qualified by its panel title ("Provider status › Railway" vs the Cost tile Railway).
   // R093: the in-app chat (API health field Chat; Now 5, PWA 43 and Cost 51 tiles).
   state: ['Service', 'Reader', 'Command', 'Chat', 'Hosting', 'Provider status › Railway',
-    'Providers · status › Railway', 'Google Cloud', 'Code version', '1 · Scan · last run', 'Group scan · last run'],
+    'Providers · status › Railway', 'Google Cloud', 'Anthropic', 'Code version', '1 · Scan · last run', 'Group scan · last run'],
   problem: ['Failed · 24 h', 'Failed', 'Timed out', 'Unreadable', 'Open ingress reviews', '503 · session check unavailable',
     '503 · body timeout', '5xx · all services', '3 · Validate · holds', 'Validation holds', '4 · Review · overdue', '5 · Post · unconfirmed',
     'Posting unconfirmed', '6 · Notify · failed', 'Notify failures'],
@@ -594,15 +594,19 @@ function chatStat({id, title, description, gridPos, env, fields, timeFrom}) {
 
 // Owner decision (R089 follow-up): Railway (hosts Metabase and the reports) replaces OpenAI, which is no longer required.
 const STATUS_MAP = [[0, 'Outage', COLOR.down], [1, 'No incident', COLOR.ok], [2, 'Incident open', COLOR.degraded], [3, 'Maintenance', COLOR.degraded], [4, 'Feed unreadable', COLOR.unknown]];
-function providerStatus({id, gridPos, title = 'Provider status'}) {
+// R143 (owner, 12 November 2026): the Agent panel adds Anthropic (Claude reads PROD slips and serves the chat through
+// api.anthropic.com), read through the credential-free mw-public-status datasource like Railway. The Now tile is unchanged.
+function providerStatus({id, gridPos, title = 'Provider status', anthropic = false}) {
   return stat({id, title, gridPos, datasource: DS.mixed,
-    description: 'Current public status only, no history: Railway (railway.instatus.com, hosts Metabase and the reports: Outage for a major-outage incident, Incident open, Maintenance in progress) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global).',
+    description: 'Current public status only, no history: Railway (railway.instatus.com, hosts Metabase and the reports: Outage for a major-outage incident, Incident open, Maintenance in progress) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global)'
+      + (anthropic ? '; Anthropic (status.claude.com, the Claude API component only, which reads PROD slips and serves the chat: Outage for a major outage or a critical incident, Incident open for an incident, degraded performance or partial outage, Maintenance in progress).' : '.'),
     targets: [
       target('A', DS.publicStatus, 'https://railway.instatus.com/summary.json', jq('railway-status.jq'), [col('status', 'Railway')]),
-      target('B', DS.gcpStatus, 'https://status.cloud.google.com/incidents.json', jq('gcp-status.jq'), [col('status', 'Google Cloud')])
+      target('B', DS.gcpStatus, 'https://status.cloud.google.com/incidents.json', jq('gcp-status.jq'), [col('status', 'Google Cloud')]),
+      ...(anthropic ? [target('C', DS.publicStatus, 'https://status.claude.com/api/v2/summary.json', jq('anthropic-status.jq'), [col('status', 'Anthropic')])] : [])
     ],
     defaults: {mappings: valueMap(STATUS_MAP, 'Feed unreadable'), noValue: 'Feed unreadable', color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    overrides: [byRef('A', {displayName: 'Railway'}), byRef('B', {displayName: 'Google Cloud'})],
+    overrides: [byRef('A', {displayName: 'Railway'}), byRef('B', {displayName: 'Google Cloud'}), ...(anthropic ? [byRef('C', {displayName: 'Anthropic'})] : [])],
     options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, text: {titleSize: 12, valueSize: 18}}});
 }
 

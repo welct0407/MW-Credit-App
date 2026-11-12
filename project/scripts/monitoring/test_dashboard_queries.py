@@ -522,6 +522,59 @@ class RailwayStatus(unittest.TestCase):
             self.assertEqual(self.q(data), 4, data)
 
 
+class AnthropicStatus(unittest.TestCase):
+    """anthropic-status.jq on status.claude.com/api/v2/summary.json (Statuspage; live shape of 12 November 2026,
+    trimmed): only the Claude API component k8w3r06qmzrp counts."""
+    API = {'id': 'k8w3r06qmzrp', 'name': 'Claude API (api.anthropic.com)', 'status': 'operational', 'group': False}
+    OTHER = {'id': 'rwppv331jlwc', 'name': 'claude.ai', 'status': 'operational', 'group': False}
+
+    def data(self, api='operational', other='operational', incidents=(), maintenances=()):
+        return {'page': {'id': 'tymt9n04zgry', 'name': 'Claude', 'url': 'https://status.claude.com'},
+                'status': {'indicator': 'none', 'description': 'All Systems Operational'},
+                'components': [dict(self.OTHER, status=other), dict(self.API, status=api)],
+                'incidents': list(incidents), 'scheduled_maintenances': list(maintenances)}
+
+    def incident(self, impact='minor', status='investigating', components=None):
+        return {'name': 'Elevated errors', 'impact': impact, 'status': status,
+                'components': [self.API] if components is None else components}
+
+    def q(self, data):
+        return query('anthropic-status.jq', data)[0]['status']
+
+    def test_operational_is_no_incident(self):
+        self.assertEqual(self.q(self.data()), 1)
+        self.assertEqual(query('anthropic-status.jq', self.data())[0]['details'], 'Claude API: operational.')
+        # Another component's trouble does not count.
+        self.assertEqual(self.q(self.data(other='major_outage', incidents=[self.incident('critical', components=[self.OTHER])])), 1)
+        self.assertEqual(self.q(self.data(incidents=[self.incident(status='resolved')])), 1)
+
+    def test_incident_open(self):
+        self.assertEqual(self.q(self.data(incidents=[self.incident()])), 2)
+        self.assertEqual(self.q(self.data(incidents=[self.incident('major', 'monitoring')])), 2)
+        for state in ('degraded_performance', 'partial_outage'):
+            self.assertEqual(self.q(self.data(api=state)), 2, state)
+        self.assertEqual(query('anthropic-status.jq', self.data(incidents=[self.incident()]))[0]['details'], 'Elevated errors · minor')
+
+    def test_major_outage(self):
+        self.assertEqual(self.q(self.data(api='major_outage')), 0)
+        self.assertEqual(self.q(self.data(incidents=[self.incident('critical')])), 0)
+
+    def test_maintenance(self):
+        work = {'name': 'Database upgrade', 'status': 'in_progress', 'components': [self.API]}
+        self.assertEqual(self.q(self.data(maintenances=[work])), 3)
+        self.assertEqual(self.q(self.data(maintenances=[dict(work, status='verifying')])), 3)
+        self.assertEqual(self.q(self.data(api='under_maintenance')), 3)
+        self.assertEqual(self.q(self.data(maintenances=[dict(work, status='scheduled')])), 1)
+        self.assertEqual(self.q(self.data(maintenances=[dict(work, components=[self.OTHER])])), 1)
+
+    def test_unreadable_feed(self):
+        good = self.data()
+        missing = dict(good, components=[self.OTHER])
+        for data in ({}, [], dict(good, components={}), dict(good, incidents='x'), dict(good, scheduled_maintenances={}), missing,
+                     dict(good, components=[self.OTHER, dict(self.API, status=None)]), self.data(api='something_new')):
+            self.assertEqual(self.q(data), 4, data)
+
+
 class ProviderModel(unittest.TestCase):
     """provider-model.jq: newest run's provider code and its model:<id> field as one text value."""
     @staticmethod
@@ -593,6 +646,11 @@ class GeneratedSelectors(unittest.TestCase):
             self.assertEqual((t[0]['url'], t[0]['datasource']['uid']), ('https://railway.instatus.com/summary.json', 'cfz10a9eaokjkd'))
             self.assertEqual(run(t[0]['root_selector'], RailwayStatus.UP)[0]['status'], 1)
             self.assertEqual(t[1]['url'], 'https://status.cloud.google.com/incidents.json')
+        # R143: the Agent panel adds Anthropic through the same credential-free datasource as Railway; Now is unchanged.
+        agent, now = self.panel('mw-agent', 11)['targets'], self.panel('mw-now', 17)['targets']
+        self.assertEqual((agent[2]['url'], agent[2]['datasource']['uid']), ('https://status.claude.com/api/v2/summary.json', 'cfz10a9eaokjkd'))
+        self.assertEqual(run(agent[2]['root_selector'], AnthropicStatus().data())[0]['status'], 1)
+        self.assertEqual(len(now), 2)
         for uid in ('mw-now', 'mw-agent', 'mw-pwa', 'mw-infra', 'mw-cost'):
             self.assertNotIn('openai', (DASHBOARDS / (uid + '.json')).read_text().lower(), uid)
 
