@@ -216,6 +216,8 @@ Status and records only; deployment pins are in the [environment inventory](Envi
 | R061 | Direct loan delete and submitted-action feedback (frontend) | 15 October 2026 | [record](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r061-prod-frontend-record-preparation) | `R061` |
 | R060 | Command-only offline-dataset recovery | 15 October 2026 | [record](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r060-production-offline-dataset-recovery) | `R060` |
 | R059 | Cumulative PWA package | 14 October 2026 | [record](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r059-pwa-production-preparation) | `R059` |
-| R058 | Strict Instagram-first delivery (Debian) | 14 October 2026 | [record](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/integration-agent/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md) | none |
+| R058 | Strict Instagram-first delivery (Debian) | 14 October 2026 | [record](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/integration-agent/Change%20Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md) | `R058` |
+
+Releases before R058 are no longer listed here. Their tags R001 to R057 were restored on 12 November 2026 with the original release dates ([change note](../../Change%20Logs/CHANGE_NOTES_RELEASE_TAG_BACKFILL_2026-11-12.md)); R012, R016, R026, R055 and R056 have no tag.
 
 Follow [freeze/promotion](Rules/Release_Workflow.md#release-scope-freeze-and-number-handoff). The promotion record and delivery manifest carry authority, package pins, checks and recovery.

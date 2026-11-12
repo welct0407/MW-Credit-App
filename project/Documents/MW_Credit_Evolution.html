@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MW Credit Evolution</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500&display=swap">
+<style>
+/* Standalone copy of the published timeline page. Base reset first. */
+html { color-scheme: light; }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+/* Layout: one column. A to-scale swimlane chart of the whole period on top,
+   then the same period as a dated ledger of milestones grouped into five eras. */
+:root {
+  --bg: #faf8f9;
+  --surface: #ffffff;
+  --ink: #1c171a;
+  --ink-2: #584f54;
+  --muted: #8a8186;
+  --line: #e7e1e4;
+  --band-a: #f1ecee;
+  --band-b: #f7f3f5;
+  --accent: #d81b60;          /* the PROD app's pink */
+  --accent-soft: #fbe4ec;
+  --bar: #b9b0b5;             /* neutral marks: commits per day */
+  --s1: #2a78d6;              /* app */
+  --s2: #eb6834;              /* data */
+  --s3: #1baf7a;              /* agents and AI */
+  --s4: #eda100;              /* reports and monitoring */
+  --s5: #6250d6;              /* process and tooling */
+  --font-display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151214; --surface: #1e1a1d; --ink: #f1ecee; --ink-2: #c6bcc1; --muted: #91878c;
+    --line: #342d31; --band-a: #2a2428; --band-b: #231e22; --accent: #f25a90; --accent-soft: #3a1c28;
+    --bar: #6a6166; --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #9085e9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151214; --surface: #1e1a1d; --ink: #f1ecee; --ink-2: #c6bcc1; --muted: #91878c;
+  --line: #342d31; --band-a: #2a2428; --band-b: #231e22; --accent: #f25a90; --accent-soft: #3a1c28;
+  --bar: #6a6166; --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #9085e9;
+  color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 48px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Header */
+.head { display: flex; flex-direction: column; gap: 18px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.05; font-weight: 700; letter-spacing: -.02em; max-width: 18ch; }
+.lede { max-width: 66ch; color: var(--ink-2); font-size: 17px; }
+.facts { display: flex; flex-wrap: wrap; gap: 12px 36px; margin: 6px 0 0; padding: 16px 0 0; border-top: 1px solid var(--line); }
+.facts div { display: flex; flex-direction: column; gap: 2px; }
+.facts dt { font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.facts dd { margin: 0; font-family: var(--font-display); font-size: 26px; font-weight: 700; }
+
+/* Section heads */
+.sec { display: flex; flex-direction: column; gap: 16px; }
+.sec > h2 { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.sec > .note { color: var(--ink-2); max-width: 70ch; font-size: 15px; }
+
+/* Chart */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); list-style: none; margin: 0; padding: 0; }
+.legend li { display: inline-flex; align-items: center; gap: 7px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; background: var(--c); flex: none; }
+.sw.dia { width: 9px; height: 9px; border-radius: 0; background: var(--ink); transform: rotate(45deg); margin: 0 2px; }
+.sw.dash { background: none; border: 1.5px dashed var(--muted); }
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.chart svg { display: block; width: 100%; min-width: 1020px; height: auto; font-family: var(--font-body); }
+.chart text { fill: var(--ink); }
+.t-ax { font-size: 11px; fill: var(--muted) !important; font-family: var(--font-mono); }
+.t-lane { font-size: 12.5px; }
+.t-end { font-size: 10.5px; fill: var(--ink-2) !important; }
+.t-era { font-size: 11px; font-weight: 600; fill: var(--ink-2) !important; }
+.t-cap { font-size: 11px; fill: var(--ink-2) !important; }
+.t-today { font-size: 11px; font-weight: 600; fill: var(--accent) !important; font-family: var(--font-mono); }
+.hit { cursor: default; outline: none; }
+.hit:focus-visible { stroke: var(--ink); stroke-width: 2; }
+a.era-link:focus-visible rect { stroke: var(--accent); stroke-width: 2; }
+.daycol { fill: transparent; }
+.daycol:hover { fill: var(--ink); fill-opacity: .06; }
+#tip { position: fixed; z-index: 20; max-width: 300px; pointer-events: none; background: var(--ink); color: var(--bg);
+  border-radius: 8px; padding: 9px 12px; font-size: 13px; line-height: 1.4; box-shadow: 0 6px 24px rgba(0,0,0,.22); }
+#tip b { display: block; font-weight: 600; }
+#tip span { display: block; opacity: .75; font-family: var(--font-mono); font-size: 11.5px; margin: 1px 0 3px; }
+.swipe { display: none; font-size: 13px; color: var(--muted); }
+@media (max-width: 1050px) { .swipe { display: block; } }
+details.tbl { font-size: 14px; color: var(--ink-2); }
+details.tbl summary { cursor: pointer; width: fit-content; }
+details.tbl summary:focus-visible, .chip:focus-visible, .toggle input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tblwrap { overflow-x: auto; margin-top: 10px; }
+details.tbl table { border-collapse: collapse; font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+details.tbl th, details.tbl td { padding: 3px 12px 3px 0; text-align: right; white-space: nowrap; }
+details.tbl th:first-child, details.tbl td:first-child { text-align: left; }
+details.tbl th { color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--line); }
+
+/* Then and now */
+.swap { display: grid; grid-template-columns: 150px 1fr 1fr; border-top: 1px solid var(--line); font-size: 15px; }
+.swap > div { padding: 11px 16px 11px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.swap .h { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.swap .k { color: var(--muted); font-size: 13px; padding-top: 13px; }
+.swap .was { color: var(--ink-2); }
+.swap .now { font-weight: 500; }
+@media (max-width: 720px) {
+  .swap { grid-template-columns: 1fr; }
+  .swap .h { display: none; }
+  .swap .k { border-bottom: 0; padding-bottom: 0; }
+  .swap .was { border-bottom: 0; padding: 4px 0 0; }
+  .swap .was::before { content: "29 Aug · "; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  .swap .now { padding-top: 4px; }
+  .swap .now::before { content: "12 Nov · "; font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--muted); }
+}
+
+/* Filters */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.chip { font: inherit; font-size: 13.5px; display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.chip:hover { border-color: var(--muted); }
+.chip[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); background: var(--band-a); }
+.toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--ink-2); margin-left: 6px; cursor: pointer; }
+.toggle input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+
+/* Eras */
+.eras { display: flex; flex-direction: column; gap: 44px; }
+.era { display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 16px; }
+.era-head { display: flex; flex-direction: column; gap: 6px; padding-top: 18px; border-top: 2px solid var(--ink); }
+.era-head .when { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); letter-spacing: .04em; text-transform: uppercase; }
+.era-head h3 { font-size: clamp(22px, 3vw, 30px); font-weight: 700; letter-spacing: -.015em; }
+.era-head p { color: var(--ink-2); max-width: 68ch; }
+.events { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.ev { display: grid; grid-template-columns: 96px 22px minmax(0, 1fr); column-gap: 12px; position: relative; padding-bottom: 20px; }
+.ev:last-child { padding-bottom: 0; }
+.ev .date { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-2); text-align: right; padding-top: 2px; white-space: nowrap; }
+.ev .rail { position: relative; }
+.ev .rail::before { content: ""; position: absolute; left: 10px; top: 0; bottom: -20px; width: 2px; background: var(--line); }
+.ev:last-child .rail::before { bottom: auto; height: 12px; }
+.ev .dot { position: absolute; left: 5px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px var(--bg); }
+.ev.major .dot { left: 2px; top: 3px; width: 18px; height: 18px; box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--c); }
+.ev .body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ev .ttl { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.ev h4 { margin: 0; font-family: var(--font-body); font-size: 16px; font-weight: 600; line-height: 1.35; }
+.ev.major h4 { font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -.01em; line-height: 1.25; }
+.ev p { color: var(--ink-2); font-size: 15px; max-width: 68ch; }
+.ev .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.rel { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; background: var(--surface); }
+.cat { display: inline-flex; align-items: center; gap: 5px; }
+.cat .sw { width: 8px; height: 8px; border-radius: 2px; }
+.c-product { --c: var(--s1); } .c-data { --c: var(--s2); } .c-agents { --c: var(--s3); } .c-reports { --c: var(--s4); } .c-tooling { --c: var(--s5); }
+.empty { color: var(--muted); font-size: 14px; padding-left: 130px; }
+@media (max-width: 640px) {
+  .ev { grid-template-columns: 22px minmax(0, 1fr); }
+  .ev .date { grid-column: 2; grid-row: 1; text-align: left; padding: 0 0 2px; }
+  .ev .rail { grid-column: 1; grid-row: 1 / span 2; }
+  .ev .body { grid-column: 2; grid-row: 2; }
+  .empty { padding-left: 34px; }
+}
+.foot { font-size: 13.5px; color: var(--muted); max-width: 76ch; border-top: 1px solid var(--line); padding-top: 18px; }
+@media (prefers-reduced-motion: no-preference) { .chip { transition: border-color .15s, background .15s; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">MW Credit · 29 Aug – 12 Nov 2026</div>
+    <h1>From two AppSheet apps to a native loan app</h1>
+    <p class="lede">How the loan app and the services around it changed, from the first written record to today. Built from the Git history of the current repository and the four archived ones, the release tracker and the change notes.</p>
+    <dl class="facts">
+      <div><dt>Days on record</dt><dd>75</dd></div>
+      <div><dt>Releases</dt><dd>144</dd></div>
+      <div><dt>Commits</dt><dd>2,479</dd></div>
+      <div><dt>Database migrations</dt><dd>145</dd></div>
+    </dl>
+  </header>
+
+  <section class="sec" aria-labelledby="h-chart">
+    <h2 id="h-chart">The whole period at a glance</h2>
+    <p class="note">Each bar is one part of the ecosystem, drawn to scale from the day it first appears in the record to the day it was retired, or to today. Diamonds mark turning points. Hover or focus a bar for detail.</p>
+    <ul class="legend" aria-label="Colour key">
+      <li class="c-product"><span class="sw"></span>App</li>
+      <li class="c-data"><span class="sw"></span>Data</li>
+      <li class="c-agents"><span class="sw"></span>Agents and AI</li>
+      <li class="c-reports"><span class="sw"></span>Reports and monitoring</li>
+      <li class="c-tooling"><span class="sw"></span>Process and tooling</li>
+      <li><span class="sw dia"></span>Turning point</li>
+      <li><span class="sw dash"></span>No recorded changes</li>
+    </ul>
+    <div class="chart" id="chart" role="img" aria-label="Swimlane chart of ecosystem components from 29 August to 12 November 2026, with commits and releases per day underneath. The same information is in the timeline and the table below."></div>
+    <p class="swipe">Scroll the chart sideways to see the full period.</p>
+    <details class="tbl"><summary>Daily commits and releases as a table</summary><div class="tblwrap" id="daytable"></div></details>
+  </section>
+
+  <section class="sec" aria-labelledby="h-swap">
+    <h2 id="h-swap">What changed underneath</h2>
+    <div class="swap">
+      <div class="h"></div><div class="h">29 Aug 2026</div><div class="h">12 Nov 2026</div>
+      <div class="k">Daily operations</div><div class="was">AppSheet app Loan Manager ผู้จัดการสินเชื่อ</div><div class="now">Installable, offline-capable web app on Firebase Hosting with five Cloud Run services</div>
+      <div class="k">Financial rules</div><div class="was">AppSheet formulas, actions and bots</div><div class="now">PostgreSQL functions and triggers, changed only through 145 numbered migrations</div>
+      <div class="k">Database</div><div class="was">One shared AppSheet database</div><div class="now">Cloud SQL PostgreSQL, with separate DEV and PROD databases</div>
+      <div class="k">Reporting</div><div class="was">AppSheet app Loan Business Insights and a Looker Studio dashboard</div><div class="now">One Loan Reports dashboard in Metabase</div>
+      <div class="k">Payment slips</div><div class="was">Not in the first records</div><div class="now">Read by Claude Opus 5.5, from Instagram or a photo in the app, then approved by a Partner</div>
+      <div class="k">Assistant</div><div class="was">None</div><div class="now">In-app chat that answers from the data and proposes changes for confirmation</div>
+      <div class="k">Monitoring</div><div class="was">Not in the first records</div><div class="now">Five Grafana dashboards with alerts and cost tracking</div>
+      <div class="k">Delivery</div><div class="was">Dated change notes in one repository</div><div class="now">Numbered, tagged releases from one merged repository, DEV first, with tests on Chromium and iPhone WebKit</div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-time">
+    <h2 id="h-time">Timeline</h2>
+    <div class="filters" role="group" aria-label="Filter the timeline">
+      <button class="chip" id="f-all" data-f="all" aria-pressed="true">Everything</button>
+      <button class="chip c-product" id="f-product" data-f="product" aria-pressed="false"><span class="sw"></span>App features</button>
+      <button class="chip c-data" id="f-data" data-f="data" aria-pressed="false"><span class="sw"></span>Data</button>
+      <button class="chip c-agents" id="f-agents" data-f="agents" aria-pressed="false"><span class="sw"></span>Agents and AI</button>
+      <button class="chip c-reports" id="f-reports" data-f="reports" aria-pressed="false"><span class="sw"></span>Reports and monitoring</button>
+      <button class="chip c-tooling" id="f-tooling" data-f="tooling" aria-pressed="false"><span class="sw"></span>Process and tooling</button>
+      <label class="toggle" for="f-major"><input type="checkbox" id="f-major">Major changes only</label>
+    </div>
+    <div class="eras" id="eras"></div>
+  </section>
+
+  <p class="foot">Sources: commit history of MW-Credit-App, which contains the imported history of AppSheet-Loan-Project and MW-Integration-Agent; the archived MW-AI-Collection and MW-Partner-Operations repositories; the release tracker; and the change notes. Commits exclude merges. Release dates before R059 come from the release tracker and later ones from Git tags; R012 was merged into R011, so 144 of the 145 numbers were released. The AppSheet apps were in use before 29 August 2026, but no earlier date is recorded anywhere in these sources.</p>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(function () {
+  var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var DAY0 = Date.UTC(2026, 7, 28);                 // chart starts 28 Aug, one day before the first record
+  function di(s) { var p = s.split('-'); return Math.round((Date.UTC(2026, +p[0] - 1, +p[1]) - DAY0) / 864e5); }
+  function label(i) { var d = new Date(DAY0 + i * 864e5); return d.getUTCDate() + ' ' + MON[d.getUTCMonth()]; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+
+  var W = 1140, L = 204, R = 1096, N = di('11-13');  // right edge = end of 12 Nov
+  function x(i) { return L + i * (R - L) / N; }
+
+  var ERAS = [
+    { id: 'era-1', a: 0, b: di('09-14'), short: 'AppSheet era' },
+    { id: 'era-2', a: di('09-14'), b: di('10-07'), short: 'SQL engine under AppSheet' },
+    { id: 'era-3', a: di('10-07'), b: di('10-15'), short: 'PWA rebuild' },
+    { id: 'era-4', a: di('10-15'), b: di('10-23'), short: 'Hardening' },
+    { id: 'era-5', a: di('10-23'), b: N, short: 'AI-assisted operations' }
+  ];
+
+  // a: first day (null = before the record starts), b: last day (null = still running)
+  var LANES = [
+    { g: 'product', name: 'AppSheet apps', end: 'retired 13 Oct',
+      segs: [{ a: null, b: '10-13', t: 'AppSheet apps', s: 'before 29 Aug → 13 Oct', n: 'Loan Manager ผู้จัดการสินเชื่อ for operations and Loan Business Insights for reporting. Paused in R057 with all 24 bots disabled.' }],
+      marks: [{ d: '10-07', t: 'R051', n: 'Last feature release built in AppSheet.' }] },
+    { g: 'product', name: 'Loan Manager PWA',
+      segs: [{ a: '10-07', b: null, t: 'Loan Manager PWA', s: '7 Oct → today', n: 'Web app on Firebase Hosting with Cloud Run services for reads, commands, notifications, jobs and chat.' }],
+      marks: [{ d: '10-11', t: 'R052 · in production', n: 'Released beside AppSheet with the owner’s acceptance.' }, { d: '11-02', t: 'R110–R113 · Pay Forward', n: 'Six releases in one day.' }] },
+    { g: 'product', name: 'In-app chat',
+      segs: [{ a: '10-23', b: null, t: 'In-app chat', s: '23 Oct → today', n: 'Answers from the business data. On Claude Opus 5.5 since 28 Oct.' }],
+      marks: [{ d: '10-30', t: 'R106 · chat writes', n: 'Chat proposes changes on confirm cards.' }] },
+    { g: 'data', name: 'Database: AppSheet → Cloud SQL',
+      segs: [{ a: null, b: '09-14', t: 'AppSheet database', s: 'before 29 Aug → 15 Sep', n: 'The shared AppSheet database behind both apps.' },
+             { a: '09-15', b: null, t: 'Cloud SQL PostgreSQL', s: '15 Sep → today', n: 'Production cutover on 15 Sep, schema managed by Flyway. 145 migrations to date.' }],
+      marks: [{ d: '10-16', t: 'New SSD instance', n: 'Cut over on 16–17 Oct; the old instance was deleted.' }] },
+    { g: 'agents', name: 'AI Collection agent', end: 'last change 11 Oct',
+      segs: [{ a: '09-09', b: '09-12', t: 'AI Collection agent', s: '9 Sep → 12 Sep', n: 'Instagram reminders, commitments and receipts for borrowers through the AppSheet API.' },
+             { a: '09-13', b: '10-11', dash: 1, t: 'AI Collection agent', s: '13 Sep → 11 Oct', n: 'No functional changes recorded after 12 Sep. The repository is archived.' }] },
+    { g: 'agents', name: 'Partner Operations agent', end: 'stopped 19 Sep',
+      segs: [{ a: '09-13', b: '09-19', t: 'Partner Operations agent', s: '13 Sep → 19 Sep', n: 'Bilingual briefings and collection reviews for partners over Instagram. Stopped at the owner’s request.' }] },
+    { g: 'agents', name: 'Debian integration agent',
+      segs: [{ a: '09-20', b: null, t: 'Debian integration agent', s: '20 Sep → today', n: 'Instagram transport, payment slips, Partner review and daily cash statements on a Google Cloud VM.' }],
+      marks: [{ d: '09-21', t: 'Slips over Instagram', n: 'Receipt validation, Partner approval and guarded posting.' }, { d: '11-05', t: 'R128 · loan close over Instagram', n: '' }] },
+    { g: 'agents', name: 'Instagram Partner chat', end: 'decommissioned 24 Oct',
+      segs: [{ a: '09-22', b: '10-24', t: 'Instagram Partner conversation', s: '22 Sep → 24 Oct', n: 'Persistent conversations on Codex, then Gemini. Replaced by the in-app chat in R091.' }],
+      marks: [{ d: '10-21', t: 'R084 · Gemini and Claude providers', n: '' }] },
+    { g: 'reports', name: 'Looker Studio', end: 'retired 27 Sep',
+      segs: [{ a: null, b: '09-27', t: 'Looker Studio dashboard', s: 'before 29 Aug → 27 Sep', n: 'Retired after the Metabase migration.' }] },
+    { g: 'reports', name: 'Metabase Loan Reports',
+      segs: [{ a: '09-22', b: null, t: 'Metabase on Railway', s: '22 Sep → today', n: 'Governed reporting. One Loan Reports dashboard since 9 Nov.' }],
+      marks: [{ d: '10-30', t: 'New dashboard is the landing page', n: '' }, { d: '11-09', t: 'Dashboards 1–31 archived', n: '' }] },
+    { g: 'reports', name: 'Grafana monitoring',
+      segs: [{ a: '09-22', b: null, t: 'Grafana', s: '22 Sep → today', n: 'Performance, cost and alerts across every provider.' }],
+      marks: [{ d: '10-03', t: 'MCP Events bridge live', n: 'Alerts delivered to an assistant with durable retries.' }, { d: '10-22', t: 'R089 · five dashboards', n: 'Now, PWA & APIs, Agent, Infrastructure, Cost.' }] },
+    { g: 'tooling', name: 'Repositories: 3 → 1',
+      segs: [{ a: '08-30', b: '10-14', t: 'Separate repositories', s: '30 Aug → 15 Oct', n: 'AppSheet-Loan-Project from 30 Aug, MW-Integration-Agent from 20 Sep, MW-Credit-App from 7 Oct.' },
+             { a: '10-15', b: null, t: 'One repository', s: '15 Oct → today', n: 'Histories imported into MW-Credit-App; the old repositories are archived.' }] },
+    { g: 'tooling', name: 'Azure VM-01 workstation', end: 'deleted 8 Nov',
+      segs: [{ a: '09-12', b: '11-08', t: 'Azure VM-01', s: 'first recorded 12 Sep → 8 Nov', n: 'Windows workstation used earlier in the project. Deallocated on 15 Oct, deleted on 8 Nov.' }] }
+  ];
+
+  var COMMITS = {'08-30':6,'08-31':2,'09-01':1,'09-04':1,'09-08':1,'09-09':1,'09-10':7,'09-11':1,'09-12':4,'09-13':21,'09-14':14,'09-15':32,'09-16':32,'09-17':11,'09-18':29,'09-19':31,'09-20':59,'09-21':68,'09-22':45,'09-23':33,'09-24':58,'09-25':58,'09-26':34,'09-27':43,'09-28':5,'09-29':22,'09-30':1,'10-01':4,'10-02':34,'10-03':32,'10-04':58,'10-05':29,'10-06':19,'10-07':69,'10-08':91,'10-09':58,'10-10':22,'10-11':62,'10-12':46,'10-13':41,'10-14':95,'10-15':94,'10-16':135,'10-17':88,'10-18':59,'10-19':76,'10-20':25,'10-21':26,'10-22':78,'10-23':16,'10-24':18,'10-25':21,'10-26':34,'10-27':9,'10-28':32,'10-29':2,'10-30':15,'10-31':10,'11-01':26,'11-02':101,'11-03':77,'11-04':47,'11-05':21,'11-06':38,'11-07':9,'11-08':31,'11-09':24,'11-10':18,'11-11':42,'11-12':27};
+  var RELEASES = {'09-16':3,'09-17':1,'09-18':3,'09-19':2,'09-20':1,'09-21':3,'09-22':1,'09-24':12,'09-25':8,'09-26':9,'09-27':3,'09-29':2,'10-05':1,'10-07':1,'10-11':1,'10-12':1,'10-13':3,'10-14':3,'10-15':3,'10-16':5,'10-17':4,'10-18':5,'10-19':1,'10-20':6,'10-21':5,'10-22':1,'10-23':1,'10-24':5,'10-25':6,'10-28':3,'10-29':1,'10-30':1,'10-31':2,'11-01':1,'11-02':6,'11-03':3,'11-04':8,'11-05':4,'11-06':2,'11-07':2,'11-08':1,'11-09':2,'11-10':2,'11-11':2,'11-12':4};
+
+  // ---------- chart ----------
+  var o = [], tipData = [];
+  function tip(t, s, n) { tipData.push([t, s, n]); return ' data-tip="' + (tipData.length - 1) + '"'; }
+
+  var yAx = 18, yBand = 28, bandH = 24, y = yBand + bandH + 14, laneH = 26, barH = 12;
+  var laneRows = [], prev = null;
+  LANES.forEach(function (ln) { if (prev && prev !== ln.g) y += 10; prev = ln.g; laneRows.push(y); y += laneH; });
+  var yC0 = y + 30, hC = 76, yR0 = yC0 + hC + 34, hR = 44, H = yR0 + hR + 30;
+  var dayW = (R - L) / N;
+
+  o.push('<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg">');
+  o.push('<defs><linearGradient id="fade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" style="stop-color:var(--surface);stop-opacity:1"/><stop offset="1" style="stop-color:var(--surface);stop-opacity:0"/></linearGradient></defs>');
+
+  // era band and separators
+  ERAS.forEach(function (e, k) {
+    var x0 = x(e.a), x1 = x(e.b);
+    o.push('<a class="era-link" href="#' + e.id + '"><rect x="' + x0 + '" y="' + yBand + '" width="' + (x1 - x0) + '" height="' + bandH + '" style="fill:var(' + (k % 2 ? '--band-b' : '--band-a') + ')"/>' +
+      '<text class="t-era" x="' + (x0 + 8) + '" y="' + (yBand + 16) + '">' + esc(e.short) + '</text></a>');
+    if (k) o.push('<line x1="' + x0 + '" x2="' + x0 + '" y1="' + (yBand + bandH) + '" y2="' + (H - 26) + '" style="stroke:var(--line)" stroke-width="1"/>');
+  });
+  // date ticks
+  ['09-01', '09-15', '10-01', '10-15', '11-01'].forEach(function (d) {
+    var xx = x(di(d));
+    o.push('<line x1="' + xx + '" x2="' + xx + '" y1="' + (yBand - 5) + '" y2="' + yBand + '" style="stroke:var(--muted)"/>');
+    o.push('<text class="t-ax" x="' + xx + '" y="' + yAx + '" text-anchor="middle">' + label(di(d)) + '</text>');
+    o.push('<text class="t-ax" x="' + xx + '" y="' + (H - 8) + '" text-anchor="middle">' + label(di(d)) + '</text>');
+  });
+
+  // lanes
+  LANES.forEach(function (ln, k) {
+    var ly = laneRows[k], by = ly + (laneH - barH) / 2, cy = ly + laneH / 2, col = { product: '--s1', data: '--s2', agents: '--s3', reports: '--s4', tooling: '--s5' }[ln.g];
+    o.push('<text class="t-lane" x="' + (L - 12) + '" y="' + (cy + 4) + '" text-anchor="end">' + esc(ln.name) + '</text>');
+    o.push('<line x1="' + L + '" x2="' + R + '" y1="' + cy + '" y2="' + cy + '" style="stroke:var(--line)" stroke-dasharray="1 5"/>');
+    var first = null, last = null;
+    ln.segs.forEach(function (sg, j) {
+      var x0 = sg.a === null ? L : x(di(sg.a)), x1 = sg.b === null ? R : x(di(sg.b) + 1);
+      if (j > 0) x0 += 2;                                   // 2px surface gap between consecutive segments
+      if (first === null) first = x0; last = { x1: x1, open: sg.b === null };
+      var a = ' class="hit" tabindex="0" role="img" aria-label="' + esc(sg.t + ', ' + sg.s + '. ' + sg.n) + '"' + tip(sg.t, sg.s, sg.n);
+      if (sg.dash) o.push('<rect' + a + ' x="' + (x0 + 1) + '" y="' + (by + 1) + '" width="' + (x1 - x0 - 2) + '" height="' + (barH - 2) + '" rx="3" fill="transparent" style="stroke:var(' + col + ')" stroke-width="1.5" stroke-dasharray="4 3"/>');
+      else o.push('<rect' + a + ' x="' + x0 + '" y="' + by + '" width="' + (x1 - x0) + '" height="' + barH + '" rx="4" style="fill:var(' + col + ')"/>');
+      if (sg.a === null) o.push('<rect x="' + (L - 1) + '" y="' + (by - 1) + '" width="30" height="' + (barH + 2) + '" fill="url(#fade)" pointer-events="none"/>');
+    });
+    if (ln.end) {
+      if (last.x1 + 8 + ln.end.length * 5.6 < R + 30) o.push('<text class="t-end" x="' + (last.x1 + 7) + '" y="' + (cy + 3.5) + '">' + esc(ln.end) + '</text>');
+      else o.push('<text class="t-end" x="' + (first - 7) + '" y="' + (cy + 3.5) + '" text-anchor="end">' + esc(ln.end) + '</text>');
+    }
+    (ln.marks || []).forEach(function (m) {
+      var mx = x(di(m.d) + 0.5), r = 5.5;
+      o.push('<path class="hit" tabindex="0" role="img" aria-label="' + esc(label(di(m.d)) + ': ' + m.t + '. ' + m.n) + '"' + tip(m.t, label(di(m.d)), m.n) +
+        ' d="M' + mx + ' ' + (cy - r) + 'L' + (mx + r) + ' ' + cy + 'L' + mx + ' ' + (cy + r) + 'L' + (mx - r) + ' ' + cy + 'Z" style="fill:var(--ink);stroke:var(--surface)" stroke-width="2"/>');
+    });
+  });
+
+  // commits per day
+  var cMax = 140, rMax = 12;
+  function hist(y0, h, max, data, fill, caption, grid, peakKey, peakText) {
+    o.push('<text class="t-cap" x="' + (L - 12) + '" y="' + (y0 + h - 2) + '" text-anchor="end">' + caption + '</text>');
+    grid.forEach(function (v) {
+      var gy = y0 + h - v / max * h;
+      o.push('<line x1="' + L + '" x2="' + R + '" y1="' + gy + '" y2="' + gy + '" style="stroke:var(--line)"/>');
+      o.push('<text class="t-ax" x="' + (R + 6) + '" y="' + (gy + 4) + '">' + v + '</text>');
+    });
+    o.push('<line x1="' + L + '" x2="' + R + '" y1="' + (y0 + h) + '" y2="' + (y0 + h) + '" style="stroke:var(--muted)"/>');
+    Object.keys(data).forEach(function (d) {
+      var i = di(d), bh = Math.max(1.5, data[d] / max * h), bx = x(i) + 1, bw = dayW - 2;
+      o.push('<path d="M' + bx + ' ' + (y0 + h) + 'V' + (y0 + h - bh + Math.min(2, bh)) + 'q0 -' + Math.min(2, bh) + ' 2 -' + Math.min(2, bh) + 'H' + (bx + bw - 2) + 'q2 0 2 ' + Math.min(2, bh) + 'V' + (y0 + h) + 'Z" style="fill:var(' + fill + ')"/>');
+    });
+    var pi = di(peakKey), py = y0 + h - data[peakKey] / max * h;
+    o.push('<text class="t-end" x="' + (x(pi) + dayW / 2) + '" y="' + (py - 5) + '" text-anchor="middle">' + peakText + '</text>');
+  }
+  hist(yC0, hC, cMax, COMMITS, '--bar', 'Commits per day', [50, 100], '10-16', '135 on 16 Oct');
+  hist(yR0, hR, rMax, RELEASES, '--accent', 'Releases per day', [6], '09-24', '12 on 24 Sep');
+
+  // one hover column per day across both histograms
+  for (var i = 1; i < N; i++) {
+    var d = new Date(DAY0 + i * 864e5), key = ('0' + (d.getUTCMonth() + 1)).slice(-2) + '-' + ('0' + d.getUTCDate()).slice(-2);
+    var c = COMMITS[key] || 0, r = RELEASES[key] || 0;
+    o.push('<rect class="daycol"' + tip(label(i) + ' 2026', '', c + (c === 1 ? ' commit' : ' commits') + ' · ' + r + (r === 1 ? ' release' : ' releases')) +
+      ' x="' + x(i) + '" y="' + (yC0 - 8) + '" width="' + dayW + '" height="' + (yR0 + hR - yC0 + 8) + '"/>');
+  }
+
+  // today
+  o.push('<line x1="' + R + '" x2="' + R + '" y1="' + (yBand - 4) + '" y2="' + (H - 26) + '" style="stroke:var(--accent)" stroke-width="1.5"/>');
+  o.push('<text class="t-today" x="' + (R + 4) + '" y="' + yAx + '" text-anchor="end">12 Nov</text>');
+  o.push('<text class="t-today" x="' + (R + 4) + '" y="' + (H - 8) + '" text-anchor="end">today</text>');
+  o.push('</svg>');
+  var chart = document.getElementById('chart');
+  chart.innerHTML = o.join('');
+
+  // tooltip
+  var tipEl = document.getElementById('tip');
+  function show(el, cx, cy) {
+    var t = tipData[+el.getAttribute('data-tip')]; if (!t) return;
+    tipEl.innerHTML = '<b>' + esc(t[0]) + '</b>' + (t[1] ? '<span>' + esc(t[1]) + '</span>' : '') + (t[2] ? esc(t[2]) : '');
+    tipEl.hidden = false;
+    var w = tipEl.offsetWidth, h = tipEl.offsetHeight, vw = document.documentElement.clientWidth;
+    var lx = Math.min(Math.max(8, cx + 14), vw - w - 8), ty = cy - h - 12; if (ty < 8) ty = cy + 18;
+    tipEl.style.left = lx + 'px'; tipEl.style.top = ty + 'px';
+  }
+  function hide() { tipEl.hidden = true; }
+  chart.addEventListener('pointermove', function (e) { var el = e.target.closest('[data-tip]'); if (el) show(el, e.clientX, e.clientY); else hide(); });
+  chart.addEventListener('pointerleave', hide);
+  chart.addEventListener('focusin', function (e) { var el = e.target.closest('[data-tip]'); if (el) { var b = el.getBoundingClientRect(); show(el, b.left + b.width / 2, b.top); } });
+  chart.addEventListener('focusout', hide);
+  window.addEventListener('scroll', hide, { passive: true });
+
+  // table view of the daily figures
+  var rows = [];
+  for (var j = 1; j < N; j++) {
+    var dd = new Date(DAY0 + j * 864e5), k2 = ('0' + (dd.getUTCMonth() + 1)).slice(-2) + '-' + ('0' + dd.getUTCDate()).slice(-2);
+    if (COMMITS[k2] || RELEASES[k2]) rows.push('<tr><td>' + label(j) + '</td><td>' + (COMMITS[k2] || 0) + '</td><td>' + (RELEASES[k2] || 0) + '</td></tr>');
+  }
+  document.getElementById('daytable').innerHTML = '<table><thead><tr><th>Day</th><th>Commits</th><th>Releases</th></tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+
+  // ---------- timeline ----------
+  var CAT = { product: 'App features', data: 'Data', agents: 'Agents and AI', reports: 'Reports and monitoring', tooling: 'Process and tooling' };
+  // [date, category, major, title, text, releases]
+  var STORY = [
+    { id: 'era-1', when: 'Before 29 Aug – 13 Sep', title: 'AppSheet era',
+      sum: 'The business runs on two AppSheet apps that share one AppSheet database, with a Looker Studio dashboard on top. Changes are written up as dated notes. Two side projects start talking to borrowers and partners over Instagram.',
+      ev: [
+        ['29 Aug', 'product', 1, 'The record opens with two AppSheet apps already in use', 'Loan Manager ผู้จัดการสินเชื่อ handles daily operations. Loan Business Insights handles reporting, partner allocation and loan assessment. Both read one shared AppSheet database, and a Looker Studio dashboard sits on top. The first change notes are dated 29 August.', ''],
+        ['30 Aug', 'tooling', 1, 'Git history begins', 'The AppSheet-Loan-Project repository is created with change logs, a data model reference and a full test round of the operations app. Development is done with Codex under a written set of agent rules.', ''],
+        ['30–31 Aug', 'product', 0, 'Validation and analysis inside the apps', 'Unique borrower names, checks on financial inputs, a monthly forecast page, app shortcuts and an automated daily loan analysis workbook.', ''],
+        ['9–12 Sep', 'agents', 0, 'AI Collection agent', 'A separate private project: an Instagram agent that sends borrowers reminders, handles payment commitments and receipts, and lets reviewers approve or reject, all through the AppSheet API. A public MW Credit site and privacy notice go up on 11 September for the Meta app.', ''],
+        ['13 Sep', 'agents', 0, 'Partner Operations agent', 'Bilingual daily briefings and collection reviews for partners over Instagram, run as persistent Codex conversations. Paused on 15 September for the database migration and stopped on 19 September.', ''],
+        ['13 Sep', 'data', 0, 'Performance lab for the operations app', 'An isolated copy of the app is benchmarked against tuning options and a new interface. A PostgreSQL proof of concept follows the next day.', '']
+      ] },
+    { id: 'era-2', when: '14 Sep – 7 Oct', title: 'SQL engine under AppSheet',
+      sum: 'First the data, then the financial rules, move out of AppSheet into PostgreSQL. AppSheet stays on as the screen. Numbered releases begin, and reporting, monitoring and the Instagram agent become services of their own.',
+      ev: [
+        ['15 Sep', 'data', 1, 'Both apps cut over to Cloud SQL PostgreSQL', 'After a one-day proof of concept and trial migration, production leaves the AppSheet database. Flyway takes over schema changes and a separate development copy is set up.', ''],
+        ['15 Sep', 'data', 1, 'Financial rules move into SQL transactions', 'Lump-sum payments, payment posting, loan close, charge generation and loan default each become one atomic database transaction instead of a chain of AppSheet actions.', ''],
+        ['16 Sep', 'tooling', 1, 'Release numbering starts', 'A release tracker is introduced. R001 is the existing production baseline. R002 adds a cash-pool limit on new loans and borrower navigation.', 'R001–R003'],
+        ['16 Sep', 'product', 0, 'Business expenses and referral rebates', 'An expense ledger and referral rebates, with partner reporting shown net of expenses.', ''],
+        ['17–19 Sep', 'product', 0, 'Cash custody and cash accounts', 'Who holds the cash is tracked per person and then per bank account. Payments record the receiving account, and reversals undo their cash effects.', 'R005 R008'],
+        ['20 Sep', 'agents', 1, 'Debian integration agent goes live', 'A Linux VM on Google Cloud gets a two-way Instagram connection and starts sending daily bilingual cash statement images in M&W Credit pink, with email as the fallback.', ''],
+        ['21 Sep', 'agents', 1, 'Payment slips over Instagram', 'Borrowers send transfer slips to Instagram. The agent reads and validates them, a Partner approves or rejects, and approved payments are posted. R014 adds the AI Reviewer role, partial settlements and account-level cash balances.', 'R011–R014'],
+        ['22 Sep', 'agents', 0, 'Partner conversations on Instagram', 'Partners can ask questions and request guarded borrower edits in persistent conversations. Every agent transaction is audited.', 'R015'],
+        ['22 Sep', 'reports', 1, 'Metabase and Grafana arrive', 'Reporting moves to a private Metabase on Railway, starting with Overview and Cash. Grafana starts watching performance and cost.', 'R016'],
+        ['24–26 Sep', 'reports', 0, 'Three days of report releases', 'Twenty-eight release numbers in three days, nearly all report-only: capital yield, loan-cohort return, Collection Monitor, payment health, a custom borrower matrix chart, borrower pages and a Partners dashboard.', 'R017–R044'],
+        ['26 Sep', 'product', 0, 'Automatic daily interest', 'Daily interest charges are generated automatically, with bilingual labels in the operations app. Metabase gets automated backups and point-in-time recovery the same day.', 'R036'],
+        ['27 Sep', 'reports', 0, 'Looker Studio retired', 'The legacy dashboard assets are retired after the Metabase migration. R046 and R047 add a receipt archive and a payment review screen.', 'R046 R047'],
+        ['28–29 Sep', 'product', 0, 'Upcoming charges', 'Projected charges and their summaries appear in Upcoming Charges, Collection and Borrowers.', 'R048 R049'],
+        ['2–4 Oct', 'reports', 0, 'Grafana alerts reach an assistant', 'An owner-authenticated Grafana MCP Events bridge delivers alerts with durable retries. The minute dispatcher goes live on 3 October.', 'R050'],
+        ['7 Oct', 'product', 0, 'The last AppSheet feature release', 'R051 closes with source edits, consistent historical openings and performance improvements. Everything after it is built outside AppSheet.', 'R051']
+      ] },
+    { id: 'era-3', when: '7 – 15 Oct', title: 'PWA rebuild and AppSheet retirement',
+      sum: 'In eight days a native web app replaces both AppSheet apps, AppSheet is switched off, and the code repositories become one.',
+      ev: [
+        ['7 Oct', 'product', 1, 'PWA rebuild starts', 'A new repository gets its development infrastructure and deployment foundation, plus a phased plan to replace both AppSheet apps. The first screen is a read-only Borrowers list in DEV, built by a team of role agents.', 'R052'],
+        ['8–10 Oct', 'product', 0, 'Installable and offline-capable in DEV', 'The app installs to the home screen and recovers offline. Receiving payments, daily operations and management screens follow as phases 4, 5 and 6 in three days.', ''],
+        ['11 Oct', 'product', 1, 'The PWA reaches production', 'Released with the owner’s acceptance, running beside AppSheet on the same PostgreSQL engine.', 'R052'],
+        ['12 Oct', 'product', 0, 'Push notifications and background jobs', 'Web Push replaces AppSheet notifications, with a fix for Apple devices in R056. The Instagram agent switches to the same native receipt API as the app.', 'R053 R056'],
+        ['13 Oct', 'tooling', 0, 'Infrastructure adopted into Terraform', 'Forty-five existing cloud resources, the Grafana setup, the Cloudflare tunnel and Tailscale come under Terraform, with keyless unattended administration for Google Cloud and Azure.', 'R055 R057'],
+        ['13–14 Oct', 'product', 1, 'AppSheet retired', 'All four apps are paused, 24 bots disabled, data sources and API keys removed, and 73 AppSheet-only database network entries closed. The app definitions are kept for recovery.', 'R057'],
+        ['14 Oct', 'product', 0, 'First tagged PWA package', 'Swipe-back navigation and cache-first page reads ship in R059, the first release with a Git tag. Six named agents become the default way to develop the app.', 'R058 R059'],
+        ['15 Oct', 'tooling', 1, 'Three repositories become one', 'The project records and the integration agent are imported with full history into MW-Credit-App. The old repositories are archived, and Claude Code cloud sessions become the main place work is done.', '']
+      ] },
+    { id: 'era-4', when: '15 – 22 Oct', title: 'Hardening the native app',
+      sum: 'An independent review drives five waves of fixes. Offline use, sync speed, notifications and slip reading are worked over until the app is dependable on a phone.',
+      ev: [
+        ['15–17 Oct', 'product', 0, 'Independent review and five fix waves', 'Separate reviews of the app, database, agent and overall design produce a backlog that ships in waves across R063 to R069. Editable settings and direct loan delete land alongside.', 'R060–R069'],
+        ['16–17 Oct', 'data', 0, 'Database moves to an SSD instance', 'Cloud SQL is cut over to a new SSD instance and the old one is deleted. DEV and PROD stay as separate databases on it.', 'R067'],
+        ['17 Oct', 'product', 0, 'Offline receipts', 'Receipt images are available without a connection.', 'R066'],
+        ['18 Oct', 'product', 1, 'Slip recognition fills the payment form', 'Photograph a transfer slip while recording a manual payment and the form is filled in and checked by the recognizer on the Debian agent. The same day brings the About screen and an encrypted troubleshooting file.', 'R072 R075'],
+        ['18 Oct', 'tooling', 0, 'Promotion gates', 'CI runs per job and records stage hashes, so a promotion re-runs only what changed.', 'R074'],
+        ['19–20 Oct', 'product', 0, 'Faster sync, clearer notifications', 'Offline sync needs fewer requests. Pushes name the event and the borrower in the recipient’s language, Thai or English. The dashboard no longer waits on the startup check.', 'R077–R083'],
+        ['21 Oct', 'agents', 0, 'Partner conversation on Gemini, with number grounding', 'The Instagram conversation can run on Gemini or Claude instead of Codex, answers faster, and rejects any amount that has no source in the data.', 'R084–R088'],
+        ['22 Oct', 'reports', 0, 'Grafana rebuilt as five dashboards', 'Now, PWA & APIs, Agent, Infrastructure and Cost. The same day Metabase credentials are rotated after a Railway security incident.', 'R089']
+      ] },
+    { id: 'era-5', when: '23 Oct – 12 Nov', title: 'AI-assisted operations',
+      sum: 'A chat assistant moves into the app and learns to make changes. Lending features that AppSheet never had arrive almost daily: paying forward, rollovers, write-offs, late charges and referral settlements.',
+      ev: [
+        ['23 Oct', 'product', 1, 'In-app chat', 'A fifth menu item, Chat, answers questions from the business data with streamed replies, history and a model picker.', 'R090'],
+        ['24 Oct', 'agents', 0, 'Instagram conversation decommissioned', 'The in-app chat becomes the only Partner assistant. Slips are now also matched by payer name.', 'R091 R095'],
+        ['25 Oct', 'product', 0, 'Paying early', 'Collection shows charges paid in advance, and Receive payment can book and pay a loan’s next scheduled charge early. Six releases in one day.', 'R096–R101'],
+        ['28 Oct', 'product', 0, 'Long overdue status, and chat on Claude Opus 5.5', 'Borrowers eight or more days past due get their own Collection status. Chat switches to Claude Opus 5.5 through a keyless relay on the agent VM. Projected charges can be recorded from Upcoming Charges.', 'R102 R104'],
+        ['30 Oct', 'product', 1, 'Chat can make changes', 'The assistant proposes changes on confirm cards, one at a time or in groups. They run through the same command service as the app, and only after the user confirms.', 'R106'],
+        ['30 Oct', 'reports', 0, 'New Loan Reports dashboard becomes the landing page', 'The redesigned Metabase dashboard proposed on 26 October replaces the old landing page.', ''],
+        ['31 Oct', 'product', 0, 'Chat goes Claude-only', 'Gemini leaves the chat model menu. Cloud Run command and chat services go back to request-based CPU to cut cost.', 'R107 R108'],
+        ['1 Nov', 'product', 0, 'Default a loan with a loss amount', 'A defaulted loan can record its loss and keep its charges.', 'R109'],
+        ['2 Nov', 'product', 1, 'Pay Forward', 'When a payment is more than what is due, the remainder can pay future charges, repay principal or be split. Referral rebates can offset a payment, and loans can be settled and closed from Receive payment, chat or Instagram. Six releases in one day, including daily cash withdrawals.', 'R110–R115'],
+        ['3 Nov', 'product', 0, 'Write-offs and late charges get their own books', 'Principal write-offs are separated in reporting. Late charges move to their own columns with a −50 / +50 control.', 'R116 R118'],
+        ['4 Nov', 'product', 0, 'Referral terms and Thai name translation', 'Each referrer can have their own rebate terms. A Translate button romanizes Thai names on the New borrower form. Eight releases, the busiest day on record.', 'R119–R126'],
+        ['5 Nov', 'agents', 0, 'Close a loan over Instagram', 'Partners can approve a loan close from Instagram, and the Loan Close form reads slips. Referral rebates can wait as pending payments and be settled from a new Referrers page.', 'R128 R129'],
+        ['6 Nov', 'tooling', 0, 'iPhone testing in CI', 'End-to-end tests run in WebKit as an iPhone 17 Pro Max and gate merges. The installed app opens from its saved copy at once, and Back returns to the same place in a list.', 'R131 R132'],
+        ['8 Nov', 'tooling', 0, 'Azure VM-01 deleted', 'The Windows workstation used earlier in the project is removed along with its backups and alerts. Claude API cost appears on the Grafana Cost page.', ''],
+        ['9 Nov', 'product', 0, 'Daily instalment loans and Rollover', 'New defaults for daily instalment loans, and a Rollover action that closes an open loan through a deduction from a new loan’s disbursement. Long Overdue now counts from the borrower’s last payment.', 'R136 R137'],
+        ['9 Nov', 'reports', 0, 'Old report dashboards archived', 'Metabase dashboards 1 to 31 and 94 questions are archived. One Loan Reports dashboard remains.', ''],
+        ['10 Nov', 'product', 0, 'Chat handles up to 100 changes per card', 'Confirm is clickable at once, and a group card can carry up to 100 changes.', 'R138 R139'],
+        ['11 Nov', 'product', 0, 'Pending expenses', 'Expenses can be recorded as pending and paid on a chosen date, to a borrower or a typed payee. Pending lines open the matching filtered list.', 'R140 R141'],
+        ['12 Nov', 'agents', 1, 'Slip reader moves to Claude Opus 5.5', 'The receipt reader runs on Claude Opus 5.5 with Gemini as fallback and uses the slip’s QR reference for listed banks. Component versioning makes the API and the agent report their release. R146 is open.', 'R142–R145']
+      ] }
+  ];
+
+  var h = [];
+  STORY.forEach(function (era) {
+    h.push('<section class="era" id="' + era.id + '"><div class="era-head"><div class="when">' + esc(era.when) + '</div><h3>' + esc(era.title) + '</h3><p>' + esc(era.sum) + '</p></div><ol class="events">');
+    era.ev.forEach(function (e) {
+      var rel = e[5] ? e[5].split(' ').map(function (r) { return '<span class="rel">' + esc(r) + '</span>'; }).join('') : '';
+      h.push('<li class="ev c-' + e[1] + (e[2] ? ' major' : '') + '" data-cat="' + e[1] + '" data-major="' + e[2] + '">' +
+        '<div class="date">' + esc(e[0]) + '</div><div class="rail"><span class="dot"></span></div>' +
+        '<div class="body"><div class="ttl"><h4>' + esc(e[3]) + '</h4></div><p>' + esc(e[4]) + '</p>' +
+        '<div class="meta"><span class="cat"><span class="sw"></span>' + CAT[e[1]] + '</span>' + rel + '</div></div></li>');
+    });
+    h.push('</ol><p class="empty" hidden>Nothing in this period matches the filter.</p></section>');
+  });
+  var erasEl = document.getElementById('eras');
+  erasEl.innerHTML = h.join('');
+
+  // filters
+  var state = { f: 'all', major: false };
+  function apply() {
+    document.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.f === state.f ? 'true' : 'false'); });
+    erasEl.querySelectorAll('.era').forEach(function (sec) {
+      var shown = 0;
+      sec.querySelectorAll('.ev').forEach(function (li) {
+        var ok = (state.f === 'all' || li.dataset.cat === state.f) && (!state.major || li.dataset.major === '1');
+        li.hidden = !ok; if (ok) shown++;
+      });
+      sec.querySelector('.empty').hidden = shown > 0;
+    });
+  }
+  document.querySelector('.filters').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (b) { state.f = b.dataset.f; apply(); } });
+  document.getElementById('f-major').addEventListener('change', function (e) { state.major = e.target.checked; apply(); });
+})();
+</script>
+</body>
+</html>
