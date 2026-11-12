@@ -29,7 +29,7 @@ Deferred to promotion, not authorized in this batch: image builds and deployment
 Git baseline `055e25fe` (R143). Nothing live changed; revert the pull request.
 
 ## Open questions
-Seed facts not verified from live targets: Metabase and Grafana server versions, the Metabase last-changed release (R137 from tags), notify and jobs last-changed release (R135 from tags; the inventory says unchanged since R130).
+Seed facts not verified from live targets: Metabase and Grafana server versions, the Metabase last-changed release (R137 from tags). notify and jobs seed R130 (verified by Byte against tags; R134 and R135 changed only package.json scripts).
 
 ## Remaining work
 Promotion steps listed under Not run, then the Checks table results from Byte and Chase.
