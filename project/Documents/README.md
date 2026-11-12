@@ -22,4 +22,6 @@ Keeping this entire set current is a required part of each development batch und
 | Monitoring operation, dashboards and bridge configuration | [Monitoring](Resource_Monitoring.md), [visual guide](Resource_Monitoring_Dashboard_Guide.md), [event bridge](Grafana_MCP_Events_Bridge.md) |
 | Infrastructure ownership and remaining cleanup | [Adoption matrix](../outputs/r057-infrastructure-adoption/README.md) |
 
+Visual history: [MW Credit Evolution](MW_Credit_Evolution.html), a timeline page of the ecosystem from the AppSheet era to 12 November 2026. It is a dated snapshot, not part of the per-batch maintenance set; open the file in a browser.
+
 Maintained tools live in [scripts](../scripts/README.md); release evidence and task results live in their existing outputs/change-log records. Use the [promotion template](../scripts/releases/templates/promotion-checklist.md) when promotion is authorized. Keep the current dictionary's format and system guides with its structured definitions; they describe that evolving data contract.
