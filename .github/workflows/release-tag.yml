@@ -29,8 +29,8 @@ on:
         required: false
         type: string
       commit:
-        description: Full 40-character SHA of the deployed main commit (not used by backfill)
-        required: false
+        description: Full 40-character SHA of the deployed main commit
+        required: true
         type: string
       message:
         description: Tag message (release pins and verification time; ignored when check_only is true)
@@ -50,16 +50,6 @@ on:
         required: false
         type: boolean
         default: false
-      backfill:
-        description: One-off (12 November 2026) backfill of R001 to R058 from scripts/promotion/backfill-release-tags.json; every other input is ignored
-        required: false
-        type: boolean
-        default: false
-      backfill_dry_run:
-        description: With backfill, print the plan and change nothing
-        required: false
-        type: boolean
-        default: true
 
 permissions:
   contents: read
@@ -70,7 +60,6 @@ concurrency:
 
 jobs:
   tag:
-    if: ${{ inputs.backfill != true }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -164,30 +153,3 @@ jobs:
           printf '%s\n' "$body" > "$RUNNER_TEMP/notes.md"
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md" --latest="$latest"
           echo "Published GitHub Release $TAG (latest=$latest)"
-
-  # One-off, owner instruction of 12 November 2026: backfill the R001 to R058 tags with their original release dates.
-  # Lives only on the branch it is run from and is removed again after the run.
-  backfill:
-    if: ${{ inputs.backfill == true }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Require the release tag token
-        env:
-          RELEASE_TAG_TOKEN: ${{ secrets.RELEASE_TAG_TOKEN }}
-        run: |
-          [ -n "$RELEASE_TAG_TOKEN" ] || { echo "::error::Repository secret RELEASE_TAG_TOKEN is not set"; exit 1; }
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.RELEASE_TAG_TOKEN }}
-      - name: Backfill R001 to R058
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TAG_TOKEN }}
-          DRY_RUN: ${{ inputs.backfill_dry_run }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch --quiet origin main:refs/remotes/origin/main
-          bash scripts/promotion/backfill-release-tags.sh scripts/promotion/backfill-release-tags.json
