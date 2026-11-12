@@ -27,7 +27,7 @@ Owner request of 12 November 2026: "Engage the team and implement all your recom
 | Adversarial review against Archie's plan (Chase, same tree) | Pass (Chase, commit `080486f8`, tree `6e6493c4`): hostile `MW_RELEASE_NUMBER` and `MW_SOURCE_COMMIT` (injection, newline, 5000 characters, uppercase) fall back to `dev` and `unknown` in `buildInfo` and to null in the agent `build_identity`; `drift --strict` exit 2 with 10 unverified, an invalid `--env` or unknown release exit 3; GET only (redirect error, 2 MB cap, 15 s timeout), no token or environment printed; `Stamp-Release` refuses every mutating invocation without `--apply` and a valid `--release`; `generic-roles` extraction byte-identical (`business-hosting-delivery.test.mjs` lines 2473 and 2457); `business-candidate.mjs` exact-key validator serves only `mode:'business'` manifests, not the generic kind; `debian-health.py`, `deploy-shared-receipt-api.py` and the Grafana bridge assert no exact health body; `release-tag.yml` inputs env-quoted, tag validated, `fetch-depth: 0`, `publish_only` covered; the PROD build guard cannot be bypassed by defaults. Findings: two low and one info, all fixed in this batch (Byte: git argument hardening in `component-versions.mjs`; Forge: release token kept out of the derive step; Dewey: full-clone note). |
 | Re-check after the `--commit` hardening (Byte, tree `1ee24b98` = `911d154b` plus the test): `npm run lint`, `npm run typecheck`, `node --test tests/unit/component-versions.test.mjs` | Pass, 8 of 8 |
 | `npm run check:docs` (Dewey) | Pass, 0 failures, 0 warnings |
-| CI on the pull request | Pending (PR `Development checks`) |
+| CI on the pull request | Pass: `Development checks` run 43186898321 on `f1caa91b` (package tree `7f9d4087`, identical to merge `51ba52d3`) |
 ## Not run
 Live Cloud Build submit, the agent `--release` on the real host, Docker build (no daemon here) and `Stamp-Release.mjs --check` (needs the Metabase admin key). Deferred to promotion, not authorized in this batch: image builds and deployments, the Debian agent deploy, the Grafana apply, `Stamp-Release.mjs --apply` and the first live `drift` run. Until then the live services report no release and drift reads them as unverified.
 
@@ -38,7 +38,7 @@ Git baseline `055e25fe` (R143). Nothing live changed; revert the pull request.
 Seed fact not verified from a live target: the Metabase last-changed release (R137 from tags). notify and jobs seed R130 (verified by Byte against tags; R134 and R135 changed only package.json scripts).
 
 ## Remaining work
-Promotion steps listed under Not run, then the Checks table results from Byte and Chase.
+Owner acceptance in PROD. R145 candidate: `drift` refuses to run between the tag and the closure pull request (it reads the Open release from the tracker and finds it already tagged); see the Deviations below and Development Changes.
 
 ## PROD promotion record (Forge, 12 November 2026 UTC)
 Authority: the owner's instruction of 12 November 2026, "Merge and promote R144 to production", relayed by the orchestrator as the scoped PROD approval for R144: builds, the DEV and PROD images-only applies, the agent deploy, the Grafana apply, the Metabase stamp and the technical records. No SQL, so no backup and no owner window. No payment, notification or job was forced and no financial or borrower data was written. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
@@ -70,3 +70,9 @@ Authority: the owner's instruction of 12 November 2026, "Merge and promote R144 
 ### Limitations
 - No authenticated PROD read beyond `/health` (no sanctioned PROD token route), financial write, notification or job. Owner acceptance pending.
 - The jobs service's `/health` is not reachable through its front end, so its release is inferred from its digest.
+
+### Tag and closure record
+Tag `R144` on `51ba52d3` by the Release tag workflow, run [43192592368](https://github.com/welct0407/MW-Credit-App/actions/runs/43192592368) (`workflow_dispatch` on `main`, 12 November 2026 09:34Z, success), GitHub Release published with the "## Component versions" table. The freeze pin, this record, the tag record and the prune are one records-only closure pull request.
+
+### Prune at closure
+Change notes outside the retention window deleted (inbound links repointed to commit `de281f3b`): `Change Logs/CHANGE_NOTES_R141_TAPPABLE_PENDING_EXPENSE_LINES_2026-11-11.md` and `integration-agent/Change Logs/CHANGE_NOTES_R135_REVIEW_RESEND_HOLDS_2026-11-08.md`. No Development Changes section existed for R144. No evidence directory was removed.
