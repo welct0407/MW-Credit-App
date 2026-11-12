@@ -22,20 +22,44 @@ The owner approved: "yes merge and deploy, add Anthropic status too". R143 also 
 | `npm run test:monitoring` (Byte, branch at main `761bcc24` plus the uncommitted diff) | Pass |
 | `test_debian_health.py` (Byte, same tree) | Pass, 80 OK |
 | `npm run test:monitoring` for the status row (Byte): dashboard query tests 82 OK; `test_debian_health` OK; layout-model pass | Pass |
+| Collector install and run (Forge) | Pass: 02:46:49Z install, 02:46:51Z run exit 0, no journal errors; Cloud Monitoring read-back 02:51:16Z |
+| Grafana plan, apply, re-plan and read-back (Forge) | Pass: 3 changes applied 02:52:44Z to 02:52:58Z, re-plan clean, `mw-agent` v15 and `mw-pwa` v15, recognizer panel Claude, Anthropic row "No incident" |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey) |
 | CI on the pull request | Pending |
 
 ## Not run
-Deployment, the allowed-host apply and the live panel read-back: the dashboard still shows the old model until Forge applies the collector and the dashboard description. A skipped check is not a pass.
+None beyond the pull request CI. A skipped check is not a pass.
 
-## Pending deployment
-Not applied. Forge applies the datasource allowed host (`infrastructure/grafana/owned-services.tf.json`), installs the updated collector at `/opt/mw-resource-monitoring/debian-health.py` on `vm-mw-credit-agent` and applies the dashboard description through `scripts/grafana/manage.py`; the read-back should show the PROD caller's provider and model (Claude and `claude-opus-5-5` after the R142 cutover) and the cycle component. Record the applied state in the [Environment Inventory](../project/Documents/Environment_Inventory.md) at deployment.
+## Deployment record (Forge, 12 November 2026 UTC)
+Pull request #291 merged as `055e25fe`. No PROD application promotion, no SQL, no image or Terraform change for the application.
+- Collector: only `debian-health.py` changed, new sha256 `d24ba62e...`, installed 02:46:49Z at `/opt/mw-resource-monitoring`. The previous copy is kept as `debian-health.before-R143-20261112.py` (sha256 `71fa41cb...`). No unit change; the VM checkout is at `055e25fe` and the agent package is untouched. The 02:46:51Z run exited 0 with no journal errors. `audit_relay` showed 0 once, which is unrelated to the R143 diff; later runs showed 1. Cloud Monitoring `worker_timing` for `recognizer` and `receipt_cycle` (02:51:16Z): provider 3 (Claude), fallback 1 (Gemini), `model:claude-opus-5-5`.
+- Grafana through `scripts/grafana/manage.py`: plan at 02:52:06Z with 3 changes (the `mw-public-status` allowed hosts gain `status.claude.com`; `mw-agent` panels 11 and 12 changed with 10 and 13 moved; `mw-pwa` panel 33); saved plan sha256 `fdac214f806f88552c20c1de48e4d8956d1588dc74d8b6161b1aff866a719a8e`; applied 02:52:44Z to 02:52:58Z; re-plan at 02:53:11Z showed no changes. Read-back: `mw-agent` version 15 and `mw-pwa` version 15; "Recognizer · model" shows "Claude · claude-opus-5-5"; "Providers · status": Railway 1, Google Cloud 1, Anthropic 1 ("No incident"). Private plan and logs are under the operator private root (`r143-grafana`).
 
 ## Recovery
-Git baseline `761bcc24`. Reinstall the previous collector copy on the VM and re-apply the previous dashboard JSON; nothing else depends on the new fields.
+Git baseline `761bcc24`. Collector: copy `debian-health.before-R143-20261112.py` back over `/opt/mw-resource-monitoring/debian-health.py` on the VM. Grafana: a revert plan from the previous commit through `scripts/grafana/manage.py`, or the earlier dashboard versions (`mw-agent` and `mw-pwa` before version 15). Nothing else depends on the new fields.
 
 ## Open questions
 None. The owner decided to add the Anthropic status (see Scope addition).
 
 ## Remaining work
-Deployment by Forge (collector and dashboards) and the live read-back.
+None. Owner acceptance, when it arrives, is recorded in the next closure or product pull request.
+
+## PROD promotion record (monitoring only, 12 November 2026 UTC)
+Authority: the owner's approval of 12 November 2026, "yes merge and deploy, add Anthropic status too", and the closing instruction "close R143 too". The promotion is the deployment already made and verified as recorded in the Deployment record above (collector on `vm-mw-credit-agent` and Grafana through `scripts/grafana/manage.py`). There is no PWA, Hosting, SQL, Cloud Run or agent business change, so no backup, image, Terraform or Hosting step applies. No financial write, notification or job was made. No secret value appears here.
+
+| Step | Result |
+| --- | --- |
+| Freeze | Package `main` `055e25fe0f6ec419d92e8522e55487af2ae83e7a` (merge of PR #291); baseline R142 `813462e7`. Next unused number R145 (R144 opened by this closure pull request) |
+| Deployment and verification | As recorded above: collector installed 02:46:49Z, Grafana applied 02:52:44Z to 02:52:58Z, re-plan clean, read-back `mw-agent` and `mw-pwa` version 15 |
+| Rollback | Restore the kept collector copy; Grafana revert plan or earlier dashboard versions (see Recovery) |
+| Tag | Annotated `R143` on `055e25fe0f6ec419d92e8522e55487af2ae83e7a`, created by the Release tag workflow; run id 43145187821 |
+
+### Deviations
+- None recorded.
+
+### Limitations
+- No application change, so there is no PROD smoke beyond the Grafana and Cloud Monitoring read-back above. Owner acceptance is pending.
+
+### Pruned in the closure pull request
+- Change note `Change Logs/CHANGE_NOTES_R140_PENDING_MANUAL_EXPENSE_2026-11-10.md` (outside the retention window of the open release and the three most recent Released releases: R143, R142, R141); links to it in the Release Tracker, the Environment Inventory, Development Changes, the Database README and Solution Design now point to its commit permalink at `88541486`.
+- The R143 section of Development Changes.

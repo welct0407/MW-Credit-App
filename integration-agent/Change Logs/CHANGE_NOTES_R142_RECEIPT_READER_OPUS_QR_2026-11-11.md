@@ -128,7 +128,7 @@ Git baseline `c7f6488` (code), agent `246bcb93` and catalogue revision 36 on the
 - Bank or third-party slip verification is a later owner decision.
 
 ## Remaining work
-Owner acceptance in PROD, and the first real PROD slip served by the Claude reader. Bank or third-party slip verification is a later owner decision.
+The Instagram receipt cycle's first real extraction on Claude (the app form's first real use is confirmed), and owner acceptance in PROD. Bank or third-party slip verification is a later owner decision.
 
 ## PROD promotion record (Forge, 12 November 2026 UTC)
 Authority: the owner's instruction of 12 November 2026, "move everything to prod, app form and ig agent. finish all the cutover work and close the release", relayed by the orchestrator as the scoped PROD approval for R142: the Hosting deploy, the PROD configuration cutover of the receipt reader (the PROD caller and the Instagram receipt cycle) and the technical records. No SQL, no image or Terraform change. No payment, notification or job was forced and no financial write was made. No secret value, token, slip or borrower data appears here. Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md).
@@ -150,6 +150,9 @@ Authority: the owner's instruction of 12 November 2026, "move everything to prod
 
 ### Limitations
 - No financial write, forced job or test write in PROD. Pending first real use (watched 01:59Z to 02:14Z with no traffic created): a PROD-caller audit row served by Claude and a cycle extraction by Claude (the last DEV Claude row, 01:49:23Z, showed `prepare_ms` 69 and `model_ms` 3288), and the owner's acceptance. The tag record is part of the closure pull request.
+
+### First real PROD use (app form) confirmed
+Recorded in the R143 closure. The owner's own PROD reading in the app form at 2026-11-12 02:28:21Z was served by `claude-opus-5-5` with no fallback; the QR reference was used (bank 004, same as the model); prepare 59 ms, model 4220 ms, total 4786 ms. The Instagram receipt cycle's first real extraction is still pending (a check is scheduled for 08:22Z).
 
 ### Pruned in the closure pull request
 - Change note `Change Logs/CHANGE_NOTES_R139_CHAT_GROUP_REPIN_2026-11-10.md` (out of the retention window of the open release and the three most recent Released releases: R142, R141, R140); links to it in the Release Tracker and the Environment Inventory now point to its commit permalink at `813462e7`.
