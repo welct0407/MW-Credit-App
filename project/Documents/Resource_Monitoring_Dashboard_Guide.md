@@ -91,7 +91,7 @@ Everything is Debian-backed except the webhook check and the two public status f
 | 8 | Recognizer · extraction time | Duration of the newest extraction per run | Red dashed at 25 s (per-attempt bound) |
 | 9 | Agent workers and timers | State timeline: receipts, polling, daily jobs, audit relay, audit retention | Holds last state 2 min, 65 min or 25 h by job cadence |
 | 10 | Connectivity · edge and data | State timeline: webhook (Singapore), tunnel, Tailscale, ingress, database, Codex readiness | |
-| 11 | Providers · status | Railway and Google Cloud status; same stat as Now 17 (nine rows) | Feeds have no history, so a stat |
+| 11 | Providers · status | Railway, Google Cloud and (R143) Anthropic status; 12 rows on Agent (Now 17 keeps its nine). The Anthropic row reads the public status page through the `mw-public-status` datasource and watches only the "Claude API (api.anthropic.com)" component: Outage, Incident open, Maintenance, No incident, or Feed unreadable (also on a fetch failure, and until the host is allowed on the datasource) | Feeds have no history, so a stat |
 | 13 | Connectivity · code version | 1 when the receiver's code version matches the deployed commit prefix | Closes the former known gap for `webhook_code_version` |
 
 Rows by component: Receipt pipeline (20: panels 1, 2, 14), Receipt recognizer (21: 6, 12, 7, 8), Agent workers and timers (23: 9), Connectivity and providers (24: 10, 11, 13).

@@ -427,9 +427,12 @@ assert.deepEqual(panelOf('mw-pwa', 20).targets.map(t => t.columns[1].text), ['No
 // FINAL2-4: Infrastructure chart legends are lists below the chart with the full names.
 for (const {panel: p} of allPanels(built['mw-infra'].spec)) if (p.type === 'timeseries') assert.deepEqual(p.options.legend, {calcs: [], displayMode: 'list', placement: 'bottom', showLegend: true}, 'mw-infra ' + p.id + ' legend');
 // Provider status: Railway (Instatus) and Google Cloud; OpenAI is no longer read by the new dashboards.
+// R143: the Agent panel also reads Anthropic's public status (Claude API component).
 for (const [uid, id] of [['mw-now', 17], ['mw-agent', 11]]) {
   const p = panelOf(uid, id);
-  assert.deepEqual(p.targets.map(t => t.url), ['https://railway.instatus.com/summary.json', 'https://status.cloud.google.com/incidents.json']);
+  assert.deepEqual(p.targets.map(t => t.url), ['https://railway.instatus.com/summary.json', 'https://status.cloud.google.com/incidents.json',
+    ...(uid === 'mw-agent' ? ['https://status.claude.com/api/v2/summary.json'] : [])]);
+  if (uid === 'mw-agent') assert.equal(p.targets[2].datasource.uid, 'cfz10a9eaokjkd');
   assert.equal(p.targets[0].datasource.uid, 'cfz10a9eaokjkd');
   assert.ok(Object.values(p.fieldConfig.defaults.mappings[0].options).some(m => m.text === 'Maintenance'));
 }

@@ -70,18 +70,19 @@ function workers() {
 
 function connectivity() {
   const y = ROW.connectivity;
-  const version = L.stat({id: 13, title: 'Connectivity · code version', gridPos: pos(16, y + 10, 8, 3),
+  const version = L.stat({id: 13, title: 'Connectivity · code version', gridPos: pos(16, y + 13, 8, 3),
     description: 'Webhook receiver code version. Debian collector worker_timing{webhook_local, code_version_match}: 1 when the receiver\'s /ready code version equals the deployed commit.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'webhook_local', field: 'code_version_match'})), L.stateSelector(1),
       [col('time', 'Time', 'timestamp'), col('value', 'Code version')], {format: 'timeseries'})],
     defaults: {mappings: valueMap([[0, 'Mismatch', COLOR.down], [1, 'Matches', COLOR.ok], [4, 'No report', COLOR.unknown]], 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
     options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, ...L.SINGLE_VALUE}});
   return [L.row({id: 24, title: 'Connectivity and providers', gridPos: pos(0, y, 24, 1)}),
-    L.stateTimeline({id: 10, title: 'Connectivity · edge and data', gridPos: pos(0, y + 1, 16, 12),
+    L.stateTimeline({id: 10, title: 'Connectivity · edge and data', gridPos: pos(0, y + 1, 16, 15),
       description: 'Public webhook check from the Singapore checker (empty after 12 minutes without a report) and the Debian collector\'s tunnel, Tailscale, local ingress, database path and Codex readiness (empty after 6 minutes).',
       rows: [L.webhookRow('Webhook · Singapore'), L.healthRow('Cloudflare tunnel', 'tunnel'), L.healthRow('Tailscale', 'tailscale_node'),
         L.healthRow('Local ingress', 'webhook_local'), L.healthRow('Database path', 'database'), L.healthRow('Codex ready', 'codex_ready')]}),
-    L.providerStatus({id: 11, title: 'Providers · status', gridPos: pos(16, y + 1, 8, 9)}), version];
+    // R143: three grid rows taller for the third (Anthropic) row at the standard 16/32 text; the code version tile and the edge timeline follow.
+    L.providerStatus({id: 11, title: 'Providers · status', gridPos: pos(16, y + 1, 8, 12), anthropic: true}), version];
 }
 
 function build() {
