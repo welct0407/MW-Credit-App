@@ -54,6 +54,11 @@ Authority: the owner's request of 13 November 2026 quoted in Purpose ("… push 
 | Poll after deploy | Three runs 15:20:10Z to about 15:23Z: each 42 conversations, 38 eligible (36 before the deploy: the sender rule now scans two more groups), 0 image jobs, 0 failed conversations, no errors; receipt cycles with no failures or notification failures; 0 failed units |
 | `poll-reprocess` | As `mwagent`, 15:20:25Z to 15:20:32Z, one group, message-id suffix (strict match): `status` ok, 1 message, 1 reclassified, 1 job, 0 skipped as existing, 0 unmatched, 0 still ignored, exit 0. The poll row now reads `SENDER`; the wake started the receipt cycle at 15:20:32Z |
 | Read-back | One receipt job: status `REVIEW_REQUESTED`; resolved borrower and sender borrower both equal the expected borrower Row ID; slip amount and date read as posted. One Reviewer review, state `PENDING`, action `Loan Close` (the slip covers the open loan), no payment attached, expires 14 November 2026 15:20Z (22:20 Bangkok). One review-request notice, Instagram `ACCEPTED` (email copy `PENDING` as usual). No payment posted by the cycle (the borrower's payments since 12 November: still 0); no review-result notice. The owner or Reviewer decides the review by Instagram reply as usual |
+| Tag | `R151` on `e0a08916fe5224fc619f75b100af071f0c5cede9` (the package commit), created by the Release tag workflow, run [43452174847](https://github.com/welct0407/MW-Credit-App/actions/runs/43452174847) (success, 15:23:42Z to 15:24:09Z); confirmed with `git ls-remote --tags origin R151` on 13 November 2026 (the peeled tag points to `e0a08916`) |
+| Components | `render --write` after the tag: the integration agent is R151 (changed, catalogue revision 38); every other component keeps its earlier release; `render --check` passes |
+
+### Prune at closure
+Deleted (inbound links repointed to commit `e0a08916`): `Change Logs/CHANGE_NOTES_R148_GROUP_CHAT_SUMMARY_FIXES_2026-11-13.md` and `integration-agent/Change Logs/CHANGE_NOTES_R148_GROUP_CHAT_SUMMARY_RELEVANCE_2026-11-13.md`, outside the window of the Open release and the three newest Released releases (R151, R150, R149); their links in the release tracker and the environment inventory now point at the permalink. The R148 follow-up row was already removed from `Development_Changes.md` by the acceptance record. No evidence became uncited.
 
 ## Recovery
 Revert the pull request and redeploy the previous agent commit; no data, schema or configuration was changed. Jobs queued by `SENDER` or `UNIDENTIFIED` stay in the receipt tables and go through the normal review or reject path; a job that posted is reversed only by the existing payment-correction process, never by the agent.
@@ -62,7 +67,7 @@ Revert the pull request and redeploy the previous agent commit; no data, schema 
 None.
 
 ## Remaining work
-the PROD record and owner acceptance (that the recorded receipt is posted or held for review, and that a slip from a sender missing from the participants is no longer silent).
+PROD done (record above); tagged R151 and closed by the closure pull request. Open: the Reviewer's decision on the pending Loan Close review for the reprocessed receipt (expires 14 November 2026, 22:20 Bangkok), and owner acceptance (that a slip from a sender missing from the participants is no longer silent).
 
 Known limit (pre-existing, not fixed here): when a review request is too long to send, the reserved review row stays `PENDING` with nothing sent and the Reviewer gets only a hold alert.
 
