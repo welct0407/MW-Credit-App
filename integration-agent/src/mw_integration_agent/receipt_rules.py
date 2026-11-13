@@ -19,6 +19,15 @@ class ReceiptInvalid(ConfigurationError):
     pass
 
 
+class SenderUnbound(ReceiptInvalid):
+    """R151: the sender's id is in no conversation's participants (Instagram dropped it). Same code as an ambiguous
+    binding; `taken` holds every username the directory binds to some id, so a caller can tell a free username."""
+
+    def __init__(self, taken=()):
+        super().__init__('IG_CONVERSATION_IDENTITY_AMBIGUOUS')
+        self.taken = frozenset(taken)
+
+
 def username(value):
     return str(value or '').strip().lstrip('@').casefold()
 

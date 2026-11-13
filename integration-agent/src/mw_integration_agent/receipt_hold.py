@@ -74,6 +74,8 @@ REASONS={
     # R095 revision 2: weak-context payer holds only (receipt_identity.resolve_payer); copy by Echo.
     'PAYER_UNRESOLVED':("The slip's payer name did not identify one borrower.",'ระบุผู้กู้จากชื่อผู้โอนในสลิปไม่ได้'),
     'PAYER_NAME_UNREADABLE':("The slip's payer name could not be read and no nickname was sent.",'อ่านชื่อผู้โอนในสลิปไม่ได้ และไม่ได้ส่งชื่อเล่นผู้กู้มา'),
+    # R151 (Echo UX-R151-1): a forwarded slip (C3) whose payer name is another borrower's (receipt_identity.other_borrower).
+    'PAYER_NAME_OTHER_BORROWER':("The slip's payer name matches a different borrower, not this group's borrower.",'ชื่อผู้โอนในสลิปตรงกับผู้กู้คนอื่น ไม่ใช่ผู้กู้ของกลุ่มนี้'),
     'RECEIPT_ARCHIVE_UNAVAILABLE':('The receipt image could not be kept as evidence (no longer available or failed an integrity check). Ask the borrower to resend it if needed.','ระบบจัดเก็บภาพสลิปเป็นหลักฐานไม่ได้ (ภาพไม่มีแล้วหรือข้อมูลไม่ตรงกัน) หากจำเป็นให้ขอสลิปจากผู้กู้ใหม่'),
     # R135 (Echo): every other code that can hold a receipt (receipt_run images, review_cycle proposals).
     'IG_CONVERSATION_IDENTITY_AMBIGUOUS':('Could not confirm which Instagram account sent this slip, so the borrower is unknown. Check the slip and the chat.','ยืนยันบัญชี Instagram ของผู้ส่งสลิปไม่ได้ จึงระบุผู้กู้ไม่ได้ กรุณาตรวจสอบสลิปและแชท'),
@@ -124,21 +126,23 @@ def held_text(job,borrower,language,accounts,borrowers=(),resent_at=None):
     return subject,body
 
 
-CHOICE_REASONS=('PAYER_UNRESOLVED','PAYER_NAME_UNREADABLE')
+CHOICE_REASONS=('PAYER_UNRESOLVED','PAYER_NAME_UNREADABLE','PAYER_NAME_OTHER_BORROWER')
 STEPS={'name':('payer name','ชื่อผู้โอน'),'participants':('payer name among the group members','ชื่อผู้โอนในสมาชิกกลุ่ม'),
        'hint':("forwarder's nickname message",'ชื่อเล่นที่ผู้ส่งต่อแจ้ง'),'due':('the only candidate with a payment due','ผู้กู้รายเดียวที่มียอดครบกำหนด'),
        'amount':('the amount fits only this borrower','ยอดเงินตรงกับผู้กู้รายนี้เท่านั้น')}
 
 
 def payer_choice(detail,result,borrowers,thai):
-    """Weak-context payer holds: candidates (PAYER_UNRESOLVED) and the nickname tip. A hold on a receipt whose borrower
-    the payer name chose names that step. '' for every other hold."""
+    """Payer holds: candidates (PAYER_UNRESOLVED; R151 PAYER_NAME_OTHER_BORROWER, the group's borrower first) and the
+    nickname tip. A hold on a receipt whose borrower the payer name chose names that step. '' for every other hold."""
     if detail not in CHOICE_REASONS:
         step=STEPS.get(result.get('payer_step'))
         if not step:return ''
         return f'\nเลือกผู้กู้จาก: {step[1]}' if thai else f'\nBorrower chosen by: {step[0]}'
-    # R135: recording or rejecting is the hold's closing block; only the nickname tip stays here.
+    # R135: recording or rejecting is the hold's closing block; only the nickname tip stays here. R151 (Echo UX-R151-2/4):
+    # no tip for a slip that was not forwarded (unidentified sender) nor for the other-borrower hold.
     action=('\nครั้งหน้าให้ส่งชื่อเล่นผู้กู้ต่อจากสลิปทันที' if thai else "\nNext time, send the borrower's nickname right after the slip.")
+    if result.get('unidentified_sender') is True or detail=='PAYER_NAME_OTHER_BORROWER':action=''
     if detail=='PAYER_NAME_UNREADABLE':return action
     ids=result.get('payer_candidates') if isinstance(result.get('payer_candidates'),list) else []
     known={b['id']:b for b in borrowers}

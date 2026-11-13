@@ -12,13 +12,13 @@ from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
 from .statement_delivery import resolve_recipient
-from .partner_review import OPTIONS_REQUIRED,RECHECKED,ReviewStore,close_failure_line,close_notice,request_text,review_id
+from .partner_review import OPTIONS_REQUIRED,RECHECKED,ReviewStore,close_failure_line,close_notice,request_text,review_id,unidentified_review
 from .review_proposal import (LOAN_CLOSE_CHANGED,OPTIONS,chosen_plan,close_enabled,facts,options_enabled,plan,review_posts_close,
                               review_posts_overpayment,same_posting_outcome,unlabelled)
 from .review_execution import readback
 from . import receipt_api
 from .cash_statement import read_query
-from .receipt_identity import receipt_borrower
+from .receipt_identity import provenance,receipt_borrower
 
 AUTO_POLICY='OWNER_AUTHORIZED_AUTO_PAYMENT'
 NOT_SENT_RETRY_SECONDS=900  # AGT-SEND-03: a persistent 401/403 or token fault re-submits every 15 minutes, not every cycle
@@ -54,8 +54,10 @@ def has_attachment(event):
 
 
 def automatic_payment(config,job,proposal):
+    # R151: a slip whose sender is no known borrower (the payer name chose the borrower) always needs a Reviewer.
     return (config.get('receipt_auto_payment_enabled') is True and proposal['action']=='Lump Sum'
-            and job['created_at']>=cutoff_ts(config,'receipt_auto_payment_cutoff'))
+            and job['created_at']>=cutoff_ts(config,'receipt_auto_payment_cutoff')
+            and provenance(job).get('unidentified_sender') is not True)
 
 
 def reviewer_partners(live):
@@ -128,7 +130,7 @@ class Run:
                         continue
                     key=reviews.reserve(job['id'],proposal)
                     for p in recipients:
-                        subject,body=request_text(proposal,p['language'])
+                        subject,body=request_text(proposal,p['language'],unidentified=provenance(job).get('unidentified_sender') is True)
                         if job['detail'] in ('OWNER_REQUESTED_RECONSIDERATION','REVIEWER_REQUESTED_RECHECK'):
                             body=('คำขอแก้ไข — ใช้แทนคำขอเดิม\n' if p['language']=='ไทย' else 'Corrected request — replaces the earlier request\n')+body
                             if len(body)>1000:raise ReceiptInvalid('REVIEW_REQUEST_TOO_LONG')
@@ -202,11 +204,12 @@ class Run:
                     # R112 (Echo AG-2): an unclear reply to the options gets the prompt and the options again, to the
                     # same Reviewer, as its own notice (one per unclear reply); nothing was decided.
                     import hashlib
-                    row=db.execute('SELECT proposal FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
+                    row=db.execute('SELECT proposal,job_id FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
                     partner=next((p for p in live['partners'] if p['id']==notice['partner_id']),None)
                     if row and partner:
                         key='review:'+review_id(notice['event_key'])+':options:'+hashlib.sha256(event['message_id'].encode()).hexdigest()
-                        subject,body=request_text(json.loads(row['proposal']),partner['language'],unclear=True)
+                        subject,body=request_text(json.loads(row['proposal']),partner['language'],unclear=True,
+                                                  unidentified=unidentified_review(db,row['job_id']))
                         notices.reserve(key,partner,subject,body)
 
     def execute_approved(self):

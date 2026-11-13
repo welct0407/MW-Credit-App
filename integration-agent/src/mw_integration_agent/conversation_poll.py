@@ -83,6 +83,13 @@ def pages(api,path,query):
     raise ConfigurationError('POLL_PAGE_LIMIT')
 
 
+POLL_TABLES_SQLITE='''CREATE TABLE IF NOT EXISTS conversation_poll_state
+          (conversation_id TEXT PRIMARY KEY, checked_through REAL NOT NULL);
+          CREATE TABLE IF NOT EXISTS conversation_poll_messages
+          (message_id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, event_time REAL NOT NULL,
+           captured_at REAL NOT NULL, outcome TEXT NOT NULL);'''
+
+
 def enabled_usernames(master):
     """The normalised Instagram usernames of AI-enabled borrowers (the poll's eligibility set)."""
     return {username(b['username']) for b in master['borrowers'] if b['enabled'] is True and username(b['username'])}
@@ -102,11 +109,7 @@ def scan(config,api,master,journal,now=None,day=None,recheck=None):
     if not is_postgres(db):
         # R146: the summary marker lives beside the poll rows (created only while the summary switch is on).
         if config.get('group_chat_summary_enabled') is True:db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
-        db.executescript('''CREATE TABLE IF NOT EXISTS conversation_poll_state
-          (conversation_id TEXT PRIMARY KEY, checked_through REAL NOT NULL);
-          CREATE TABLE IF NOT EXISTS conversation_poll_messages
-          (message_id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, event_time REAL NOT NULL,
-           captured_at REAL NOT NULL, outcome TEXT NOT NULL);''')
+        db.executescript(POLL_TABLES_SQLITE)
     # R146: the group chat summary marker (None while group_chat_summary_enabled is off: the poll is unchanged).
     from .group_chat_summary import poll_context
     summary=poll_context(config,master,db)
@@ -195,14 +198,23 @@ def recheck_ignored(config,api,master,db,conversation,newly,now):
            if str(m.get('from',{}).get('id','')) in senders and m.get('attachments',{}).get('data')]
     if not slips:return 0
     payer_cutoff,group_ids=group_context(config,master,participants)
+    return promote(db,cid,[(m,ts,'BORROWER',group_evidence(payer_cutoff,group_ids,ts)) for m,ts in slips],now,since)['jobs']
+
+
+def promote(db,cid,items,now,since):
+    """The R119 core (recheck_ignored, R151 reprocess_ignored): each (message, ts, outcome, evidence) needs exactly one
+    IGNORED row of this group (same message id, or time within MATCH_SECONDS) and no job yet (by either message id, or a
+    job since `since` whose source names this group, sender and time within MATCH_SECONDS). One transaction turns each
+    row into `outcome` (plus a row for a changed id) and inserts its jobs by the poll's deterministic key and source.
+    Returns counts: jobs added, rows promoted, slips skipped for an existing job, and slips without exactly one row."""
     sources=[]
     for row in db.execute('SELECT source FROM receipt_jobs WHERE created_at>=? AND source IS NOT NULL',(since,)).fetchall():
         try:sources.append(json.loads(row[0]))
         except (TypeError,ValueError):continue
     from .receipt_archive import source
-    added=0
+    counts={'jobs':0,'promoted':0,'skipped_existing':0,'unmatched':0}
     with db:
-        for message,ts in slips:
+        for message,ts,outcome,evidence in items:
             sender=str(message['from']['id'])
             attachments=message['attachments']
             if attachments.get('paging',{}).get('next'):raise ConfigurationError('POLL_ATTACHMENTS_INCOMPLETE')
@@ -210,24 +222,106 @@ def recheck_ignored(config,api,master,db,conversation,newly,now):
                             (cid,message['id'])).fetchall() or db.execute(
                 "SELECT message_id FROM conversation_poll_messages WHERE conversation_id=? AND outcome='IGNORED' AND abs(event_time-?)<=?",
                 (cid,ts,MATCH_SECONDS)).fetchall()
-            if len(rows)!=1:continue  # never recorded as ignored, or two candidates: left as they are
+            if len(rows)!=1:counts['unmatched']+=1;continue  # never recorded as ignored, or two candidates: left as they are
             recorded=rows[0][0]
-            if db.execute('SELECT 1 FROM receipt_jobs WHERE message_id=? OR message_id=?',(recorded,message['id'])).fetchone():continue
-            if any(isinstance(x,dict) and x.get('conversation_id')==cid and str(x.get('sender_id'))==sender
-                   and isinstance(x.get('sent_at'),(int,float)) and abs(x['sent_at']-ts)<=MATCH_SECONDS for x in sources):continue
-            db.execute("UPDATE conversation_poll_messages SET outcome='BORROWER' WHERE message_id=? AND outcome='IGNORED'",(recorded,))
+            if db.execute('SELECT 1 FROM receipt_jobs WHERE message_id=? OR message_id=?',(recorded,message['id'])).fetchone() or any(
+                    isinstance(x,dict) and x.get('conversation_id')==cid and str(x.get('sender_id'))==sender
+                    and isinstance(x.get('sent_at'),(int,float)) and abs(x['sent_at']-ts)<=MATCH_SECONDS for x in sources):
+                counts['skipped_existing']+=1;continue
+            db.execute("UPDATE conversation_poll_messages SET outcome=? WHERE message_id=? AND outcome='IGNORED'",(outcome,recorded))
             if recorded!=message['id']:
-                db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',(message['id'],cid,ts,now,'BORROWER'))
-            evidence=group_evidence(payer_cutoff,group_ids,ts)
+                db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',(message['id'],cid,ts,now,outcome))
+            counts['promoted']+=1
             for index,item in enumerate(attachments.get('data',[])):
                 url=item.get('image_data',{}).get('url')
                 if not url:continue
                 key=hashlib.sha256(f"{message['id']}:{index}".encode()).hexdigest()
-                added+=db.execute('''INSERT OR IGNORE INTO receipt_jobs
+                counts['jobs']+=db.execute('''INSERT OR IGNORE INTO receipt_jobs
                   (id,message_id,sender_id,url,status,created_at,result,source) VALUES (?,?,?,?,'PENDING',?,?,?)''',
                   (key,message['id'],sender,url,now,evidence,
                    source('poll',message['id'],index,sender,ts,now,cid,item.get('id')))).rowcount
-    return added
+    return counts
+
+
+# R151: outcomes whose image attachments become receipt jobs (every other outcome records the message only).
+JOB_OUTCOMES=('BORROWER','FORWARDED','CANDIDATES','SENDER','UNIDENTIFIED')
+
+
+def scope(config,master,participants,enabled):
+    """Per-conversation inputs of classify: allowed sender ids, the C4' group evidence and, from payer_name_cutoff,
+    the group's enabled borrower ids (R151 UNIDENTIFIED narrowing)."""
+    business=str(config['instagram_account_id'])
+    allowed={str(p['id']) for p in participants if username(p.get('username')) in enabled}
+    allowed.discard(business)
+    payer_cutoff,group_ids=group_context(config,master,participants)
+    members=None
+    if payer_cutoff is not None:
+        from .receipt_identity import group_borrowers
+        members=sorted(b['id'] for b in group_borrowers(master,[p for p in participants if str(p.get('id',''))!=business]))
+    return {'allowed':allowed,'enabled':enabled,'payer_cutoff':payer_cutoff,'group_ids':group_ids,'members':members}
+
+
+def has_image(message):
+    return any(isinstance(item,dict) and item.get('image_data',{}).get('url') for item in message.get('attachments',{}).get('data',[]))
+
+
+def classify(config,master,participants,context,message,ts,read=(),position=0):
+    """(outcome, job evidence JSON or None) for one group message; shared by capture_conversation and the R151
+    reprocess. read: this read's messages in time order, each (sender, ts, text, reply_to, has_attachment), for the
+    C4 nickname hint. Order: an enabled participant (BORROWER, C4' evidence); the forwarder (FORWARDED C3, CANDIDATES
+    C4); R151 SENDER, a non-participant whose sender username is one enabled borrower; R151 UNIDENTIFIED, any other
+    non-business sender's image from payer_name_cutoff; else IGNORED."""
+    sender=str(message.get('from',{}).get('id',''))
+    payer_cutoff=context['payer_cutoff']
+    payer_time=payer_cutoff is not None and ts>=payer_cutoff
+    if sender in context['allowed']:
+        return 'BORROWER',group_evidence(payer_cutoff,context['group_ids'],ts)
+    if config.get('receipt_forwarding_enabled') is True:
+        from .receipt_identity import forwarded_borrower,forwarded_candidates
+        from .receipt_rules import ReceiptInvalid
+        forward_cutoff=cutoff_ts(config,'receipt_forwarding_cutoff')
+        if ts>=forward_cutoff:
+            try:
+                matched=forwarded_borrower(config,master,participants,sender)
+                return 'FORWARDED',json.dumps({'forwarded_borrower_id':matched['id']})
+            except ReceiptInvalid:
+                # C4: the forwarder in a group (4+ persons) with two or more enabled borrowers.
+                if payer_time:
+                    try:
+                        found=forwarded_candidates(config,master,participants,sender)
+                        evidence={'candidate_borrower_ids':sorted(b['id'] for b in found)}
+                        # R095 hint: the forwarder's immediately next message of this same read, a text within 60 s.
+                        from .receipt_identity import hint_texts,next_hint
+                        texts=hint_texts(next_hint(list(read),position)) if read else []
+                        if texts:return 'CANDIDATES',json.dumps({**evidence,'hint_texts':texts},ensure_ascii=False)
+                        return 'CANDIDATES',json.dumps(evidence)
+                    except ReceiptInvalid:pass
+    if not sender or sender==str(config['instagram_account_id']):return 'IGNORED',None
+    name=username((message.get('from') or {}).get('username'))
+    if name and name in context['enabled']:
+        from .receipt_rules import ReceiptInvalid,borrower_for
+        try:
+            borrower=borrower_for({'username':name},master['borrowers'])
+            return 'SENDER',json.dumps({'sender_borrower_id':borrower['id'],'sender_username':name})
+        except ReceiptInvalid:pass
+    if payer_time and has_image(message):
+        return 'UNIDENTIFIED',json.dumps({'unidentified_sender':True,'group_borrower_ids':context['members'] or []})
+    return 'IGNORED',None
+
+
+def named_sender(config,conversation,enabled):
+    """R151 eligibility without an extra read: a first-page message whose sender username is an enabled borrower."""
+    history=conversation.get('messages')
+    data=history.get('data') if isinstance(history,dict) else None
+    if not isinstance(data,list):return False
+    business=str(config['instagram_account_id'])
+    return any(isinstance(m,dict) and isinstance(m.get('from'),dict) and str(m['from'].get('id',''))!=business
+               and username(m['from'].get('username')) in enabled for m in data)
+
+
+def read_rows(ordered):
+    return [(str(m.get('from',{}).get('id','')),t,m.get('message'),m.get('reply_to'),bool(m.get('attachments',{}).get('data')))
+            for m,t in ordered]
 
 
 def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,day,summary=None):
@@ -238,7 +332,9 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
     if day and len(participants)<=2:return 0,0,False
     allowed={str(p['id']) for p in participants if username(p.get('username')) in enabled}
     allowed.discard(str(config['instagram_account_id']))
-    if not allowed:
+    # R151: a group is also scanned when Instagram dropped its borrower from participants but a first-page message
+    # names an enabled borrower as its sender.
+    if not allowed and not named_sender(config,conversation,enabled):
         # R146: a group whose last subject was disabled is no longer scanned; a group with a state row still gets the
         # marker when its subjects changed, so its summary rows are pruned.
         if summary is not None and conversation.get('id') in summary['known']:
@@ -246,8 +342,8 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
             with db:subject_change(config,master,db,summary,conversation,participants,now)
         return 0,0,False
     cid=conversation['id']
-    # R095: the C4' group evidence (group_context; R119 shares it with recheck_ignored).
-    payer_cutoff,group_ids=group_context(config,master,participants)
+    # R095: the C4' group evidence (group_context; R119 shares it with recheck_ignored); R151 classify.
+    context=scope(config,master,participants,enabled)
     prior=db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(cid,)).fetchone()
     since=cutoff if day else max(cutoff,(prior[0]-300) if prior else cutoff)
     found=history_since(api,config,conversation,since,now)
@@ -260,41 +356,13 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
             from .group_chat_summary import mark_text,poll_substantive,subject_change
             resolution=subject_change(config,master,db,summary,conversation,participants,now)
         ordered=list(reversed(found))
+        read=read_rows(ordered)
         for position,(message,ts) in enumerate(ordered):
             sender=str(message.get('from',{}).get('id',''))
             attachments=message.get('attachments',{})
             if attachments.get('paging',{}).get('next'):raise ConfigurationError('POLL_ATTACHMENTS_INCOMPLETE')
             items=attachments.get('data',[])
-            valid=sender in allowed
-            forwarded=candidates=False
-            forwarding_evidence=None
-            payer_time=payer_cutoff is not None and ts>=payer_cutoff
-            if valid:forwarding_evidence=group_evidence(payer_cutoff,group_ids,ts)
-            if not valid and config.get('receipt_forwarding_enabled') is True:
-                from .receipt_identity import forwarded_borrower,forwarded_candidates
-                from .receipt_rules import ReceiptInvalid
-                forward_cutoff=cutoff_ts(config,'receipt_forwarding_cutoff')
-                if ts>=forward_cutoff:
-                    try:
-                        matched=forwarded_borrower(config,master,participants,sender)
-                        forwarding_evidence=json.dumps({'forwarded_borrower_id':matched['id']})
-                        valid=forwarded=True
-                    except ReceiptInvalid:
-                        # C4: the forwarder in a group (4+ persons) with two or more enabled borrowers.
-                        if payer_time:
-                            try:
-                                found=forwarded_candidates(config,master,participants,sender)
-                                forwarding_evidence=json.dumps({'candidate_borrower_ids':sorted(b['id'] for b in found)})
-                                valid=candidates=True
-                            except ReceiptInvalid:pass
-            if candidates:
-                # R095 hint: the forwarder's immediately next message of this same read, a text within 60 s (next_hint).
-                from .receipt_identity import hint_texts,next_hint
-                read=[(str(m.get('from',{}).get('id','')),t,m.get('message'),m.get('reply_to'),bool(m.get('attachments',{}).get('data')))
-                      for m,t in ordered]
-                texts=hint_texts(next_hint(read,position))
-                if texts:forwarding_evidence=json.dumps({**json.loads(forwarding_evidence),'hint_texts':texts},ensure_ascii=False)
-            outcome='FORWARDED' if forwarded else 'CANDIDATES' if candidates else ('BORROWER' if valid else 'IGNORED')
+            outcome,evidence=classify(config,master,participants,context,message,ts,read,position)
             inserted=db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',
                (message['id'],cid,ts,now,outcome)).rowcount
             if not inserted:continue
@@ -302,7 +370,7 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
             # R146: a newly recorded substantive text (never a routine message) sets the summary marker below.
             if resolution is not None and poll_substantive(config,summary,resolution,message,ts):
                 newest_text=ts if newest_text is None else max(newest_text,ts)
-            if not valid:continue
+            if outcome not in JOB_OUTCOMES:continue
             for index,item in enumerate(items):
                 url=item.get('image_data',{}).get('url')
                 if not url:continue
@@ -310,7 +378,7 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
                 from .receipt_archive import source
                 images+=db.execute('''INSERT OR IGNORE INTO receipt_jobs
                   (id,message_id,sender_id,url,status,created_at,result,source) VALUES (?,?,?,?,'PENDING',?,?,?)''',
-                  (key,message['id'],sender,url,now,forwarding_evidence,
+                  (key,message['id'],sender,url,now,evidence,
                    source('poll',message['id'],index,sender,ts,now,cid,item.get('id')))).rowcount
         # R146: commits with the message rows above, so a marker is never ahead of or behind what the poll recorded.
         if newest_text is not None:mark_text(db,summary,conversation,resolution,newest_text,now)
@@ -321,6 +389,74 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
         if not day and (added or prior is None or len(found)>=FIRST_PAGE_MESSAGES):
             db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(cid,now))
     return added,images,True
+
+
+def reprocess_ignored(config,api,master,db,conversation_id,suffix=None,now=None):
+    """R151 owner-requested reprocess of one group's IGNORED slips since yesterday 00:00 Bangkok: the history is read
+    again (fresh image URLs), each image message is classified as the poll does now, and one that now gets a job is
+    promoted through the R119 core (exactly one IGNORED row, no job yet). suffix narrows it to the one IGNORED row whose
+    recorded message id ends with it. Idempotent: a promoted row is no longer IGNORED. Counts only."""
+    now=time.time() if now is None else now
+    since=recheck_since(now)
+    result={'status':'ok','messages':0,'reclassified':0,'jobs':0,'skipped_existing':0,'unmatched':0,'still_ignored':0}
+    conversation=None
+    for batch in pages(api,config['instagram_account_id']+'/conversations',
+                       {'platform':'instagram','fields':'id,participants,messages.limit('+str(FIRST_PAGE_MESSAGES)+'){'+MESSAGE_FIELDS+'}','limit':100}):
+        matches=[c for c in batch if isinstance(c,dict) and c.get('id')==conversation_id]
+        if len(matches)>1:raise ConfigurationError('POLL_CONVERSATION_AMBIGUOUS')
+        if matches:conversation=matches[0];break
+    if conversation is None:return {**result,'status':'conversation_not_found'}
+    peers=conversation.get('participants',{})
+    if peers.get('paging',{}).get('next'):raise ConfigurationError('POLL_PARTICIPANTS_INCOMPLETE')
+    participants=peers.get('data')
+    if not isinstance(participants,list):raise ConfigurationError('POLL_PARTICIPANTS_MISSING')
+    target=None
+    if suffix is not None:
+        rows=[r for r in db.execute("SELECT message_id,event_time FROM conversation_poll_messages WHERE conversation_id=? AND outcome='IGNORED' AND event_time>=?",
+                                    (conversation_id,since)).fetchall() if str(r[0]).endswith(suffix)]
+        if len(rows)!=1:return {**result,'status':'message_not_found' if not rows else 'message_ambiguous'}
+        target=(rows[0][0],rows[0][1])
+    ordered=list(reversed(history_since(api,config,conversation,since,now)))
+    read=read_rows(ordered);context=scope(config,master,participants,enabled_usernames(master))
+    items=[]
+    for position,(message,ts) in enumerate(ordered):
+        if not has_image(message):continue
+        if target and message.get('id')!=target[0] and abs(ts-target[1])>MATCH_SECONDS:continue
+        result['messages']+=1
+        outcome,evidence=classify(config,master,participants,context,message,ts,read,position)
+        if outcome not in JOB_OUTCOMES:result['still_ignored']+=1;continue
+        items.append((message,ts,outcome,evidence))
+    counts=promote(db,conversation_id,items,now,since) if items else {'jobs':0,'promoted':0,'skipped_existing':0,'unmatched':0}
+    result.update(reclassified=counts['promoted'],jobs=counts['jobs'],skipped_existing=counts['skipped_existing'],unmatched=counts['unmatched'])
+    return result
+
+
+def reprocess(config_path,catalogue_path,conversation_id,suffix=None):
+    """R151 CLI poll-reprocess: under conversation-poll.lock (taken without waiting), then wake the receipt cycle."""
+    import fcntl
+    if not isinstance(conversation_id,str) or not re.fullmatch(r'[A-Za-z0-9_:=+/-]{1,200}',conversation_id):
+        raise ConfigurationError('REPROCESS_CONVERSATION_ID_INVALID')
+    if suffix is not None and not re.fullmatch(r'[A-Za-z0-9_:=+/-]{4,200}',suffix):
+        raise ConfigurationError('REPROCESS_MESSAGE_SUFFIX_INVALID')
+    config=controls(config_path,catalogue_path)
+    if config.get('conversation_poll_enabled') is not True or not load_json(catalogue_path)['services'].get('conversation_poll',{}).get('enabled'):
+        raise ConfigurationError('CONVERSATION_POLL_DISABLED')
+    root=Path(config['state_directory'])
+    with (root/'conversation-poll.lock').open('a') as lock:
+        try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        except BlockingIOError:return {'status':'already_running'}
+        journal=ReceiptJournal(root/'receipt-processing.db', config=config)
+        try:
+            from .state import is_postgres
+            if not is_postgres(journal.db):
+                journal.db.executescript(POLL_TABLES_SQLITE)
+            result=reprocess_ignored(config,Instagram(config,read_timeout=READ_TIMEOUT),masters(config),journal.db,conversation_id,suffix)
+        finally:
+            journal.close()
+    if result.get('jobs'):
+        from .receipt_wake import wake
+        wake(config)
+    return result
 
 
 def run(config_path,catalogue_path,day=None):

@@ -7,15 +7,24 @@ R095 payer name, revision 2 (change note "Revision 2"). From `payer_name_cutoff`
 - Weak contexts (C4 forwarder in a 4+ group, C5 forwarder DM) are resolved after extraction: borrowers whose payer
   lines match (or are the only near) the slip, narrowed by participants, the forwarder's nickname hint from the same
   read, what is due and an exact amount fit; otherwise REVIEW PAYER_UNRESOLVED (or PAYER_NAME_UNREADABLE).
+
+R151 (group slips whose sender left the participants list):
+- SENDER: the poll names the borrower by the message's sender username; strong, like C1/C2.
+- UNIDENTIFIED: any other non-business sender's image is resolved like C5 (payer name), narrowed to the group's
+  borrowers when that leaves one; never an automatic payment (review_cycle.automatic_payment).
+- C3 hold: a forwarded slip naming exactly one other borrower and not the group's borrower is held
+  (PAYER_NAME_OTHER_BORROWER).
 """
 import json
+import sqlite3
 from .config import cutoff_ts
 from .payer_name import best, hint_key, joined, learn, lines, readable
-from .receipt_rules import borrower_for, username, ReceiptInvalid
+from .receipt_rules import borrower_for, username, ReceiptInvalid, SenderUnbound
 from .instagram import Instagram
 
 # Job result keys kept from capture through every later pass (the job result is rewritten on each pass).
-PROVENANCE = ('forwarded_borrower_id', 'candidate_borrower_ids', 'payer_borrower_id', 'payer_step', 'hint_texts')
+PROVENANCE = ('forwarded_borrower_id', 'candidate_borrower_ids', 'payer_borrower_id', 'payer_step', 'hint_texts',
+              'sender_borrower_id', 'sender_username', 'unidentified_sender', 'group_borrower_ids')
 HINT_LIMIT = 3
 HINT_WINDOW = 60  # seconds from the slip to the nickname (owner: one minute)
 
@@ -115,19 +124,50 @@ def webhook_job(job):
         return False
 
 
+def poll_row(journal, message_id):
+    """The poll's record of the message, or None (also before the first poll created the SQLite table)."""
+    try:
+        return journal.db.execute('SELECT conversation_id,outcome FROM conversation_poll_messages WHERE message_id=?',
+                                  (message_id,)).fetchone()
+    except sqlite3.OperationalError as exc:
+        if 'no such table' in str(exc):
+            return None
+        raise
+
+
+def sender_context(config, job, master, identity_reader, evidence, active):
+    """R151 SENDER: the borrower the poll named by the sender username, still that live borrower; the directory must
+    bind the sender id to that username, or bind the id to nothing while no other id holds the username."""
+    name = username(evidence.get('sender_username'))
+    if not name:
+        raise ReceiptInvalid('BORROWER_CHANGED')
+    borrower = borrower_for({'username': name}, master['borrowers'])
+    if borrower['id'] != evidence.get('sender_borrower_id'):
+        raise ReceiptInvalid('BORROWER_CHANGED')
+    try:
+        identity = identity_reader(config, job['sender_id'])
+    except SenderUnbound as exc:
+        if name in exc.taken:
+            raise
+    else:
+        if username(identity.get('username')) != name:
+            raise ReceiptInvalid('IG_CONVERSATION_IDENTITY_AMBIGUOUS')
+    return {'kind': 'sender', 'borrower': borrower, 'candidates': [], 'active': active, 'fill': active}
+
+
 def receipt_context(config, job, journal, master, identity_reader, api=None):
     """How the job arrived and who can have paid, before extraction.
 
-    kind: 'sender' (C1/C2), 'forwarded' (C3), 'group_sender' (C4'), 'candidates' (C4) or 'forwarder_dm' (C5).
-    borrower is None for C4/C5 until resolve_payer; fill tells whether a POSTED payment may store the slip name.
+    kind: 'sender' (C1/C2, R151 SENDER), 'forwarded' (C3), 'group_sender' (C4'), 'candidates' (C4), 'forwarder_dm'
+    (C5) or 'unidentified' (R151). borrower is None for C4/C5/unidentified until resolve_payer; fill tells whether a
+    POSTED payment may store the slip name.
     """
     active = payer_active(config, job)
     evidence = provenance(job)
+    row = poll_row(journal, job['message_id'])
     # Forwarding is allowed only for the message captured by our group poller.
     # Re-read the exact group's membership before validation and before posting.
     if config.get('receipt_forwarding_enabled') is True:
-        row = journal.db.execute('SELECT conversation_id,outcome FROM conversation_poll_messages WHERE message_id=?',
-                                 (job['message_id'],)).fetchone()
         if row and row['outcome'] == 'FORWARDED':
             api = api or Instagram(config)
             borrower = forwarded_borrower(config, master, group_participants(config, row['conversation_id'], api), job['sender_id'])
@@ -142,6 +182,15 @@ def receipt_context(config, job, journal, master, identity_reader, api=None):
             if sorted(b['id'] for b in candidates) != sorted(evidence.get('candidate_borrower_ids') or []):
                 raise ReceiptInvalid('FORWARDED_BORROWER_CHANGED')
             return {'kind': 'candidates', 'borrower': None, 'candidates': candidates, 'active': True, 'fill': False}
+    if row and row['outcome'] == 'SENDER':
+        return sender_context(config, job, master, identity_reader, evidence, active)
+    if row and row['outcome'] == 'UNIDENTIFIED':
+        # R151: the sender is no known borrower; the slip's payer name decides, as in the forwarder's own chat.
+        if not active or evidence.get('unidentified_sender') is not True:
+            raise ReceiptInvalid('PAYER_UNRESOLVED')
+        pool = [b for b in master['borrowers'] if b['enabled'] is True]
+        return {'kind': 'unidentified', 'borrower': None, 'candidates': pool, 'active': True, 'fill': False,
+                'group_ids': list(evidence.get('group_borrower_ids') or [])}
     identity = identity_reader(config, job['sender_id'])
     try:
         borrower = borrower_for(identity, master['borrowers'])
@@ -224,8 +273,20 @@ def learned(borrower, slip):
     return {'before': borrower.get('payer'), 'after': joined(after)} if after else None
 
 
+def other_borrower(borrower, slip, master):
+    """R151 C3 hold: a readable slip whose name neither matches nor nears the group's borrower but matches exactly
+    one other enabled borrower is held for the reviewer (group's borrower first); the line is not learned."""
+    if not readable(slip) or best(lines(borrower.get('payer')), slip) in ('match', 'near'):
+        return
+    others = [b for b in master['borrowers'] if b['enabled'] is True and b['id'] != borrower['id']
+              and best(lines(b.get('payer')), slip) == 'match']
+    if len(others) == 1:
+        raise PayerHeld('PAYER_NAME_OTHER_BORROWER', [borrower['id'], others[0]['id']])
+
+
 def resolve_payer(context, extraction, receipt, master, facts=None, hints=()):
-    """(borrower, payer lines change or None, step or None). Strong contexts never raise; a weak context returns the
+    """(borrower, payer lines change or None, step or None). Strong contexts never raise (except the R151 C3 hold,
+    other_borrower); a weak context returns the
     borrower and the step that chose it (name, participants, hint, due, amount) or raises PayerHeld."""
     slip = (extraction or {}).get('payer_name') or ''
     kind = context['kind']
@@ -233,6 +294,8 @@ def resolve_payer(context, extraction, receipt, master, facts=None, hints=()):
         return context['borrower'], None, None
     if kind in ('sender', 'forwarded', 'group_sender'):
         borrower = context['borrower']
+        if kind == 'forwarded':
+            other_borrower(borrower, slip, master)
         return borrower, learned(borrower, slip), None
     enabled = [b for b in master['borrowers'] if b['enabled'] is True]
     hint = hint_borrower(hints, master)
@@ -246,6 +309,12 @@ def resolve_payer(context, extraction, receipt, master, facts=None, hints=()):
     participants = {b['id'] for b in context['candidates']} if kind == 'candidates' else None
     if participants is not None:
         pool = [b for b in pool if b['id'] in participants]
+    if kind == 'unidentified' and len(pool) > 1:
+        # R151: several borrowers' lines fit; the group's own borrowers decide only when exactly one of them is left.
+        group = set(context.get('group_ids') or [])
+        narrowed = [b for b in pool if b['id'] in group]
+        if len(narrowed) == 1:
+            return narrowed[0], learned(narrowed[0], slip), 'participants'
 
     def chosen(borrower, step):
         return borrower, learned(borrower, slip), step

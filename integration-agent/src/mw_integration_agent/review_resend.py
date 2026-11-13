@@ -4,7 +4,7 @@ import json
 import time
 from datetime import datetime
 from .receipt_rules import username
-from .partner_review import request_text
+from .partner_review import request_text, unidentified_review
 from .receipt_hold import held_text, resend_key
 
 COMMANDS = {'review', 'reviews', 'resend review'}
@@ -50,7 +50,8 @@ def queue(db, notices, config, event, live, identity, now=None, borrower=None):
             if notices.db.execute('SELECT 1 FROM partner_notices WHERE event_key=? AND partner_id=?', (key, partner['id'])).fetchone():
                 continue
             if kind == 'review':
-                subject, body = request_text(json.loads(row['proposal']), partner['language'])
+                subject, body = request_text(json.loads(row['proposal']), partner['language'],
+                                             unidentified=unidentified_review(db, row['job_id']))
             else:
                 subject, body = held_text(row, borrower(row) if borrower else None, partner['language'],
                                           live.get('accounts', []), live.get('borrowers', ()), resent_at=now)

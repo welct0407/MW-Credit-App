@@ -11,7 +11,7 @@ from .receipt_journal import ReceiptJournal
 from .receipt_master import masters
 from .receipt_identity import PayerHeld,provenance as job_provenance,receipt_context,resolve_payer
 from .payment_match import check as check_existing_payment
-from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,validate_receipt,username
+from .receipt_rules import ReceiptInvalid,SenderUnbound,borrower_for,recipients,summary,validate_receipt,username
 from .statement_delivery import resolve_recipient
 
 # Extraction-class failure ladder per attempt: next run, then 60 s; attempt 3 ends REVIEW.
@@ -70,6 +70,8 @@ def conversation_identity(config,sender,api=None):
     else:
         raise ConfigurationError('IG_CONVERSATION_PAGINATION_LIMIT')
     names={name for identifier,name in bindings if identifier==sender}
+    # R151: no binding at all (the id left every participants list) is told apart from a conflicting one.
+    if not names:raise SenderUnbound(name for _,name in bindings)
     if len(names)!=1:
         raise ReceiptInvalid('IG_CONVERSATION_IDENTITY_AMBIGUOUS')
     name=names.pop()
