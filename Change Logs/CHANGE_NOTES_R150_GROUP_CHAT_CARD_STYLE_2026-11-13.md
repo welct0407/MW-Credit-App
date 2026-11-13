@@ -53,4 +53,4 @@ Revert the pull request; Hosting rollback to the previous PROD version (in the e
 None.
 
 ## Remaining work
-PROD Hosting done (record above); tagged R150 and closed by the closure pull request. Open for the owner: acceptance (the check of the card); R148 and R149 acceptance are also still pending.
+PROD Hosting done (record above); tagged R150 and closed by the closure pull request. Owner-accepted in PROD on 13 November 2026 ("i accept R148, 149, 150").

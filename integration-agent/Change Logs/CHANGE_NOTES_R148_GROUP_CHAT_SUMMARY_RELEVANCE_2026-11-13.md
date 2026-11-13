@@ -43,4 +43,4 @@ Known limit (Chase finding 2): a borrower who is a subject in two groups can bri
 None.
 
 ## Remaining work
-PROD done (record above); tagged R148 and closed by the closure pull request. Open for the owner: acceptance (that the cards no longer stack and the irrelevant groups are hidden).
+PROD done (record above); tagged R148 and closed by the closure pull request. Owner-accepted in PROD on 13 November 2026 ("i accept R148, 149, 150").
