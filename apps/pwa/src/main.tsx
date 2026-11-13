@@ -22,7 +22,7 @@ function App() {
   const [locale, setLocale] = useState<Locale>('en');
   const [route, setRoute] = useState('collection');
   // R146 sample: which sample summaries this preview session has shown (the live app keeps this per device), and the open cards.
-  const [chatSeen, setChatSeen] = useState<Record<string, string>>({}), [chatExpanded, setChatExpanded] = useState<Record<string, boolean>>({});
+  const [chatSeen, setChatSeen] = useState<Record<string, string>>({});
   const chatNow = Date.parse(sampleNow);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
@@ -319,7 +319,7 @@ function App() {
                     </strong>
                   </div>
                 </div>
-                {route === 'collection' && <CollectionChatSummary key={'chat-summary:' + current.id} groupChat={sampleGroupChats[current.id] ?? null} borrowerId={current.id} thai={locale === 'th'} now={chatNow} expanded={!!chatExpanded[current.id]} onToggle={() => setChatExpanded(value => ({ ...value, [current.id]: !value[current.id] }))} onShown={at => setChatSeen(value => value[current.id] === at ? value : { ...value, [current.id]: at })}/>}
+                {route === 'collection' && <CollectionChatSummary key={'chat-summary:' + current.id} groupChat={sampleGroupChats[current.id] ?? null} borrowerId={current.id} thai={locale === 'th'} now={chatNow} onShown={at => setChatSeen(value => value[current.id] === at ? value : { ...value, [current.id]: at })}/>}
                 {current.note && <div className={'issue-note ' + (current.status === 'overdue' ? 'attention' : '')}>
                   <strong>
                     {t('Follow-up note', 'หมายเหตุการติดตาม')}
