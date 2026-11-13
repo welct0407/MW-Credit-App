@@ -111,7 +111,9 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
    // R140: a bundle without the key (undefined) is a miss like null, never an empty answer handed to the page.
    if(data!=null&&revision!=null)value={data,format:'json',contentType:'application/json',savedAt:Date.now(),revision};
   }
-  if(value&&value.format===format&&!settled&&!controller.signal.aborted&&await repository!.syncAuthorized()&&await repository!.readRevision()===value.revision&&await currentCacheRevision()===cachedEpoch){
+  // The checks await storage; the network answer can settle meanwhile, and saved data must never paint over it, so
+  // settled is read again right before the callback (WebKit's slower IndexedDB made the late overwrite visible).
+  if(value&&value.format===format&&!settled&&!controller.signal.aborted&&await repository!.syncAuthorized()&&await repository!.readRevision()===value.revision&&await currentCacheRevision()===cachedEpoch&&!settled&&!controller.signal.aborted){
    cached=value;options.onCached?.(structuredClone(value.data));
   }
   return value;
