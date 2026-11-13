@@ -2042,6 +2042,10 @@
           "pointer": "/content/columns/Referral Rebate Cap"
         },
         {
+          "subject": "IG Group URL",
+          "pointer": "/content/columns/IG Group URL"
+        },
+        {
           "subject": "Borrowers_Payment Request Cash Account_fkey",
           "pointer": "/content/constraints/Borrowers_Payment Request Cash Account_fkey"
         },
@@ -2064,6 +2068,10 @@
         {
           "subject": "borrower_not_own_referrer",
           "pointer": "/content/constraints/borrower_not_own_referrer"
+        },
+        {
+          "subject": "borrowers_ig_group_url_check",
+          "pointer": "/content/constraints/borrowers_ig_group_url_check"
         },
         {
           "subject": "borrowers_referral_rebate_cap_check",

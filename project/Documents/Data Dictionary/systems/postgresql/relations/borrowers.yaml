@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "https://github.com/welct0407/MW-Credit-App/blob/ede185fa/project/outputs/dictionary-r120-20261104/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r153-20261113/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "a36046cfdac29ff84ab43e97a886936571674503"
+    "commit": "025e8a510534acf556a140898bb69d12ad9b4fe5"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/borrowers.yaml"
     "identity":
       "system": "postgresql"
@@ -513,6 +513,26 @@
       "acl": null
       "comment": "R120: most this borrower earns as referrer per closed referred loan, whole baht, 1 or more; null = default\
         \ 1,000 (referral_rebate_terms)."
+    "IG Group URL":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "IG Group URL"
+      "ordinal": 27
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R153: link to this borrower's Instagram group chat (https://instagram.com/direct/..., https://www.instagram.com/direct/...\
+        \ or https://ig.me/...), set by the owner; shown as Open chat on the collection group chat summary card. Null = no\
+        \ link. Display only."
   "constraints":
     "Borrowers_Payment Request Cash Account_fkey":
       "schema": "public"
@@ -615,6 +635,24 @@
       "column_numbers":
       - 20
       - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "borrowers_ig_group_url_check":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "borrowers_ig_group_url_check"
+      "kind": "c"
+      "definition": "CHECK (\"IG Group URL\" IS NULL OR \"IG Group URL\" ~ '^https://((www\\.)?instagram\\.com/direct/|ig\\\
+        .me/)[A-Za-z0-9._~%/?=&+-]{1,255}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 27
       "referenced_column_numbers": null
       "referenced_relation": null
       "update_action": " "
@@ -861,6 +899,78 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "RI_ConstraintTrigger_a_39203":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_39203"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_39203\" AFTER DELETE ON \"Borrowers\" FROM pwa_rebate_settlements\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_39204":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_39204"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_39204\" AFTER UPDATE ON \"Borrowers\" FROM pwa_rebate_settlements\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_41587":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_41587"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_41587\" AFTER DELETE ON \"Borrowers\" FROM pwa_group_chat_summaries\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_cascade_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_cascade_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_41588":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_41588"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_41588\" AFTER UPDATE ON \"Borrowers\" FROM pwa_group_chat_summaries\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_41784":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_41784"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_41784\" AFTER DELETE ON \"Borrowers\" FROM pwa_group_chat_seen\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_cascade_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_cascade_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_41785":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_41785"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_41785\" AFTER UPDATE ON \"Borrowers\" FROM pwa_group_chat_seen\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "RI_ConstraintTrigger_c_17030":
       "schema": "public"
       "relation": "Borrowers"
@@ -1008,18 +1118,8 @@
   "policies": {}
   "dependencies": []
 "evidence":
-  "/content/candidate_v92":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
-      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
-    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
-    "state": "absent"
-  "/content/columns/AI Collection Enabled":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
-      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
-    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
-    "state": "value"
   "/content/columns/Borrower Name/business_rule":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/0fdf49a4458ee368adced58de3656e291df64192/services/business/borrowers.mjs"
     "reason": "Owner decision 17 October 2026: borrower name mandatory (W5, source 0fdf49a); behaviour rule only, no schema\
-      \ change."
+      \ change. Kept across the R153 PROD recapture (the capture holds catalog metadata only)."
     "state": "value"

@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r136-20261109/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r153-20261113/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "3aafed131f2d5f9d9c594ad8363fbd17ce1d2fc9"
+    "commit": "025e8a510534acf556a140898bb69d12ad9b4fe5"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-operation-v2-canonical-json-text-cc36a6de.yaml"
     "identity":
       "system": "postgresql"
@@ -203,30 +203,33 @@
       principalDue\":'||to_json(i->>'principalDue')::text||',\"interestDue\":'||to_json(i->>'interestDue')::text||'}';\n ELSIF\
       \ op IN('borrower.delete','loan.delete','loan.undo-default','charge.delete','payment.delete','expense.delete','rebate-settlement.delete')\
       \ THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION 'delete';END IF;input_text:='{}';\r\n ELSE\r\n IF (SELECT array_agg(key\
-      \ ORDER BY key) FROM jsonb_object_keys(i-'aiCollectionEnabled'-'referralRebateRate'-'referralRebateCap') key) IS DISTINCT\
-      \ FROM ARRAY['address','city','communicationName','description','hidden','instagramUsername','name','note','preferredReceivingAccountId','referrerId','workingLocation']\
+      \ ORDER BY key) FROM jsonb_object_keys(i-'aiCollectionEnabled'-'referralRebateRate'-'referralRebateCap'-'igGroupUrl')\
+      \ key) IS DISTINCT FROM ARRAY['address','city','communicationName','description','hidden','instagramUsername','name','note','preferredReceivingAccountId','referrerId','workingLocation']\
       \ THEN RAISE EXCEPTION 'inputs';END IF;\r\n input_text:='{';FOREACH k IN ARRAY ARRAY['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note']||CASE\
       \ WHEN i?'aiCollectionEnabled' THEN ARRAY['aiCollectionEnabled'] ELSE ARRAY[]::text[] END||CASE WHEN i?'referralRebateRate'\
       \ THEN ARRAY['referralRebateRate'] ELSE ARRAY[]::text[] END||CASE WHEN i?'referralRebateCap' THEN ARRAY['referralRebateCap']\
-      \ ELSE ARRAY[]::text[] END LOOP\r\n  IF k IN('hidden','aiCollectionEnabled') THEN IF jsonb_typeof(i->k) NOT IN('boolean','null')\
-      \ THEN RAISE EXCEPTION 'boolean';END IF;\n  -- R120: referral rebate rate (0 to 100) and cap (1 or more), whole numbers\
-      \ as JSON numbers, or null (the default).\n  ELSIF k IN('referralRebateRate','referralRebateCap') THEN IF i->k<>'null'::jsonb\
-      \ AND (jsonb_typeof(i->k) IS DISTINCT FROM 'number' OR i->>k!~'^(0|[1-9][0-9]{0,11})$' OR (k='referralRebateRate' AND\
-      \ (i->>k)::numeric>100) OR (k='referralRebateCap' AND (i->>k)::numeric<1)) THEN RAISE EXCEPTION 'number';END IF;\r\n\
-      \  ELSE IF jsonb_typeof(i->k) NOT IN('string','null') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION 'text';END IF;\r\
-      \n  IF k IN('referrerId','preferredReceivingAccountId') AND i->k<>'null'::jsonb AND (octet_length(i->>k) NOT BETWEEN\
-      \ 1 AND 256 OR i->>k~'[[:cntrl:]]') THEN RAISE EXCEPTION 'ref';END IF;END IF;\r\n  input_text:=input_text||CASE WHEN\
-      \ input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||CASE WHEN i->k='null'::jsonb THEN 'null' WHEN k IN('hidden','aiCollectionEnabled','referralRebateRate','referralRebateCap')\
-      \ THEN (i->k)::text ELSE to_json(i->>k)::text END;\r\n END LOOP;input_text:=input_text||'}';END IF;\r\n command_text:='{\"\
-      schemaVersion\":1,\"operation\":'||to_json(op)::text||',\"targetType\":'||to_json(split_part(op,'.',1))::text||',\"\
-      targetId\":'||to_json(target)::text||',\"expectedVersion\":'||coalesce(to_json(expected)::text,'null')||',\"predecessorRequestId\"\
-      :'||coalesce(to_json(c->>'predecessorRequestId')::text,'null')||',\"inputs\":'||input_text||'}';\r\n canonical:='{\"\
-      contractVersion\":2,\"requestId\":'||to_json(request::text)::text||',\"actor\":'||actor_text||',\"command\":'||command_text||',\"\
-      receipt\":'||receipt_text||'}';\r\n IF canonical IS DISTINCT FROM $1 THEN RAISE EXCEPTION 'noncanonical';END IF;\r\n\
-      \ EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid canonical operation';END;\r\n IF\
-      \ (SELECT count(*) FROM public.\"Partners\" WHERE lower(btrim(\"Login Email\"))=a->>'loginEmail')<>1 OR NOT EXISTS(SELECT\
-      \ 1 FROM public.\"Partners\" WHERE \"Row ID\"=a->>'partnerId' AND lower(btrim(\"Login Email\"))=a->>'loginEmail') THEN\
-      \ RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Current actor mapping required';END IF;\r\n IF op='preference.update'\
+      \ ELSE ARRAY[]::text[] END||CASE WHEN i?'igGroupUrl' THEN ARRAY['igGroupUrl'] ELSE ARRAY[]::text[] END LOOP\r\n  IF\
+      \ k IN('hidden','aiCollectionEnabled') THEN IF jsonb_typeof(i->k) NOT IN('boolean','null') THEN RAISE EXCEPTION 'boolean';END\
+      \ IF;\n  -- R120: referral rebate rate (0 to 100) and cap (1 or more), whole numbers as JSON numbers, or null (the default).\n\
+      \  ELSIF k IN('referralRebateRate','referralRebateCap') THEN IF i->k<>'null'::jsonb AND (jsonb_typeof(i->k) IS DISTINCT\
+      \ FROM 'number' OR i->>k!~'^(0|[1-9][0-9]{0,11})$' OR (k='referralRebateRate' AND (i->>k)::numeric>100) OR (k='referralRebateCap'\
+      \ AND (i->>k)::numeric<1)) THEN RAISE EXCEPTION 'number';END IF;\n  -- R153: the Instagram group chat link, a JSON string\
+      \ matching the \"IG Group URL\" column check, or null (no link).\n  ELSIF k='igGroupUrl' THEN IF i->k<>'null'::jsonb\
+      \ AND (jsonb_typeof(i->k) IS DISTINCT FROM 'string' OR i->>k!~'^https://((www\\.)?instagram\\.com/direct/|ig\\.me/)[A-Za-z0-9._~%/?=&+-]{1,255}$')\
+      \ THEN RAISE EXCEPTION 'url';END IF;\r\n  ELSE IF jsonb_typeof(i->k) NOT IN('string','null') OR octet_length(i->>k)>65536\
+      \ THEN RAISE EXCEPTION 'text';END IF;\r\n  IF k IN('referrerId','preferredReceivingAccountId') AND i->k<>'null'::jsonb\
+      \ AND (octet_length(i->>k) NOT BETWEEN 1 AND 256 OR i->>k~'[[:cntrl:]]') THEN RAISE EXCEPTION 'ref';END IF;END IF;\r\
+      \n  input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||CASE WHEN i->k='null'::jsonb\
+      \ THEN 'null' WHEN k IN('hidden','aiCollectionEnabled','referralRebateRate','referralRebateCap') THEN (i->k)::text ELSE\
+      \ to_json(i->>k)::text END;\r\n END LOOP;input_text:=input_text||'}';END IF;\r\n command_text:='{\"schemaVersion\":1,\"\
+      operation\":'||to_json(op)::text||',\"targetType\":'||to_json(split_part(op,'.',1))::text||',\"targetId\":'||to_json(target)::text||',\"\
+      expectedVersion\":'||coalesce(to_json(expected)::text,'null')||',\"predecessorRequestId\":'||coalesce(to_json(c->>'predecessorRequestId')::text,'null')||',\"\
+      inputs\":'||input_text||'}';\r\n canonical:='{\"contractVersion\":2,\"requestId\":'||to_json(request::text)::text||',\"\
+      actor\":'||actor_text||',\"command\":'||command_text||',\"receipt\":'||receipt_text||'}';\r\n IF canonical IS DISTINCT\
+      \ FROM $1 THEN RAISE EXCEPTION 'noncanonical';END IF;\r\n EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid\
+      \ canonical operation';END;\r\n IF (SELECT count(*) FROM public.\"Partners\" WHERE lower(btrim(\"Login Email\"))=a->>'loginEmail')<>1\
+      \ OR NOT EXISTS(SELECT 1 FROM public.\"Partners\" WHERE \"Row ID\"=a->>'partnerId' AND lower(btrim(\"Login Email\"))=a->>'loginEmail')\
+      \ THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Current actor mapping required';END IF;\r\n IF op='preference.update'\
       \ AND target IS DISTINCT FROM a->>'partnerId' THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Own preferences required';END\
       \ IF;\r\n PERFORM pg_advisory_xact_lock(1347895619,hashtext(request::text));\r\n SELECT * INTO old FROM public.pwa_payment_commands\
       \ p WHERE p.request_id=request;\r\n IF FOUND THEN\r\n  IF old.contract_version<>2 OR old.canonical_json<>$1 OR old.actor_issuer<>a->>'issuer'\
@@ -257,17 +260,18 @@
       \ THEN\r\n INSERT INTO public.\"Borrowers\"(\"Row ID\",\"Borrower Name\",\"Description\",\"Communication Name\",\"Instagram\
       \ Username\",\"City\",\"Working Location\",\"Address\",\"Hidden Flag\",\"Ref Referrer\",\"Ref Preferred Receiving Cash\
       \ Account\",\"Borrower Note\",\"Creation Date\",\"AI Collection Enabled\",\"Referral Rebate Rate\",\"Referral Rebate\
-      \ Cap\") VALUES(target,i->>'name',i->>'description',i->>'communicationName',i->>'instagramUsername',i->>'city',i->>'workingLocation',i->>'address',(i->>'hidden')::boolean,i->>'referrerId',i->>'preferredReceivingAccountId',i->>'note',(CURRENT_TIMESTAMP\
+      \ Cap\",\"IG Group URL\") VALUES(target,i->>'name',i->>'description',i->>'communicationName',i->>'instagramUsername',i->>'city',i->>'workingLocation',i->>'address',(i->>'hidden')::boolean,i->>'referrerId',i->>'preferredReceivingAccountId',i->>'note',(CURRENT_TIMESTAMP\
       \ AT TIME ZONE 'Asia/Bangkok')::date,CASE WHEN i?'aiCollectionEnabled' THEN (i->>'aiCollectionEnabled')::boolean ELSE\
-      \ true END,(i->>'referralRebateRate')::numeric,(i->>'referralRebateCap')::numeric);\r\n ELSIF op='borrower.update' THEN\
-      \ UPDATE public.\"Borrowers\" SET \"Borrower Name\"=i->>'name',\"Description\"=i->>'description',\"Communication Name\"\
-      =i->>'communicationName',\"Instagram Username\"=i->>'instagramUsername',\"City\"=i->>'city',\"Working Location\"=i->>'workingLocation',\"\
-      Address\"=i->>'address',\"Hidden Flag\"=(i->>'hidden')::boolean,\"Ref Referrer\"=i->>'referrerId',\"Ref Preferred Receiving\
-      \ Cash Account\"=i->>'preferredReceivingAccountId',\"Borrower Note\"=i->>'note',\"AI Collection Enabled\"=CASE WHEN\
-      \ i?'aiCollectionEnabled' THEN (i->>'aiCollectionEnabled')::boolean ELSE \"AI Collection Enabled\" END,\"Referral Rebate\
-      \ Rate\"=CASE WHEN i?'referralRebateRate' THEN (i->>'referralRebateRate')::numeric ELSE \"Referral Rebate Rate\" END,\"\
-      Referral Rebate Cap\"=CASE WHEN i?'referralRebateCap' THEN (i->>'referralRebateCap')::numeric ELSE \"Referral Rebate\
-      \ Cap\" END WHERE \"Row ID\"=target;\r\n ELSE DELETE FROM public.\"Borrowers\" WHERE \"Row ID\"=target;END IF;\r\n EXCEPTION\
+      \ true END,(i->>'referralRebateRate')::numeric,(i->>'referralRebateCap')::numeric,i->>'igGroupUrl');\r\n ELSIF op='borrower.update'\
+      \ THEN UPDATE public.\"Borrowers\" SET \"Borrower Name\"=i->>'name',\"Description\"=i->>'description',\"Communication\
+      \ Name\"=i->>'communicationName',\"Instagram Username\"=i->>'instagramUsername',\"City\"=i->>'city',\"Working Location\"\
+      =i->>'workingLocation',\"Address\"=i->>'address',\"Hidden Flag\"=(i->>'hidden')::boolean,\"Ref Referrer\"=i->>'referrerId',\"\
+      Ref Preferred Receiving Cash Account\"=i->>'preferredReceivingAccountId',\"Borrower Note\"=i->>'note',\"AI Collection\
+      \ Enabled\"=CASE WHEN i?'aiCollectionEnabled' THEN (i->>'aiCollectionEnabled')::boolean ELSE \"AI Collection Enabled\"\
+      \ END,\"Referral Rebate Rate\"=CASE WHEN i?'referralRebateRate' THEN (i->>'referralRebateRate')::numeric ELSE \"Referral\
+      \ Rebate Rate\" END,\"Referral Rebate Cap\"=CASE WHEN i?'referralRebateCap' THEN (i->>'referralRebateCap')::numeric\
+      \ ELSE \"Referral Rebate Cap\" END,\"IG Group URL\"=CASE WHEN i?'igGroupUrl' THEN i->>'igGroupUrl' ELSE \"IG Group URL\"\
+      \ END WHERE \"Row ID\"=target;\r\n ELSE DELETE FROM public.\"Borrowers\" WHERE \"Row ID\"=target;END IF;\r\n EXCEPTION\
       \ WHEN foreign_key_violation THEN RAISE EXCEPTION USING ERRCODE='P5B05';WHEN check_violation OR not_null_violation THEN\
       \ RAISE EXCEPTION USING ERRCODE='P5B06';END;\r\n result_value:=jsonb_build_object('operation',op,'targetType','borrower','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL);\r\
       \n END IF;\r\n EXCEPTION WHEN SQLSTATE 'P5B01' THEN rejection:='source_conflict';WHEN SQLSTATE 'P5B02' THEN rejection:='not_found';WHEN\
@@ -296,9 +300,3 @@
     "acl": "{mw_app_prod_journal_owner=X/mw_app_prod_journal_owner,mw_app_prod=X/mw_app_prod_journal_owner}"
     "comment": null
     "extension": null
-"evidence":
-  "/content/definition/definition":
-    "reference": "database/migrations/V145__expense_paid_date_not_before_expense_date.sql (R140)"
-    "reason": "R140 owner decision of 11 November 2026: V145 replaces the routine in place (paid date not before the expense\
-      \ date; source definition, PROD capture follows the PROD apply)"
-    "state": "value"
