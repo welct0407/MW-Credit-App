@@ -55,4 +55,4 @@ Revert the pull request. In PROD, `config-only-change.py restore` of the cutoff 
 None yet.
 
 ## Remaining work
-PROD done (record above); tagged R147 and closed by the closure pull request. Open for the owner: acceptance (the check of the cards).
+PROD done (record above); tagged R147 and closed by the closure pull request. Owner-accepted in PROD on 13 November 2026 ("Accepted", after checking R146 and R147). Nothing else.
