@@ -6557,6 +6557,61 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/public-pwa-group-chat-seen-56cc11df.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_group_chat_seen",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "seen_last_message_at",
+          "pointer": "/content/columns/seen_last_message_at"
+        },
+        {
+          "subject": "updated_at",
+          "pointer": "/content/columns/updated_at"
+        },
+        {
+          "subject": "pwa_group_chat_seen_borrower_id_fkey",
+          "pointer": "/content/constraints/pwa_group_chat_seen_borrower_id_fkey"
+        },
+        {
+          "subject": "pwa_group_chat_seen_borrower_id_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_seen_borrower_id_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_seen_partner_id_fkey",
+          "pointer": "/content/constraints/pwa_group_chat_seen_partner_id_fkey"
+        },
+        {
+          "subject": "pwa_group_chat_seen_partner_id_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_seen_partner_id_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_seen_pkey",
+          "pointer": "/content/constraints/pwa_group_chat_seen_pkey"
+        },
+        {
+          "subject": "pwa_group_chat_seen_seen_last_message_at_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_seen_seen_last_message_at_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_seen_updated_at_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_seen_updated_at_not_null"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/public-pwa-group-chat-summaries-4c299563.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -12157,6 +12212,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_management_tools_text_v2(op text, i jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-mark-group-chat-seen-v1-actor-jsonb-p-borrower-id-text-p-seen-timestamp-with-time-zo-02239724.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_mark_group_chat_seen_v1(actor jsonb, p_borrower_id text, p_seen timestamp with time zone)",
       "scope": "production",
       "status": "documented",
       "lookup": []
