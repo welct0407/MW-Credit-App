@@ -1,7 +1,8 @@
 """Group chat summary (R146): a short summary of a borrower's Instagram group chat for the collection page.
 
 The conversation poll marks a group when a new substantive text arrives (runtime.group_chat_summary_state, agent V12).
-This service, every two minutes, takes the groups that have been quiet for QUIET_SECONDS (or marked for MAX_WAIT_SECONDS),
+This service, every two minutes, takes the groups that have been quiet for QUIET_SECONDS (10 minutes) or marked for
+MAX_WAIT_SECONDS (10 minutes since the first new substantive message, R151: a chat that never pauses is still refreshed),
 re-reads their last three days through the poll's own conversation-list route, asks Claude for a headline and up to four
 points in Thai and English, and posts the result to the command service (POST /internal/agent/group-chat-summaries).
 
@@ -36,7 +37,10 @@ PROMPT_VERSION = 2
 WINDOW_SECONDS = 3 * 86400
 MAX_MESSAGES = 100
 QUIET_SECONDS = 600
-MAX_WAIT_SECONDS = 3600
+# R151 (owner, 13 November 2026): at most 10 minutes from a group's first new substantive message (changed_at) to its
+# refresh, even while the chat goes on (was one hour). With QUIET_SECONDS equal, a group is due after 10 quiet minutes or
+# 10 minutes after changed_at, whichever comes first.
+MAX_WAIT_SECONDS = 600
 MAX_GROUPS = 5
 RUN_BUDGET_SECONDS = 150  # stop taking groups after this (the unit's TimeoutStartSec is 4 minutes)
 BACKOFF_SECONDS = 600
@@ -443,34 +447,73 @@ def summarise(config, text, credentials=None, opener=None, timeout=MODEL_TIMEOUT
 
 # Output validation and the command ------------------------------------------------------------------
 
+# R151: a rejected model output names the check that failed. The family stays MODEL_OUTPUT_INVALID; the full code is one
+# of this fixed set (which check, and whether in the headline or a point): never chat or model text, a token, a length
+# or a position. Every code fits the state table's last_error pattern (agent V12: ^[A-Z][A-Z0-9_]{0,63}$).
+OUTPUT_INVALID = 'MODEL_OUTPUT_INVALID'
+TEXT_FAULTS = ('SHAPE', 'BLANK', 'LENGTH', 'CONTROL_CHAR', 'AT_SIGN', 'DIGIT_RUN')
+OUTPUT_INVALID_CODES = frozenset(
+    [OUTPUT_INVALID + '_SHAPE', OUTPUT_INVALID + '_POINT_COUNT', OUTPUT_INVALID + '_POINT_SPEAKER']
+    + [f'{OUTPUT_INVALID}_{part}_{fault}' for part in ('HEADLINE', 'POINT') for fault in TEXT_FAULTS])
+
+
+def text_fault(value, limit):
+    """None for a model string that may be stored, else which rule it breaks (one of TEXT_FAULTS): SHAPE not a string;
+    BLANK empty or only white space; LENGTH more than `limit` code points; CONTROL_CHAR a control character or line
+    break; AT_SIGN an @; DIGIT_RUN nine or more digits in a row (spaces and dashes ignored)."""
+    if not isinstance(value, str):
+        return 'SHAPE'
+    if not value.strip():
+        return 'BLANK'
+    if len(value) > limit:
+        return 'LENGTH'
+    if any(unicodedata.category(char) in ('Cc', 'Cs', 'Zl', 'Zp') for char in value):
+        return 'CONTROL_CHAR'
+    if '@' in value or '＠' in value:
+        return 'AT_SIGN'
+    return 'DIGIT_RUN' if DIGIT_RUN.search(value) is not None else None
+
+
 def clean_text(value, limit):
     """A model string that may be stored: 1..limit code points, not blank, no control character or line break, no @,
     no run of nine or more digits (spaces and dashes ignored)."""
-    if not isinstance(value, str) or not 1 <= len(value) <= limit or not value.strip():
-        return False
-    if any(unicodedata.category(char) in ('Cc', 'Cs', 'Zl', 'Zp') for char in value):
-        return False
-    return '@' not in value and '＠' not in value and DIGIT_RUN.search(value) is None
+    return text_fault(value, limit) is None
+
+
+def invalid(check):
+    code = f'{OUTPUT_INVALID}_{check}'
+    return SummaryFailed(code if code in OUTPUT_INVALID_CODES else OUTPUT_INVALID)
 
 
 def validated(output, allowed):
     """The model output as {'headline': {th,en}, 'points': [{speaker,th,en}]}, None when the model answered that nothing
     in the window is collection-relevant (relevant=false: no card; headline and points are then not looked at), or
-    SummaryFailed('MODEL_OUTPUT_INVALID'). `allowed` is the set of tokens that appeared in the transcript."""
-    bad = SummaryFailed('MODEL_OUTPUT_INVALID')
+    SummaryFailed with one of OUTPUT_INVALID_CODES (the first failed check, in reading order). `allowed` is the set of
+    tokens that appeared in the transcript."""
     if not isinstance(output, dict) or set(output) != {'relevant', 'headline', 'points'} or type(output['relevant']) is not bool:
-        raise bad
+        raise invalid('SHAPE')
     if output['relevant'] is False:
         return None
     headline, points = output['headline'], output['points']
-    if not isinstance(headline, dict) or set(headline) != {'th', 'en'} or not all(clean_text(headline[k], HEADLINE_LIMIT) for k in ('th', 'en')):
-        raise bad
-    if not isinstance(points, list) or len(points) > MAX_POINTS:
-        raise bad
+    if not isinstance(headline, dict) or set(headline) != {'th', 'en'}:
+        raise invalid('HEADLINE_SHAPE')
+    for key in ('th', 'en'):
+        fault = text_fault(headline[key], HEADLINE_LIMIT)
+        if fault:
+            raise invalid('HEADLINE_' + fault)
+    if not isinstance(points, list):
+        raise invalid('POINT_SHAPE')
+    if len(points) > MAX_POINTS:
+        raise invalid('POINT_COUNT')
     for point in points:
-        if (not isinstance(point, dict) or set(point) != {'speaker', 'th', 'en'} or not isinstance(point['speaker'], str)
-                or point['speaker'] not in allowed or not all(clean_text(point[k], POINT_LIMIT) for k in ('th', 'en'))):
-            raise bad
+        if not isinstance(point, dict) or set(point) != {'speaker', 'th', 'en'} or not isinstance(point['speaker'], str):
+            raise invalid('POINT_SHAPE')
+        if point['speaker'] not in allowed:
+            raise invalid('POINT_SPEAKER')
+        for key in ('th', 'en'):
+            fault = text_fault(point[key], POINT_LIMIT)
+            if fault:
+                raise invalid('POINT_' + fault)
     return {'headline': {'th': headline['th'], 'en': headline['en']},
             'points': [{'speaker': p['speaker'], 'th': p['th'], 'en': p['en']} for p in points]}
 
