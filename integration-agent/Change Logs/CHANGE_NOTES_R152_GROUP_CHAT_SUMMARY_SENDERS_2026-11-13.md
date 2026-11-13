@@ -25,11 +25,15 @@ As built.
 | Byte's `ruff` | Pass |
 | Chase's review and the recheck after V13 | Pass. Probe: an unlisted, silent F with remembered `["F","R"]` gives subjects `['F']`, referrers `['R']` and no token for F; a deleted F or a malformed stored value falls back to participants-only; the digest is identical across 6 sender and remembered combinations (no re-mark loop); only sorted borrower Row IDs are stored, failed runs leave the value and deleted borrowers are dropped. V13 on existing V12 rows: rows get `[]` with attempts, backoff and `last_error` unchanged, grants byte-identical, owner unchanged; the check accepts `["F","R"]` and refuses `{}`, non-JSON, `"x"` and more than 16 KB. `conversation_poll.py` has exactly two summary-only hunks and the R151 classification is untouched; the "MW MW Credit" collapse works; the `chat_relay` flake is unrelated by imports |
 | `npm run check:docs` (Dewey) | Pass |
-| CI on the pull request and the PROD verification | Pending (the other session's R152 merge and deploy) |
+| CI on the pull request | `Agent tests` run 43459797787 (test, and lab with V13) and `Development checks` run 43459797650 on head `46e8f3ef` |
+| PROD verification | Pass, see the PROD promotion record |
 
 ## Not run
 - Agent migration V13 on a live database: DEV has no agent, so it is first applied in PROD by the release session after a verified backup.
 - A live Instagram read and a live Claude call: the first real run is the PROD re-run after the R152 agent deploy.
+
+## PROD promotion record (Forge, 13 November 2026 UTC)
+Deployed with PR #314 as one R152 agent deploy; the full record (authority, verified `mw_agent` backup, V13, deploy, re-run and cycles) is in the [review row order note](CHANGE_NOTES_R152_REVIEW_ROW_ORDER_2026-11-13.md#prod-promotion-record-forge-13-november-2026-utc). In short: agent V13 applied 16:15:45Z after a verified backup; `cd4c721b` active 16:16:05Z (`/ready` and `/healthz` R152); `--mark-all` 16:16:20Z marked 36 groups; the cycles drained with 0 superseded. Incident group: its state row remembers the expected borrower among 2 members; its only summary row is that borrower's, and the referrer has no summary row. No chat text, borrower name, username or amount appears here.
 
 ## Recovery
 Revert the pull request; in PROD the agent deploy rollback (`deploy-runtime.py rollback`) by the other session.
