@@ -274,15 +274,19 @@ class PollMarkerTests(Base):
 class SelectionTests(Base):
     def test_quiet_period_max_wait_backoff_order_and_cap(self):
         self.mark('quiet', changed=self.now - 700, text=self.now - 601)
-        self.mark('busy', changed=self.now - 900, text=self.now - 30)        # still talking, under an hour
-        self.mark('starved', changed=self.now - 3601, text=self.now - 5)     # talking for an hour: taken
+        # R151: the longest wait is 10 minutes from the first new substantive message, even if the chat never pauses.
+        self.assertEqual((summary.MAX_WAIT_SECONDS, summary.QUIET_SECONDS), (600, 600))
+        self.mark('busy', changed=self.now - 500, text=self.now - 30)        # still talking, under 10 minutes
+        self.mark('almost', changed=self.now - 599, text=self.now - 1)       # one second short of the maximum wait
+        self.mark('starved', changed=self.now - 601, text=self.now - 5)      # talking for 10 minutes: taken
+        self.mark('edge', changed=self.now - 600, text=self.now - 1)         # exactly 10 minutes: taken
         self.mark('backoff', changed=self.now - 5000, text=self.now - 5000, next_attempt_at=self.now + 1, attempts=2)
         self.mark('subjects', changed=self.now - 10, text=None)             # set below: a subject change without text
         self.db.execute("UPDATE group_chat_summary_state SET last_text_at=NULL WHERE conversation_id='subjects'")
         self.mark('clear', changed=self.now - 9000, text=self.now - 9000)
         self.db.execute("UPDATE group_chat_summary_state SET changed_at=NULL WHERE conversation_id='clear'")
         self.db.commit()
-        self.assertEqual([cid for cid, _ in summary.due(self.db, self.now)], ['starved', 'quiet', 'subjects'])
+        self.assertEqual([cid for cid, _ in summary.due(self.db, self.now)], ['quiet', 'starved', 'edge', 'subjects'])
         self.assertEqual([cid for cid, _ in summary.due(self.db, self.now + 2)][0], 'backoff')
         for index in range(8):
             self.mark(f'more{index}', changed=self.now - 8000 - index)
@@ -485,30 +489,73 @@ class OutputValidationTests(Base):
         self.assertTrue(summary.clean_text('โอนแล้ว 2,000 บาท เมื่อวันที่ 12-11-2026', 200))  # short figures and a date pass
 
     def test_bad_shapes_speakers_and_content_are_rejected(self):
+        # R151: each rejected output raises the fixed code of the first failed check (family MODEL_OUTPUT_INVALID).
         good = self.reply()
         point = good['points'][0]
         # R148: `relevant` is required and a real boolean; without it, or with anything else, the output is invalid.
         missing = {k: v for k, v in good.items() if k != 'relevant'}
-        bad = [None, [], 'text', {}, {'headline': good['headline']}, dict(good, extra=1), missing,
-               dict(good, relevant='true'), dict(good, relevant=1), dict(good, relevant=0), dict(good, relevant=None), dict(good, relevant='false'),
-               {'relevant': False}, {'relevant': False, 'headline': good['headline']}, {'relevant': False, 'headline': good['headline'], 'points': [], 'extra': 1},
-               dict(good, headline={'th': 'x'}), dict(good, headline={'th': 'x', 'en': 'y', 'fr': 'z'}), dict(good, headline={'th': '', 'en': 'y'}),
-               dict(good, headline={'th': '   ', 'en': 'y'}), dict(good, headline={'th': 'ก' * 161, 'en': 'y'}), dict(good, headline={'th': 1, 'en': 'y'}),
-               dict(good, headline='text'), dict(good, points='text'), dict(good, points=[point] * 5), dict(good, points=[dict(point, extra=1)]),
-               dict(good, points=[{'speaker': 'borrower_1', 'th': 'x'}]), dict(good, points=[dict(point, en='y' * 201)]),
-               dict(good, points=[dict(point, speaker='borrower_2')]), dict(good, points=[dict(point, speaker='owner')]),
-               dict(good, points=[dict(point, speaker={'role': 'borrower'})]), dict(good, points=['text']),
-               dict(good, headline={'th': 'สองบรรทัด\nบรรทัดสอง', 'en': 'y'}), dict(good, headline={'th': 'tab\there', 'en': 'y'}),
-               dict(good, headline={'th': 'x\x00y', 'en': 'y'}), dict(good, headline={'th': 'x y', 'en': 'y'}),
-               dict(good, points=[dict(point, th='ถาม @borrower_1 อีกครั้ง')]), dict(good, points=[dict(point, en='asked ＠someone again')]),
-               # An invented ten-digit account number, in every spelling: rejected.
-               dict(good, points=[dict(point, th='ขอให้โอนเข้าบัญชี 0123456789')]), dict(good, points=[dict(point, en='Pay to account 012-3-45678-9')]),
-               dict(good, points=[dict(point, en='Pay to 012 345 6789 today')]), dict(good, headline={'th': 'x', 'en': 'call 081 234 5678'}),
-               dict(good, points=[dict(point, th='บัญชี ๐๑๒๓๔๕๖๗๘๙')])]
-        for output in bad:
-            with self.subTest(output=json.dumps(output, ensure_ascii=False)[:80]), self.assertRaises(summary.SummaryFailed) as raised:
+        headline = lambda th, en='y': dict(good, headline={'th': th, 'en': en})  # noqa: E731
+        points = lambda **change: dict(good, points=[dict(point, **change)])  # noqa: E731
+        cases = {
+            'SHAPE': [None, [], 'text', {}, {'headline': good['headline']}, dict(good, extra=1), missing,
+                      dict(good, relevant='true'), dict(good, relevant=1), dict(good, relevant=0), dict(good, relevant=None), dict(good, relevant='false'),
+                      {'relevant': False}, {'relevant': False, 'headline': good['headline']}, {'relevant': False, 'headline': good['headline'], 'points': [], 'extra': 1}],
+            'HEADLINE_SHAPE': [dict(good, headline={'th': 'x'}), dict(good, headline={'th': 'x', 'en': 'y', 'fr': 'z'}), dict(good, headline='text'),
+                               dict(good, headline=None), headline(1), headline('x', None), headline(['x'])],
+            'HEADLINE_BLANK': [headline(''), headline('   '), headline('x', ''), headline('\u3000\u00a0')],
+            'HEADLINE_LENGTH': [headline('ก' * 161), headline('x', 'y' * 161)],
+            'HEADLINE_CONTROL_CHAR': [headline('สองบรรทัด\nบรรทัดสอง'), headline('tab\there'), headline('x\x00y'), headline('x\u2028y'), headline('x', 'y\rz')],
+            'HEADLINE_AT_SIGN': [headline('ถาม @borrower_1'), headline('x', 'asked ＠someone')],
+            'HEADLINE_DIGIT_RUN': [headline('x', 'call 081 234 5678'), headline('บัญชี ๐๑๒๓๔๕๖๗๘๙')],
+            'POINT_SHAPE': [dict(good, points='text'), dict(good, points=None), dict(good, points={}), dict(good, points=['text']), points(extra=1),
+                            dict(good, points=[{'speaker': 'borrower_1', 'th': 'x'}]), points(speaker={'role': 'borrower'}), points(speaker=None), points(th=5), points(en=['y'])],
+            'POINT_COUNT': [dict(good, points=[point] * 5), dict(good, points=['text'] * 5)],
+            'POINT_SPEAKER': [points(speaker='borrower_2'), points(speaker='owner'), points(speaker=''), points(speaker='Partner')],
+            'POINT_BLANK': [points(th=''), points(en='   ')],
+            'POINT_LENGTH': [points(en='y' * 201), points(th='ข' * 201)],
+            'POINT_CONTROL_CHAR': [points(th='บรรทัดแรก\nบรรทัดสอง'), points(en='bell\x07')],
+            'POINT_AT_SIGN': [points(th='ถาม @borrower_1 อีกครั้ง'), points(en='asked ＠someone again')],
+            # An invented ten-digit account number, in every spelling: rejected.
+            'POINT_DIGIT_RUN': [points(th='ขอให้โอนเข้าบัญชี 0123456789'), points(en='Pay to account 012-3-45678-9'), points(en='Pay to 012 345 6789 today'), points(th='บัญชี ๐๑๒๓๔๕๖๗๘๙')],
+        }
+        self.assertEqual({'MODEL_OUTPUT_INVALID_' + check for check in cases}, set(summary.OUTPUT_INVALID_CODES), 'every code of the fixed set is raised by a case')
+        for check, outputs in cases.items():
+            for output in outputs:
+                with self.subTest(check=check, output=json.dumps(output, ensure_ascii=False)[:80]), self.assertRaises(summary.SummaryFailed) as raised:
+                    summary.validated(output, self.ALLOWED)
+                self.assertEqual(raised.exception.code, 'MODEL_OUTPUT_INVALID_' + check)
+                self.assertEqual(str(raised.exception), raised.exception.code)
+
+    def test_the_first_failed_check_decides_and_the_code_never_carries_text(self):
+        good = self.reply()
+        point = good['points'][0]
+        # Several faults at once: reading order decides (headline before points, th before en; shape, blank, length,
+        # control character, @, digit run within one text; the speaker before a point's text).
+        both = dict(good, headline={'th': SENTINEL + ' @x 0123456789\n' + 'ก' * 200, 'en': ''}, points=[dict(point, speaker='owner', th='@' + MODEL_SENTINEL)] * 9)
+        ordered = [(both, 'HEADLINE_LENGTH'), (dict(both, headline={'th': SENTINEL + ' @x 0123456789\n', 'en': ''}), 'HEADLINE_CONTROL_CHAR'),
+                   (dict(both, headline={'th': SENTINEL + ' @x 0123456789', 'en': ''}), 'HEADLINE_AT_SIGN'),
+                   (dict(both, headline={'th': SENTINEL + ' 0123456789', 'en': ''}), 'HEADLINE_DIGIT_RUN'), (dict(both, headline={'th': SENTINEL, 'en': ''}), 'HEADLINE_BLANK'),
+                   (dict(both, headline=good['headline']), 'POINT_COUNT'), (dict(good, points=[dict(point, speaker='owner', th='@' + MODEL_SENTINEL)]), 'POINT_SPEAKER'),
+                   (dict(good, points=[point, dict(point, th='@' + MODEL_SENTINEL + ' 0123456789')]), 'POINT_AT_SIGN')]
+        for output, check in ordered:
+            with self.subTest(check=check), self.assertRaises(summary.SummaryFailed) as raised:
                 summary.validated(output, self.ALLOWED)
-            self.assertEqual(raised.exception.code, 'MODEL_OUTPUT_INVALID')
+            code = raised.exception.code
+            self.assertEqual(code, 'MODEL_OUTPUT_INVALID_' + check)
+            self.assertIn(code, summary.OUTPUT_INVALID_CODES)
+            for text in (SENTINEL, MODEL_SENTINEL, 'owner', '0123456789', '200', '9'):
+                self.assertNotIn(text, code)
+        # The fixed set: the family prefix, the state table's last_error pattern (agent V12), nothing else.
+        self.assertEqual(len(summary.OUTPUT_INVALID_CODES), 15)
+        for code in summary.OUTPUT_INVALID_CODES:
+            self.assertTrue(code.startswith('MODEL_OUTPUT_INVALID_'))
+            self.assertRegex(code, r'^[A-Z][A-Z0-9_]{0,63}$')
+            self.assertIsNotNone(summary.CODE.fullmatch(code))
+            self.assertEqual(summary.error_code(summary.SummaryFailed(code)), code)
+        # A check name outside the set can never become a code.
+        self.assertEqual(summary.invalid('ANYTHING ' + SENTINEL).code, 'MODEL_OUTPUT_INVALID')
+        self.assertEqual([summary.text_fault(value, 5) for value in ('ok', 5, '', 'toolong', 'a\nb', 'a@b')], [None, 'SHAPE', 'BLANK', 'LENGTH', 'CONTROL_CHAR', 'AT_SIGN'])
+        self.assertEqual(summary.text_fault('1234 5678-9', 20), 'DIGIT_RUN')
 
     def test_not_relevant_is_accepted_whatever_the_headline_and_points_hold(self):
         # R148: relevant=false means no card; the rest of the reply is not looked at (it is never stored or posted).
@@ -573,7 +620,9 @@ class OutputValidationTests(Base):
         echo['points'][0]['th'] = 'ขอให้โอนเข้าบัญชี 0123456789'
         result = self.run_cycle(self.api(conversation('g1', self.members, chat)), model=echo)
         self.post.assert_not_called()
-        self.assertEqual((result['failed'], self.state()['last_error']), (1, 'MODEL_OUTPUT_INVALID'))
+        self.assertEqual((result['failed'], self.state()['last_error']), (1, 'MODEL_OUTPUT_INVALID_POINT_DIGIT_RUN'))
+        self.assertEqual(result['errors'][0]['error'], 'MODEL_OUTPUT_INVALID_POINT_DIGIT_RUN')
+        self.assertNotIn('0123456789', json.dumps(result))
         # The number went to the model as typed (the design sends chat text as typed); it never reaches the command.
         self.assertIn('0123456789', self.model.call_args.args[1])
 
@@ -585,7 +634,7 @@ class OutputValidationTests(Base):
         result = self.run_cycle(self.api(conversation('g1', self.four, chat)), model=self.reply('referrer_1'))
         self.assertNotIn('referrer_1', self.model.call_args.args[1])
         self.post.assert_not_called()
-        self.assertEqual((result['failed'], self.state()['last_error']), (1, 'MODEL_OUTPUT_INVALID'))
+        self.assertEqual((result['failed'], self.state()['last_error']), (1, 'MODEL_OUTPUT_INVALID_POINT_SPEAKER'))
         # Mentioned (even at the end of a sentence) the token is in the transcript and may be named.
         self.db.execute('UPDATE group_chat_summary_state SET next_attempt_at=0')
         self.db.commit()
@@ -607,7 +656,7 @@ class OutputValidationTests(Base):
         self.mark()
         result = self.run_cycle(self.api(conversation('g1', self.members, [message('m1', '20', 20, PROMISE)])), model=self.reply('referrer_1'))
         self.post.assert_not_called()
-        self.assertEqual(result['errors'][0]['error'], 'MODEL_OUTPUT_INVALID')
+        self.assertEqual(result['errors'][0]['error'], 'MODEL_OUTPUT_INVALID_POINT_SPEAKER')
 
 
 class ModelCallTests(Base):
@@ -766,7 +815,8 @@ class NoTextAtRestTests(Base):
         self.assertIn(SENTINEL, model.call_args.args[1])           # the chat text reaches the model
         self.assertIn(MODEL_SENTINEL, json.dumps(posted))          # the summary reaches the command
         first, second = [json.loads(line) for line in out.getvalue().splitlines()]
-        self.assertEqual((first['failed'], first['errors'][0]['error'], second['summarised']), (1, 'MODEL_OUTPUT_INVALID', 1))
+        self.assertEqual((first['failed'], first['errors'][0]['error'], second['summarised']), (1, 'MODEL_OUTPUT_INVALID_POINT_AT_SIGN', 1))
+        self.assertNotIn(SENTINEL, json.dumps(first))               # the failed run's result carries the code, never the text
         with contextlib.closing(sqlite3.connect(self.tmp.name + '/receipt-processing.db')) as copy:
             dump = '\n'.join(copy.iterdump())
         for where, text in (('stdout', out.getvalue()), ('audit plans', json.dumps(plans, ensure_ascii=False)), ('state', dump)):
