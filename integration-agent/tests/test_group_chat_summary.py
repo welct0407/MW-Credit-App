@@ -798,7 +798,157 @@ class RunAndDryRunTests(Base):
                 patch.object(summary, 'run', return_value={'status': 'idle', 'failed': 0}) as run, patch('builtins.print'):
             self.assertEqual(cli.main(), 0)
         self.assertEqual(seen, ['group-chat-summary'])
-        run.assert_called_once_with('unused', 'unused', dry=False)
+        run.assert_called_once_with('unused', 'unused', dry=False, mark=False)
+
+
+class MarkAllTests(Base):
+    """R147: the one-shot backfill marks every eligible group; the ordinary cycle then summarises its existing window."""
+
+    def groups(self):
+        business, partner = member(ACCOUNT, 'business_invented'), member('10', 'partner_invented')
+        a, c, d, x = member('20', 'anan_invented'), member('21', 'chai_invented'), member('22', 'dao_invented'), member('30', 'xena_invented')
+        return [{'id': 'g-plain', 'participants': {'data': [business, partner, a]}},
+                {'id': 'g-referred', 'participants': {'data': [business, partner, c, x]}},
+                {'id': 'g-referrer-only', 'participants': {'data': [business, partner, d, x]}},          # not-enabled borrower and its referrer
+                {'id': 'g-small', 'participants': {'data': [business, a]}},
+                {'id': 'g-strangers', 'participants': {'data': [business, partner, member('50', 'stranger_invented ' + SENTINEL)]}},
+                {'id': 'g-ambiguous', 'participants': {'data': [business, partner, member('60', 'twin_invented')]}}]
+
+    def master_with_twins(self):
+        borrowers = [dict(b, referrer='B-X') if b['id'] == 'B-C' else b for b in self.master['borrowers']]
+        twins = [{'id': 'B-T1', 'username': 'twin_invented', 'enabled': True, 'referrer': None}, {'id': 'B-T2', 'username': 'Twin_Invented', 'enabled': True, 'referrer': None}]
+        return dict(self.master, borrowers=borrowers + twins)
+
+    def rows(self):
+        return {row['conversation_id']: dict(row) for row in self.db.execute('SELECT * FROM group_chat_summary_state').fetchall()}
+
+    def test_marks_eligible_groups_only_from_participants_and_is_idempotent(self):
+        self.db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
+        api, master = Mock(request=Mock(return_value={'data': self.groups()})), self.master_with_twins()
+        result = summary.mark_all(self.config, api, master, self.db, self.now)
+        self.assertEqual(result, {'conversations': 6, 'small': 1, 'ambiguous': 1, 'incomplete': 0, 'groups': 2, 'marked': 2, 'already_due': 0})
+        self.assertEqual(api.request.call_count, 1)
+        self.assertEqual(api.request.call_args.args[1], {'platform': 'instagram', 'fields': 'id,participants', 'limit': 100})  # no message text requested
+        rows = self.rows()
+        self.assertEqual(set(rows), {'g-plain', 'g-referred'})
+        for cid, members in (('g-plain', self.groups()[0]), ('g-referred', self.groups()[1])):
+            self.assertEqual(rows[cid], {'conversation_id': cid, 'changed_at': self.now, 'last_text_at': None,
+                                         'subjects_sha256': summary.resolve(self.config, master, members['participants']['data'])['digest'],
+                                         'summarised_source_sha256': None, 'summarised_at': None, 'attempts': 0, 'next_attempt_at': 0, 'last_error': None})
+        # Due at once (no last_text_at), oldest marker first; the ordinary cycle takes them from here.
+        self.assertEqual(sorted(cid for cid, _ in summary.due(self.db, self.now)), ['g-plain', 'g-referred'])
+        # A second run changes nothing: both are already waiting.
+        changes = self.db.total_changes
+        again = summary.mark_all(self.config, api, master, self.db, self.now + 500)
+        self.assertEqual(again, {'conversations': 6, 'small': 1, 'ambiguous': 1, 'incomplete': 0, 'groups': 2, 'marked': 0, 'already_due': 2})
+        self.assertEqual((self.db.total_changes, self.rows()), (changes, rows))
+        # Only a group whose marker was cleared since is marked again.
+        self.db.execute("UPDATE group_chat_summary_state SET changed_at=NULL,summarised_at=?,summarised_source_sha256=? WHERE conversation_id='g-plain'", (self.now + 600, 'd' * 64))
+        self.db.commit()
+        third = summary.mark_all(self.config, api, master, self.db, self.now + 900)
+        self.assertEqual((third['marked'], third['already_due']), (1, 1))
+        after = self.rows()
+        self.assertEqual((after['g-plain']['changed_at'], after['g-plain']['summarised_source_sha256'], after['g-referred']), (self.now + 900, 'd' * 64, rows['g-referred']))
+
+    def test_a_group_with_paginated_participants_is_skipped_and_the_rest_are_still_marked(self):
+        self.db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
+        groups, master = self.groups(), self.master_with_twins()
+        paged = {'id': 'g-paged', 'participants': {'data': groups[0]['participants']['data'], 'paging': {'next': 'more'}}}
+        api = Mock(request=Mock(return_value={'data': [groups[0], paged, groups[1]]}))
+        result = summary.mark_all(self.config, api, master, self.db, self.now)
+        self.assertEqual(result, {'conversations': 3, 'small': 0, 'ambiguous': 0, 'incomplete': 1, 'groups': 2, 'marked': 2, 'already_due': 0})
+        self.assertEqual(set(self.rows()), {'g-plain', 'g-referred'})  # the earlier and the later group; nothing for the paginated one
+
+    def test_an_existing_marker_last_text_and_backoff_are_left_untouched(self):
+        master = self.master_with_twins()
+        waiting = {'changed_at': self.now - 50, 'last_text_at': self.now - 40, 'attempts': 3, 'next_attempt_at': self.now + 4800,
+                   'last_error': 'MODEL_TIMEOUT', 'subjects_sha256': 'e' * 64, 'summarised_source_sha256': 'f' * 64, 'summarised_at': self.now - 9000}
+        self.mark('g-plain', changed=waiting['changed_at'], text=waiting['last_text_at'], **{k: v for k, v in waiting.items() if k not in ('changed_at', 'last_text_at')})
+        # A cleared marker with a remembered last text and an unfinished backoff: only changed_at is set.
+        self.mark('g-referred', changed=self.now - 99, text=self.now - 5000, attempts=2, next_attempt_at=self.now + 300, last_error='POST_REFUSED')
+        self.db.execute("UPDATE group_chat_summary_state SET changed_at=NULL WHERE conversation_id='g-referred'")
+        self.db.commit()
+        result = summary.mark_all(self.config, Mock(request=Mock(return_value={'data': self.groups()})), master, self.db, self.now)
+        self.assertEqual((result['groups'], result['marked'], result['already_due']), (2, 1, 1))
+        rows = self.rows()
+        self.assertEqual({k: rows['g-plain'][k] for k in waiting}, waiting)
+        self.assertEqual({k: rows['g-referred'][k] for k in ('changed_at', 'last_text_at', 'attempts', 'next_attempt_at', 'last_error')},
+                         {'changed_at': self.now, 'last_text_at': self.now - 5000, 'attempts': 2, 'next_attempt_at': self.now + 300, 'last_error': 'POST_REFUSED'})
+        # Neither is taken before its own wait or backoff allows.
+        self.assertEqual(summary.due(self.db, self.now), [])
+        self.assertEqual([cid for cid, _ in summary.due(self.db, self.now + 300)], ['g-referred'])
+
+    def test_the_cycle_then_summarises_a_marked_group_and_prunes_a_routine_only_one(self):
+        self.db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
+        listing = [conversation('g-plain', self.members, [message('m1', '20', 30, PROMISE), message('m2', '10', 20, AGREED)]),
+                   conversation('g-routine', self.members[:2] + [member('21', 'chai_invented')], [message('r1', '10', 50, REMINDER), message('r2', '21', 40, image=True)])]
+        summary.mark_all(self.config, Mock(request=Mock(return_value={'data': [{'id': c['id'], 'participants': c['participants']} for c in listing]})), self.master, self.db, self.now)
+        result = self.run_cycle(self.api(*listing), post=lambda config, value: 'stored' if value['summary'] else 'cleared')
+        self.assertEqual((result['due'], result['summarised'], result['outcomes']['stored'], result['outcomes']['cleared']), (2, 2, 1, 1))
+        self.assertEqual(self.model.call_count, 1)  # the routine-only group gets the prune-only post, no model call
+        self.assertEqual([row['changed_at'] for row in self.rows().values()], [None, None])
+
+    def test_refused_when_disabled_and_counts_only_through_the_cli(self):
+        from mw_integration_agent import cli
+        config = dict(self.config, state_directory=self.tmp.name)
+        on = {'services': {'group_chat_summary': {'enabled': True}, 'conversation_poll': {'enabled': True}, 'shared_receipt_payment_api': {'enabled': True}}}
+        off = {'services': dict(on['services'], group_chat_summary={'enabled': False})}
+        no_api = {'services': dict(on['services'], shared_receipt_payment_api={'enabled': False})}
+        api = Mock(request=Mock(return_value={'data': self.groups()}))
+        for candidate, catalogue, code in ((dict(config, group_chat_summary_enabled=False), on, 'GROUP_CHAT_SUMMARY_DISABLED'), (config, off, 'GROUP_CHAT_SUMMARY_DISABLED'),
+                                           (config, no_api, 'GROUP_CHAT_SUMMARY_DEPENDENCY_DISABLED')):
+            with self.subTest(code=code), patch.object(summary, 'load_controls', return_value=(candidate, catalogue)), patch('mw_integration_agent.instagram.Instagram', return_value=api), \
+                    patch('mw_integration_agent.receipt_master.masters') as masters, self.assertRaisesRegex(ConfigurationError, code):
+                summary.run('unused', 'unused', mark=True)
+            masters.assert_not_called()
+        api.request.assert_not_called()
+        with self.assertRaisesRegex(ConfigurationError, 'GROUP_CHAT_SUMMARY_OPTIONS_EXCLUSIVE'):
+            summary.run('unused', 'unused', dry=True, mark=True)
+        # Through the CLI: a fenced job (not the unwrapped dry run), counts only on stdout, no model call, no post.
+        jobs, plans, out = [], [], io.StringIO()
+
+        @contextlib.contextmanager
+        def job(job_config, service):
+            outcome = {'exit_code': None}
+            jobs.append((service, outcome))
+            yield outcome
+
+        @contextlib.contextmanager
+        def activity(activity_config, service, action='PROCESS', route='internal', plan=None, key=None, effect=False):
+            plans.append((service, plan))
+            yield None
+        with patch('sys.argv', ['mw-integration-agent', 'group-chat-summary', '--config', 'unused', '--catalogue', 'unused', '--mark-all']), \
+                patch.object(cli, 'load_json', return_value={}), patch('mw_integration_agent.audit.job', job), patch('mw_integration_agent.audit.activity', activity), \
+                patch.object(summary, 'load_controls', return_value=(config, on)), patch('mw_integration_agent.instagram.Instagram', return_value=api), \
+                patch('mw_integration_agent.receipt_master.masters', return_value=self.master_with_twins()), patch.object(summary, 'summarise') as model, \
+                patch.object(summary, 'post') as post, patch('mw_integration_agent.receipt_api.call') as call, patch.object(summary, 'cycle') as cycle, \
+                patch.object(summary.time, 'time', return_value=self.now), contextlib.redirect_stdout(out):
+            self.assertEqual(cli.main(), 0)
+        self.assertEqual(json.loads(out.getvalue()), {'conversations': 6, 'small': 1, 'ambiguous': 1, 'incomplete': 0, 'groups': 2, 'marked': 2, 'already_due': 0})
+        self.assertEqual(jobs[0][0], 'group-chat-summary')
+        self.assertEqual(jobs[0][1], {'exit_code': 0, 'effect': {'marked': 2, 'groups': 2}})
+        self.assertEqual(plans, [('group_chat_summary_mark_all', {'fields': 'id,participants'})])
+        for stub in (model, post, call, cycle):
+            stub.assert_not_called()
+        self.assertTrue((Path(self.tmp.name) / 'group-chat-summary.lock').exists())
+        with contextlib.closing(sqlite3.connect(self.tmp.name + '/receipt-processing.db')) as copy:
+            dump = '\n'.join(copy.iterdump())
+        for text in (out.getvalue(), json.dumps(plans), json.dumps(jobs[0][1])):
+            for needle in (SENTINEL, 'invented', 'g-plain', 'B-A'):
+                self.assertNotIn(needle, text)
+        self.assertNotIn(SENTINEL, dump)
+        self.assertNotIn('invented', dump)
+
+    def test_single_flight_with_a_running_cycle(self):
+        import fcntl
+        config = dict(self.config, state_directory=self.tmp.name)
+        on = {'services': {'group_chat_summary': {'enabled': True}, 'conversation_poll': {'enabled': True}, 'shared_receipt_payment_api': {'enabled': True}}}
+        with patch.object(summary, 'load_controls', return_value=(config, on)), patch('mw_integration_agent.instagram.Instagram') as client, \
+                patch.object(summary, 'mark_all') as marker, (Path(self.tmp.name) / 'group-chat-summary.lock').open('a') as held:
+            fcntl.flock(held, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.assertEqual(summary.run('unused', 'unused', mark=True), {'status': 'already_running'})
+        marker.assert_not_called()
+        client.assert_not_called()
 
 
 class ConfigurationTests(unittest.TestCase):
