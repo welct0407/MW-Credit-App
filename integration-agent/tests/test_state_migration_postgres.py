@@ -185,9 +185,76 @@ class FreshCentralMigrationTests(unittest.TestCase):
                 WHERE table_schema='runtime' AND table_name='group_chat_summary_state' ORDER BY ordinal_position''').fetchall()
             self.assertEqual(columns, [('conversation_id', 'text', 'NO'), ('changed_at', 'double precision', 'YES'), ('last_text_at', 'double precision', 'YES'),
                                        ('subjects_sha256', 'text', 'YES'), ('summarised_source_sha256', 'text', 'YES'), ('summarised_at', 'double precision', 'YES'),
-                                       ('attempts', 'integer', 'NO'), ('next_attempt_at', 'double precision', 'NO'), ('last_error', 'text', 'YES')])
+                                       ('attempts', 'integer', 'NO'), ('next_attempt_at', 'double precision', 'NO'), ('last_error', 'text', 'YES'),
+                                       ('member_borrower_ids', 'text', 'NO')])  # the last one is V13 (R152)
             self.assertEqual(conn.execute("SELECT pg_get_userbyid(relowner) FROM pg_class WHERE oid='runtime.group_chat_summary_state'::regclass").fetchone()[0], 'mw_agent_owner')
             self.assertEqual(conn.execute("SELECT count(*) FROM pg_trigger WHERE tgrelid='runtime.group_chat_summary_state'::regclass AND NOT tgisinternal").fetchone()[0], 0)
+
+    def test_v13_member_borrower_ids_column(self):
+        # R152: borrower ids seen in each group; a JSON array as text, '[]' by default; grants are the table's (V12).
+        self.assertEqual([p.name for p in self.files][12], 'V13__group_chat_summary_members.sql')
+        with psycopg.connect(**self.agent) as conn:
+            column = conn.execute('''SELECT data_type,is_nullable,column_default FROM information_schema.columns
+                WHERE table_schema='runtime' AND table_name='group_chat_summary_state' AND column_name='member_borrower_ids' ''').fetchone()
+            self.assertEqual(column, ('text', 'NO', "'[]'::text"))
+            grants = conn.execute('''SELECT grantee,string_agg(privilege_type,',' ORDER BY privilege_type) FROM information_schema.role_table_grants
+                WHERE table_schema='runtime' AND table_name='group_chat_summary_state' AND grantee<>'mw_agent_owner' GROUP BY grantee ORDER BY grantee''').fetchall()
+            self.assertEqual(grants, [('mw_agent_auditor', 'SELECT'), ('mw_agent_worker', 'INSERT,SELECT,UPDATE')])
+            self.assertEqual(conn.execute('''SELECT count(*) FROM information_schema.column_privileges WHERE table_schema='runtime'
+                AND table_name='group_chat_summary_state' AND column_name='member_borrower_ids' AND grantee NOT IN ('mw_agent_owner','mw_agent_worker','mw_agent_auditor')''').fetchone()[0], 0)
+
+
+@unittest.skipUnless(os.environ.get('MW_AGENT_FRESH_PG_DSN'), 'empty disposable PostgreSQL server required')
+class IncrementalV13Tests(unittest.TestCase):
+    """V13 on a server already at V12 (the production path): only V13 applies, existing rows get '[]', nothing else moves."""
+
+    def test_v13_applies_on_top_of_v12_and_existing_rows_get_an_empty_list(self):
+        server = {**conninfo_to_dict(os.environ['MW_AGENT_FRESH_PG_DSN']), 'dbname': 'postgres'}
+        if server.get('host') not in ('127.0.0.1', 'localhost') or int(server.get('port') or 5432) == 5432:
+            raise RuntimeError('Refusing a non-disposable target: loopback host and non-default port required')
+        with psycopg.connect(**server, autocommit=True) as conn:
+            if conn.execute("SELECT 1 FROM pg_database WHERE datname='mw_agent'").fetchone() or \
+                    conn.execute('SELECT 1 FROM pg_roles WHERE rolname=ANY(%s)', (list(ROLES),)).fetchone():
+                raise RuntimeError('Refusing a server that already has the agent database or roles')
+
+        def drop_created():
+            with psycopg.connect(**server, autocommit=True) as conn:
+                conn.execute('DROP DATABASE IF EXISTS mw_agent WITH (FORCE)')
+                for role in ROLES:
+                    conn.execute(sql.SQL('DROP ROLE IF EXISTS {}').format(sql.Identifier(role)))
+        self.addCleanup(drop_created)
+        with psycopg.connect(**server, autocommit=True, options=APPROVAL) as conn:
+            for statement in statements(BOOTSTRAP.read_text(encoding='utf-8')):
+                conn.execute(statement)
+        with tempfile.TemporaryDirectory(prefix='mw-agent-v12-') as directory, \
+                psycopg.connect(**{**server, 'dbname': 'mw_agent'}, autocommit=True) as conn:
+            for path in sorted(MIGRATIONS.glob('V*__*.sql')):
+                if path.name != 'V13__group_chat_summary_members.sql':
+                    (Path(directory) / path.name).write_bytes(path.read_bytes())
+            self.assertEqual(state_migration.migrate(conn, directory)['applied'][-1], 'V12__group_chat_summary_state.sql')
+            digest = 'a' * 64
+            conn.execute("INSERT INTO runtime.group_chat_summary_state(conversation_id,changed_at,last_text_at,subjects_sha256,attempts,next_attempt_at,last_error) "
+                         "VALUES ('group-waiting',100,90,%s,2,700,'MODEL_TIMEOUT'),('group-idle',NULL,50,%s,0,0,NULL)", (digest, digest))
+            before = conn.execute('SELECT conversation_id,changed_at,last_text_at,subjects_sha256,summarised_source_sha256,summarised_at,attempts,next_attempt_at,last_error '
+                                  'FROM runtime.group_chat_summary_state ORDER BY conversation_id').fetchall()
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V13__group_chat_summary_members.sql'])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
+            self.assertEqual(conn.execute('SELECT conversation_id,member_borrower_ids FROM runtime.group_chat_summary_state ORDER BY conversation_id').fetchall(),
+                             [('group-idle', '[]'), ('group-waiting', '[]')])
+            self.assertEqual(conn.execute('SELECT conversation_id,changed_at,last_text_at,subjects_sha256,summarised_source_sha256,summarised_at,attempts,next_attempt_at,last_error '
+                                          'FROM runtime.group_chat_summary_state ORDER BY conversation_id').fetchall(), before)
+            conn.execute("INSERT INTO runtime.group_chat_summary_state(conversation_id) VALUES ('group-new')")
+            self.assertEqual(conn.execute("SELECT member_borrower_ids FROM runtime.group_chat_summary_state WHERE conversation_id='group-new'").fetchone()[0], '[]')
+            conn.execute("UPDATE runtime.group_chat_summary_state SET member_borrower_ids=%s WHERE conversation_id='group-new'", ('["B-A","B-X"]',))
+            # A JSON array only: an object, a scalar, text that is not JSON and NULL are refused.
+            for value in ('{}', '"B-A"', '7', 'null', 'B-A', '', ' []', None, '[' + '"x",' * 5000 + '"x"]'):
+                with self.subTest(value=(value or 'NULL')[:20]), self.assertRaises((psycopg.errors.CheckViolation, psycopg.errors.InvalidTextRepresentation, psycopg.errors.NotNullViolation)):
+                    conn.execute("UPDATE runtime.group_chat_summary_state SET member_borrower_ids=%s WHERE conversation_id='group-new'", (value,))
+            self.assertEqual(conn.execute("SELECT member_borrower_ids FROM runtime.group_chat_summary_state WHERE conversation_id='group-new'").fetchone()[0], '["B-A","B-X"]')
+            # The index of V12 and the owner are untouched.
+            self.assertIsNotNone(conn.execute("SELECT to_regclass('runtime.group_chat_summary_state_due_idx')").fetchone()[0])
+            self.assertEqual(conn.execute("SELECT pg_get_userbyid(relowner) FROM pg_class WHERE oid='runtime.group_chat_summary_state'::regclass").fetchone()[0], 'mw_agent_owner')
+
 
 @unittest.skipUnless(os.environ.get('MW_AGENT_FRESH_PG_DSN'), 'empty disposable PostgreSQL server required')
 class IncrementalV6Tests(unittest.TestCase):
@@ -219,12 +286,12 @@ class IncrementalV6Tests(unittest.TestCase):
             self.assertIsNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql',
                                                                                   'V8__conversation_messages.sql', 'V9__recent_question_usage.sql', 'V10__recent_question_usage_match.sql',
-                                                                                  'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql'])
+                                                                                  'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql'])
             self.assertIsNotNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
-            self.assertEqual([row[1] for row in history(conn)][-8:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
+            self.assertEqual([row[1] for row in history(conn)][-9:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
                                                                        'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql', 'V9__recent_question_usage.sql',
-                                                                       'V10__recent_question_usage_match.sql', 'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql'])
+                                                                       'V10__recent_question_usage_match.sql', 'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql'])
 
 
 def check_recent_questions(case, agent, server):
@@ -362,7 +429,7 @@ class IncrementalV8Tests(unittest.TestCase):
             self.assertEqual(state_migration.migrate(conn, directory)['applied'], ['V8__conversation_messages.sql'])
             assert_conversation_messages(self, conn)  # V8 as it was, before V11 dropped the table
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V9__recent_question_usage.sql', 'V10__recent_question_usage_match.sql',
-                                                                                  'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql'])
+                                                                                  'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql'])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
             assert_conversation_journal_dropped(self, conn)
 
@@ -428,7 +495,7 @@ class IncrementalV11Tests(unittest.TestCase):
                     conn.execute("INSERT INTO runtime.partner_notices(stream,id,event_key,partner_id,partner,subject,body) "
                                  "VALUES (%s,'n1','e','p','{}','s','b')", (stream,))
                 events = conn.execute('SELECT count(*) FROM audit.events').fetchone()[0]
-                self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql'])
+                self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql'])
                 self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
                 assert_conversation_journal_dropped(self, conn)
                 self.assertEqual([tuple(r) for r in conn.execute('SELECT stream,id FROM runtime.partner_notices')], [('receipt', 'n1')])

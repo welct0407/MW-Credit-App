@@ -28,11 +28,20 @@ TABLES = {
     'cash-statement-delivery.db': {x:x for x in ('cash_statement_sends','cash_statement_emails')},
 }
 # R146 SQLite fallback of runtime.group_chat_summary_state (agent V12): the same columns, epoch-second times. The
-# poll (marker) and the group-chat-summary service create it lazily on a SQLite journal; PostgreSQL gets it from V12.
+# poll (marker) and the group-chat-summary service create it lazily on a SQLite journal (ensure_group_chat_summary_state);
+# PostgreSQL gets it from V12 and, R152, member_borrower_ids from V13.
 GROUP_CHAT_SUMMARY_STATE_SQLITE = '''CREATE TABLE IF NOT EXISTS group_chat_summary_state
   (conversation_id TEXT PRIMARY KEY, changed_at REAL, last_text_at REAL, subjects_sha256 TEXT,
    summarised_source_sha256 TEXT, summarised_at REAL, attempts INTEGER NOT NULL DEFAULT 0,
-   next_attempt_at REAL NOT NULL DEFAULT 0, last_error TEXT);'''
+   next_attempt_at REAL NOT NULL DEFAULT 0, last_error TEXT, member_borrower_ids TEXT NOT NULL DEFAULT '[]');'''
+
+
+def ensure_group_chat_summary_state(db):
+    """The SQLite fallback table with every column: created when missing; a table from before agent V13 (R152) gains
+    member_borrower_ids ('[]' for its rows). Never called on PostgreSQL, which gets both from the migrations."""
+    db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
+    if 'member_borrower_ids' not in {row[1] for row in db.execute('PRAGMA table_info(group_chat_summary_state)')}:
+        db.executescript("ALTER TABLE group_chat_summary_state ADD COLUMN member_borrower_ids TEXT NOT NULL DEFAULT '[]';")
 _pools = {}
 _lock = threading.Lock()
 

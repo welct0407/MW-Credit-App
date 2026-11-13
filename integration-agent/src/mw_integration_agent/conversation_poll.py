@@ -105,10 +105,10 @@ def scan(config,api,master,journal,now=None,day=None,recheck=None):
         if day!=datetime.fromtimestamp(now,BANGKOK).date().isoformat():raise ConfigurationError('BACKFILL_TODAY_ONLY')
         cutoff=datetime.fromisoformat(day+'T00:00:00+07:00').timestamp()
     db=journal.db
-    from .state import GROUP_CHAT_SUMMARY_STATE_SQLITE, is_postgres
+    from .state import ensure_group_chat_summary_state, is_postgres
     if not is_postgres(db):
         # R146: the summary marker lives beside the poll rows (created only while the summary switch is on).
-        if config.get('group_chat_summary_enabled') is True:db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
+        if config.get('group_chat_summary_enabled') is True:ensure_group_chat_summary_state(db)
         db.executescript(POLL_TABLES_SQLITE)
     # R146: the group chat summary marker (None while group_chat_summary_enabled is off: the poll is unchanged).
     from .group_chat_summary import poll_context
@@ -356,7 +356,11 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
         if summary is not None:
             # R146: subjects, referrers and speaker roles of this group; a changed subject set marks a known group.
             from .group_chat_summary import mark_text,poll_substantive,subject_change
-            resolution=subject_change(config,master,db,summary,conversation,participants,now)
+            # R152: the senders of the first page and of this scan's messages are members too (a borrower Instagram no
+            # longer lists among the participants); the digest compared stays participants-only (group_chat_summary.resolve).
+            first=conversation.get('messages')
+            seen=(first.get('data') if isinstance(first,dict) and isinstance(first.get('data'),list) else [])+[m for m,_ in found]
+            resolution=subject_change(config,master,db,summary,conversation,participants,now,seen)
         ordered=list(reversed(found))
         read=read_rows(ordered)
         for position,(message,ts) in enumerate(ordered):

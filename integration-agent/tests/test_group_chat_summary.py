@@ -7,6 +7,7 @@ banter). No real chat text, username, phone or account number. The Instagram API
 import contextlib
 import io
 import json
+import re
 import sqlite3
 import tempfile
 import unittest
@@ -36,9 +37,9 @@ def member(identifier, name):
     return {'id': identifier, 'username': name}
 
 
-def message(key, sender, minutes_ago, text=None, image=False, video=False):
+def message(key, sender, minutes_ago, text=None, image=False, video=False, name=None):
     attachments = ([{'image_data': {'url': 'https://example.invalid/i'}}] if image else []) + ([{'video_data': {'url': 'https://example.invalid/v'}}] if video else [])
-    value = {'id': key, 'created_time': (NOW - timedelta(minutes=minutes_ago)).isoformat(), 'from': {'id': sender},
+    value = {'id': key, 'created_time': (NOW - timedelta(minutes=minutes_ago)).isoformat(), 'from': {'id': sender, **({'username': name} if name else {})},
              'attachments': {'data': attachments}}
     if text is not None:
         value['message'] = text
@@ -271,6 +272,271 @@ class PollMarkerTests(Base):
         self.assertIsNone(self.state())
 
 
+class DepartedSenderTests(Base):
+    """R152 (PROD incident, invented data): Instagram stopped listing a borrower among a group's participants while her
+    messages kept arriving with her id and username. Participants left: business, partner and her referrer."""
+
+    def setUp(self):
+        super().setUp()
+        # F = B-A (anan_invented, referred by B-X), id 20, no longer a participant. R = B-X (xena_invented), id 30.
+        self.left = [member(ACCOUNT, 'business_invented'), member('10', 'partner_invented'), member('30', 'xena_invented')]
+        self.chat = [message('d1', '20', 30, PROMISE, name='anan_invented'), message('d2', '10', 25, AGREED, name='partner_invented'),
+                     message('d3', '30', 20, 'เดี๋ยวพี่ไปตามให้เองนะ ถ้าวันศุกร์ยังไม่โอน', name='xena_invented')]
+
+    def scan(self, group, now=None, master=None):
+        return scan(self.config, self.api(group), master or self.master, self.journal, self.now if now is None else now)
+
+    def test_a_departed_sender_is_the_borrower_and_the_listed_referrer_is_excluded(self):
+        senders = summary.message_senders(self.chat)
+        self.assertEqual(senders, [{'id': '10', 'username': 'partner_invented'}, {'id': '20', 'username': 'anan_invented'}, {'id': '30', 'username': 'xena_invented'}])
+        listed = summary.resolve(self.config, self.master, self.left)
+        self.assertEqual((listed['subjects'], listed['referrers']), (['B-X'], []))  # the incident: the referrer became the subject
+        found = summary.resolve(self.config, self.master, self.left, senders)
+        self.assertEqual((found['status'], found['subjects'], found['referrers'], found['borrowers']), ('ok', ['B-A'], ['B-X'], ['B-A', 'B-X']))
+        self.assertEqual(found['tokens'], {ACCOUNT: 'business', '10': 'partner', '30': 'referrer_1', '20': 'borrower_1'})
+        self.assertEqual(found['labels']['borrower_1'], {'role': 'borrower', 'borrowerId': 'B-A'})
+        self.assertEqual(found['labels']['referrer_1'], {'role': 'referrer', 'borrowerId': 'B-X'})
+        self.assertEqual(found['usernames']['anan_invented'], 'borrower_1')   # a mention of her is still her token
+        # The digest is participants-only by definition, whatever the senders are.
+        self.assertEqual(found['digest'], listed['digest'])
+        self.assertEqual(summary.resolve(self.config, self.master, self.left, [])['digest'], listed['digest'])
+        # history_since pairs are accepted; the username is normalised as a participant's is (@, case).
+        pairs = [(message('p1', '20', 5, 'x', name='@Anan_Invented'), self.now)]
+        self.assertEqual(summary.resolve(self.config, self.master, self.left, summary.message_senders(pairs))['subjects'], ['B-A'])
+
+    def test_senders_count_as_members_follow_the_ambiguity_rule_and_never_replace_a_participant(self):
+        two = self.left[:2]
+        sender = [{'id': '20', 'username': 'anan_invented'}]
+        self.assertEqual(summary.resolve(self.config, self.master, two)['status'], 'small')
+        counted = summary.resolve(self.config, self.master, two, sender)
+        self.assertEqual((counted['status'], counted['subjects'], counted['tokens']['20']), ('ok', ['B-A'], 'borrower_1'))
+        self.assertEqual(counted['digest'], summary.resolve(self.config, self.master, two)['digest'])
+        # A sender username matching two borrower rows makes the group ambiguous, as a participant's would.
+        duplicate = dict(self.master, borrowers=self.master['borrowers'] + [{'id': 'B-A2', 'username': 'anan_invented', 'enabled': True, 'referrer': None}])
+        self.assertEqual((summary.resolve(self.config, duplicate, self.left, sender)['status'], summary.resolve(self.config, duplicate, self.left, sender)['subjects']), ('ambiguous', []))
+        # The business account, a participant, a sender without an id: not added. A sender without a username or with an
+        # unknown one is a member with the role other.
+        same = summary.resolve(self.config, self.master, self.left, [{'id': ACCOUNT, 'username': 'anan_invented'}, {'id': '30', 'username': 'anan_invented'}, {'username': 'anan_invented'}, None])
+        self.assertEqual((same['subjects'], same['tokens']), (['B-X'], summary.resolve(self.config, self.master, self.left)['tokens']))
+        other = summary.resolve(self.config, self.master, self.left, [{'id': '77'}, {'id': '78', 'username': 'stranger_invented'}])
+        self.assertEqual((other['tokens']['77'], other['tokens']['78'], other['subjects']), ('other_1', 'other_2', ['B-X']))
+        # A departed partner keeps the partner role; the same person back under a new id is one subject, not two.
+        partner = summary.resolve(self.config, self.master, [self.left[0], self.left[2], member('20', 'anan_invented')], [{'id': '10', 'username': 'partner_invented'}])
+        self.assertEqual(partner['tokens']['10'], 'partner')
+        again = summary.resolve(self.config, self.master, self.left + [member('21', 'anan_invented')], sender)
+        self.assertEqual((again['subjects'], again['tokens']['21'], again['tokens']['20']), (['B-A'], 'borrower_1', 'borrower_2'))
+
+    def test_the_cycle_summarises_for_the_departed_borrower_not_for_her_referrer(self):
+        self.mark()
+        result = self.run_cycle(self.api(conversation('g1', self.left, self.chat)), model=self.reply())
+        self.assertEqual((result['summarised'], result['failed']), (1, 0))
+        lines = self.model.call_args.args[1].split('\n')
+        self.assertTrue(lines[0].endswith('] borrower_1: ' + PROMISE), lines[0])
+        self.assertIn('] referrer_1: ', lines[2])
+        self.assertNotIn('other_1', self.model.call_args.args[1])
+        value = self.post.call_args.args[1]
+        self.assertEqual(value['borrowerIds'], ['B-A'])                      # her card, and her referrer's row is pruned by the command
+        self.assertEqual(value['summary']['points'][0]['speaker'], {'role': 'borrower', 'borrowerId': 'B-A'})
+        self.assertEqual(value['summary']['lastSpeaker'], {'role': 'referrer', 'borrowerId': 'B-X'})
+        # The stored subjects digest is the participants-only one: what the poll computes for this group.
+        self.assertEqual(self.state()['subjects_sha256'], summary.resolve(self.config, self.master, self.left)['digest'])
+        self.assertIsNone(self.state()['changed_at'])
+
+    def stored_members(self, cid='g1'):
+        return json.loads(self.state(cid)['member_borrower_ids'])
+
+    def test_seen_once_as_a_sender_she_stays_the_subject_after_three_silent_days(self):
+        # Agent V13 (member_borrower_ids): the run that saw her as a sender remembers her borrower id; later, with her
+        # messages out of the three-day window and Instagram still not listing her, her referrer is still excluded.
+        self.mark()
+        group = conversation('g1', self.left, self.chat)
+        self.run_cycle(self.api(group), model=self.reply())
+        self.assertEqual(self.post.call_args.args[1]['borrowerIds'], ['B-A'])
+        self.assertEqual(self.stored_members(), ['B-A', 'B-X'])                     # the union of the borrowers matched: ids only
+        # Five days later: only the referrer and the partner write.
+        later = self.now + 5 * 86400
+        quiet = conversation('g1', self.left, [message('q1', '30', -5 * 1440 + 30, 'พี่ถามให้แล้วนะคะ ยังไม่ตอบเลย', name='xena_invented'),
+                                                message('q2', '10', -5 * 1440 + 20, AGREED, name='partner_invented')])
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=?,last_text_at=?', (later - 700, later - 700))
+        self.db.commit()
+        result = self.run_cycle(self.api(quiet), model=self.reply('referrer_1'), now=later)
+        self.assertEqual((result['summarised'], result['failed']), (1, 0))
+        text = self.model.call_args.args[1]
+        self.assertIn('] referrer_1: ', text)
+        self.assertNotIn('borrower_1', text)                                 # she wrote nothing: no token for her
+        value = self.post.call_args.args[1]
+        self.assertEqual(value['borrowerIds'], ['B-A'])                      # still her card, never her referrer's
+        self.assertEqual(value['summary']['points'][0]['speaker'], {'role': 'referrer', 'borrowerId': 'B-X'})
+        self.assertEqual(self.stored_members(), ['B-A', 'B-X'])
+        # Without the remembered ids the same read would make the referrer the subject (the R152 incident).
+        self.assertEqual(summary.resolve(self.config, self.master, self.left, summary.message_senders(quiet['messages']['data']))['subjects'], ['B-X'])
+        # The poll agrees: with the stored ids its resolution has her as the subject, and its digest is unchanged.
+        context = summary.poll_context(self.config, self.master, self.db)
+        self.assertEqual(context['members'], {'g1': ['B-A', 'B-X']})
+        polled = summary.subject_change(self.config, self.master, self.db, context, {'id': 'g1'}, self.left, later, quiet['messages']['data'])
+        self.assertEqual((polled['subjects'], polled['referrers'], polled['digest']), (['B-A'], ['B-X'], self.state()['subjects_sha256']))
+        self.assertIsNone(self.state()['changed_at'])
+
+    def test_remembered_members_follow_the_master_and_never_decide_the_digest(self):
+        listed = summary.resolve(self.config, self.master, self.left)
+        remembered = summary.resolve(self.config, self.master, self.left, None, ['B-A'])
+        self.assertEqual((remembered['status'], remembered['subjects'], remembered['referrers'], remembered['borrowers']), ('ok', ['B-A'], ['B-X'], ['B-A', 'B-X']))
+        self.assertEqual(remembered['tokens'], {ACCOUNT: 'business', '10': 'partner', '30': 'referrer_1'})   # no token without a message
+        self.assertEqual(remembered['digest'], listed['digest'])
+        # The stored text is accepted as it is; anything that is not a JSON array of strings is nothing remembered.
+        self.assertEqual(summary.resolve(self.config, self.master, self.left, None, '["B-A"]')['subjects'], ['B-A'])
+        for value in (None, '', '[]', 'not json', '{"B-A":1}', '"B-A"', [7, None, ''], '[7]'):
+            self.assertEqual(summary.resolve(self.config, self.master, self.left, None, value)['subjects'], ['B-X'], value)
+        self.assertEqual(summary.member_ids('["B-X","B-A","B-A",5,""]'), ['B-A', 'B-X'])
+        # A remembered borrower who is listed or writing is one member, not two; a not-enabled one is a member but no subject.
+        self.assertEqual(summary.resolve(self.config, self.master, self.left, [{'id': '20', 'username': 'anan_invented'}], ['B-A', 'B-X'])['tokens']['20'], 'borrower_1')
+        self.assertEqual(summary.resolve(self.config, self.master, self.left, None, ['B-D'])['subjects'], [])   # B-D is not enabled and names B-X: B-X is a referrer
+        # A remembered id whose borrower row is gone is ignored, and dropped from what is stored.
+        self.assertEqual(summary.resolve(self.config, self.master, self.left, None, ['B-GONE'])['subjects'], ['B-X'])
+        self.assertEqual(summary.remembered_members(self.master, remembered, ['B-GONE', 'B-C']), ['B-A', 'B-C', 'B-X'])
+        # Remembered members count toward the three a group needs, but never turn a two-person chat with her into a group.
+        two = self.left[:2]
+        self.assertEqual(summary.resolve(self.config, self.master, two, None, ['B-A'])['subjects'], ['B-A'])
+        dm = [member(ACCOUNT, 'business_invented'), member('20', 'anan_invented')]
+        self.assertEqual(summary.resolve(self.config, self.master, dm, None, ['B-A'])['status'], 'small')
+        self.assertEqual(summary.resolve(self.config, self.master, dm, [{'id': '20', 'username': 'anan_invented'}], ['B-A'])['status'], 'small')
+
+    def test_the_stored_members_are_a_union_keep_through_small_runs_and_drop_a_deleted_borrower(self):
+        self.mark(member_borrower_ids='["B-C","B-GONE"]')                    # seen earlier: another borrower, and one since deleted
+        self.run_cycle(self.api(conversation('g1', self.left, self.chat)), model=self.reply())
+        self.assertEqual(self.stored_members(), ['B-A', 'B-C', 'B-X'])              # union with this run's borrowers; the deleted row is dropped
+        self.assertEqual(self.post.call_args.args[1]['borrowerIds'], ['B-A', 'B-C'])
+        # A run that resolves nobody (the participant list became ambiguous) keeps what is remembered.
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=?,last_text_at=?', (self.now - 700, self.now - 700))
+        self.db.commit()
+        duplicate = dict(self.master, borrowers=self.master['borrowers'] + [{'id': 'B-X2', 'username': 'xena_invented', 'enabled': True, 'referrer': None}])
+        saved, self.master = self.master, duplicate
+        self.run_cycle(self.api(conversation('g1', self.left, self.chat)), post='cleared')
+        self.master = saved
+        self.assertEqual(self.post.call_args.args[1]['borrowerIds'], [])
+        self.assertEqual(self.stored_members(), ['B-A', 'B-C', 'B-X'])
+        # A failed run does not touch them either.
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=?,last_text_at=?,member_borrower_ids=?', (self.now - 700, self.now - 700, '["B-C"]'))
+        self.db.commit()
+        result = self.run_cycle(self.api(conversation('g1', self.left, self.chat)), model=Mock(side_effect=summary.SummaryFailed('MODEL_TIMEOUT')))
+        self.assertEqual((result['failed'], self.stored_members()), (1, ['B-C']))
+        # Nothing but borrower ids is stored: no username, no text.
+        stored = self.state()['member_borrower_ids']
+        for text in ('anan', 'xena', 'partner', SENTINEL):
+            self.assertNotIn(text, stored)
+
+    def test_an_idle_group_with_a_departed_recent_sender_is_not_marked_again_by_the_poll(self):
+        # The digest decision: both sides store and compare the participants-only digest, so the poll (first page) and
+        # the summariser (three-day window) agree although they resolve with different senders.
+        group = conversation('g1', self.left, self.chat)
+        self.scan(group)
+        first = self.state()
+        self.assertEqual((first['changed_at'], first['subjects_sha256']), (self.now, summary.resolve(self.config, self.master, self.left)['digest']))
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=?,last_text_at=?', (self.now - 700, self.now - 700))
+        self.db.commit()
+        self.run_cycle(self.api(group), model=self.reply(), now=self.now + 10)
+        self.assertEqual(self.post.call_args.args[1]['borrowerIds'], ['B-A'])
+        summarised = self.state()
+        self.assertIsNone(summarised['changed_at'])
+        # Repeated scans of the idle group: nothing is written, the marker stays clear, nothing is due.
+        changes = self.db.total_changes
+        for minute in range(1, 8):
+            self.scan(group, now=self.now + 60 * minute)
+            self.assertEqual(self.db.total_changes, changes, minute)
+            self.assertEqual(self.state(), summarised)
+        self.assertEqual(summary.due(self.db, self.now + 3600), [])
+        # And the cycle after a new text again clears it for good (no ping-pong between the two digests).
+        group['messages']['data'].insert(0, message('d4', '20', -9, 'โอนให้พรุ่งนี้เช้านะคะ ขอโทษที่ช้าค่ะ', name='anan_invented'))
+        self.scan(group, now=self.now + 600)
+        self.assertEqual(self.state()['changed_at'], self.now + 600)
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=?,last_text_at=?', (self.now - 100, self.now - 100))
+        self.db.commit()
+        self.run_cycle(self.api(group), model=self.reply(partner=False), now=self.now + 660)
+        cleared = self.state()
+        self.assertIsNone(cleared['changed_at'])
+        changes = self.db.total_changes
+        for minute in range(12, 16):
+            self.scan(group, now=self.now + 60 * minute)
+        self.assertEqual((self.db.total_changes, self.state()), (changes, cleared))
+
+    def test_a_real_subject_change_still_marks_that_group(self):
+        group = conversation('g1', self.left, self.chat)
+        self.scan(group)
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=NULL')
+        self.db.commit()
+        before = self.state()
+        # The listed referrer is disabled in the master: the participants-only subjects change, the group is marked.
+        disabled = dict(self.master, borrowers=[dict(b, enabled=False) if b['id'] == 'B-X' else b for b in self.master['borrowers']])
+        self.scan(group, now=self.now + 60, master=disabled)
+        after = self.state()
+        self.assertEqual(after['changed_at'], self.now + 60)
+        self.assertNotEqual(after['subjects_sha256'], before['subjects_sha256'])
+        # Another borrower joining the participants changes it as well.
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=NULL')
+        self.db.commit()
+        self.scan(conversation('g1', self.left + [member('40', 'chai_invented')], self.chat), now=self.now + 120, master=disabled)
+        self.assertEqual(self.state()['changed_at'], self.now + 120)
+
+    def test_the_poll_marks_new_text_in_a_group_whose_only_borrower_is_a_departed_sender(self):
+        # Participants: business and partner only. Without the sender the group is too small to be eligible.
+        two = self.left[:2]
+        self.assertEqual(summary.resolve(self.config, self.master, two)['status'], 'small')
+        self.scan(conversation('g2', two, [message('e1', '20', 10, PROMISE, name='anan_invented')]))
+        state = self.state('g2')
+        self.assertEqual((state['changed_at'], state['last_text_at']), (self.now, self.now - 600))
+        self.assertEqual(state['subjects_sha256'], summary.resolve(self.config, self.master, two)['digest'])
+        # The partner's routine reminder there is still routine (the partner role is known), and a stranger's text in a
+        # group without any borrower marks nothing.
+        self.scan(conversation('g3', two, [message('e2', '10', 10, REMINDER, name='partner_invented'), message('e3', '20', 9, image=True, name='anan_invented')]))
+        self.assertIsNone(self.state('g3'))
+
+
+class TokenInTextTests(Base):
+    """R152: a speaker token the model wrote into the text is replaced by the card's role word (invented text)."""
+
+    def test_tokens_become_role_words_in_both_languages(self):
+        en = lambda text: summary.without_tokens(text, 'en')  # noqa: E731
+        th = lambda text: summary.without_tokens(text, 'th')  # noqa: E731
+        self.assertEqual(en('other_1 says the transfer will come on Friday; referrer_1 will chase borrower_2.'),
+                         'Other says the transfer will come on Friday; Referrer will chase Borrower.')
+        self.assertEqual(th('other_1 แจ้งว่าจะโอนวันศุกร์ และ referrer_1 จะตาม borrower_1 ให้'), 'อื่น ๆ แจ้งว่าจะโอนวันศุกร์ และ ผู้แนะนำ จะตาม ผู้กู้ ให้')
+        self.assertEqual(th('ผู้กู้other_12บอกว่าpartner_2ตกลงแล้ว'), 'ผู้กู้อื่น ๆบอกว่าหุ้นส่วนตกลงแล้ว')   # no spaces around a token in Thai
+        self.assertEqual(en('OTHER_1 and Borrower_3 and Partner_2 (referrer_10).'), 'Other and Borrower and Partner (Referrer).')
+        self.assertEqual(en('@other_1 was pinged, ＠partner too, @business as well'), 'Other was pinged, Partner too, MW Credit as well')
+        # Ordinary words stay: the bare partner and business (in either language), and role words without a number.
+        self.assertEqual(th('partner ตกลงแล้ว'), 'partner ตกลงแล้ว')
+        for text in ('The partner agreed; her business is slow this month.', 'The borrower asked the referrer and one other person.',
+                     'Partner agreed.', 'another_1 other_x other_ borrower_1st xother_1 other_1x my_other_1'):
+            self.assertEqual(en(text), text)
+        self.assertEqual(th('ร้าน business ของผู้กู้เงียบ'), 'ร้าน business ของผู้กู้เงียบ')
+        # A token right after the business name would repeat it: written once.
+        self.assertEqual(en('MW business_1 confirmed the amount.'), 'MW Credit confirmed the amount.')
+        self.assertEqual(th('MW Credit business_1 ยืนยันยอดแล้ว และ MW  business_2 ด้วย'), 'MW Credit ยืนยันยอดแล้ว และ MW Credit ด้วย')
+        self.assertEqual(en('MW Credit MW Credit, then MW Credit.'), 'MW Credit, then MW Credit.')
+        self.assertEqual(en('BMW MW Credit and MW MW Creditor'), 'BMW MW Credit and MW MW Creditor')
+        # A replacement is never longer than the token it replaces, so the length limits still hold.
+        for role, words in summary.ROLE_WORDS.items():
+            for language in ('th', 'en'):
+                self.assertLessEqual(len(words[language]), len('@' + role), (role, language))   # the shortest form replaced: @role or role_1
+        full = 'x' * 153 + 'other_1'
+        self.assertEqual(len(full), 160)
+        self.assertLessEqual(len(th(full)), 160)
+
+    def test_the_posted_summary_carries_no_token_and_the_model_is_told_not_to_write_one(self):
+        self.mark()
+        chat = [message('m1', '20', 30, PROMISE), message('m2', '10', 20, AGREED), message('m3', '55', 10, 'ฝากบอกด้วยนะคะว่าพรุ่งนี้จะโอนให้แน่นอน')]
+        reply = {'relevant': True, 'headline': {'th': 'other_1 ขอเลื่อนจ่าย และ partner_2 ตกลง', 'en': 'other_1 asks to pay on Friday; the partner agreed with borrower_1.'},
+                 'points': [{'speaker': 'other_1', 'th': 'other_1 บอกว่าจะโอนพรุ่งนี้', 'en': 'Says borrower_1 will transfer tomorrow.'}]}
+        result = self.run_cycle(self.api(conversation('g1', self.members, chat)), model=reply)
+        self.assertEqual(result['summarised'], 1)
+        value = self.post.call_args.args[1]['summary']
+        self.assertEqual(value['headline'], {'th': 'อื่น ๆ ขอเลื่อนจ่าย และ หุ้นส่วน ตกลง', 'en': 'Other asks to pay on Friday; the partner agreed with Borrower.'})
+        self.assertEqual(value['points'], [{'speaker': {'role': 'other'}, 'th': 'อื่น ๆ บอกว่าจะโอนพรุ่งนี้', 'en': 'Says Borrower will transfer tomorrow.'}])
+        self.assertIsNone(re.search(r'(?:borrower|referrer|other|partner)_[0-9]', json.dumps(value, ensure_ascii=False)))
+        self.assertIn('never write a token in the headline or in a point\'s text', summary.INSTRUCTIONS)
+        self.assertEqual(summary.PROMPT_VERSION, 3)
+
+
 class SelectionTests(Base):
     def test_quiet_period_max_wait_backoff_order_and_cap(self):
         self.mark('quiet', changed=self.now - 700, text=self.now - 601)
@@ -394,7 +660,7 @@ class CycleTests(Base):
         self.assertEqual((value['summary'], value['borrowerIds'], result['outcomes']['cleared']), (None, ['B-A'], 1))
         self.assertIsNone(self.state()['changed_at'])
 
-    def test_group_without_subjects_prunes_with_an_empty_list_and_reads_no_history(self):
+    def test_group_without_subjects_prunes_with_an_empty_list(self):
         self.mark()
         self.master['borrowers'][0]['enabled'] = False
         api = self.api(conversation('g1', self.members, [message('m1', '20', 20, PROMISE)]))
@@ -589,13 +855,13 @@ class OutputValidationTests(Base):
         self.assertEqual((stored['borrowerIds'], stored['sourceSha256'], stored['summary']['headline']), (['B-A'], value['sourceSha256'], self.reply()['headline']))
         self.assertNotIn('relevant', json.dumps(stored))
 
-    def test_prompt_version_2_changes_every_source_digest(self):
+    def test_prompt_version_3_changes_every_source_digest(self):
         resolution = summary.resolve(self.config, self.master, self.members)
         found = [(message('m1', '20', 20, PROMISE), self.now - 1200)]
         rows = summary.window(self.config, resolution, found)
         current = summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5')
-        self.assertEqual(summary.PROMPT_VERSION, 2)
-        with patch.object(summary, 'PROMPT_VERSION', 1):
+        self.assertEqual(summary.PROMPT_VERSION, 3)  # R152: the model is told not to write tokens in the text
+        with patch.object(summary, 'PROMPT_VERSION', 2):
             self.assertNotEqual(summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5'), current)
         self.assertEqual(summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5'), current)
         # The schema asks for the flag; the instructions say when to set it.
@@ -944,7 +1210,8 @@ class MarkAllTests(Base):
         for cid, members in (('g-plain', self.groups()[0]), ('g-referred', self.groups()[1])):
             self.assertEqual(rows[cid], {'conversation_id': cid, 'changed_at': self.now, 'last_text_at': None,
                                          'subjects_sha256': summary.resolve(self.config, master, members['participants']['data'])['digest'],
-                                         'summarised_source_sha256': None, 'summarised_at': None, 'attempts': 0, 'next_attempt_at': 0, 'last_error': None})
+                                         'summarised_source_sha256': None, 'summarised_at': None, 'attempts': 0, 'next_attempt_at': 0, 'last_error': None,
+                                         'member_borrower_ids': '[]'})   # mark_all never writes the remembered members (R152)
         # Due at once (no last_text_at), oldest marker first; the ordinary cycle takes them from here.
         self.assertEqual(sorted(cid for cid, _ in summary.due(self.db, self.now)), ['g-plain', 'g-referred'])
         # A second run changes nothing: both are already waiting.

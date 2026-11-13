@@ -66,13 +66,17 @@ class AdapterUnitTests(unittest.TestCase):
         return transaction
 
     def test_group_chat_summary_state_sqlite_fallback_matches_v12(self):
-        # R146: the SQLite fallback has the columns of agent V12, in order, and the poll journal maps the table.
+        # R146: the SQLite fallback has the columns of agent V12 (and, R152, V13's member_borrower_ids), in order, and
+        # the poll journal maps the table.
         import re
         import sqlite3
         ddl = (Path(__file__).parents[1] / 'database/migrations/V12__group_chat_summary_state.sql').read_text(encoding='utf-8')
         body = ddl[ddl.index('CREATE TABLE runtime.group_chat_summary_state (') :]
         body = body[body.index('(') + 1 : body.index('\n);')]
         expected = [re.match(r'\s*(\w+)', line)[1] for line in body.splitlines() if line.strip()]
+        v13 = (Path(__file__).parents[1] / 'database/migrations/V13__group_chat_summary_members.sql').read_text(encoding='utf-8')
+        expected += re.findall(r'ADD COLUMN (\w+) text NOT NULL DEFAULT \'\[\]\'', v13)
+        self.assertEqual(expected[-1], 'member_borrower_ids')
         db = sqlite3.connect(':memory:')
         self.addCleanup(db.close)
         db.executescript(state.GROUP_CHAT_SUMMARY_STATE_SQLITE)
@@ -80,7 +84,19 @@ class AdapterUnitTests(unittest.TestCase):
         self.assertEqual([r[1] for r in db.execute('PRAGMA table_info(group_chat_summary_state)')], expected)
         self.assertEqual(expected[0], 'conversation_id')
         db.execute("INSERT INTO group_chat_summary_state(conversation_id) VALUES ('synthetic-group')")
-        self.assertEqual(tuple(db.execute('SELECT attempts,next_attempt_at,changed_at FROM group_chat_summary_state').fetchone()), (0, 0.0, None))
+        self.assertEqual(tuple(db.execute('SELECT attempts,next_attempt_at,changed_at,member_borrower_ids FROM group_chat_summary_state').fetchone()), (0, 0.0, None, '[]'))
+        # R152: a SQLite journal created before V13 gains the column, its rows '[]'; a second call changes nothing.
+        old = sqlite3.connect(':memory:')
+        self.addCleanup(old.close)
+        old.executescript(state.GROUP_CHAT_SUMMARY_STATE_SQLITE.replace(", member_borrower_ids TEXT NOT NULL DEFAULT '[]'", ''))
+        old.execute("INSERT INTO group_chat_summary_state(conversation_id,last_error) VALUES ('synthetic-old','MODEL_TIMEOUT')")
+        self.assertEqual(len(list(old.execute('PRAGMA table_info(group_chat_summary_state)'))), len(expected) - 1)
+        state.ensure_group_chat_summary_state(old)
+        state.ensure_group_chat_summary_state(old)
+        self.assertEqual([r[1] for r in old.execute('PRAGMA table_info(group_chat_summary_state)')], expected)
+        self.assertEqual(tuple(old.execute('SELECT conversation_id,last_error,member_borrower_ids FROM group_chat_summary_state').fetchone()), ('synthetic-old', 'MODEL_TIMEOUT', '[]'))
+        state.ensure_group_chat_summary_state(db)
+        self.assertEqual([r[1] for r in db.execute('PRAGMA table_info(group_chat_summary_state)')], expected)
         sql = state.dialect('UPDATE group_chat_summary_state SET changed_at=coalesce(changed_at,?),last_text_at=? WHERE conversation_id=?',
                             state.TABLES['receipt-processing.db'])
         self.assertEqual(sql, 'UPDATE runtime.group_chat_summary_state SET changed_at=coalesce(changed_at,%s),last_text_at=%s WHERE conversation_id=%s')
@@ -320,7 +336,7 @@ class PostgreSQLStateTests(unittest.TestCase):
             receipt.db.execute('UPDATE group_chat_summary_state SET changed_at=coalesce(changed_at,?),last_text_at=? WHERE conversation_id=?',(160.0,160.0,self.key))
         row=dict(receipt.db.execute('SELECT * FROM group_chat_summary_state WHERE conversation_id=?',(self.key,)).fetchone())
         self.assertEqual(row,{'conversation_id':self.key,'changed_at':100.0,'last_text_at':160.0,'subjects_sha256':digest,'summarised_source_sha256':None,
-                              'summarised_at':None,'attempts':0,'next_attempt_at':0.0,'last_error':None})
+                              'summarised_at':None,'attempts':0,'next_attempt_at':0.0,'last_error':None,'member_borrower_ids':'[]'})
         due=receipt.db.execute('SELECT conversation_id FROM group_chat_summary_state WHERE changed_at IS NOT NULL AND next_attempt_at<=? AND (last_text_at<=? OR changed_at<=?) AND conversation_id=?',
                                (1000.0,1000.0-600,1000.0-3600,self.key)).fetchall()
         self.assertEqual([r[0] for r in due],[self.key])
@@ -340,7 +356,8 @@ class PostgreSQLStateTests(unittest.TestCase):
         self.assertIsNone(receipt.db.execute('SELECT 1 FROM group_chat_summary_state WHERE conversation_id=?',(other,)).fetchone())
         self.assertIsNone(receipt.db.execute('SELECT 1 FROM conversation_poll_messages WHERE message_id=?',(other,)).fetchone())
         # Not a text store: error codes and digests only; the adapter and the worker's grants refuse a delete.
-        for column,value in (('last_error','free text is refused'),('subjects_sha256','not-a-digest'),('summarised_source_sha256','A'*64),('attempts',-1)):
+        for column,value in (('last_error','free text is refused'),('subjects_sha256','not-a-digest'),('summarised_source_sha256','A'*64),('attempts',-1),
+                             ('member_borrower_ids','{}'),('member_borrower_ids','"B-A"')):
             with self.subTest(column=column),self.assertRaisesRegex(Exception,'STATE_CONSTRAINT_23514'):
                 receipt.db.execute('UPDATE group_chat_summary_state SET '+column+'=? WHERE conversation_id=?',(value,self.key))
         with self.assertRaisesRegex(ConfigurationError,'STATE_SQL_NOT_ALLOWED'):
@@ -359,6 +376,7 @@ class PostgreSQLStateTests(unittest.TestCase):
                 c.execute('SELECT 1 FROM runtime.group_chat_summary_state')
         with psycopg.connect(**self.admin) as c:
             self.assertIsNotNone(c.execute("SELECT 1 FROM deployment.schema_history WHERE name='V12__group_chat_summary_state.sql'").fetchone())
+            self.assertIsNotNone(c.execute("SELECT 1 FROM deployment.schema_history WHERE name='V13__group_chat_summary_members.sql'").fetchone())
 
     def test_group_chat_summary_marker_and_cycle_statements_run_on_postgres(self):
         # R146: the poll's marker and the summariser's select, finish and backoff statements through the adapter (invented ids).
@@ -383,6 +401,17 @@ class PostgreSQLStateTests(unittest.TestCase):
             summary.finish(receipt.db,cid,'d'*64,'e'*64,now)
         row=receipt.db.execute('SELECT changed_at,summarised_source_sha256,summarised_at,subjects_sha256,attempts,next_attempt_at,last_error FROM group_chat_summary_state WHERE conversation_id=?',(cid,)).fetchone()
         self.assertEqual(tuple(row.values()),(None,'d'*64,now,'e'*64,0,0.0,None))
+        # R152 (agent V13): the remembered borrower ids are written by finish and read by the poll context and the cycle.
+        members=lambda:receipt.db.execute('SELECT member_borrower_ids FROM group_chat_summary_state WHERE conversation_id=?',(cid,)).fetchone()[0]  # noqa: E731
+        self.assertEqual(members(),'[]')
+        with receipt.db:
+            summary.finish(receipt.db,cid,'d'*64,'e'*64,now,['B-X','B-A','B-A'])
+        self.assertEqual(members(),'["B-A","B-X"]')
+        with receipt.db:
+            summary.finish(receipt.db,cid,'d'*64,'e'*64,now)        # None keeps the stored value
+        self.assertEqual(members(),'["B-A","B-X"]')
+        polled=summary.poll_context(dict(self.config,group_chat_summary_enabled=True,group_chat_summary_cutoff='2026-01-01T00:00:00+00:00'),{'partners':[]},receipt.db)
+        self.assertEqual(polled['members'][cid],['B-A','B-X'])
         # Text newer than the run's read keeps the marker (a new wait starts at the read time).
         with receipt.db:
             summary.mark_text(receipt.db,context,{'id':cid},resolution,now+30,now+31)

@@ -33,7 +33,8 @@ ENVIRONMENT = 'prod'  # the only federation rule and command environment this se
 REQUEST_SALT = 'mw-credit-agent-group-summary-v1'
 # 2 (R148): the output carries `relevant`; a window with nothing collection-relevant shows no card. A new version changes
 # every source digest, so each group is summarised again once after the deploy instead of answering unchanged.
-PROMPT_VERSION = 2
+# 3 (R152): the model is told never to write a speaker token in the headline or point text.
+PROMPT_VERSION = 3
 WINDOW_SECONDS = 3 * 86400
 MAX_MESSAGES = 100
 QUIET_SECONDS = 600
@@ -86,7 +87,7 @@ Report what was said, attributed to the speaker. Do not state amounts or dates a
 The partner's daily amount reminder, payment slips and confirmation ticks are background. Mention them only when they show a deviation, such as reminders repeated for days with no reply.
 A referrer chasing or vouching for the borrower, and a ping left unanswered, matter for collection.
 Quote amounts exactly as the speaker wrote them. Never add, subtract or correct figures.
-Never include phone numbers, bank account numbers, usernames or pings. Ignore jokes, insults and banter, and keep the wording neutral.
+Never include phone numbers, bank account numbers, usernames or pings. The speaker tokens (borrower_1, referrer_1, other_1 and the like) belong only in "speaker": never write a token in the headline or in a point's text. Refer to people in plain words by their role instead (the borrower, the referrer, the partner, another person). Ignore jokes, insults and banter, and keep the wording neutral.
 Write natural Thai in "th" and plain English in "en", with the same meaning. The headline is at most 160 characters in each language and a point at most 200. No markdown, no line breaks, no URLs.
 Set "relevant" to true when the transcript holds something a collection officer needs: a promise to pay, a delay or its reason, a request, a dispute, where the borrower is or whether they can be reached (for example a borrower saying their phone or account is unavailable), a ping or question left unanswered, reminders repeated with no reply, or the borrower not answering, or a referrer chasing or vouching. Then write the headline and points as described.
 Set "relevant" to false when it holds nothing of that kind, for example only group setup, names, rules, greetings, a routine reminder answered as usual, or images. Then leave the headline texts empty and return no points; nothing is shown for that group.'''
@@ -173,24 +174,93 @@ def conversation_key(conversation_id):
     return hashlib.sha256(str(conversation_id).encode()).hexdigest()[:32]
 
 
-def resolve(config, master, participants):
-    """Participant borrowers, referrers, subjects and speaker tokens of one group, from the borrower master.
+def message_senders(messages):
+    """The (id, username) of each message's sender, as resolve()'s `senders`: [{'id', 'username'}], one per sender id.
+    Accepts messages or history_since's (message, time) pairs. The username is the one Instagram gives in `from`."""
+    found = {}
+    for item in messages or []:
+        message = item[0] if isinstance(item, tuple) else item
+        sender = message.get('from') if isinstance(message, dict) else None
+        if not isinstance(sender, dict) or not sender.get('id'):
+            continue
+        identifier = str(sender['id'])
+        if not found.get(identifier, {}).get('username'):
+            found[identifier] = {'id': identifier, 'username': sender.get('username')}
+    return [found[identifier] for identifier in sorted(found)]
+
+
+def member_ids(value):
+    """The borrower ids of a stored member_borrower_ids value (agent V13): a JSON array of strings; anything else is []."""
+    try:
+        found = json.loads(value) if isinstance(value, str) else value
+    except ValueError:
+        return []
+    return sorted({item for item in found if isinstance(item, str) and item}) if isinstance(found, list) else []
+
+
+def remembered_members(master, resolution, remembered):
+    """What finish() stores in member_borrower_ids: the borrowers matched in this run (participants, senders and the
+    remembered ones resolve() used) together with what was remembered, without ids whose borrower row no longer exists."""
+    existing = {str(b['id']) for b in master.get('borrowers', []) if b.get('id')}
+    return sorted((set(resolution['borrowers']) | set(member_ids(remembered))) & existing)
+
+
+def resolve(config, master, participants, senders=None, remembered=None):
+    """Member borrowers, referrers, subjects and speaker tokens of one group, from the borrower master.
+
+    R152: Instagram can stop listing a person in `participants` while their messages keep arriving with their id and
+    username. The members of a group are therefore its participants plus `senders`: the senders of the messages being
+    considered (message_senders) who are not participants and not the business account. A sender whose username matches
+    exactly one borrower row is a member borrower like a participant: for referrer detection, subjects, tokens and
+    labels. The ambiguity rule is the same (a username matching two borrower rows makes the group ambiguous), and
+    senders count toward the three members a group needs.
+
+    `remembered` (the state row's member_borrower_ids, agent V13) are borrower ids seen in this group before, as a
+    participant or a sender. A remembered borrower whose row still exists in the master is a member borrower as well,
+    even when she is neither listed nor writing (three days of silence must not make her referrer the subject of her
+    group): she counts for referrer detection, subjects and the three members, but has no token, since she has no
+    message. Ids, not usernames, so the ambiguity rule is unaffected.
 
     Returns {'status', 'subjects', 'referrers', 'borrowers', 'tokens', 'usernames', 'labels', 'digest'}; status is 'ok',
-    'small' (fewer than three participants) or 'ambiguous' (a username matches two borrower rows), and only 'ok' has
-    subjects. tokens maps participant id -> token; labels maps token -> {'role', 'borrowerId'?}.
+    'small' (fewer than three members) or 'ambiguous', and only 'ok' has subjects. tokens maps member id -> token;
+    labels maps token -> {'role', 'borrowerId'?}.
+
+    `digest` (the state table's subjects_sha256) is ALWAYS the digest of the participants-only resolution, whatever
+    `senders` holds. The poll and the summariser see different messages (the poll its latest page and scan window, the
+    summariser the three-day window), so a digest that depended on senders would differ between them and the poll's
+    subject_change() would mark the group again on every scan. Participants are the one input both read identically.
+    A change that shows only through senders (a departed sender is disabled or leaves the window) therefore sets no
+    marker by itself; the next substantive text does, and the summariser then resolves with the senders it sees.
     """
+    listed = _resolve(config, master, participants, [], [])
+    present = {str(p.get('id', '')) for p in participants if isinstance(p, dict)} if isinstance(participants, list) else set()
+    account = str(config['instagram_account_id'])
+    extra = [s for s in senders or [] if isinstance(s, dict) and str(s.get('id', '')) and str(s['id']) not in present and str(s['id']) != account]
+    known = member_ids(remembered)
+    if not extra and not known:
+        return listed
+    return {**_resolve(config, master, participants, extra, known), 'digest': listed['digest']}
+
+
+def _resolve(config, master, participants, senders, remembered):
     account = str(config['instagram_account_id'])
     empty = {'subjects': [], 'referrers': [], 'borrowers': [], 'tokens': {}, 'usernames': {}, 'labels': {}}
-    if not isinstance(participants, list) or len(participants) < MIN_PARTICIPANTS:
-        return {**empty, 'status': 'small', 'digest': subjects_digest([], [], [])}
+    people = [p for p in (participants if isinstance(participants, list) else []) if isinstance(p, dict)]
+    by_id = {str(b['id']): b for b in master.get('borrowers', []) if b.get('id')}
+    recalled = [by_id[identifier] for identifier in remembered if identifier in by_id]
+    small = {**empty, 'status': 'small', 'digest': subjects_digest([], [], [])}
+    if not isinstance(participants, list) or len(participants) + len(senders) + len(recalled) < MIN_PARTICIPANTS:
+        return small
     by_name = {}
     for borrower in master.get('borrowers', []):
         name = username(borrower.get('username'))
         if name:
             by_name.setdefault(name, []).append(borrower)
     partners = {username(p.get('username')) for p in master.get('partners', []) if username(p.get('username'))}
-    members = sorted((str(p.get('id', '')), username(p.get('username'))) for p in participants if isinstance(p, dict))
+    # Participants first (sorted), then the senders who are not participants (sorted): a participant's token does not
+    # depend on which departed senders happen to be in the window.
+    members = sorted((str(p.get('id', '')), username(p.get('username'))) for p in people) \
+        + sorted((str(s['id']), username(s.get('username'))) for s in senders)
     matched = {}
     for identifier, name in members:
         if identifier == account or not name or name not in by_name:
@@ -198,11 +268,17 @@ def resolve(config, master, participants):
         if len(by_name[name]) != 1:
             return {**empty, 'status': 'ambiguous', 'digest': subjects_digest([], [], [])}
         matched[identifier] = by_name[name][0]
+    # Remembered borrowers who are neither listed nor writing now: members without an Instagram id here (no token).
+    absent = [b for b in recalled if str(b['id']) not in {str(m['id']) for m in matched.values()}]
+    if len(participants) + len(senders) + len(absent) < MIN_PARTICIPANTS:
+        return small
+    for borrower in absent:
+        matched[('remembered', str(borrower['id']))] = borrower
     ids = {str(b['id']) for b in matched.values()}
-    # A referrer is a participant borrower that ANOTHER participant borrower names (a row naming itself does not count).
+    # A referrer is a member borrower that ANOTHER member borrower names (a row naming itself does not count).
     referrers = {str(b.get('referrer')) for b in matched.values()
                  if b.get('referrer') and str(b.get('referrer')) in ids and str(b.get('referrer')) != str(b['id'])}
-    subjects = sorted(str(b['id']) for b in matched.values() if b.get('enabled') is True and str(b['id']) not in referrers)
+    subjects = sorted({str(b['id']) for b in matched.values() if b.get('enabled') is True and str(b['id']) not in referrers})
     tokens, labels, counts = {}, {}, {}
 
     def token(role, borrower=None):
@@ -225,7 +301,10 @@ def resolve(config, master, participants):
             tokens[identifier] = token('borrower', str(borrower['id']))
         else:
             tokens[identifier] = token('other')
-    usernames = {name: tokens[identifier] for identifier, name in members if name and identifier in tokens}
+    usernames = {}
+    for identifier, name in members:
+        if name and identifier in tokens:
+            usernames.setdefault(name, tokens[identifier])
     return {'status': 'ok', 'subjects': subjects, 'referrers': sorted(referrers), 'borrowers': sorted(ids), 'tokens': tokens,
             'usernames': usernames, 'labels': labels, '_token': token,
             'digest': subjects_digest(subjects, sorted(referrers), sorted(ids))}
@@ -237,7 +316,8 @@ def subjects_digest(subjects, referrers, borrowers):
 
 
 def sender_token(resolution, sender):
-    """The token of a message's sender; a sender who is no longer a participant gets the next other_n."""
+    """The token of a message's sender; a sender resolve() was not given (no participant, not among its senders) gets
+    the next other_n."""
     sender = str(sender or '')
     if sender not in resolution['tokens']:
         resolution['tokens'][sender] = resolution['_token']('other')
@@ -250,16 +330,24 @@ def poll_context(config, master, db):
     """What the poll needs for the marker, or None while the switch is off (the poll then never touches the table)."""
     if config.get('group_chat_summary_enabled') is not True:
         return None
-    known = {row[0]: row[1] for row in db.execute('SELECT conversation_id,subjects_sha256 FROM group_chat_summary_state').fetchall()}
-    return {'cutoff': cutoff_ts(config, 'group_chat_summary_cutoff'), 'known': known,
+    rows = db.execute('SELECT conversation_id,subjects_sha256,member_borrower_ids FROM group_chat_summary_state').fetchall()
+    known = {row[0]: row[1] for row in rows}
+    # R152 (agent V13): the borrowers seen in each group before, so the poll's subjects agree with the summariser's.
+    return {'cutoff': cutoff_ts(config, 'group_chat_summary_cutoff'), 'known': known, 'members': {row[0]: member_ids(row[2]) for row in rows},
             'partners': {username(p.get('username')) for p in master.get('partners', []) if username(p.get('username'))}}
 
 
-def subject_change(config, master, db, context, conversation, participants, now):
+def subject_change(config, master, db, context, conversation, participants, now, messages=None):
     """A group with a state row whose subjects changed gets the marker (no row: nothing to compare, nothing written).
-    Returns the resolution. Call inside the caller's transaction."""
-    resolution = resolve(config, master, participants)
+    Returns the resolution. Call inside the caller's transaction.
+
+    R152: `messages` (the poll's first page and this scan's messages) add their senders as members, so a group whose
+    borrower Instagram no longer lists is still eligible and its speakers keep their roles for the marker rule. The
+    digest compared and stored here stays the participants-only one (resolve), the same value finish() stores from the
+    summariser, so an idle group is never marked again because the two read different messages. The row's remembered
+    borrowers (member_borrower_ids, written by the summariser only) are members here too."""
     cid = conversation['id']
+    resolution = resolve(config, master, participants, message_senders(messages), context.get('members', {}).get(cid))
     if cid in context['known'] and context['known'][cid] != resolution['digest']:
         db.execute('''UPDATE group_chat_summary_state SET subjects_sha256=?,
             changed_at=CASE WHEN changed_at IS NULL THEN ? ELSE changed_at END WHERE conversation_id=?''', (resolution['digest'], now, cid))
@@ -518,6 +606,31 @@ def validated(output, allowed):
             'points': [{'speaker': p['speaker'], 'th': p['th'], 'en': p['en']} for p in points]}
 
 
+# R152: a speaker token the model wrote into the text itself (seen in PROD: "other_1" in a headline) is replaced by the
+# role word the card uses. Numbered tokens are replaced wherever they stand as a whole word, with or without a ping sign.
+# `partner` and `business` are also ordinary words, so the bare words are left as they are (the first partner's token is
+# the plain word, which already reads correctly). The agent does not know whose page shows the card, so every borrower
+# token reads "Borrower". A replacement is never longer than what it replaces, so the length limits still hold.
+ROLE_WORDS = {'borrower': {'en': 'Borrower', 'th': 'ผู้กู้'}, 'referrer': {'en': 'Referrer', 'th': 'ผู้แนะนำ'},
+              'partner': {'en': 'Partner', 'th': 'หุ้นส่วน'}, 'business': {'en': 'MW Credit', 'th': 'MW Credit'},
+              'other': {'en': 'Other', 'th': 'อื่น ๆ'}}
+TOKEN_IN_TEXT = re.compile(r'(?<![A-Za-z0-9_@＠])([@＠]?)(borrower|referrer|other|partner|business)(_[0-9]+)?(?![A-Za-z0-9_])', re.IGNORECASE)
+
+
+REPEATED_BUSINESS = re.compile(r'(?<![A-Za-z0-9_])MW(?:[ \t]+Credit)?[ \t]+MW Credit(?![A-Za-z0-9_])')
+
+
+def without_tokens(text, language):
+    """`text` with speaker tokens replaced by the role word in `language` ('th' or 'en')."""
+    def word(match):
+        ping, role, number = match[1], match[2].lower(), match[3]
+        if not number and not ping:
+            return match[0]  # an ordinary word (borrower, partner, business ...), not a numbered token or a ping
+        return ROLE_WORDS[role][language]
+    # "MW business_1" would read "MW MW Credit": an immediately repeated business name is written once.
+    return REPEATED_BUSINESS.sub('MW Credit', TOKEN_IN_TEXT.sub(word, text))
+
+
 def stamp(ts):
     return datetime.fromtimestamp(int(ts), UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -529,13 +642,15 @@ def command(key, subjects, digest, summary=None):
 
 
 def summary_value(rows, resolution, output, since, now, model_id):
-    """The command's summary: the validated output with tokens replaced by roles and borrower ids, and the last
-    speaker and last message time computed here from the newest substantive message."""
+    """The command's summary: the validated output with tokens replaced by roles and borrower ids (R152: also a token
+    written inside the text, by its role word), and the last speaker and last message time computed here from the
+    newest substantive message."""
     last = [row for row in rows if row['substantive']][-1]
     return {'windowFrom': stamp(since), 'lastMessageAt': stamp(last['ts']), 'generatedAt': stamp(now), 'messageCount': len(rows),
             'model': model_id, 'lastSpeaker': dict(resolution['labels'][last['token']]),
-            'headline': output['headline'],
-            'points': [{'speaker': dict(resolution['labels'][p['speaker']]), 'th': p['th'], 'en': p['en']} for p in output['points']]}
+            'headline': {k: without_tokens(output['headline'][k], k) for k in ('th', 'en')},
+            'points': [{'speaker': dict(resolution['labels'][p['speaker']]), 'th': without_tokens(p['th'], 'th'), 'en': without_tokens(p['en'], 'en')}
+                       for p in output['points']]}
 
 
 def post(config, value):
@@ -573,8 +688,12 @@ def due(db, now):
     return [(row[0], row[1]) for row in rows]
 
 
-def finish(db, cid, digest, subjects, now):
-    """Clear the marker unless a newer substantive text arrived after this run's read; then a new wait starts."""
+def finish(db, cid, digest, subjects, now, members=None):
+    """Clear the marker unless a newer substantive text arrived after this run's read; then a new wait starts.
+    `members` (R152, agent V13): the borrower ids to remember for the group (remembered_members); None keeps the value."""
+    if members is not None:
+        db.execute('UPDATE group_chat_summary_state SET member_borrower_ids=? WHERE conversation_id=?',
+                   (json.dumps(sorted(set(members)), separators=(',', ':')), cid))
     cleared = db.execute('''UPDATE group_chat_summary_state SET changed_at=NULL,summarised_source_sha256=?,summarised_at=?,subjects_sha256=?,
         attempts=0,next_attempt_at=0,last_error=NULL WHERE conversation_id=? AND (last_text_at IS NULL OR last_text_at<=?)''',
         (digest, now, subjects, cid, now)).rowcount
@@ -602,28 +721,40 @@ def conversations(api, config):
     return found
 
 
-def summarise_group(config, api, master, conversation, now, model_call, post_call):
-    """One due group: read, resolve, summarise or prune, post. Returns (outcome kind, source digest, subjects digest)."""
+def summarise_group(config, api, master, conversation, now, model_call, post_call, remembered=None):
+    """One due group: read, resolve, summarise or prune, post. Returns (outcome kind, source digest, subjects digest,
+    member borrower ids). The subjects digest returned (and stored by finish) is the participants-only one; see
+    resolve(). `remembered` is the row's member_borrower_ids; the ids returned are what finish() stores there."""
+    kind, digest, resolution = _summarise_group(config, api, master, conversation, now, model_call, post_call, remembered)
+    return kind, digest, resolution['digest'], remembered_members(master, resolution, remembered)
+
+
+def _summarise_group(config, api, master, conversation, now, model_call, post_call, remembered):
     from .audit import activity
     from .conversation_poll import history_since
     peers = conversation.get('participants', {})
     if peers.get('paging', {}).get('next'):
         raise SummaryFailed('GROUP_PARTICIPANTS_INCOMPLETE')
-    resolution = resolve(config, master, peers.get('data'))
+    key, model_id = conversation_key(conversation['id']), model(config)
+    since = max(now - WINDOW_SECONDS, cutoff_ts(config, 'group_chat_summary_cutoff'))  # never read before the cutoff
+    found = None
+    if resolve(config, master, peers.get('data'))['status'] != 'ambiguous':
+        # R152: the window is read before the members are known, because its senders are members too (a borrower
+        # Instagram no longer lists among the participants). An ambiguous participant list stays ambiguous: no read.
+        found = list(history_since(api, config, conversation, since, now))[:MAX_MESSAGES]
+    resolution = resolve(config, master, peers.get('data'), message_senders(found), remembered)
     subjects = resolution['subjects']
     if len(subjects) > MAX_SUBJECTS:
         raise SummaryFailed('GROUP_TOO_MANY_SUBJECTS')
-    key, model_id = conversation_key(conversation['id']), model(config)
     if not subjects:
-        # Nobody gets this group's summary any more (or it is too small or ambiguous): its rows go, nothing is read.
+        # Nobody gets this group's summary any more (or it is too small or ambiguous): its rows go.
         digest = source_sha256([], [], model_id)
-        return post_call(config, command(key, [], digest)), digest, resolution['digest']
-    since = max(now - WINDOW_SECONDS, cutoff_ts(config, 'group_chat_summary_cutoff'))  # never read before the cutoff
-    rows = window(config, resolution, history_since(api, config, conversation, since, now))
+        return post_call(config, command(key, [], digest)), digest, resolution
+    rows = window(config, resolution, found)
     digest = source_sha256(rows, subjects, model_id)
     if not any(row['substantive'] for row in rows):
         # No model call: removed subjects lose the row, nothing else changes.
-        return post_call(config, command(key, subjects, digest)), digest, resolution['digest']
+        return post_call(config, command(key, subjects, digest)), digest, resolution
     text = transcript(rows, resolution)
     plan = {'conversationKey': key, 'sourceSha256': digest, 'model': model_id, 'messages': len(rows), 'subjects': len(subjects)}
     with activity(config, 'group_chat_summary_model', plan=plan):
@@ -631,9 +762,9 @@ def summarise_group(config, api, master, conversation, now, model_call, post_cal
     if output is None:
         # R148: nothing collection-relevant in the window, so this group shows no card: the same prune command as a group
         # without subjects (its rows go, nothing is stored). The digest is kept, so the marker clears as after any run.
-        return post_call(config, command(key, [], digest)), digest, resolution['digest']
+        return post_call(config, command(key, [], digest)), digest, resolution
     value = command(key, subjects, digest, summary_value(rows, resolution, output, since, now, model_id))
-    return post_call(config, value), digest, resolution['digest']
+    return post_call(config, value), digest, resolution
 
 
 def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=None, clock=time.monotonic):
@@ -657,7 +788,8 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
                 listing = conversations(api, config)
             if cid not in listing:
                 raise SummaryFailed('GROUP_NOT_FOUND')
-            kind, digest, subjects = summarise_group(config, api, master, listing[cid], now, model_call, post_call)
+            stored = db.execute('SELECT member_borrower_ids FROM group_chat_summary_state WHERE conversation_id=?', (cid,)).fetchone()
+            kind, digest, subjects, members = summarise_group(config, api, master, listing[cid], now, model_call, post_call, stored[0] if stored else None)
         except Exception as exc:  # the code only: never the exception text, which may quote the chat or the model
             code = error_code(exc)
             with db:
@@ -667,14 +799,15 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
                 result['errors'].append({'conversation_key': conversation_key(cid), 'error': code})
             continue
         with db:
-            finish(db, cid, digest, subjects, now)
+            finish(db, cid, digest, subjects, now, members)
         result['summarised'] += 1
         result['outcomes'][kind] += 1
     return result
 
 
 def dry_run(config, api, master):
-    """Counts only, from `id,participants` (no message text is requested): no model call, no post, no state write."""
+    """Counts only, from `id,participants` (no message text is requested): no model call, no post, no state write.
+    R152: the counts are participants-based; a member known only as a message sender is not counted here."""
     from .conversation_poll import pages
     counts = {'status': 'dry_run', 'conversations': 0, 'small': 0, 'ambiguous': 0, 'groups': 0, 'subjects': 0,
               'referrers_excluded': 0, 'shared_groups': 0}
@@ -700,6 +833,9 @@ def dry_run(config, api, master):
 def mark_all(config, api, master, db, now=None):
     """R147 one-shot backfill: give every eligible group the marker, so the ordinary cycle summarises the messages already
     in its window. Reads `id,participants` only (no message text), calls no model and posts nothing.
+    R152: eligibility here is participants-based; the cycle then resolves each marked group again with the senders of
+    its window. A group that has subjects only through a departed sender is marked by the poll at its next text.
+    member_borrower_ids (agent V13) is not written here.
 
     A group with subjects gets its state row (if it has none) and `changed_at` (if unset). A group already waiting keeps
     its wait and its backoff: last_text_at, attempts and next_attempt_at are never touched. Counts only.
@@ -739,7 +875,7 @@ def run(config_path, catalogue_path, dry=False, mark=False):
     from .instagram import Instagram
     from .receipt_journal import ReceiptJournal
     from .receipt_master import masters
-    from .state import GROUP_CHAT_SUMMARY_STATE_SQLITE, is_postgres
+    from .state import ensure_group_chat_summary_state, is_postgres
     if dry and mark:
         raise ConfigurationError('GROUP_CHAT_SUMMARY_OPTIONS_EXCLUSIVE')
     config, catalogue = load_controls(config_path, catalogue_path)
@@ -759,7 +895,7 @@ def run(config_path, catalogue_path, dry=False, mark=False):
         journal = ReceiptJournal(root / 'receipt-processing.db', config=config)
         try:
             if not is_postgres(journal.db):
-                journal.db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
+                ensure_group_chat_summary_state(journal.db)
             if mark:
                 # R147: the same switches, lock and job fence as a run; it only sets markers for the next runs.
                 return mark_all(config, Instagram(config, read_timeout=READ_TIMEOUT), masters(config), journal.db)
