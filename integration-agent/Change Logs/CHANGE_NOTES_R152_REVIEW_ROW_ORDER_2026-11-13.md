@@ -17,13 +17,14 @@ As built.
 | Byte's `ruff` 0.16.8 | Pass (clean export of `b0814b86` plus the patch, identical to `0097d973`) |
 | Byte's focused review and payer modules | 188 OK |
 | Byte's full `python -m unittest discover -s tests` | 970 OK, 74 skipped (lab suites) |
-| Chase's review | To come |
+| Chase's PostgreSQL 18 lab scratch test (on `0097d973`) | Pass: `cycle()` with a `VALIDATED` job whose request is too long gives job `REVIEW` / `REVIEW_REQUEST_TOO_LONG`, 0 `partner_reviews` rows, only a `receipt-held:` notice and no `review:` notice, failures empty |
+| Chase's adversarial review | Pass, no findings: the automatic-payment and `STALE` branches precede the change; `REVIEW_PROPOSAL_CHANGED` is still raised after all texts are built; no row means no notice and no reply match; `pending_items` lists a hold; all-or-nothing across reviewers; keyed reserves are idempotent |
 | `npm run check:docs` (Dewey) | |
 | CI on the pull request | |
 | PROD verification | See the PROD promotion record |
 
 ## Not run
-- To be filled with the evidence.
+- Cleanup of old `PENDING` rows without a notice: not changed; PROD has none (read on 13 November 2026: 0 review rows tied to held jobs).
 
 ## PROD promotion record (Forge, UTC)
 Placeholder: Forge fills this section (authority, package, agent deploy and read-back; counts only; no secret, chat text, borrower name, username or amount).
@@ -35,4 +36,4 @@ Revert the pull request and redeploy the previous agent commit; no data, schema 
 None.
 
 ## Remaining work
-Chase's review, the PROD record; owner acceptance is not separately needed (no visible behaviour changes unless a request is too long).
+the PROD record; owner acceptance is not separately needed (no visible behaviour changes unless a request is too long).
