@@ -74,7 +74,7 @@ Authority: the owner's answer of 13 November 2026, "Yes, new table + PROD" (sync
 | Rollback | Services: settings generation `1794529636503002` (the private `production.activation.before-r149.tfvars`), plan 0/3/0 and publish. Hosting `fde9cd8546c21116` (R148). Reader grants: `REVOKE`. Database: forward-fix only; the table may stay (the R146 image does not read it); restore point the V146 backup above |
 
 ### Limitations
-- No authenticated PROD write or read (no sanctioned PROD token route); the first seen rows appear when a user opens a summary. Owner acceptance pending.
+- No authenticated PROD write or read (no sanctioned PROD token route); the first seen rows appear when a user opens a summary.
 
 ### Prune at closure
 Deleted (inbound links repointed to commit `011d89d9`): `Change Logs/CHANGE_NOTES_R146_GROUP_CHAT_SUMMARY_2026-11-12.md` and `integration-agent/Change Logs/CHANGE_NOTES_R146_GROUP_CHAT_SUMMARY_2026-11-12.md`, outside the window of the Open release and the three newest Released releases (R149, R148, R147); their links in the release tracker and the environment inventory now point at the permalink. No section of `Development_Changes.md` belonged to an older released release (the R149 follow-up row was added), and the applied dictionary plan and coverage files were deleted (only the cited observations file stays).
@@ -86,4 +86,4 @@ Revert the pull request; Hosting rollback to the previous version (in the enviro
 None.
 
 ## Remaining work
-DEV and PROD done (records above); Data Dictionary records applied; tagged R149 and closed by the closure pull request. Open for the owner: acceptance (that the mark clears on a second device); R148 acceptance is also still pending.
+DEV and PROD done (records above); Data Dictionary records applied; tagged R149 and closed by the closure pull request. Owner-accepted in PROD on 13 November 2026 ("i accept R148, 149, 150").
