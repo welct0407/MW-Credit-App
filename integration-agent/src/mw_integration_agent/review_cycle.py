@@ -134,7 +134,11 @@ class Run:
                     for p in recipients:
                         corrected=('คำขอแก้ไข — ใช้แทนคำขอเดิม\n' if p['language']=='ไทย' else 'Corrected request — replaces the earlier request\n') if job['detail'] in (
                             'OWNER_REQUESTED_RECONSIDERATION','REVIEWER_REQUESTED_RECHECK') else ''
-                        subject,body=request_text(proposal,p['language'],unidentified=provenance(job).get('unidentified_sender') is True,reserve=len(corrected))
+                        try:subject,body=request_text(proposal,p['language'],unidentified=provenance(job).get('unidentified_sender') is True,reserve=len(corrected))
+                        except ConfigurationError as exc:
+                            # The hold names the reason (receipt_hold REASONS) instead of RECEIPT_PROPOSAL_UNAVAILABLE.
+                            if str(exc)=='REVIEW_REQUEST_TOO_LONG':raise ReceiptInvalid(str(exc)) from None
+                            raise
                         if corrected:
                             body=corrected+body
                             if len(body)>1000:raise ReceiptInvalid('REVIEW_REQUEST_TOO_LONG')
