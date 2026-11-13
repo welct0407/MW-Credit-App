@@ -393,6 +393,35 @@ class PostgreSQLStateTests(unittest.TestCase):
                 AND plan->>'statement' LIKE '%group_chat_summary_state%' ORDER BY created_at DESC LIMIT 20""")]
         self.assertTrue(statements)  # journal audit rows carry the statement and a parameter digest, never values
 
+    def test_group_chat_summary_mark_all_statements_run_on_postgres(self):
+        # R147: the backfill's insert-or-ignore and conditional update through the adapter (invented ids, no API text).
+        from unittest.mock import Mock
+        from mw_integration_agent import group_chat_summary as summary
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        config=dict(self.config,instagram_account_id='999')
+        master={'borrowers':[{'id':'B-'+self.key,'username':'anan_'+self.key,'enabled':True,'referrer':None}],'partners':[{'username':'partner_invented'}]}
+        members=[{'id':'999','username':'business_invented'},{'id':'10','username':'partner_invented'},{'id':'20','username':'anan_'+self.key}]
+        waiting,fresh=self.key+'-waiting',self.key+'-fresh'
+        api=Mock(request=Mock(return_value={'data':[{'id':waiting,'participants':{'data':members}},{'id':fresh,'participants':{'data':members}},
+                                                    {'id':self.key+'-small','participants':{'data':members[:2]}}]}))
+        now=1_800_000_000.0
+        with receipt.db:
+            receipt.db.execute('INSERT OR IGNORE INTO group_chat_summary_state(conversation_id,subjects_sha256) VALUES (?,?)',(waiting,'c'*64))
+            receipt.db.execute('UPDATE group_chat_summary_state SET changed_at=?,last_text_at=?,attempts=2,next_attempt_at=?,last_error=? WHERE conversation_id=?',
+                               (now-50,now-40,now+1200,'MODEL_TIMEOUT',waiting))
+        result=summary.mark_all(config,api,master,receipt.db,now)
+        self.assertEqual(result,{'conversations':3,'small':1,'ambiguous':0,'incomplete':0,'groups':2,'marked':1,'already_due':1})
+        read=lambda cid:tuple(receipt.db.execute('SELECT changed_at,last_text_at,subjects_sha256,attempts,next_attempt_at,last_error FROM group_chat_summary_state WHERE conversation_id=?',(cid,)).fetchone().values())  # noqa: E731
+        self.assertEqual(read(waiting),(now-50,now-40,'c'*64,2,now+1200,'MODEL_TIMEOUT'))
+        self.assertEqual(read(fresh),(now,None,summary.resolve(config,master,members)['digest'],0,0.0,None))
+        self.assertIsNone(receipt.db.execute('SELECT 1 FROM group_chat_summary_state WHERE conversation_id=?',(self.key+'-small',)).fetchone())
+        self.assertIn((fresh,0),summary.due(receipt.db,now))
+        self.assertEqual(summary.mark_all(config,api,master,receipt.db,now+60),{'conversations':3,'small':1,'ambiguous':0,'incomplete':0,'groups':2,'marked':0,'already_due':2})
+        self.assertEqual(read(fresh)[0],now)
+        with psycopg.connect(**self.admin) as c:
+            # The run is audited by name with a counts-free plan; a no-op statement writes no journal audit row.
+            self.assertIsNotNone(c.execute("SELECT 1 FROM audit.operations WHERE service_name='group_chat_summary_mark_all' AND plan=%s::jsonb",('{"fields":"id,participants"}',)).fetchone())
+
     def test_rollback_includes_audit(self):
         receipt=ReceiptJournal('receipt-processing.db',self.config)
         with self.assertRaises(RuntimeError):

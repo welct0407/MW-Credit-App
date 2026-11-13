@@ -37,6 +37,7 @@ def build_parser() -> argparse.ArgumentParser:
     summary.add_argument('--config',required=True)
     summary.add_argument('--catalogue',required=True)
     summary.add_argument('--dry-run',action='store_true',help='resolve groups, subjects and referrers and print counts; no model call, no post, no state write')
+    summary.add_argument('--mark-all',action='store_true',help='R147 one-shot backfill: mark every eligible group so the next runs summarise its existing 3-day window; counts only, no model call, no post')
     webhook = sub.add_parser("serve-webhook", help="run receipt-only signed Instagram ingress")
     webhook.add_argument("--config", required=True)
     webhook.add_argument("--catalogue", required=True)
@@ -130,7 +131,9 @@ def execute(args, outcome=None) -> int:
             return 2 if result.get('failed_conversations') else 0
         if args.command=='group-chat-summary':
             from .group_chat_summary import run
-            result=run(args.config,args.catalogue,dry=args.dry_run)
+            result=run(args.config,args.catalogue,dry=args.dry_run,mark=args.mark_all)
+            # R147: a backfill that marked something materialises its JOB record with the counts.
+            if args.mark_all and result.get('marked') and outcome is not None:outcome['effect']={'marked':result['marked'],'groups':result['groups']}
             print(json.dumps(result))
             return 2 if result.get('failed') else 0
         if args.command=='receipt-prepare':

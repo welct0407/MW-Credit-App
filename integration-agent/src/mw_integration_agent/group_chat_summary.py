@@ -643,13 +643,51 @@ def dry_run(config, api, master):
     return counts
 
 
-def run(config_path, catalogue_path, dry=False):
+def mark_all(config, api, master, db, now=None):
+    """R147 one-shot backfill: give every eligible group the marker, so the ordinary cycle summarises the messages already
+    in its window. Reads `id,participants` only (no message text), calls no model and posts nothing.
+
+    A group with subjects gets its state row (if it has none) and `changed_at` (if unset). A group already waiting keeps
+    its wait and its backoff: last_text_at, attempts and next_attempt_at are never touched. Counts only.
+    """
+    from .audit import activity
+    from .conversation_poll import pages
+    now = time.time() if now is None else now
+    counts = {'conversations': 0, 'small': 0, 'ambiguous': 0, 'incomplete': 0, 'groups': 0, 'marked': 0, 'already_due': 0}
+    with activity(config, 'group_chat_summary_mark_all', plan={'fields': 'id,participants'}):
+        for batch in pages(api, config['instagram_account_id'] + '/conversations', {'platform': 'instagram', 'fields': 'id,participants', 'limit': 100}):
+            for conversation in batch:
+                counts['conversations'] += 1
+                peers = conversation.get('participants', {}) if isinstance(conversation, dict) else {}
+                if peers.get('paging', {}).get('next'):
+                    # A paginated participant list cannot be resolved safely: skip this group only, as the poll does.
+                    counts['incomplete'] += 1
+                    continue
+                resolution = resolve(config, master, peers.get('data'))
+                if resolution['status'] != 'ok':
+                    counts[resolution['status']] += 1
+                    continue
+                if not resolution['subjects'] or not conversation.get('id'):
+                    continue
+                counts['groups'] += 1
+                with db:
+                    db.execute('INSERT OR IGNORE INTO group_chat_summary_state(conversation_id,subjects_sha256) VALUES (?,?)',
+                               (conversation['id'], resolution['digest']))
+                    marked = db.execute('UPDATE group_chat_summary_state SET changed_at=? WHERE conversation_id=? AND changed_at IS NULL',
+                                        (now, conversation['id'])).rowcount
+                counts['marked' if marked else 'already_due'] += 1
+    return counts
+
+
+def run(config_path, catalogue_path, dry=False, mark=False):
     import fcntl
     from .conversation_poll import READ_TIMEOUT
     from .instagram import Instagram
     from .receipt_journal import ReceiptJournal
     from .receipt_master import masters
     from .state import GROUP_CHAT_SUMMARY_STATE_SQLITE, is_postgres
+    if dry and mark:
+        raise ConfigurationError('GROUP_CHAT_SUMMARY_OPTIONS_EXCLUSIVE')
     config, catalogue = load_controls(config_path, catalogue_path)
     if dry:
         # Bypasses both switches: it reads participants and the borrower master, and writes nothing.
@@ -668,6 +706,9 @@ def run(config_path, catalogue_path, dry=False):
         try:
             if not is_postgres(journal.db):
                 journal.db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
+            if mark:
+                # R147: the same switches, lock and job fence as a run; it only sets markers for the next runs.
+                return mark_all(config, Instagram(config, read_timeout=READ_TIMEOUT), masters(config), journal.db)
             return cycle(config, Instagram(config, read_timeout=READ_TIMEOUT), lambda: masters(config), journal.db)
         finally:
             journal.close()
