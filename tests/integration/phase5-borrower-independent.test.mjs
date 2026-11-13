@@ -117,3 +117,35 @@ test('R120 before V135 (this V96 database) the record carries no referral rebate
  assert.equal(Object.hasOwn(item.details,'referralRebateRateEffective'),false);
  assert.equal(item.version,(await admin.query('SELECT public.pwa_borrower_version_v2($1) AS v',[item.id])).rows[0].v,'the Node mirror equals pwa_borrower_version_v2');
 });
+
+// R153 (V148): the borrower's Instagram group chat link through the Node borrower record path. This suite runs at V96, so the
+// column is added here with the exact V148 statement (column and check), used, and dropped again; the real V148 command
+// path (pwa_submit_operation_v2, pwa_borrower_version_v2 against the Node mirror) is covered in Test-RebateOffset.sql.
+// Invented links only.
+test('R153 the group chat link: absent before the column; with it a create, keep, change and clear round trip; bad links refused',async()=>{
+ const before=await create();assert.equal(Object.hasOwn(before,'igGroupUrl'),false,'before V148 the record carries no link');
+ assert.equal(before.version,(await admin.query('SELECT public.pwa_borrower_version_v2($1) AS v',[before.id])).rows[0].v,'the Node mirror equals pwa_borrower_version_v2 without the column');
+ await admin.query(`ALTER TABLE public."Borrowers" ADD COLUMN "IG Group URL" text,
+ ADD CONSTRAINT borrowers_ig_group_url_check CHECK ("IG Group URL" IS NULL OR "IG Group URL" ~ '^https://((www\\.)?instagram\\.com/direct/|ig\\.me/)[A-Za-z0-9._~%/?=&+-]{1,255}$')`);
+ try{
+  const link='https://www.instagram.com/direct/t/100000000000001/',other='https://ig.me/j/InventedLink01/';
+  const old=(await store.borrowerRecord(principal,before.id)).item;assert.equal(old.igGroupUrl,null,'an existing borrower reads null');assert.notEqual(old.version,before.version,'the column joins the version');
+  const f=fields(),id=randomUUID(),created=await store.borrowerRecord(principal,id,'create',{fields:{...f,igGroupUrl:link}});assert.equal(created.status,200,JSON.stringify(created));
+  assert.equal(created.item.igGroupUrl,link);assert.equal((await admin.query('SELECT "IG Group URL" AS u FROM "Borrowers" WHERE "Row ID"=$1',[id])).rows[0].u,link);
+  // An edit without the key (an earlier client) keeps the link and, with nothing changed, the version.
+  const kept=await store.borrowerRecord(principal,id,'edit',{expectedVersion:created.item.version,fields:f});assert.equal(kept.status,200,JSON.stringify(kept));
+  assert.equal(kept.item.igGroupUrl,link);assert.equal(kept.item.version,created.item.version);
+  const changed=await store.borrowerRecord(principal,id,'edit',{expectedVersion:kept.item.version,fields:{...f,igGroupUrl:other}});assert.equal(changed.status,200);assert.equal(changed.item.igGroupUrl,other);assert.notEqual(changed.item.version,kept.item.version);
+  const stale=await store.borrowerRecord(principal,id,'edit',{expectedVersion:kept.item.version,fields:{...f,igGroupUrl:null}});assert.equal(stale.status,409,'an edit on the version before the link change conflicts');
+  const original=await fingerprint(id);
+  for(const bad of ['http://www.instagram.com/direct/t/100000000000001/','https://www.example.invalid/direct/t/1/','https://user@www.instagram.com/direct/t/1/','','https://ig.me/'+'a'.repeat(256),1]){
+   const r=await store.borrowerRecord(principal,id,'edit',{expectedVersion:changed.item.version,fields:{...f,igGroupUrl:bad}});assert.equal(r.status,400,JSON.stringify(bad));
+  }
+  assert.deepEqual(await fingerprint(id),original,'refused links write nothing');
+  const cleared=await store.borrowerRecord(principal,id,'edit',{expectedVersion:changed.item.version,fields:{...f,igGroupUrl:null}});assert.equal(cleared.status,200);assert.equal(cleared.item.igGroupUrl,null);
+  const read=await store.borrowerRecord(principal,id);assert.equal(read.item.igGroupUrl,null);assert.equal(read.item.version,cleared.item.version);
+  // The column check refuses a bad value written directly.
+  await assert.rejects(admin.query('UPDATE "Borrowers" SET "IG Group URL"=$2 WHERE "Row ID"=$1',[id,'https://ig.me/']),error=>error.code==='23514');
+ }finally{await admin.query('ALTER TABLE public."Borrowers" DROP COLUMN IF EXISTS "IG Group URL"')}
+ const after=(await store.borrowerRecord(principal,before.id)).item;assert.equal(Object.hasOwn(after,'igGroupUrl'),false);assert.equal(after.version,before.version,'without the column the version is as before');
+});

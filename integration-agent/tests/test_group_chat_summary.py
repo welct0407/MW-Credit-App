@@ -534,7 +534,7 @@ class TokenInTextTests(Base):
         self.assertEqual(value['points'], [{'speaker': {'role': 'other'}, 'th': 'อื่น ๆ บอกว่าจะโอนพรุ่งนี้', 'en': 'Says Borrower will transfer tomorrow.'}])
         self.assertIsNone(re.search(r'(?:borrower|referrer|other|partner)_[0-9]', json.dumps(value, ensure_ascii=False)))
         self.assertIn('never write a token in the headline or in a point\'s text', summary.INSTRUCTIONS)
-        self.assertEqual(summary.PROMPT_VERSION, 3)
+        self.assertEqual(summary.PROMPT_VERSION, 4)
 
 
 class SelectionTests(Base):
@@ -752,6 +752,21 @@ class OutputValidationTests(Base):
         self.assertEqual(summary.validated({'relevant': True, 'headline': output['headline'], 'points': []}, self.ALLOWED)['points'], [])
         edge = {'relevant': True, 'headline': {'th': 'ก' * 160, 'en': 'x' * 160}, 'points': [{'speaker': 'partner', 'th': 'ข' * 200, 'en': 'y' * 200}] * 4}
         self.assertEqual(len(summary.validated(edge, self.ALLOWED)['points']), 4)
+        # R153: the prompt asks for shorter texts, but the 160 and 200 limits stay; one more character is still rejected.
+        self.assertEqual((summary.HEADLINE_LIMIT, summary.POINT_LIMIT), (160, 200))
+        for over in ({'headline': {'th': 'ก' * 161, 'en': 'x'}}, {'points': [{'speaker': 'partner', 'th': 'ข', 'en': 'y' * 201}]}):
+            with self.assertRaises(summary.SummaryFailed):
+                summary.validated({**edge, **over}, self.ALLOWED)
+
+    def test_prompt_version_4_asks_for_short_texts_in_time_order(self):
+        # R153 (owner, 13 November 2026): about 80 and 120 characters, the limits unchanged, the last point the latest topic.
+        for phrase in ('one short sentence of about 80 characters in each language and a point about 120',
+                       'never more than 160 for the headline and 200 for a point',
+                       'Thai vowel and tone marks each count as a character',
+                       'Order the points oldest first; the last point is the most recent topic.'):
+            self.assertIn(phrase, summary.INSTRUCTIONS)
+        self.assertNotIn('The headline is at most 160 characters', summary.INSTRUCTIONS)
+        self.assertEqual(summary.PROMPT_VERSION, 4)
         self.assertTrue(summary.clean_text('โอนแล้ว 2,000 บาท เมื่อวันที่ 12-11-2026', 200))  # short figures and a date pass
 
     def test_bad_shapes_speakers_and_content_are_rejected(self):
@@ -855,14 +870,15 @@ class OutputValidationTests(Base):
         self.assertEqual((stored['borrowerIds'], stored['sourceSha256'], stored['summary']['headline']), (['B-A'], value['sourceSha256'], self.reply()['headline']))
         self.assertNotIn('relevant', json.dumps(stored))
 
-    def test_prompt_version_3_changes_every_source_digest(self):
+    def test_prompt_version_4_changes_every_source_digest(self):
         resolution = summary.resolve(self.config, self.master, self.members)
         found = [(message('m1', '20', 20, PROMISE), self.now - 1200)]
         rows = summary.window(self.config, resolution, found)
         current = summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5')
-        self.assertEqual(summary.PROMPT_VERSION, 3)  # R152: the model is told not to write tokens in the text
-        with patch.object(summary, 'PROMPT_VERSION', 2):
-            self.assertNotEqual(summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5'), current)
+        self.assertEqual(summary.PROMPT_VERSION, 4)  # R153: shorter target lengths, points oldest first
+        for earlier in (2, 3):
+            with patch.object(summary, 'PROMPT_VERSION', earlier):
+                self.assertNotEqual(summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5'), current)
         self.assertEqual(summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5'), current)
         # The schema asks for the flag; the instructions say when to set it.
         self.assertEqual(summary.SCHEMA['required'], ['relevant', 'headline', 'points'])

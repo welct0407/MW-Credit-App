@@ -56,3 +56,30 @@ test('R120 borrower referral rebate terms: optional whole numbers after aiCollec
   {referralRebateCap:0},{referralRebateCap:'1000'},{referralRebateCap:1.5},{referralRebateCap:1e12},{referralRebateCap:-5}])
   assert.throws(()=>canonicalOperation({...command,inputs:{...fields,...bad}}),/invalid_request/,JSON.stringify(bad));
 });
+
+// R153 (V148): the borrower's Instagram group chat link. Invented thread ids and links only.
+test('R153 borrower igGroupUrl: optional, canonical last, absent stays absent, the link rule shared with SQL and the PWA',async()=>{
+ const legacy=canonicalOperation(command);assert.equal(Object.hasOwn(legacy.inputs,'igGroupUrl'),false,'absent stays absent');
+ assert.equal(JSON.parse(operationIdentity(command,actor).canonicalJson).command.inputs.igGroupUrl,undefined);
+ const good=['https://www.instagram.com/direct/t/100000000000001/','https://instagram.com/direct/t/100000000000001','https://ig.me/j/InventedLink01/','https://www.instagram.com/direct/t/1?ref=x&y=1~2%20','https://ig.me/'+'a'.repeat(255)];
+ for(const url of [...good,null]){
+  const inputs={igGroupUrl:url,referralRebateCap:150,...fields,aiCollectionEnabled:true,referralRebateRate:5},canonical=canonicalOperation({...command,inputs});
+  assert.deepEqual(Object.keys(canonical.inputs).slice(-4),['aiCollectionEnabled','referralRebateRate','referralRebateCap','igGroupUrl'],'the SQL order: after referralRebateCap');
+  assert.equal(canonical.inputs.igGroupUrl,url);
+  assert.ok(operationIdentity({...command,inputs},actor).canonicalJson.endsWith('"referralRebateCap":150,"igGroupUrl":'+JSON.stringify(url)+'}},"receipt":null}'),String(url));
+ }
+ // Alone after note, as the PWA sends it on a record without the other optional keys.
+ assert.deepEqual(Object.keys(canonicalOperation({...command,inputs:{igGroupUrl:good[0],...fields}}).inputs).slice(-2),['note','igGroupUrl']);
+ const bad=['http://www.instagram.com/direct/t/100000000000001/','https://www.example.invalid/direct/t/1/','https://user@www.instagram.com/direct/t/1/','https://www.instagram.com.example.invalid/direct/t/1/',
+  'https://www.instagram.com/invented_user/','https://www.instagram.com/direct/t/1 2/','https://www.instagram.com/direct/t/1#x','https://ig.me/'+'a'.repeat(256),'https://ig.me/','',' https://ig.me/j/InventedLink01/',
+  'https://ig.me/j/InventedLink01/\n','HTTPS://ig.me/j/InventedLink01/','https://m.instagram.com/direct/t/1/',1,true,{},['https://ig.me/j/InventedLink01/']];
+ for(const url of bad)assert.throws(()=>canonicalOperation({...command,inputs:{...fields,igGroupUrl:url}}),/invalid_request/,JSON.stringify(url));
+ // One rule: the services' pattern, the PWA's and the SQL text in V148 (column check and command) are the same.
+ const {IG_GROUP_URL_PATTERN}=await import('../../services/api/collection-read-contract.mjs');const pwa=await import('../../apps/pwa/src/ig-group-url.ts');
+ assert.equal(pwa.IG_GROUP_URL_PATTERN.source,IG_GROUP_URL_PATTERN.source);assert.equal(IG_GROUP_URL_PATTERN.flags,'');assert.equal(pwa.IG_GROUP_URL_PATTERN.flags,'');
+ const {readFileSync}=await import('node:fs'),migration=readFileSync(new URL('../../database/migrations/V148__borrower_ig_group_url.sql',import.meta.url),'utf8');
+ const sqlRule=IG_GROUP_URL_PATTERN.source.replaceAll('\\/','/');
+ assert.equal(migration.split("'"+sqlRule+"'").length-1,10,'the column check, the command and the eight self-check probes use the same text');
+ // The PWA form value: trimmed, blank is null, undefined stays absent, anything else must match.
+ assert.deepEqual([undefined,null,'','   ',' '+good[0]+' ','x'].map(pwa.igGroupUrlValue),[{ok:true,value:undefined},{ok:true,value:null},{ok:true,value:null},{ok:true,value:null},{ok:true,value:good[0]},{ok:false}]);
+});

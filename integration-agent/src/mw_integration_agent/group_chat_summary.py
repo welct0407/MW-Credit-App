@@ -34,7 +34,10 @@ REQUEST_SALT = 'mw-credit-agent-group-summary-v1'
 # 2 (R148): the output carries `relevant`; a window with nothing collection-relevant shows no card. A new version changes
 # every source digest, so each group is summarised again once after the deploy instead of answering unchanged.
 # 3 (R152): the model is told never to write a speaker token in the headline or point text.
-PROMPT_VERSION = 3
+# 4 (R153): shorter target lengths (a headline of about 80 characters, a point of about 120; the 160 and 200 limits and the
+# schema are unchanged) and the points in time order, oldest first, so the last point is the most recent topic (the PWA
+# card shows it in bold).
+PROMPT_VERSION = 4
 WINDOW_SECONDS = 3 * 86400
 MAX_MESSAGES = 100
 QUIET_SECONDS = 600
@@ -88,7 +91,8 @@ The partner's daily amount reminder, payment slips and confirmation ticks are ba
 A referrer chasing or vouching for the borrower, and a ping left unanswered, matter for collection.
 Quote amounts exactly as the speaker wrote them. Never add, subtract or correct figures.
 Never include phone numbers, bank account numbers, usernames or pings. The speaker tokens (borrower_1, referrer_1, other_1 and the like) belong only in "speaker": never write a token in the headline or in a point's text. Refer to people in plain words by their role instead (the borrower, the referrer, the partner, another person). Ignore jokes, insults and banter, and keep the wording neutral.
-Write natural Thai in "th" and plain English in "en", with the same meaning. The headline is at most 160 characters in each language and a point at most 200. No markdown, no line breaks, no URLs.
+Write natural Thai in "th" and plain English in "en", with the same meaning. Keep it short: the headline is one short sentence of about 80 characters in each language and a point about 120; never more than 160 for the headline and 200 for a point. Thai vowel and tone marks each count as a character. No markdown, no line breaks, no URLs.
+Order the points oldest first; the last point is the most recent topic.
 Set "relevant" to true when the transcript holds something a collection officer needs: a promise to pay, a delay or its reason, a request, a dispute, where the borrower is or whether they can be reached (for example a borrower saying their phone or account is unavailable), a ping or question left unanswered, reminders repeated with no reply, or the borrower not answering, or a referrer chasing or vouching. Then write the headline and points as described.
 Set "relevant" to false when it holds nothing of that kind, for example only group setup, names, rules, greetings, a routine reminder answered as usual, or images. Then leave the headline texts empty and return no points; nothing is shown for that group.'''
 
