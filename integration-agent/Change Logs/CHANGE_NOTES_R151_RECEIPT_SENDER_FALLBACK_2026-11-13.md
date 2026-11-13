@@ -12,7 +12,13 @@ Design (Archie, accepted):
 
 ## Changes
 As built.
-- `integration-agent/src/` (Byte): to be filled from Byte's report.
+- `src/mw_integration_agent/` (Byte, commit `ca844f2`): `conversation_poll.py`, `receipt_identity.py`, `receipt_rules.py`, `receipt_run.py`, `receipt_hold.py`, `review_cycle.py`, `review_resend.py`, `partner_review.py` and `cli.py`, with five test files.
+- `poll-reprocess --conversation-id ID [--message-id-suffix S]` takes `conversation-poll.lock` without waiting, reads from yesterday 00:00 Bangkok and requires exactly one `IGNORED` row match. It is idempotent and prints counts only; it exits 2 when the lock is busy or the suffix matches no row or several. The R119 `recheck_ignored` shares its core.
+- `UNIDENTIFIED` jobs are created only from `payer_name_cutoff` onward.
+- Sender note "Sender is not a known borrower; borrower matched by the payer name on the slip." appears after the Borrower line in the standard request, after the options block and before "Transferred" in the options request, and in the loan-close request.
+- The `PAYER_NAME_OTHER_BORROWER` hold lists the group's borrower first, then the slip-named one, with no nickname tip; unknown-sender `PAYER_UNRESOLVED` and `PAYER_NAME_UNREADABLE` holds omit the nickname tip.
+- Byte fixed a shadowed variable in the poll's cursor-advance input; behaviour differs only for re-read C4 messages.
+- Same R151 agent deploy: the group chat summary diagnostics change of PR #311 has its [own note](CHANGE_NOTES_R151_GROUP_CHAT_SUMMARY_DIAGNOSTICS_2026-11-13.md); its sections are not repeated here.
 - PROD after the merge (Forge): the agent deploy, then `poll-reprocess` for the one recorded receipt; owner authority: the request quoted above, relayed by the orchestrator as the scoped PROD approval. See the PROD promotion record.
 - Documents (Dewey): `integration-agent/SERVICE_CATALOGUE.md` (the `partner_receipt_review` and `conversation_poll` rows; no new revision header, see below), `integration-agent/docs/CONVERSATION_POLL.md`, `integration-agent/docs/PARTNER_REVIEW.md`, `integration-agent/docs/RECEIPTS.md`, `integration-agent/docs/OPERATIONS.md`, `project/Documents/Solution_Design.md`, `project/Documents/Release_Tracker.md` and this note.
 - Catalogue decision: revisions 34 to 37 each added a header because a service, switch or deploy-helper acceptance changed. This change adds none of these and, like R095 and R148, records its behaviour in the two service rows without a revision; `service-catalogue.json` stays at revision 38.
@@ -21,10 +27,11 @@ As built.
 ## Checks
 | Command | Result |
 | --- | --- |
-| Byte's agent unittests | |
-| Byte's `ruff` | |
+| Byte's `ruff` 0.16.8 | Pass (on `ca844f2`, clean tree) |
+| Byte's focused unittest (`test_conversation_poll test_payer_resolution test_receipt_identity test_review_cycle test_cli`) | 178 OK |
+| Byte's full `python -m unittest discover -s tests` | 965 OK, 74 skipped (lab suites) |
 | Echo's tests | |
-| Chase's review | |
+| Chase's review | To come |
 | `npm run check:docs` (Dewey) | |
 | CI on the pull request | |
 | PROD verification | See the PROD promotion record |
