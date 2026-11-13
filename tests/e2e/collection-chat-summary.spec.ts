@@ -1,4 +1,4 @@
-import {chooseLanguage} from './live-controls';
+import {chooseLanguage,chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
 import {test,expect,type Page} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 // R146 group chat summary: the collection detail card and the list mark, on a mocked read API. Invented text only.
@@ -151,4 +151,52 @@ test('a newer summary relights the mark; with the seen storage blocked there are
  await tile(page,'chat-a').click();await expect(card(page).locator('.collection-chat-headline')).toBeVisible();await expect(card(page).locator('.collection-chat-meta').first()).toHaveText('Updated 14:32 · last 3 days');
  if(!desktop)await back(page);
  await expect(page.locator('.collection-chat-mark')).toHaveCount(0);expect(errors).toEqual([]);
+});
+
+// R148 (PROD defect, owner account): with owner testing on, the borrower note renders next to the card. Both were keyed by
+// the borrower id as siblings, so React kept the previous borrower's card mounted on every navigation and the cards
+// stacked up. The partner (no owner testing, the tests above) was unaffected. This runs the owner shell.
+test.describe('owner testing shell',()=>{
+ let owner:ChildProcess,ownerBase:string;
+ test.beforeAll(async({},info)=>{
+  const port=5650+info.workerIndex;ownerBase=`http://127.0.0.1:${port}`;
+  owner=spawn(process.execPath,['--input-type=module','-e',`import {createServer} from 'vite';const s=await createServer({mode:'live-dev',cacheDir:'node_modules/.cache/playwright-live-${port}-${Date.now()}',server:{host:'127.0.0.1',port:${port},strictPort:true}});await s.listen();`],{env:{...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-test-key',VITE_FIREBASE_APP_ID:'synthetic-app-id',VITE_API_ORIGIN:'https://mw-credit-app-read-dev-test.run.app',VITE_COMMAND_API_ORIGIN:'https://mw-credit-app-command-dev-test.run.app',VITE_COMMAND_MODE:'dev-owner-testing'},stdio:'pipe'});
+  await expect.poll(async()=>{try{return(await fetch(ownerBase)).status}catch{return 0}},{timeout:20000}).toBe(200);
+ });
+ test.afterAll(()=>owner?.kill());
+ test('one card per borrower with that borrower\'s own summary; none stays from the borrower opened before; no duplicate React keys',async({page},info)=>{
+  const desktop=info.project.name.startsWith('desktop');if(desktop)await page.setViewportSize({width:1440,height:900});
+  const consoleText:string[]=[];page.on('console',message=>consoleText.push(message.text()));page.on('pageerror',error=>consoleText.push(error.message));
+  await page.clock.setFixedTime(new Date(NOW));
+  const ownerAuth=`let listener;const user={uid:'chat-summary-owner',getIdToken:async()=>'synthetic-bearer'};export const browserLocalPersistence='local',inMemoryPersistence='memory',browserPopupRedirectResolver={};export function initializeAuth(){return {}};export function onAuthStateChanged(a,fn){listener=fn;fn(null);return()=>{}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){listener(user)};export async function signOut(){listener(null)};`;
+  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:ownerAuth}));
+  const json=(r:import('@playwright/test').Route,body:unknown)=>r.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(body)}).catch(()=>{});
+  await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{const u=new URL(r.request().url());
+   if(u.pathname==='/api/collection')return json(r,{...envelope,items:board,nextCursor:null});
+   const charges=/^\/api\/collection\/([^/]+)\/charges$/.exec(u.pathname);
+   if(charges){const id=decodeURIComponent(charges[1]);return json(r,{...envelope,borrower:board.find(row=>row.id===id),items:[{id:'charge-'+id,loanId:'loan-'+id,loanDisplayKey:'Synthetic loan',chargeDate:'2026-11-12',paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'1200',totalPaid:'0',receivedToday:'0'}],nextCursor:null,groupChat:summaries[id]??null});}
+   return json(r,{...envelope,horizonEnd:'2027-02-12',reviewRequired:false,items:[]});});
+  // The command service: the borrower record the note reads, and empty answers for everything else the owner shell asks.
+  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{const u=new URL(r.request().url()),record=/^\/api\/borrower-records\/([^/]+)$/.exec(u.pathname);
+   if(r.request().method()==='OPTIONS')return r.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'*'}}).catch(()=>{});
+   if(record){const id=decodeURIComponent(record[1]);return json(r,{...envelope,item:{id,version:'v-'+id,name:id,description:null,communicationName:null,instagramUsername:null,city:null,workingLocation:null,address:null,hidden:false,referrerId:null,preferredReceivingAccountId:null,note:'Synthetic note for '+id}});}
+   return json(r,{...envelope,items:[],nextCursor:null,months:[],item:null});});
+  await routeSyntheticPreferences(page);await page.route('https://mw-credit-app-command-dev-test.run.app/api/dashboard',r=>json(r,{collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]}));
+  await page.goto(ownerBase);await page.getByRole('button',{name:/Google/}).click();await chooseLanguagePreservingForm(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();
+  await expect(page.locator('.collection-compact-tile')).toHaveCount(6);
+  const visit=async(id:string,headline:string|null)=>{
+   await tile(page,id).click();await expect(page.locator('.collection-charge')).toHaveCount(1);
+   // Owner testing is on: the note is there, right below where the card goes.
+   await expect(page.locator('.collection-note')).toHaveCount(1);
+   if(headline===null)await expect(card(page)).toHaveCount(0);
+   else{await expect(card(page).locator('.collection-chat-headline')).toHaveText(headline);await expect(card(page)).toHaveCount(1);await expect(page.getByRole('heading',{level:3,name:'Group chat summary'})).toHaveCount(1)}
+   if(!desktop)await back(page);
+  };
+  await visit('chat-a','Borrower asks to pay 2,000 on Friday instead of today; partner agreed.');
+  await visit('chat-b','Borrower asked to pay on Friday.');
+  await visit('chat-d','มีเฉพาะภาษาไทยในหัวข้อนี้');
+  await visit('chat-c',null);
+  await visit('chat-a','Borrower asks to pay 2,000 on Friday instead of today; partner agreed.');
+  expect(consoleText.filter(text=>/two children with the same key|same key/i.test(text))).toEqual([]);
+ });
 });

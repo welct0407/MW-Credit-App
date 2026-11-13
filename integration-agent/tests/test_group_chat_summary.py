@@ -85,7 +85,7 @@ class Base(unittest.TestCase):
         self.db.commit()
 
     def reply(self, speaker='borrower_1', partner=True):
-        return {'headline': {'th': 'ผู้กู้ขอเลื่อนจ่ายเป็นวันศุกร์ หุ้นส่วนตกลง', 'en': 'Borrower asks to pay on Friday; partner agreed.'},
+        return {'relevant': True, 'headline': {'th': 'ผู้กู้ขอเลื่อนจ่ายเป็นวันศุกร์ หุ้นส่วนตกลง', 'en': 'Borrower asks to pay on Friday; partner agreed.'},
                 'points': [{'speaker': speaker, 'th': 'เงินเดือนออกช้า จะโอนวันศุกร์', 'en': 'Salary is late, will transfer on Friday.'},
                            {'speaker': 'partner', 'th': 'ตกลง และเตือนเรื่องค่าปรับ', 'en': 'Agreed, and reminded that the late charge keeps running.'}][:2 if partner else 1]}
 
@@ -478,16 +478,20 @@ class OutputValidationTests(Base):
 
     def test_valid_output_passes_and_is_copied_field_by_field(self):
         output = self.reply()
-        self.assertEqual(summary.validated(output, self.ALLOWED), output)
-        self.assertEqual(summary.validated({'headline': output['headline'], 'points': []}, self.ALLOWED)['points'], [])
-        edge = {'headline': {'th': 'ก' * 160, 'en': 'x' * 160}, 'points': [{'speaker': 'partner', 'th': 'ข' * 200, 'en': 'y' * 200}] * 4}
+        self.assertEqual(summary.validated(output, self.ALLOWED), {'headline': output['headline'], 'points': output['points']})
+        self.assertEqual(summary.validated({'relevant': True, 'headline': output['headline'], 'points': []}, self.ALLOWED)['points'], [])
+        edge = {'relevant': True, 'headline': {'th': 'ก' * 160, 'en': 'x' * 160}, 'points': [{'speaker': 'partner', 'th': 'ข' * 200, 'en': 'y' * 200}] * 4}
         self.assertEqual(len(summary.validated(edge, self.ALLOWED)['points']), 4)
         self.assertTrue(summary.clean_text('โอนแล้ว 2,000 บาท เมื่อวันที่ 12-11-2026', 200))  # short figures and a date pass
 
     def test_bad_shapes_speakers_and_content_are_rejected(self):
         good = self.reply()
         point = good['points'][0]
-        bad = [None, [], 'text', {}, {'headline': good['headline']}, dict(good, extra=1),
+        # R148: `relevant` is required and a real boolean; without it, or with anything else, the output is invalid.
+        missing = {k: v for k, v in good.items() if k != 'relevant'}
+        bad = [None, [], 'text', {}, {'headline': good['headline']}, dict(good, extra=1), missing,
+               dict(good, relevant='true'), dict(good, relevant=1), dict(good, relevant=0), dict(good, relevant=None), dict(good, relevant='false'),
+               {'relevant': False}, {'relevant': False, 'headline': good['headline']}, {'relevant': False, 'headline': good['headline'], 'points': [], 'extra': 1},
                dict(good, headline={'th': 'x'}), dict(good, headline={'th': 'x', 'en': 'y', 'fr': 'z'}), dict(good, headline={'th': '', 'en': 'y'}),
                dict(good, headline={'th': '   ', 'en': 'y'}), dict(good, headline={'th': 'ก' * 161, 'en': 'y'}), dict(good, headline={'th': 1, 'en': 'y'}),
                dict(good, headline='text'), dict(good, points='text'), dict(good, points=[point] * 5), dict(good, points=[dict(point, extra=1)]),
@@ -505,6 +509,62 @@ class OutputValidationTests(Base):
             with self.subTest(output=json.dumps(output, ensure_ascii=False)[:80]), self.assertRaises(summary.SummaryFailed) as raised:
                 summary.validated(output, self.ALLOWED)
             self.assertEqual(raised.exception.code, 'MODEL_OUTPUT_INVALID')
+
+    def test_not_relevant_is_accepted_whatever_the_headline_and_points_hold(self):
+        # R148: relevant=false means no card; the rest of the reply is not looked at (it is never stored or posted).
+        for rest in ({'headline': {'th': '', 'en': ''}, 'points': []}, {'headline': {}, 'points': None},
+                     {'headline': {'th': 'ไม่มีอะไรที่ต้องติดตาม', 'en': 'Nothing a collection officer needs. ' + MODEL_SENTINEL}, 'points': [{'speaker': 'owner', 'th': '@x 0123456789', 'en': ''}]}):
+            with self.subTest(rest=json.dumps(rest, ensure_ascii=False)[:60]):
+                self.assertIsNone(summary.validated({'relevant': False, **rest}, self.ALLOWED))
+
+    def test_a_window_with_nothing_collection_relevant_prunes_the_group_and_stores_no_summary(self):
+        self.mark()
+        chat = [message('m1', '10', 300, 'ยินดีต้อนรับเข้ากลุ่มนะคะ กลุ่มนี้ใช้แจ้งยอดประจำวัน'), message('m2', '20', 290, 'สวัสดีค่ะ ชื่อเล่นว่าอ้อมนะคะ'),
+                message('m3', '10', 280, 'กติกาคือโอนก่อนหกโมงเย็นแล้วส่งสลิปในกลุ่มนี้ค่ะ'), message('m4', '20', 270, image=True)]
+        reply = {'relevant': False, 'headline': {'th': '', 'en': 'Nothing a collection officer needs. ' + MODEL_SENTINEL}, 'points': []}
+        api = self.api(conversation('g1', self.members, chat))
+        result = self.run_cycle(api, model=reply, post='cleared')
+        self.assertEqual(self.model.call_count, 1)  # substantive text: the model is asked, and answers that nothing matters
+        value = self.post.call_args.args[1]
+        self.assertEqual((value['borrowerIds'], value['summary'], value['conversationKey']), ([], None, summary.conversation_key('g1')))
+        self.assertNotIn(MODEL_SENTINEL, json.dumps(value, ensure_ascii=False))
+        self.assertEqual((result['summarised'], result['failed'], result['outcomes']), (1, 0, {'stored': 0, 'unchanged': 0, 'superseded': 0, 'cleared': 1}))
+        self.assertEqual(set(result), {'status', 'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors'})  # counts only
+        state = self.state()
+        self.assertEqual((state['changed_at'], state['summarised_source_sha256'], state['summarised_at'], state['attempts'], state['last_error']),
+                         (None, value['sourceSha256'], self.now, 0, None))
+        self.assertEqual(value['requestId'], uuid_from_sha256(['mw-credit-agent-group-summary-v1', 'prod', value['conversationKey'], value['sourceSha256']]))
+        # The same window answered relevant=true stores a summary as before, under the same source digest.
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=?', (self.now - 700,))
+        self.db.commit()
+        self.run_cycle(api, model=self.reply())
+        stored = self.post.call_args.args[1]
+        self.assertEqual((stored['borrowerIds'], stored['sourceSha256'], stored['summary']['headline']), (['B-A'], value['sourceSha256'], self.reply()['headline']))
+        self.assertNotIn('relevant', json.dumps(stored))
+
+    def test_prompt_version_2_changes_every_source_digest(self):
+        resolution = summary.resolve(self.config, self.master, self.members)
+        found = [(message('m1', '20', 20, PROMISE), self.now - 1200)]
+        rows = summary.window(self.config, resolution, found)
+        current = summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5')
+        self.assertEqual(summary.PROMPT_VERSION, 2)
+        with patch.object(summary, 'PROMPT_VERSION', 1):
+            self.assertNotEqual(summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5'), current)
+        self.assertEqual(summary.source_sha256(rows, ['B-A'], 'claude-opus-5-5'), current)
+        # The schema asks for the flag; the instructions say when to set it.
+        self.assertEqual(summary.SCHEMA['required'], ['relevant', 'headline', 'points'])
+        self.assertEqual(summary.SCHEMA['properties']['relevant'], {'type': 'boolean'})
+        for phrase in ('Set "relevant" to true', 'Set "relevant" to false', 'nothing is shown for that group'):
+            self.assertIn(phrase, summary.INSTRUCTIONS)
+        self.assertNotIn('say so in the headline', summary.INSTRUCTIONS)
+        # Silence is collection-relevant: the true list names repeated reminders with no reply and contactability; only a
+        # reminder answered as usual is an example of nothing relevant.
+        true_rule = summary.INSTRUCTIONS[summary.INSTRUCTIONS.index('Set "relevant" to true'):summary.INSTRUCTIONS.index('Set "relevant" to false')]
+        false_rule = summary.INSTRUCTIONS[summary.INSTRUCTIONS.index('Set "relevant" to false'):]
+        for phrase in ('reminders repeated with no reply, or the borrower not answering', 'whether they can be reached', 'phone or account is unavailable'):
+            self.assertIn(phrase, true_rule)
+        self.assertIn('a routine reminder answered as usual', false_rule)
+        self.assertNotIn('routine reminders', false_rule)
 
     def test_a_model_reply_that_echoes_an_account_number_is_a_failed_run(self):
         self.mark()

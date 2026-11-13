@@ -30,7 +30,9 @@ SERVICE = 'group_chat_summary'
 ROUTE = 'group-chat-summaries'
 ENVIRONMENT = 'prod'  # the only federation rule and command environment this service uses
 REQUEST_SALT = 'mw-credit-agent-group-summary-v1'
-PROMPT_VERSION = 1
+# 2 (R148): the output carries `relevant`; a window with nothing collection-relevant shows no card. A new version changes
+# every source digest, so each group is summarised again once after the deploy instead of answering unchanged.
+PROMPT_VERSION = 2
 WINDOW_SECONDS = 3 * 86400
 MAX_MESSAGES = 100
 QUIET_SECONDS = 600
@@ -60,8 +62,9 @@ MENTION = re.compile(r'[@＠]([A-Za-z0-9._]*[A-Za-z0-9_])')
 DIGIT_RUN = re.compile(r'\d(?:[\s\-‐-―]*\d){8,}')
 
 SCHEMA = {
-    'type': 'object', 'additionalProperties': False, 'required': ['headline', 'points'],
+    'type': 'object', 'additionalProperties': False, 'required': ['relevant', 'headline', 'points'],
     'properties': {
+        'relevant': {'type': 'boolean'},
         'headline': {'type': 'object', 'additionalProperties': False, 'required': ['th', 'en'],
                      'properties': {'th': {'type': 'string'}, 'en': {'type': 'string'}}},
         'points': {'type': 'array', 'items': {
@@ -81,7 +84,8 @@ A referrer chasing or vouching for the borrower, and a ping left unanswered, mat
 Quote amounts exactly as the speaker wrote them. Never add, subtract or correct figures.
 Never include phone numbers, bank account numbers, usernames or pings. Ignore jokes, insults and banter, and keep the wording neutral.
 Write natural Thai in "th" and plain English in "en", with the same meaning. The headline is at most 160 characters in each language and a point at most 200. No markdown, no line breaks, no URLs.
-If the transcript holds nothing a collection officer needs, say so in the headline and return no points.'''
+Set "relevant" to true when the transcript holds something a collection officer needs: a promise to pay, a delay or its reason, a request, a dispute, where the borrower is or whether they can be reached (for example a borrower saying their phone or account is unavailable), a ping or question left unanswered, reminders repeated with no reply, or the borrower not answering, or a referrer chasing or vouching. Then write the headline and points as described.
+Set "relevant" to false when it holds nothing of that kind, for example only group setup, names, rules, greetings, a routine reminder answered as usual, or images. Then leave the headline texts empty and return no points; nothing is shown for that group.'''
 
 
 class SummaryFailed(Exception):
@@ -450,11 +454,14 @@ def clean_text(value, limit):
 
 
 def validated(output, allowed):
-    """The model output as {'headline': {th,en}, 'points': [{speaker,th,en}]}, or SummaryFailed('MODEL_OUTPUT_INVALID').
-    `allowed` is the set of tokens that appeared in the transcript."""
+    """The model output as {'headline': {th,en}, 'points': [{speaker,th,en}]}, None when the model answered that nothing
+    in the window is collection-relevant (relevant=false: no card; headline and points are then not looked at), or
+    SummaryFailed('MODEL_OUTPUT_INVALID'). `allowed` is the set of tokens that appeared in the transcript."""
     bad = SummaryFailed('MODEL_OUTPUT_INVALID')
-    if not isinstance(output, dict) or set(output) != {'headline', 'points'}:
+    if not isinstance(output, dict) or set(output) != {'relevant', 'headline', 'points'} or type(output['relevant']) is not bool:
         raise bad
+    if output['relevant'] is False:
+        return None
     headline, points = output['headline'], output['points']
     if not isinstance(headline, dict) or set(headline) != {'th', 'en'} or not all(clean_text(headline[k], HEADLINE_LIMIT) for k in ('th', 'en')):
         raise bad
@@ -578,6 +585,10 @@ def summarise_group(config, api, master, conversation, now, model_call, post_cal
     plan = {'conversationKey': key, 'sourceSha256': digest, 'model': model_id, 'messages': len(rows), 'subjects': len(subjects)}
     with activity(config, 'group_chat_summary_model', plan=plan):
         output = validated(model_call(config, text), transcript_tokens(rows, resolution))
+    if output is None:
+        # R148: nothing collection-relevant in the window, so this group shows no card: the same prune command as a group
+        # without subjects (its rows go, nothing is stored). The digest is kept, so the marker clears as after any run.
+        return post_call(config, command(key, [], digest)), digest, resolution['digest']
     value = command(key, subjects, digest, summary_value(rows, resolution, output, since, now, model_id))
     return post_call(config, value), digest, resolution['digest']
 
