@@ -1268,10 +1268,14 @@ button, .filters select { min-height: 44px; }
 .collection-chat-summary .collection-chat-points li{display:flex;align-items:flex-start;gap:8px;line-height:1.4}
 .collection-chat-summary .expense-payee-tag{flex:0 0 auto;font-size:12px;font-weight:600;color:#565656;border:1px solid #c8cdd2;border-radius:10px;padding:1px 8px;margin-top:1px;white-space:nowrap}
 .collection-chat-summary .collection-chat-points .expense-payee-tag{font-size:13px;padding:2px 8px}
-.collection-chat-summary .collection-chat-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-height:44px}
-.collection-chat-summary .collection-chat-foot .collection-chat-meta{flex:1 1 auto;min-width:0;margin:0}
+/* R150 (owner, 13 November 2026): one colour per speaker role on the point tags and on the role in the last-message line.
+   Tune the six values here; each is at least 4.5:1 on the white panel and none is a payment-status colour (#c62828,
+   #a05000/#b85c00, #7b1fa2, #37474f, #237b39). The label always accompanies the colour. The app has a light theme only. */
+.collection-chat-summary{--chat-role-borrower:#1d5fa8;--chat-role-other-borrower:#4a4fb0;--chat-role-partner:#6a6200;--chat-role-referrer:#a3336f;--chat-role-business:#0b6b7a;--chat-role-other:#666666}
+.chat-role-borrower{--chat-role:var(--chat-role-borrower)}.chat-role-other-borrower{--chat-role:var(--chat-role-other-borrower)}.chat-role-partner{--chat-role:var(--chat-role-partner)}.chat-role-referrer{--chat-role:var(--chat-role-referrer)}.chat-role-business{--chat-role:var(--chat-role-business)}.chat-role-other{--chat-role:var(--chat-role-other)}
+.collection-chat-summary .chat-role{color:var(--chat-role)}.collection-chat-summary .expense-payee-tag.chat-role{border-color:var(--chat-role)}
+.collection-chat-summary .collection-chat-last-role{font-weight:600}
 .collection-chat-name-end{white-space:nowrap}
 .collection-chat-summary .collection-chat-text{min-width:0}
-.collection-chat-summary .collection-chat-toggle{flex:0 0 auto;border:0;background:none;padding:0;text-align:left;color:inherit;min-height:44px;font:inherit;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
 .collection-chat-summary.stale .collection-chat-headline,.collection-chat-summary.stale .collection-chat-text{color:#555}
 .person .collection-chat-mark{width:16px;height:16px;margin-left:6px;vertical-align:-2px;color:#555}
