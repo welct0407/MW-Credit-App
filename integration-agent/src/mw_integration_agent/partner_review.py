@@ -271,7 +271,22 @@ def rebate_lines(offset,payable,referrer,thai):
     return lines
 
 
-def close_request_text(proposal,thai):
+# R151 (Echo UX-R151-3): the request line for a slip whose sender is no known borrower (the payer name chose the borrower).
+SENDER_NOTE=('Sender is not a known borrower; borrower matched by the payer name on the slip.','ผู้ส่งไม่ใช่ผู้กู้ที่รู้จัก ระบบระบุผู้กู้จากชื่อผู้โอนในสลิป')
+
+
+def unidentified_review(db,job_id):
+    """True when the review's receipt job carries the R151 unidentified-sender provenance."""
+    import sqlite3
+    from .receipt_identity import provenance
+    try:row=db.execute('SELECT result FROM receipt_jobs WHERE id=?',(job_id,)).fetchone()
+    except sqlite3.OperationalError as exc:
+        if 'no such table' in str(exc):return False  # copy only: a journal without jobs has no such receipt
+        raise
+    return bool(row) and provenance(row).get('unidentified_sender') is True
+
+
+def close_request_text(proposal,thai,unidentified=False):
     """R128 (Echo AG-13..AG-17): the close approval request; the approval words are the usual ones (AG-16)."""
     from decimal import Decimal
     receipt=proposal['receipt'];close=proposal['close'];borrower=proposal['borrower']
@@ -284,13 +299,13 @@ def close_request_text(proposal,thai):
         rebate=rebate_lines(covered,total-covered,close.get('referrer'),thai)
     if thai:
         subject='ขออนุมัติปิดสัญญา'
-        lines=[subject,f'ผู้กู้: {name}',f"ยอด: {receipt['amount']} บาท",f"เวลาโอน: {receipt['date']} {receipt['time'][:5]}",f"บัญชีรับ: {receipt['account_label']}"]
+        lines=[subject,f'ผู้กู้: {name}',*([SENDER_NOTE[1]] if unidentified else []),f"ยอด: {receipt['amount']} บาท",f"เวลาโอน: {receipt['date']} {receipt['time'][:5]}",f"บัญชีรับ: {receipt['account_label']}"]
         lines+=[f'สัญญา: {keys}'] if keys else []
         lines+=[close_amount_line(close,True)]+rebate+['รายการที่เสนอ: ปิดสัญญา ระบบจะบันทึกการปิดให้',
                'กรุณาใช้ Reply ตอบข้อความนี้ว่า อนุมัติ เพื่อปิดสัญญา คำตอบอื่นถือว่าปฏิเสธ ยังไม่ได้บันทึกรายการ']
     else:
         subject='Loan close approval requested'
-        lines=[subject,f'Borrower: {name}',f"Amount: {receipt['amount']} baht",f"Transferred: {receipt['date']} {receipt['time'][:5]} (Bangkok)",f"Account: {receipt['account_label']}"]
+        lines=[subject,f'Borrower: {name}',*([SENDER_NOTE[0]] if unidentified else []),f"Amount: {receipt['amount']} baht",f"Transferred: {receipt['date']} {receipt['time'][:5]} (Bangkok)",f"Account: {receipt['account_label']}"]
         lines+=[f'Loan: {keys}'] if keys else []
         lines+=[close_amount_line(close,False)]+rebate+['Proposed: Close the loan; agent records the Loan Close',
                'Use Reply on THIS message: Yes / Approve / Approved (any case) to close the loan. Other direct replies reject. Nothing has been posted.']
@@ -341,11 +356,25 @@ def close_failure_line(state,detail,proposal,thai):
     return ''
 
 
-def request_text(proposal,language,unclear=False):
+def request_text(proposal,language,unclear=False,unidentified=False,reserve=0):
+    """unidentified (R151): the receipt's sender is no known borrower; the request says the payer name chose the borrower,
+    unless the note (with `reserve` characters the caller adds in front) would push it past one Instagram message: the
+    note never costs the request, which then goes out exactly as without it."""
+    if unidentified:
+        try:
+            subject,body=compose_request(proposal,language,unclear,True)
+            if len(body)+reserve<=1000:return subject,body
+        except ConfigurationError as exc:
+            if str(exc)!='REVIEW_REQUEST_TOO_LONG':raise
+    return compose_request(proposal,language,unclear,False)
+
+
+def compose_request(proposal,language,unclear=False,unidentified=False):
     from .review_proposal import review_posts_close,review_posts_overpayment
     thai=language=='ไทย'
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
-    if review_posts_close(proposal):return close_request_text(proposal,thai)
+    note=('\n'+SENDER_NOTE[int(thai)]) if unidentified else ''
+    if review_posts_close(proposal):return close_request_text(proposal,thai,unidentified)
     if proposal.get('action')=='Pay forward options':
         # R112 (Echo AG-1, AG-2): reply with a number; an unclear reply gets the prompt, then the options again.
         # R127 (Echo AG-6): the prompt names the replies this request offers.
@@ -353,7 +382,8 @@ def request_text(proposal,language,unclear=False):
         subject='สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'
         numbers=offered_numbers(proposal['options'])
         listed=', '.join(numbers[:-1])+(' หรือ ' if thai else ' or ')+numbers[-1] if len(numbers)>1 else numbers[0]
-        body=((f'ตอบ {listed}\n' if thai else f'Reply {listed}.\n') if unclear else '')+options_lines(proposal,thai)
+        # R151: the options name the borrower in their first part; the sender note follows the options block.
+        body=((f'ตอบ {listed}\n' if thai else f'Reply {listed}.\n') if unclear else '')+options_lines(proposal,thai)+note
         body+=(f"\nเวลาโอน: {receipt['date']} {receipt['time'][:5]} · บัญชีรับ: {receipt['account_label']}\nใช้ Reply ตอบข้อความนี้ ยังไม่ได้บันทึกรายการ" if thai else
                f"\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok) · Account: {receipt['account_label']}\nUse Reply on THIS message. Nothing has been posted.")
         if len(body)>1000:raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
@@ -367,12 +397,12 @@ def request_text(proposal,language,unclear=False):
         subject='ขออนุมัติรายการชำระเงิน'
         action='ตรวจสอบการปิดสัญญาและบันทึกเอง' if close else ('ตรวจสอบยอดเกินและบันทึกเอง' if manual else 'บันทึกการชำระเงิน')
         if overpayment:action='ยอดเกิน — อนุมัติแล้วระบบจะบันทึกยอดเต็มเป็น Lump Sum'
-        body=f"{subject}\nผู้กู้: {name}\nยอด: {receipt['amount']} บาท\nเวลาโอน: {receipt['date']} {receipt['time'][:5]}\nบัญชีรับ: {receipt['account_label']}\nรายการที่เสนอ: {action}\nกรุณาใช้ Reply ตอบข้อความนี้ว่า อนุมัติ เพื่อดำเนินการ คำตอบอื่นถือว่าปฏิเสธ ยังไม่ได้บันทึกรายการ"
+        body=f"{subject}\nผู้กู้: {name}{note}\nยอด: {receipt['amount']} บาท\nเวลาโอน: {receipt['date']} {receipt['time'][:5]}\nบัญชีรับ: {receipt['account_label']}\nรายการที่เสนอ: {action}\nกรุณาใช้ Reply ตอบข้อความนี้ว่า อนุมัติ เพื่อดำเนินการ คำตอบอื่นถือว่าปฏิเสธ ยังไม่ได้บันทึกรายการ"
     else:
         subject='Payment approval requested'
         action='Review loan closure; partner records manually' if close else ('Review overpayment; partner records manually' if manual else 'Record payment')
         if overpayment:action='Approve overpayment; agent records the full amount as Lump Sum'
-        body=f"{subject}\nBorrower: {name}\nAmount: {receipt['amount']} baht\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok)\nAccount: {receipt['account_label']}\nProposed: {action}\nUse Reply on THIS message: Yes / Approve / Approved (any case). Other direct replies reject. Nothing has been posted."
+        body=f"{subject}\nBorrower: {name}{note}\nAmount: {receipt['amount']} baht\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok)\nAccount: {receipt['account_label']}\nProposed: {action}\nUse Reply on THIS message: Yes / Approve / Approved (any case). Other direct replies reject. Nothing has been posted."
     if proposal.get('loan_keys'):body+=('\nสัญญา: ' if thai else '\nLoan: ')+'; '.join(proposal['loan_keys'])
     if manual:
         body+=('\nหากอนุมัติ กรุณาบันทึกรายการในแอปด้วยตนเอง' if thai else

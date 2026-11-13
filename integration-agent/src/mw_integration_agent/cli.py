@@ -33,6 +33,11 @@ def build_parser() -> argparse.ArgumentParser:
     poll.add_argument('--config',required=True)
     poll.add_argument('--catalogue',required=True)
     poll.add_argument('--date',help='explicit owner-requested today-only group backfill; preserve polling cursors')
+    reprocess=sub.add_parser('poll-reprocess',help='R151: turn one group\'s IGNORED slips since yesterday into jobs where the poll now gives them one; counts only')
+    reprocess.add_argument('--config',required=True)
+    reprocess.add_argument('--catalogue',required=True)
+    reprocess.add_argument('--conversation-id',required=True)
+    reprocess.add_argument('--message-id-suffix',help='only the IGNORED row whose recorded message id ends with this')
     summary=sub.add_parser('group-chat-summary',help='summarise due borrower group chats (R146); --dry-run prints counts only')
     summary.add_argument('--config',required=True)
     summary.add_argument('--catalogue',required=True)
@@ -129,6 +134,14 @@ def execute(args, outcome=None) -> int:
             result=run(args.config,args.catalogue,args.date)
             print(json.dumps(result))
             return 2 if result.get('failed_conversations') else 0
+        if args.command=='poll-reprocess':
+            from .conversation_poll import reprocess
+            result=reprocess(args.config,args.catalogue,args.conversation_id,args.message_id_suffix)
+            # R151: a reprocess that promoted something materialises its JOB record with the counts.
+            if (result.get('reclassified') or result.get('jobs')) and outcome is not None:
+                outcome['effect']={'reclassified':result['reclassified'],'jobs':result['jobs']}
+            print(json.dumps(result))
+            return 0 if result.get('status')=='ok' else 2
         if args.command=='group-chat-summary':
             from .group_chat_summary import run
             result=run(args.config,args.catalogue,dry=args.dry_run,mark=args.mark_all)

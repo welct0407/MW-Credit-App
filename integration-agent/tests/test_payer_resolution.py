@@ -289,6 +289,112 @@ class GroupContextTests(PayerBase):
                 self.assertEqual(result['receipt']['payer_lines'], expected)
 
 
+class SlipGroupBase(PayerBase):
+    """A 3-person group (mali2, business, the forwarder partner) read by the poll, then processed."""
+
+    def api(self, *messages, peers=None):
+        peers = peers or [{'id': '123', 'username': 'mali2'}, {'id': '999', 'username': 'business'}, {'id': '456', 'username': 'partner'}]
+        return Mock(request=Mock(return_value={'data': [{'id': 'group', 'participants': {'data': peers}, 'messages': {'data': list(messages)[::-1]}}]}))
+
+    def message(self, key, sender, name=None, offset=0):
+        stamp = datetime.fromtimestamp(time.time() - 60 + offset, BANGKOK).replace(microsecond=0).isoformat()
+        return {'id': key, 'created_time': stamp, 'from': {'id': sender, **({'username': name} if name else {})},
+                'attachments': {'data': [{'image_data': {'url': 'https://scontent.fbcdn.net/' + key}}]}}
+
+    def job(self, api, m, key):
+        scan(self.config, api, m, self.j, time.time() + 1)
+        return next(j for j in self.j.pending() if j['message_id'] == key)
+
+    def run_api(self, job, m, value, api, facts=None):
+        value = dict(value, reference='SYN' + hashlib.sha256(job['id'].encode()).hexdigest()[:10].upper())
+        with patch('mw_integration_agent.receipt_identity.Instagram', return_value=api), \
+             patch('mw_integration_agent.review_proposal.facts', side_effect=lambda _config, bid: (facts or {}).get(bid, NOTHING)):
+            process(job, self.j, self.config, m, fetch=lambda _: (b'image-' + job['id'].encode(), hashlib.sha256(job['id'].encode()).hexdigest()),
+                    extractor=lambda *_: value, identity_reader=Mock(side_effect=AssertionError('identity must not be read')))
+        return dict(self.j.db.execute('SELECT * FROM receipt_jobs WHERE id=?', (job['id'],)).fetchone())
+
+
+class UnidentifiedSenderTests(SlipGroupBase):
+    """R151: an image from a sender who is no known borrower is resolved by the payer name (narrowed to the group's
+    borrowers when that leaves one), holds with a notice when it cannot be, and a non-receipt stays silent."""
+
+    def people(self):
+        return master(borrower('mali2', 'mali2', 'น.ส. สมฤดี เ'), borrower('dara', 'dara', 'น.ส. กมลา ศรีสุข'),
+                      borrower('fon', 'fon', 'น.ส. สมฤดี เ'))
+
+    def test_the_payer_name_chooses_and_the_group_narrows_a_shared_name(self):
+        m = self.people()
+        api = self.api(self.message('u1', '777', 'stranger'))
+        job = self.job(api, m, 'u1')
+        self.assertEqual(json.loads(job['result']), {'unidentified_sender': True, 'group_borrower_ids': ['mali2']})
+        row = self.run_api(job, m, slip('น.ส. กมลา ศรีสุข'), api)
+        result = json.loads(row['result'])
+        self.assertEqual((row['status'], result['payer_borrower_id'], result['payer_step'], result['unidentified_sender']),
+                         ('VALIDATED', 'dara', 'name', True))
+        row = self.run_api(self.job(self.api(self.message('u2', '777', 'stranger')), m, 'u2'), m, slip('น.ส. สมฤดี เ***'), api)
+        self.assertEqual((row['status'], json.loads(row['result'])['payer_borrower_id'], json.loads(row['result'])['payer_step']),
+                         ('VALIDATED', 'mali2', 'participants'))
+        self.assertEqual(receipt_borrower(self.config, row, self.j, m, Mock())['id'], 'mali2')
+
+    def test_unresolved_or_unreadable_holds_and_notifies_without_the_nickname_tip(self):
+        from mw_integration_agent.partner_notice import NoticeJournal
+        from mw_integration_agent.receipt_hold import queue_holds
+        m = master(borrower('mali2', 'mali2', 'น.ส. สมฤดี เ'), borrower('fon', 'fon', 'น.ส. สมฤดี เ'), borrower('dara', 'dara', None))
+        m['partners'][0]['enabled'] = True
+        peers = [{'id': '124', 'username': 'dara'}, {'id': '999', 'username': 'business'}, {'id': '456', 'username': 'partner'}]
+        rows = {}
+        for key, value in (('r1', slip('น.ส. สมฤดี เ***')), ('r2', slip('')), ('r3', slip('Somebody Else', is_payment_receipt=False))):
+            api = self.api(self.message(key, '777', 'stranger'), peers=peers)
+            rows[key] = self.run_api(self.job(api, m, key), m, value, api)
+        self.assertEqual([(r['status'], r['detail']) for r in rows.values()],
+                         [('REVIEW', 'PAYER_UNRESOLVED'), ('REVIEW', 'PAYER_NAME_UNREADABLE'), ('IGNORED', 'NOT_PAYMENT_RECEIPT')])
+        notices = NoticeJournal(self.root / 'partner-notices.db');self.addCleanup(notices.close)
+        queue_holds(dict(self.config, receipt_hold_notice_cutoff=CUTOFF), self.j, notices, m, Mock())
+        sent = {r['event_key'].split(':')[1]: r['body'] for r in notices.db.execute('SELECT event_key,body FROM partner_notices')}
+        self.assertEqual(set(sent), {rows['r1']['id'], rows['r2']['id']})
+        self.assertIn('Possible borrowers: Synthetic mali2, Synthetic fon\nNo payment posted.', sent[rows['r1']['id']])
+        for body in sent.values():
+            self.assertNotIn('nickname right after', body)
+
+
+class ForwardedOtherBorrowerTests(SlipGroupBase):
+    """R151 C3 hold: a forwarded slip naming exactly one other borrower, and neither matching nor nearing the group's
+    borrower, is held; every other forwarded slip proceeds as before."""
+
+    def forwarded(self, key, value, m):
+        api = self.api(self.message(key, '456', 'partner'))
+        job = self.job(api, m, key)
+        self.assertEqual(json.loads(job['result']), {'forwarded_borrower_id': 'mali2'})
+        return self.run_api(job, m, value, api)
+
+    def test_other_borrower_name_holds_with_both_candidates(self):
+        m = master(borrower('mali2', 'mali2', 'นาย สมชาย ใจดี'), borrower('dara', 'dara', 'น.ส. กมลา ศรีสุข'), borrower('fon', 'fon', None))
+        row = self.forwarded('c3', slip('น.ส. กมลา ศรีสุข'), m)
+        self.assertEqual((row['status'], row['detail']), ('REVIEW', 'PAYER_NAME_OTHER_BORROWER'))
+        result = json.loads(row['result'])
+        self.assertEqual(result['payer_candidates'], ['mali2', 'dara']);self.assertNotIn('receipt', result)
+        for language, expected in (('English', "Reason: The slip's payer name matches a different borrower, not this group's borrower.\n"
+                                               'Possible borrowers: Synthetic mali2, Synthetic dara\nNo payment posted.'),
+                                   ('ไทย', 'สาเหตุ: ชื่อผู้โอนในสลิปตรงกับผู้กู้คนอื่น ไม่ใช่ผู้กู้ของกลุ่มนี้\nผู้กู้ที่เป็นไปได้: ผู้กู้ mali2, ผู้กู้ dara\n')):
+            body = held_text(row, m['borrowers'][0], language, m['accounts'], m['borrowers'])[1]
+            self.assertIn(expected, body);self.assertNotIn('nickname', body);self.assertNotIn('ชื่อเล่น', body)
+
+    def test_own_near_unknown_two_others_or_unreadable_proceed_unchanged(self):
+        own = 'นาย นภัสสร พงษ์ดี'
+        cases = (('own', own, None), ('near', 'นาย นกัสสร พงษ์ดี', None),
+                 ('unknown', 'Alice Aaa', {'before': own, 'after': own + '\nAlice Aaa'}),
+                 ('two', 'น.ส. สมฤดี เ***', {'before': own, 'after': own + '\nน.ส. สมฤดี เ***'}),
+                 ('masked', 'ส***', None))
+        for key, name, lines in cases:
+            with self.subTest(key):
+                # dara matches the near slip exactly; dara and fon both match "two".
+                m = master(borrower('mali2', 'mali2', own), borrower('dara', 'dara', 'น.ส. สมฤดี เ\nนาย นกัสสร พงษ์ดี'), borrower('fon', 'fon', 'น.ส. สมฤดี เ'))
+                row = self.forwarded('k-' + key, slip(name), m)
+                result = json.loads(row['result'])
+                self.assertEqual((row['status'], result['borrower']['id']), ('VALIDATED', 'mali2'))
+                self.assertEqual(result['receipt']['payer_lines'], lines)
+
+
 class HintReplySeparationTests(unittest.TestCase):
     """The four crossings: a hint is never a reply, a reply is never a hint, a command is neither, an image-only reply
     is neither a decision nor a hint."""

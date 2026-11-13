@@ -525,3 +525,207 @@ class RecheckRunTests(unittest.TestCase):
         self.assertEqual(result['recheck'],'recheck_incomplete');self.assertEqual(self.snapshot(),saved)
         # The poll released the worker lock.
         with (self.root/'receipt-worker.lock').open('a') as lock:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+
+
+class SenderBase(unittest.TestCase):
+    def setUp(self):
+        from datetime import datetime
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
+        self.j=ReceiptJournal(self.tmp.name+'/receipt.db');self.addCleanup(self.j.close)
+        from mw_integration_agent.conversation_poll import POLL_TABLES_SQLITE
+        self.j.db.executescript(POLL_TABLES_SQLITE)
+        self.c={'instagram_account_id':'999','conversation_poll_cutoff':'2026-09-21T00:00:00+00:00','payer_name_cutoff':'2026-09-21T00:00:00+00:00'}
+        self.master={'borrowers':[{'id':'b-fahsai','username':'Fahsai','enabled':True},{'id':'b-noey','username':'noey','enabled':True},
+                                  {'id':'b-off','username':'off','enabled':False}]}
+        self.now=datetime.fromisoformat('2026-09-21T01:00:00+00:00').timestamp()
+        # Fahsai (555) is missing from participants.
+        self.people=[{'id':'123','username':'noey'},{'id':'999','username':'business'},{'id':'456','username':'partner'}]
+    def message(self,key,sender,name=None,time='2026-09-21T00:59:00+00:00',image=True,text=None):
+        body={'id':key,'created_time':time,'from':{'id':sender,**({'username':name} if name else {})},
+              'attachments':{'data':[{'image_data':{'url':'https://example.invalid/'+key}}] if image else []}}
+        if text is not None:body['message']=text
+        return body
+    def api(self,messages,people=None):
+        return Mock(request=Mock(return_value={'data':[{'id':'group','participants':{'data':self.people if people is None else people},'messages':{'data':messages}}]}))
+    def outcomes(self):
+        return dict(self.j.db.execute('SELECT message_id,outcome FROM conversation_poll_messages').fetchall())
+    def jobs(self):
+        import json
+        return {r['message_id']:json.loads(r['result']) if r['result'] else None for r in self.j.db.execute('SELECT * FROM receipt_jobs')}
+
+
+class SenderFallbackTests(SenderBase):
+    """R151: a borrower Instagram dropped from participants is named by the sender username (SENDER); any other
+    non-business sender's image gets a payer-name job (UNIDENTIFIED) from payer_name_cutoff; texts and the business
+    account stay IGNORED."""
+
+    def test_a_dropped_borrower_is_identified_by_the_sender_username(self):
+        result=scan(self.c,self.api([self.message('text','555','fahsai',image=False,text='hi',time='2026-09-21T00:59:30+00:00'),
+                                     self.message('slip','555','@Fahsai')]),self.master,self.j,self.now)
+        self.assertEqual(result['image_jobs'],1)
+        self.assertEqual(self.outcomes(),{'slip':'SENDER','text':'SENDER'})
+        self.assertEqual(self.jobs(),{'slip':{'sender_borrower_id':'b-fahsai','sender_username':'fahsai'}})
+        self.assertEqual(self.j.pending()[0]['sender_id'],'555')
+
+    def test_a_group_without_an_enabled_participant_is_scanned_only_for_a_named_first_page_sender(self):
+        people=[{'id':'999','username':'business'},{'id':'456','username':'partner'}]
+        result=scan(self.c,self.api([self.message('other','456','partner')],people),self.master,self.j,self.now)
+        self.assertEqual((result['eligible_conversations'],self.outcomes()),(0,{}))
+        result=scan(self.c,self.api([self.message('slip','555','fahsai'),self.message('other','456','partner',time='2026-09-21T00:58:00+00:00')],people),
+                    self.master,self.j,self.now)
+        self.assertEqual((result['eligible_conversations'],result['image_jobs']),(1,2))
+        self.assertEqual(self.outcomes(),{'slip':'SENDER','other':'UNIDENTIFIED'})
+        self.assertEqual(self.jobs()['other'],{'unidentified_sender':True,'group_borrower_ids':[]})
+        # The business account naming an enabled borrower never makes a group eligible.
+        self.j.db.execute('DELETE FROM conversation_poll_messages');self.j.db.execute('DELETE FROM receipt_jobs');self.j.db.commit()
+        result=scan(self.c,self.api([self.message('own','999','fahsai')],people),self.master,self.j,self.now+600)
+        self.assertEqual((result['eligible_conversations'],self.outcomes()),(0,{}))
+
+    def test_business_texts_and_disabled_names_never_become_sender_jobs(self):
+        messages=[self.message('biz','999','fahsai'),self.message('chat','456','partner',image=False,text='ok'),
+                  self.message('pimg','456','partner'),self.message('stranger','777','stranger'),self.message('off','778','off'),
+                  self.message('stext','777','stranger',image=False,text='slip?')]
+        scan(self.c,self.api(messages),self.master,self.j,self.now)
+        self.assertEqual(self.outcomes(),{'biz':'IGNORED','chat':'IGNORED','pimg':'UNIDENTIFIED','stranger':'UNIDENTIFIED',
+                                          'off':'UNIDENTIFIED','stext':'IGNORED'})
+        self.assertEqual(set(self.jobs()),{'pimg','stranger','off'})
+        self.assertEqual(self.jobs()['stranger'],{'unidentified_sender':True,'group_borrower_ids':['b-noey']})
+
+    def test_unidentified_images_need_the_payer_name_cutoff(self):
+        for config in (dict(self.c,payer_name_cutoff='2026-09-21T00:59:30+00:00'),{k:v for k,v in self.c.items() if k!='payer_name_cutoff'}):
+            with self.subTest(config=config.get('payer_name_cutoff')):
+                self.j.db.execute('DELETE FROM conversation_poll_messages');self.j.db.execute('DELETE FROM receipt_jobs');self.j.db.commit()
+                scan(config,self.api([self.message('pimg','456','partner'),self.message('slip','555','fahsai',time='2026-09-21T00:58:00+00:00')]),
+                     self.master,self.j,self.now)
+                self.assertEqual(self.outcomes(),{'pimg':'IGNORED','slip':'SENDER'})
+
+    def test_borrower_and_forwarding_outcomes_are_unchanged(self):
+        self.master['partners']=[{'id':'p','username':'partner'}]
+        self.c.update(receipt_forwarding_enabled=True,receipt_forwarder_partner_id='p',receipt_group_account_username='business',
+                      receipt_forwarding_cutoff='2026-09-21T00:00:00+00:00')
+        scan(self.c,self.api([self.message('own','123','noey'),self.message('fw','456','partner',time='2026-09-21T00:58:00+00:00')]),self.master,self.j,self.now)
+        self.assertEqual(self.outcomes(),{'own':'BORROWER','fw':'FORWARDED'})
+        self.assertEqual(self.jobs(),{'own':None,'fw':{'forwarded_borrower_id':'b-noey'}})
+
+
+class ReprocessTests(SenderBase):
+    """R151 poll-reprocess: one group's IGNORED slips since yesterday 00:00 Bangkok that the poll now gives a job."""
+    def ignored(self,*messages):
+        # Before R151 the dropped sender's slip was recorded IGNORED (simulated: no username, no payer cutoff).
+        config={k:v for k,v in self.c.items() if k!='payer_name_cutoff'}
+        scan(config,self.api([dict(m,**{'from':{'id':m['from']['id']}}) for m in messages]),self.master,self.j,self.now)
+        self.assertEqual(set(self.outcomes().values()),{'IGNORED'})
+    def reprocess(self,messages,suffix=None,later=3600):
+        from mw_integration_agent.conversation_poll import reprocess_ignored
+        return reprocess_ignored(self.c,self.api(messages),self.master,self.j.db,'group',suffix,self.now+later)
+
+    def test_ignored_slip_becomes_a_sender_job_once(self):
+        import json
+        slip=self.message('slip','555','fahsai',time='2026-09-21T00:10:00+00:00')
+        self.ignored(slip);cursor=self.j.db.execute('SELECT checked_through FROM conversation_poll_state').fetchone()[0]
+        fresh=dict(slip,attachments={'data':[{'id':'att','image_data':{'url':'https://example.invalid/fresh'}}]})
+        result=self.reprocess([fresh])
+        self.assertEqual(result,{'status':'ok','messages':1,'reclassified':1,'jobs':1,'skipped_existing':0,'unmatched':0,'still_ignored':0})
+        self.assertEqual(self.outcomes(),{'slip':'SENDER'})
+        job=self.j.pending()[0]
+        self.assertEqual((job['url'],job['sender_id'],json.loads(job['source'])['kind']),('https://example.invalid/fresh','555','poll'))
+        self.assertEqual(self.jobs(),{'slip':{'sender_borrower_id':'b-fahsai','sender_username':'fahsai'}})
+        self.assertEqual(self.j.db.execute('SELECT checked_through FROM conversation_poll_state').fetchone()[0],cursor)
+        # Idempotent: the row is no longer IGNORED.
+        self.assertEqual(self.reprocess([fresh],later=7200)['jobs'],0);self.assertEqual(len(self.jobs()),1)
+        # Counts only: no text, username, URL or message id.
+        printed=json.dumps(result)
+        for secret in ('fahsai','example.invalid','slip','555','group'):self.assertNotIn(secret,printed)
+
+    def test_existing_job_ambiguous_rows_and_still_ignored_slips_are_left(self):
+        slip=self.message('slip','555','fahsai',time='2026-09-21T00:10:00+00:00')
+        self.ignored(slip)
+        self.j.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,created_at) VALUES ('k','slip','555','',?)",(self.now,));self.j.db.commit()
+        result=self.reprocess([slip])
+        self.assertEqual((result['skipped_existing'],result['jobs'],self.outcomes()),(1,0,{'slip':'IGNORED'}))
+        self.j.db.execute('DELETE FROM receipt_jobs');self.j.db.commit()
+        # A changed id within 5 s of two IGNORED rows is ambiguous.
+        self.j.db.execute("INSERT INTO conversation_poll_messages VALUES ('near','group',?,?,'IGNORED')",(self.now-3000+2,self.now));self.j.db.commit()
+        changed=self.message('new-id','555','fahsai',time='2026-09-21T00:10:01+00:00')
+        result=self.reprocess([changed])
+        self.assertEqual((result['unmatched'],result['jobs']),(1,0))
+        # A business image is still IGNORED.
+        result=self.reprocess([self.message('biz','999','fahsai',time='2026-09-21T00:20:00+00:00')])
+        self.assertEqual((result['still_ignored'],result['jobs']),(1,0))
+
+    def test_suffix_selects_exactly_one_recorded_row(self):
+        first=self.message('aaaa-1111','555','fahsai',time='2026-09-21T00:10:00+00:00')
+        second=self.message('bbbb-1111','555','fahsai',time='2026-09-21T00:20:00+00:00')
+        self.ignored(second,first)
+        self.assertEqual(self.reprocess([second,first],'9999')['status'],'message_not_found')
+        self.assertEqual(self.reprocess([second,first],'1111')['status'],'message_ambiguous')
+        result=self.reprocess([second,first],'a-1111')
+        self.assertEqual((result['status'],result['messages'],result['jobs']),('ok',1,1))
+        self.assertEqual(self.outcomes(),{'aaaa-1111':'SENDER','bbbb-1111':'IGNORED'})
+
+    def test_suffix_matches_by_message_id_only(self):
+        # Chase (R151): no time neighbours with a suffix; the time fallback is R119's.
+        slip=self.message('aaaa-1111','555','fahsai',time='2026-09-21T00:10:00+00:00')
+        self.ignored(slip)
+        changed=self.message('new-id','555','fahsai',time='2026-09-21T00:10:01+00:00')
+        result=self.reprocess([changed],'a-1111')
+        self.assertEqual((result['status'],result['messages'],result['jobs']),('message_not_in_history',0,0))
+        self.assertEqual(self.outcomes(),{'aaaa-1111':'IGNORED'})
+        # A neighbour slip within 5 s of the recorded one is not taken in its place either.
+        result=self.reprocess([self.message('aaaa-1111','555','fahsai',time='2026-09-21T00:10:00+00:00'),changed][::-1],'a-1111')
+        self.assertEqual((result['status'],result['messages'],result['jobs']),('ok',1,1))
+        self.assertEqual(set(self.jobs()),{'aaaa-1111'})
+        # Without a suffix the R119 time fallback still matches a changed id.
+        self.j.db.execute('DELETE FROM receipt_jobs');self.j.db.execute("UPDATE conversation_poll_messages SET outcome='IGNORED'");self.j.db.commit()
+        self.assertEqual(self.reprocess([changed])['jobs'],1)
+        self.assertEqual(self.outcomes(),{'aaaa-1111':'SENDER','new-id':'SENDER'})
+
+    def test_a_conversation_the_poll_would_not_scan_is_refused(self):
+        slip=self.message('slip','555','fahsai',time='2026-09-21T00:10:00+00:00')
+        self.ignored(slip)
+        stranger=self.message('slip','777','stranger',time='2026-09-21T00:10:00+00:00')
+        for people in ([{'id':'999','username':'business'},{'id':'777','username':'stranger'}],
+                       [{'id':'999','username':'business'},{'id':'456','username':'partner'},{'id':'777','username':'stranger'}]):
+            with self.subTest(people=len(people)):
+                from mw_integration_agent.conversation_poll import reprocess_ignored
+                api=self.api([stranger],people)
+                result=reprocess_ignored(self.c,api,self.master,self.j.db,'group',None,self.now+3600)
+                self.assertEqual((result['status'],result['jobs'],result['messages']),('not_eligible',0,0))
+                self.assertEqual(api.request.call_count,1)  # refused before the history is read
+        self.assertEqual(self.outcomes(),{'slip':'IGNORED'});self.assertEqual(self.jobs(),{})
+        # An enabled named sender on the first page makes the same group eligible, as for the poll.
+        people=[{'id':'999','username':'business'},{'id':'456','username':'partner'}]
+        from mw_integration_agent.conversation_poll import reprocess_ignored
+        result=reprocess_ignored(self.c,self.api([slip],people),self.master,self.j.db,'group',None,self.now+3600)
+        self.assertEqual((result['status'],result['jobs']),('ok',1))
+
+    def test_missing_conversation_and_unreadable_history(self):
+        from mw_integration_agent.conversation_poll import reprocess_ignored
+        api=Mock(request=Mock(return_value={'data':[]}))
+        self.assertEqual(reprocess_ignored(self.c,api,self.master,self.j.db,'group',None,self.now)['status'],'conversation_not_found')
+        api=self.api([self.message('slip','555','fahsai')]);api.request.return_value['data'][0]['messages']['paging']={'next':'unused'}
+        with self.assertRaises(ConfigurationError):reprocess_ignored(self.c,api,self.master,self.j.db,'group',None,self.now)
+
+    def test_run_takes_the_poll_lock_without_waiting_and_wakes_on_jobs(self):
+        import fcntl
+        from pathlib import Path
+        from mw_integration_agent.conversation_poll import reprocess
+        root=Path(self.tmp.name);config=dict(self.c,conversation_poll_enabled=True,state_directory=self.tmp.name)
+        def run(result):
+            with patch('mw_integration_agent.conversation_poll.controls',return_value=config), \
+                 patch('mw_integration_agent.conversation_poll.load_json',return_value={'services':{'conversation_poll':{'enabled':True}}}), \
+                 patch('mw_integration_agent.conversation_poll.masters'),patch('mw_integration_agent.conversation_poll.Instagram') as client, \
+                 patch('mw_integration_agent.conversation_poll.reprocess_ignored',return_value=result) as core:
+                value=reprocess('unused','unused','group','a-1111')
+                return value,client,core
+        with (root/'conversation-poll.lock').open('a') as held:
+            fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            value,client,core=run({'status':'ok','jobs':1})
+            self.assertEqual(value,{'status':'already_running'});core.assert_not_called()
+        self.assertFalse((root/'receipt-wake').exists())
+        value,client,core=run({'status':'ok','jobs':0})
+        self.assertEqual(core.call_args.args[4:],('group','a-1111'));client.assert_called_once_with(config,read_timeout=40)
+        self.assertFalse((root/'receipt-wake').exists())
+        run({'status':'ok','jobs':1});self.assertTrue((root/'receipt-wake').exists())
+        for bad in (('group',"x'"),('a b',None)):
+            with self.subTest(bad=bad),self.assertRaises(ConfigurationError):reprocess('unused','unused',*bad)
