@@ -517,6 +517,62 @@ class CycleTests(unittest.TestCase):
         self.run_cycle();self.submit.assert_not_called()
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews WHERE id=?',(key,)).fetchone()[0],'APPROVED')
 
+    def request_outcome(self):
+        from mw_integration_agent.review_resend import pending_items
+        job=self.j.db.execute("SELECT status,detail FROM receipt_jobs WHERE id='new-job'").fetchone()
+        rows=self.j.db.execute("SELECT state FROM partner_reviews WHERE job_id='new-job'").fetchall()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:keys=[r['event_key'].split(':')[0]+':'+r['partner_id'] for r in notices.db.execute(
+                "SELECT event_key,partner_id FROM partner_notices WHERE event_key<>?",('review:'+self.key,))]
+        finally:notices.close()
+        items=pending_items(self.j.db,self.config,{'event_timestamp':9e9},0)
+        return tuple(job),[r[0] for r in rows],sorted(keys),[(kind,row['id']) for _,kind,row in items]
+
+    def test_r152_a_request_that_cannot_be_built_leaves_a_plain_hold(self):
+        # R152: the review is reserved only after every request was built; a too-long request leaves no PENDING review,
+        # no request notice, and the hold alert and the `review` command list it as a hold.
+        self.config['receipt_hold_notice_cutoff']='2026-01-01T00:00:00+00:00'
+        for case in ('standard','corrected'):
+            with self.subTest(case=case):
+                self.validated_job()
+                self.j.db.execute("DELETE FROM partner_reviews WHERE job_id<>'old'")
+                if case=='corrected':
+                    from mw_integration_agent.partner_review import request_text
+                    self.j.db.execute("UPDATE receipt_jobs SET detail='REVIEWER_REQUESTED_RECHECK'")
+                    self.b['name_en']='x'
+                    self.b['name_en']='x'*(1000-len(request_text(self.proposal,'English')[1])+1)
+                    self.assertEqual(len(request_text(self.proposal,'English')[1]),1000)
+                else:
+                    self.b['name_en']='x'*1000
+                self.j.db.commit()
+                notices=NoticeJournal(self.root/'partner-notices.db')
+                with notices.db:notices.db.execute("DELETE FROM partner_notices WHERE event_key<>?",('review:'+self.key,))
+                notices.close()
+                self.run_cycle()
+                job,rows,keys,items=self.request_outcome()
+                self.assertEqual(rows,[]);self.assertEqual(job,('REVIEW','REVIEW_REQUEST_TOO_LONG'))
+                self.assertEqual(keys,['receipt-held:p']);self.assertEqual(items,[('hold','new-job')])
+                self.submit.assert_not_called()
+        self.assertIn('The approval request was too long to send by Instagram.',self.hold_notices()[0]['body'])
+
+    def test_r152_a_second_recipient_that_fails_reserves_nothing_for_either(self):
+        self.config['receipt_hold_notice_cutoff']='2026-01-01T00:00:00+00:00'
+        thai=dict(self.p,id='q',username='thai',language='ไทย')
+        self.masters.return_value['partners'].append(thai);self.masters.return_value['reviewer_ids']=['p','q']
+        self.b['name_th']='ก'*1000
+        self.validated_job();self.run_cycle()
+        job,rows,keys,items=self.request_outcome()
+        self.assertEqual((job,rows),(('REVIEW','REVIEW_REQUEST_TOO_LONG'),[]))
+        self.assertEqual(keys,['receipt-held:p','receipt-held:q']);self.assertEqual(items,[('hold','new-job')])
+        # The ordinary path is unchanged: one PENDING review and one request per reviewer.
+        self.b['name_th']='ชา'
+        self.j.db.execute("UPDATE receipt_jobs SET status='VALIDATED',detail=''");self.j.db.commit()
+        self.run_cycle()
+        job,rows,keys,items=self.request_outcome()
+        self.assertEqual((job[0],rows),('REVIEW_REQUESTED',['PENDING']))
+        self.assertEqual(keys,['receipt-held:p','receipt-held:q','review:p','review:q'])
+        self.assertEqual([kind for kind,_ in items],['review'])
+
     def test_auto_cutoff_keeps_earlier_validated_receipt_in_review(self):
         self.validated_job();self.enable_auto();self.config['receipt_auto_payment_cutoff']='2099-01-01T00:00:00+00:00'
         self.run_cycle();self.submit.assert_not_called()
