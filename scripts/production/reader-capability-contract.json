@@ -73,6 +73,11 @@
       "last_message_at",
       "generated_at"
     ],
+    "pwa_group_chat_seen": [
+      "borrower_id",
+      "partner_id",
+      "seen_last_message_at"
+    ],
     "oltp_upcoming_charge_summary_v2": [
       "Row ID",
       "Ref Borrower",

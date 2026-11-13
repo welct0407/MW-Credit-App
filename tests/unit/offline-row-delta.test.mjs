@@ -103,6 +103,20 @@ test('R146 collection scope: a summary row is keyed by its borrower; it never re
  const {resolveRecordsScope}=await import('../../services/business/offline-dataset-chunks.mjs');
  assert.equal(await resolveRecordsScope(fakeClient({lookups}),[{table:'pwa_group_chat_summaries',key:'A'}]),null);
 });
+// R149: a user's "seen" row (V147) is logged under its borrower (first key column) and belongs to collection only.
+test('R149 collection scope: a seen row is keyed by its borrower like a summary row; records, cash and management do not read it',async()=>{
+ const {offlineSourceTables}=await import('../../services/business/offline-dataset-delta.mjs');
+ assert.ok(offlineSourceTables.collection.includes('pwa_group_chat_seen'));
+ for(const domain of ['records','cash','management'])assert.equal(offlineSourceTables[domain].includes('pwa_group_chat_seen'),false,domain+' does not read the seen values');
+ const lookups={Loans:[{key:'L1',borrowers:['B'],payment:null,expense:null,unassigned:false}]};
+ const only=fakeClient({lookups});
+ assert.deepEqual(await resolveCollectionScope(only,[{table:'pwa_group_chat_seen',key:'A'}]),{borrowers:['A'],loans:[]});
+ assert.equal(only.queries.some(sql=>sql.includes('pwa_group_chat_seen')),false,'the key is the borrower: no lookup of the table');
+ assert.deepEqual(await resolveCollectionScope(fakeClient({lookups}),[{table:'pwa_group_chat_seen',key:'C'},{table:'Loans',key:'L1'},{table:'pwa_group_chat_summaries',key:'A'},{table:'pwa_group_chat_seen',key:'A'}]),{borrowers:['A','B','C'],loans:['L1']});
+ assert.equal(await resolveCollectionScope(fakeClient({lookups,hidden:['H']}),[{table:'pwa_group_chat_seen',key:'H'}]),null,'a hidden borrower walks');
+ const {resolveRecordsScope}=await import('../../services/business/offline-dataset-chunks.mjs');
+ assert.equal(await resolveRecordsScope(fakeClient({lookups}),[{table:'pwa_group_chat_seen',key:'A'}]),null);
+});
 test('R146 the summary rows travel as a replaceWhere patch by borrower: stored, replaced and removed, other borrowers untouched',()=>{
  const row=(borrowerId,en)=>({borrowerId,headline:{th:'สรุป',en},points:[],lastSpeaker:{role:'partner'},lastMessageAt:'2026-11-12T07:05:00.000Z',generatedAt:'2026-11-12T07:32:00.000Z',messageCount:3,shared:false});
  const data={groupChatByBorrower:[row('A','old A'),row('C','C')],items:[]};

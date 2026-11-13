@@ -54,7 +54,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       if (identity.rows.length !== 1 || identity.rows[0].database !== config.database || identity.rows[0].principal !== config.dbUser) throw new Error('Unexpected database identity');
       stage='mapping';const mapping = await client.query('SELECT "Row ID" AS id FROM public."Partners" WHERE lower(btrim("Login Email")) = $1 LIMIT 2', [email]);
       if (mapping.rows.length !== 1 || !validId(mapping.rows[0].id) || (resolveMember && !(await resolveMember(client,email,mapping.rows[0].id)))) { await rollback(); return { ok: false, status: 403, code: 'access_denied' }; }
-      stage='read';const data = await operation(client);
+      stage='read';const data = await operation(client, mapping.rows[0].id);
       stage='commit';
       await client.query('COMMIT');
       transactionUncertain=false;
@@ -102,7 +102,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       let after;
       try { q = normalizeSearchQuery(q); after = decodeCollectionCursor(cursor, 'collection', undefined, q); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
       catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
-      return run(email, client => readCollection(client, { limit, after, query: q }), true)
+      return run(email, (client, partnerId) => readCollection(client, { limit, after, query: q, partnerId }), true)
         .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
     },
     getCollectionCharges: (email, borrowerId, { limit = 25, cursor = null } = {}) => {

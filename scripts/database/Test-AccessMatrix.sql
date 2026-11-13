@@ -45,6 +45,8 @@ INSERT INTO am_expected_tables VALUES
   ('mw_app_dev','public.pwa_row_changes','SELECT'),
   -- V146 (R146): the application role reads and writes the group chat summaries (the put runs with its rights).
   ('mw_app_dev','public.pwa_group_chat_summaries','DELETE,INSERT,SELECT,UPDATE'),
+  -- V147 (R149): the application role reads and writes the group chat seen values (the mark function runs with its rights).
+  ('mw_app_dev','public.pwa_group_chat_seen','DELETE,INSERT,SELECT,UPDATE'),
   ('mw_business_audit_owner','agent_audit.exports','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_business_audit_owner','agent_audit.row_changes','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_jobs_owner_dev','public.pwa_job_runs','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
@@ -99,6 +101,8 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','referral_rebate_terms(text)'),
   -- V146 (R146): the group chat summary put.
   ('mw_app_dev','pwa_put_group_chat_summary_v1(text)'),
+  -- V147 (R149): the group chat seen mark.
+  ('mw_app_dev','pwa_mark_group_chat_seen_v1(jsonb,text,timestamp with time zone)'),
   -- V137 (R129): the rebate state reads and the settlement version.
   ('mw_app_dev','pwa_rebate_pending_v1(text)'),
   ('mw_app_dev','pwa_rebates_owed_v1(text)'),
@@ -466,6 +470,20 @@ DO $$ BEGIN
     OR EXISTS(SELECT 1 FROM unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,'public.pwa_group_chat_summaries',p))) THEN
   RAISE EXCEPTION 'V146: no migration-owned group chat summary access outside the application role'; END IF;
  IF has_table_privilege('mw_app_dev','public.pwa_group_chat_summaries','TRUNCATE') THEN RAISE EXCEPTION 'V146: the application role must not truncate the summaries'; END IF;
+END $$;
+-- V147 (R149): the seen mark runs with the caller's rights (owner postgres, pinned search_path, no PUBLIC execution); only
+-- the application role (and the command login through it) writes the table; nobody else holds anything from the migration.
+DO $$ BEGIN
+ IF NOT (SELECT NOT prosecdef AND pg_get_userbyid(proowner)='postgres' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_mark_group_chat_seen_v1(jsonb,text,timestamptz)'::regprocedure)
+  OR (SELECT pg_get_userbyid(relowner) FROM pg_class WHERE oid='public.pwa_group_chat_seen'::regclass)<>'postgres' THEN RAISE EXCEPTION 'V147: the mark must be postgres''s invoker-rights function over postgres''s table'; END IF;
+ IF NOT has_function_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_mark_group_chat_seen_v1(jsonb,text,timestamptz)','EXECUTE')
+  OR NOT has_table_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_group_chat_seen','INSERT') THEN RAISE EXCEPTION 'V147: the command login records seen values through mw_app_dev'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw-credit-app-read-dev@clever-oasis-508610-n7.iam','mw-credit-app-chat-dev@clever-oasis-508610-n7.iam','mw_chat_read_dev','mw_chat_api_dev','mw_reviewer_dml',
+    'mw_jobs_owner_dev','mw_notify_owner_dev','mw_ledger_owner_dev','mw_changes_owner_dev']) r
+   WHERE has_function_privilege(r,'public.pwa_mark_group_chat_seen_v1(jsonb,text,timestamptz)','EXECUTE') OR has_any_column_privilege(r,'public.pwa_group_chat_seen','SELECT')
+    OR EXISTS(SELECT 1 FROM unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,'public.pwa_group_chat_seen',p))) THEN
+  RAISE EXCEPTION 'V147: no migration-owned group chat seen access outside the application role'; END IF;
+ IF has_table_privilege('mw_app_dev','public.pwa_group_chat_seen','TRUNCATE') THEN RAISE EXCEPTION 'V147: the application role must not truncate the seen values'; END IF;
 END $$;
 -- V133 (R118): column-grant parity. A role that reads an interest column column by column also reads its late-charge
 -- sibling (V132 added the late columns; a column-level grant does not cover a new column, which broke the DEV jobs owner).

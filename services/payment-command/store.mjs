@@ -157,7 +157,7 @@ export const commandBusy = error => ['55P03','40P01','57014'].includes(error?.co
 function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, sourceReceiptReader, afterCommit, ownerTesting=false, draftMode='dev-owner-testing', principalAllowed=principal=>principal?.ok&&principal.email===OWNER_EMAIL&&typeof principal.subject==='string'&&!!principal.subject, resolveActor, actorIssuer=issuer, recognizer=null, now=Date.now }) {
   /** @type {Map<string,{actorKey:string,expires:number,provider:string,model:string,result:any}>} */
   const recognitionCache = new Map();
-  async function run(principal, operation, readonly = false, capability) {
+  async function run(principal, operation, readonly = false, capability, wake = true) {
     if (!principalAllowed(principal)) return failure(403, 'access_denied');
     let client, committedResult, attempted = false, commitStarted = false, quarantine = false;
     const rollback = async () => { try { await client?.query('ROLLBACK'); } catch (error) { quarantine = true; throw error; } };
@@ -215,7 +215,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     // not the browser's request deadline, and no response-bound abort signal: the notify worker
     // enqueues only with 11 s left after its cold start and cancels its pass if its caller hangs up.
     // The minute recovery worker owns any wake that still misses.
-    if (!readonly && afterCommit) {
+    if (!readonly && wake && afterCommit) {
       try { await afterCommit({deadline: Date.now() + WAKE_MS}); } catch { /* Recovery owns a missed wake. */ }
     }
     return committedResult;
@@ -313,6 +313,27 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         return {ok:true,value};
       },true,'receipt.read');
       return second;
+    },
+    /** R149: the signed-in user's own "group chat summary seen" value (V147, pwa_mark_group_chat_seen_v1). The Partner is
+     *  the server-resolved actor only; the body is exactly {lastMessageAt:"<ISO UTC, Z>"}. Capability read: the row is the
+     *  reader's own display hint, nothing financial reads it. Idempotent and forward only, so a resend is always safe.
+     *  No notification wake: nothing here enqueues a notification.
+     *  Not gated on ownerTesting (unlike the business reads and commands around it): every signed-in member the policy
+     *  gives the read capability may record its own value; run() still checks the principal and resolves the actor. */
+    async markChatSeen(principal,id,input){
+      if(!validBorrowerId(id)||!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).join(',')!=='lastMessageAt'||typeof input.lastMessageAt!=='string'
+        ||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(input.lastMessageAt)||!Number.isFinite(Date.parse(input.lastMessageAt)))return failure(400,'invalid_request');
+      return run(principal,async(client,actor)=>{
+        try{
+          const value=(await client.query('SELECT public.pwa_mark_group_chat_seen_v1($1::jsonb,$2::text,$3::timestamptz) AS value',[JSON.stringify(actor),id,input.lastMessageAt])).rows[0]?.value;
+          if(!value||!['stored','unchanged','ignored'].includes(value.kind))throw Error('Unexpected group chat seen result');
+          return {ok:true,value:{kind:value.kind,seenAt:typeof value.seenAt==='string'?value.seenAt:null}};
+        }catch(error){
+          if(error?.code==='P0002')return failure(404,'not_found');
+          if(error?.code==='22023')return failure(400,'invalid_request');
+          throw error;
+        }
+      },false,'read',false);
     },
     async collectionReceipts(principal,id,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readCollectionReceipts(client,id,options)}}catch(error){if(['invalid_request','selection_changed','business_date_changed'].includes(error.message))return failure(error.message==='invalid_request'?400:409,error.message);throw error}},true);},
     async paymentRecord(principal,id,{preview=false,targetLoanId=null,paymentDate=null,proposedBorrowerId=null}={}){

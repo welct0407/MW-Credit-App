@@ -20,6 +20,7 @@ COLUMNS = {
     'Payments': ['Row ID', 'Payment Method'],
     'Loans': ['Row ID', 'Ref Borrowers', 'Loan Date', 'Due Date', 'Close Date', 'Loan Type', 'Loan Status', 'Principal Amount', 'Outstanding Principal', 'Total Principal Received', 'Total Interest Received', 'Total Amount Received', 'Defaulted', 'Auto Charge Enabled', 'Original Daily Interest Rate', 'Default Loss Amount'],
     'pwa_group_chat_summaries': ['borrower_id', 'shared_group', 'headline_th', 'headline_en', 'points', 'last_speaker_role', 'last_speaker_borrower_id', 'message_count', 'last_message_at', 'generated_at'],
+    'pwa_group_chat_seen': ['borrower_id', 'partner_id', 'seen_last_message_at'],
 }
 VIEW_COLUMNS = {
     'oltp_upcoming_charge_summary_v2': ['Row ID', 'Ref Borrower', 'Due Date', 'Total Charge', 'As Of Date'],

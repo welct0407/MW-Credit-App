@@ -94,6 +94,9 @@ const labFixtures=async q=>{
  if(!(await q(`SELECT 1 FROM public."Cash Accounts" WHERE "Row ID"='CI-DAD'`)).rowCount)await q(readFileSync(new URL('../../scripts/database/Test-CashAccountFixtures.sql',import.meta.url),'utf8').replace(/^\\.*$/gm,''));
  if(!(await q('SELECT 1 FROM public."Statistics"')).rowCount)await q(`INSERT INTO "Statistics"("Row ID","Statistics ID") VALUES ('lab-statistics','lab')`);
  if(!(await q(`SELECT 1 FROM public."Partners" WHERE "Row ID"='lab-partner'`)).rowCount)await q(`INSERT INTO "Partners"("Row ID","Partner Role","Partner Name") VALUES ('lab-partner','B','Lab partner')`);
+ // R149: the reading user and a second user have login emails, so pwa_mark_group_chat_seen_v1 accepts them as actors.
+ await q(`UPDATE public."Partners" SET "Login Email"='lab-partner@example.invalid' WHERE "Row ID"='lab-partner' AND "Login Email" IS DISTINCT FROM 'lab-partner@example.invalid'`);
+ if(!(await q(`SELECT 1 FROM public."Partners" WHERE "Row ID"='lab-partner-2'`)).rowCount)await q(`INSERT INTO "Partners"("Row ID","Partner Role","Partner Name","Login Email") VALUES ('lab-partner-2','B','Lab partner two','lab-partner-2@example.invalid')`);
 };
 /** Borrowers with overdue, due-today and future charges, a posted payment and dated cash movements. */
 async function build(q,tag){
@@ -118,6 +121,10 @@ async function putSummary(q,key,borrowerIds,sha,text){
  const command={schemaVersion:1,requestId:randomUUID(),environment:'dev',conversationKey:key,borrowerIds,sourceSha256:sha,summary:text===null?null:{windowFrom:'2026-11-09T07:32:00Z',lastMessageAt:'2026-11-12T07:05:00Z',generatedAt:'2026-11-12T07:32:00Z',messageCount:5,model:'claude-opus-5-5',lastSpeaker:speaker,headline:{th:'สรุปสังเคราะห์',en:text},points:[{speaker,th:'ข้อความสังเคราะห์',en:'Synthetic point.'},{speaker:{role:'partner'},th:'ตกลง',en:'Agreed.'}]}};
  return (await q('SELECT public.pwa_put_group_chat_summary_v1($1) AS value',[JSON.stringify({command})])).rows[0].value;
 }
+/** R149: one "seen" write through pwa_mark_group_chat_seen_v1 for a lab user (V147). */
+async function markSeen(q,partnerId,borrowerId,at){
+ return (await q('SELECT public.pwa_mark_group_chat_seen_v1($1::jsonb,$2,$3::timestamptz) AS value',[JSON.stringify({issuer:'synthetic',subject:'owner',partnerId,loginEmail:partnerId+'@example.invalid'}),borrowerId,at])).rows[0].value;
+}
 const domains=['collection','cash'];
 test('R146 a group chat summary write changes the collection source version only: records, cash and management stay unchanged',{skip:!disposable&&'set MW_V4_LAB_URL to a disposable 127.0.0.1 loan_manager_dev'},async()=>{
  const client=new pg.Client({connectionString:url});await client.connect();
@@ -133,6 +140,15 @@ test('R146 a group chat summary write changes the collection source version only
   for(const domain of ['records','cash','management'])assert.equal(stored[domain],before[domain],domain+' is unchanged by a summary write');
   assert.equal((await putSummary(q,'c'.repeat(32),[borrower],'4'.repeat(64),'Reworded.')).kind,'unchanged');
   assert.deepEqual(await versions(),stored,'an unchanged post changes no version');
+  // R149: a seen write (V147) changes the collection version only; a repeated or older value changes nothing.
+  assert.equal((await markSeen(q,'lab-partner',borrower,'2026-11-12T07:00:00Z')).kind,'stored');
+  const seen=await versions();
+  assert.notEqual(seen.collection,stored.collection,'a stored seen value changes the collection version');
+  for(const domain of ['records','cash','management'])assert.equal(seen[domain],before[domain],domain+' is unchanged by a seen write');
+  for(const at of ['2026-11-12T07:00:00Z','2026-11-11T00:00:00Z'])assert.equal((await markSeen(q,'lab-partner',borrower,at)).kind,'unchanged');
+  assert.deepEqual(await versions(),seen,'an equal or older seen value changes no version');
+  assert.equal((await markSeen(q,'lab-partner-2',borrower,'2026-11-12T07:00:00Z')).kind,'stored');
+  const other=await versions();assert.notEqual(other.collection,seen.collection,'another user\'s seen value is a collection change too');assert.equal(other.records,before.records);
   assert.equal((await putSummary(q,'c'.repeat(32),[],'4'.repeat(64),null)).pruned,1);
   const pruned=await versions();assert.notEqual(pruned.collection,stored.collection);assert.equal(pruned.records,before.records);
   await q('DELETE FROM public."Borrowers" WHERE "Row ID"=$1',[borrower]);
@@ -169,6 +185,23 @@ test('collection and cash row-level deltas equal a fresh walk and reconcile to a
    ['a charge edit and a summary in one delta',async()=>{
      assert.deepEqual(states.collection.data.groupChatByBorrower.map(item=>item.borrowerId),[A]);assert.equal(states.collection.data.items.find(item=>item.id===B).chatSummaryAt,null);
      await q(`UPDATE "Charges" SET "Interest Due"=8::money WHERE "Row ID"=$1`,[`CC-CH-rows-${LB}-1`]);await putSummary(q,'b'.repeat(32),[B],'3'.repeat(64),'Borrower will pay tomorrow.')},{collection:'delta',cash:null}],
+   // R149 (V147): the reading user's seen value. A stored value is a collection delta whose items carry chatSeenAt; the
+   // same or an older value changes nothing; another user's value is a delta that leaves this user's items as they were;
+   // a newer summary leaves the seen value behind it. Cash never changes.
+   ['seen value stored for the reading user',async()=>{
+     assert.deepEqual(states.collection.data.items.filter(item=>[A,B].includes(item.id)).map(item=>item.chatSeenAt),[null,null]);
+     assert.deepEqual(await markSeen(q,'lab-partner',B,'2026-11-12T07:05:00Z'),{kind:'stored',seenAt:'2026-11-12T07:05:00.000Z'})},{collection:'delta',cash:'unchanged'}],
+   ['the same and an older seen value (unchanged: no row touched, no change-log row)',async()=>{
+     assert.equal(states.collection.data.items.find(item=>item.id===B).chatSeenAt,'2026-11-12T07:05:00.000Z');assert.equal(states.collection.data.items.find(item=>item.id===A).chatSeenAt,null);
+     for(const at of ['2026-11-12T07:05:00Z','2026-11-12T07:00:00Z','2027-01-01T00:00:00Z'])assert.equal((await markSeen(q,'lab-partner',B,at)).kind,'unchanged')},{collection:'unchanged',cash:'unchanged'}],
+   ['another user sees both summaries (a delta; the reading user\'s values stay)',async()=>{for(const id of [A,B])assert.equal((await markSeen(q,'lab-partner-2',id,'2026-11-12T07:05:00Z')).kind,'stored')},{collection:'delta',cash:'unchanged'}],
+   ['a newer summary and a seen value for the other borrower in one delta',async()=>{
+     assert.equal(states.collection.data.items.find(item=>item.id===B).chatSeenAt,'2026-11-12T07:05:00.000Z');assert.equal(states.collection.data.items.find(item=>item.id===A).chatSeenAt,null,'another user\'s value is not this user\'s');
+     await q(`UPDATE public.pwa_group_chat_summaries SET last_message_at='2026-11-12T09:00:00Z' WHERE borrower_id=$1`,[B]);assert.equal((await markSeen(q,'lab-partner',A,'2026-11-12T07:00:00Z')).kind,'stored')},{collection:'delta',cash:'unchanged'}],
+   ['seen value moved up to the newer summary',async()=>{
+     const item=states.collection.data.items.find(row=>row.id===B);assert.equal(item.chatSummaryAt,'2026-11-12T09:00:00.000Z');assert.equal(item.chatSeenAt,'2026-11-12T07:05:00.000Z','the earlier seen value is behind the newer summary');
+     assert.equal(states.collection.data.items.find(row=>row.id===A).chatSeenAt,'2026-11-12T07:00:00.000Z');
+     assert.deepEqual(await markSeen(q,'lab-partner',B,'2026-11-12T09:00:00Z'),{kind:'stored',seenAt:'2026-11-12T09:00:00.000Z'})},{collection:'delta',cash:'unchanged'}],
    ['two borrowers paid in one delta',async()=>{for(const [pay,borrower] of [['CC-PAY3-'+seed,A],['CC-PAY4-'+seed,B]])await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,6::money,current_date,'Lump Sum')`,[pay,borrower])},{collection:'delta',cash:'delta'}],
    ['payment clearing every due charge of a borrower (their collection items go)',async()=>{const due=(await q(`SELECT sum("Amount Remaining")::numeric::text AS total FROM public."Charges" WHERE "Ref Loans"=$1 AND "Charge Date"<=current_date`,[LA])).rows[0].total;await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,$3::numeric::money,current_date,'Lump Sum')`,['CC-PAY2-'+seed,A,due])},{collection:'delta',cash:'delta'}],
    ['new borrower with a loan and a due charge',async()=>{const n='CC-N-'+seed;await q(`INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES ($1,'New '||$2)`,[n,seed]);await q(`INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES ('CI-LISA',$1,$2,current_date-3,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false)`,['CC-NL-'+seed,n]);await q(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES ($1,$2,current_date,30::money,5::money)`,['CC-NCH-'+seed,'CC-NL-'+seed])},{collection:null,cash:null}],

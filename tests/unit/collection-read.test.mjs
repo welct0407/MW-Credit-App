@@ -52,6 +52,61 @@ test('R114 COL-2: a borrower paid in advance by a rebate offset gets prepaidSour
  assert.match(prepaidSourceSql,/p\."Payment Method"/);assert.match(prepaidSourceSql,/r\."Ref Payment"/);
 });
 // R146: the group chat summary on the collection read. Invented text only.
+// R149: the reading user's own seen value (V147) on each list item. Invented ids only.
+test('R149 list items carry chatSeenAt for the reader\'s Partner only; the field is omitted without a Partner id, the table or the grant',async()=>{
+ const {readCollection,groupChatAllowedSql,groupChatListSql,groupChatSeenAllowedSql,groupChatSeenListSql,GROUP_CHAT_SEEN_COLUMNS}=await import('../../services/api/collection-read-contract.mjs');
+ const row=id=>({id,rank:0,overdue_days:null,borrower_name:id,amount_due:'100',amount_collected:'0',amount_remaining:'100',prepaid_today:'0',prepaid_only:false,prepaid_payment_date:null});
+ const run=async({summaries=true,seen=true,options={}}={})=>{const calls=[],args=[];const client={query:async(sql,params)=>{calls.push(sql);
+   if(sql.includes('CURRENT_TIMESTAMP AS "asOf"'))return {rows:[{asOf:'2026-11-12T08:00:00Z',businessDate:'2026-11-12'}]};
+   if(sql.includes('AS invalid'))return {rows:[{invalid:false}]};
+   if(sql===groupChatAllowedSql)return {rows:[{allowed:summaries}]};
+   if(sql===groupChatListSql)return {rows:[{id:'a',last_message_at:new Date('2026-11-12T07:05:00Z')},{id:'b',last_message_at:new Date('2026-11-12T06:00:00Z')}]};
+   if(sql===groupChatSeenAllowedSql){if(seen==='missing')return {rows:[]};return {rows:[{allowed:seen}]};}
+   if(sql===groupChatSeenListSql){args.push(params);return {rows:[{id:'a',seen_last_message_at:new Date('2026-11-12T07:05:00Z')}]};}
+   if(sql.includes('pwa_group_chat_seen'))throw Object.assign(Error('permission denied for table pwa_group_chat_seen'),{code:'42501'});
+   if(sql.includes('AS allowed'))return {rows:[{allowed:false}]};
+   if(sql.endsWith('SELECT * FROM summaries'))return {rows:[row('a')]};
+   if(sql.includes('SELECT id, loan_id, payment_status'))return {rows:[]};
+   return {rows:[row('a'),row('b')]};}};
+  return {value:await readCollection(client,{limit:10,after:null,partnerId:'P-SYNTHETIC',...options}),calls,args};};
+ const list=await run();
+ assert.deepEqual(list.value.items.map(item=>[item.id,item.chatSummaryAt,item.chatSeenAt]),[['a','2026-11-12T07:05:00.000Z','2026-11-12T07:05:00.000Z'],['b','2026-11-12T06:00:00.000Z',null]]);
+ assert.deepEqual(list.args,[[['a','b'],'P-SYNTHETIC']],'only the reading user\'s rows, for the listed borrowers');
+ // Omitted, never a failure: no Partner id (a caller that does not know the reader), table missing, grant missing.
+ for(const [name,input] of [['no partner',{options:{partnerId:undefined}}],['empty partner',{options:{partnerId:''}}],['no grant',{seen:false}],['no table',{seen:null}],['no row',{seen:'missing'}]]){
+  const without=await run(input);
+  assert.deepEqual(without.value.items.map(item=>['chatSeenAt' in item,item.chatSummaryAt]),[[false,'2026-11-12T07:05:00.000Z'],[false,'2026-11-12T06:00:00.000Z']],name);
+  assert.equal(without.calls.includes(groupChatSeenListSql),false,name);
+ }
+ // No readable summaries: nothing to mark, and the seen table is not consulted.
+ const none=await run({summaries:false});assert.deepEqual(none.value.items.map(item=>['chatSeenAt' in item,item.chatSummaryAt]),[[false,null],[false,null]]);assert.equal(none.calls.includes(groupChatSeenAllowedSql),false);
+ // The detail envelope is unchanged (the card needs no seen value).
+ const detail=await run({options:{borrowerId:'a'}});assert.equal('chatSeenAt' in detail.value.borrower,false);assert.equal(detail.calls.includes(groupChatSeenListSql),false);
+ // Guard and query shape: existence plus SELECT on each column read; the Partner is a bound parameter; no clock.
+ assert.match(groupChatSeenAllowedSql,/to_regclass\('public\.pwa_group_chat_seen'\)/);assert.match(groupChatSeenAllowedSql,/has_column_privilege\(t\.oid, c\.name, 'SELECT'\)/);
+ assert.deepEqual(GROUP_CHAT_SEEN_COLUMNS,['borrower_id','partner_id','seen_last_message_at']);
+ for(const column of GROUP_CHAT_SEEN_COLUMNS){assert.ok(groupChatSeenAllowedSql.includes(`'${column}'`),column);assert.ok(groupChatSeenListSql.includes('t.'+column),column);}
+ assert.match(groupChatSeenListSql,/t\.partner_id = \$2/);assert.doesNotMatch(groupChatSeenListSql,/now\(\)|CURRENT_|interval|clock_timestamp/i);
+});
+test('R149 the read store passes the mapped Partner id of the signed-in email to the collection list',async()=>{
+ const {createBorrowerReadStore}=await import('../../services/api/borrower-read-store.mjs');
+ const {groupChatAllowedSql,groupChatListSql,groupChatSeenAllowedSql,groupChatSeenListSql}=await import('../../services/api/collection-read-contract.mjs');
+ const row=id=>({id,rank:0,overdue_days:null,borrower_name:id,amount_due:'100',amount_collected:'0',amount_remaining:'100',prepaid_today:'0',prepaid_only:false,prepaid_payment_date:null});
+ const seenArgs=[];const client={release(){},query:async(sql,params)=>{
+  if(sql.includes('current_database()'))return {rows:[{database:'synthetic_db',principal:'synthetic_reader'}]};
+  if(sql.includes('"Login Email"'))return {rows:[{id:'P-MAPPED'}]};
+  if(sql.includes('CURRENT_TIMESTAMP AS "asOf"'))return {rows:[{asOf:'2026-11-12T08:00:00Z',businessDate:'2026-11-12'}]};
+  if(sql.includes('AS invalid'))return {rows:[{invalid:false}]};
+  if(sql===groupChatAllowedSql||sql===groupChatSeenAllowedSql)return {rows:[{allowed:true}]};
+  if(sql===groupChatListSql)return {rows:[{id:'a',last_message_at:new Date('2026-11-12T07:05:00Z')}]};
+  if(sql===groupChatSeenListSql){seenArgs.push(params);return {rows:[{id:'a',seen_last_message_at:new Date('2026-11-12T07:00:00Z')}]};}
+  if(sql.includes('AS allowed'))return {rows:[{allowed:false}]};
+  if(/^(BEGIN|COMMIT|ROLLBACK|SET)/.test(sql))return {rows:[]};
+  return {rows:[row('a')]};}};
+ const store=createBorrowerReadStore({pool:{connect:async()=>client},config:{database:'synthetic_db',dbUser:'synthetic_reader',ownerEmail:'synthetic@example.invalid'}});
+ const list=await store.listCollection('synthetic@example.invalid',{});
+ assert.equal(list.ok,true,JSON.stringify(list));assert.deepEqual(seenArgs,[[['a'],'P-MAPPED']]);assert.equal(list.items[0].chatSeenAt,'2026-11-12T07:00:00.000Z');
+});
 test('R146 list items carry chatSummaryAt and the detail envelope groupChat; a reader without the grant gets null and no failure',async()=>{
  const {readCollection,groupChatAllowedSql,groupChatListSql,groupChatDetailSql,GROUP_CHAT_COLUMNS,projectGroupChat}=await import('../../services/api/collection-read-contract.mjs');
  const row=id=>({id,rank:0,overdue_days:null,borrower_name:id,amount_due:'100',amount_collected:'0',amount_remaining:'100',prepaid_today:'0',prepaid_only:false,prepaid_payment_date:null});

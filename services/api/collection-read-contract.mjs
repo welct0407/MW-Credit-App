@@ -153,12 +153,26 @@ export function projectGroupChat(row) {
   if (!lastSpeaker || !lastMessageAt || !generatedAt || points.includes(null) || !Number.isSafeInteger(row.message_count) || typeof row.shared_group !== 'boolean') return null;
   return { headline: { th: row.headline_th, en: row.headline_en }, points, lastSpeaker, lastMessageAt, generatedAt, messageCount: row.message_count, shared: row.shared_group };
 }
-/** R146: chatSummaryAt (the summary's last substantive message time, or null) on every list item. */
-async function markChatSummary(client, items) {
+// R149 group chat seen (V147): the signed-in user's own "seen up to" value per borrower, so the list mark agrees across
+// that user's devices. Same guard as the summaries (existence plus SELECT on every column read); without it the field
+// is left out and the device decides from its own storage, as in R146.
+export const GROUP_CHAT_SEEN_COLUMNS = ['borrower_id', 'partner_id', 'seen_last_message_at'];
+export const groupChatSeenAllowedSql = `SELECT COALESCE((SELECT bool_and(has_column_privilege(t.oid, c.name, 'SELECT'))
+  FROM (SELECT to_regclass('public.pwa_group_chat_seen')::oid AS oid) t, unnest(ARRAY[${GROUP_CHAT_SEEN_COLUMNS.map(name => `'${name}'`).join(', ')}]) c(name)
+  WHERE t.oid IS NOT NULL), false) AS allowed`;
+export const groupChatSeenListSql = `SELECT t.borrower_id AS id, t.seen_last_message_at FROM public.pwa_group_chat_seen t WHERE t.partner_id = $2 AND t.borrower_id = ANY($1::text[])`;
+/** R146: chatSummaryAt (the summary's last substantive message time, or null) on every list item.
+ * R149: with the reader's Partner id, chatSeenAt too (that user's stored seen time, or null); the field is omitted when
+ * the caller has no Partner id, the summaries are not readable, or the seen table is missing or not granted. */
+async function markChatSummary(client, items, partnerId) {
   const none = () => items.map(item => ({ ...item, chatSummaryAt: null }));
   if (!items.length || (await client.query(groupChatAllowedSql)).rows[0]?.allowed !== true) return none();
-  const found = new Map((await client.query(groupChatListSql, [items.map(item => item.id)])).rows.map(row => [row.id, instant(row.last_message_at)]));
-  return items.map(item => ({ ...item, chatSummaryAt: found.get(item.id) ?? null }));
+  const ids = items.map(item => item.id);
+  const found = new Map((await client.query(groupChatListSql, [ids])).rows.map(row => [row.id, instant(row.last_message_at)]));
+  const marked = items.map(item => ({ ...item, chatSummaryAt: found.get(item.id) ?? null }));
+  if (typeof partnerId !== 'string' || !partnerId || (await client.query(groupChatSeenAllowedSql)).rows[0]?.allowed !== true) return marked;
+  const seen = new Map((await client.query(groupChatSeenListSql, [ids, partnerId])).rows.map(row => [row.id, instant(row.seen_last_message_at)]));
+  return marked.map(item => ({ ...item, chatSeenAt: seen.get(item.id) ?? null }));
 }
 /** R146: the borrower's current group chat summary, or null (none, or the reader may not read the table). */
 async function readGroupChat(client, borrowerId) {
@@ -207,7 +221,7 @@ export function decodeCollectionCursor(cursor, kind, parentId, query = '') {
   if (canonical !== cursor) throw new Error('Invalid cursor');
   return parsed;
 }
-export async function readCollection(client, { limit, after, borrowerId = null, query = '' }) {
+export async function readCollection(client, { limit, after, borrowerId = null, query = '', partnerId = null }) {
   const late = await lateChargeSchema(client);
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
   const { businessDate, asOf } = clock.rows[0];
@@ -220,7 +234,7 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
   const collectionCte = collectionCteFor(late, paymentSource);
   if (borrowerId === null) {
     const result = await client.query(`${collectionCte}, filtered AS (SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0)), totals AS (SELECT *, CASE WHEN count(*) FILTER (WHERE amount_remaining IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_remaining::numeric) OVER (PARTITION BY rank)::text END AS group_remaining, CASE WHEN count(*) FILTER (WHERE amount_collected IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_collected::numeric) OVER (PARTITION BY rank)::text END AS group_collected FROM filtered) SELECT * FROM totals WHERE ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND (sort_days > $8::integer OR (sort_days = $8::integer AND (COALESCE(borrower_name, '') COLLATE "C" > $7::text COLLATE "C" OR (COALESCE(borrower_name, '') COLLATE "C" = $7::text COLLATE "C" AND id COLLATE "C" > $4::text COLLATE "C")))))) ORDER BY rank, sort_days, COALESCE(borrower_name, '') COLLATE "C" ASC, id COLLATE "C" ASC LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query, after?.name ?? null, after?.days ?? null]);
-    const items = await markChatSummary(client, await markPrepaidSource(client, businessDate, result.rows.slice(0, limit).map(projectCollection), paymentSource));
+    const items = await markChatSummary(client, await markPrepaidSource(client, businessDate, result.rows.slice(0, limit).map(projectCollection), paymentSource), partnerId);
     const last = result.rows[Math.min(limit, result.rows.length) - 1];
     return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, days: last.sort_days, name: last.borrower_name ?? '', id: last.id }, query) : null };
   }
