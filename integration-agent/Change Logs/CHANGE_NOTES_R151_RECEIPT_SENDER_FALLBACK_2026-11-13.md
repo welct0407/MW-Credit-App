@@ -69,6 +69,6 @@ None.
 ## Remaining work
 PROD done (record above); tagged R151 and closed by the closure pull request. Open: the Reviewer's decision on the pending Loan Close review for the reprocessed receipt (expires 14 November 2026, 22:20 Bangkok), and owner acceptance (that a slip from a sender missing from the participants is no longer silent).
 
-Known limit (pre-existing, not fixed here): when a review request is too long to send, the reserved review row stays `PENDING` with nothing sent and the Reviewer gets only a hold alert.
+Known limit (pre-existing, not fixed in R151; fixed in R152, see the [R152 note](CHANGE_NOTES_R152_REVIEW_ROW_ORDER_2026-11-13.md)): when a review request is too long to send, the reserved review row stays `PENDING` with nothing sent and the Reviewer gets only a hold alert.
 
 Caveat for the PROD run: when no participant is enabled, the `poll-reprocess` eligibility gate needs the sender's message on the first history page, otherwise it answers `not_eligible`. The PROD case's group has an enabled participant, so it is eligible.
