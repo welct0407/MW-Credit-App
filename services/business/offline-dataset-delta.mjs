@@ -71,7 +71,9 @@ function domainVersion(fingerprints,actor,domain,businessDate){
  // v7 (R118): charges, drafts, related records and upcoming rows carry the late charge; every installed bundle walks once.
  // v8 (R120): borrower records carry the referral rebate terms and expenses the applied terms; every bundle walks once.
  // v9 (R146): collection items carry chatSummaryAt and the detail the group chat summary; every bundle walks once.
- return deltaValueHash(['business-offline-v9',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
+ // v10 (R153): borrower records carry igGroupUrl (V148 changes every borrower version, not the xmin fingerprints) and
+ // the group chat summaries their url; every bundle walks once.
+ return deltaValueHash(['business-offline-v10',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
 }
 export async function readOfflineSourceVersion(client,actor,domain,businessDate){
  if(!offlineSourceTables[domain])throw Error('invalid_request');

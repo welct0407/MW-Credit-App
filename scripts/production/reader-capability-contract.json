@@ -13,7 +13,8 @@
       "Has Active Loan",
       "Borrower Note",
       "Description",
-      "Total Interest Earned"
+      "Total Interest Earned",
+      "IG Group URL"
     ],
     "Partners": [
       "Row ID",

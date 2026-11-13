@@ -723,5 +723,77 @@ DO $$ BEGIN
  PERFORM pg_temp.ro_assert((SELECT "Loan Status"='ยังไม่ปิดยอด' FROM public."Loans" WHERE "Row ID"='RO-LTX') AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Ref Related Loan"='RO-LTX')
    AND (SELECT outcome='rejected' FROM public.pwa_payment_commands WHERE request_id='f3333333-3333-4333-8333-333333333337') AND (SELECT "Referral Rebate Rate" IS NULL FROM public."Borrowers" WHERE "Row ID"='RO-RTX'),'T drift: the close and the terms change rolled back together');
 END $$;
+-- 6. R153 V148: the borrower's Instagram group chat link ("IG Group URL", input igGroupUrl after referralRebateCap). Invented
+-- thread ids and links only. Through borrower.update and borrower.create as the command user: set, kept by an update without
+-- the key, set after the terms, cleared by null; invalid values and a wrong key order are invalid canonical operations that
+-- record nothing; the column check refuses a bad value written directly; the version hashes the link and equals the Node
+-- mirror (services/business/borrowers.mjs versionSql, pasted below).
+INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES ('RO-IGU','SYNTHETIC IG GROUP LINK');
+CREATE FUNCTION pg_temp.ro_ig_mirror(id text) RETURNS text LANGUAGE sql AS $f$ SELECT encode(sha256(convert_to((jsonb_build_object('id',b."Row ID",'createdDate',b."Creation Date",'aiCollectionEnabled',b."AI Collection Enabled",'name',b."Borrower Name",'description',b."Description",'communicationName',b."Communication Name",'instagramUsername',b."Instagram Username",'city',b."City",'workingLocation',b."Working Location",'address',b."Address",'hidden',b."Hidden Flag",'referrerId',b."Ref Referrer",'preferredReceivingAccountId',b."Ref Preferred Receiving Cash Account",'note',b."Borrower Note")||CASE WHEN to_jsonb(b)?'Referral Rebate Rate' THEN jsonb_build_object('referralRebateRate',to_jsonb(b)->'Referral Rebate Rate','referralRebateCap',to_jsonb(b)->'Referral Rebate Cap') ELSE '{}'::jsonb END||CASE WHEN to_jsonb(b)?'IG Group URL' THEN jsonb_build_object('igGroupUrl',to_jsonb(b)->'IG Group URL') ELSE '{}'::jsonb END)::text,'UTF8')),'hex') FROM public."Borrowers" b WHERE b."Row ID"=id $f$;
+SELECT set_config('ro.ig_v0',public.pwa_borrower_version_v2('RO-IGU'),true),
+ set_config('ro.ig_set',pg_temp.ro_borrower('f4444444-4444-4444-8444-444444444441','RO-IGU',',"igGroupUrl":"https://www.instagram.com/direct/t/100000000000001/"'),true),
+ set_config('ro.ig_bad',(SELECT string_agg(pg_temp.ro_borrower('f5555555-5555-4555-8555-5555555555'||lpad(n::text,2,'0'),'RO-IGU',x),E'\x1f' ORDER BY n) FROM (VALUES
+   (1,',"igGroupUrl":"http://www.instagram.com/direct/t/100000000000001/"'),(2,',"igGroupUrl":"https://www.example.invalid/direct/t/1/"'),
+   (3,',"igGroupUrl":"https://user@www.instagram.com/direct/t/1/"'),(4,',"igGroupUrl":"https://www.instagram.com/direct/t/1 2/"'),
+   (5,',"igGroupUrl":"https://ig.me/'||repeat('a',256)||'"'),(6,',"igGroupUrl":""'),(7,',"igGroupUrl":1'),(8,',"igGroupUrl":true'),
+   (9,',"igGroupUrl":"https://www.instagram.com/invented_user/"'),(10,',"igGroupUrl":"https://www.instagram.com.example.invalid/direct/t/1/"'),
+   (11,',"igGroupUrl":"https://www.instagram.com/direct/t/100000000000001/","referralRebateCap":null'),(12,',"igGroupUrl":"https://www.instagram.com/direct/t/1#x"')) v(n,x)),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE r jsonb;c text;
+BEGIN
+ r:=public.pwa_submit_operation_v2(current_setting('ro.ig_set'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: the link through borrower.update must apply: %',r; END IF;
+ FOREACH c IN ARRAY string_to_array(current_setting('ro.ig_bad'),E'\x1f') LOOP
+  BEGIN PERFORM public.pwa_submit_operation_v2(c); RAISE EXCEPTION 'FAILED: invalid link input accepted: %',c;
+  EXCEPTION WHEN SQLSTATE '22023' THEN NULL; END;
+ END LOOP;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "IG Group URL"='https://www.instagram.com/direct/t/100000000000001/' FROM public."Borrowers" WHERE "Row ID"='RO-IGU'),'IG: borrower.update writes the link');
+ PERFORM pg_temp.ro_assert((SELECT canonical_json LIKE '%"note":null,"igGroupUrl":"https://www.instagram.com/direct/t/100000000000001/"}}%' FROM public.pwa_payment_commands WHERE request_id='f4444444-4444-4444-8444-444444444441'),'IG: the canonical text has the link last, as a JSON string');
+ PERFORM pg_temp.ro_assert(public.pwa_borrower_version_v2('RO-IGU') IS DISTINCT FROM current_setting('ro.ig_v0'),'IG: the link is part of the borrower version');
+ PERFORM pg_temp.ro_assert(NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands WHERE request_id::text LIKE 'f5555555-%'),'IG: invalid link inputs record nothing');
+END $$;
+-- An update without the key keeps the link; then the terms and an ig.me link in canonical order.
+SELECT set_config('ro.ig_plain',pg_temp.ro_borrower('f4444444-4444-4444-8444-444444444442','RO-IGU',''),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ DECLARE r jsonb:=public.pwa_submit_operation_v2(current_setting('ro.ig_plain'));
+BEGIN IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: an update without the link must apply: %',r; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN PERFORM pg_temp.ro_assert((SELECT "IG Group URL"='https://www.instagram.com/direct/t/100000000000001/' FROM public."Borrowers" WHERE "Row ID"='RO-IGU'),'IG: an update without the key keeps the link'); END $$;
+SELECT set_config('ro.ig_terms',pg_temp.ro_borrower('f4444444-4444-4444-8444-444444444443','RO-IGU',',"referralRebateRate":15,"referralRebateCap":null,"igGroupUrl":"https://ig.me/j/InventedLink01/"'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ DECLARE r jsonb:=public.pwa_submit_operation_v2(current_setting('ro.ig_terms'));
+BEGIN IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: terms then the link must apply: %',r; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "IG Group URL"='https://ig.me/j/InventedLink01/' AND "Referral Rebate Rate"=15 FROM public."Borrowers" WHERE "Row ID"='RO-IGU'),'IG: the link after the terms is written with them');
+ PERFORM pg_temp.ro_assert(public.pwa_borrower_version_v2('RO-IGU')=pg_temp.ro_ig_mirror('RO-IGU'),'IG: the Node mirror equals pwa_borrower_version_v2 (link and terms set)');
+END $$;
+-- null clears; a create carries the link; both versions equal the mirror.
+SELECT set_config('ro.ig_clear',pg_temp.ro_borrower('f4444444-4444-4444-8444-444444444444','RO-IGU',',"igGroupUrl":null'),true),
+ set_config('ro.ig_create','{"contractVersion":2,"requestId":"f4444444-4444-4444-8444-444444444445","actor":{"issuer":"https://ro.invalid","subject":"ro-owner","partnerId":"RO-ACT","loginEmail":"ro-actor@example.invalid"},"command":{"schemaVersion":1,"operation":"borrower.create","targetType":"borrower","targetId":"f6666666-6666-4666-8666-666666666661","expectedVersion":null,"predecessorRequestId":null,"inputs":{"name":"SYNTHETIC IG CREATE","description":null,"communicationName":null,"instagramUsername":null,"city":null,"workingLocation":null,"address":null,"hidden":false,"referrerId":null,"preferredReceivingAccountId":null,"note":null,"igGroupUrl":"https://instagram.com/direct/t/100000000000002"}},"receipt":null}',true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE r jsonb;
+BEGIN
+ r:=public.pwa_submit_operation_v2(current_setting('ro.ig_clear'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: null must clear the link: %',r; END IF;
+ r:=public.pwa_submit_operation_v2(current_setting('ro.ig_create'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: borrower.create with the link must apply: %',r; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "IG Group URL" IS NULL FROM public."Borrowers" WHERE "Row ID"='RO-IGU'),'IG: null clears the link');
+ PERFORM pg_temp.ro_assert((SELECT "IG Group URL"='https://instagram.com/direct/t/100000000000002' FROM public."Borrowers" WHERE "Row ID"='f6666666-6666-4666-8666-666666666661'),'IG: borrower.create writes the link');
+ PERFORM pg_temp.ro_assert((SELECT bool_and(public.pwa_borrower_version_v2(id)=pg_temp.ro_ig_mirror(id)) FROM unnest(ARRAY['RO-IGU','f6666666-6666-4666-8666-666666666661','RO-RTR','RO-RTD']) id),'IG: the Node mirror equals pwa_borrower_version_v2 (cleared, created, terms, defaults)');
+ -- The column check refuses a bad value written directly (blank included); a valid one is stored.
+ BEGIN UPDATE public."Borrowers" SET "IG Group URL"='http://www.instagram.com/direct/t/100000000000001/' WHERE "Row ID"='RO-IGU'; RAISE EXCEPTION 'FAILED: an http link stored'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN UPDATE public."Borrowers" SET "IG Group URL"='' WHERE "Row ID"='RO-IGU'; RAISE EXCEPTION 'FAILED: a blank link stored'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN UPDATE public."Borrowers" SET "IG Group URL"='https://ig.me/'||repeat('a',256) WHERE "Row ID"='RO-IGU'; RAISE EXCEPTION 'FAILED: a 256-character tail stored'; EXCEPTION WHEN check_violation THEN NULL; END;
+ UPDATE public."Borrowers" SET "IG Group URL"='https://ig.me/'||repeat('a',255) WHERE "Row ID"='RO-IGU';
+END $$;
 SELECT 'Rebate offset regressions passed' AS result;
 ROLLBACK;

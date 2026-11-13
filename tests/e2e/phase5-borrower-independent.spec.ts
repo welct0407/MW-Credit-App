@@ -50,7 +50,7 @@ test('Borrower upcoming controls stay read-only inside the borrower form',async(
 });
 
 for(const width of [320,390,1440])test(`F2 borrower ordered fields/read-only metadata and compact geometry ${width}px`,async({page},info)=>{await page.setViewportSize({width,height:900});const s=await setup(page);await page.getByRole('button',{name:'Add borrower',exact:true}).click();const region=page.getByRole('region',{name:'Borrower record',exact:true});await expect(region.getByRole('button',{name:'Save borrower',exact:true})).toBeVisible();
- const labels=await region.locator('form>label').evaluateAll(es=>es.map(e=>e.childNodes[0]?.textContent?.trim()));expect(labels).toEqual(['Borrower name (Thai)','Creation Date','English name','Preferred Receiving Cash Account','Payer names on slips','Instagram Username','AI Collection Enabled','City','Working Location','Address','Referrer','Rebate rate as referrer (%)','Rebate maximum as referrer (฿)','Borrower Note','Hide from Borrowers List']);
+ const labels=await region.locator('form>label').evaluateAll(es=>es.map(e=>e.childNodes[0]?.textContent?.trim()));expect(labels).toEqual(['Borrower name (Thai)','Creation Date','English name','Preferred Receiving Cash Account','Payer names on slips','Instagram Username','IG Group URL','AI Collection Enabled','City','Working Location','Address','Referrer','Rebate rate as referrer (%)','Rebate maximum as referrer (฿)','Borrower Note','Hide from Borrowers List']);
  await expect(region.getByRole('textbox',{name:/^Creation Date(?: \*)?$/})).toHaveCount(0);await expect(region.getByRole('checkbox',{name:'AI Collection Enabled',exact:true})).toBeChecked();await expect(region.getByRole('textbox',{name:/phone|document/i})).toHaveCount(0);
  for(const lang of ['EN','ไทย'] as const){await chooseLanguagePreservingForm(page,lang);expect(await page.locator('body').evaluate(e=>e.scrollWidth)).toBeLessThanOrEqual(width);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);await expect(page.locator('main')).not.toContainText(/Loading|Checking/);mkdirSync('test-results/r052-phase5-completion',{recursive:true});await page.screenshot({path:`test-results/r052-phase5-completion/borrower-form-${info.project.name}-${width}-${lang==='EN'?'en':'th'}.png`})}expect(s.writes).toHaveLength(0);
 });
@@ -93,6 +93,52 @@ test('R120 rebate terms validation: both invalid fields are flagged at once in t
  expect(await region.getByRole('alert').first().evaluate(e=>getComputedStyle(e).color)).toBe('rgb(179, 38, 30)');
  await rate.fill('20');await expect(region.getByRole('alert')).toHaveText(['Enter a whole baht amount of 1 or more.']);await expect(rate).not.toHaveAttribute('aria-invalid','true');
  expect(s.writes).toHaveLength(0);expect(await pending(page)).toHaveLength(0);
+});
+// R153 (D6): the borrower's Instagram group chat link after Instagram Username. View shows it as a link opened in a new tab;
+// edit trims it, sends blank as null and refuses anything but an instagram.com/direct or ig.me https link before queueing.
+// A record read before V148 (no igGroupUrl key) shows no field and sends no key. Invented links only.
+const igLink='https://www.instagram.com/direct/t/100000000000001/';
+test('R153 IG Group URL: shown as a link after Instagram Username; edit sends the trimmed link as the last input',async({page})=>{
+ const s=await setup(page);s.borrowerItem={...record,igGroupUrl:igLink};await full(page);const region=page.getByRole('region',{name:'Borrower record',exact:true});
+ const link=region.getByRole('link',{name:igLink,exact:true});await expect(link).toHaveAttribute('href',igLink);await expect(link).toHaveAttribute('target','_blank');await expect(link).toHaveAttribute('rel','noopener noreferrer');
+ // UX-BRW-IGURL-01: it looks like a link (link colour, underline) and is not lighter than the other values.
+ expect(await link.evaluate(e=>{const s=getComputedStyle(e);return [s.color,s.textDecorationLine,s.fontWeight]})).toEqual(['rgb(11, 87, 208)','underline','600']);
+ const labels=await region.locator('form>label').evaluateAll(es=>es.map(e=>e.childNodes[0]?.textContent?.trim()));expect(labels.indexOf('Instagram Username')).toBeGreaterThan(0);expect(labels.indexOf('IG Group URL')).toBe(labels.indexOf('Instagram Username')+1);
+ await page.getByRole('button',{name:'Edit borrower',exact:true}).click();
+ const input=region.getByRole('textbox',{name:'IG Group URL',exact:true});await expect(input).toHaveValue(igLink);await expect(input).toHaveAccessibleDescription("Copy the chat address from instagram.com in a browser, or the group's invite link (ig.me).");await expect(input).toHaveAttribute('type','url');await expect(input).toHaveAttribute('autocapitalize','none');
+ await input.fill(' https://ig.me/j/InventedLink01/ ');await page.getByRole('button',{name:'Save borrower',exact:true}).click();
+ await expect.poll(()=>s.writes.length).toBe(1);expect(s.writes[0].body.inputs.igGroupUrl).toBe('https://ig.me/j/InventedLink01/');expect(Object.keys(s.writes[0].body.inputs).at(-1)).toBe('igGroupUrl');
+});
+test('R153 IG Group URL validation: an invalid link is refused inline, focused and queues nothing; blank sends null',async({page})=>{
+ const s=await setup(page);s.borrowerItem={...record,igGroupUrl:igLink};await full(page);const region=page.getByRole('region',{name:'Borrower record',exact:true});
+ await page.getByRole('button',{name:'Edit borrower',exact:true}).click();const input=region.getByRole('textbox',{name:'IG Group URL',exact:true});
+ for(const bad of ['http://www.instagram.com/direct/t/100000000000001/','https://www.instagram.com/invented_user/','https://ig.me/'+'a'.repeat(256)]){
+  await input.fill(bad);await page.getByRole('button',{name:'Save borrower',exact:true}).click();
+  await expect(region.getByRole('alert')).toHaveText('Use an Instagram chat link (https://www.instagram.com/direct/… or https://ig.me/…), or leave it blank.');
+  await expect(input).toHaveAttribute('aria-invalid','true');await expect(input).toBeFocused();
+  // UX-BRW-IGURL-03: the error and the one-line help both describe the field.
+  await expect(input).toHaveAccessibleDescription(/^Use an Instagram chat link .* Copy the chat address from instagram\.com in a browser, or the group's invite link \(ig\.me\)\.$/);
+ }
+ expect(await region.getByRole('alert').evaluate(e=>getComputedStyle(e).color)).toBe('rgb(179, 38, 30)');
+ expect(s.writes).toHaveLength(0);expect(await pending(page)).toHaveLength(0);
+ await input.fill('   ');await expect(region.getByRole('alert')).toHaveCount(0);await page.getByRole('button',{name:'Save borrower',exact:true}).click();
+ await expect.poll(()=>s.writes.length).toBe(1);expect(s.writes[0].body.inputs.igGroupUrl).toBeNull();
+});
+test('R153 IG Group URL in Thai: label, link and the inline error',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});const s=await setup(page);s.borrowerItem={...record,igGroupUrl:igLink};
+ // A versioned preference row, so the language save succeeds and the app keeps Thai (R140).
+ s.preferenceItem={id:'C-partner',version:'b'.repeat(64),language:null,statementAccountId:null,statementDate:null};await full(page);await chooseLanguage(page,'ไทย');
+ await expect(page.locator('main form>label').filter({hasText:/^ลิงก์กลุ่มแชท IG/}).getByRole('link',{name:igLink,exact:true})).toHaveAttribute('href',igLink);
+ await page.getByRole('button',{name:'แก้ไขผู้กู้',exact:true}).click();const input=page.locator('main').getByRole('textbox',{name:'ลิงก์กลุ่มแชท IG',exact:true});
+ await input.fill('https://www.example.invalid/direct/t/1/');await page.getByRole('button',{name:'บันทึกผู้กู้',exact:true}).click();
+ await expect(page.locator('main').getByRole('alert')).toHaveText('ใช้ลิงก์แชท Instagram (https://www.instagram.com/direct/… หรือ https://ig.me/…) หรือเว้นว่าง');await expect(page.locator('main')).toContainText('คัดลอกลิงก์แชทจาก instagram.com ในเบราว์เซอร์ หรือใช้ลิงก์เชิญกลุ่ม (ig.me)');await expect(input).toBeFocused();
+ expect(s.writes.filter(write=>String(write.body.operation).startsWith('borrower.'))).toHaveLength(0);
+});
+test('R153 a record read before V148 shows no IG Group URL and an edit sends no igGroupUrl key',async({page})=>{
+ const s=await setup(page);await full(page);const region=page.getByRole('region',{name:'Borrower record',exact:true});
+ await expect(region.locator('form>label').filter({hasText:/^IG Group URL/})).toHaveCount(0);
+ await page.getByRole('button',{name:'Edit borrower',exact:true}).click();await expect(region.getByRole('textbox',{name:'IG Group URL',exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Save borrower',exact:true}).click();await expect.poll(()=>s.writes.length).toBe(1);expect(Object.hasOwn(s.writes[0].body.inputs,'igGroupUrl')).toBe(false);
 });
 test('R120 rebate terms validation: 101 and a cap of 0 show the message under the field, focus it and queue nothing',async({page})=>{
  const s=await setup(page);await full(page);const region=page.getByRole('region',{name:'Borrower record',exact:true});await page.getByRole('button',{name:'Edit borrower',exact:true}).click();

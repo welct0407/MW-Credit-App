@@ -17,7 +17,7 @@ import {readManagementAssessments} from './management-assessments.mjs';
 import {readManagementAnalytics,readAnalyticsOverview,readAnalyticsChart} from './management-analytics.mjs';
 import {readManagementPosition} from './management-position.mjs';
 import {readManagementOpenings} from './management-openings.mjs';
-import {readCollection,decodeCollectionCursor,collectionCte,collectionCteFor,collectionQualitySql,projectCollectionCharge,GROUP_CHAT_COLUMNS,groupChatAllowedSql,projectGroupChat} from '../api/collection-read-contract.mjs';
+import {readCollection,decodeCollectionCursor,collectionCte,collectionCteFor,collectionQualitySql,projectCollectionCharge,GROUP_CHAT_COLUMNS,groupChatAllowedSql,projectGroupChat,readIgGroupUrls,withGroupChatUrl} from '../api/collection-read-contract.mjs';
 import {lateChargeSchema} from '../lib/late-charge-schema.mjs';
 import {projectUpcomingEvent,validUpcomingDate} from '../api/upcoming-read-contract.mjs';
 import {readStandaloneUpcoming} from './upcoming.mjs';
@@ -132,13 +132,17 @@ const receiptSql=where=>`${collectionCte} SELECT p."Row ID" id,p."Ref Borrower" 
 // R146 (V146): the group chat summaries as rows {borrowerId, ...groupChat}, ordered by borrower; the detail read of the
 // offline bundle takes the borrower's row. A database before V146 or a caller without the grant gives no rows; a row that
 // is not the V146 shape is left out (display only), as the online read answers null for it.
+// R153 (V148): each row carries the borrower's group chat link as url when one is set and readable (as the online read).
 const groupChatColumns=GROUP_CHAT_COLUMNS.map(name=>'g.'+name).join(',');
 const groupChatAllowed=async client=>(await client.query(groupChatAllowedSql)).rows[0]?.allowed===true;
-const projectGroupChatRow=row=>{const value=projectGroupChat(row);return value?{borrowerId:row.borrower_id,...value}:null};
+export async function projectGroupChatRows(client,rows){
+ const urls=await readIgGroupUrls(client,rows.map(row=>row.borrower_id));
+ return rows.map(row=>{const value=withGroupChatUrl(projectGroupChat(row),urls.get(row.borrower_id));return value?{borrowerId:row.borrower_id,...value}:null}).filter(Boolean);
+}
 async function groupChatByBorrower(c,_a,_stamp,state){
  if(!await groupChatAllowed(c))return result([append('groupChatByBorrower',[])]);
  const rows=(await c.query(`SELECT ${groupChatColumns} FROM public.pwa_group_chat_summaries g WHERE ($1::text IS NULL OR g.borrower_id COLLATE "C">$1 COLLATE "C") ORDER BY g.borrower_id COLLATE "C" LIMIT 129`,[text(state)])).rows;
- return result([append('groupChatByBorrower',rows.slice(0,128).map(projectGroupChatRow).filter(Boolean))],rows.length>128?rows[127].borrower_id:null);
+ return result([append('groupChatByBorrower',await projectGroupChatRows(c,rows.slice(0,128)))],rows.length>128?rows[127].borrower_id:null);
 }
 const collectionPhases=[
  // R149: the bundle is per actor, so each item carries that user's chatSeenAt (V147).
@@ -408,7 +412,7 @@ export async function readCollectionTargeted(client,actor,stamp,{borrowers}){
   const receipts=(await client.query(receiptSql('p."Ref Borrower"=ANY($3::text[])'),[stamp.businessDate,null,B])).rows;
   patches.push(replaceWhere('receipts','borrowerId',B,receipts,'id'));
   // R146: the borrowers' group chat summaries (none left for a pruned or deleted row); items above carry chatSummaryAt.
-  const chats=await groupChatAllowed(client)?(await client.query(`SELECT ${groupChatColumns} FROM public.pwa_group_chat_summaries g WHERE g.borrower_id=ANY($1::text[]) ORDER BY g.borrower_id COLLATE "C"`,[B])).rows.map(projectGroupChatRow).filter(Boolean):[];
+  const chats=await groupChatAllowed(client)?await projectGroupChatRows(client,(await client.query(`SELECT ${groupChatColumns} FROM public.pwa_group_chat_summaries g WHERE g.borrower_id=ANY($1::text[]) ORDER BY g.borrower_id COLLATE "C"`,[B])).rows):[];
   patches.push(replaceWhere('groupChatByBorrower','borrowerId',B,chats,'borrowerId'));
  }
  return patches.list;

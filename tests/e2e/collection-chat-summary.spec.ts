@@ -176,6 +176,39 @@ test('a newer summary relights the mark; with the seen storage blocked there are
  await expect(page.locator('.collection-chat-mark')).toHaveCount(0);expect(errors).toEqual([]);
 });
 
+// R153 (owner, 13 November 2026): points come oldest first, so the last point of a current card with two or more points is
+// bold with a hidden "Latest:"; a stale card or a lone point has none. The borrower's group chat link (groupChat.url) is an
+// "Open chat" link in the heading, also on a stale card, opened in a new tab; a value that is not a valid link shows nothing.
+test('R153 the latest point is bold on a current card; Open chat carries the borrower link',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop'),link='https://www.instagram.com/direct/t/100000000000001/',d=summaries['chat-d'] as {points:unknown[]};
+ await open(page,{desktop,replace:{'chat-a':{...(summaries['chat-a'] as object),url:link},'chat-b':{...(summaries['chat-b'] as object),url:'https://ig.me/j/InventedLink01/'},'chat-d':{...d,points:[d.points[1]],url:'javascript:alert(1)'}}});
+ await tile(page,'chat-a').click();await expect(card(page)).toBeVisible();
+ const points=card(page).locator('.collection-chat-points li');await expect(points).toHaveCount(4);await expect(card(page).locator('strong')).toHaveCount(1);
+ for(const index of [0,1,2])await expect(points.nth(index).locator('strong')).toHaveCount(0);
+ const latest=points.nth(3).locator('strong.collection-chat-latest');await expect(latest).toHaveText('Latest: Another borrower asked about their own balance.');await expect(latest.locator('.visually-hidden')).toHaveText('Latest: ');
+ expect(await latest.evaluate(node=>getComputedStyle(node).fontWeight)).toBe('700');
+ // UX-CHAT-LATEST-01: not weight alone: a 3px accent bar (the MW Credit role colour) on the latest point's left.
+ expect(await points.nth(3).evaluate(node=>{const s=getComputedStyle(node);return [s.borderLeftWidth,s.borderLeftStyle,s.borderLeftColor,s.paddingLeft]})).toEqual(['3px','solid','rgb(11, 107, 122)','6px']);
+ for(const index of [0,1,2])expect(await points.nth(index).evaluate(node=>getComputedStyle(node).borderLeftWidth)).toBe('0px');
+ const openChat=card(page).getByRole('link',{name:'Open chat',exact:true});await expect(openChat).toHaveAttribute('href',link);await expect(openChat).toHaveAttribute('target','_blank');await expect(openChat).toHaveAttribute('rel','noopener noreferrer');
+ // UX-CHAT-LINK-01: the link look (colour, underline 3px below) and the 16px chat icon before the label, hidden from readers.
+ expect(await openChat.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.textDecorationLine,s.textUnderlineOffset,s.whiteSpace]})).toEqual(['rgb(11, 87, 208)','underline','3px','nowrap']);
+ {const icon=openChat.locator('svg.collection-chat-open-icon');await expect(icon).toHaveAttribute('aria-hidden','true');await expect(icon).toHaveAttribute('data-icon','chat');const box=(await icon.boundingBox())!;expect([Math.round(box.width),Math.round(box.height)]).toEqual([16,16]);
+  expect(await openChat.evaluate(node=>node.firstElementChild?.tagName.toLowerCase())).toBe('svg');}
+ await expect(card(page).locator('.collection-chat-heading a')).toHaveCount(1);await expect(card(page).locator('a')).toHaveCount(1);
+ {const box=(await openChat.boundingBox())!,panel=(await page.locator('.detail-panel').boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);expect(box.x+box.width).toBeLessThanOrEqual(panel.x+panel.width+1);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true)}
+ if(!desktop)await back(page);
+ // Stale with a link: the link stays, nothing is bold.
+ await tile(page,'chat-b').click();await expect(card(page)).toHaveClass(/stale/);await expect(card(page).getByRole('link',{name:'Open chat',exact:true})).toHaveAttribute('href','https://ig.me/j/InventedLink01/');await expect(card(page).locator('strong')).toHaveCount(0);await expect(card(page).locator('.collection-chat-latest-point')).toHaveCount(0);
+ if(!desktop)await back(page);
+ // One point on a current card: not bold; an invalid link is not rendered.
+ await tile(page,'chat-d').click();await expect(card(page).locator('.collection-chat-points li')).toHaveCount(1);await expect(card(page).locator('strong')).toHaveCount(0);await expect(card(page).locator('a')).toHaveCount(0);
+ if(!desktop)await back(page);
+ // Without a url (chat-a above in the other tests) there is no link; Thai copy.
+ await chooseLanguage(page,'ไทย');await tile(page,'chat-a').click();
+ await expect(card(page).getByRole('link',{name:'เปิดแชท',exact:true})).toHaveAttribute('href',link);await expect(card(page).locator('strong.collection-chat-latest .visually-hidden')).toHaveText('ล่าสุด: ');
+});
+
 // R150: every card time is the browser's own wall clock, and "today" is the browser's day. Same instants, three clocks.
 test('card times follow the browser time zone: clock times for today here, dates for another day here',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');

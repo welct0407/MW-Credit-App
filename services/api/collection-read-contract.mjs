@@ -174,10 +174,30 @@ async function markChatSummary(client, items, partnerId) {
   const seen = new Map((await client.query(groupChatSeenListSql, [ids, partnerId])).rows.map(row => [row.id, instant(row.seen_last_message_at)]));
   return marked.map(item => ({ ...item, chatSeenAt: seen.get(item.id) ?? null }));
 }
-/** R146: the borrower's current group chat summary, or null (none, or the reader may not read the table). */
+// R153 (V148) the borrower's Instagram group chat link, "Borrowers"."IG Group URL", set by the owner. One rule in SQL (the
+// column check borrowers_ig_group_url_check and pwa_submit_operation_v2), here (the borrower command's canonicaliser in
+// services/business/borrowers.mjs imports it) and in the PWA (apps/pwa/src/ig-group-url.ts).
+export const IG_GROUP_URL_PATTERN = /^https:\/\/((www\.)?instagram\.com\/direct\/|ig\.me\/)[A-Za-z0-9._~%/?=&+-]{1,255}$/;
+export const validIgGroupUrl = value => typeof value === 'string' && IG_GROUP_URL_PATTERN.test(value);
+// The reader login holds column grants only, and has_column_privilege by column name raises before V148, so the guard finds
+// the column in pg_attribute first: no column (an older database) or no grant reads false and the link is left out.
+export const igGroupUrlAllowedSql = `SELECT COALESCE((SELECT has_column_privilege(a.attrelid, a.attnum, 'SELECT') FROM pg_attribute a
+  WHERE a.attrelid = to_regclass('public."Borrowers"') AND a.attname = 'IG Group URL' AND a.attnum > 0 AND NOT a.attisdropped), false) AS allowed`;
+export const igGroupUrlSql = `SELECT b."Row ID" AS id, b."IG Group URL" AS url FROM public."Borrowers" b WHERE b."Row ID" = ANY($1::text[]) AND b."IG Group URL" IS NOT NULL`;
+/** R153: id -> link for the given borrowers (only links that match the rule); empty when the column is missing or not granted. */
+export async function readIgGroupUrls(client, ids) {
+  if (!ids.length || (await client.query(igGroupUrlAllowedSql)).rows[0]?.allowed !== true) return new Map();
+  return new Map((await client.query(igGroupUrlSql, [ids])).rows.filter(row => validIgGroupUrl(row.url)).map(row => [row.id, row.url]));
+}
+/** R153: the summary with its "Open chat" link (url) when the borrower has a valid one; a summary without a link, or no
+ * summary (no card, so no link), is returned as it is. */
+export const withGroupChatUrl = (groupChat, url) => groupChat && validIgGroupUrl(url) ? { ...groupChat, url } : groupChat;
+/** R146: the borrower's current group chat summary, or null (none, or the reader may not read the table). R153: with the
+ * borrower's group chat link as url when one is set and readable. */
 async function readGroupChat(client, borrowerId) {
   if ((await client.query(groupChatAllowedSql)).rows[0]?.allowed !== true) return null;
-  return projectGroupChat((await client.query(groupChatDetailSql, [borrowerId])).rows[0]);
+  const groupChat = projectGroupChat((await client.query(groupChatDetailSql, [borrowerId])).rows[0]);
+  return groupChat ? withGroupChatUrl(groupChat, (await readIgGroupUrls(client, [borrowerId])).get(borrowerId)) : null;
 }
 export function projectCollection(row) {
   if (!validLoanId(row.id) || !collectionStatuses[row.rank] || typeof row.prepaid_only !== 'boolean' || !(row.overdue_days === null || (Number.isSafeInteger(row.overdue_days) && row.overdue_days > 0))) throw new Error('Invalid collection source');

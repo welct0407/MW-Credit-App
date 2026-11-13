@@ -250,3 +250,35 @@ test('an absent or unreadable optional source is left out of the fingerprint; th
  for(const domain of ['records','cash','management'])assert.equal(without.versions[domain],withTable.versions[domain],domain+' does not depend on the table');
  assert.equal(without.records,withTable.records);
 });
+// R153: v10. V148 adds "IG Group URL" without rewriting a row (the xmin fingerprints stay) but changes every borrower version
+// and adds groupChat.url, so the version salt moves once and every installed bundle walks once.
+test('R153 the dataset version is v10 and the offline group chat rows carry the borrower link as url',async()=>{
+ const {projectGroupChatRows}=await import('../../services/business/offline-dataset-chunks.mjs');
+ const {igGroupUrlAllowedSql,igGroupUrlSql}=await import('../../services/api/collection-read-contract.mjs');
+ const fingerprints={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[]};return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
+ const rows=[...offlineSourceTables.records].filter(relation=>!relation.startsWith('pwa_group_chat_')).sort((a,b)=>a<b?-1:a>b?1:0).map(relation=>({relation,fingerprint:'1:42'}));
+ assert.equal(await readOfflineSourceVersion(fingerprints,actor,'records',stamp.businessDate),deltaValueHash(['business-offline-v10',actor.issuer,actor.subject,actor.partnerId,'records',stamp.businessDate,rows]));
+ const stored=id=>({borrower_id:id,shared_group:false,headline_th:'สรุป',headline_en:'Summary',points:[],last_speaker_role:'partner',last_speaker_borrower_id:null,message_count:2,last_message_at:'2026-11-12T07:05:00.000Z',generated_at:'2026-11-12T07:32:00.000Z'});
+ const run=async allowed=>{const calls=[];const client={query:async(sql,args)=>{calls.push([sql,args]);if(sql===igGroupUrlAllowedSql)return {rows:[{allowed}]};
+   if(sql===igGroupUrlSql)return {rows:[{id:'A',url:'https://www.instagram.com/direct/t/100000000000001/'},{id:'B',url:'not a link'}]};throw Error('unexpected '+sql)}};
+  return {value:await projectGroupChatRows(client,[stored('A'),stored('B'),stored('C'),{...stored('D'),points:'x'}]),calls};};
+ const granted=await run(true);
+ assert.deepEqual(granted.value.map(row=>[row.borrowerId,row.url]),[['A','https://www.instagram.com/direct/t/100000000000001/'],['B',undefined],['C',undefined]],'a bad row is dropped; an invalid link is left out');
+ assert.equal(Object.hasOwn(granted.value[1],'url'),false);assert.deepEqual(granted.calls.at(-1)[1],[['A','B','C','D']]);
+ const denied=await run(false);assert.equal(denied.value.some(row=>Object.hasOwn(row,'url')),false);assert.equal(denied.calls.some(([sql])=>sql===igGroupUrlSql),false);
+ assert.deepEqual(await projectGroupChatRows({query:async()=>{throw Error('no query for no rows')}},[]),[]);
+});
+// R153 (Chase finding 1): an edit of only the borrower's group chat link changes the Borrowers row, not the summary row. The
+// collection row delta maps that Borrowers change to the borrower itself, so readCollectionTargeted re-reads the borrower's
+// group chat row through projectGroupChatRows (with url) on the next targeted delta, without a full walk.
+test('R153 a Borrowers-only change (the link) scopes the collection row delta to that borrower',async()=>{
+ const {resolveCollectionScope}=await import('../../services/business/offline-dataset-chunks.mjs');
+ const queries=[];const client={query:async(sql,params=[])=>{queries.push(sql);const ids=params[0]??[];
+  if(sql.includes('"Hidden Flag" IS TRUE'))return {rowCount:0,rows:[]};
+  if(sql.includes('FROM public."Borrowers" WHERE "Row ID"=ANY'))return {rows:ids.map(key=>({key,borrowers:[key],payment:null,expense:null,unassigned:false}))};
+  return {rows:[]};}};
+ assert.deepEqual(await resolveCollectionScope(client,[{table:'Borrowers',key:'B-LINK'}]),{borrowers:['B-LINK'],loans:[]});
+ assert.ok(queries.some(sql=>sql.includes('"Hidden Flag" IS TRUE')),'a hidden borrower would walk instead');
+ const source=(await import('node:fs')).readFileSync(new URL('../../services/business/offline-dataset-chunks.mjs',import.meta.url),'utf8');
+ assert.match(source,/const chats=await groupChatAllowed\(client\)\?await projectGroupChatRows\(client,/,'the targeted read re-reads the scoped borrowers\' summaries with their link');
+});
