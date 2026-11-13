@@ -65,6 +65,28 @@ class AdapterUnitTests(unittest.TestCase):
             yield Conn()
         return transaction
 
+    def test_group_chat_summary_state_sqlite_fallback_matches_v12(self):
+        # R146: the SQLite fallback has the columns of agent V12, in order, and the poll journal maps the table.
+        import re
+        import sqlite3
+        ddl = (Path(__file__).parents[1] / 'database/migrations/V12__group_chat_summary_state.sql').read_text(encoding='utf-8')
+        body = ddl[ddl.index('CREATE TABLE runtime.group_chat_summary_state (') :]
+        body = body[body.index('(') + 1 : body.index('\n);')]
+        expected = [re.match(r'\s*(\w+)', line)[1] for line in body.splitlines() if line.strip()]
+        db = sqlite3.connect(':memory:')
+        self.addCleanup(db.close)
+        db.executescript(state.GROUP_CHAT_SUMMARY_STATE_SQLITE)
+        db.executescript(state.GROUP_CHAT_SUMMARY_STATE_SQLITE)  # idempotent
+        self.assertEqual([r[1] for r in db.execute('PRAGMA table_info(group_chat_summary_state)')], expected)
+        self.assertEqual(expected[0], 'conversation_id')
+        db.execute("INSERT INTO group_chat_summary_state(conversation_id) VALUES ('synthetic-group')")
+        self.assertEqual(tuple(db.execute('SELECT attempts,next_attempt_at,changed_at FROM group_chat_summary_state').fetchone()), (0, 0.0, None))
+        sql = state.dialect('UPDATE group_chat_summary_state SET changed_at=coalesce(changed_at,?),last_text_at=? WHERE conversation_id=?',
+                            state.TABLES['receipt-processing.db'])
+        self.assertEqual(sql, 'UPDATE runtime.group_chat_summary_state SET changed_at=coalesce(changed_at,%s),last_text_at=%s WHERE conversation_id=%s')
+        with self.assertRaisesRegex(ConfigurationError, 'STATE_TABLE_NOT_ALLOWED'):
+            state.dialect('SELECT * FROM group_chat_summary_state', state.TABLES['partner-notices.db'])
+
     def test_noop_statement_writes_no_audit_rows(self):
         journal = state.PostgresJournal(self.CONFIG, 'receipt-processing.db')
         for rowcount, calls in ((0, 0), (1, 1)):
@@ -283,6 +305,93 @@ class PostgreSQLStateTests(unittest.TestCase):
             receipt.db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(self.key,1.0))
             receipt.db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(self.key,2.0))
         self.assertEqual(receipt.db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(self.key,)).fetchone()[0],2.0)
+
+    def test_v12_group_chat_summary_state_through_the_poll_journal(self):
+        # R146 (agent V12): the summary marker is a table of the poll's journal, so it commits with the poll's message rows.
+        self.assertIn('group_chat_summary_state',state.TABLES['receipt-processing.db'])
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        digest='a'*64
+        with receipt.db:
+            receipt.db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',(self.key,self.key,10.0,11.0,'IGNORED'))
+            receipt.db.execute('INSERT OR IGNORE INTO group_chat_summary_state(conversation_id) VALUES (?)',(self.key,))
+            receipt.db.execute('INSERT OR IGNORE INTO group_chat_summary_state(conversation_id) VALUES (?)',(self.key,))
+            receipt.db.execute('UPDATE group_chat_summary_state SET changed_at=coalesce(changed_at,?),last_text_at=?,subjects_sha256=? WHERE conversation_id=?',
+                               (100.0,100.0,digest,self.key))
+            receipt.db.execute('UPDATE group_chat_summary_state SET changed_at=coalesce(changed_at,?),last_text_at=? WHERE conversation_id=?',(160.0,160.0,self.key))
+        row=dict(receipt.db.execute('SELECT * FROM group_chat_summary_state WHERE conversation_id=?',(self.key,)).fetchone())
+        self.assertEqual(row,{'conversation_id':self.key,'changed_at':100.0,'last_text_at':160.0,'subjects_sha256':digest,'summarised_source_sha256':None,
+                              'summarised_at':None,'attempts':0,'next_attempt_at':0.0,'last_error':None})
+        due=receipt.db.execute('SELECT conversation_id FROM group_chat_summary_state WHERE changed_at IS NOT NULL AND next_attempt_at<=? AND (last_text_at<=? OR changed_at<=?) AND conversation_id=?',
+                               (1000.0,1000.0-600,1000.0-3600,self.key)).fetchall()
+        self.assertEqual([r[0] for r in due],[self.key])
+        # A failed run backs off with an error code; a finished run clears the marker and stores the digests.
+        receipt.db.execute('UPDATE group_chat_summary_state SET attempts=attempts+1,next_attempt_at=?,last_error=? WHERE conversation_id=?',(1600.0,'MODEL_TIMEOUT',self.key))
+        receipt.db.execute('UPDATE group_chat_summary_state SET changed_at=NULL,summarised_source_sha256=?,summarised_at=?,attempts=0,next_attempt_at=0,last_error=NULL WHERE conversation_id=? AND last_text_at<=?',
+                           ('b'*64,1700.0,self.key,160.0))
+        row=dict(receipt.db.execute('SELECT changed_at,summarised_source_sha256,summarised_at,attempts,next_attempt_at,last_error FROM group_chat_summary_state WHERE conversation_id=?',(self.key,)).fetchone())
+        self.assertEqual(row,{'changed_at':None,'summarised_source_sha256':'b'*64,'summarised_at':1700.0,'attempts':0,'next_attempt_at':0.0,'last_error':None})
+        # The marker rolls back with the poll's rows.
+        other=self.key+'-rolled-back'
+        with self.assertRaises(RuntimeError):
+            with receipt.db:
+                receipt.db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',(other,other,10.0,11.0,'IGNORED'))
+                receipt.db.execute('INSERT OR IGNORE INTO group_chat_summary_state(conversation_id) VALUES (?)',(other,))
+                raise RuntimeError('simulated crash before commit')
+        self.assertIsNone(receipt.db.execute('SELECT 1 FROM group_chat_summary_state WHERE conversation_id=?',(other,)).fetchone())
+        self.assertIsNone(receipt.db.execute('SELECT 1 FROM conversation_poll_messages WHERE message_id=?',(other,)).fetchone())
+        # Not a text store: error codes and digests only; the adapter and the worker's grants refuse a delete.
+        for column,value in (('last_error','free text is refused'),('subjects_sha256','not-a-digest'),('summarised_source_sha256','A'*64),('attempts',-1)):
+            with self.subTest(column=column),self.assertRaisesRegex(Exception,'STATE_CONSTRAINT_23514'):
+                receipt.db.execute('UPDATE group_chat_summary_state SET '+column+'=? WHERE conversation_id=?',(value,self.key))
+        with self.assertRaisesRegex(ConfigurationError,'STATE_SQL_NOT_ALLOWED'):
+            receipt.db.execute('DELETE FROM group_chat_summary_state WHERE conversation_id=?',(self.key,))
+        worker=dict(self.admin,user='mw_agent_worker');auditor=dict(self.admin,user='mw_agent_auditor')
+        with psycopg.connect(**worker,autocommit=True) as c:
+            with self.assertRaises(psycopg.errors.InsufficientPrivilege):
+                c.execute('DELETE FROM runtime.group_chat_summary_state WHERE conversation_id=%s',(self.key,))
+        with psycopg.connect(**auditor,autocommit=True) as c:
+            self.assertEqual(c.execute('SELECT last_text_at FROM runtime.group_chat_summary_state WHERE conversation_id=%s',(self.key,)).fetchone()[0],160.0)
+            c.execute('SET default_transaction_read_only=off')  # the auditor's sessions are read-only; the grant must refuse too
+            with self.assertRaises(psycopg.errors.InsufficientPrivilege):
+                c.execute('UPDATE runtime.group_chat_summary_state SET attempts=1 WHERE conversation_id=%s',(self.key,))
+        with psycopg.connect(**dict(self.admin,user='mw_agent_relay'),autocommit=True) as c:
+            with self.assertRaises(psycopg.errors.InsufficientPrivilege):
+                c.execute('SELECT 1 FROM runtime.group_chat_summary_state')
+        with psycopg.connect(**self.admin) as c:
+            self.assertIsNotNone(c.execute("SELECT 1 FROM deployment.schema_history WHERE name='V12__group_chat_summary_state.sql'").fetchone())
+
+    def test_group_chat_summary_marker_and_cycle_statements_run_on_postgres(self):
+        # R146: the poll's marker and the summariser's select, finish and backoff statements through the adapter (invented ids).
+        from mw_integration_agent import group_chat_summary as summary
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        cid,now=self.key,1_800_000_000.0
+        context={'known':{},'cutoff':0,'partners':set()}
+        resolution={'digest':'c'*64}
+        with receipt.db:
+            summary.mark_text(receipt.db,context,{'id':cid},resolution,now-700,now-650)
+            summary.mark_text(receipt.db,context,{'id':cid},resolution,now-800,now-600)   # an older text never moves last_text_at back
+        self.assertEqual(context['known'],{cid:'c'*64})
+        row=receipt.db.execute('SELECT changed_at,last_text_at,subjects_sha256 FROM group_chat_summary_state WHERE conversation_id=?',(cid,)).fetchone()
+        self.assertEqual(tuple(row.values()),(now-650,now-700,'c'*64))
+        self.assertIn(cid,summary.poll_context(dict(self.config,group_chat_summary_enabled=True,group_chat_summary_cutoff='2026-01-01T00:00:00+00:00'),{'partners':[]},receipt.db)['known'])
+        self.assertIn((cid,0),summary.due(receipt.db,now))
+        with receipt.db:
+            summary.fail(receipt.db,cid,0,'MODEL_HTTP_529',now)
+        self.assertNotIn(cid,[c for c,_ in summary.due(receipt.db,now+599)])
+        self.assertIn((cid,1),summary.due(receipt.db,now+600))
+        with receipt.db:
+            summary.finish(receipt.db,cid,'d'*64,'e'*64,now)
+        row=receipt.db.execute('SELECT changed_at,summarised_source_sha256,summarised_at,subjects_sha256,attempts,next_attempt_at,last_error FROM group_chat_summary_state WHERE conversation_id=?',(cid,)).fetchone()
+        self.assertEqual(tuple(row.values()),(None,'d'*64,now,'e'*64,0,0.0,None))
+        # Text newer than the run's read keeps the marker (a new wait starts at the read time).
+        with receipt.db:
+            summary.mark_text(receipt.db,context,{'id':cid},resolution,now+30,now+31)
+            summary.finish(receipt.db,cid,'d'*64,'e'*64,now)
+        self.assertEqual(receipt.db.execute('SELECT changed_at FROM group_chat_summary_state WHERE conversation_id=?',(cid,)).fetchone()[0],now)
+        with psycopg.connect(**self.admin) as c:
+            statements=[r[0] for r in c.execute("""SELECT plan->>'statement' FROM audit.operations WHERE service_name='journal'
+                AND plan->>'statement' LIKE '%group_chat_summary_state%' ORDER BY created_at DESC LIMIT 20""")]
+        self.assertTrue(statements)  # journal audit rows carry the statement and a parameter digest, never values
 
     def test_rollback_includes_audit(self):
         receipt=ReceiptJournal('receipt-processing.db',self.config)

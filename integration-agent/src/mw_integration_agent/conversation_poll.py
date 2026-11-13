@@ -98,13 +98,18 @@ def scan(config,api,master,journal,now=None,day=None,recheck=None):
         if day!=datetime.fromtimestamp(now,BANGKOK).date().isoformat():raise ConfigurationError('BACKFILL_TODAY_ONLY')
         cutoff=datetime.fromisoformat(day+'T00:00:00+07:00').timestamp()
     db=journal.db
-    from .state import is_postgres
+    from .state import GROUP_CHAT_SUMMARY_STATE_SQLITE, is_postgres
     if not is_postgres(db):
+        # R146: the summary marker lives beside the poll rows (created only while the summary switch is on).
+        if config.get('group_chat_summary_enabled') is True:db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
         db.executescript('''CREATE TABLE IF NOT EXISTS conversation_poll_state
           (conversation_id TEXT PRIMARY KEY, checked_through REAL NOT NULL);
           CREATE TABLE IF NOT EXISTS conversation_poll_messages
           (message_id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, event_time REAL NOT NULL,
            captured_at REAL NOT NULL, outcome TEXT NOT NULL);''')
+    # R146: the group chat summary marker (None while group_chat_summary_enabled is off: the poll is unchanged).
+    from .group_chat_summary import poll_context
+    summary=poll_context(config,master,db)
     enabled=enabled_usernames(master)
     counts={'conversations':0,'eligible_conversations':0,'new_messages':0,'image_jobs':0,
             'failed_conversations':0,'errors':[]}
@@ -115,7 +120,7 @@ def scan(config,api,master,journal,now=None,day=None,recheck=None):
         for conversation in batch:
             counts['conversations']+=1
             try:
-                added,images,eligible=capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,day)
+                added,images,eligible=capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,day,summary)
             except Exception as exc:
                 # Keep this group's cursor/jobs unchanged while other groups continue.
                 counts['failed_conversations']+=1
@@ -225,7 +230,7 @@ def recheck_ignored(config,api,master,db,conversation,newly,now):
     return added
 
 
-def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,day):
+def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,day,summary=None):
     peers=conversation.get('participants',{})
     if peers.get('paging',{}).get('next'):raise ConfigurationError('POLL_PARTICIPANTS_INCOMPLETE')
     participants=peers.get('data')
@@ -233,7 +238,13 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
     if day and len(participants)<=2:return 0,0,False
     allowed={str(p['id']) for p in participants if username(p.get('username')) in enabled}
     allowed.discard(str(config['instagram_account_id']))
-    if not allowed:return 0,0,False
+    if not allowed:
+        # R146: a group whose last subject was disabled is no longer scanned; a group with a state row still gets the
+        # marker when its subjects changed, so its summary rows are pruned.
+        if summary is not None and conversation.get('id') in summary['known']:
+            from .group_chat_summary import subject_change
+            with db:subject_change(config,master,db,summary,conversation,participants,now)
+        return 0,0,False
     cid=conversation['id']
     # R095: the C4' group evidence (group_context; R119 shares it with recheck_ignored).
     payer_cutoff,group_ids=group_context(config,master,participants)
@@ -243,6 +254,11 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
     added=images=0
     # Cursor and job reservations commit together. A failed read never advances this cursor.
     with db:
+        resolution=newest_text=None
+        if summary is not None:
+            # R146: subjects, referrers and speaker roles of this group; a changed subject set marks a known group.
+            from .group_chat_summary import mark_text,poll_substantive,subject_change
+            resolution=subject_change(config,master,db,summary,conversation,participants,now)
         ordered=list(reversed(found))
         for position,(message,ts) in enumerate(ordered):
             sender=str(message.get('from',{}).get('id',''))
@@ -283,6 +299,9 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
                (message['id'],cid,ts,now,outcome)).rowcount
             if not inserted:continue
             added+=1
+            # R146: a newly recorded substantive text (never a routine message) sets the summary marker below.
+            if resolution is not None and poll_substantive(config,summary,resolution,message,ts):
+                newest_text=ts if newest_text is None else max(newest_text,ts)
             if not valid:continue
             for index,item in enumerate(items):
                 url=item.get('image_data',{}).get('url')
@@ -293,6 +312,8 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
                   (id,message_id,sender_id,url,status,created_at,result,source) VALUES (?,?,?,?,'PENDING',?,?,?)''',
                   (key,message['id'],sender,url,now,forwarding_evidence,
                    source('poll',message['id'],index,sender,ts,now,cid,item.get('id')))).rowcount
+        # R146: commits with the message rows above, so a marker is never ahead of or behind what the poll recorded.
+        if newest_text is not None:mark_text(db,summary,conversation,resolution,newest_text,now)
         # Every cursor write is a journal PROCESS audit row and makes the run effectful (no lazy heartbeat), so an
         # idle group keeps its cursor: everything newer than it was captured by the run that wrote it, and the
         # re-read overlap is deduped by message id. Advance on a new message, a first sight, or a window that no

@@ -168,7 +168,7 @@ class RuntimeDeploymentTests(unittest.TestCase):
         self.assertEqual(package.retired_keys(cleaned), [])
         self.assertEqual((package.RETIRED_SERVICES, package.RETIRED_KEYS, package.RETIRED_PREFIXES),
                          (runtime.R091_SERVICES, runtime.R091_KEYS, runtime.R091_PREFIXES))
-        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R142_REVISIONS[1])
+        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R146_REVISIONS[1])
 
     def test_r102_adds_exactly_the_disabled_chat_relay(self):
         live = dict(self.catalogue, revision=32)
@@ -187,10 +187,55 @@ class RuntimeDeploymentTests(unittest.TestCase):
             with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, pattern):
                 self.prepared(catalogue=live, candidate=change)
 
+    def before_r146(self):
+        """The repository catalogue as it was at revision 37: revision 38 (R146) only added group_chat_summary, disabled."""
+        catalogue = json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))
+        self.assertEqual(catalogue['services'].pop('group_chat_summary'), {'enabled': False, 'implemented': True})
+        return dict(catalogue, revision=37)
+
+    def r146(self):
+        """R146: the repository revision 38 catalogue as candidate; a live revision 37 shaped like PROD's."""
+        candidate = json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))
+        self.assertEqual(candidate['revision'], 38)
+        live = self.before_r146()
+        for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):
+            live['services'][name]['enabled'] = True
+        return live, candidate
+
+    def test_r146_adds_exactly_the_disabled_group_chat_summary_and_keeps_the_live_switches(self):
+        live, candidate = self.r146()
+        config = dict(self.config, group_chat_summary_enabled=False, group_chat_summary_model='claude-opus-5-5')
+        before = json.dumps([config, live, candidate], sort_keys=True)
+        cleaned, catalogue = self.prepared(config=config, catalogue=live, candidate=candidate)
+        expected = json.loads(json.dumps(live)); expected['revision'] = 38
+        expected['services']['group_chat_summary'] = {'enabled': False, 'implemented': True}
+        self.assertEqual(catalogue, expected)  # the new service arrives disabled; every live switch stays
+        self.assertEqual(cleaned, dict(config, code_version=COMMIT))  # group_chat_summary_* keys are kept as they are
+        self.assertEqual(json.dumps([config, live, candidate], sort_keys=True), before)
+        # Once the host is at revision 38 an ordinary deploy keeps the live switch, enabled or not.
+        for enabled in (False, True):
+            host = json.loads(json.dumps(expected)); host['services']['group_chat_summary']['enabled'] = enabled
+            self.assertEqual(self.prepared(catalogue=host, candidate=candidate)[1], host)
+
+    def test_r146_refuses_other_drift(self):
+        live, candidate = self.r146()
+        enabled = json.loads(json.dumps(candidate)); enabled['services']['group_chat_summary']['enabled'] = True
+        other = json.loads(json.dumps(candidate)); other['services']['extra_service'] = {'enabled': False, 'implemented': True}
+        dropped = json.loads(json.dumps(candidate)); del dropped['services']['chat_messages_relay']
+        for change, pattern in ((enabled, 'arrive disabled'), (other, 'add exactly'), (dropped, 'add exactly')):
+            with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, pattern):
+                self.prepared(catalogue=live, candidate=change)
+        unimplemented = json.loads(json.dumps(candidate)); unimplemented['services']['group_chat_summary']['implemented'] = False
+        with self.assertRaisesRegex(RuntimeError, 'arrive disabled'):
+            self.prepared(catalogue=live, candidate=unimplemented)
+        for old, new in ((36, 38), (38, 37)):
+            with self.subTest(live=old, candidate=new), self.assertRaisesRegex(RuntimeError, 'revision drift|Service drift'):
+                self.prepared(catalogue=dict(live, revision=old), candidate=dict(candidate, revision=new))
+
     def r112(self):
         """The repository revision 34 catalogue as candidate; a live revision 33 shaped like PROD's, with the shared
         receipt API, the recognizer and the chat relay enabled (the repository template has them off)."""
-        candidate = json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8')); candidate['revision'] = 34
+        candidate = self.before_r146(); candidate['revision'] = 34
         live = json.loads(json.dumps(candidate)); live['revision'] = 33
         for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):
             self.assertFalse(candidate['services'][name]['enabled'])
@@ -228,7 +273,7 @@ class RuntimeDeploymentTests(unittest.TestCase):
         """R119: the repository revision 35 catalogue as candidate; a live revision 34 shaped like PROD's (services the
         repository template has off are on there), with the recheck switch already set on the host."""
         # The repository's revision 36 services are revision 35's (R128 changes no service): the revision 35 candidate.
-        candidate = dict(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8')), revision=35)
+        candidate = dict(self.before_r146(), revision=35)
         live = json.loads(json.dumps(candidate)); live['revision'] = 34
         for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):
             live['services'][name]['enabled'] = True
@@ -269,7 +314,7 @@ class RuntimeDeploymentTests(unittest.TestCase):
     def r128(self):
         """R128: the repository revision 36 catalogue as candidate; a live revision 35 shaped like PROD's."""
         # The repository's revision 37 services are revision 36's (R142 changes no service): the revision 36 candidate.
-        candidate = dict(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8')), revision=36)
+        candidate = dict(self.before_r146(), revision=36)
         live = json.loads(json.dumps(candidate)); live['revision'] = 35
         for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):
             live['services'][name]['enabled'] = True
@@ -303,7 +348,7 @@ class RuntimeDeploymentTests(unittest.TestCase):
 
     def r142(self):
         """R142: the repository revision 37 catalogue as candidate; a live revision 36 shaped like PROD's."""
-        candidate = json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))
+        candidate = self.before_r146()
         self.assertEqual(candidate['revision'], 37)
         live = json.loads(json.dumps(candidate)); live['revision'] = 36
         for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):

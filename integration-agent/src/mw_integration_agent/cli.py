@@ -33,6 +33,10 @@ def build_parser() -> argparse.ArgumentParser:
     poll.add_argument('--config',required=True)
     poll.add_argument('--catalogue',required=True)
     poll.add_argument('--date',help='explicit owner-requested today-only group backfill; preserve polling cursors')
+    summary=sub.add_parser('group-chat-summary',help='summarise due borrower group chats (R146); --dry-run prints counts only')
+    summary.add_argument('--config',required=True)
+    summary.add_argument('--catalogue',required=True)
+    summary.add_argument('--dry-run',action='store_true',help='resolve groups, subjects and referrers and print counts; no model call, no post, no state write')
     webhook = sub.add_parser("serve-webhook", help="run receipt-only signed Instagram ingress")
     webhook.add_argument("--config", required=True)
     webhook.add_argument("--catalogue", required=True)
@@ -85,7 +89,8 @@ UNWRAPPED_COMMANDS = ('serve-webhook','serve-receipt-recognition','serve-chat-re
 
 def main() -> int:
     args = build_parser().parse_args()
-    if args.command in UNWRAPPED_COMMANDS:
+    # R146: the summary dry run is a read-only probe too (no service owner to fence, no heartbeat).
+    if args.command in UNWRAPPED_COMMANDS or (args.command=='group-chat-summary' and args.dry_run):
         return execute(args)
     from .audit import job
     try:
@@ -123,6 +128,11 @@ def execute(args, outcome=None) -> int:
             result=run(args.config,args.catalogue,args.date)
             print(json.dumps(result))
             return 2 if result.get('failed_conversations') else 0
+        if args.command=='group-chat-summary':
+            from .group_chat_summary import run
+            result=run(args.config,args.catalogue,dry=args.dry_run)
+            print(json.dumps(result))
+            return 2 if result.get('failed') else 0
         if args.command=='receipt-prepare':
             from .receipt_prepare import prepare
             print(json.dumps(prepare(args.config,args.catalogue,args.borrower_id,args.date,args.message_id)))
@@ -156,6 +166,7 @@ def execute(args, outcome=None) -> int:
                 "receipt_extraction_provider": config.get('receipt_extraction_provider','codex'),
                 "receipt_recognition": config.get('receipt_recognition_enabled',False),
                 "chat_relay": config.get('chat_relay_enabled',False),
+                "group_chat_summary": config.get('group_chat_summary_enabled',False),
                 "pay_forward_options": config.get('pay_forward_options_enabled',False),
                 "loan_close_execution": config.get('loan_close_execution_enabled',False),
                 "generic_sending": config["sending_enabled"],

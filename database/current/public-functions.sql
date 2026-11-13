@@ -6426,6 +6426,115 @@ $_$;
 
 
 --
+-- Name: pwa_put_group_chat_summary_v1(text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_put_group_chat_summary_v1(canonical_json text) RETURNS jsonb
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE
+ root jsonb; c jsonb; s jsonb; speaker jsonb; ids text[]; key text; sha text; request uuid;
+ w_from timestamptz; last_at timestamptz; made_at timestamptz; n_messages integer; last_role text; last_borrower text;
+ stamp text:='^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?Z$';
+ control text:='[\u0001-\u001F\u007F]';
+ roles text[]:=ARRAY['borrower','partner','referrer','business','other'];
+ existing public.pwa_group_chat_summaries%ROWTYPE; id text; enabled boolean;
+ n_stored integer:=0; n_unchanged integer:=0; n_superseded integer:=0; n_skipped integer:=0; n_pruned integer:=0; many boolean;
+BEGIN
+ -- Shape. Every rule is a positive condition that must be true (a NULL fails); a failure raises invalid_request (22023).
+ BEGIN
+  root:=canonical_json::jsonb;
+  IF (jsonb_typeof(root)='object' AND ARRAY(SELECT jsonb_object_keys(root))=ARRAY['command'] AND jsonb_typeof(root->'command')='object') IS NOT TRUE THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  c:=root->'command';
+  IF (ARRAY(SELECT k FROM jsonb_object_keys(c) k ORDER BY k COLLATE "C")=ARRAY['borrowerIds','conversationKey','environment','requestId','schemaVersion','sourceSha256','summary']
+    AND jsonb_typeof(c->'schemaVersion')='number' AND c->>'schemaVersion'='1'
+    AND jsonb_typeof(c->'requestId')='string' AND c->>'requestId' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    AND jsonb_typeof(c->'environment')='string' AND c->>'environment'=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END
+    AND jsonb_typeof(c->'conversationKey')='string' AND c->>'conversationKey' ~ '^[0-9a-f]{32}$'
+    AND jsonb_typeof(c->'sourceSha256')='string' AND c->>'sourceSha256' ~ '^[0-9a-f]{64}$'
+    AND jsonb_typeof(c->'borrowerIds')='array' AND jsonb_array_length(c->'borrowerIds')<=20
+    AND jsonb_typeof(c->'summary') IN ('object','null')) IS NOT TRUE THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  request:=(c->>'requestId')::uuid; key:=c->>'conversationKey'; sha:=c->>'sourceSha256';
+  IF EXISTS(SELECT 1 FROM jsonb_array_elements(c->'borrowerIds') e
+    WHERE (jsonb_typeof(e)='string' AND char_length(e#>>'{}') BETWEEN 1 AND 256 AND e#>>'{}' !~ control) IS NOT TRUE) THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  ids:=ARRAY(SELECT e#>>'{}' FROM jsonb_array_elements(c->'borrowerIds') WITH ORDINALITY x(e,o) ORDER BY o);
+  -- Sorted and unique, by code point.
+  IF ids<>ARRAY(SELECT d.v FROM (SELECT DISTINCT v FROM unnest(ids) v) d ORDER BY d.v COLLATE "C") THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  s:=c->'summary';
+  IF jsonb_typeof(s)='object' THEN
+   IF (ARRAY(SELECT k FROM jsonb_object_keys(s) k ORDER BY k COLLATE "C")=ARRAY['generatedAt','headline','lastMessageAt','lastSpeaker','messageCount','model','points','windowFrom']
+     AND jsonb_typeof(s->'windowFrom')='string' AND s->>'windowFrom' ~ stamp
+     AND jsonb_typeof(s->'lastMessageAt')='string' AND s->>'lastMessageAt' ~ stamp
+     AND jsonb_typeof(s->'generatedAt')='string' AND s->>'generatedAt' ~ stamp
+     AND jsonb_typeof(s->'messageCount')='number' AND s->>'messageCount' ~ '^[1-9][0-9]{0,2}$' AND (s->>'messageCount')::integer<=100
+     AND jsonb_typeof(s->'model')='string' AND s->>'model' ~ '^[a-z0-9][a-z0-9.-]{0,63}$'
+     AND jsonb_typeof(s->'headline')='object' AND ARRAY(SELECT k FROM jsonb_object_keys(s->'headline') k ORDER BY k COLLATE "C")=ARRAY['en','th']
+     AND jsonb_typeof(s->'lastSpeaker')='object'
+     AND jsonb_typeof(s->'points')='array' AND jsonb_array_length(s->'points')<=4) IS NOT TRUE THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+   w_from:=(s->>'windowFrom')::timestamptz; last_at:=(s->>'lastMessageAt')::timestamptz; made_at:=(s->>'generatedAt')::timestamptz;
+   IF (last_at>=w_from) IS NOT TRUE THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+   n_messages:=(s->>'messageCount')::integer;
+   IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'points') e
+     WHERE (jsonb_typeof(e)='object' AND ARRAY(SELECT k FROM jsonb_object_keys(e) k ORDER BY k COLLATE "C")=ARRAY['en','speaker','th']) IS NOT TRUE) THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+   -- Every text is a string of 1 to 160 (headline) or 200 (point) characters, not blank, with no control character.
+   IF EXISTS(SELECT 1 FROM (SELECT s#>'{headline,th}',160 UNION ALL SELECT s#>'{headline,en}',160
+      UNION ALL SELECT e->'th',200 FROM jsonb_array_elements(s->'points') e UNION ALL SELECT e->'en',200 FROM jsonb_array_elements(s->'points') e) v(t,most)
+     WHERE (jsonb_typeof(v.t)='string' AND char_length(v.t#>>'{}') BETWEEN 1 AND v.most AND btrim(v.t#>>'{}')<>'' AND v.t#>>'{}' !~ control) IS NOT TRUE) THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+   -- Every speaker (each point's and lastSpeaker): a known role; borrowerId with borrower and referrer, and only with them.
+   FOR speaker IN SELECT e->'speaker' FROM jsonb_array_elements(s->'points') e UNION ALL SELECT s->'lastSpeaker' LOOP
+    IF (jsonb_typeof(speaker)='object' AND jsonb_typeof(speaker->'role')='string' AND speaker->>'role'=ANY(roles)
+      AND CASE WHEN speaker->>'role' IN ('borrower','referrer')
+       THEN ARRAY(SELECT k FROM jsonb_object_keys(speaker) k ORDER BY k COLLATE "C")=ARRAY['borrowerId','role'] AND jsonb_typeof(speaker->'borrowerId')='string'
+        AND char_length(speaker->>'borrowerId') BETWEEN 1 AND 256 AND speaker->>'borrowerId' !~ control
+       ELSE ARRAY(SELECT jsonb_object_keys(speaker))=ARRAY['role'] END) IS NOT TRUE THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+   END LOOP;
+   last_role:=s#>>'{lastSpeaker,role}'; last_borrower:=s#>>'{lastSpeaker,borrowerId}';
+  END IF;
+ EXCEPTION WHEN data_exception THEN
+  -- Class 22 only: malformed JSON, a bad timestamp or number, and the rules above. Any other error is a real one and propagates.
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023';
+ END;
+
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('group-chat-summary','*'));
+ -- Every listed borrower must exist (the endpoint answers 422); nothing is written before this check.
+ IF EXISTS(SELECT 1 FROM unnest(ids) v WHERE NOT EXISTS(SELECT 1 FROM public."Borrowers" b WHERE b."Row ID"=v)) THEN
+  RAISE EXCEPTION 'unknown_borrower' USING ERRCODE='P0002';
+ END IF;
+ -- Prune: rows of this group whose borrower is no longer one of its subjects.
+ DELETE FROM public.pwa_group_chat_summaries t WHERE t.conversation_key=key AND NOT (t.borrower_id=ANY(ids));
+ GET DIAGNOSTICS n_pruned=ROW_COUNT;
+ IF jsonb_typeof(s)='object' THEN
+  many:=cardinality(ids)>=2;
+  FOREACH id IN ARRAY ids LOOP
+   SELECT b."AI Collection Enabled" IS TRUE INTO enabled FROM public."Borrowers" b WHERE b."Row ID"=id;
+   IF enabled IS NOT TRUE THEN n_skipped:=n_skipped+1; CONTINUE; END IF;
+   SELECT * INTO existing FROM public.pwa_group_chat_summaries t WHERE t.borrower_id=id FOR UPDATE;
+   IF FOUND AND existing.conversation_key<>key AND existing.last_message_at>last_at THEN n_superseded:=n_superseded+1; CONTINUE; END IF;
+   IF FOUND AND existing.conversation_key=key AND existing.source_sha256=sha THEN n_unchanged:=n_unchanged+1; CONTINUE; END IF;
+   INSERT INTO public.pwa_group_chat_summaries AS t(borrower_id,conversation_key,shared_group,headline_th,headline_en,points,last_speaker_role,
+     last_speaker_borrower_id,message_count,window_from,last_message_at,generated_at,source_sha256,model,request_id,updated_at)
+    VALUES(id,key,many,s#>>'{headline,th}',s#>>'{headline,en}',s->'points',last_role,last_borrower,n_messages,w_from,last_at,made_at,sha,s->>'model',request,clock_timestamp())
+    ON CONFLICT (borrower_id) DO UPDATE SET conversation_key=EXCLUDED.conversation_key,shared_group=EXCLUDED.shared_group,headline_th=EXCLUDED.headline_th,
+     headline_en=EXCLUDED.headline_en,points=EXCLUDED.points,last_speaker_role=EXCLUDED.last_speaker_role,last_speaker_borrower_id=EXCLUDED.last_speaker_borrower_id,
+     message_count=EXCLUDED.message_count,window_from=EXCLUDED.window_from,last_message_at=EXCLUDED.last_message_at,generated_at=EXCLUDED.generated_at,
+     source_sha256=EXCLUDED.source_sha256,model=EXCLUDED.model,request_id=EXCLUDED.request_id,updated_at=EXCLUDED.updated_at;
+   n_stored:=n_stored+1;
+  END LOOP;
+ END IF;
+ RETURN jsonb_build_object('kind',CASE WHEN n_stored>0 THEN 'stored' WHEN n_unchanged>0 THEN 'unchanged' WHEN n_superseded>0 THEN 'superseded' ELSE 'cleared' END,
+  'stored',n_stored,'unchanged',n_unchanged,'superseded',n_superseded,'skipped',n_skipped,'pruned',n_pruned);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_put_group_chat_summary_v1(canonical_json text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_put_group_chat_summary_v1(canonical_json text) IS 'R146: stores the integration agent''s group chat summary command {"command":{schemaVersion,requestId,environment,conversationKey,borrowerIds,sourceSha256,summary}}. Removes this group''s rows whose borrower is not listed; with a null summary stops there. For each listed AI-collection borrower: keeps a row of another group with a newer last message (superseded), leaves a row with the same source digest untouched (unchanged), otherwise upserts (stored). Raises invalid_request (22023) or unknown_borrower (P0002). Invoker rights.';
+
+
+--
 -- Name: pwa_rebate_pending_v1(text); Type: FUNCTION
 --
 

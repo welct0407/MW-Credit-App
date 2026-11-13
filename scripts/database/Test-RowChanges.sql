@@ -3,6 +3,7 @@
 -- The DEV capability grants that the operator policy provides live are emulated (app-role-policy.mjs:
 -- every table, read-only protected relations incl. pwa_row_changes), then each DML kind, each writer
 -- role and the hourly retention are exercised. Trigger placement is asserted by Test-TriggerOrder.sql.
+-- V146 (R146) adds pwa_group_chat_summaries (key borrower_id) as the twentieth tracked table.
 \set ON_ERROR_STOP on
 BEGIN;
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
@@ -97,6 +98,20 @@ INSERT INTO "Loan Assessment SQL Lab"("Row ID") VALUES('RC-LA');
 DO $$ DECLARE got text; BEGIN
  SELECT string_agg(table_name||':'||row_key,' ' ORDER BY seq) INTO got FROM public.pwa_row_changes WHERE seq>(SELECT seq FROM rc_mark) AND row_key IN ('ch:rc','RC-ACC','RC-ST','RC-DA','RC-LA');
  IF got IS DISTINCT FROM 'Cash Holders:ch:rc Cash Accounts:RC-ACC r008_cash_account_cutover:RC-ACC Statistics:RC-ST Daily Analytics:RC-DA Loan Assessment SQL Lab:RC-LA' THEN RAISE EXCEPTION 'Change log for keyed tables differs: %',got; END IF;
+END $$;
+
+-- V146 (R146): the group chat summary is tracked under borrower_id for each DML kind (an identical UPDATE logs nothing),
+-- and its TRUNCATE leaves the marker row. Invented text.
+CREATE TEMP TABLE rc_mark_s ON COMMIT DROP AS SELECT coalesce(max(seq),0) AS seq FROM public.pwa_row_changes;
+INSERT INTO public.pwa_group_chat_summaries(borrower_id,conversation_key,shared_group,headline_th,headline_en,points,last_speaker_role,message_count,window_from,last_message_at,generated_at,source_sha256,model,request_id)
+ VALUES('RC-B',repeat('c',32),false,'สรุปสังเคราะห์','Synthetic summary','[]','partner',3,now()-interval '3 days',now()-interval '1 hour',now(),repeat('0',64),'synthetic-model','0c970c97-0c97-4c97-8c97-0c970c970c98');
+UPDATE public.pwa_group_chat_summaries SET headline_en='Synthetic summary edited' WHERE borrower_id='RC-B';
+UPDATE public.pwa_group_chat_summaries SET headline_en='Synthetic summary edited' WHERE borrower_id='RC-B';
+DELETE FROM public.pwa_group_chat_summaries WHERE borrower_id='RC-B';
+TRUNCATE public.pwa_group_chat_summaries;
+DO $$ DECLARE got text; BEGIN
+ SELECT string_agg(table_name||':'||row_key,' ' ORDER BY seq) INTO got FROM public.pwa_row_changes WHERE seq>(SELECT seq FROM rc_mark_s);
+ IF got IS DISTINCT FROM 'pwa_group_chat_summaries:RC-B pwa_group_chat_summaries:RC-B pwa_group_chat_summaries:RC-B pwa_group_chat_summaries:*' THEN RAISE EXCEPTION 'Change log for the group chat summary differs: %',got; END IF;
 END $$;
 
 -- G. Paths that skip ordinary triggers: under session_replication_role=replica the ALWAYS trigger still logs

@@ -1,5 +1,5 @@
 {
-  "revision": 37,
+  "revision": 38,
   "default_policy": "deny",
   "services": {
     "receipt_evidence": {
@@ -67,6 +67,10 @@
       "implemented": true
     },
     "chat_messages_relay": {
+      "enabled": false,
+      "implemented": true
+    },
+    "group_chat_summary": {
       "enabled": false,
       "implemented": true
     }

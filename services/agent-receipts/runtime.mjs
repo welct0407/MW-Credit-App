@@ -1,5 +1,5 @@
 import {OAuth2Client} from 'google-auth-library';
-import {agentCloseIdentity,agentIdentity,canonicalAgentClose,canonicalAgentCommand} from './contract.mjs';
+import {agentCloseIdentity,agentIdentity,canonicalAgentClose,canonicalAgentCommand,canonicalGroupChatSummary} from './contract.mjs';
 import {readLoanCloseQuote} from '../payment-command/store.mjs';
 import {validBorrowerId} from '../business/borrowers.mjs';
 import {PROJECT_ID as project,runUrl} from '../lib/identity.mjs';
@@ -9,6 +9,8 @@ const uuid=UUID_V4.source.slice(1,-1);
 const receiptRoute=new RegExp(`^/internal/agent/receipt-payments(?:/(${uuid}))?$`);
 // R128: the Instagram-approved Loan Close (reviewed mode only): its quote, the close command and its status.
 const closeRoute=new RegExp(`^/internal/agent/loan-closes(?:/(${uuid}))?$`),quoteRoute=/^\/internal\/agent\/loan-closes\/quote\/([^/?#]+)$/;
+// R146: the agent's group chat summary (display only): POST {command}, no actor Partner, no after-commit effect.
+const summaryRoute='/internal/agent/group-chat-summaries';
 const fail=()=>{throw Error('invalid_agent_receipt_configuration');};
 export function loadAgentReceiptPolicy(env,environment){
  if(env.AGENT_RECEIPT_API_ENABLED===undefined||env.AGENT_RECEIPT_API_ENABLED==='false')return null;
@@ -24,9 +26,10 @@ export function loadAgentReceiptPolicy(env,environment){
  return Object.freeze(p);
 }
 
-/** The route a machine request names: {kind: receipt|close|quote, id} or null (unknown path or method). */
+/** The route a machine request names: {kind: receipt|close|quote|summary, id} or null (unknown path or method). */
 function route(req){
  const url=req.url??'',receipt=receiptRoute.exec(url),quote=quoteRoute.exec(url),close=closeRoute.exec(url);
+ if(url===summaryRoute)return req.method==='POST'?{kind:'summary',id:null}:null;
  if(receipt)return req.method===(receipt[1]?'GET':'POST')?{kind:'receipt',id:receipt[1]??null}:null;
  if(quote){if(req.method!=='GET')return null;let loanId;try{loanId=decodeURIComponent(quote[1]);}catch{return null;}return validBorrowerId(loanId)?{kind:'quote',id:loanId}:null;}
  if(close)return req.method===(close[1]?'GET':'POST')?{kind:'close',id:close[1]??null}:null;
@@ -48,6 +51,28 @@ export function createAgentReceiptHandler({next,policy,pool,guardConnection,afte
    claims=await verify(token[1],policy.audience);
    if(!claims||claims.aud!==policy.audience||!['https://accounts.google.com','accounts.google.com'].includes(claims.iss)||claims.email!==policy.callerEmail||claims.sub!==policy.callerSubject||claims.email_verified!==true||!Number.isFinite(claims.exp)||claims.exp*1000<=now()||!Number.isFinite(claims.iat)||claims.iat*1000>now()+60000)throw Error();
   }catch{return send(res,401,{error:'unauthorized'});}
+  if(target.kind==='summary'){
+   // R146: body exactly {command}, at most 16,384 bytes, for this policy's environment. pwa_put_group_chat_summary_v1 (V146)
+   // runs with the command service's own rights. 22023 is a refused command (400), P0002 an unknown borrower (422).
+   let canonical;
+   try{const chunks=[];let length=0;for await(const chunk of req){const bytes=Buffer.from(chunk);length+=bytes.length;if(length>16384)throw Error();chunks.push(bytes);}
+    const body=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)));if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).join(',')!=='command')throw Error();
+    canonical=canonicalGroupChatSummary(body.command);if(canonical.environment!==policy.environment)throw Error();
+   }catch{return send(res,400,{error:'invalid_summary_command'});}
+   let client,kind,commitStarted=false,quarantine=false;
+   try{
+    client=await pool.connect();await client.query('BEGIN');await guardConnection(client);
+    await client.query(statementTimeoutSql('command'));await client.query(lockTimeoutSql);
+    kind=(await client.query('SELECT public.pwa_put_group_chat_summary_v1($1) value',[JSON.stringify({command:canonical})])).rows[0].value?.kind;
+    if(!['stored','unchanged','superseded','cleared'].includes(kind))throw Error('invalid_summary_result');
+    commitStarted=true;await client.query('COMMIT');
+   }catch(error){quarantine=commitStarted;try{await client?.query('ROLLBACK');}catch{quarantine=true;}
+    if(!commitStarted&&error?.code==='22023')return send(res,400,{error:'invalid_summary_command'});
+    if(!commitStarted&&error?.code==='P0002'&&error.message==='unknown_borrower')return send(res,422,{error:'unknown_borrower'});
+    return send(res,503,{error:commitStarted?'summary_outcome_unknown':'summary_unavailable'});
+   }finally{try{client?.release(quarantine);}catch{}}
+   return send(res,200,{kind});
+  }
   const write=target.kind!=='quote'&&!target.id,close=target.kind==='close',invalid=close?'invalid_close_command':'invalid_receipt_command';
   let input,command;
   if(write){

@@ -51,3 +51,49 @@ test('R114 COL-2: a borrower paid in advance by a rebate offset gets prepaidSour
  assert.equal(without.calls.includes(prepaidSourceSql),false);
  assert.match(prepaidSourceSql,/p\."Payment Method"/);assert.match(prepaidSourceSql,/r\."Ref Payment"/);
 });
+// R146: the group chat summary on the collection read. Invented text only.
+test('R146 list items carry chatSummaryAt and the detail envelope groupChat; a reader without the grant gets null and no failure',async()=>{
+ const {readCollection,groupChatAllowedSql,groupChatListSql,groupChatDetailSql,GROUP_CHAT_COLUMNS,projectGroupChat}=await import('../../services/api/collection-read-contract.mjs');
+ const row=id=>({id,rank:0,overdue_days:null,borrower_name:id,amount_due:'100',amount_collected:'0',amount_remaining:'100',prepaid_today:'0',prepaid_only:false,prepaid_payment_date:null});
+ const stored={borrower_id:'a',shared_group:false,headline_th:'ผู้กู้ขอเลื่อนจ่ายเป็นวันศุกร์',headline_en:'Borrower asks to pay on Friday.',
+  points:[{speaker:{role:'borrower',borrowerId:'a'},th:'เงินเดือนออกช้า',en:'Salary is late.'},{speaker:{role:'partner'},th:'ตกลง',en:'Agreed.'}],
+  last_speaker_role:'referrer',last_speaker_borrower_id:'x',message_count:12,last_message_at:new Date('2026-11-12T07:05:00Z'),generated_at:'2026-11-12T07:32:00.000Z'};
+ const run=async(allowed,options={limit:10,after:null})=>{const calls=[];const client={query:async(sql,args)=>{calls.push(sql);
+   if(sql.includes('CURRENT_TIMESTAMP AS "asOf"'))return {rows:[{asOf:'2026-11-12T08:00:00Z',businessDate:'2026-11-12'}]};
+   if(sql.includes('AS invalid'))return {rows:[{invalid:false}]};
+   if(sql===groupChatAllowedSql){if(allowed==='missing')return {rows:[]};return {rows:[{allowed}]};}
+   if(sql===groupChatListSql){assert.deepEqual(args,[['a','b']]);return {rows:[{id:'a',last_message_at:new Date('2026-11-12T07:05:00Z')}]};}
+   if(sql===groupChatDetailSql){assert.deepEqual(args,['a']);return {rows:options.none?[]:[stored]};}
+   if(sql.includes('pwa_group_chat_summaries'))throw Object.assign(Error('permission denied for table pwa_group_chat_summaries'),{code:'42501'});
+   if(sql.includes('AS allowed'))return {rows:[{allowed:false}]};
+   if(sql.endsWith('SELECT * FROM summaries'))return {rows:[row('a')]};
+   if(sql.includes('SELECT id, loan_id, payment_status'))return {rows:[]};
+   return {rows:[row('a'),row('b')]};}};
+  return {value:await readCollection(client,options),calls};};
+ // List: the summary's last substantive message time, null where there is none.
+ const list=await run(true);
+ assert.deepEqual(list.value.items.map(item=>[item.id,item.chatSummaryAt]),[['a','2026-11-12T07:05:00.000Z'],['b',null]]);
+ assert.equal('groupChat' in list.value,false);
+ // Detail: headline in both languages, points, last speaker, times, count and the shared flag.
+ const detail=await run(true,{limit:10,after:null,borrowerId:'a'});
+ assert.deepEqual(detail.value.groupChat,{headline:{th:stored.headline_th,en:stored.headline_en},points:stored.points,lastSpeaker:{role:'referrer',borrowerId:'x'},
+  lastMessageAt:'2026-11-12T07:05:00.000Z',generatedAt:'2026-11-12T07:32:00.000Z',messageCount:12,shared:false});
+ assert.deepEqual(Object.keys(detail.value),['businessDate','asOf','timezone','borrower','groupChat','items','nextCursor']);
+ assert.equal((await run(true,{limit:10,after:null,borrowerId:'a',none:true})).value.groupChat,null,'no summary: null');
+ // No grant (false), no table or an older database (no row): nulls, the table is never queried, nothing fails.
+ for(const allowed of [false,'missing',null]){
+  const without=await run(allowed);assert.deepEqual(without.value.items.map(item=>item.chatSummaryAt),[null,null]);assert.equal(without.calls.includes(groupChatListSql),false);
+  const one=await run(allowed,{limit:10,after:null,borrowerId:'a'});assert.equal(one.value.groupChat,null);assert.equal(one.calls.includes(groupChatDetailSql),false);assert.equal(one.value.borrower.id,'a');
+ }
+ // The guard: the table must exist and every selected column must be readable; no age filter on the server.
+ assert.match(groupChatAllowedSql,/to_regclass\('public\.pwa_group_chat_summaries'\)/);assert.match(groupChatAllowedSql,/has_column_privilege\(t\.oid, c\.name, 'SELECT'\)/);
+ for(const column of GROUP_CHAT_COLUMNS){assert.ok(groupChatAllowedSql.includes(`'${column}'`),column);assert.ok(groupChatDetailSql.includes('g.'+column),column);}
+ for(const sql of [groupChatListSql,groupChatDetailSql])assert.doesNotMatch(sql,/now\(\)|CURRENT_|interval|clock_timestamp/i);
+ const contract=JSON.parse((await import('node:fs')).readFileSync(new URL('../../scripts/production/reader-capability-contract.json',import.meta.url),'utf8')).columnSelect.pwa_group_chat_summaries;
+ assert.deepEqual([...contract].sort(),[...GROUP_CHAT_COLUMNS].sort(),'the reader contract grants exactly the columns the read selects');
+ // A row that is not the V146 shape is dropped (display only), never an error.
+ assert.equal(projectGroupChat(undefined),null);
+ for(const bad of [{points:'x'},{last_speaker_role:'owner'},{last_speaker_role:'borrower',last_speaker_borrower_id:null},{points:[{speaker:{role:'partner'},th:1,en:'x'}]},{points:Array(5).fill(stored.points[1])},
+   {last_message_at:'not a time'},{message_count:'12'},{shared_group:null},{headline_th:null}])assert.equal(projectGroupChat({...stored,...bad}),null,JSON.stringify(bad));
+ assert.deepEqual(projectGroupChat({...stored,points:[],last_speaker_role:'business',last_speaker_borrower_id:null,shared_group:true}).lastSpeaker,{role:'business'});
+});

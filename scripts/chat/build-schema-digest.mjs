@@ -25,7 +25,8 @@ const ROUTINE_SCHEMAS=['public','agent_audit','assessment_lab'];
 const TRIGGER_RESULTS=['trigger','event_trigger'];
 const COMMENT_LIMIT=200;
 // The chat journal and (batch 2, B4) the job journal, which the SQL role reads only through pwa_job_status_v1.
-const EXCLUDED_RELATIONS=/^public\.(?:pwa_chat_|pwa_job_runs$)/;
+// R146: the group chat summaries, which the SQL role cannot read (no chat access in that release).
+const EXCLUDED_RELATIONS=/^public\.(?:pwa_chat_|pwa_job_runs$|pwa_group_chat_summaries$)/;
 
 // Owner (R085), Archie's classification, verbatim from the agent builder.
 export const ALLOWED=new Map([

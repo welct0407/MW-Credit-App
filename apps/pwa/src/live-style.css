@@ -319,6 +319,22 @@
 .live-desktop-nav .live-vertical-nav,.nav-collapsed .live-desktop-nav .live-vertical-nav{padding:12px 8px;flex-shrink:0}.live-desktop-nav .live-vertical-nav button{height:64px;min-height:64px;max-height:64px;flex-shrink:0;box-sizing:border-box;line-height:20px}.live-desktop-nav .live-nav-collapse{margin-top:8px;margin-bottom:0}.collection-workspace .record-group-heading>.paid-group-total{color:#237b39}.collection-workspace .charge-row-right>.charge-remaining{color:#c62828}.collection-workspace .charge-row-right>.charge-received{color:#237b39}.collection-workspace .charge-row-right>.zero-currency,.collection-workspace .zero-currency{color:#000}.collection-charge-row{position:relative}.collection-charge-row>.charge-row-left,.collection-charge-row>.charge-row-right{pointer-events:none}.collection-charge-row .charge-loan-link{position:relative;z-index:2;pointer-events:auto}.collection-charge-row>.charge-tile-action{position:absolute;inset:0;z-index:1;width:100%;height:100%;border:0;border-radius:0;background:transparent;padding:0;cursor:pointer}.collection-charge-row>.charge-tile-action:focus-visible{outline:2px solid #bf6900;outline-offset:-2px}
 
 .collection-note textarea{font-family:inherit;font-size:18px;line-height:1.4}#root{touch-action:pan-x pan-y}
+/* R146 group chat summary: a plain section with the note's spacing (no border, shadow or tint); neutral speaker tags. */
+.collection-chat-summary{margin:8px 0;overflow-wrap:anywhere}
+.collection-chat-heading{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.collection-chat-heading h3{margin:0;font-size:20px;min-width:0}
+.collection-chat-meta{font-size:14px;line-height:1.4;color:#555;margin:2px 0}
+.collection-chat-headline{margin:4px 0;line-height:1.4}
+.collection-chat-points{list-style:none;margin:4px 0;padding:0;display:grid;gap:4px}
+.collection-chat-points li{display:flex;align-items:flex-start;gap:8px;line-height:1.4}
+.collection-chat-points .expense-payee-tag{margin-top:1px;white-space:nowrap;font-size:13px;padding:2px 8px}
+.collection-chat-text{min-width:0}
+.collection-chat-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-height:44px}
+.collection-chat-foot .collection-chat-meta{flex:1 1 auto;min-width:0;margin:0}
+.collection-chat-toggle{flex:0 0 auto;min-height:44px;font:inherit;white-space:nowrap}
+.collection-chat-summary.stale .collection-chat-headline,.collection-chat-summary.stale .collection-chat-text{color:#555}
+.collection-chat-name-end{white-space:nowrap}
+.collection-tile-main .collection-chat-mark{width:16px;height:16px;margin-left:6px;vertical-align:-2px;color:#555}
 
 /* Required markers follow actual native field requirements; optional borrower fields stay optional. */
 label:has(input:required,select:required,textarea:required)>.field-title{font-weight:700}

@@ -23,10 +23,16 @@ TABLES = {
     'instagram-ingress.db': {'receipts': 'ingress_receipts', 'messages': 'ingress_messages', 'ingress_work': 'ingress_work'},
     'receipt-processing.db': {x: x for x in ('receipt_cursor','receipt_jobs','receipt_keys','receipt_emails',
         'partner_reviews','partner_review_replies','conversation_poll_state','conversation_poll_messages','receipt_reconsiderations',
-        'receipt_assets','receipt_payment_links')},
+        'receipt_assets','receipt_payment_links','group_chat_summary_state')},
     'partner-notices.db': {'partner_notices':'partner_notices'},
     'cash-statement-delivery.db': {x:x for x in ('cash_statement_sends','cash_statement_emails')},
 }
+# R146 SQLite fallback of runtime.group_chat_summary_state (agent V12): the same columns, epoch-second times. The
+# poll (marker) and the group-chat-summary service create it lazily on a SQLite journal; PostgreSQL gets it from V12.
+GROUP_CHAT_SUMMARY_STATE_SQLITE = '''CREATE TABLE IF NOT EXISTS group_chat_summary_state
+  (conversation_id TEXT PRIMARY KEY, changed_at REAL, last_text_at REAL, subjects_sha256 TEXT,
+   summarised_source_sha256 TEXT, summarised_at REAL, attempts INTEGER NOT NULL DEFAULT 0,
+   next_attempt_at REAL NOT NULL DEFAULT 0, last_error TEXT);'''
 _pools = {}
 _lock = threading.Lock()
 

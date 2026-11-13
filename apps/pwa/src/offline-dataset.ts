@@ -751,7 +751,10 @@ export async function readOfflineDataset(access:Access,path:string):Promise<any|
  if(domain==='collection'){
   if(url.searchParams.has('businessDate')&&url.searchParams.get('businessDate')!==bundle.businessDate)return null;
   if(route==='/api/collection'){const rows=filtered(data.items??[]);return page(rows.map(row=>{const group=rows.filter(item=>item.status===row.status);return {...row,groupRemaining:sumAmounts(group.map(item=>item.amountRemaining)),groupCollected:sumAmounts(group.map(item=>item.amountCollected))}}),url,bundle,envelope);}
-  if(parts[1]==='collection'&&id&&tail==='charges'){const borrower=data.items?.find((row:any)=>row.id===id);return borrower?page((data.charges??[]).filter((row:any)=>row.borrowerId===id).sort(byDate('chargeDate')),url,bundle,{...envelope,borrower}):null}
+  if(parts[1]==='collection'&&id&&tail==='charges'){const borrower=data.items?.find((row:any)=>row.id===id);
+   // R146: the borrower's group chat summary from the synced rows (null when none was synced); items carry chatSummaryAt.
+   const chat=(data.groupChatByBorrower??[]).find((row:any)=>row.borrowerId===id),groupChat=chat?(({borrowerId:_borrower,...value})=>value)(chat):null;
+   return borrower?page((data.charges??[]).filter((row:any)=>row.borrowerId===id).sort(byDate('chargeDate')),url,bundle,{...envelope,borrower,groupChat}):null}
   if(tail==='upcoming'){
    const entry=(data.borrowerUpcoming??Object.values(data.borrowerUpcomingByKey??{})).find((row:any)=>row.borrowerId===id&&row.scope===(parts[1]==='collection'?'collection':'borrower'));if(!entry)return null;
    if(!parts[4])return {...envelope,...entry};const detail=entry.previews?.find((row:any)=>row.dueDate===parts[4]);return detail?page(detail.items,url,bundle,{...envelope,...detail}):null;
