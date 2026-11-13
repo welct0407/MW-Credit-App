@@ -129,4 +129,4 @@ Revert the pull request for files. PROD: see the rollback row of the PROD promot
 None.
 
 ## Remaining work
-Promoted to PROD and switched on, 13 November 2026 (record above); tagged R146 and closed by the closure pull request. Open for the owner: acceptance ("let me check"); the dry run found 1 shared group (expected near zero), which is either two unrelated borrowers or a referrer whose borrower lacks "Ref Referrer" (the referrer's own page then shows that group's summary until the record is filled; the next poll's subject-digest change prunes it). 
+Promoted to PROD and switched on, 13 November 2026 (record above); tagged R146 and closed by the closure pull request. Owner-accepted in PROD on 13 November 2026 ("Accepted", after checking R146 and R147). Still open: the dry run found 1 shared group (expected near zero), which is either two unrelated borrowers or a referrer whose borrower lacks "Ref Referrer" (the referrer's own page then shows that group's summary until the record is filled; the next poll's subject-digest change prunes it). 
