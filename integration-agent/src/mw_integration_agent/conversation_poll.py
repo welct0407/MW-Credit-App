@@ -201,11 +201,12 @@ def recheck_ignored(config,api,master,db,conversation,newly,now):
     return promote(db,cid,[(m,ts,'BORROWER',group_evidence(payer_cutoff,group_ids,ts)) for m,ts in slips],now,since)['jobs']
 
 
-def promote(db,cid,items,now,since):
+def promote(db,cid,items,now,since,by_time=True):
     """The R119 core (recheck_ignored, R151 reprocess_ignored): each (message, ts, outcome, evidence) needs exactly one
     IGNORED row of this group (same message id, or time within MATCH_SECONDS) and no job yet (by either message id, or a
     job since `since` whose source names this group, sender and time within MATCH_SECONDS). One transaction turns each
     row into `outcome` (plus a row for a changed id) and inserts its jobs by the poll's deterministic key and source.
+    by_time=False (R151 reprocess by message id suffix) matches the row by message id only.
     Returns counts: jobs added, rows promoted, slips skipped for an existing job, and slips without exactly one row."""
     sources=[]
     for row in db.execute('SELECT source FROM receipt_jobs WHERE created_at>=? AND source IS NOT NULL',(since,)).fetchall():
@@ -219,9 +220,10 @@ def promote(db,cid,items,now,since):
             attachments=message['attachments']
             if attachments.get('paging',{}).get('next'):raise ConfigurationError('POLL_ATTACHMENTS_INCOMPLETE')
             rows=db.execute("SELECT message_id FROM conversation_poll_messages WHERE conversation_id=? AND outcome='IGNORED' AND message_id=?",
-                            (cid,message['id'])).fetchall() or db.execute(
-                "SELECT message_id FROM conversation_poll_messages WHERE conversation_id=? AND outcome='IGNORED' AND abs(event_time-?)<=?",
-                (cid,ts,MATCH_SECONDS)).fetchall()
+                            (cid,message['id'])).fetchall()
+            if not rows and by_time:
+                rows=db.execute("SELECT message_id FROM conversation_poll_messages WHERE conversation_id=? AND outcome='IGNORED' AND abs(event_time-?)<=?",
+                                (cid,ts,MATCH_SECONDS)).fetchall()
             if len(rows)!=1:counts['unmatched']+=1;continue  # never recorded as ignored, or two candidates: left as they are
             recorded=rows[0][0]
             if db.execute('SELECT 1 FROM receipt_jobs WHERE message_id=? OR message_id=?',(recorded,message['id'])).fetchone() or any(
@@ -395,7 +397,9 @@ def reprocess_ignored(config,api,master,db,conversation_id,suffix=None,now=None)
     """R151 owner-requested reprocess of one group's IGNORED slips since yesterday 00:00 Bangkok: the history is read
     again (fresh image URLs), each image message is classified as the poll does now, and one that now gets a job is
     promoted through the R119 core (exactly one IGNORED row, no job yet). suffix narrows it to the one IGNORED row whose
-    recorded message id ends with it. Idempotent: a promoted row is no longer IGNORED. Counts only."""
+    recorded message id ends with it, matched by that id only (the time fallback is R119's). A conversation the poll
+    would not scan (no enabled participant and no enabled named sender on the first page, for example a DM with a
+    non-borrower) is refused. Idempotent: a promoted row is no longer IGNORED. Counts only."""
     now=time.time() if now is None else now
     since=recheck_since(now)
     result={'status':'ok','messages':0,'reclassified':0,'jobs':0,'skipped_existing':0,'unmatched':0,'still_ignored':0}
@@ -410,23 +414,27 @@ def reprocess_ignored(config,api,master,db,conversation_id,suffix=None,now=None)
     if peers.get('paging',{}).get('next'):raise ConfigurationError('POLL_PARTICIPANTS_INCOMPLETE')
     participants=peers.get('data')
     if not isinstance(participants,list):raise ConfigurationError('POLL_PARTICIPANTS_MISSING')
+    # The poll's own eligibility gate (capture_conversation).
+    enabled=enabled_usernames(master);context=scope(config,master,participants,enabled)
+    if not context['allowed'] and not named_sender(config,conversation,enabled):return {**result,'status':'not_eligible'}
     target=None
     if suffix is not None:
         rows=[r for r in db.execute("SELECT message_id,event_time FROM conversation_poll_messages WHERE conversation_id=? AND outcome='IGNORED' AND event_time>=?",
                                     (conversation_id,since)).fetchall() if str(r[0]).endswith(suffix)]
         if len(rows)!=1:return {**result,'status':'message_not_found' if not rows else 'message_ambiguous'}
-        target=(rows[0][0],rows[0][1])
+        target=rows[0][0]
     ordered=list(reversed(history_since(api,config,conversation,since,now)))
-    read=read_rows(ordered);context=scope(config,master,participants,enabled_usernames(master))
+    read=read_rows(ordered)
     items=[]
     for position,(message,ts) in enumerate(ordered):
         if not has_image(message):continue
-        if target and message.get('id')!=target[0] and abs(ts-target[1])>MATCH_SECONDS:continue
+        if target is not None and message.get('id')!=target:continue
         result['messages']+=1
         outcome,evidence=classify(config,master,participants,context,message,ts,read,position)
         if outcome not in JOB_OUTCOMES:result['still_ignored']+=1;continue
         items.append((message,ts,outcome,evidence))
-    counts=promote(db,conversation_id,items,now,since) if items else {'jobs':0,'promoted':0,'skipped_existing':0,'unmatched':0}
+    if target is not None and not items and not result['still_ignored']:return {**result,'status':'message_not_in_history'}
+    counts=promote(db,conversation_id,items,now,since,by_time=target is None) if items else {'jobs':0,'promoted':0,'skipped_existing':0,'unmatched':0}
     result.update(reclassified=counts['promoted'],jobs=counts['jobs'],skipped_existing=counts['skipped_existing'],unmatched=counts['unmatched'])
     return result
 

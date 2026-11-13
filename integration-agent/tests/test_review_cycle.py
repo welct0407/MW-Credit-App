@@ -839,6 +839,36 @@ class SenderNoteTests(unittest.TestCase):
                         else:self.assertIn(note+'\n'+('Transferred' if language=='English' else 'เวลาโอน'),body)
         self.assertTrue(request_text(closing,'English',unidentified=True)[0].startswith('Loan close'))
 
+    def test_the_note_never_pushes_the_worst_case_request_past_one_message(self):
+        # Chase (R151): five principal loans and the unclear prompt leave no room for the note; the request goes out as
+        # without it, and the note stays wherever it fits. A caller's prefix (the corrected request) is reserved too.
+        from mw_integration_agent.partner_review import request_text
+        from mw_integration_agent.review_proposal import loan_display_key
+        from test_partner_review_options import OWNER
+        for language,name,descriptions,note in (('English','Wilaiwan Phongphanit',('Fruit','Curry','Online','Repair','Capital'),self.NOTE[0]),
+                                                ('ไทย','วิไลวรรณ พงษ์พานิช',('ร้านผลไม้','ร้านข้าวแกง','ขายของออนไลน์','ซ่อมรถ','ทุนหมุนเวียน'),self.NOTE[1])):
+            keys=[loan_display_key(name,d,'150000','2026-03-12','1.5') for d in descriptions]
+            five=json.loads(json.dumps(OWNER));five['loan_keys']=keys;five['borrower']=dict(five['borrower'],name_en=name,name_th=name)
+            five['receipt'].update(amount='25000',account_label='KBank 123-4-56789-0')
+            five['options'].update(dueTotal='1450',dueInterest='1200',dueLate='250',duePrincipal='0',remainder='23550')
+            five['options']['forward'].update(last='2026-12-31',through='2026-12-31')
+            five['options']['principal']=[{'loanId':f'L{n}','loanKey':k,'amount':str(23550-300*n),'dailyAfter':'1875','outstandingAfter':'1'} for n,k in enumerate(keys,1)]
+            for unclear in (False,True):
+                with self.subTest(language=language,unclear=unclear):
+                    plain=request_text(five,language,unclear=unclear)
+                    noted=request_text(five,language,unclear=unclear,unidentified=True)
+                    self.assertLessEqual(len(noted[1]),1000)
+                    if len(plain[1])+len(note)+1>1000:self.assertEqual(noted,plain)
+                    else:self.assertEqual(noted[1].count(note),1)
+            # The worst case (unclear prompt) has no room for the note in either language.
+            self.assertEqual(request_text(five,language,unclear=True,unidentified=True),request_text(five,language,unclear=True))
+        standard={'action':'Lump Sum','borrower':{'id':'b','name_en':'Cha'},'facts':{},'loan_id':None,
+                  'receipt':{'amount':'1','date':'2026-11-13','time':'20:36','account_label':'A'}}
+        body=request_text(standard,'English',unidentified=True)[1]
+        self.assertIn(self.NOTE[0],body)
+        self.assertNotIn(self.NOTE[0],request_text(standard,'English',unidentified=True,reserve=1000-len(body)+1)[1])
+        self.assertIn(self.NOTE[0],request_text(standard,'English',unidentified=True,reserve=1000-len(body))[1])
+
     def test_the_review_command_resend_and_the_unclear_prompt_read_the_job(self):
         from mw_integration_agent.partner_review import unidentified_review
         with tempfile.TemporaryDirectory() as temp:

@@ -356,8 +356,20 @@ def close_failure_line(state,detail,proposal,thai):
     return ''
 
 
-def request_text(proposal,language,unclear=False,unidentified=False):
-    """unidentified (R151): the receipt's sender is no known borrower; the request says the payer name chose the borrower."""
+def request_text(proposal,language,unclear=False,unidentified=False,reserve=0):
+    """unidentified (R151): the receipt's sender is no known borrower; the request says the payer name chose the borrower,
+    unless the note (with `reserve` characters the caller adds in front) would push it past one Instagram message: the
+    note never costs the request, which then goes out exactly as without it."""
+    if unidentified:
+        try:
+            subject,body=compose_request(proposal,language,unclear,True)
+            if len(body)+reserve<=1000:return subject,body
+        except ConfigurationError as exc:
+            if str(exc)!='REVIEW_REQUEST_TOO_LONG':raise
+    return compose_request(proposal,language,unclear,False)
+
+
+def compose_request(proposal,language,unclear=False,unidentified=False):
     from .review_proposal import review_posts_close,review_posts_overpayment
     thai=language=='ไทย'
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')

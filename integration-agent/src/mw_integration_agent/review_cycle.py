@@ -130,9 +130,11 @@ class Run:
                         continue
                     key=reviews.reserve(job['id'],proposal)
                     for p in recipients:
-                        subject,body=request_text(proposal,p['language'],unidentified=provenance(job).get('unidentified_sender') is True)
-                        if job['detail'] in ('OWNER_REQUESTED_RECONSIDERATION','REVIEWER_REQUESTED_RECHECK'):
-                            body=('คำขอแก้ไข — ใช้แทนคำขอเดิม\n' if p['language']=='ไทย' else 'Corrected request — replaces the earlier request\n')+body
+                        corrected=('คำขอแก้ไข — ใช้แทนคำขอเดิม\n' if p['language']=='ไทย' else 'Corrected request — replaces the earlier request\n') if job['detail'] in (
+                            'OWNER_REQUESTED_RECONSIDERATION','REVIEWER_REQUESTED_RECHECK') else ''
+                        subject,body=request_text(proposal,p['language'],unidentified=provenance(job).get('unidentified_sender') is True,reserve=len(corrected))
+                        if corrected:
+                            body=corrected+body
                             if len(body)>1000:raise ReceiptInvalid('REVIEW_REQUEST_TOO_LONG')
                         self.notices.reserve('review:'+key,p,subject,body)
                     with db:db.execute("UPDATE receipt_jobs SET status='REVIEW_REQUESTED' WHERE id=?",(job['id'],))

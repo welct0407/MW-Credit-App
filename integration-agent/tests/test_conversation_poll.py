@@ -663,6 +663,42 @@ class ReprocessTests(SenderBase):
         self.assertEqual((result['status'],result['messages'],result['jobs']),('ok',1,1))
         self.assertEqual(self.outcomes(),{'aaaa-1111':'SENDER','bbbb-1111':'IGNORED'})
 
+    def test_suffix_matches_by_message_id_only(self):
+        # Chase (R151): no time neighbours with a suffix; the time fallback is R119's.
+        slip=self.message('aaaa-1111','555','fahsai',time='2026-09-21T00:10:00+00:00')
+        self.ignored(slip)
+        changed=self.message('new-id','555','fahsai',time='2026-09-21T00:10:01+00:00')
+        result=self.reprocess([changed],'a-1111')
+        self.assertEqual((result['status'],result['messages'],result['jobs']),('message_not_in_history',0,0))
+        self.assertEqual(self.outcomes(),{'aaaa-1111':'IGNORED'})
+        # A neighbour slip within 5 s of the recorded one is not taken in its place either.
+        result=self.reprocess([self.message('aaaa-1111','555','fahsai',time='2026-09-21T00:10:00+00:00'),changed][::-1],'a-1111')
+        self.assertEqual((result['status'],result['messages'],result['jobs']),('ok',1,1))
+        self.assertEqual(set(self.jobs()),{'aaaa-1111'})
+        # Without a suffix the R119 time fallback still matches a changed id.
+        self.j.db.execute('DELETE FROM receipt_jobs');self.j.db.execute("UPDATE conversation_poll_messages SET outcome='IGNORED'");self.j.db.commit()
+        self.assertEqual(self.reprocess([changed])['jobs'],1)
+        self.assertEqual(self.outcomes(),{'aaaa-1111':'SENDER','new-id':'SENDER'})
+
+    def test_a_conversation_the_poll_would_not_scan_is_refused(self):
+        slip=self.message('slip','555','fahsai',time='2026-09-21T00:10:00+00:00')
+        self.ignored(slip)
+        stranger=self.message('slip','777','stranger',time='2026-09-21T00:10:00+00:00')
+        for people in ([{'id':'999','username':'business'},{'id':'777','username':'stranger'}],
+                       [{'id':'999','username':'business'},{'id':'456','username':'partner'},{'id':'777','username':'stranger'}]):
+            with self.subTest(people=len(people)):
+                from mw_integration_agent.conversation_poll import reprocess_ignored
+                api=self.api([stranger],people)
+                result=reprocess_ignored(self.c,api,self.master,self.j.db,'group',None,self.now+3600)
+                self.assertEqual((result['status'],result['jobs'],result['messages']),('not_eligible',0,0))
+                self.assertEqual(api.request.call_count,1)  # refused before the history is read
+        self.assertEqual(self.outcomes(),{'slip':'IGNORED'});self.assertEqual(self.jobs(),{})
+        # An enabled named sender on the first page makes the same group eligible, as for the poll.
+        people=[{'id':'999','username':'business'},{'id':'456','username':'partner'}]
+        from mw_integration_agent.conversation_poll import reprocess_ignored
+        result=reprocess_ignored(self.c,self.api([slip],people),self.master,self.j.db,'group',None,self.now+3600)
+        self.assertEqual((result['status'],result['jobs']),('ok',1))
+
     def test_missing_conversation_and_unreadable_history(self):
         from mw_integration_agent.conversation_poll import reprocess_ignored
         api=Mock(request=Mock(return_value={'data':[]}))
