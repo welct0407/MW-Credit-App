@@ -1,0 +1,859 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.pwa_group_chat_summaries"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r146-20261113/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_group_chat_summaries"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_app_prod=arwd/postgres}"
+    "comment": "R146: the current summary of a borrower's Instagram group chat (last three days), one row per borrower. Written\
+      \ only by pwa_put_group_chat_summary_v1 from the integration agent's command; display only: no charge, status, payment\
+      \ or notification reads it. Holds no chat text, Instagram id or username."
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "borrower_id":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "borrower_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: the subject borrower (an AI-collection borrower of the group who is not its referrer); the row goes\
+        \ with the borrower."
+    "conversation_key":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "conversation_key"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "R146: the hashed group key (SHA-256 of the Instagram conversation id, first 32 hex); never the Instagram\
+        \ id."
+    "shared_group":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "shared_group"
+      "ordinal": 3
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: true when the group had two or more subject borrowers, who all carry the same summary."
+    "headline_th":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "headline_th"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: one headline sentence in Thai, 1 to 160 characters, plain text."
+    "headline_en":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "headline_en"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: the same headline in English, 1 to 160 characters, plain text."
+    "points":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "points"
+      "ordinal": 6
+      "data_type": "jsonb"
+      "type_schema": "pg_catalog"
+      "type_name": "jsonb"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: 0 to 4 items {speaker:{role,borrowerId?},th,en}; role is borrower, partner, referrer, business or\
+        \ other; th and en 1 to 200 characters; shape-checked by pwa_put_group_chat_summary_v1."
+    "last_speaker_role":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "last_speaker_role"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: who sent the newest substantive message (borrower, partner, referrer, business, other), computed by\
+        \ the agent, not by the model."
+    "last_speaker_borrower_id":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "last_speaker_borrower_id"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: that speaker's borrower id when the role is borrower or referrer, otherwise null (no foreign key:\
+        \ a label, not a link)."
+    "message_count":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "message_count"
+      "ordinal": 9
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: messages in the summarised window, 1 to 100, routine ones included."
+    "window_from":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "window_from"
+      "ordinal": 10
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R146: start of the summarised window (three days before the run)."
+    "last_message_at":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "last_message_at"
+      "ordinal": 11
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: time of the newest substantive message; the app decides freshness and the list mark from it."
+    "generated_at":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "generated_at"
+      "ordinal": 12
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R146: when the agent generated the summary."
+    "source_sha256":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "source_sha256"
+      "ordinal": 13
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "R146: digest of the summarised input (ordered sender, time and kind tuples, subject ids, prompt version,\
+        \ model); an equal digest leaves the row untouched."
+    "model":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "model"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "R146: the model id that wrote the summary."
+    "request_id":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "request_id"
+      "ordinal": 15
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R146: the agent command's derived request id (provenance; a shared group stores it on each subject)."
+    "updated_at":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "updated_at"
+      "ordinal": 16
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "clock_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": "R146: when this row was last stored."
+  "constraints":
+    "pwa_group_chat_summaries_borrower_id_fkey":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_borrower_id_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (borrower_id) REFERENCES \"Borrowers\"(\"Row ID\") ON DELETE CASCADE"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Borrowers\""
+      "update_action": "a"
+      "delete_action": "c"
+      "match_type": "s"
+      "comment": null
+    "pwa_group_chat_summaries_borrower_id_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_borrower_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL borrower_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_check"
+      "kind": "c"
+      "definition": "CHECK ((last_speaker_borrower_id IS NOT NULL) = (last_speaker_role = ANY (ARRAY['borrower'::text, 'referrer'::text])))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_conversation_key_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_conversation_key_check"
+      "kind": "c"
+      "definition": "CHECK (conversation_key ~ '^[0-9a-f]{32}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_conversation_key_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_conversation_key_not_null"
+      "kind": "n"
+      "definition": "NOT NULL conversation_key"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_generated_at_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_generated_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL generated_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 12
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_headline_en_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_headline_en_check"
+      "kind": "c"
+      "definition": "CHECK (char_length(headline_en) >= 1 AND char_length(headline_en) <= 160)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_headline_en_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_headline_en_not_null"
+      "kind": "n"
+      "definition": "NOT NULL headline_en"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_headline_th_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_headline_th_check"
+      "kind": "c"
+      "definition": "CHECK (char_length(headline_th) >= 1 AND char_length(headline_th) <= 160)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_headline_th_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_headline_th_not_null"
+      "kind": "n"
+      "definition": "NOT NULL headline_th"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_last_message_at_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_last_message_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL last_message_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 11
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_last_speaker_role_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_last_speaker_role_check"
+      "kind": "c"
+      "definition": "CHECK (last_speaker_role = ANY (ARRAY['borrower'::text, 'partner'::text, 'referrer'::text, 'business'::text,\
+        \ 'other'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_last_speaker_role_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_last_speaker_role_not_null"
+      "kind": "n"
+      "definition": "NOT NULL last_speaker_role"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_message_count_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_message_count_check"
+      "kind": "c"
+      "definition": "CHECK (message_count >= 1 AND message_count <= 100)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_message_count_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_message_count_not_null"
+      "kind": "n"
+      "definition": "NOT NULL message_count"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_model_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_model_check"
+      "kind": "c"
+      "definition": "CHECK (model ~ '^[a-z0-9][a-z0-9.-]{0,63}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 14
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_model_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_model_not_null"
+      "kind": "n"
+      "definition": "NOT NULL model"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 14
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_pkey":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (borrower_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_points_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_points_check"
+      "kind": "c"
+      "definition": "CHECK (jsonb_typeof(points) = 'array'::text AND jsonb_array_length(points) <= 4)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_points_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_points_not_null"
+      "kind": "n"
+      "definition": "NOT NULL points"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_request_id_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_request_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL request_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 15
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_shared_group_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_shared_group_not_null"
+      "kind": "n"
+      "definition": "NOT NULL shared_group"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_source_sha256_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_source_sha256_check"
+      "kind": "c"
+      "definition": "CHECK (source_sha256 ~ '^[0-9a-f]{64}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 13
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_source_sha256_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_source_sha256_not_null"
+      "kind": "n"
+      "definition": "NOT NULL source_sha256"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 13
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_updated_at_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_updated_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL updated_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 16
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_summaries_window_from_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_window_from_not_null"
+      "kind": "n"
+      "definition": "NOT NULL window_from"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 10
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "pwa_group_chat_summaries_conversation":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_conversation"
+      "definition": "CREATE INDEX pwa_group_chat_summaries_conversation ON public.pwa_group_chat_summaries USING btree (conversation_key)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_group_chat_summaries_pkey":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "pwa_group_chat_summaries_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_group_chat_summaries_pkey ON public.pwa_group_chat_summaries USING btree (borrower_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_41589":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "RI_ConstraintTrigger_c_41589"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_41589\" AFTER INSERT ON pwa_group_chat_summaries FROM\
+        \ \"Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_41590":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "RI_ConstraintTrigger_c_41590"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_41590\" AFTER UPDATE ON pwa_group_chat_summaries FROM\
+        \ \"Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzzz_pwa_row_change":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "zzzzzzz_pwa_row_change"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_change AFTER INSERT OR DELETE OR UPDATE ON pwa_group_chat_summaries FOR\
+        \ EACH ROW EXECUTE FUNCTION pwa_track_row_change('borrower_id')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzzz_pwa_row_truncate":
+      "schema": "public"
+      "relation": "pwa_group_chat_summaries"
+      "name": "zzzzzzz_pwa_row_truncate"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_truncate AFTER TRUNCATE ON pwa_group_chat_summaries FOR EACH STATEMENT\
+        \ EXECUTE FUNCTION pwa_track_row_change('borrower_id')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

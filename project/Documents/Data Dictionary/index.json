@@ -6557,6 +6557,185 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/public-pwa-group-chat-summaries-4c299563.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_group_chat_summaries",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "conversation_key",
+          "pointer": "/content/columns/conversation_key"
+        },
+        {
+          "subject": "shared_group",
+          "pointer": "/content/columns/shared_group"
+        },
+        {
+          "subject": "headline_th",
+          "pointer": "/content/columns/headline_th"
+        },
+        {
+          "subject": "headline_en",
+          "pointer": "/content/columns/headline_en"
+        },
+        {
+          "subject": "points",
+          "pointer": "/content/columns/points"
+        },
+        {
+          "subject": "last_speaker_role",
+          "pointer": "/content/columns/last_speaker_role"
+        },
+        {
+          "subject": "last_speaker_borrower_id",
+          "pointer": "/content/columns/last_speaker_borrower_id"
+        },
+        {
+          "subject": "message_count",
+          "pointer": "/content/columns/message_count"
+        },
+        {
+          "subject": "window_from",
+          "pointer": "/content/columns/window_from"
+        },
+        {
+          "subject": "last_message_at",
+          "pointer": "/content/columns/last_message_at"
+        },
+        {
+          "subject": "generated_at",
+          "pointer": "/content/columns/generated_at"
+        },
+        {
+          "subject": "source_sha256",
+          "pointer": "/content/columns/source_sha256"
+        },
+        {
+          "subject": "model",
+          "pointer": "/content/columns/model"
+        },
+        {
+          "subject": "request_id",
+          "pointer": "/content/columns/request_id"
+        },
+        {
+          "subject": "updated_at",
+          "pointer": "/content/columns/updated_at"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_borrower_id_fkey",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_borrower_id_fkey"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_borrower_id_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_borrower_id_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_check",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_check"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_conversation_key_check",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_conversation_key_check"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_conversation_key_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_conversation_key_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_generated_at_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_generated_at_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_headline_en_check",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_headline_en_check"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_headline_en_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_headline_en_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_headline_th_check",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_headline_th_check"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_headline_th_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_headline_th_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_last_message_at_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_last_message_at_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_last_speaker_role_check",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_last_speaker_role_check"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_last_speaker_role_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_last_speaker_role_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_message_count_check",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_message_count_check"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_message_count_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_message_count_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_model_check",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_model_check"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_model_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_model_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_pkey",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_pkey"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_points_check",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_points_check"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_points_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_points_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_request_id_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_request_id_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_shared_group_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_shared_group_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_source_sha256_check",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_source_sha256_check"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_source_sha256_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_source_sha256_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_updated_at_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_updated_at_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_summaries_window_from_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_summaries_window_from_not_null"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/public-pwa-job-runs-f74e2a04.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -12258,6 +12437,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_preference_version_v2(id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-put-group-chat-summary-v1-canonical-json-text-3fdb2770.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_put_group_chat_summary_v1(canonical_json text)",
       "scope": "production",
       "status": "documented",
       "lookup": []
