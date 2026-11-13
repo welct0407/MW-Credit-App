@@ -31,4 +31,4 @@ Revert the pull request. In PROD the combined R151 agent deploy is rolled back w
 None.
 
 ## Remaining work
-Implementation and verification; then the combined R151 agent deploy by the other session.
+Deployed to PROD in the combined R151 agent deploy; see the [R151 PROD promotion record](CHANGE_NOTES_R151_RECEIPT_SENDER_FALLBACK_2026-11-13.md#prod-promotion-record-forge-13-november-2026-utc). Tagged R151 and closed by the closure pull request.

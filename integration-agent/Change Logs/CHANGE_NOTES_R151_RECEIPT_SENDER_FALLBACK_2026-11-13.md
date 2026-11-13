@@ -43,8 +43,22 @@ As built.
 - The two second-cluster lab suites, `test_state_migration_postgres` and `test_audit_retention_postgres`: no state schema change.
 - A live Instagram or Claude call before PROD.
 
-## PROD promotion record (Forge, UTC)
-Placeholder: Forge fills this section (authority, package, agent deploy, the `poll-reprocess` run and read-back, counts only; no secret, chat text, borrower name, username or amount).
+## PROD promotion record (Forge, 13 November 2026 UTC)
+Authority: the owner's request of 13 November 2026 quoted in Purpose ("… push it all the way to prod and reprocess" the borrower's receipt) and "yes, both changes go into prod together" (PR #311 and PR #312), relayed by the orchestrator as the scoped PROD approval: the agent deploy, one `poll-reprocess` run and the technical records. No SQL, migration, Terraform, configuration or catalogue change; no extra cycle, notice or payment was forced. No secret value, token, chat text, borrower name, username, identifier or amount appears here. Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md).
+
+| Step | Result |
+| --- | --- |
+| Package | `e0a08916fe5224fc619f75b100af071f0c5cede9` (merge of PR #312, which includes the PR #311 merge `1081509f`; baseline R148 `b2ec95dc`). CI on the head `0888c337`: `Development checks` run 43450527813 and `Agent tests` run 43450528058 (test, lab); PR #311: `Development checks` run 43447427105 |
+| Preflight | Read-only, before the deploy and again before the reprocess: no payment for the borrower since 12 November 2026 (0 rows, read through the agent's business read path) |
+| Agent deploy | Host `vm-mw-credit-agent` over IAP SSH as `codex-cloud`. Checkout `b2ec95dc` to `e0a08916` by `update-from-github.sh` (15:18:37Z); dry run: 10 modules changed (`cli`, `conversation_poll`, `group_chat_summary`, `partner_review`, `receipt_hold`, `receipt_identity`, `receipt_rules`, `receipt_run`, `review_cycle`, `review_resend`), none added or removed, units unchanged, agent schema through V12 with nothing missing or drifted, live and repository catalogue revision 38 with the same `implemented` flags, lock file unchanged. `deploy-runtime.py --release R151`: freeze 15:19:13Z (rollback directory `runtime-20261113T151914156724Z`), install 15:19:14Z to 15:19:19Z (no files removed, no unit changes), activate 15:19:19Z to 15:19:23Z (probe `fc101a84-f0de-4411-a944-056080378d7e`), seven timers and the wake path resumed; temporary root-only operator connection file (`postgres` through the 5432 proxy, password from Secret Manager on stdin, never printed) shredded after activation. Chat relay restarted by hand 15:19:33Z; `check` exit 0; `/ready` and both `/healthz` (recognizer, relay) report R151 and `e0a08916`; configuration unchanged apart from `code_version` and `code_release`. Rollback: `deploy-runtime.py rollback --commit e0a08916fe5224fc619f75b100af071f0c5cede9` (restores `b2ec95dc`) |
+| Poll after deploy | Three runs 15:20:10Z to about 15:23Z: each 42 conversations, 38 eligible (36 before the deploy: the sender rule now scans two more groups), 0 image jobs, 0 failed conversations, no errors; receipt cycles with no failures or notification failures; 0 failed units |
+| `poll-reprocess` | As `mwagent`, 15:20:25Z to 15:20:32Z, one group, message-id suffix (strict match): `status` ok, 1 message, 1 reclassified, 1 job, 0 skipped as existing, 0 unmatched, 0 still ignored, exit 0. The poll row now reads `SENDER`; the wake started the receipt cycle at 15:20:32Z |
+| Read-back | One receipt job: status `REVIEW_REQUESTED`; resolved borrower and sender borrower both equal the expected borrower Row ID; slip amount and date read as posted. One Reviewer review, state `PENDING`, action `Loan Close` (the slip covers the open loan), no payment attached, expires 14 November 2026 15:20Z (22:20 Bangkok). One review-request notice, Instagram `ACCEPTED` (email copy `PENDING` as usual). No payment posted by the cycle (the borrower's payments since 12 November: still 0); no review-result notice. The owner or Reviewer decides the review by Instagram reply as usual |
+| Tag | `R151` on `e0a08916fe5224fc619f75b100af071f0c5cede9` (the package commit), created by the Release tag workflow, run [43452174847](https://github.com/welct0407/MW-Credit-App/actions/runs/43452174847) (success, 15:23:42Z to 15:24:09Z); confirmed with `git ls-remote --tags origin R151` on 13 November 2026 (the peeled tag points to `e0a08916`) |
+| Components | `render --write` after the tag: the integration agent is R151 (changed, catalogue revision 38); every other component keeps its earlier release; `render --check` passes |
+
+### Prune at closure
+Deleted (inbound links repointed to commit `e0a08916`): `Change Logs/CHANGE_NOTES_R148_GROUP_CHAT_SUMMARY_FIXES_2026-11-13.md` and `integration-agent/Change Logs/CHANGE_NOTES_R148_GROUP_CHAT_SUMMARY_RELEVANCE_2026-11-13.md`, outside the window of the Open release and the three newest Released releases (R151, R150, R149); their links in the release tracker and the environment inventory now point at the permalink. The R148 follow-up row was already removed from `Development_Changes.md` by the acceptance record. No evidence became uncited.
 
 ## Recovery
 Revert the pull request and redeploy the previous agent commit; no data, schema or configuration was changed. Jobs queued by `SENDER` or `UNIDENTIFIED` stay in the receipt tables and go through the normal review or reject path; a job that posted is reversed only by the existing payment-correction process, never by the agent.
@@ -53,7 +67,7 @@ Revert the pull request and redeploy the previous agent commit; no data, schema 
 None.
 
 ## Remaining work
-the PROD record and owner acceptance (that the recorded receipt is posted or held for review, and that a slip from a sender missing from the participants is no longer silent).
+PROD done (record above); tagged R151 and closed by the closure pull request. Open: the Reviewer's decision on the pending Loan Close review for the reprocessed receipt (expires 14 November 2026, 22:20 Bangkok), and owner acceptance (that a slip from a sender missing from the participants is no longer silent).
 
 Known limit (pre-existing, not fixed here): when a review request is too long to send, the reserved review row stays `PENDING` with nothing sent and the Reviewer gets only a hold alert.
 
