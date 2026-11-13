@@ -154,13 +154,13 @@ test('per-domain source sets keep every table a domain reads and leave out analy
  // The records dashboard reads olap_portfolio_summary: Statistics by row identity, Daily Analytics by content.
  for(const source of ['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Business Expenses','Cash Accounts','Cash Holders','Cash Ledger','Cash Pool Contributions','Settlements','Partners','r008_cash_account_cutover','pwa_payment_commands','Statistics#identity','Daily Analytics#content'])assert.ok(has('records',source),source);
  assert.equal(has('records','Statistics'),false);assert.equal(has('records','Daily Analytics'),false);
- assert.deepEqual([...offlineSourceTables.collection].sort(),['Borrowers','Cash Accounts','Charges','Loans','Payment Allocations','Payments','Repayments','pwa_group_chat_summaries']); // R146: the group chat summaries (V146)
+ assert.deepEqual([...offlineSourceTables.collection].sort(),['Borrowers','Cash Accounts','Charges','Loans','Payment Allocations','Payments','Repayments','pwa_group_chat_seen','pwa_group_chat_summaries']); // R146: the group chat summaries (V146); R149: the seen values (V147)
  for(const source of ['Cash Statement Context','Borrowers','Cash Ledger','r008_cash_account_cutover'])assert.ok(has('cash',source),source);
  for(const source of ['Daily Analytics','Statistics','Loan Assessment SQL Lab','Charges',...offlineSourceTables.cash])assert.ok(has('management',source),source);
  for(const domain of ['collection','cash'])for(const source of ['Daily Analytics','Statistics','pwa_payment_commands'])assert.equal(offlineSourceTables[domain].some(item=>item.startsWith(source)),false,domain+' '+source);
 });
 test('fingerprint SQL keys each table by its primary key, aggregates without a sort and runs once for all domains',async()=>{
- const sql=[];const client={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[{name:'pwa_group_chat_summaries'}]};sql.push(query);return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
+ const sql=[];const client={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[{name:'pwa_group_chat_summaries'},{name:'pwa_group_chat_seen'}]};sql.push(query);return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
  const versions=await readOfflineSourceVersions(client,actor,stamp.businessDate);
  assert.equal(sql.length,1);const query=sql[0];
  assert.doesNotMatch(query,/ORDER BY|string_agg|to_jsonb\(s\)::text\|\|/);assert.match(query,/hashtextextended\(s\."Row ID"::text\|\|':'\|\|s\.xmin::text,0\)/);
@@ -229,18 +229,22 @@ test('a targeted delta stops at its limits while it is built',async()=>{
  await assert.rejects(readRecordsTargeted(client,actor,stamp,{borrowers:['B'],payments:[],expenses:[],dashboard:true}),/targeted_limit/);assert.equal(queries,1);
 });
 
-// R146: pwa_group_chat_summaries (V146) is an optional source: a database that does not have it yet (the suites pinned to
+// R146: pwa_group_chat_summaries (V146) and, R149, pwa_group_chat_seen (V147) are optional sources: a database that does not have it yet (the suites pinned to
 // an older migration head, an image meeting an older database) is fingerprinted without it instead of failing 42P01.
 test('an absent or unreadable optional source is left out of the fingerprint; the version changes once when it appears',async()=>{
  const run=async present=>{const guards=[],statements=[];const client={query:async(query,params)=>{
-   if(query.includes('has_table_privilege(to_regclass')){guards.push(params);return {rows:present?[{name:'pwa_group_chat_summaries'}]:[]}}
+   if(query.includes('has_table_privilege(to_regclass')){guards.push(params);return {rows:present.map(name=>({name}))}}
    statements.push(query);return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
   return {versions:await readOfflineSourceVersions(client,actor,stamp.businessDate),collection:await readOfflineSourceVersion(client,actor,'collection',stamp.businessDate),records:await readOfflineSourceVersion(client,actor,'records',stamp.businessDate),guards,statements}};
- const without=await run(false),withTable=await run(true);
- for(const statement of without.statements)assert.doesNotMatch(statement,/pwa_group_chat_summaries/,'the missing table is never read');
+ const without=await run([]),withTable=await run(['pwa_group_chat_summaries']),withBoth=await run(['pwa_group_chat_summaries','pwa_group_chat_seen']);
+ for(const statement of without.statements)assert.doesNotMatch(statement,/pwa_group_chat_/,'a missing table is never read');
+ for(const statement of withTable.statements)assert.doesNotMatch(statement,/pwa_group_chat_seen/,'a database at V146 is fingerprinted without the seen table');
+ assert.match(withBoth.statements[0],/s\.borrower_id::text\|\|':'\|\|s\.xmin::text[\s\S]*FROM public\."pwa_group_chat_seen" s/);
+ assert.notEqual(withTable.collection,withBoth.collection,'collection walks once when the seen table appears');
+ for(const domain of ['records','cash','management'])assert.equal(withTable.versions[domain],withBoth.versions[domain],domain+' does not depend on the seen table');
  assert.match(withTable.statements[0],/s\.borrower_id::text\|\|':'\|\|s\.xmin::text[\s\S]*FROM public\."pwa_group_chat_summaries" s/);
  // The guard names only the optional table, and only for a read that wants it (records does not read it at all).
- assert.deepEqual(without.guards,[[['pwa_group_chat_summaries']],[['pwa_group_chat_summaries']]]);assert.equal(without.statements.length,3);
+ assert.deepEqual(without.guards,[[['pwa_group_chat_summaries','pwa_group_chat_seen']],[['pwa_group_chat_summaries','pwa_group_chat_seen']]]);assert.equal(without.statements.length,3);
  assert.equal(without.versions.collection,without.collection);assert.equal(withTable.versions.collection,withTable.collection);
  assert.notEqual(without.collection,withTable.collection,'collection walks once when the table appears');
  for(const domain of ['records','cash','management'])assert.equal(without.versions[domain],withTable.versions[domain],domain+' does not depend on the table');

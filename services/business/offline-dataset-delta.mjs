@@ -21,7 +21,8 @@ export const offlineSourceTables=Object.freeze({
  // Analytics by content (without the refresh time): unchanged values give an unchanged version.
  records:Object.freeze([...collectionTables,'Cash Holders','Cash Ledger','Cash Pool Contributions','Settlements','Partners','Business Expenses','r008_cash_account_cutover','pwa_payment_commands','Statistics#identity','Daily Analytics#content']),
  // R146: the collection list mark and detail card read pwa_group_chat_summaries (V146); records does not.
- collection:Object.freeze([...collectionTables,'pwa_group_chat_summaries']),
+ // R149: its items also carry the reading user's chatSeenAt from pwa_group_chat_seen (V147).
+ collection:Object.freeze([...collectionTables,'pwa_group_chat_summaries','pwa_group_chat_seen']),
  cash:Object.freeze(cashTables),
  // Management shows the analytics itself, so it hashes them like every other table.
  management:Object.freeze([...new Set([...cashTables,'Charges','Loan Assessment SQL Lab','Daily Analytics','Statistics'])]),
@@ -31,7 +32,7 @@ export const offlineDeterministicPages=Object.freeze({records:32,collection:2,ca
 const domainNames=Object.keys(offlineSourceTables);
 const allSources=[...new Set(Object.values(offlineSourceTables).flat())];
 // Each table's primary key; every other listed table is keyed by "Row ID".
-const primaryKeys={pwa_group_chat_summaries:'borrower_id',pwa_payment_commands:'request_id',r008_cash_account_cutover:'"Ref Cash Account"','Cash Statement Context':'"Ref Partner"'};
+const primaryKeys={pwa_group_chat_summaries:'borrower_id',pwa_group_chat_seen:'borrower_id',pwa_payment_commands:'request_id',r008_cash_account_cutover:'"Ref Cash Account"','Cash Statement Context':'"Ref Partner"'};
 /** One aggregate per source, order-independent (no sort): row count plus the sum of a 64-bit
  * hash per row. (key, xmin) detects what to_jsonb(row)||xmin did: every INSERT, UPDATE or
  * DELETE creates or removes a tuple version with a fresh xmin, edit-then-revert included. */
@@ -47,7 +48,9 @@ const fingerprintQuery=sources=>{const key=sources.join('\n');if(!queries.has(ke
 // database before V146, which the PROD order does not allow but a rollback can) must keep syncing: an absent or
 // unreadable optional table is left out of the fingerprint, exactly as the collection read answers null for it, and
 // domainVersion already hashes only the relations it was given. The version changes once when the table appears.
-const optionalSources=Object.freeze(['pwa_group_chat_summaries']);
+// R149: pwa_group_chat_seen (V147) likewise; its fingerprint key is the borrower (one row version per user and borrower,
+// so (borrower, xmin) with the row count detects every write).
+const optionalSources=Object.freeze(['pwa_group_chat_summaries','pwa_group_chat_seen']);
 /** The requested sources this database has: every required one, and each optional one that exists and is readable. */
 async function availableSources(client,sources){
  const wanted=optionalSources.filter(table=>sources.includes(table));if(!wanted.length)return sources;

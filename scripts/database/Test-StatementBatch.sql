@@ -205,6 +205,8 @@ END $$;
 \ir Test-LoanCreateCashpool.sql
 -- V146 (R146): the group chat summary put under the DEV command login (store, unchanged, superseded, shared, prune, disabled, unknown borrower, invalid commands, cascade, change log), rolled back.
 \ir Test-GroupChatSummary.sql
+-- V147 (R149): the group chat seen mark under the DEV command login (first write, forward only, clamp, ignored, unknown borrower, actor refusals, per-user rows, cascades, change log), rolled back.
+\ir Test-GroupChatSeen.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).

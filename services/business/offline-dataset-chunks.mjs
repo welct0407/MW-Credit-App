@@ -141,7 +141,8 @@ async function groupChatByBorrower(c,_a,_stamp,state){
  return result([append('groupChatByBorrower',rows.slice(0,128).map(projectGroupChatRow).filter(Boolean))],rows.length>128?rows[127].borrower_id:null);
 }
 const collectionPhases=[
- page('items',(c,cursor)=>readCollection(c,{limit:100,after:decodeCollectionCursor(cursor,'collection')})),
+ // R149: the bundle is per actor, so each item carries that user's chatSeenAt (V147).
+ page('items',(c,cursor,a)=>readCollection(c,{limit:100,after:decodeCollectionCursor(cursor,'collection'),partnerId:a?.partnerId})),
  async(c,_a,stamp,state)=>{const rows=(await c.query(`${await chargeCte(c)} SELECT ${chargeColumns} FROM eligible WHERE ($3::text IS NULL OR id COLLATE "C">$3 COLLATE "C") ORDER BY id COLLATE "C" LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('charges',rows.slice(0,128).map(projectCharge))],rows.length>128?rows[127].id:null)},
  async(c,_a,_stamp,state)=>{const value=await readStandaloneUpcoming(c,{limit:100,cursor:text(state)}),{items,nextCursor,...metadata}=value;const {dateTotals,...context}=metadata;return result([...(state?[]:[replace('upcoming',{...metadata,items:[],nextCursor:null})]),append('upcoming',items,['items']),...items.map(row=>replace('upcomingDetailsByKey',{...context,borrowerId:row.borrowerId,borrowerLabel:row.label,dueDate:row.dueDate,totalCharge:row.totalCharge,items:[],nextCursor:null},[JSON.stringify([row.borrowerId,row.dueDate])]))],nextCursor)},
  upcomingDetail,borrowerUpcomingMetadata(),borrowerUpcomingEvents(),
@@ -373,15 +374,18 @@ function rowBudget(){
  const started=Date.now(),list=[];
  return {list,push(...items){list.push(...items);if(rowPatchValues(list)>4*MAX_CHUNK_VALUES||Date.now()-started>TARGETED_LIMITS.milliseconds)throw Error('targeted_limit')}};
 }
-const collectionRowTables=['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Cash Ledger','pwa_payment_commands','pwa_group_chat_summaries'];
+const collectionRowTables=['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Cash Ledger','pwa_payment_commands','pwa_group_chat_summaries','pwa_group_chat_seen'];
+// R146/R149: tables whose change-log key is the borrower itself (the summary row; a user's seen row, first key column).
+const borrowerKeyedChatTables=['pwa_group_chat_summaries','pwa_group_chat_seen'];
 /** Collection works per borrower, through the records lookups. A Cash Accounts change, an unmapped table or a
  * hidden changed borrower walks. loans: the changed loans (the client checks they did not leave a borrower). */
 export async function resolveCollectionScope(client,changes){
  if(changes.some(row=>!collectionRowTables.includes(row.table)))return null;
  // R146: a group chat summary row is keyed by its borrower (stored, replaced or removed); the records lookups do not
- // know the table, so its keys are mapped here and only the other changes go through them.
- const chat=sortIds(changes.filter(row=>row.table==='pwa_group_chat_summaries').map(row=>row.key));
- const scope=await resolveRecordsScope(client,changes.filter(row=>row.table!=='pwa_group_chat_summaries'));if(!scope)return null;
+ // know the table, so its keys are mapped here and only the other changes go through them. R149: a user's seen row
+ // (V147) is logged under its borrower too; its item is re-read with the reading user's own value.
+ const chat=sortIds(changes.filter(row=>borrowerKeyedChatTables.includes(row.table)).map(row=>row.key));
+ const scope=await resolveRecordsScope(client,changes.filter(row=>!borrowerKeyedChatTables.includes(row.table)));if(!scope)return null;
  const changed=sortIds([...changes.filter(row=>row.table==='Borrowers').map(row=>row.key),...chat]);
  if(changed.length&&(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=ANY($1::text[]) AND "Hidden Flag" IS TRUE LIMIT 1',[changed])).rowCount)return null;
  // A changed payment also touches the borrowers whose charges it is allocated to or repays (receipts list it

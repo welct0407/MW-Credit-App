@@ -5097,6 +5097,52 @@ END $_$;
 
 
 --
+-- Name: pwa_mark_group_chat_seen_v1(jsonb, text, timestamp with time zone); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_mark_group_chat_seen_v1(actor jsonb, p_borrower_id text, p_seen timestamp with time zone) RETURNS jsonb
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE matches integer; partner text; current_last timestamptz; target timestamptz; moved integer; kept timestamptz;
+BEGIN
+ -- The actor: exactly {issuer, loginEmail, partnerId, subject}, and the login email maps to exactly that Partner.
+ IF actor IS NULL OR jsonb_typeof(actor) IS DISTINCT FROM 'object'
+  OR (SELECT array_agg(key ORDER BY key COLLATE "C") FROM jsonb_object_keys(actor) key) IS DISTINCT FROM ARRAY['issuer','loginEmail','partnerId','subject']::text[]
+  OR EXISTS(SELECT 1 FROM jsonb_each(actor) e WHERE jsonb_typeof(e.value) IS DISTINCT FROM 'string')
+  OR coalesce(length(actor->>'issuer'),0) NOT BETWEEN 1 AND 1024 OR coalesce(length(actor->>'subject'),0) NOT BETWEEN 1 AND 128
+  OR coalesce(length(actor->>'partnerId'),0) NOT BETWEEN 1 AND 256 OR coalesce(length(actor->>'loginEmail'),0) NOT BETWEEN 1 AND 320
+  OR actor->>'loginEmail'<>lower(btrim(actor->>'loginEmail')) THEN
+  RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ SELECT count(*),min("Row ID") INTO matches,partner FROM public."Partners" WHERE lower(btrim("Login Email"))=actor->>'loginEmail';
+ IF matches<>1 OR partner IS DISTINCT FROM actor->>'partnerId' THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ IF p_borrower_id IS NULL OR octet_length(p_borrower_id) NOT BETWEEN 1 AND 256 OR p_seen IS NULL OR NOT isfinite(p_seen) THEN
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public."Borrowers" b WHERE b."Row ID"=p_borrower_id) THEN
+  RAISE EXCEPTION 'unknown_borrower' USING ERRCODE='P0002'; END IF;
+ -- Nothing to have seen without a summary; never beyond the stored summary (a clock ahead cannot hide a later one).
+ SELECT s.last_message_at INTO current_last FROM public.pwa_group_chat_summaries s WHERE s.borrower_id=p_borrower_id;
+ IF NOT FOUND THEN RETURN jsonb_build_object('kind','ignored','seenAt',NULL); END IF;
+ target:=LEAST(p_seen,current_last);
+ -- Forward only: an equal or older value updates no row, so it writes no change-log row and no device refreshes.
+ INSERT INTO public.pwa_group_chat_seen AS t(borrower_id,partner_id,seen_last_message_at,updated_at) VALUES(p_borrower_id,partner,target,clock_timestamp())
+  ON CONFLICT (borrower_id,partner_id) DO UPDATE SET seen_last_message_at=EXCLUDED.seen_last_message_at,updated_at=EXCLUDED.updated_at
+  WHERE t.seen_last_message_at<EXCLUDED.seen_last_message_at;
+ GET DIAGNOSTICS moved=ROW_COUNT;
+ SELECT t.seen_last_message_at INTO kept FROM public.pwa_group_chat_seen t WHERE t.borrower_id=p_borrower_id AND t.partner_id=partner;
+ RETURN jsonb_build_object('kind',CASE WHEN moved>0 THEN 'stored' ELSE 'unchanged' END,
+  'seenAt',to_char(kept AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_mark_group_chat_seen_v1(actor jsonb, p_borrower_id text, p_seen timestamp with time zone); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_mark_group_chat_seen_v1(actor jsonb, p_borrower_id text, p_seen timestamp with time zone) IS 'R149: records that the actor (its login email must map to exactly its Partner, 42501 otherwise) has seen the borrower''s group chat summary up to p_seen. Forward only and clamped to the summary''s last_message_at; an equal or older value touches no row. Returns {kind: stored | unchanged | ignored (no summary), seenAt}. Raises unknown_borrower (P0002) or invalid_request (22023). Invoker rights.';
+
+
+--
 -- Name: pwa_native_inverse_permitted_v2(text); Type: FUNCTION
 --
 
