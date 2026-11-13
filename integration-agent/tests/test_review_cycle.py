@@ -486,6 +486,37 @@ class CycleTests(unittest.TestCase):
         self.config['receipt_auto_payment_enabled']=False
         self.run_cycle();self.submit.assert_not_called()
 
+    def unidentified_job(self):
+        self.validated_job()
+        result={'receipt':self.proposal['receipt'],'borrower':self.b,'unidentified_sender':True,'group_borrower_ids':['b'],
+                'payer_borrower_id':'b','payer_step':'name'}
+        self.j.db.execute('UPDATE receipt_jobs SET result=?',(json.dumps(result),));self.j.db.commit()
+
+    def test_r151_unidentified_sender_is_never_an_automatic_payment(self):
+        from mw_integration_agent.review_cycle import automatic_payment
+        self.unidentified_job();self.enable_auto()
+        job=self.j.db.execute("SELECT * FROM receipt_jobs WHERE id='new-job'").fetchone()
+        self.assertFalse(automatic_payment(self.config,job,self.proposal))
+        self.j.db.execute("UPDATE receipt_jobs SET result=?",(json.dumps({'unidentified_sender':False}),))
+        self.assertTrue(automatic_payment(self.config,self.j.db.execute("SELECT * FROM receipt_jobs WHERE id='new-job'").fetchone(),self.proposal))
+        self.unidentified_job()
+        self.run_cycle();self.run_cycle()
+        self.submit.assert_not_called()
+        row=self.j.db.execute("SELECT id,state FROM partner_reviews WHERE job_id='new-job'").fetchone()
+        self.assertEqual(row['state'],'PENDING')
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:body=notices.db.execute('SELECT body FROM partner_notices WHERE event_key=?',('review:'+row['id'],)).fetchone()[0]
+        finally:notices.close()
+        self.assertIn('Borrower: Test\nSender is not a known borrower; borrower matched by the payer name on the slip.\nAmount:',body)
+
+    def test_r151_reserved_automatic_review_of_an_unidentified_sender_never_posts(self):
+        from mw_integration_agent.review_cycle import AUTO_POLICY
+        self.unidentified_job();self.enable_auto()
+        key=self.store.reserve('new-job',self.proposal)
+        self.j.db.execute("UPDATE partner_reviews SET state='APPROVED',deciding_partner='p',detail=? WHERE id=?",(AUTO_POLICY,key));self.j.db.commit()
+        self.run_cycle();self.submit.assert_not_called()
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews WHERE id=?',(key,)).fetchone()[0],'APPROVED')
+
     def test_auto_cutoff_keeps_earlier_validated_receipt_in_review(self):
         self.validated_job();self.enable_auto();self.config['receipt_auto_payment_cutoff']='2099-01-01T00:00:00+00:00'
         self.run_cycle();self.submit.assert_not_called()
@@ -784,6 +815,40 @@ class CycleTests(unittest.TestCase):
         first=self.j.db.execute("SELECT status,attempts,retry_after FROM receipt_jobs WHERE id='first'").fetchone()
         self.assertEqual((first['status'],first['attempts']),('PENDING',0))
         self.assertGreater(first['retry_after'],0)
+
+
+class SenderNoteTests(unittest.TestCase):
+    """R151 (Echo UX-R151-3): every approval request of an unidentified sender says the payer name chose the borrower."""
+    NOTE=('Sender is not a known borrower; borrower matched by the payer name on the slip.','ผู้ส่งไม่ใช่ผู้กู้ที่รู้จัก ระบบระบุผู้กู้จากชื่อผู้โอนในสลิป')
+
+    def test_standard_options_and_close_requests_carry_the_note_only_when_set(self):
+        from mw_integration_agent.partner_review import request_text
+        from test_partner_review_options import PROPOSAL
+        from test_review_close import BORROWER,RECEIPT,close
+        standard={'action':'Lump Sum','borrower':BORROWER,'receipt':RECEIPT,'facts':{},'loan_id':None}
+        closing={'action':'Loan Close','borrower':BORROWER,'receipt':RECEIPT,'close':close(),'loan_keys':['K-1'],'loan_id':'L1','facts':{}}
+        for language,note,head in (('English',self.NOTE[0],'Borrower: Cha\n'),('ไทย',self.NOTE[1],'ผู้กู้: ชา\n')):
+            for name,proposal in (('standard',standard),('close',closing),('options',PROPOSAL)):
+                with self.subTest(language=language,request=name):
+                    plain=request_text(proposal,language)[1]
+                    self.assertNotIn(note,plain)
+                    for unclear in ((False,True) if name=='options' else (False,)):
+                        body=request_text(proposal,language,unclear=unclear,unidentified=True)[1]
+                        self.assertEqual(body.count(note),1);self.assertLessEqual(len(body),1000)
+                        if name!='options':self.assertIn(head+note+'\n',body)
+                        else:self.assertIn(note+'\n'+('Transferred' if language=='English' else 'เวลาโอน'),body)
+        self.assertTrue(request_text(closing,'English',unidentified=True)[0].startswith('Loan close'))
+
+    def test_the_review_command_resend_and_the_unclear_prompt_read_the_job(self):
+        from mw_integration_agent.partner_review import unidentified_review
+        with tempfile.TemporaryDirectory() as temp:
+            j=ReceiptJournal(Path(temp)/'receipt-processing.db')
+            try:
+                j.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,created_at,result) VALUES ('u','m','1','',0,?)",(json.dumps({'unidentified_sender':True}),))
+                j.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,created_at,result) VALUES ('k','n','1','',0,?)",(json.dumps({'borrower':{}}),))
+                j.db.commit()
+                self.assertEqual([unidentified_review(j.db,x) for x in ('u','k','missing')],[True,False,False])
+            finally:j.close()
 
 
 class SettleReviewStatementTests(unittest.TestCase):

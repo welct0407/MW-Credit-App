@@ -54,6 +54,24 @@ class JobWrappingTests(unittest.TestCase):
         from mw_integration_agent import outbox
         self.assertFalse(hasattr(outbox, 'reconcile'))
 
+    def test_poll_reprocess_runs_in_a_job_prints_counts_and_marks_an_effect(self):
+        # R151: counts only; the JOB record carries the effect only when something was promoted.
+        self.assertNotIn('poll-reprocess', cli.UNWRAPPED_COMMANDS)
+        args = cli.build_parser().parse_args(['poll-reprocess', '--config', 'c', '--catalogue', 'k', '--conversation-id', 'group',
+                                              '--message-id-suffix', 'a-1111'])
+        counts = {'status': 'ok', 'messages': 1, 'reclassified': 1, 'jobs': 1, 'skipped_existing': 0, 'unmatched': 0, 'still_ignored': 0}
+        for result, effect, code in ((counts, {'reclassified': 1, 'jobs': 1}, 0), (dict(counts, reclassified=0, jobs=0), None, 0),
+                                     ({'status': 'already_running'}, None, 2), (dict(counts, status='message_ambiguous', reclassified=0, jobs=0), None, 2)):
+            with self.subTest(status=result['status'], jobs=result.get('jobs')):
+                outcome = {'exit_code': None};out = io.StringIO()
+                with patch('mw_integration_agent.conversation_poll.reprocess', return_value=result) as run, contextlib.redirect_stdout(out):
+                    self.assertEqual(cli.execute(args, outcome), code)
+                run.assert_called_once_with('c', 'k', 'group', 'a-1111')
+                self.assertEqual(outcome.get('effect'), effect)
+                self.assertEqual(json.loads(out.getvalue()), result)
+        args = cli.build_parser().parse_args(['poll-reprocess', '--config', 'c', '--catalogue', 'k', '--conversation-id', 'group'])
+        self.assertIsNone(args.message_id_suffix)
+
     def test_retired_conversation_commands_are_gone(self):
         for command in ('partner-conversation-cycle', 'native-api-probe'):
             with self.subTest(command=command), contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):

@@ -277,8 +277,12 @@ SENDER_NOTE=('Sender is not a known borrower; borrower matched by the payer name
 
 def unidentified_review(db,job_id):
     """True when the review's receipt job carries the R151 unidentified-sender provenance."""
+    import sqlite3
     from .receipt_identity import provenance
-    row=db.execute('SELECT result FROM receipt_jobs WHERE id=?',(job_id,)).fetchone()
+    try:row=db.execute('SELECT result FROM receipt_jobs WHERE id=?',(job_id,)).fetchone()
+    except sqlite3.OperationalError as exc:
+        if 'no such table' in str(exc):return False  # copy only: a journal without jobs has no such receipt
+        raise
     return bool(row) and provenance(row).get('unidentified_sender') is True
 
 
