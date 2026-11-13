@@ -40,6 +40,11 @@ Authority: the owner's answers of 13 November 2026, "yes, fix it in R152", "incl
 | Re-run | Summary timer stopped and its service inactive (last run idle); `group-chat-summary --mark-all` as `mwagent` 16:16:20Z to 16:16:24Z (exit 0): 42 conversations, 6 small, 0 ambiguous, 0 incomplete, 36 groups, 36 marked, 0 already due; timer started again 16:16:24Z |
 | Cycles | Eight runs to about 16:38Z, then idle: 39 due (36 groups plus 3 retries), 35 summarised, 4 failed (`MODEL_OUTPUT_INVALID_HEADLINE_LENGTH`, one group each), 0 deferred; outcomes 8 stored, 27 cleared, 0 unchanged, 0 superseded (so no second `--mark-all`). Three of the four groups completed on the normal backoff; one group was still waiting at the read-back (2 attempts, next attempt 16:49:07Z, retried by the timer without manual action) |
 | Read-back | `runtime.group_chat_summary_state`: 36 rows, 35 with a non-empty `member_borrower_ids`, 1 still due later with `last_error` (the group above). The incident group: its state row lists 2 member borrowers including the expected borrower, summarised 16:33:55Z with no error; in `pwa_group_chat_summaries` it has one row, for that borrower (last speaker role `partner`), and the referrer has no row at all (before: the referrer's card showed this group). `pwa_group_chat_summaries`: 9 rows, 9 conversations, 0 shared. Journal result lines carry counts, conversation-key hashes and codes only: no chat text |
+| Tag | `R152` on `cd4c721b95d58bd4f3e06c90be667fc1a212f062` (the package commit), created by the Release tag workflow, run [43465222626](https://github.com/welct0407/MW-Credit-App/actions/runs/43465222626) (success, 16:41:20Z to 16:41:45Z); confirmed with `git ls-remote --tags origin R152` on 13 November 2026 (the peeled tag points to `cd4c721b`) |
+| Components | `render --write` after the tag: the integration agent is R152 (changed; catalogue revision 38; the agent schema V13 sits under the same component); every other component keeps its earlier release; `render --check` passes |
+
+### Prune at closure
+Deleted (inbound links repointed to commit `cd4c721b`): `Change Logs/CHANGE_NOTES_R149_GROUP_CHAT_SEEN_SYNC_2026-11-13.md`, outside the window of the Open release and the three newest Released releases (R152, R151, R150); its links in the release tracker and the environment inventory now point at the permalink. No section of `Development_Changes.md` belonged to an older released release, and no evidence became uncited.
 
 ## Recovery
 Revert the pull request and redeploy the previous agent commit; no data, schema or configuration changed.
@@ -48,4 +53,4 @@ Revert the pull request and redeploy the previous agent commit; no data, schema 
 None.
 
 ## Remaining work
-the PROD record; owner acceptance is not separately needed (no visible behaviour changes unless a request is too long).
+PROD done (record above); tagged R152 and closed by the closure pull request. Open for the owner: acceptance; no visible behaviour changes unless a request is too long.

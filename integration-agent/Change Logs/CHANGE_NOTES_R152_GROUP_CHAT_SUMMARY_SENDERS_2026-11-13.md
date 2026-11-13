@@ -42,6 +42,6 @@ Revert the pull request; in PROD the agent deploy rollback (`deploy-runtime.py r
 None.
 
 ## Remaining work
-Implementation and verification; then the other session's R152 agent deploy and `--mark-all` re-run.
+PROD done (see the [PROD record](CHANGE_NOTES_R152_REVIEW_ROW_ORDER_2026-11-13.md#prod-promotion-record-forge-13-november-2026-utc)); tagged R152 and closed by the closure pull request. Open: owner acceptance, and the `MODEL_OUTPUT_INVALID_HEADLINE_LENGTH` observation (4 failed runs, 3 succeeded on retry, 1 retrying on the normal backoff).
 
 Operational finding for the release session (Chase): `member_borrower_ids` starts as `[]` on every existing row, so the incident group is repaired only if the departed borrower's last message is still inside the 3-day window at the post-deploy re-run. Afterwards read back that group's state row (conversation key and borrower ids only) and confirm it contains her id, or confirm the referrer has no summary row for that conversation key. If she is already silent, a one-row seed needs a scoped owner OK.
