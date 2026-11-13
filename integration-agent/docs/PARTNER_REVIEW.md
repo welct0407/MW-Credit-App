@@ -71,7 +71,7 @@ A receipt job from poll outcome `UNIDENTIFIED` (an image from a sender the poll 
 
 ## Review request built before the review row (R152)
 
-Owner decision of 13 November 2026 ("yes, fix it in R152"). The agent builds every request text (standard, options, Corrected request, loan-close) before it reserves the review row and the notices. If a text cannot be built, for example because it would exceed one message (1000 characters), the job stays a plain hold with no `partner_reviews` row, so the hold appears in the resend list as a hold and the Reviewer gets the hold alert. Before R152 such a row stayed `PENDING` with nothing sent and the resend list showed it as a request (never observed in PROD). See the [change note](../Change%20Logs/CHANGE_NOTES_R152_REVIEW_ROW_ORDER_2026-11-13.md).
+Owner decision of 13 November 2026 ("yes, fix it in R152"). The agent builds every request text (standard, options, Corrected request, loan-close) before it reserves the review row and the notices. If a text cannot be built, for example because it would exceed one message (1000 characters), the job stays a plain hold (`REVIEW`) with no `partner_reviews` row and no request notice; a too-long request holds as `REVIEW_REQUEST_TOO_LONG` (alert "approval request was too long") and any other build failure as `RECEIPT_PROPOSAL_UNAVAILABLE`, so the hold appears in the resend list as a hold and the Reviewer gets the hold alert. Before R152 such a row stayed `PENDING` with nothing sent and the resend list showed it as a request (never observed in PROD). See the [change note](../Change%20Logs/CHANGE_NOTES_R152_REVIEW_ROW_ORDER_2026-11-13.md).
 
 ## Held receipts rechecked after a master change — revision 35 (R119, implemented, off)
 
