@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "https://github.com/welct0407/MW-Credit-App/blob/ede185fa/project/outputs/dictionary-r120-20261104/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r153-20261113/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "a36046cfdac29ff84ab43e97a886936571674503"
+    "commit": "025e8a510534acf556a140898bb69d12ad9b4fe5"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-borrower-version-v2-id-text-6dffa572.yaml"
     "identity":
       "system": "postgresql"
@@ -28,12 +28,13 @@
     "result": "text"
     "definition": "CREATE OR REPLACE FUNCTION public.pwa_borrower_version_v2(id text)\n RETURNS text\n LANGUAGE sql\n STABLE\n\
       \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\n -- R120: the referral rebate terms are part of the version.\n\
-      \ SELECT encode(sha256(convert_to(jsonb_build_object('id',b.\"Row ID\",'createdDate',b.\"Creation Date\",'aiCollectionEnabled',b.\"\
-      AI Collection Enabled\",'name',b.\"Borrower Name\",'description',b.\"Description\",'communicationName',b.\"Communication\
-      \ Name\",'instagramUsername',b.\"Instagram Username\",'city',b.\"City\",'workingLocation',b.\"Working Location\",'address',b.\"\
-      Address\",'hidden',b.\"Hidden Flag\",'referrerId',b.\"Ref Referrer\",'preferredReceivingAccountId',b.\"Ref Preferred\
-      \ Receiving Cash Account\",'note',b.\"Borrower Note\",'referralRebateRate',b.\"Referral Rebate Rate\",'referralRebateCap',b.\"\
-      Referral Rebate Cap\" )::text,'UTF8')),'hex') FROM public.\"Borrowers\" b WHERE b.\"Row ID\"=$1;\r\n$function$\n"
+      \ -- R153: the Instagram group chat link is part of the version.\n SELECT encode(sha256(convert_to(jsonb_build_object('id',b.\"\
+      Row ID\",'createdDate',b.\"Creation Date\",'aiCollectionEnabled',b.\"AI Collection Enabled\",'name',b.\"Borrower Name\"\
+      ,'description',b.\"Description\",'communicationName',b.\"Communication Name\",'instagramUsername',b.\"Instagram Username\"\
+      ,'city',b.\"City\",'workingLocation',b.\"Working Location\",'address',b.\"Address\",'hidden',b.\"Hidden Flag\",'referrerId',b.\"\
+      Ref Referrer\",'preferredReceivingAccountId',b.\"Ref Preferred Receiving Cash Account\",'note',b.\"Borrower Note\",'referralRebateRate',b.\"\
+      Referral Rebate Rate\",'referralRebateCap',b.\"Referral Rebate Cap\",'igGroupUrl',b.\"IG Group URL\" )::text,'UTF8')),'hex')\
+      \ FROM public.\"Borrowers\" b WHERE b.\"Row ID\"=$1;\r\n$function$\n"
     "owner": "postgres"
     "language": "sql"
     "volatility": "s"

@@ -16,6 +16,7 @@ Owner decision of 13 November 2026, "follow your recommendation to work on the p
 | Byte's `python3 -m unittest -v tests.test_group_chat_summary` (agent unittest) | 69 OK |
 | Byte's `ruff` | Clean |
 | `npm run check:docs` | Clean (see the root R153 note) |
+| PROD verification | Pass, see the PROD deploy section |
 
 ## Not run
 Nothing claimed yet. After the agent deploy and one `--mark-all`, the journal's `HEADLINE_LENGTH` failure count is the evidence that the shorter text works.
@@ -23,8 +24,11 @@ Nothing claimed yet. After the agent deploy and one `--mark-all`, the journal's 
 ## Recovery
 Git baseline `cc22d763`; redeploy the R152 agent (prompt version 3). No state change to undo.
 
+## PROD deploy
+Deployed 13 November 2026 as part of the R153 promotion: `deploy-runtime.py --release R153` at `025e8a51` (freeze 18:53:41Z, activate 18:53:56Z), no agent migration and no `mw_agent` backup (as R151). `--mark-all` at 18:54:45Z marked 36 groups; 8 runs to 19:13:34Z: 36 summarised, 0 failed (no `MODEL_OUTPUT_INVALID_*`), 9 stored, 27 cleared. Headline length Thai average 69, maximum 90; English average 89, maximum 101, so the 4 R152 length failures did not recur. Rollback: `deploy-runtime.py rollback`. Full record: [R153 PROD promotion record](../../Change%20Logs/CHANGE_NOTES_R153_GROUP_CHAT_LINK_AND_PROMPT_2026-11-13.md#prod-promotion-record-forge-13-november-2026-utc).
+
 ## Open questions
 None.
 
 ## Remaining work
-Agent deploy and one `--mark-all` by Forge in the R153 promotion; PROD promotion record added to this note.
+Owner acceptance.

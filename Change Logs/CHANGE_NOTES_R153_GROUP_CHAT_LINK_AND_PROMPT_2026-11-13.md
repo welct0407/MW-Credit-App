@@ -25,7 +25,9 @@ As built (Byte).
 | Chase's independent re-run | 39 + 17 unit, agent 69, `Test-RebateOffset` SQL passed; no blocking findings |
 | Echo's review | Link styling must-fix applied; the app has no dark theme |
 | Byte's `npm test` after the CI fix | 1360 tests, 1359 pass, 1 skipped |
-| PR #317 run 43476457745 on `539c8c5a` | Failed in e2e (three specs, causes above); corrected head to be re-run |
+| PR #317 run 43476457745 on `539c8c5a` | Failed in e2e (three specs, causes above); fixed in `a6002eca` |
+| `Development checks` run 43482461136 on `a6002eca` | Green; `Database migrations` 43476412502 and `Agent tests` 43476457558 |
+| PROD verification | Pass, see the PROD promotion record |
 | Byte's `chat-schema-digest` test | 4/4 against a V148 rebuild |
 | `Test-RebateOffset.sql` via `Test-MigrationsCloud.py --sql` | Pass at 148 migrations |
 | `mw-db-ci -Group migrations` | Exit 0 (local C collation; CI covers en_US) |
@@ -34,7 +36,7 @@ As built (Byte).
 | `npm run typecheck`, `npm run lint`, `npm run check:docs` | Clean |
 
 ## Not run
-The owner checks on an iPhone after the deploy: whether the link hands off to the Instagram app, and the Thai bold on Thonburi. The broad PR `Development checks` run is not yet recorded. DEV and PROD smoke (invented URL on a DEV test borrower; owner sets one real URL in PROD) follow the promotion.
+The owner checks on an iPhone after the deploy: whether the link hands off to the Instagram app, and the Thai bold on Thonburi. DEV and PROD smoke (invented URL on a DEV test borrower; owner sets one real URL in PROD) follow the promotion.
 
 ## Recovery
 Git baseline `cc22d763` (R152 closure). V148 is a nullable column: the code is safe before it (key absent, link omitted); dropping the column needs owner authority and a later migration. PROD needs a restore-verified backup before V148 (Forge records it in the promotion record).
@@ -60,8 +62,34 @@ Rollback: settings generation 1794572198963944 (R149 image), Hosting `fe94daf3ba
 
 Leftover: the invented link stays on the synthetic borrower (cleanup: PATCH `igGroupUrl` null).
 
+## PROD promotion record (Forge, 13 November 2026 UTC)
+Authority: owner R153 authorization of 13 November 2026 ("you may do it as part of next release in this session itself"), which covers V148, its backup and the PROD promotion for this scope. Package `025e8a51` (PR #317), baseline R152 `cd4c721b`.
+
+| Step | Result |
+| --- | --- |
+| Freeze and CI | Freeze 18:42:26Z. `Development checks` run 43482461136 on `a6002eca` green; `Database migrations` run 43476412502; `Agent tests` run 43476457558 |
+| Target | Project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017`, database `loan_manager_prod` |
+| Baseline | Flyway 147; read `00058-c4b`, command `00063-ccp`, chat `00042-m9q` (R149); notify and jobs R144; settings generation `1794572792175197`; Hosting `e658d9d1cc67cb27` (R150) |
+| Backup | `prod-promotion-6f78a7746cf14203bcbf5d4b0a73ba33`, 18:43:02Z to 18:45:33Z; dump sha256 `5bb8737a8721ea90fe766066ea461404decd9324205081b08681b6eda103e8c7`; listing and restore passed; 41 tables |
+| Image | Cloud Build `bcfc2e3c-03c1-4e94-bd8c-b41b6143f7c8`, digest `sha256:90916cf600d392dde3a906bcd8cd58dd31f50c0f597b27690ff48d14e61a0489` |
+| Migration | Manifest `release-r153-v148-025e8a51-prod.json`; six-owner window including `mw_app_prod_journal_owner` 18:46:21Z to 18:49:40Z (restored); V148 installed 18:47:52Z (3.7 s, checksum -438707239); column and CHECK present, 0 borrowers set; both routines patched |
+| Services | Terraform 0 to add, 3 to change, 0 to destroy, image only, applied 18:48:35Z to 18:49:13Z (generation `1794595766514290`; read `00059-l4m`, command `00064-ml2`, chat `00043-64b`). Applied right after V148 and before the grant, to keep the old image on V148 short |
+| Reader grant | `SELECT ("IG Group URL")` to the PROD read login, 18:49:50Z to 18:49:53Z (after V148, as the grant script needs the column) |
+| Hosting | Version `5c44227a1f1b9901`, 18:51:13Z to 18:51:58Z |
+| Agent | `deploy-runtime.py --release R153` at `025e8a51` (freeze 18:53:41Z, activate 18:53:56Z); no agent migration, so no `mw_agent` backup (as R151) |
+| Mark-all | `group-chat-summary --mark-all` 18:54:45Z: 42 conversations, 36 groups marked. 8 runs to 19:13:34Z: 36 summarised, 0 failed (no `MODEL_OUTPUT_INVALID_*`), 0 deferred; 9 stored, 27 cleared, 0 superseded. 9 summary rows; headline length Thai average 69, maximum 90; English average 89, maximum 101 |
+| Smoke | `/health` R153 `025e8a51`; origins R153; `sw.js` no-store; unauthenticated 401; no ERROR logs after 18:46Z (checked 19:16Z); 0 borrowers with an IG Group URL |
+| DEV follow-up | DEV Hosting redeployed from `025e8a51`: version `268a9f395457ed20`, 18:41:27Z to 18:41:35Z. DEV cleanup 19:21:29Z: the invented link cleared (0 DEV borrowers set) |
+| Closure | Dictionary capture 19:19:14Z (3 objects reconciled; the Borrower Name mandatory note restored, citing `0fdf49a`); component versions rendered R153; drift 0 (2 unverified: Grafana and Metabase, R144) |
+| Tag | `R153` on `025e8a51` (Release tag run [43490939886](https://github.com/welct0407/MW-Credit-App/actions/runs/43490939886); tag object `d992d8a4…` peels to `025e8a51`) |
+| Pruned | `Change Logs/CHANGE_NOTES_R150_GROUP_CHAT_CARD_STYLE_2026-11-13.md` (outside the three most recent Released releases; links in the release tracker and inventory repointed to the permalink at `025e8a51`) |
+
+Rollback: services and Hosting together (settings generation `1794572792175197` and Hosting `e658d9d1cc67cb27`), `REVOKE` the grant, and the agent by `deploy-runtime.py rollback`; the database is forward-fix only (V148 may stay).
+
+Limitations: the owner verifies the iPhone "Open chat" hand-off to the Instagram app and the Thai bold. Real links are entered by the owner, one per borrower. Rows `--mark-all` did not regenerate keep their v3 point order until their group next changes.
+
 ## Open questions
 None. The owner decides after acceptance whether the iPhone Instagram app opens the stored link directly (untested; the owner tries one borrower first).
 
 ## Remaining work
-DEV then PROD promotion by Forge in this order: restore-verified backup, V148 by the guarded runner, then the reader column grant (it must follow V148; the grant script fails before the column exists), command and read services, Hosting, agent deploy, one `--mark-all`), the PROD promotion record, the dictionary, inventory and tag at closure, and owner acceptance.
+Owner acceptance, the owner's iPhone check, and entering real links. The grant order used (backup, V148, services, reader grant after V148 because the script fails before the column exists, Hosting, agent, one `--mark-all`) is the reusable order.
