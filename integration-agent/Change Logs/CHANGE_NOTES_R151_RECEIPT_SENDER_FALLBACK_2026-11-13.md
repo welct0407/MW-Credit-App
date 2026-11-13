@@ -34,7 +34,7 @@ As built.
 | Chase's lab suites (PostgreSQL 18 disposable cluster via `tests/lab/setup.sh`, the suites listed in `agent-tests.yml`) | 61 OK (`test_state_migration_postgres` and `test_audit_retention_postgres` excluded, see Not run) |
 | Chase's Postgres PROD-fixture scratch test | 3 OK: `poll-reprocess` creates one `SENDER` job and a second run creates 0; poll capture records `SENDER`, `UNIDENTIFIED` and `FORWARDED`; the reprocess runs under the lock and touches the wake file |
 | Chase's adversarial review | Pass after fixes: no spoofing hole; automatic payment is excluded at both `review_cycle` call sites. Finding 1 (medium): the sender note could push a worst-case options request over 1000 characters; fixed by Byte (the note is added only when the request still fits, with `reserve` for the Corrected-request prefix). Finding 2 (low): the `poll-reprocess` suffix also matched neighbours within 5 seconds and had no eligibility gate; fixed (strict message id match, `message_not_in_history`; the poll's eligibility gate, `not_eligible`, exit 2) |
-| Chase's delta re-check of the fixes | To come |
+| Chase's delta re-check of the fixes (head `dc3aa99`, fresh PostgreSQL 18 lab, torn down) | Pass. The PROD-fixture scratch test updated for the strict suffix: 3 of 3 OK (first run one `SENDER` job; second run 0 jobs, `message_not_found`); `tests.test_postgres_state` 43 OK; both findings fixed, no new issues |
 | `npm run check:docs` (Dewey) | |
 | CI on the pull request | |
 | PROD verification | See the PROD promotion record |
@@ -53,6 +53,8 @@ Revert the pull request and redeploy the previous agent commit; no data, schema 
 None.
 
 ## Remaining work
-Chase's delta re-check, the PROD record and owner acceptance (that the recorded receipt is posted or held for review, and that a slip from a sender missing from the participants is no longer silent).
+the PROD record and owner acceptance (that the recorded receipt is posted or held for review, and that a slip from a sender missing from the participants is no longer silent).
 
 Known limit (pre-existing, not fixed here): when a review request is too long to send, the reserved review row stays `PENDING` with nothing sent and the Reviewer gets only a hold alert.
+
+Caveat for the PROD run: when no participant is enabled, the `poll-reprocess` eligibility gate needs the sender's message on the first history page, otherwise it answers `not_eligible`. The PROD case's group has an enabled participant, so it is eligible.
