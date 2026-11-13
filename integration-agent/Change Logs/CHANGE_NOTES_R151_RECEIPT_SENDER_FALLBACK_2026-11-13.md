@@ -28,16 +28,20 @@ As built.
 | Command | Result |
 | --- | --- |
 | Byte's `ruff` 0.16.8 | Pass (on `ca844f2`, clean tree) |
-| Byte's focused unittest (`test_conversation_poll test_payer_resolution test_receipt_identity test_review_cycle test_cli`) | 178 OK |
-| Byte's full `python -m unittest discover -s tests` | 965 OK, 74 skipped (lab suites) |
+| Byte's focused unittest (`test_conversation_poll test_payer_resolution test_receipt_identity test_review_cycle test_cli`) | 178 OK on `ca844f2`; 181 OK after Chase's findings (head `dc3aa99`) |
+| Byte's full `python -m unittest discover -s tests` | 965 OK, 74 skipped (lab suites) on `ca844f2`; 968 OK, 74 skipped after the findings; `ruff` pass |
 | Echo's tests | |
-| Chase's review | To come |
+| Chase's lab suites (PostgreSQL 18 disposable cluster via `tests/lab/setup.sh`, the suites listed in `agent-tests.yml`) | 61 OK (`test_state_migration_postgres` and `test_audit_retention_postgres` excluded, see Not run) |
+| Chase's Postgres PROD-fixture scratch test | 3 OK: `poll-reprocess` creates one `SENDER` job and a second run creates 0; poll capture records `SENDER`, `UNIDENTIFIED` and `FORWARDED`; the reprocess runs under the lock and touches the wake file |
+| Chase's adversarial review | Pass after fixes: no spoofing hole; automatic payment is excluded at both `review_cycle` call sites. Finding 1 (medium): the sender note could push a worst-case options request over 1000 characters; fixed by Byte (the note is added only when the request still fits, with `reserve` for the Corrected-request prefix). Finding 2 (low): the `poll-reprocess` suffix also matched neighbours within 5 seconds and had no eligibility gate; fixed (strict message id match, `message_not_in_history`; the poll's eligibility gate, `not_eligible`, exit 2) |
+| Chase's delta re-check of the fixes | To come |
 | `npm run check:docs` (Dewey) | |
 | CI on the pull request | |
 | PROD verification | See the PROD promotion record |
 
 ## Not run
-- To be filled with the evidence (for example the agent lab PostgreSQL suites, if no SQL or state change; a live Instagram or Claude call before PROD).
+- The two second-cluster lab suites, `test_state_migration_postgres` and `test_audit_retention_postgres`: no state schema change.
+- A live Instagram or Claude call before PROD.
 
 ## PROD promotion record (Forge, UTC)
 Placeholder: Forge fills this section (authority, package, agent deploy, the `poll-reprocess` run and read-back, counts only; no secret, chat text, borrower name, username or amount).
@@ -49,4 +53,6 @@ Revert the pull request and redeploy the previous agent commit; no data, schema 
 None.
 
 ## Remaining work
-Byte's "As built" bullets, the Checks table, the PROD record and owner acceptance (that the recorded receipt is posted or held for review, and that a slip from a sender missing from the participants is no longer silent).
+Chase's delta re-check, the PROD record and owner acceptance (that the recorded receipt is posted or held for review, and that a slip from a sender missing from the participants is no longer silent).
+
+Known limit (pre-existing, not fixed here): when a review request is too long to send, the reserved review row stays `PENDING` with nothing sent and the Reviewer gets only a hold alert.
