@@ -1,7 +1,7 @@
 # Change notes — Review request built before the review row, agent (R152), 13 November 2026
 
 ## Purpose
-Owner decision of 13 November 2026, "yes, fix it in R152", for the known limit recorded in the [R151 receipt note](CHANGE_NOTES_R151_RECEIPT_SENDER_FALLBACK_2026-11-13.md): when an approval request text is too long to send, the reserved `partner_reviews` row stays `PENDING` with nothing sent, the resend list shows it as a request and hides the hold, and the Reviewer gets only a hold alert. Fix: build every request text before the review row and the notices are reserved, so a failed build leaves a plain hold and no review row. PROD fact (Forge, 13 November 2026): 0 rows were ever affected and there are 0 `REVIEW_REQUEST_TOO_LONG` jobs. Nothing is deployed.
+Owner decision of 13 November 2026, "yes, fix it in R152", for the known limit recorded in the [R151 receipt note](https://github.com/welct0407/MW-Credit-App/blob/ff4de0d5/integration-agent/Change%20Logs/CHANGE_NOTES_R151_RECEIPT_SENDER_FALLBACK_2026-11-13.md): when an approval request text is too long to send, the reserved `partner_reviews` row stays `PENDING` with nothing sent, the resend list shows it as a request and hides the hold, and the Reviewer gets only a hold alert. Fix: build every request text before the review row and the notices are reserved, so a failed build leaves a plain hold and no review row. PROD fact (Forge, 13 November 2026): 0 rows were ever affected and there are 0 `REVIEW_REQUEST_TOO_LONG` jobs. Nothing is deployed.
 
 ## Changes
 As built.
