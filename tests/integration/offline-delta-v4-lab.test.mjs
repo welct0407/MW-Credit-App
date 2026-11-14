@@ -61,6 +61,17 @@ test('protocol v4 sends key-only deltas for a payment and for a replica-mode wri
   assert.equal(replica.schemaVersion,4);assert.equal(replica.delta,true);assert.ok(replica.patches.some(patch=>patch.key==='borrowers'));
   state={sourceVersion:replica.sourceVersion,changes:replica.changes};
 
+  // R154 hotfix (PROD: a borrower record cached before V149 kept its old shape). A bundle whose version was read under
+  // an earlier dataset shape (here the same version without the current shape stamp) and a row changed since its cursor:
+  // the server walks the domain instead of a records delta, so every unchanged row is read again in the current shape.
+  // The current-shape version still gets the delta.
+  await client.query(`UPDATE "Borrowers" SET "Description"='shape' WHERE "Row ID"=$1`,[borrower]);
+  const earlier=state.sourceVersion.slice(0,56)+'00000000';
+  const reshaped=await read(client,{cursor:null,need:[],sourceVersion:earlier,acceptChanged:true,since:state.changes});
+  assert.equal(reshaped.schemaVersion,3,'an earlier-shape bundle walks');assert.notEqual(reshaped.delta,true);assert.notEqual(reshaped.unchanged,true);assert.ok(reshaped.patches.length>0,'a walk starts');
+  const same=await read(client,{cursor:null,need:[],sourceVersion:state.sourceVersion,acceptChanged:true,since:state.changes});
+  assert.equal(same.schemaVersion,4);assert.equal(same.delta,true);assert.match(same.sourceVersion,/5a9e[0-9a-f]{4}$/,'versions carry the shape stamp');
+
   // TRUNCATE writes one marker row ('*'): every domain reading the table walks.
   await client.query(`DELETE FROM "Daily Analytics" WHERE "Snapshot Date"=(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-1`);
   await client.query(`INSERT INTO "Daily Analytics"("Row ID","Snapshot Date","Generated At") VALUES ($1,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-1,now())`,['V4-DA-'+id]);

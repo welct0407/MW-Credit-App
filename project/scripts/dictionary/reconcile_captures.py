@@ -7,6 +7,11 @@ R103 targeted run: `plan <private> <output> --postgres-only --only kind:name [--
 production-complete.json (and development-complete.json when present; without it no development delta is proposed),
 skips the retired AppSheet captures and the catalog, and proposes exactly the named PostgreSQL objects; a name that
 the capture lacks refuses. `--only` also takes a comma-separated list; commas inside a routine's argument list stay.
+
+R155: a PostgreSQL reconcile replaces catalog-observed facts only. Authored keys on an existing record (top-level keys
+such as `business_rules`, `purpose`, `release`, and entry keys such as a column's `business_rule`) are carried over by
+`preserve_authored`; the plan lists them as `preserved_authored`, and authored keys on an object that the capture no
+longer has as `orphaned_authored` (dropped with the object; review them).
 """
 import argparse
 import collections
@@ -107,6 +112,42 @@ def postgres_objects(capture):
     result[('settings','Database metadata')]={'sections':remaining}
     return result
 
+# Catalog-observed facts replaced by a PostgreSQL reconcile; every other key on an existing record (business
+# rules, owner notes, release facts, development comparisons) is authored by hand and is carried over.
+CATALOG_TOP={'relation':{'definition','columns','constraints','indexes','triggers','policies','dependencies'},
+  'routine':{'definition'},'schema':{'definition'},'sequence':{'definition'},'type':{'definition'},'settings':{'sections'}}
+CATALOG_ENTRY={
+  'columns':{'acl','collation','comment','compression','data_type','default_expression','dimensions','generated','identity','name','not_null','ordinal','relation','schema','storage','type_name','type_schema'},
+  'constraints':{'column_numbers','comment','deferrable','definition','delete_action','initially_deferred','kind','match_type','name','referenced_column_numbers','referenced_relation','relation','schema','update_action','validated'},
+  'indexes':{'access_method','comment','definition','expressions','key_attribute_count','name','options','predicate','primary','ready','relation','replica_identity','schema','total_attribute_count','unique','valid'},
+  'triggers':{'comment','deferrable','definition','enabled','initially_deferred','internal','name','relation','routine','schema'},
+  'policies':set()}
+
+def preserve_authored(old,new,kind):
+    """Return (content, kept, orphaned): `new` (the catalog capture) plus the authored keys of `old`.
+
+    Authored keys are top-level keys outside the catalog sections and, inside columns, constraints, indexes,
+    triggers and policies, entry keys outside the catalog key set. Catalog facts always come from the capture,
+    so a changed column is replaced while its `business_rule` stays; an authored key on an object the capture
+    no longer has is reported as orphaned and dropped with the object."""
+    if not isinstance(old,dict) or not isinstance(new,dict):return new,[],[]
+    result=copy.deepcopy(new);kept=[];orphaned=[]
+    for key,value in old.items():
+        if key not in CATALOG_TOP.get(kind,{'definition'}) and key not in result:
+            result[key]=copy.deepcopy(value);kept.append('/'+key)
+    for section,catalog in CATALOG_ENTRY.items():
+        old_section=old.get(section)
+        if not isinstance(old_section,dict) or not isinstance(result.get(section),dict):continue
+        for name,entry in old_section.items():
+            if not isinstance(entry,dict):continue
+            target=result[section].get(name)
+            extra={k:v for k,v in entry.items() if k not in catalog and not (isinstance(target,dict) and k in target)}
+            for k,v in extra.items():
+                pointer='/'+section+'/'+name.replace('~','~0').replace('/','~1')+'/'+k
+                if isinstance(target,dict):target[k]=copy.deepcopy(v);kept.append(pointer)
+                else:orphaned.append(pointer)
+    return result,kept,orphaned
+
 def parse_only(values):
     """['relation:public.a,routine:public.f(a integer, b text)'] -> {('relation','public.a'),('routine','public.f(a integer, b text)')}."""
     result=set()
@@ -135,7 +176,7 @@ def plan(private,output,only=None,postgres_only=False):
     for path in document_paths(ROOT):
         doc=load(path);identity=doc['identity']
         existing[(identity['system'],identity['component'],identity['kind'],identity['name'])]=(path,doc)
-    writes=[];coverage=[];summaries={};reconciliation=[];proposed_paths=set()
+    writes=[];coverage=[];summaries={};reconciliation=[];proposed_paths=set();preserved=[];orphaned_authored=[]
     def add(path,doc):
         path=Path(path);rel=path.relative_to(REPO).as_posix()
         if rel in proposed_paths:raise ValueError('Duplicate proposed path '+rel)
@@ -171,6 +212,10 @@ def plan(private,output,only=None,postgres_only=False):
             devtarget='development-'+component if not pg else 'postgresql-development'
             if current is not None:
                 content=current if pg else app_content(component,key,current)
+                if pg and known:
+                    content,kept,orphans=preserve_authored(known[1].get('content'),content,kind)
+                    preserved.extend({'object':kind+':'+name,'pointer':x} for x in kept)
+                    orphaned_authored.extend({'object':kind+':'+name,'pointer':x} for x in orphans)
                 doc=envelope(system,component,kind,name,content,prod_source)
                 doc['verification']['coverage']='catalog metadata' if pg else 'AppDoc exposed properties; editor-only gaps tracked in run coverage'
                 if known:
@@ -219,9 +264,9 @@ def plan(private,output,only=None,postgres_only=False):
             for kind in kinds:
                 if kind not in catalog['systems'][system]['kinds']:catalog['systems'][system]['kinds'].append(kind)
         add(ROOT/'catalog.yaml',catalog)
-    write_json(output/'plan.json',{'writes':writes,'sources':summaries,'coverage':coverage,'reconciled_previous_records':reconciliation})
+    write_json(output/'plan.json',{'writes':writes,'sources':summaries,'coverage':coverage,'reconciled_previous_records':reconciliation,'preserved_authored':preserved,'orphaned_authored':orphaned_authored})
     write_json(output/'coverage.json',{'status':'in progress','targets':summaries,'objects':coverage})
-    print(json.dumps({'planned_files':len(writes),'coverage_objects':len(coverage),'reconciled_previous_records':len(reconciliation),'source_counts':{k:v['counts'] for k,v in summaries.items()}},ensure_ascii=False))
+    print(json.dumps({'planned_files':len(writes),'coverage_objects':len(coverage),'reconciled_previous_records':len(reconciliation),'preserved_authored':len(preserved),'orphaned_authored':len(orphaned_authored),'source_counts':{k:v['counts'] for k,v in summaries.items()}},ensure_ascii=False))
 
 def apply(path):
     payload=json.loads(Path(path).read_text(encoding='utf8'));writes=payload['writes']

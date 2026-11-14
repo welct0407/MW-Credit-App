@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {canonicalDeltaValue,deltaValueHash,readDeltaRequest,encodeDeltaChunk,readDeltaCursor,wrapDeltaCursor} from '../../services/api/offline-dataset-delta.mjs';
 import {readTraversalCursor,encodeTraversalCursor} from '../../services/api/offline-dataset-cursor.mjs';
-import {readOfflineSourceVersion,readOfflineSourceVersions,readOfflineDatasetDelta,offlineSourceTables,offlineDeterministicPages,readChangedRows} from '../../services/business/offline-dataset-delta.mjs';
+import {readOfflineSourceVersion,readOfflineSourceVersions,readOfflineDatasetDelta,offlineSourceTables,offlineDeterministicPages,readChangedRows,shapedVersion,acceptsRowDelta,OFFLINE_DATASET_SHAPE} from '../../services/business/offline-dataset-delta.mjs';
 import {readOfflineDatasetChunk,MAX_CHUNK_VALUES} from '../../services/business/offline-dataset-chunks.mjs';
 import {createPaymentCommandHandler} from '../../services/payment-command/handler.mjs';
 
@@ -259,7 +259,7 @@ test('R153/R154 the dataset version is v11 and the offline group chat rows carry
  const {igGroupUrlAllowedSql,igGroupUrlSql,igGroupInviteAllowedSql,igGroupInviteSql}=await import('../../services/api/collection-read-contract.mjs');
  const fingerprints={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[]};return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
  const rows=[...offlineSourceTables.records].filter(relation=>!relation.startsWith('pwa_group_chat_')).sort((a,b)=>a<b?-1:a>b?1:0).map(relation=>({relation,fingerprint:'1:42'}));
- assert.equal(await readOfflineSourceVersion(fingerprints,actor,'records',stamp.businessDate),deltaValueHash(['business-offline-v11',actor.issuer,actor.subject,actor.partnerId,'records',stamp.businessDate,rows]));
+ assert.equal(await readOfflineSourceVersion(fingerprints,actor,'records',stamp.businessDate),shapedVersion(deltaValueHash(['business-offline-v11',actor.issuer,actor.subject,actor.partnerId,'records',stamp.businessDate,rows])));
  const stored=id=>({borrower_id:id,shared_group:false,headline_th:'สรุป',headline_en:'Summary',points:[],last_speaker_role:'partner',last_speaker_borrower_id:null,message_count:2,last_message_at:'2026-11-12T07:05:00.000Z',generated_at:'2026-11-12T07:32:00.000Z'});
  const run=async(allowed,invite=allowed)=>{const calls=[];const client={query:async(sql,args)=>{calls.push([sql,args]);if(sql===igGroupUrlAllowedSql)return {rows:[{allowed}]};if(sql===igGroupInviteAllowedSql)return {rows:[{allowed:invite}]};
    if(sql===igGroupUrlSql)return {rows:[{id:'A',url:'https://www.instagram.com/direct/t/100000000000001/'},{id:'B',url:'not a link'}]};
@@ -287,4 +287,32 @@ test('R153 a Borrowers-only change (the link) scopes the collection row delta to
  assert.ok(queries.some(sql=>sql.includes('"Hidden Flag" IS TRUE')),'a hidden borrower would walk instead');
  const source=(await import('node:fs')).readFileSync(new URL('../../services/business/offline-dataset-chunks.mjs',import.meta.url),'utf8');
  assert.match(source,/const chats=await groupChatAllowed\(client\)\?await projectGroupChatRows\(client,/,'the targeted read re-reads the scoped borrowers\' summaries with their link');
+});
+
+// R154 hotfix: a bundle read under an earlier dataset shape walks instead of taking a row delta or a day change. The PROD
+// case: a records bundle walked before V149 (no igGroupInviteLink on its borrower records), then any row change since
+// its cursor; the old server answered a records delta with the new version and the unchanged borrowers kept the old shape.
+test('R154 hotfix: versions carry the shape stamp; a client version of an earlier shape gets a walk, not a delta',async()=>{
+ assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v11');
+ const stamped=shapedVersion('c'.repeat(64));assert.match(stamped,/^c{56}5a9e000b$/);assert.equal(acceptsRowDelta(stamped),true);
+ for(const old of ['c'.repeat(64),'0'.repeat(56)+'5a9e000a','5a9e000b'])assert.equal(acceptsRowDelta(old),false,old);
+ assert.equal(acceptsRowDelta(null),true,'own writes applied locally keep their delta (a reconciliation heals them)');
+ const fingerprints={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[]};return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
+ for(const domain of ['records','collection','cash','management'])assert.equal(acceptsRowDelta(await readOfflineSourceVersion(fingerprints,actor,domain,stamp.businessDate)),true,domain);
+ // The request path: with a change cursor and rows changed since it, an earlier-shape version never reads the change
+ // log (no delta) and gets the domain's walk; the current shape reads it (the real delta path runs in the v4 lab test).
+ const since={seq:'10',xmin:'500',businessDate:stamp.businessDate};
+ const run=async sourceVersion=>{const queries=[];const client={query:async(sql,params)=>{queries.push(sql);
+   if(sql.startsWith('SELECT to_char'))return {rows:[stamp]};
+   if(/^(SAVEPOINT|RELEASE SAVEPOINT|ROLLBACK TO SAVEPOINT) offline_v4$/.test(sql))return {rows:[]};
+   if(sql.includes("to_regclass('public.pwa_row_changes')"))return {rows:[{available:true}]};
+   if(sql.includes('coalesce(max(seq),0)::text AS seq'))return {rows:[{seq:'20',minSeq:'1',xmin:'600'}]};
+   if(sql.includes('has_table_privilege(to_regclass'))return {rows:[]};
+   if(sql.includes(' UNION ALL ')||sql.includes('AS fingerprint'))return {rows:sql.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)?.[1],fingerprint:'1:42'}))};
+   if(sql.includes('FROM public.pwa_row_changes WHERE table_name=ANY'))throw Error('change log read');
+   throw Error('walk');}};
+  let outcome;try{outcome=await readOfflineDatasetDelta(client,actor,'records',{cursor:null,need:[],sourceVersion,since,acceptChanged:true,inlineValues:true})}catch(error){outcome=error.message}
+  return {outcome,deltaTried:queries.some(sql=>sql.includes('FROM public.pwa_row_changes WHERE table_name=ANY'))};};
+ const old=await run('d'.repeat(64));assert.equal(old.deltaTried,false,'an earlier shape never takes the delta path');assert.equal(old.outcome,'walk','it reads the walk');
+ const current=await run(shapedVersion('d'.repeat(64)));assert.equal(current.deltaTried,true,'the current shape takes the delta path');
 });

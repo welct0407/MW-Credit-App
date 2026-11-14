@@ -51,7 +51,9 @@ const ids=rows=>JSON.stringify((Array.isArray(rows)?rows:[]).map(row=>row?.charg
 /** A v4 delta re-sends every changed row with its current owner, but cannot re-read the owner a row left (the
  * change log has no old values). The client still holds the old rows: when a re-sent row moved (a loan or
  * charge to another owner, a payment to another borrower, target or charge set), the delta is not applied and
- * the domain walks instead. patches are hydrated (value present). */
+ * the domain walks instead. R155: a borrower whose referrer changed (the referrer it left keeps a stale isReferrer and
+ * rebates owed) and an expense whose payee changed (the payee it left keeps a stale amount owed) also moved.
+ * patches are hydrated (value present). */
 /** @param {any} data @param {any[]} patches */
 export function deltaMovesRows(data,patches){
  /** @type {Record<string,(row:any)=>unknown[]>} */
@@ -59,6 +61,8 @@ export function deltaMovesRows(data,patches){
   loans:row=>[row?.borrowerId],
   charges:row=>[row?.loanId,row?.borrowerId],
   payments:row=>[row?.borrowerId,row?.targetLoanId,row?.targetChargeId,ids(row?.allocations),ids(row?.repayments)],
+  borrowers:row=>[row?.referrerId],
+  expenses:row=>[row?.payeeBorrowerId],
  };
  for(const patch of patches){
   // replaceWhere: a re-sent row (by id) still held under an owner outside the replaced set moved there.

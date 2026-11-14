@@ -7,7 +7,7 @@ from appdoc_capture import html_tables, properties
 import json
 from unittest import mock
 import reconcile_captures
-from reconcile_captures import delta,apply_delta,postgres_objects,slug,parse_only
+from reconcile_captures import delta,apply_delta,postgres_objects,slug,parse_only,preserve_authored
 
 class ReconciliationTests(unittest.TestCase):
     def test_exact_states_and_order(self):
@@ -109,5 +109,78 @@ class TargetedPlanTests(unittest.TestCase):
     def test_parse_only_keeps_commas_inside_arguments(self):
         self.assertEqual(parse_only(['relation:public.a, routine:public.f(a integer, b text)','schema:public']),
                          {('relation','public.a'),('routine','public.f(a integer, b text)'),('schema','public')})
+
+
+class PreserveAuthoredTests(unittest.TestCase):
+    """Fixtures only: authored content survives a reconcile, catalog facts are replaced."""
+    def old(self):
+        return {'definition':{'comment':'old'},
+          'columns':{'Name':{'name':'Name','not_null':False,'acl':'old-acl','business_rule':'Mandatory (owner, 17 Oct 2026).'},'Gone':{'name':'Gone','business_rule':'x'}},
+          'constraints':{'c1':{'name':'c1','definition':'CHECK (a)','business_rule':'why c1'}},
+          'indexes':{},'triggers':{},'policies':{},'dependencies':[],
+          'business_rules':['kept at top level'],'development_definition':{'x':1}}
+    def new(self):
+        return {'definition':{'comment':'new'},
+          'columns':{'Name':{'name':'Name','not_null':True,'acl':'new-acl'},'Added':{'name':'Added','not_null':False}},
+          'constraints':{'c1':{'name':'c1','definition':'CHECK (b)'}},
+          'indexes':{},'triggers':{},'policies':{},'dependencies':[]}
+    def test_rule_survives_and_catalog_facts_are_replaced(self):
+        content,kept,orphaned=preserve_authored(self.old(),self.new(),'relation')
+        self.assertEqual(content['columns']['Name']['business_rule'],'Mandatory (owner, 17 Oct 2026).')
+        self.assertTrue(content['columns']['Name']['not_null'])
+        self.assertEqual(content['columns']['Name']['acl'],'new-acl')
+        self.assertEqual(content['constraints']['c1']['definition'],'CHECK (b)')
+        self.assertEqual(content['constraints']['c1']['business_rule'],'why c1')
+        self.assertEqual(content['definition'],{'comment':'new'})
+        self.assertIn('Added',content['columns'])
+        self.assertEqual(content['business_rules'],['kept at top level'])
+        self.assertEqual(content['development_definition'],{'x':1})
+        self.assertEqual(sorted(kept),['/business_rules','/columns/Name/business_rule','/constraints/c1/business_rule','/development_definition'])
+    def test_authored_key_of_a_removed_object_is_reported_and_dropped(self):
+        content,_,orphaned=preserve_authored(self.old(),self.new(),'relation')
+        self.assertNotIn('Gone',content['columns'])
+        self.assertEqual(orphaned,['/columns/Gone/business_rule'])
+    def test_a_catalog_value_is_never_kept_from_the_old_record(self):
+        old={'definition':{'a':1},'columns':{'Name':{'name':'Name','comment':'stale comment'}}}
+        new={'definition':{'a':2},'columns':{'Name':{'name':'Name'}}}
+        content,kept,_=preserve_authored(old,new,'relation')
+        self.assertNotIn('comment',content['columns']['Name'])
+        self.assertEqual(kept,[])
+    def test_routine_and_non_dict_content(self):
+        content,kept,_=preserve_authored({'definition':{'v':1},'purpose':'p','grants':{'x':1}},{'definition':{'v':2}},'routine')
+        self.assertEqual(content,{'definition':{'v':2},'purpose':'p','grants':{'x':1}});self.assertEqual(sorted(kept),['/grants','/purpose'])
+        self.assertEqual(preserve_authored('legacy text',{'definition':{}},'routine'),({'definition':{}},[],[]))
+        self.assertEqual(preserve_authored(None,{'definition':{}},'routine'),({'definition':{}},[],[]))
+
+
+class AuthoredContentPlanTests(TargetedPlanTests):
+    def test_plan_keeps_the_business_rule_and_updates_the_column(self):
+        self.existing.write_text(dump({'format':1,'identity':{'system':'postgresql','component':'loan_manager_prod','kind':'relation','name':'public.t','scope':'production'},
+          'verification':{'status':'documented','source':'old-evidence.json','previous_record':{'commit':'0ld'}},
+          'content':{'definition':{'name':'t'},'columns':{'Borrower Name':{'name':'Borrower Name','not_null':False,'business_rule':'Mandatory in the PWA/API since R068 W5.'}},
+            'constraints':{},'indexes':{},'triggers':{},'policies':{},'dependencies':[]}}),encoding='utf8')
+        capture=pg_capture("SELECT 1",'BEGIN new END')
+        capture['sections']['columns']=[dict(schema='public',relation='t',name='Borrower Name',ordinal=2,not_null=True,acl=None,comment=None),
+                                        dict(schema='public',relation='t',name='IG Group Invite Link',ordinal=28,not_null=False,acl=None,comment=None)]
+        (self.private/'production-complete.json').write_text(json.dumps(capture),encoding='utf8')
+        plan,out=self.plan('relation:public.t')
+        write=plan['writes'][0];doc=write['document']
+        self.assertEqual(write['path'],self.existing.relative_to(self.repo).as_posix())
+        column=doc['content']['columns']['Borrower Name']
+        self.assertTrue(column['not_null']);self.assertEqual(column['business_rule'],'Mandatory in the PWA/API since R068 W5.')
+        self.assertIn('IG Group Invite Link',doc['content']['columns'])
+        self.assertNotIn('business_rule',doc['content']['columns']['IG Group Invite Link'])
+        self.assertEqual(plan['preserved_authored'],[{'object':'relation:public.t','pointer':'/columns/Borrower Name/business_rule'}])
+        self.assertEqual(plan['orphaned_authored'],[])
+        # Superseded evidence: the source names the new capture; the previous record points at the replaced one.
+        self.assertTrue(doc['verification']['source'].endswith('production-postgresql-observations.json'))
+        self.assertNotEqual(doc['verification']['source'],'old-evidence.json')
+        self.assertEqual(doc['verification']['previous_record']['commit'],'abc123')
+        self.assertEqual(doc['verification']['previous_record']['identity']['name'],'public.t')
+        # Applying the plan writes the preserved rule to disk and the result still parses.
+        with mock.patch('builtins.print'),mock.patch.object(reconcile_captures,'make_index',return_value={}):
+            reconcile_captures.apply(out/'plan.json')
+        written=reconcile_captures.load(self.existing)
+        self.assertEqual(written['content']['columns']['Borrower Name']['business_rule'],'Mandatory in the PWA/API since R068 W5.')
 
 if __name__=='__main__':unittest.main()

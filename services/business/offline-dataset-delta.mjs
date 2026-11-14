@@ -62,6 +62,20 @@ async function readSourceFingerprints(client,sources){
  const rows=(await client.query(fingerprintQuery(await availableSources(client,sources)))).rows;
  return new Map(rows.map(row=>[row.relation,row.fingerprint]));
 }
+// R154 hotfix (owner's PROD report of 14 November 2026: a borrower record cached before V149 had no igGroupInviteLink, so
+// the edit form hid the invite field). A shape bump below changes every version, but a client holding a change cursor
+// asked for a row delta or a day change, which re-read only the rows changed since its cursor and answered with the new
+// version: the unchanged rows kept their old shape for good (until a reconciliation or a full sync). The shape is now
+// also stamped into the version itself (its last 8 hex digits), so the server tells a bundle read under an earlier shape
+// and walks it instead (acceptsRowDelta). A version from before this stamp matches it with probability 2^-32.
+export const OFFLINE_DATASET_SHAPE='business-offline-v11';
+const SHAPE_STAMP='5a9e'+Number(OFFLINE_DATASET_SHAPE.slice(OFFLINE_DATASET_SHAPE.lastIndexOf('-v')+2)).toString(16).padStart(4,'0');
+/** The 64-hex version with the current shape stamped into its last 8 digits. */
+export const shapedVersion=hash=>hash.slice(0,56)+SHAPE_STAMP;
+/** Whether a client may take a row delta or a day change (both keep its unchanged rows): its stored version was read under
+ * the current shape. null is a bundle holding own writes applied locally (the client then sends no version); it keeps
+ * the delta it had, and a reconciliation heals a bundle that was also of an earlier shape. */
+export const acceptsRowDelta=sourceVersion=>sourceVersion===null||typeof sourceVersion==='string'&&sourceVersion.length===64&&sourceVersion.endsWith(SHAPE_STAMP);
 function domainVersion(fingerprints,actor,domain,businessDate){
  const rows=offlineSourceTables[domain].filter(relation=>fingerprints.has(relation)).map(relation=>({relation,fingerprint:fingerprints.get(relation)})).sort((a,b)=>a.relation<b.relation?-1:a.relation>b.relation?1:0);
  // v4 (R078): per-domain table sets and the (key, xmin) aggregate. Installed clients see one
@@ -75,7 +89,7 @@ function domainVersion(fingerprints,actor,domain,businessDate){
  // the group chat summaries their url; every bundle walks once.
  // v11 (R154): borrower records carry igGroupInviteLink (V149 changes every borrower version) and the group chat
  // summaries their inviteUrl; every bundle walks once.
- return deltaValueHash(['business-offline-v11',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
+ return shapedVersion(deltaValueHash([OFFLINE_DATASET_SHAPE,actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]));
 }
 export async function readOfflineSourceVersion(client,actor,domain,businessDate){
  if(!offlineSourceTables[domain])throw Error('invalid_request');
@@ -213,17 +227,19 @@ export async function readOfflineDatasetDelta(client,actor,domain,input){
  // bundle (a walk's first request, an unchanged check, a delta) and asks for changes since it (v4).
  const current=cursor?null:await readChangeCursor(client,stamp.businessDate),changes=publicCursor(current);
  if(!cursor&&!request.need.length&&request.sourceVersion===sourceVersion)return {schemaVersion:3,domain,...stamp,sourceVersion,unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers};
- if(!cursor&&request.since&&request.rowDeltas&&(domain==='collection'||domain==='cash')&&current){
+ // R154 hotfix: a bundle read under an earlier shape never takes a row delta or a day change; it walks below.
+ const shapeCurrent=acceptsRowDelta(request.sourceVersion);
+ if(!cursor&&request.since&&shapeCurrent&&request.rowDeltas&&(domain==='collection'||domain==='cash')&&current){
   const value=await guarded(client,()=>readRowDelta(client,actor,domain,request,stamp,current));
   if(value)return {...encodeDelta({domain,generation:'v4:'+current.seq,startedAt:stamp.asOf,...stamp,sourceVersion,delta:true,patches:value.patches,scope:value.scope,complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers},request.need),schemaVersion:4};
  }
- if(!cursor&&request.since&&domain==='records'&&current){
+ if(!cursor&&request.since&&shapeCurrent&&domain==='records'&&current){
   const patches=await guarded(client,()=>readRecordsDelta(client,actor,request,stamp,current));
   // The fingerprint of this snapshot travels with the delta, so the client stores the two together.
   if(patches)return {...encodeDelta({domain,generation:'v4:'+current.seq,startedAt:stamp.asOf,...stamp,sourceVersion,delta:true,patches,complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers},request.need),schemaVersion:4};
  }
  // A client that hydrates businessDate (dates) and holds a bundle of an earlier business date.
- if(!cursor&&request.since&&request.dates&&current&&request.since.businessDate<stamp.businessDate&&offlineDayKeys[domain]){
+ if(!cursor&&request.since&&shapeCurrent&&request.dates&&current&&request.since.businessDate<stamp.businessDate&&offlineDayKeys[domain]){
   const value=await guarded(client,()=>readDayChange(client,actor,domain,request,stamp,current,sourceVersion));
   if(value)return value;
  }

@@ -36,3 +36,14 @@ test('reconciliation digests: canonical form, one digest per key, and the differ
  assert.deepEqual(digestDifferences(left,await datasetDigests({dashboard:{total:'5'}},sha)),['payments'],'a missing key is a difference');
  assert.ok(/^[a-f0-9]{64}$/.test(left.keys.payments));
 });
+// R155: a borrower whose referrer changed and an expense whose payee changed moved: the referrer or payee they left keeps
+// stale details (isReferrer, rebates owed, expenses owed) the delta cannot name, so the client walks.
+test('R155 a re-sent borrower with another referrer or an expense with another payee is refused (walk)',()=>{
+ const data={borrowers:[{id:'C',referrerId:'A',name:'Charlie'},{id:'D',referrerId:null}],expenses:[{id:'X',payeeBorrowerId:'C',amount:'25.00'}]};
+ for(const referrerId of [null,'B'])assert.equal(deltaMovesRows(data,[{key:'borrowers',mode:'upsert',value:[{...data.borrowers[0],referrerId}]}]),true,String(referrerId));
+ assert.equal(deltaMovesRows(data,[{key:'borrowers',mode:'upsert',value:[{...data.borrowers[0],name:'Charlie renamed'}]}]),false,'same referrer');
+ assert.equal(deltaMovesRows(data,[{key:'borrowers',mode:'upsert',value:[{id:'E',referrerId:'C'}]}]),false,'a new borrower is no move');
+ assert.equal(deltaMovesRows(data,[{key:'borrowers',mode:'upsert',value:[{id:'D',referrerId:'C'}]}]),true,'a first referrer set on a held borrower');
+ for(const payeeBorrowerId of [null,'B'])assert.equal(deltaMovesRows(data,[{key:'expenses',mode:'upsert',value:[{...data.expenses[0],payeeBorrowerId}]}]),true,String(payeeBorrowerId));
+ assert.equal(deltaMovesRows(data,[{key:'expenses',mode:'upsert',value:[{...data.expenses[0],amount:'30.00'}]},{key:'expenses',mode:'upsert',value:[{id:'Y',payeeBorrowerId:'C'}]}]),false,'same payee or a new expense');
+});
