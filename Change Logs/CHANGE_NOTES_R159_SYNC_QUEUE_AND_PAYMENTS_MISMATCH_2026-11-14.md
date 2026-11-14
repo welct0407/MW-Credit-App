@@ -39,30 +39,35 @@ Risks (Archie): the database is the real limit (up to 4 lane reads per instance 
 | `npm test`, `npm run typecheck`, `npm run lint` (Byte) | npm test 1371 tests, 1370 pass, 0 fail, 1 skipped (`MW_CHAT_DIGEST_PORT`); typecheck 0; lint 0 errors (2 warnings in untouched files) |
 | Lab on a disposable PostgreSQL 18 at V149: `offline-delta-v4-equality-lab`, `offline-delta-v4-lab`, `offline-reconcile-lab`, `offline-day-change-lab`; every scenario `equal`, no `RECONCILE MISMATCH`; the new rebate scenarios fail on `eb9daef2` (negative control) | Offline v4 lab suites 6/6 pass on a fresh PostgreSQL 18 at V149 with `--test-concurrency=1` (33 scenario lines equal, no mismatch; one pre-existing fixture "change refused" by the posted-payment guard, outside R159). Negative control with the `eb9daef2` chunks file: all six new rebate scenarios answer `mismatch ["payments"]` |
 | `Development checks` of the pull request (the one broad run) | Pending (Chase's verification and the pull request run outstanding) |
-| DEV after deploy (Chase, Echo; synthetic data): force a records walk in one browser and confirm the other's unchanged checks and notification bundle answer in under 2 s; close a second referred loan of one referrer and confirm the next records reconciliation is `match` | Pending |
+| DEV after deploy (Chase, Echo; synthetic data): force a records walk in one browser and confirm the other's unchanged checks and notification bundle answer in under 2 s; close a second referred loan of one referrer and confirm the next records reconciliation is `match` | DEV smoke without a browser (Forge): a records walk of 32 chunks over 51 s ran in parallel with 34 unchanged checks (all 200, max 1.45 s, p50 0.26 s) and 34 notification bundles (all 200, max 0.27 s); no ERROR logs and no `offline_read_wait` of 3 s or more. Chase's two-browser step and the second-referred-loan reconciliation are owner-observed |
 
 ## Not run
 No local wide browser suite and no e2e addition: there is no PWA change, and the pull request's `Development checks` is the one broad run. Load testing of the worst-case 25 s walk bound is not run; the DEV step and the PROD log check are the evidence.
 
 ## Recovery
-Git baseline `eb9daef2`. No SQL or data change: redeploy the previous command image recorded in the environment inventory (read and chat images are unchanged); no Hosting step. A device left with a stale payment heals by the existing walk.
+Git baseline `eb9daef2`. No SQL or data change: roll back to the R158 image on read, command and chat and the R144 image on notify and jobs (see the rollback line of the PROD promotion record); no Hosting step. A device left with a stale payment heals by the existing walk.
 
-## PROD promotion record (Forge, to be filled)
-Authority: the owner's request quoted in Purpose and "Yes, fix both, to PROD (Recommended)". Scope: command image only; no SQL, backup, Terraform, Hosting, read or chat image, or agent change.
+## PROD promotion record (Forge, 14 November 2026 UTC)
+Authority: the owner's request quoted in Purpose and "Yes, fix both, to PROD (Recommended)". No SQL, migration, backup, grant, Hosting, Cloud Run setting or agent change; images only, DEV first. Freeze 18:23:07Z, package `5b887d09` (merge of PR #328, `Development checks` green), baseline R158 `76b9f5ff`. Changed: all five services, because `services/lib/pool.mjs` reaches every entry point (`component-versions.mjs derive`: read, command, notify, jobs and chat R159; PWA stays R158, schema R154 at V149, agent R153). The plan's "one command-service image" was therefore widened to the five roles, as the registry and the generic runner require; notify and jobs keep their own pool size (2), so for them the image changes no behaviour.
 
 | Step | Result |
 | --- | --- |
-| Baseline | To fill: Flyway head, command revision, generation, Hosting version before the deploy |
-| DEV | To fill: command image at the tested commit, smoke |
-| Image | To fill: Cloud Build id, digest |
-| Services | To fill: Terraform plan, generation, revision |
-| Smoke | To fill: health, 401, no ERROR logs |
-| PROD check (read-only) | To fill: `offline_read_wait` count and lanes; requests over 20 s on `/api/offline-dataset` and `/api/notifications/offline-dataset` other than reconciliations (expected none); `offline_reconcile` results (`busy` is normal; one last `payments` mismatch per device is expected, then none); Cloud SQL connections and CPU |
-| Tag | To fill |
-| Closure | To fill |
+| Baseline | Project `clever-oasis-508610-n7`, region `asia-southeast1`. PROD read `00062-9hs`, command `00067-f2s`, chat `00046-6xw` (R158 image `0b99ddf8…`), notify `00030-285`, jobs `00030-29l` (R144 image `63e5b48f…`); command maxScale 2, containerConcurrency 5 (unchanged); state object generation `1794675277777486`; Hosting `e4db27ab3089d925` (R158, unchanged). DEV read `00096-dzq`, command `00113-cpg`, chat `00065-776` (R158), notify `00032-qmf`, jobs `00032-z4p` (R144). Schema V149 by source (no migration since R154); live Flyway was not read (no SQL step; the instance refused a direct connection from the session) |
+| DEV | Cloud Build `ce32ef7b-3d22-4c8c-9bfe-50ae5189384e` (`cloudbuild-command.yaml`, git archive of `5b887d09`, `_MW_RELEASE=R159`), 18:24:11Z to 18:24:47Z, digest `sha256:94768995f621a2ca785e4159e987e36fbf6932d275cb84a2b89c949705296080`. Terraform 0 to add, 5 to change, 0 to destroy, image only (JSON plan read back), 18:26:16Z to 18:26:52Z: read `00097-zg2`, command `00114-bs4`, chat `00066-527`, notify `00033-ddh`, jobs `00033-cs2`. `/health` R159 `5b887d09` (jobs by digest, it answers 404 from outside); unauthenticated 401 |
+| DEV smoke | With the DEV test account token (two HTTP clients, no browser), 18:30:31Z to 18:31:26Z: during a 32-chunk records walk (protocol 2, 51 s, largest chunk 2.6 s), 34 unchanged records checks (protocol 3, 376 bytes) answered in at most 1.45 s (p50 0.26 s) and 34 notification bundles in at most 0.27 s, all 200; no ERROR logs and no `offline_read_wait` of 3 s or more after 18:26Z. The two-browser step and the second-referred-loan reconciliation (`match`) were not run: they need browser sessions and a DEV financial write; the lab negative control and the equality suites cover D5, and the owner observes the PWA |
+| Image | Cloud Build `c018adc3-edfd-4163-b0f3-1a7ada4c44bd` (`cloudbuild-business.yaml`, PROD builder, `_MW_RELEASE=R159`, `_MW_SOURCE_COMMIT=5b887d09…`), 18:24:21Z to 18:25:03Z, digest `sha256:56f1774521ce3e5614f3c916db790ab716fba48ec30b875c6435bbd7983ac8a0` |
+| Services | Terraform 0 to add, 5 to change, 0 to destroy; the JSON plan changes only `template.0.containers.0.image` on the five services; applied 18:32:33Z to 18:33:08Z, state object generation `1794681188430938`; read `00063-hqc`, command `00068-dlr`, chat `00047-zrt`, notify `00031-mzf`, jobs `00031-dmq`, each 100% and ready |
+| Smoke | `/health` R159 `5b887d09` on read, command, chat and notify (jobs by digest); unauthenticated offline-dataset POST 401; Hosting still R158 (`build-version.json` `79ba63ef…`); no ERROR logs on any PROD service 18:33Z to 18:48Z |
+| PROD check (read-only) | Command service logs, 18:33:08Z to 18:48:08Z (01:33 to 01:48 Bangkok, almost idle): 9 requests (one offline-dataset read, the smoke's 401), 0 requests over 20 s, 0 5xx, no `offline_read_wait`, no `offline_reconcile`, no `command_store_unavailable` or 57014. Cloud SQL: `loan_manager_prod` backends max 2 (mean 1.8), instance CPU max 0.23. Before the deploy, 17:20Z to 18:30Z: 2042 requests (1578 offline-dataset, p95 4.6 s, max 51.9 s), 7 over 20 s (17:26:38Z 51.8 and 51.9 s, 17:26:51Z 39.7 and 40.0 s, 17:31:42Z 20.8 s, 17:32:05Z 25.3 and 25.5 s), one 503 with `command_store_unavailable` and 57014, one `offline_reconcile` `unavailable` (records); `loan_manager_prod` backends max 11 (mean 3.9), CPU max 0.74. The post-deploy window is too quiet to show the queueing effect: the next load is the 06:00 Bangkok (23:00Z) boundary, when every device becomes due |
+| Tag | `R159` on `5b887d09` (Release tag run [43628734436](https://github.com/welct0407/MW-Credit-App/actions/runs/43628734436), 18:49:30Z to 18:49:57Z; tag object `d66ec2f2…` peels to `5b887d09`) |
+| Closure | Components: read, command, notify, jobs and chat R159; PWA R158; schema R154 at V149; agent R153. `render --write` updated the inventory block to R159 (`render --check` ok). Drift 18:50Z (`--env all`, notify and jobs release from the authenticated notify `/health` and the shared digest): 0 drift, 5 unverified (schema DEV and PROD and agent not observed this time, Grafana, Metabase); every API service DEV and PROD matches R159 `5b887d09`, PWA R158 matches. No dictionary capture |
+
+Rollback: `production.activation.before-r159.tfvars` (R158 image `0b99ddf8…` on read, command and chat, R144 image `63e5b48f…` on notify and jobs); DEV `dev.activation.tfvars.before-r159`. No database or Hosting step.
+
+Limitations: the PROD log window after the deploy had almost no traffic, so the lanes, the pool of 6 and the payments fix are not yet observed under load; read the command logs after the 23:00Z boundary (offline-dataset requests over 20 s, `offline_read_wait` lanes, `offline_reconcile` `busy` and `mismatch` keys). Jobs reports release and commit only through its image digest.
 
 ## Open questions
 None.
 
 ## Remaining work
-Build and checks (Byte, Chase), DEV and PROD deploy (Forge), owner acceptance.
+Owner acceptance. Load confirmation: the PROD post-deploy window was idle (01:33 to 01:48 Bangkok), so read the command logs after the first busy period after 06:00 Bangkok.
