@@ -2,12 +2,12 @@ import {useEffect,useId} from 'react';
 import {Icon} from './Icon';
 import {displayDate} from './display-date';
 import {CHAT_MARK_WINDOW_MS,splitNameForMark} from './chat-seen';
-import {validIgGroupUrl} from './ig-group-url';
+import {chatDevice,chooseChatLink} from './ig-group-url';
 
 /** R146: one group chat summary as the collection detail carries it (groupChat). R153: url, the borrower's group chat
  * link ("IG Group URL", V148), present only when set and readable. */
 export type GroupChatSpeaker={role:'borrower'|'partner'|'referrer'|'business'|'other';borrowerId?:string};
-export type GroupChat={headline:{th:string;en:string};points:{speaker:GroupChatSpeaker;th:string;en:string}[];lastSpeaker:GroupChatSpeaker;lastMessageAt:string;generatedAt:string;messageCount:number;shared:boolean;url?:string};
+export type GroupChat={headline:{th:string;en:string};points:{speaker:GroupChatSpeaker;th:string;en:string}[];lastSpeaker:GroupChatSpeaker;lastMessageAt:string;generatedAt:string;messageCount:number;shared:boolean;url?:string;inviteUrl?:string};
 
 /** A list row's name with the chat mark glued to its last word (UX-CHAT-06): the icon never wraps onto a line of its own,
  * so the row keeps its height when the mark clears. A very long last word keeps only its last characters with the icon,
@@ -33,7 +33,8 @@ const roleClass=(value:GroupChatSpeaker|undefined,borrowerId:string)=>'chat-role
  * R153 (owner, 13 November 2026): the points come oldest first (prompt v4), so on a current card with two or more points
  * the last one, the latest topic, is bold with an accent bar on its left (not weight alone, which Thai shows weakly) and
  * a hidden "Latest:" for screen readers (not on a stale card or a lone
- * point). The borrower's group chat link, when the summary carries a valid one, is an "Open chat" link (link colour, underline, chat icon) in the heading
+ * point). R154: the link is chosen per device (chooseChatLink: the invite link on a phone, the instagram.com link on a
+ * computer, each falling back to the other). The borrower's group chat link, when the summary carries a valid one, is an "Open chat" link (link colour, underline, chat icon) in the heading
  * (also on a stale card), opened in a new tab; the device hands it to the Instagram app where it takes such links. */
 export function CollectionChatSummary({groupChat,borrowerId,thai,now,onShown}:{groupChat:GroupChat|null|undefined;borrowerId:string;thai:boolean;now:number;onShown?:(lastMessageAt:string)=>void}){
  const t=(en:string,th:string)=>thai?th:en,titleId=useId()+'-title';
@@ -48,7 +49,7 @@ export function CollectionChatSummary({groupChat,borrowerId,thai,now,onShown}:{g
  const today=localMoment(now)?.date,when=(value:string)=>{const moment=localMoment(value);return moment?moment.date===today?moment.clock:displayDate(moment.date,thai):'—'};
  const last=localMoment(groupChat.lastMessageAt),stale=!last||now-last.time>CHAT_MARK_WINDOW_MS;
  const points=Array.isArray(groupChat.points)?groupChat.points.slice(0,4).filter(point=>pick(point)):[],headline=pick(groupChat.headline);
- const latest=!stale&&points.length>=2?points.length-1:-1,url=validIgGroupUrl(groupChat.url)?groupChat.url:null;
+ const latest=!stale&&points.length>=2?points.length-1:-1,url=chooseChatLink(groupChat,chatDevice());
  return <section className={'collection-chat-summary'+(stale?' stale':'')} aria-labelledby={titleId}>
   <div className="collection-chat-heading"><h3 id={titleId}>{t('Group chat summary','สรุปแชทกลุ่ม')}</h3>{groupChat.shared&&<span className="expense-payee-tag">{t('Shared group','กลุ่มร่วม')}</span>}{url&&<a className="collection-chat-open link-button" href={url} target="_blank" rel="noopener noreferrer"><Icon name="chat" className="collection-chat-open-icon"/>{t('Open chat','เปิดแชท')}</a>}</div>
   <p className="collection-chat-meta">{stale?t('Last conversation ','คุยล่าสุด ')+(last?displayDate(last.date,thai):'—'):t('Updated ','อัปเดต ')+when(groupChat.generatedAt)+t(' · last 3 days',' · 3 วันล่าสุด')}</p>

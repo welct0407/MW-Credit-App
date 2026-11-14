@@ -17,7 +17,7 @@ import {readManagementAssessments} from './management-assessments.mjs';
 import {readManagementAnalytics,readAnalyticsOverview,readAnalyticsChart} from './management-analytics.mjs';
 import {readManagementPosition} from './management-position.mjs';
 import {readManagementOpenings} from './management-openings.mjs';
-import {readCollection,decodeCollectionCursor,collectionCte,collectionCteFor,collectionQualitySql,projectCollectionCharge,GROUP_CHAT_COLUMNS,groupChatAllowedSql,projectGroupChat,readIgGroupUrls,withGroupChatUrl} from '../api/collection-read-contract.mjs';
+import {readCollection,decodeCollectionCursor,collectionCte,collectionCteFor,collectionQualitySql,projectCollectionCharge,GROUP_CHAT_COLUMNS,groupChatAllowedSql,projectGroupChat,readIgGroupLinks,withGroupChatLinks} from '../api/collection-read-contract.mjs';
 import {lateChargeSchema} from '../lib/late-charge-schema.mjs';
 import {projectUpcomingEvent,validUpcomingDate} from '../api/upcoming-read-contract.mjs';
 import {readStandaloneUpcoming} from './upcoming.mjs';
@@ -133,11 +133,12 @@ const receiptSql=where=>`${collectionCte} SELECT p."Row ID" id,p."Ref Borrower" 
 // offline bundle takes the borrower's row. A database before V146 or a caller without the grant gives no rows; a row that
 // is not the V146 shape is left out (display only), as the online read answers null for it.
 // R153 (V148): each row carries the borrower's group chat link as url when one is set and readable (as the online read).
+// R154 (V149): and the invite link as inviteUrl.
 const groupChatColumns=GROUP_CHAT_COLUMNS.map(name=>'g.'+name).join(',');
 const groupChatAllowed=async client=>(await client.query(groupChatAllowedSql)).rows[0]?.allowed===true;
 export async function projectGroupChatRows(client,rows){
- const urls=await readIgGroupUrls(client,rows.map(row=>row.borrower_id));
- return rows.map(row=>{const value=withGroupChatUrl(projectGroupChat(row),urls.get(row.borrower_id));return value?{borrowerId:row.borrower_id,...value}:null}).filter(Boolean);
+ const links=await readIgGroupLinks(client,rows.map(row=>row.borrower_id));
+ return rows.map(row=>{const value=withGroupChatLinks(projectGroupChat(row),links.get(row.borrower_id));return value?{borrowerId:row.borrower_id,...value}:null}).filter(Boolean);
 }
 async function groupChatByBorrower(c,_a,_stamp,state){
  if(!await groupChatAllowed(c))return result([append('groupChatByBorrower',[])]);

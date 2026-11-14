@@ -83,3 +83,37 @@ test('R153 borrower igGroupUrl: optional, canonical last, absent stays absent, t
  // The PWA form value: trimmed, blank is null, undefined stays absent, anything else must match.
  assert.deepEqual([undefined,null,'','   ',' '+good[0]+' ','x'].map(pwa.igGroupUrlValue),[{ok:true,value:undefined},{ok:true,value:null},{ok:true,value:null},{ok:true,value:null},{ok:true,value:good[0]},{ok:false}]);
 });
+
+// R154 (V149): the group's invite link. Invented links only.
+test('R154 borrower igGroupInviteLink: optional, right after igGroupUrl, ig.me/j only; the rule shared with SQL and the PWA; the device choice',async()=>{
+ assert.equal(Object.hasOwn(canonicalOperation(command).inputs,'igGroupInviteLink'),false,'absent stays absent');
+ const good=['https://ig.me/j/AbCdEfGh12345678/','https://ig.me/j/AbCdEfGh12345678','https://ig.me/j/'+'a'.repeat(255)];
+ for(const invite of [...good,null]){
+  const inputs={igGroupInviteLink:invite,igGroupUrl:'https://www.instagram.com/direct/t/100000000000001/',referralRebateCap:150,...fields,aiCollectionEnabled:true,referralRebateRate:5},canonical=canonicalOperation({...command,inputs});
+  assert.deepEqual(Object.keys(canonical.inputs).slice(-5),['aiCollectionEnabled','referralRebateRate','referralRebateCap','igGroupUrl','igGroupInviteLink'],'the SQL order: right after igGroupUrl');
+  assert.ok(operationIdentity({...command,inputs},actor).canonicalJson.endsWith('"igGroupUrl":"https://www.instagram.com/direct/t/100000000000001/","igGroupInviteLink":'+JSON.stringify(invite)+'}},"receipt":null}'),String(invite));
+ }
+ assert.deepEqual(Object.keys(canonicalOperation({...command,inputs:{igGroupInviteLink:good[0],...fields}}).inputs).slice(-2),['note','igGroupInviteLink'],'alone after note');
+ const bad=['https://www.instagram.com/direct/t/100000000000001/','http://ig.me/j/AbCdEfGh12345678/','https://ig.me/m/invented_user/','https://ig.me/AbCd','https://ig.me/j/','','https://user@ig.me/j/AbCd/',
+  'https://ig.me/j/Ab Cd/','https://ig.me/j/AbCd#x','https://ig.me/j/'+'a'.repeat(256),' https://ig.me/j/AbCd/',1,true,{}];
+ for(const invite of bad)assert.throws(()=>canonicalOperation({...command,inputs:{...fields,igGroupInviteLink:invite}}),/invalid_request/,JSON.stringify(invite));
+ // An ig.me/j link stays valid as the group link too (R153 rule unchanged).
+ assert.doesNotThrow(()=>canonicalOperation({...command,inputs:{...fields,igGroupUrl:good[0]}}));
+ const {IG_GROUP_INVITE_PATTERN}=await import('../../services/api/collection-read-contract.mjs');const pwa=await import('../../apps/pwa/src/ig-group-url.ts');
+ assert.equal(pwa.IG_GROUP_INVITE_PATTERN.source,IG_GROUP_INVITE_PATTERN.source);assert.equal(IG_GROUP_INVITE_PATTERN.flags,'');
+ const {readFileSync}=await import('node:fs'),migration=readFileSync(new URL('../../database/migrations/V149__borrower_ig_group_invite_link.sql',import.meta.url),'utf8');
+ assert.equal(migration.split("'"+IG_GROUP_INVITE_PATTERN.source.replaceAll('\\/','/')+"'").length-1,11,'the column check, the command and the nine self-check probes use the same text');
+ assert.deepEqual([undefined,null,'  ',' '+good[0]+' ','https://www.instagram.com/direct/t/1/'].map(pwa.igGroupInviteValue),[{ok:true,value:undefined},{ok:true,value:null},{ok:true,value:null},{ok:true,value:good[0]},{ok:false}]);
+ // D4: the device and the link it opens. Synthetic user agents.
+ const iphone='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+  ipados='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
+  android='Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36',
+  windows='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+ assert.deepEqual([{userAgent:iphone},{userAgent:ipados,maxTouchPoints:5},{userAgent:ipados,maxTouchPoints:0},{userAgent:android},{userAgent:windows,maxTouchPoints:10},{},undefined].map(pwa.chatDevice),['phone','phone','computer','phone','computer','computer','computer']);
+ const web='https://www.instagram.com/direct/t/100000000000001/',invite=good[0],urlInvite='https://ig.me/j/ZyXwVuTs98765432',other='https://ig.me/m/invented_user/';
+ const pick=(links,device)=>pwa.chooseChatLink(links,device);
+ assert.equal(pick({url:web,inviteUrl:invite},'phone'),invite);assert.equal(pick({url:web,inviteUrl:invite},'computer'),web);
+ assert.equal(pick({url:urlInvite},'phone'),urlInvite,'phone: the group link when it is an invite link');assert.equal(pick({url:web},'phone'),web,'phone: any valid link');
+ assert.equal(pick({inviteUrl:invite},'computer'),invite,'computer: any valid link');assert.equal(pick({url:other,inviteUrl:invite},'computer'),other);assert.equal(pick({url:other,inviteUrl:invite},'phone'),invite);
+ assert.equal(pick({url:'javascript:alert(1)',inviteUrl:'https://ig.me/m/x'},'phone'),null);assert.equal(pick({},'computer'),null);
+});

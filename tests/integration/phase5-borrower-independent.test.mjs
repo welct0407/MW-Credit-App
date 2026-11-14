@@ -149,3 +149,26 @@ test('R153 the group chat link: absent before the column; with it a create, keep
  }finally{await admin.query('ALTER TABLE public."Borrowers" DROP COLUMN IF EXISTS "IG Group URL"')}
  const after=(await store.borrowerRecord(principal,before.id)).item;assert.equal(Object.hasOwn(after,'igGroupUrl'),false);assert.equal(after.version,before.version,'without the column the version is as before');
 });
+
+// R154 (V149): the group's invite link through the Node borrower record path, as R153: the column is added here with the
+// exact V149 statement, used and dropped; the real V149 command path is covered in Test-RebateOffset.sql. Invented links.
+test('R154 the group invite link: absent before the column; with it a create, keep, change and clear round trip; bad links refused',async()=>{
+ const before=await create();assert.equal(Object.hasOwn(before,'igGroupInviteLink'),false,'before V149 the record carries no invite link');
+ await admin.query(`ALTER TABLE public."Borrowers" ADD COLUMN "IG Group Invite Link" text,
+ ADD CONSTRAINT borrowers_ig_group_invite_link_check CHECK ("IG Group Invite Link" IS NULL OR "IG Group Invite Link" ~ '^https://ig\\.me/j/[A-Za-z0-9._~%/?=&+-]{1,255}$')`);
+ try{
+  const invite='https://ig.me/j/AbCdEfGh12345678/',other='https://ig.me/j/ZyXwVuTs98765432';
+  const old=(await store.borrowerRecord(principal,before.id)).item;assert.equal(old.igGroupInviteLink,null);assert.equal(Object.hasOwn(old,'igGroupUrl'),false,'the other link stays absent');assert.notEqual(old.version,before.version);
+  const f=fields(),id=randomUUID(),created=await store.borrowerRecord(principal,id,'create',{fields:{...f,igGroupInviteLink:invite}});assert.equal(created.status,200,JSON.stringify(created));assert.equal(created.item.igGroupInviteLink,invite);
+  const kept=await store.borrowerRecord(principal,id,'edit',{expectedVersion:created.item.version,fields:f});assert.equal(kept.status,200);assert.equal(kept.item.igGroupInviteLink,invite);assert.equal(kept.item.version,created.item.version);
+  const changed=await store.borrowerRecord(principal,id,'edit',{expectedVersion:kept.item.version,fields:{...f,igGroupInviteLink:other}});assert.equal(changed.status,200);assert.equal(changed.item.igGroupInviteLink,other);assert.notEqual(changed.item.version,kept.item.version);
+  const original=await fingerprint(id);
+  for(const bad of ['https://www.instagram.com/direct/t/100000000000001/','http://ig.me/j/AbCdEfGh12345678/','https://ig.me/m/invented_user/','','https://ig.me/j/'+'a'.repeat(256),1]){
+   const r=await store.borrowerRecord(principal,id,'edit',{expectedVersion:changed.item.version,fields:{...f,igGroupInviteLink:bad}});assert.equal(r.status,400,JSON.stringify(bad));
+  }
+  assert.deepEqual(await fingerprint(id),original,'refused links write nothing');
+  const cleared=await store.borrowerRecord(principal,id,'edit',{expectedVersion:changed.item.version,fields:{...f,igGroupInviteLink:null}});assert.equal(cleared.status,200);assert.equal(cleared.item.igGroupInviteLink,null);
+  await assert.rejects(admin.query('UPDATE "Borrowers" SET "IG Group Invite Link"=$2 WHERE "Row ID"=$1',[id,'https://ig.me/j/']),error=>error.code==='23514');
+ }finally{await admin.query('ALTER TABLE public."Borrowers" DROP COLUMN IF EXISTS "IG Group Invite Link"')}
+ const after=(await store.borrowerRecord(principal,before.id)).item;assert.equal(Object.hasOwn(after,'igGroupInviteLink'),false);assert.equal(after.version,before.version);
+});

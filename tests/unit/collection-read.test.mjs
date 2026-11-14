@@ -189,3 +189,35 @@ test('R153 groupChat.url: present only when set, valid and readable; never witho
  assert.ok(contract.includes('IG Group URL'),'the reader contract grants the column the read selects');
  assert.equal(withGroupChatUrl(null,link),null);assert.deepEqual(withGroupChatUrl({a:1},' '+link),{a:1});assert.equal(validIgGroupUrl(undefined),false);
 });
+// R154 (V149): the invite link rides beside url as groupChat.inviteUrl, under its own column guard. Invented links only.
+test('R154 groupChat.inviteUrl: present only when set, an ig.me/j link and readable; independent of url',async()=>{
+ const {readCollection,groupChatAllowedSql,groupChatDetailSql,igGroupUrlAllowedSql,igGroupUrlSql,igGroupInviteAllowedSql,igGroupInviteSql,withGroupChatLinks}=await import('../../services/api/collection-read-contract.mjs');
+ const row=id=>({id,rank:0,overdue_days:null,borrower_name:id,amount_due:'100',amount_collected:'0',amount_remaining:'100',prepaid_today:'0',prepaid_only:false,prepaid_payment_date:null});
+ const stored={borrower_id:'a',shared_group:false,headline_th:'สรุป',headline_en:'Summary.',points:[],last_speaker_role:'partner',last_speaker_borrower_id:null,message_count:3,last_message_at:'2026-11-12T07:05:00.000Z',generated_at:'2026-11-12T07:32:00.000Z'};
+ const web='https://www.instagram.com/direct/t/100000000000001/',invite='https://ig.me/j/AbCdEfGh12345678/';
+ const run=async({url=web,inviteUrl=invite,urlAllowed=true,inviteAllowed=true,summary=true}={})=>{const calls=[];const client={query:async(sql,args)=>{calls.push(sql);
+   if(sql.includes('CURRENT_TIMESTAMP AS "asOf"'))return {rows:[{asOf:'2026-11-12T08:00:00Z',businessDate:'2026-11-12'}]};
+   if(sql.includes('AS invalid'))return {rows:[{invalid:false}]};
+   if(sql===groupChatAllowedSql)return {rows:[{allowed:true}]};
+   if(sql===groupChatDetailSql)return {rows:summary?[stored]:[]};
+   if(sql===igGroupUrlAllowedSql)return {rows:[{allowed:urlAllowed}]};
+   if(sql===igGroupInviteAllowedSql)return inviteAllowed==='missing'?{rows:[]}:{rows:[{allowed:inviteAllowed}]};
+   if(sql===igGroupUrlSql)return {rows:url===null?[]:[{id:'a',url}]};
+   if(sql===igGroupInviteSql){assert.deepEqual(args,[['a']]);return {rows:inviteUrl===null?[]:[{id:'a',url:inviteUrl}]};}
+   if(sql.includes('AS allowed'))return {rows:[{allowed:false}]};
+   if(sql.endsWith('SELECT * FROM summaries'))return {rows:[row('a')]};
+   if(sql.includes('SELECT id, loan_id, payment_status'))return {rows:[]};
+   return {rows:[row('a')]};}};
+  return {value:(await readCollection(client,{limit:10,after:null,borrowerId:'a'})).groupChat,calls};};
+ const both=(await run()).value;assert.equal(both.url,web);assert.equal(both.inviteUrl,invite);
+ assert.deepEqual(Object.keys(both).slice(-2),['url','inviteUrl']);
+ const onlyInvite=(await run({url:null})).value;assert.equal(Object.hasOwn(onlyInvite,'url'),false);assert.equal(onlyInvite.inviteUrl,invite);
+ for(const options of [{inviteUrl:null},{inviteUrl:'https://ig.me/m/invented_user/'},{inviteUrl:web},{inviteAllowed:false},{inviteAllowed:null},{inviteAllowed:'missing'}]){
+  const value=(await run(options)).value;assert.equal(Object.hasOwn(value,'inviteUrl'),false,JSON.stringify(options));assert.equal(value.url,web);
+ }
+ assert.equal((await run({inviteAllowed:false})).calls.includes(igGroupInviteSql),false,'not granted: the column is never selected');
+ const none=await run({summary:false});assert.equal(none.value,null);assert.equal(none.calls.includes(igGroupInviteAllowedSql),false);
+ assert.match(igGroupInviteAllowedSql,/a\.attname = 'IG Group Invite Link'/);assert.match(igGroupInviteAllowedSql,/has_column_privilege\(a\.attrelid, a\.attnum, 'SELECT'\)/);assert.match(igGroupInviteSql,/b\."IG Group Invite Link"/);
+ const contract=JSON.parse((await import('node:fs')).readFileSync(new URL('../../scripts/production/reader-capability-contract.json',import.meta.url),'utf8')).columnSelect.Borrowers;
+ assert.ok(contract.includes('IG Group Invite Link'));assert.equal(withGroupChatLinks(null,{url:web,inviteUrl:invite}),null);
+});
