@@ -344,6 +344,8 @@
 .collection-chat-points li.collection-chat-latest-point{border-left:3px solid var(--chat-role-business);padding-left:6px}
 .collection-chat-summary .collection-chat-open{margin-left:auto;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 4px;white-space:nowrap;font-size:16px;text-underline-offset:3px}
 .collection-chat-open .collection-chat-open-icon{width:16px;height:16px;flex:0 0 16px}
+/* R154 UX-BRW-IGLINK-01: a refused Save scrolls the failing field's label to the top, below the sticky header. */
+.borrower-record form>label{scroll-margin-top:calc(var(--live-header-height,60px) + 12px)}
 .borrower-record a.ig-group-link{color:#0b57d0;overflow-wrap:anywhere;word-break:break-all}
 .collection-tile-main .collection-chat-mark{width:16px;height:16px;margin-left:6px;vertical-align:-2px;color:#555}
 

@@ -209,6 +209,26 @@ test('R153 the latest point is bold on a current card; Open chat carries the bor
  await expect(card(page).getByRole('link',{name:'เปิดแชท',exact:true})).toHaveAttribute('href',link);await expect(card(page).locator('strong.collection-chat-latest .visually-hidden')).toHaveText('ล่าสุด: ');
 });
 
+// R154 (D4): the card picks the link per device. A phone (here Android chromium and the iPhone WebKit project) opens the
+// group's invite link, which opens the group itself in the Instagram app; a computer opens the instagram.com link. Each
+// falls back to the other when its own is missing. Same label, icon and style as R153. Invented links only.
+test('R154 Open chat opens the invite link on a phone and the instagram.com link on a computer, with fallbacks',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop'),web='https://www.instagram.com/direct/t/100000000000001/',invite='https://ig.me/j/AbCdEfGh12345678/';
+ await open(page,{desktop,replace:{'chat-a':{...(summaries['chat-a'] as object),url:web,inviteUrl:invite},'chat-b':{...(summaries['chat-b'] as object),inviteUrl:invite},'chat-d':{...(summaries['chat-d'] as object),url:web,inviteUrl:'https://ig.me/m/invented_user/'}}});
+ const phone=await page.evaluate(()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1));
+ expect(phone).toBe(!desktop);
+ await tile(page,'chat-a').click();
+ const openChat=card(page).getByRole('link',{name:'Open chat',exact:true});await expect(openChat).toHaveAttribute('href',phone?invite:web);
+ await expect(openChat).toHaveAttribute('target','_blank');await expect(openChat).toHaveAttribute('rel','noopener noreferrer');await expect(card(page).locator('a')).toHaveCount(1);
+ await expect(openChat.locator('svg.collection-chat-open-icon')).toHaveAttribute('data-icon','chat');
+ if(!desktop)await back(page);
+ // Only the invite link (a stale card): every device opens it.
+ await tile(page,'chat-b').click();await expect(card(page).getByRole('link',{name:'Open chat',exact:true})).toHaveAttribute('href',invite);
+ if(!desktop)await back(page);
+ // An inviteUrl that is not an invite link is ignored: the instagram.com link everywhere.
+ await tile(page,'chat-d').click();await expect(card(page).getByRole('link',{name:'Open chat',exact:true})).toHaveAttribute('href',web);await expect(card(page).locator('a')).toHaveCount(1);
+});
+
 // R150: every card time is the browser's own wall clock, and "today" is the browser's day. Same instants, three clocks.
 test('card times follow the browser time zone: clock times for today here, dates for another day here',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');

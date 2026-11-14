@@ -179,10 +179,18 @@ async function markChatSummary(client, items, partnerId) {
 // services/business/borrowers.mjs imports it) and in the PWA (apps/pwa/src/ig-group-url.ts).
 export const IG_GROUP_URL_PATTERN = /^https:\/\/((www\.)?instagram\.com\/direct\/|ig\.me\/)[A-Za-z0-9._~%/?=&+-]{1,255}$/;
 export const validIgGroupUrl = value => typeof value === 'string' && IG_GROUP_URL_PATTERN.test(value);
-// The reader login holds column grants only, and has_column_privilege by column name raises before V148, so the guard finds
-// the column in pg_attribute first: no column (an older database) or no grant reads false and the link is left out.
-export const igGroupUrlAllowedSql = `SELECT COALESCE((SELECT has_column_privilege(a.attrelid, a.attnum, 'SELECT') FROM pg_attribute a
-  WHERE a.attrelid = to_regclass('public."Borrowers"') AND a.attname = 'IG Group URL' AND a.attnum > 0 AND NOT a.attisdropped), false) AS allowed`;
+// R154 (V149) the borrower's Instagram group invite link, "Borrowers"."IG Group Invite Link" (https://ig.me/j/... only): it
+// opens the group itself in the Instagram app on a phone. The same one-rule arrangement as the group chat link.
+export const IG_GROUP_INVITE_PATTERN = /^https:\/\/ig\.me\/j\/[A-Za-z0-9._~%/?=&+-]{1,255}$/;
+export const validIgGroupInviteLink = value => typeof value === 'string' && IG_GROUP_INVITE_PATTERN.test(value);
+// The reader login holds column grants only, and has_column_privilege by column name raises before the column exists, so
+// each guard finds its column in pg_attribute first: no column (an older database) or no grant reads false and that link is
+// left out. One guard per column: the reader is granted each column after its own migration.
+const borrowerColumnAllowedSql = column => `SELECT COALESCE((SELECT has_column_privilege(a.attrelid, a.attnum, 'SELECT') FROM pg_attribute a
+  WHERE a.attrelid = to_regclass('public."Borrowers"') AND a.attname = '${column}' AND a.attnum > 0 AND NOT a.attisdropped), false) AS allowed`;
+export const igGroupUrlAllowedSql = borrowerColumnAllowedSql('IG Group URL');
+export const igGroupInviteAllowedSql = borrowerColumnAllowedSql('IG Group Invite Link');
+export const igGroupInviteSql = `SELECT b."Row ID" AS id, b."IG Group Invite Link" AS url FROM public."Borrowers" b WHERE b."Row ID" = ANY($1::text[]) AND b."IG Group Invite Link" IS NOT NULL`;
 export const igGroupUrlSql = `SELECT b."Row ID" AS id, b."IG Group URL" AS url FROM public."Borrowers" b WHERE b."Row ID" = ANY($1::text[]) AND b."IG Group URL" IS NOT NULL`;
 /** R153: id -> link for the given borrowers (only links that match the rule); empty when the column is missing or not granted. */
 export async function readIgGroupUrls(client, ids) {
@@ -192,12 +200,27 @@ export async function readIgGroupUrls(client, ids) {
 /** R153: the summary with its "Open chat" link (url) when the borrower has a valid one; a summary without a link, or no
  * summary (no card, so no link), is returned as it is. */
 export const withGroupChatUrl = (groupChat, url) => groupChat && validIgGroupUrl(url) ? { ...groupChat, url } : groupChat;
+/** R154: id -> {url, inviteUrl} for the given borrowers, each present only when its column is readable and the value
+ * matches its rule. */
+export async function readIgGroupLinks(client, ids) {
+  const links = new Map(), urls = await readIgGroupUrls(client, ids);
+  for (const [id, url] of urls) links.set(id, { url });
+  if (ids.length && (await client.query(igGroupInviteAllowedSql)).rows[0]?.allowed === true) {
+    for (const row of (await client.query(igGroupInviteSql, [ids])).rows) if (validIgGroupInviteLink(row.url)) links.set(row.id, { ...links.get(row.id), inviteUrl: row.url });
+  }
+  return links;
+}
+/** R154: the summary with url and inviteUrl as the borrower has them (each only when valid); the card picks one per device. */
+export const withGroupChatLinks = (groupChat, links) => {
+  const value = withGroupChatUrl(groupChat, links?.url);
+  return value && validIgGroupInviteLink(links?.inviteUrl) ? { ...value, inviteUrl: links.inviteUrl } : value;
+};
 /** R146: the borrower's current group chat summary, or null (none, or the reader may not read the table). R153: with the
- * borrower's group chat link as url when one is set and readable. */
+ * borrower's group chat link as url when one is set and readable. R154: and the invite link as inviteUrl. */
 async function readGroupChat(client, borrowerId) {
   if ((await client.query(groupChatAllowedSql)).rows[0]?.allowed !== true) return null;
   const groupChat = projectGroupChat((await client.query(groupChatDetailSql, [borrowerId])).rows[0]);
-  return groupChat ? withGroupChatUrl(groupChat, (await readIgGroupUrls(client, [borrowerId])).get(borrowerId)) : null;
+  return groupChat ? withGroupChatLinks(groupChat, (await readIgGroupLinks(client, [borrowerId])).get(borrowerId)) : null;
 }
 export function projectCollection(row) {
   if (!validLoanId(row.id) || !collectionStatuses[row.rank] || typeof row.prepaid_only !== 'boolean' || !(row.overdue_days === null || (Number.isSafeInteger(row.overdue_days) && row.overdue_days > 0))) throw new Error('Invalid collection source');

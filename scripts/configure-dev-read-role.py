@@ -13,7 +13,7 @@ from psycopg import sql
 ROOT = Path(__file__).resolve().parents[1]
 ROLE = 'mw-credit-app-read-dev@clever-oasis-508610-n7.iam'
 COLUMNS = {
-    'Borrowers': ['Row ID', 'Borrower Name', 'Creation Date', 'Hidden Flag', 'Total Outstanding Principal', 'Has Active Loan', 'Borrower Note', 'Description', 'Total Interest Earned', 'IG Group URL'],
+    'Borrowers': ['Row ID', 'Borrower Name', 'Creation Date', 'Hidden Flag', 'Total Outstanding Principal', 'Has Active Loan', 'Borrower Note', 'Description', 'Total Interest Earned', 'IG Group URL', 'IG Group Invite Link'],
     'Partners': ['Row ID', 'Login Email', 'Partner Role'],
     'Charges': ['Row ID', 'Ref Loans', 'Charge Date', 'Payment Status', 'Payment Date', 'Amount Remaining', 'Total Paid', 'Late Charge Due', 'Late Charge Remaining'],
     'Repayments': ['Ref Charges', 'Payment Date', 'Principal Paid', 'Interest Paid', 'Ref Payment', 'Late Charge Paid'],

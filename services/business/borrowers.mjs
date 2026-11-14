@@ -1,25 +1,26 @@
 import {expensePendingSql,rebatePendingSql} from './rebate-state.mjs';
 import {UUID_V4} from '../lib/ids.mjs';
-import {validIgGroupUrl} from '../api/collection-read-contract.mjs';
+import {validIgGroupUrl,validIgGroupInviteLink} from '../api/collection-read-contract.mjs';
 export const borrowerFields=Object.freeze({name:'Borrower Name',description:'Description',communicationName:'Communication Name',instagramUsername:'Instagram Username',city:'City',workingLocation:'Working Location',address:'Address',hidden:'Hidden Flag',referrerId:'Ref Referrer',preferredReceivingAccountId:'Ref Preferred Receiving Cash Account',note:'Borrower Note'});
 // Optional inputs, in the canonical order after the fields (pwa_submit_operation_v2 appends each only when present).
 // R120 (V135): the referral rebate terms of this borrower as a referrer, whole numbers or null (the default 10% and 1,000).
 // R153 (V148): igGroupUrl, the borrower's Instagram group chat link, a string matching IG_GROUP_URL_PATTERN or null (no link).
-const optionalFields={aiCollectionEnabled:'AI Collection Enabled',referralRebateRate:'Referral Rebate Rate',referralRebateCap:'Referral Rebate Cap',igGroupUrl:'IG Group URL'};
+// R154 (V149): igGroupInviteLink right after it, the group's invite link, matching IG_GROUP_INVITE_PATTERN or null.
+const optionalFields={aiCollectionEnabled:'AI Collection Enabled',referralRebateRate:'Referral Rebate Rate',referralRebateCap:'Referral Rebate Cap',igGroupUrl:'IG Group URL',igGroupInviteLink:'IG Group Invite Link'};
 // The SQL rule (V135): a JSON number of at most 12 digits, rate 0 to 100, cap 1 or more.
 const termRange={referralRebateRate:[0,100],referralRebateCap:[1,999999999999]};
 const keys=Object.keys(borrowerFields), uuid=UUID_V4;
 export const validBorrowerId=value=>typeof value==='string'&&Buffer.byteLength(value)>0&&Buffer.byteLength(value)<=256&&!/[\u0000-\u001f\u007f]/u.test(value);
 export function canonicalBorrowerFields(input){
  if(!input||Array.isArray(input)||Object.keys(input).filter(key=>!Object.hasOwn(optionalFields,key)).sort().join(',')!==[...keys].sort().join(','))throw Error('invalid_request');
- const result={};for(const key of [...keys,...Object.keys(optionalFields).filter(key=>Object.hasOwn(input,key))]){const value=input[key];if(key==='hidden'||key==='aiCollectionEnabled'){if(value!==null&&typeof value!=='boolean')throw Error('invalid_request');}else if(Object.hasOwn(termRange,key)){if(value!==null&&(!Number.isInteger(value)||value<termRange[key][0]||value>termRange[key][1]))throw Error('invalid_request');}else if(key==='igGroupUrl'){if(value!==null&&!validIgGroupUrl(value))throw Error('invalid_request');}else if(value!==null&&(typeof value!=='string'||!value.isWellFormed()||value.includes('\0')||Buffer.byteLength(value)>65536))throw Error('invalid_request');
+ const result={};for(const key of [...keys,...Object.keys(optionalFields).filter(key=>Object.hasOwn(input,key))]){const value=input[key];if(key==='hidden'||key==='aiCollectionEnabled'){if(value!==null&&typeof value!=='boolean')throw Error('invalid_request');}else if(Object.hasOwn(termRange,key)){if(value!==null&&(!Number.isInteger(value)||value<termRange[key][0]||value>termRange[key][1]))throw Error('invalid_request');}else if(key==='igGroupUrl'){if(value!==null&&!validIgGroupUrl(value))throw Error('invalid_request');}else if(key==='igGroupInviteLink'){if(value!==null&&!validIgGroupInviteLink(value))throw Error('invalid_request');}else if(value!==null&&(typeof value!=='string'||!value.isWellFormed()||value.includes('\0')||Buffer.byteLength(value)>65536))throw Error('invalid_request');
  if(['referrerId','preferredReceivingAccountId'].includes(key)&&value!==null&&!validBorrowerId(value))throw Error('invalid_request');result[key]=value;}return result;
 }
 // The Node mirror of pwa_borrower_version_v2: the same jsonb text, so the same hash. R120 (V135) adds the two terms after
 // "note"; they are read through to_jsonb(b) and joined only when the columns exist, so the mirror equals the SQL function
 // on a database before V135 too (jsonb text orders keys itself, so the concatenation is the same text as one object).
-// R153 (V148) adds igGroupUrl after the terms the same way (absent before V148).
-const versionSql="encode(sha256(convert_to((jsonb_build_object('id',b.\"Row ID\",'createdDate',b.\"Creation Date\",'aiCollectionEnabled',b.\"AI Collection Enabled\","+Object.entries(borrowerFields).map(([key,column])=>`'${key}',b."${column}"`).join(',')+")||CASE WHEN to_jsonb(b)?'Referral Rebate Rate' THEN jsonb_build_object('referralRebateRate',to_jsonb(b)->'Referral Rebate Rate','referralRebateCap',to_jsonb(b)->'Referral Rebate Cap') ELSE '{}'::jsonb END||CASE WHEN to_jsonb(b)?'IG Group URL' THEN jsonb_build_object('igGroupUrl',to_jsonb(b)->'IG Group URL') ELSE '{}'::jsonb END)::text,'UTF8')),'hex')";
+// R153 (V148) adds igGroupUrl after the terms the same way (absent before V148), R154 (V149) igGroupInviteLink after it.
+const versionSql="encode(sha256(convert_to((jsonb_build_object('id',b.\"Row ID\",'createdDate',b.\"Creation Date\",'aiCollectionEnabled',b.\"AI Collection Enabled\","+Object.entries(borrowerFields).map(([key,column])=>`'${key}',b."${column}"`).join(',')+")||CASE WHEN to_jsonb(b)?'Referral Rebate Rate' THEN jsonb_build_object('referralRebateRate',to_jsonb(b)->'Referral Rebate Rate','referralRebateCap',to_jsonb(b)->'Referral Rebate Cap') ELSE '{}'::jsonb END||CASE WHEN to_jsonb(b)?'IG Group URL' THEN jsonb_build_object('igGroupUrl',to_jsonb(b)->'IG Group URL') ELSE '{}'::jsonb END||CASE WHEN to_jsonb(b)?'IG Group Invite Link' THEN jsonb_build_object('igGroupInviteLink',to_jsonb(b)->'IG Group Invite Link') ELSE '{}'::jsonb END)::text,'UTF8')),'hex')";
 // R120: whether referral_rebate_terms (V135) exists; a true answer is kept per client (a migration only adds it).
 const termsReady=new WeakMap();
 async function hasTermsFunction(client){
@@ -30,11 +31,11 @@ async function hasTermsFunction(client){
 const columns=Object.entries(borrowerFields).map(([key,column])=>`b."${column}" AS "${key}"`).join(',');
 const failure=(status,code,item)=>({ok:false,status,code,...(item?{item}:{})});
 export async function readBorrowerRecord(client,id,lock=false){
- const row=(await client.query(`SELECT b."Row ID" AS id,${columns},b."Creation Date"::text AS "createdDate",b."AI Collection Enabled" AS "aiCollectionEnabled",to_jsonb(b)?'Referral Rebate Rate' AS "termsPresent",(to_jsonb(b)->>'Referral Rebate Rate')::float8 AS "referralRebateRate",(to_jsonb(b)->>'Referral Rebate Cap')::float8 AS "referralRebateCap",to_jsonb(b)?'IG Group URL' AS "igPresent",to_jsonb(b)->>'IG Group URL' AS "igGroupUrl",${versionSql} AS version FROM public."Borrowers" b WHERE b."Row ID"=$1${lock?' FOR UPDATE':''}`,[id])).rows[0];
+ const row=(await client.query(`SELECT b."Row ID" AS id,${columns},b."Creation Date"::text AS "createdDate",b."AI Collection Enabled" AS "aiCollectionEnabled",to_jsonb(b)?'Referral Rebate Rate' AS "termsPresent",(to_jsonb(b)->>'Referral Rebate Rate')::float8 AS "referralRebateRate",(to_jsonb(b)->>'Referral Rebate Cap')::float8 AS "referralRebateCap",to_jsonb(b)?'IG Group URL' AS "igPresent",to_jsonb(b)?'IG Group Invite Link' AS "invitePresent",to_jsonb(b)->>'IG Group URL' AS "igGroupUrl",to_jsonb(b)->>'IG Group Invite Link' AS "igGroupInviteLink",${versionSql} AS version FROM public."Borrowers" b WHERE b."Row ID"=$1${lock?' FOR UPDATE':''}`,[id])).rows[0];
  if(!row)return null;
  // R120: before V135 the record has no terms (absent, not null), so a client never sends a term it could not show.
  // R153: the same for the group chat link before V148, so an edit never clears a link it could not show.
- const {termsPresent,igPresent,...record}=row;if(!termsPresent){delete record.referralRebateRate;delete record.referralRebateCap;}if(!igPresent)delete record.igGroupUrl;
+ const {termsPresent,igPresent,invitePresent,...record}=row;if(!termsPresent){delete record.referralRebateRate;delete record.referralRebateCap;}if(!igPresent)delete record.igGroupUrl;if(!invitePresent)delete record.igGroupInviteLink;
  const terms=termsPresent&&await hasTermsFunction(client);
 
  // R140 (V143): expensesOwedAmount and expensesOwedCount, the manual expenses pending payment whose payee is this borrower

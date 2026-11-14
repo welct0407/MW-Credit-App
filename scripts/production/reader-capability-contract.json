@@ -14,7 +14,8 @@
       "Borrower Note",
       "Description",
       "Total Interest Earned",
-      "IG Group URL"
+      "IG Group URL",
+      "IG Group Invite Link"
     ],
     "Partners": [
       "Row ID",

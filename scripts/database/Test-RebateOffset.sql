@@ -729,7 +729,8 @@ END $$;
 -- record nothing; the column check refuses a bad value written directly; the version hashes the link and equals the Node
 -- mirror (services/business/borrowers.mjs versionSql, pasted below).
 INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES ('RO-IGU','SYNTHETIC IG GROUP LINK');
-CREATE FUNCTION pg_temp.ro_ig_mirror(id text) RETURNS text LANGUAGE sql AS $f$ SELECT encode(sha256(convert_to((jsonb_build_object('id',b."Row ID",'createdDate',b."Creation Date",'aiCollectionEnabled',b."AI Collection Enabled",'name',b."Borrower Name",'description',b."Description",'communicationName',b."Communication Name",'instagramUsername',b."Instagram Username",'city',b."City",'workingLocation',b."Working Location",'address',b."Address",'hidden',b."Hidden Flag",'referrerId',b."Ref Referrer",'preferredReceivingAccountId',b."Ref Preferred Receiving Cash Account",'note',b."Borrower Note")||CASE WHEN to_jsonb(b)?'Referral Rebate Rate' THEN jsonb_build_object('referralRebateRate',to_jsonb(b)->'Referral Rebate Rate','referralRebateCap',to_jsonb(b)->'Referral Rebate Cap') ELSE '{}'::jsonb END||CASE WHEN to_jsonb(b)?'IG Group URL' THEN jsonb_build_object('igGroupUrl',to_jsonb(b)->'IG Group URL') ELSE '{}'::jsonb END)::text,'UTF8')),'hex') FROM public."Borrowers" b WHERE b."Row ID"=id $f$;
+-- The Node mirror as services/business/borrowers.mjs builds it now (R154 adds the invite link; the mirror is the current text).
+CREATE FUNCTION pg_temp.ro_ig_mirror(id text) RETURNS text LANGUAGE sql AS $f$ SELECT encode(sha256(convert_to((jsonb_build_object('id',b."Row ID",'createdDate',b."Creation Date",'aiCollectionEnabled',b."AI Collection Enabled",'name',b."Borrower Name",'description',b."Description",'communicationName',b."Communication Name",'instagramUsername',b."Instagram Username",'city',b."City",'workingLocation',b."Working Location",'address',b."Address",'hidden',b."Hidden Flag",'referrerId',b."Ref Referrer",'preferredReceivingAccountId',b."Ref Preferred Receiving Cash Account",'note',b."Borrower Note")||CASE WHEN to_jsonb(b)?'Referral Rebate Rate' THEN jsonb_build_object('referralRebateRate',to_jsonb(b)->'Referral Rebate Rate','referralRebateCap',to_jsonb(b)->'Referral Rebate Cap') ELSE '{}'::jsonb END||CASE WHEN to_jsonb(b)?'IG Group URL' THEN jsonb_build_object('igGroupUrl',to_jsonb(b)->'IG Group URL') ELSE '{}'::jsonb END||CASE WHEN to_jsonb(b)?'IG Group Invite Link' THEN jsonb_build_object('igGroupInviteLink',to_jsonb(b)->'IG Group Invite Link') ELSE '{}'::jsonb END)::text,'UTF8')),'hex') FROM public."Borrowers" b WHERE b."Row ID"=id $f$;
 SELECT set_config('ro.ig_v0',public.pwa_borrower_version_v2('RO-IGU'),true),
  set_config('ro.ig_set',pg_temp.ro_borrower('f4444444-4444-4444-8444-444444444441','RO-IGU',',"igGroupUrl":"https://www.instagram.com/direct/t/100000000000001/"'),true),
  set_config('ro.ig_bad',(SELECT string_agg(pg_temp.ro_borrower('f5555555-5555-4555-8555-5555555555'||lpad(n::text,2,'0'),'RO-IGU',x),E'\x1f' ORDER BY n) FROM (VALUES
@@ -794,6 +795,78 @@ DO $$ BEGIN
  BEGIN UPDATE public."Borrowers" SET "IG Group URL"='' WHERE "Row ID"='RO-IGU'; RAISE EXCEPTION 'FAILED: a blank link stored'; EXCEPTION WHEN check_violation THEN NULL; END;
  BEGIN UPDATE public."Borrowers" SET "IG Group URL"='https://ig.me/'||repeat('a',256) WHERE "Row ID"='RO-IGU'; RAISE EXCEPTION 'FAILED: a 256-character tail stored'; EXCEPTION WHEN check_violation THEN NULL; END;
  UPDATE public."Borrowers" SET "IG Group URL"='https://ig.me/'||repeat('a',255) WHERE "Row ID"='RO-IGU';
+END $$;
+-- 7. R154 V149: the borrower's Instagram group invite link ("IG Group Invite Link", input igGroupInviteLink right after
+-- igGroupUrl, https://ig.me/j/... only). Invented links only. As section 6: set, kept by an update without the key, written
+-- with the group link in canonical order, cleared by null, carried by a create; invalid values (an instagram.com link, http,
+-- an ig.me link that is not /j/, blank, a 256-character tail, a number) and a wrong key order are invalid canonical
+-- operations that record nothing; the column check refuses a bad value written directly; the version hashes the invite link
+-- and equals the Node mirror.
+INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES ('RO-IGI','SYNTHETIC IG INVITE');
+SELECT set_config('ro.inv_v0',public.pwa_borrower_version_v2('RO-IGI'),true),
+ set_config('ro.inv_set',pg_temp.ro_borrower('f7777777-7777-4777-8777-777777777771','RO-IGI',',"igGroupInviteLink":"https://ig.me/j/AbCdEfGh12345678/"'),true),
+ set_config('ro.inv_bad',(SELECT string_agg(pg_temp.ro_borrower('f8888888-8888-4888-8888-8888888888'||lpad(n::text,2,'0'),'RO-IGI',x),E'\x1f' ORDER BY n) FROM (VALUES
+   (1,',"igGroupInviteLink":"https://www.instagram.com/direct/t/100000000000001/"'),(2,',"igGroupInviteLink":"http://ig.me/j/AbCdEfGh12345678/"'),
+   (3,',"igGroupInviteLink":"https://ig.me/m/invented_user/"'),(4,',"igGroupInviteLink":""'),(5,',"igGroupInviteLink":"https://ig.me/j/'||repeat('a',256)||'"'),
+   (6,',"igGroupInviteLink":1'),(7,',"igGroupInviteLink":"https://user@ig.me/j/AbCdEfGh12345678/"'),(8,',"igGroupInviteLink":"https://ig.me/j/"'),
+   (9,',"igGroupInviteLink":"https://ig.me/j/AbCdEfGh12345678/","igGroupUrl":null'),(10,',"igGroupInviteLink":"https://ig.me/j/Ab Cd/"')) v(n,x)),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE r jsonb;c text;
+BEGIN
+ r:=public.pwa_submit_operation_v2(current_setting('ro.inv_set'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: the invite link through borrower.update must apply: %',r; END IF;
+ FOREACH c IN ARRAY string_to_array(current_setting('ro.inv_bad'),E'\x1f') LOOP
+  BEGIN PERFORM public.pwa_submit_operation_v2(c); RAISE EXCEPTION 'FAILED: invalid invite link input accepted: %',c;
+  EXCEPTION WHEN SQLSTATE '22023' THEN NULL; END;
+ END LOOP;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "IG Group Invite Link"='https://ig.me/j/AbCdEfGh12345678/' AND "IG Group URL" IS NULL FROM public."Borrowers" WHERE "Row ID"='RO-IGI'),'INV: borrower.update writes the invite link only');
+ PERFORM pg_temp.ro_assert((SELECT canonical_json LIKE '%"note":null,"igGroupInviteLink":"https://ig.me/j/AbCdEfGh12345678/"}}%' FROM public.pwa_payment_commands WHERE request_id='f7777777-7777-4777-8777-777777777771'),'INV: the canonical text has the invite link last, as a JSON string');
+ PERFORM pg_temp.ro_assert(public.pwa_borrower_version_v2('RO-IGI') IS DISTINCT FROM current_setting('ro.inv_v0'),'INV: the invite link is part of the borrower version');
+ PERFORM pg_temp.ro_assert(NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands WHERE request_id::text LIKE 'f8888888-%'),'INV: invalid invite link inputs record nothing');
+END $$;
+-- An update without the key keeps it; both links in canonical order (group link first).
+SELECT set_config('ro.inv_plain',pg_temp.ro_borrower('f7777777-7777-4777-8777-777777777772','RO-IGI',''),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ DECLARE r jsonb:=public.pwa_submit_operation_v2(current_setting('ro.inv_plain'));
+BEGIN IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: an update without the invite link must apply: %',r; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN PERFORM pg_temp.ro_assert((SELECT "IG Group Invite Link"='https://ig.me/j/AbCdEfGh12345678/' FROM public."Borrowers" WHERE "Row ID"='RO-IGI'),'INV: an update without the key keeps the invite link'); END $$;
+SELECT set_config('ro.inv_both',pg_temp.ro_borrower('f7777777-7777-4777-8777-777777777773','RO-IGI',',"igGroupUrl":"https://www.instagram.com/direct/t/100000000000003/","igGroupInviteLink":"https://ig.me/j/ZyXwVuTs98765432"'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ DECLARE r jsonb:=public.pwa_submit_operation_v2(current_setting('ro.inv_both'));
+BEGIN IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: both links must apply: %',r; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "IG Group URL"='https://www.instagram.com/direct/t/100000000000003/' AND "IG Group Invite Link"='https://ig.me/j/ZyXwVuTs98765432' FROM public."Borrowers" WHERE "Row ID"='RO-IGI'),'INV: both links are written');
+ PERFORM pg_temp.ro_assert(public.pwa_borrower_version_v2('RO-IGI')=pg_temp.ro_ig_mirror('RO-IGI'),'INV: the Node mirror equals pwa_borrower_version_v2 (both links set)');
+END $$;
+-- null clears; a create carries it; the versions equal the mirror.
+SELECT set_config('ro.inv_clear',pg_temp.ro_borrower('f7777777-7777-4777-8777-777777777774','RO-IGI',',"igGroupInviteLink":null'),true),
+ set_config('ro.inv_create','{"contractVersion":2,"requestId":"f7777777-7777-4777-8777-777777777775","actor":{"issuer":"https://ro.invalid","subject":"ro-owner","partnerId":"RO-ACT","loginEmail":"ro-actor@example.invalid"},"command":{"schemaVersion":1,"operation":"borrower.create","targetType":"borrower","targetId":"f9999999-9999-4999-8999-999999999991","expectedVersion":null,"predecessorRequestId":null,"inputs":{"name":"SYNTHETIC IG INVITE CREATE","description":null,"communicationName":null,"instagramUsername":null,"city":null,"workingLocation":null,"address":null,"hidden":false,"referrerId":null,"preferredReceivingAccountId":null,"note":null,"igGroupUrl":null,"igGroupInviteLink":"https://ig.me/j/AbCdEfGh12345678/"}},"receipt":null}',true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE r jsonb;
+BEGIN
+ r:=public.pwa_submit_operation_v2(current_setting('ro.inv_clear'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: null must clear the invite link: %',r; END IF;
+ r:=public.pwa_submit_operation_v2(current_setting('ro.inv_create'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: borrower.create with the invite link must apply: %',r; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "IG Group Invite Link" IS NULL AND "IG Group URL" IS NOT NULL FROM public."Borrowers" WHERE "Row ID"='RO-IGI'),'INV: null clears the invite link and keeps the group link');
+ PERFORM pg_temp.ro_assert((SELECT "IG Group Invite Link"='https://ig.me/j/AbCdEfGh12345678/' AND "IG Group URL" IS NULL FROM public."Borrowers" WHERE "Row ID"='f9999999-9999-4999-8999-999999999991'),'INV: borrower.create writes the invite link');
+ PERFORM pg_temp.ro_assert((SELECT bool_and(public.pwa_borrower_version_v2(id)=pg_temp.ro_ig_mirror(id)) FROM unnest(ARRAY['RO-IGI','f9999999-9999-4999-8999-999999999991','RO-IGU','RO-RTD']) id),'INV: the Node mirror equals pwa_borrower_version_v2 (cleared, created, group link, defaults)');
+ -- The column check refuses a bad value written directly; 255 characters after the prefix are stored, 256 are not.
+ BEGIN UPDATE public."Borrowers" SET "IG Group Invite Link"='https://www.instagram.com/direct/t/100000000000001/' WHERE "Row ID"='RO-IGI'; RAISE EXCEPTION 'FAILED: an instagram.com link stored as invite link'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN UPDATE public."Borrowers" SET "IG Group Invite Link"='http://ig.me/j/AbCdEfGh12345678/' WHERE "Row ID"='RO-IGI'; RAISE EXCEPTION 'FAILED: an http invite link stored'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN UPDATE public."Borrowers" SET "IG Group Invite Link"='' WHERE "Row ID"='RO-IGI'; RAISE EXCEPTION 'FAILED: a blank invite link stored'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN UPDATE public."Borrowers" SET "IG Group Invite Link"='https://ig.me/j/'||repeat('a',256) WHERE "Row ID"='RO-IGI'; RAISE EXCEPTION 'FAILED: a 256-character invite tail stored'; EXCEPTION WHEN check_violation THEN NULL; END;
+ UPDATE public."Borrowers" SET "IG Group Invite Link"='https://ig.me/j/'||repeat('a',255) WHERE "Row ID"='RO-IGI';
 END $$;
 SELECT 'Rebate offset regressions passed' AS result;
 ROLLBACK;

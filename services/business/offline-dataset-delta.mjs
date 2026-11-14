@@ -73,7 +73,9 @@ function domainVersion(fingerprints,actor,domain,businessDate){
  // v9 (R146): collection items carry chatSummaryAt and the detail the group chat summary; every bundle walks once.
  // v10 (R153): borrower records carry igGroupUrl (V148 changes every borrower version, not the xmin fingerprints) and
  // the group chat summaries their url; every bundle walks once.
- return deltaValueHash(['business-offline-v10',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
+ // v11 (R154): borrower records carry igGroupInviteLink (V149 changes every borrower version) and the group chat
+ // summaries their inviteUrl; every bundle walks once.
+ return deltaValueHash(['business-offline-v11',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
 }
 export async function readOfflineSourceVersion(client,actor,domain,businessDate){
  if(!offlineSourceTables[domain])throw Error('invalid_request');
