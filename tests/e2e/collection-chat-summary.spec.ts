@@ -62,10 +62,18 @@ test('list mark and card: hidden without a summary, everything shown without an 
  // The mark: a fresh summary this device has not shown. Not for a stale summary, none, or an older payload.
  for(const id of ['chat-a','chat-d']){await expect(tile(page,id).locator('strong .collection-chat-mark')).toHaveCount(1);await expect(tile(page,id).locator('.visually-hidden')).toHaveText(', New group chat summary')}
  for(const id of ['chat-b','chat-c','chat-e'])await expect(tile(page,id).locator('.collection-chat-mark')).toHaveCount(0);
- // R150 leaves the list mark's colour as it was.
- expect(await tile(page,'chat-a').locator('.collection-chat-mark').evaluate(node=>getComputedStyle(node).color)).toBe('rgb(85, 85, 85)');
+ // R157 (owner, 14 November 2026: "the new summary icon is not obvious enough"; Echo's variant B): a 22px blue circle with
+ // the chat icon in white, a heavier stroke; still hidden from readers (the visually hidden text names it).
+ expect(await tile(page,'chat-a').locator('.collection-chat-mark').evaluate(node=>{const s=getComputedStyle(node);return {background:s.backgroundColor,color:s.color,radius:s.borderTopLeftRadius,stroke:s.strokeWidth,padding:s.paddingTop}})).toEqual({background:'rgb(11, 87, 208)',color:'rgb(255, 255, 255)',radius:'50%',stroke:'2.5px',padding:'4px'});
+ // The mark does not make a tile taller: a short name with the mark is as tall as a short name without it.
+ {const [marked,plain]=await Promise.all([tile(page,'chat-d'),tile(page,'chat-b')].map(async locator=>(await locator.boundingBox())!.height));expect(Math.abs(marked-plain)).toBeLessThanOrEqual(1)}
+ // The badge is drawn whole: inside its tile, and no clipping ancestor cuts it.
+ {const mark=tile(page,'chat-d').locator('.collection-chat-mark'),box=(await mark.boundingBox())!,row=(await tile(page,'chat-d').boundingBox())!;
+  expect(box.y).toBeGreaterThanOrEqual(row.y);expect(box.y+box.height).toBeLessThanOrEqual(row.y+row.height);
+  // No ancestor that clips its overflow (up to the page) cuts the badge's box.
+  expect(await mark.evaluate(node=>{const own=node.getBoundingClientRect();for(let parent=node.parentElement;parent;parent=parent.parentElement){const style=getComputedStyle(parent);if(style.overflowX==='visible'&&style.overflowY==='visible')continue;const box=parent.getBoundingClientRect();if(own.top<box.top-0.5||own.bottom>box.bottom+0.5||own.left<box.left-0.5||own.right>box.right+0.5)return parent.className||parent.tagName}return 'none'})).toBe('none')}
  await expect(tile(page,'chat-a').locator('.collection-chat-mark')).toHaveAttribute('aria-hidden','true');
- {const mark=(await tile(page,'chat-a').locator('.collection-chat-mark').boundingBox())!;expect(Math.round(mark.width)).toBe(16);expect(Math.round(mark.height)).toBe(16);
+ {const mark=(await tile(page,'chat-a').locator('.collection-chat-mark').boundingBox())!;expect(Math.round(mark.width)).toBe(22);expect(Math.round(mark.height)).toBe(22);
   // The mark adds no column: it sits inside the name, within the tile's left part.
   const name=(await tile(page,'chat-a').locator('strong').boundingBox())!;expect(mark.x).toBeGreaterThanOrEqual(name.x-1);expect(mark.x+mark.width).toBeLessThanOrEqual(name.x+name.width+1);
   // UX-CHAT-06: the icon is glued to the name's last word (same line), whatever the width; the row keeps its height when the mark clears.
@@ -74,7 +82,7 @@ test('list mark and card: hidden without a summary, everything shown without an 
   // vowel or tone mark, and the whole name still reads unchanged.
   const thaiEnd=tile(page,'chat-f').locator('.collection-chat-name-end'),tail=(await thaiEnd.textContent())!;expect(tail).toMatch(/^[\u0E01-\u0E2E]/);expect(tail).not.toMatch(/^\p{M}/u);expect([...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(tail)].length).toBe(8);
   await expect(tile(page,'chat-f').locator('strong')).toHaveText('ผู้กู้ตัวอย่างชื่อยาวมากเป็นพิเศษสุดๆ');
-  const original=page.viewportSize()!;for(const width of [320,360,390,412,440,original.width]){await page.setViewportSize({width,height:original.height});const word=(await end.boundingBox())!,icon=(await tile(page,'chat-a').locator('.collection-chat-mark').boundingBox())!;expect(icon.y,'mark on the last word\'s line at '+width).toBeGreaterThanOrEqual(word.y-1);expect(icon.y+icon.height).toBeLessThanOrEqual(word.y+word.height+1);expect(word.height).toBeLessThan(40)}}
+  const original=page.viewportSize()!;for(const width of [320,360,390,412,440,original.width]){await page.setViewportSize({width,height:original.height});const word=(await end.boundingBox())!,icon=(await tile(page,'chat-a').locator('.collection-chat-mark').boundingBox())!;/* R157: the 22px circle is taller than the text box, so its centre (not its edges) lies on the last word's line. */const middle=icon.y+icon.height/2;expect(middle,'mark on the last word\'s line at '+width).toBeGreaterThanOrEqual(word.y);expect(middle).toBeLessThanOrEqual(word.y+word.height);expect(word.height).toBeLessThan(40)}}
  // No summary: no card, no placeholder.
  await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(card(page)).toHaveCount(0);await expect(page.getByRole('heading',{name:'Group chat summary'})).toHaveCount(0);
  if(!desktop)await back(page);
