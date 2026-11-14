@@ -42,17 +42,19 @@ No local wide browser suite beyond the collection specs above and no new unit te
 ## Recovery
 Git baseline `f6f4b3ba`. No SQL, data or service change: redeploy the previous Hosting version recorded in the environment inventory.
 
-## PROD promotion record (Forge, to be filled)
-Authority: the owner's request quoted in Purpose and "Yes, straight to PROD (Recommended)". Scope: PWA Hosting only; no SQL, backup, Terraform, service image or agent change.
+## PROD promotion record (Forge, 14 November 2026 UTC)
+Authority: the owner's request quoted in Purpose and "Yes, straight to PROD (Recommended)". Scope: PWA Hosting only; no SQL, backup, Terraform, service image or agent change. Freeze 19:54:12Z, package `c6fb7849` (merge of PR #330), baseline R159 `5b887d09`. `component-versions.mjs derive` at `c6fb7849`: only the PWA changed (R160); read, command, notify, jobs and chat stay R159, schema R154 at V149, agent R153. Both bundles were built from a clean export (git archive) of `c6fb7849` with its own `npm ci`.
 
 | Step | Result |
 | --- | --- |
-| Baseline | To fill: Hosting version before the deploy |
-| DEV | To fill: Hosting version, smoke |
-| Hosting | To fill: receipts, `--check`, `--apply`, version, build |
-| Smoke | To fill: origins, `sw.js` no-store, no ERROR logs |
-| Tag | To fill |
-| Closure | To fill |
+| Baseline | PROD Hosting `e4db27ab3089d925` (release `1794675395356000`, R158); services R159 (read `00063-hqc`, command `00068-dlr`, chat `00047-zrt`, notify `00031-mzf`, jobs `00031-dmq`, image `56f17745…`). DEV Hosting `bcf41b819de6acb0` (release `1794675091245000`, R158) |
+| DEV | `build:live-dev` with `MW_RELEASE_NUMBER=R160`; the env file was written from `mw-credit-app-dev-firebase-web` and the settings of the live DEV bundle (read, command and chat DEV origins, `dev-owner-testing`, notifications on; the bundle carries the DEV web app) and deleted after the build. `deploy-hosting.mjs --live-dev --check` (17 files) then apply 19:53:12Z to 19:53:21Z: version `77358df71286bbc4`, release `1794686001041000`, build R160 `67e2ff5fdbd2b34536eb416a`. Smoke: three origins R160, index and entry 200, `sw.js` no-store, the stylesheet carries `collection-tile-actions`, unauthenticated 401 |
+| Hosting | The generic runner, frontend-only, from `buildProductionBusinessCandidate` (R158's pinned public config, PROD origins and web app only). Receipts: `Development checks` run 43632954086 on `9630ec5b` (check, lint, 3 Chromium and 3 iPhone WebKit e2e), the terraform job of run 43567610544 and the database groups of run 43624874290 (no infrastructure or database input changed since). The SQL readback in the package is the last live one, R158's at 16:53:27Z (V149, clean): this session's sandbox refuses direct database connections, and no SQL ran since (R159 and R160 carry none). `--check` passed (18 files, services on their R159 pins); `--apply` 19:55:50Z to 19:56:28Z: version `13239bb8272ff153`, release `1794686180967000`, build R160 `5497f352d672def931339df5` |
+| Smoke | Three origins R160 (`lm.mw-credit.com`, `web.app`, `firebaseapp.com`), index and entry 200, `sw.js` no-store, the stylesheet carries `collection-tile-actions`; unauthenticated 401; the services' `/health` R159 `5b887d09` (unchanged); no ERROR logs on any PROD service after 19:50Z (checked 19:56:42Z) |
+| Tag | `R160` on `c6fb7849` (Release tag run [43634817133](https://github.com/welct0407/MW-Credit-App/actions/runs/43634817133), 19:56:48Z to 19:57:12Z; tag object `aa8a49c3…` peels to `c6fb7849`) |
+| Closure | Components: PWA R160; read, command, notify, jobs and chat R159; schema R154 at V149; agent R153. `render --write` updated the inventory block to R160 (`render --check` ok). Drift 19:58Z (`--env all`; notify and jobs facts from the R159 readback, unchanged since): 0 drift, 5 unverified (schema DEV and PROD, agent, Grafana, Metabase); PWA DEV and PROD match R160, every API service matches R159 `5b887d09`. No dictionary capture |
+
+Rollback: Hosting `e4db27ab3089d925` (R158; PROD) and `bcf41b819de6acb0` (DEV). No database or service step.
 
 Limitations: the owner checks on an iPhone that the list button opens the group for a borrower with an invite link.
 
