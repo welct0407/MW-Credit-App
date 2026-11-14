@@ -22,7 +22,7 @@ python3 project/scripts/dictionary/dictionary.py index
 python3 project/scripts/dictionary/dictionary.py validate
 ```
 
-`--only` takes `kind:name` (repeatable or comma-separated) and needs `--postgres-only`; a named object the capture lacks is refused. Run it against `production`, because the dictionary records `loan_manager_prod` only, and after a migration is applied to PROD. Evidence for the R103 run is in `project/outputs/dictionary-r103-20261028/`; the targeted R146, R149 and R153 runs left the sanitized observations their records cite in `project/outputs/dictionary-r146-20261113/`, `project/outputs/dictionary-r149-20261113/` and `project/outputs/dictionary-r153-20261113/`.
+`--only` takes `kind:name` (repeatable or comma-separated) and needs `--postgres-only`; a named object the capture lacks is refused. Run it against `production`, because the dictionary records `loan_manager_prod` only, and after a migration is applied to PROD. Evidence for the R103 run is in `project/outputs/dictionary-r103-20261028/`; the targeted R146, R149, R153 and R154 runs left the sanitized observations their records cite in `project/outputs/dictionary-r146-20261113/`, `project/outputs/dictionary-r149-20261113/`, `project/outputs/dictionary-r153-20261113/` and `project/outputs/dictionary-r154-20261114/`.
 
 ## Commands
 

@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r153-20261113/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r154-20261114/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "025e8a510534acf556a140898bb69d12ad9b4fe5"
+    "commit": "2fc76d31ed592244afee120191d5692c8265fc4f"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/borrowers.yaml"
     "identity":
       "system": "postgresql"
@@ -533,6 +533,26 @@
       "comment": "R153: link to this borrower's Instagram group chat (https://instagram.com/direct/..., https://www.instagram.com/direct/...\
         \ or https://ig.me/...), set by the owner; shown as Open chat on the collection group chat summary card. Null = no\
         \ link. Display only."
+    "IG Group Invite Link":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "IG Group Invite Link"
+      "ordinal": 28
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R154: invite link of this borrower's Instagram group chat (https://ig.me/j/...), set by the owner; the collection\
+        \ group chat summary card opens it on a phone (it opens the group in the Instagram app). Anyone holding it can join\
+        \ the group; reset it in Instagram if it leaks. Null = none. Display only."
   "constraints":
     "Borrowers_Payment Request Cash Account_fkey":
       "schema": "public"
@@ -635,6 +655,23 @@
       "column_numbers":
       - 20
       - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "borrowers_ig_group_invite_link_check":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "borrowers_ig_group_invite_link_check"
+      "kind": "c"
+      "definition": "CHECK (\"IG Group Invite Link\" IS NULL OR \"IG Group Invite Link\" ~ '^https://ig\\.me/j/[A-Za-z0-9._~%/?=&+-]{1,255}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 28
       "referenced_column_numbers": null
       "referenced_relation": null
       "update_action": " "
@@ -1121,5 +1158,5 @@
   "/content/columns/Borrower Name/business_rule":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/0fdf49a4458ee368adced58de3656e291df64192/services/business/borrowers.mjs"
     "reason": "Owner decision 17 October 2026: borrower name mandatory (W5, source 0fdf49a); behaviour rule only, no schema\
-      \ change. Kept across the R153 PROD recapture (the capture holds catalog metadata only)."
+      \ change. Kept across the R154 PROD recapture (the capture holds catalog metadata only)."
     "state": "value"
