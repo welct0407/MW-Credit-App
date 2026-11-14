@@ -5,14 +5,17 @@ import {createNotificationDispatcher} from '../../services/notifications/dispatc
 import {createCanonicalJobRunner} from '../../services/jobs/runner.mjs';
 import {notificationHandler} from '../../services/notifications/handler.mjs';
 import {withOfflineReadSlot,offlineReadClient} from '../../services/api/offline-read-slot.mjs';
-test('offline bundles share one pool reservation and cancel queued work before database access',async()=>{
+test('offline bundles share the light lane of their pool and cancel queued work before database access',async()=>{
  const pool={},events=[],abort=new AbortController();let release;
- const first=withOfflineReadSlot(pool,undefined,async()=>{events.push('first');await new Promise(resolve=>{release=resolve})});
+ const held=new Promise(resolve=>{release=resolve});
+ // R159: the light lane runs two reads; a third waits.
+ const first=withOfflineReadSlot(pool,undefined,async()=>{events.push('first');await held});
+ const other=withOfflineReadSlot(pool,undefined,async()=>{events.push('other');await held});
  await Promise.resolve();
  const second=withOfflineReadSlot(pool,abort.signal,async()=>events.push('cancelled'));
  const rejection=assert.rejects(second,/cancelled/);abort.abort();await rejection;
  const third=withOfflineReadSlot(pool,undefined,async()=>events.push('third'));
- assert.deepEqual(events,['first']);release();await Promise.all([first,third]);assert.deepEqual(events,['first','third']);
+ assert.deepEqual(events,['first','other']);release();await Promise.all([first,other,third]);assert.deepEqual(events,['first','other','third']);
  let calls=0;const client=offlineReadClient({query:async()=>{calls++;return {rows:[]}}},abort.signal);
  await assert.rejects(client.query('SELECT 1'),/cancelled/);assert.equal(calls,0);
 });
