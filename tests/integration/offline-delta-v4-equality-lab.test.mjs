@@ -78,7 +78,21 @@ test('a client holding the previous bundle ends equal to a fresh full walk after
    await q(`INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES ('CI-LISA',$1,$2,current_date-10,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false)`,[loan,borrower]);
    for(const day of [3,2,1])await q(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES ($1,$2,current_date-$3::int,30::money,5::money)`,[`EQ-CH-${loan}-${day}`,loan,day]);
   }
+  // R159: a closing payment embeds the referral rebates of its loan (closeRebates: state, settlement, offset, the payee's
+  // owed total, referrer labels). Referrer R refers X and Y; X's loan is closed with a V3 rebate to R. Closing a loan and
+  // its rebate are a data fixture here (replica mode, still logged), not the close command.
+  const R='EQ-RR-'+id,X='EQ-RX-'+id,Y='EQ-RY-'+id,LX='EQ-RLX-'+id,LY='EQ-RLY-'+id,PX='EQ-RPX-'+id,PY='EQ-RPY-'+id,PO='EQ-RPO-'+id,E1='EQ-RE1-'+id,E2='EQ-RE2-'+id,ST=randomUUID();
+  const replica=async work=>{await q('BEGIN');await q('SET LOCAL session_replication_role=replica');try{await work();await q('COMMIT')}catch(error){await q('ROLLBACK');throw error}};
+  const closingPayment=(payment,borrower,amount)=>q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processed',$2,$3::numeric::money,current_date,'Loan Close')`,[payment,borrower,amount]);
+  const rebate=(expense,loan,amount,referred)=>q(`INSERT INTO "Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Ref Payee Borrower","Ref Related Loan","Ref Related Borrower","Source Key","Rebate Rate","Rebate Cap","Source Type","Rule Version","Allocation Basis","Partner A Share","Partner B Share","Partner A Expense","Partner B Expense") VALUES ($1,current_date,'Referral Rebate',$2::numeric::money,$3,$4,$5,'REFERRAL_REBATE:'||$4,0.1,100,'Referral Rebate','REFERRAL_REBATE_V3','Equal',0.5,0.5,$2::numeric::money,0::money)`,[expense,amount,R,loan,referred]);
+  await replica(async()=>{
+   for(const [borrower,name] of [[R,'Romeo'],[X,'Xray'],[Y,'Yankee']])await q(`INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES ($1,$2)`,[borrower,name+' '+id]);
+   await q(`UPDATE "Borrowers" SET "Ref Referrer"=$1 WHERE "Row ID"=ANY($2)`,[R,[X,Y]]);
+   for(const [loan,borrower] of [[LX,X],[LY,Y]])await q(`INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES ('CI-LISA',$1,$2,current_date-10,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false)`,[loan,borrower]);
+   await closingPayment(PX,X,100);await q(`UPDATE "Loans" SET "Ref Closing Payment"=$1 WHERE "Row ID"=$2`,[PX,LX]);await rebate(E1,LX,10,X);
+  });
   let state=await walk(client);
+  assert.ok(state.data.payments.find(payment=>payment.id===PX)?.closeRebates?.length,'the closing payment carries its rebate');
   const scenarios=[
    ['payment on A',async()=>q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,50::money,current_date,'Lump Sum')`,['EQ-PAY1-'+id,A])],
    ['rename referrer A (C refers to A)',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Alpha renamed '||$2 WHERE "Row ID"=$1`,[A,id])],
@@ -105,6 +119,13 @@ test('a client holding the previous bundle ends equal to a fresh full walk after
    ['repayment on A paid via payment of B',async()=>q(`INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Ref Payment","Payment Date","Principal Paid","Interest Paid") VALUES ($1,$2,$3,$4,current_date,1::money,1::money)`,['EQ-R2-'+id,LA,`EQ-CH-${LA}-3`,'EQ-PAY1-'+id])],
    ['direct repayment row on B charge',async()=>q(`INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Payment Date","Principal Paid","Interest Paid") VALUES ($1,$2,$3,current_date,1::money,1::money)`,['EQ-R-'+id,LA,`EQ-CH-${LA}-2`])],
    ['repayment on A with payment of B (repair under replica mode)',async()=>{await q('BEGIN');await q('SET LOCAL session_replication_role=replica');await q(`INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Ref Payment","Payment Date","Principal Paid","Interest Paid") VALUES ($1,$2,$3,$4,current_date,1::money,1::money)`,['EQ-R3-'+id,LA,`EQ-CH-${LA}-3`,'EQ-PAY1-'+id]);await q('COMMIT')}],
+   // R159: each change below leaves an earlier closing payment's closeRebates stale unless the delta re-reads it.
+   ['second referred loan of R closes (new rebate, owed total of R)',async()=>replica(async()=>{await closingPayment(PY,Y,100);await q(`UPDATE "Loans" SET "Ref Closing Payment"=$1 WHERE "Row ID"=$2`,[PY,LY]);await rebate(E2,LY,7,Y)})],
+   ['rebate of X settled',async()=>replica(async()=>{await q(`INSERT INTO pwa_rebate_settlements(id,payee_borrower_id,settlement_date,amount,paid_by_cash_holder,paid_by_cash_account,payment_method,created_by) VALUES ($1,$2,current_date,10,'ch:lisa','CI-LISA','Cash','lab')`,[ST,R]);await q(`UPDATE "Business Expenses" SET "Ref Rebate Settlement"=$1 WHERE "Row ID"=$2`,[ST,E1])})],
+   ['rebate of Y offset by a payment of R',async()=>replica(async()=>{await closingPayment(PO,R,3);await q(`UPDATE "Business Expenses" SET "Ref Offset Payment"=$1 WHERE "Row ID"=$2`,[PO,E2])})],
+   ['rename referrer R (named by closing payments)',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Romeo renamed '||$2 WHERE "Row ID"=$1`,[R,id])],
+   ['offset payment amount changed',async()=>replica(()=>q(`UPDATE "Payments" SET "Amount Received"=4::money WHERE "Row ID"=$1`,[PO]))],
+   ['settlement of the rebate of X removed',async()=>replica(async()=>{await q(`UPDATE "Business Expenses" SET "Ref Rebate Settlement"=NULL WHERE "Row ID"=$1`,[E1]);await q(`DELETE FROM pwa_rebate_settlements WHERE id=$1`,[ST])})],
    ['Daily Analytics refreshed (dashboard)',async()=>q('SELECT refresh_daily_analytics(current_date-1,current_date)')],
    ['TRUNCATE Daily Analytics (marker, dashboard re-read)',async()=>q('TRUNCATE "Daily Analytics"')],
    ['cash account label (expect walk)',async()=>q(`UPDATE "Cash Accounts" SET "Account Label"='Renamed '||$2 WHERE "Row ID"=$1`,['CI-DAD',id])],

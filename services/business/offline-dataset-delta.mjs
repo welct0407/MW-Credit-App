@@ -76,6 +76,21 @@ export const shapedVersion=hash=>hash.slice(0,56)+SHAPE_STAMP;
  * the current shape. null is a bundle holding own writes applied locally (the client then sends no version); it keeps
  * the delta it had, and a reconciliation heals a bundle that was also of an earlier shape. */
 export const acceptsRowDelta=sourceVersion=>sourceVersion===null||typeof sourceVersion==='string'&&sourceVersion.length===64&&sourceVersion.endsWith(SHAPE_STAMP);
+/** R159: the read lane of an offline dataset request (services/api/offline-read-slot.mjs). 'reconcile' for a
+ * reconciliation; 'walk' for a protocol 2 chunk, a continuing traversal, a bundle of an earlier shape or no bundle (each
+ * certainly walks); otherwise 'light' (an unchanged check, a delta, a day change, or the first chunk of a walk the server
+ * only finds after its version check). Never throws: an invalid request is 'light' and the read answers 400.
+ * @param {unknown} protocol
+ * @param {unknown} input
+ * @returns {'light'|'walk'|'reconcile'} */
+export function offlineReadLane(protocol,input){
+ if(protocol===2)return 'walk';
+ if(protocol!==3)return 'light';
+ let request;try{request=readDeltaRequest(input)}catch{return 'light'}
+ if(request.reconcile)return 'reconcile';
+ if(request.cursor!==null||!acceptsRowDelta(request.sourceVersion)||request.sourceVersion===null&&request.since===null)return 'walk';
+ return 'light';
+}
 function domainVersion(fingerprints,actor,domain,businessDate){
  const rows=offlineSourceTables[domain].filter(relation=>fingerprints.has(relation)).map(relation=>({relation,fingerprint:fingerprints.get(relation)})).sort((a,b)=>a.relation<b.relation?-1:a.relation>b.relation?1:0);
  // v4 (R078): per-domain table sets and the (key, xmin) aggregate. Installed clients see one

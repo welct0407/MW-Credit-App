@@ -1,10 +1,10 @@
-import {logUnavailable} from '../lib/log.mjs';
+import {log,logUnavailable} from '../lib/log.mjs';
 import {BUSINESS_TODAY_QUERY} from '../lib/business-date.mjs';
 import {WAKE_MS} from '../notifications/postcommit.mjs';
 import {offlineDomains} from '../business/offline-dataset.mjs';
 import {readOfflineDatasetChunk} from '../business/offline-dataset-chunks.mjs';
-import {readOfflineDatasetDelta} from '../business/offline-dataset-delta.mjs';
-import {withOfflineReadSlot,offlineReadClient} from '../api/offline-read-slot.mjs';
+import {readOfflineDatasetDelta,offlineReadLane} from '../business/offline-dataset-delta.mjs';
+import {withOfflineReadSlot,offlineReadClient,OFFLINE_READ_WAIT_LOG_MS} from '../api/offline-read-slot.mjs';
 import {closeSummary} from './close-summary.mjs';
 import {readManagementPosition,readCashWithdrawal} from '../business/management-position.mjs';
 import {readManagementAnalytics,readAnalyticsOverview,readAnalyticsChart} from '../business/management-analytics.mjs';
@@ -225,7 +225,11 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       if(!ownerTesting)return failure(403,'access_denied');
       if(!principalAllowed(principal))return failure(403,'access_denied');
       if(!offlineDomains.includes(domain)||![2,3].includes(options.protocol))return failure(400,'invalid_request');
-      try{return await withOfflineReadSlot(pool,signal,()=>run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===3?await readOfflineDatasetDelta(offlineReadClient(client,signal),actor,domain,options.input):await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true))}catch(error){logUnavailable('offline_dataset_unavailable',error,{domain,protocol:options.protocol});return failure(503,'command_unavailable')}
+      // R159: a reconciliation never queues and never runs while a walk runs or waits on this instance; the client
+      // takes the 503 as a failed pass and retries later (RECONCILE_RETRY_MS).
+      const lane=offlineReadLane(options.protocol,options.input),slot=lane==='reconcile'?{lane,wait:false,unless:['walk']}:{lane};
+      try{return await withOfflineReadSlot(pool,signal,({waitMs})=>{if(waitMs>=OFFLINE_READ_WAIT_LOG_MS)log('INFO','offline_read_wait',{lane,waitMs,domain});return run(principal,async(client,actor)=>{try{return {ok:true,value:options.protocol===3?await readOfflineDatasetDelta(offlineReadClient(client,signal),actor,domain,options.input):await readOfflineDatasetChunk(offlineReadClient(client,signal),actor,domain,options.cursor??null)}}catch(error){if(error.message==='dataset_changed')return failure(409,'dataset_changed');if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true)},slot)}
+      catch(error){if(error.message==='offline_read_busy'){log('INFO','offline_reconcile',{domain,result:'busy'});return failure(503,'command_unavailable')}logUnavailable('offline_dataset_unavailable',error,{domain,protocol:options.protocol});return failure(503,'command_unavailable')}
     },
     async management(principal,kind,options){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{const value=kind==='cash-position'?await readManagementPosition(client):kind==='cash-withdrawal'?await readCashWithdrawal(client,options):kind==='analytics-overview'?await readAnalyticsOverview(client):kind==='analytics-chart'?await readAnalyticsChart(client,options):kind==='analytics-validation'?await readManagementAnalytics(client,options):kind==='assessments'?await readManagementAssessments(client,options):kind==='openings'?await readManagementOpenings(client,options):await (['contributions','settlements','cash-movements'].includes(kind)?readManagementFinancial:readManagement)(client,kind,options);return options?.id&&!value.item?failure(404,'not_found'):{ok:true,value}},true)},
     async upcoming(principal,options={}){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>{try{return {ok:true,value:await readStandaloneUpcoming(client,options)}}catch(error){if(error.message==='business_date_changed')return failure(409,'business_date_changed');throw error}},true)},

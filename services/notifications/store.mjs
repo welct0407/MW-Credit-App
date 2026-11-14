@@ -1,5 +1,6 @@
 import {validateSubscription} from './web-push.mjs';
-import {withOfflineReadSlot,offlineReadClient} from '../api/offline-read-slot.mjs';
+import {withOfflineReadSlot,offlineReadClient,OFFLINE_READ_WAIT_LOG_MS} from '../api/offline-read-slot.mjs';
+import {log} from '../lib/log.mjs';
 import {readTraversalCursor,encodeTraversalCursor} from '../api/offline-dataset-cursor.mjs';
 import {readDeltaRequest,encodeDeltaChunk} from '../api/offline-dataset-delta.mjs';
 import {isUuidAny as uuid} from '../lib/ids.mjs';
@@ -26,7 +27,8 @@ export function createNotificationStore({pool,guardConnection,resolveActor,issue
   catch(e){try{await c.query('ROLLBACK');healthy=true}catch{}throw e;}finally{c.release(!healthy);}
  }
  return{
-  offlineDataset:(p,signal,options={})=>withOfflineReadSlot(pool,signal,()=>run(p,async(c,a)=>{
+  // R159: notification bundles are short reads (light lane).
+  offlineDataset:(p,signal,options={})=>withOfflineReadSlot(pool,signal,({waitMs})=>{if(waitMs>=OFFLINE_READ_WAIT_LOG_MS)log('INFO','offline_read_wait',{lane:'light',waitMs,domain:'notifications'});return run(p,async(c,a)=>{
    c=offlineReadClient(c,signal);
    const stamp=(await c.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];
    if(options.protocol===2||options.protocol===3){ // Protocol 1 is retired.
@@ -46,7 +48,7 @@ export function createNotificationStore({pool,guardConnection,resolveActor,issue
     return delta?encodeDeltaChunk({...chunk,sourceVersion:null},delta.need):chunk;
    }
    throw Error('invalid_request');
-  },true)),
+  },true)},{lane:'light'}),
   subscribe:(p,input)=>run(p,async(c,a)=>{validateSubscription(input);return(await c.query('SELECT public.pwa_notify_subscribe_v1($1::jsonb,$2::jsonb) AS value',[a,input])).rows[0].value;}),
   revoke:(p,id)=>run(p,async(c,a)=>{if(!uuid(id))throw Error('invalid_request');await c.query('SELECT public.pwa_notify_revoke_v1($1::jsonb,$2::uuid)',[a,id]);return{ok:true};}),
   preference:(p,enabled)=>run(p,async(c,a)=>{if(typeof enabled!=='boolean')throw Error('invalid_request');await c.query('SELECT public.pwa_notify_preference_v1($1::jsonb,$2::boolean)',[a,enabled]);return{enabled};}),

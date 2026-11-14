@@ -314,6 +314,9 @@ async function allPages(read){const items=[];let cursor=null,first=null;for(let 
  * - payment detail: borrower name, version over the borrower's loans/charges/repayments, allocations, ledger,
  *   revision head -> payments of affected borrowers; allocation loan labels name the charge's borrower ->
  *   payments allocated to charges of affected loans; account labels -> walk.
+ *   closeRebates (R159: rebate state, settlement, offset, owed total, referrer labels) -> closing payments of the
+ *   loans of affected borrowers, of the related loans of changed rebate expenses and of the rebates whose payee is an
+ *   affected borrower or a changed expense's payee (pwa_rebate_settlements is immutable, not a source table).
  * - expense detail: payee/related borrower labels, related loan fields -> expenses referencing affected
  *   borrowers/loans; account/holder labels -> walk.
  * - loanRelated payments include other borrowers' payments targeting or repaying the loan -> loans targeted or
@@ -332,8 +335,13 @@ export async function readRecordsTargeted(client,actor,stamp,{borrowers,payments
  const ids=async(sql,params)=>sortIds((await client.query(sql,params)).rows.map(row=>row.id));
  const loans=B.length?await ids('SELECT "Row ID" AS id FROM public."Loans" WHERE "Ref Borrowers"=ANY($1::text[])',[B]):[];within(loans.length,TARGETED_LIMITS.loans);
  const charges=loans.length?await ids('SELECT "Row ID" AS id FROM public."Charges" WHERE "Ref Loans"=ANY($1::text[])',[loans]):[];within(charges.length,TARGETED_LIMITS.charges);
- const paymentIds=sortIds([...payments,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Payments" WHERE "Ref Borrower"=ANY($1::text[])',[B]):[]),
+ const basePaymentIds=sortIds([...payments,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Payments" WHERE "Ref Borrower"=ANY($1::text[])',[B]):[]),
   ...(loans.length?await ids('SELECT DISTINCT a."Ref Payment" AS id FROM public."Payment Allocations" a JOIN public."Charges" c ON c."Row ID"=a."Ref Charge" WHERE c."Ref Loans"=ANY($1::text[]) AND a."Ref Payment" IS NOT NULL',[loans]):[])]);
+ within(basePaymentIds.length,TARGETED_LIMITS.payments);
+ // R159: the closing payments whose closeRebates embed changed rebate data: those of the affected borrowers' loans, of
+ // the related loan of a changed rebate expense, and of every rebate whose payee is affected or a changed expense's payee.
+ const rebatePayees=sortIds([...B,...(expenses.length?await ids('SELECT "Ref Payee Borrower" AS id FROM public."Business Expenses" WHERE "Row ID"=ANY($1::text[]) AND "Ref Payee Borrower" IS NOT NULL',[expenses]):[])]);
+ const paymentIds=sortIds([...basePaymentIds,...(loans.length||expenses.length||rebatePayees.length?await ids(`SELECT DISTINCT l."Ref Closing Payment" AS id FROM public."Loans" l LEFT JOIN public."Business Expenses" e ON e."Ref Related Loan"=l."Row ID" AND e."Source Type"='Referral Rebate' WHERE l."Ref Closing Payment" IS NOT NULL AND (l."Row ID"=ANY($1::text[]) OR e."Row ID"=ANY($2::text[]) OR e."Ref Payee Borrower"=ANY($3::text[]))`,[loans,expenses,rebatePayees]):[])]);
  within(paymentIds.length,TARGETED_LIMITS.payments);
  // R155: also the current referrers of the scoped borrowers (isReferrer and the rebates owed follow the link) and the
  // payees of the changed expenses (expensesOwedAmount and the rebates owed follow the expense), detail rows only.
@@ -341,7 +349,8 @@ export async function readRecordsTargeted(client,actor,stamp,{borrowers,payments
   ...(B.length?await ids('SELECT "Ref Referrer" AS id FROM public."Borrowers" WHERE "Row ID"=ANY($1::text[]) AND "Ref Referrer" IS NOT NULL',[B]):[]),
   ...(expenses.length?await ids('SELECT "Ref Payee Borrower" AS id FROM public."Business Expenses" WHERE "Row ID"=ANY($1::text[]) AND "Ref Payee Borrower" IS NOT NULL',[expenses]):[])]);within(borrowerIds.length,TARGETED_LIMITS.borrowers*8);
  const expenseIds=sortIds([...expenses,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Business Expenses" WHERE "Ref Related Borrower"=ANY($1::text[]) OR "Ref Payee Borrower"=ANY($1::text[]) OR "Ref Related Loan"=ANY($2::text[])',[B,loans]):[])]);within(expenseIds.length,TARGETED_LIMITS.expenses);
- const relatedLoans=sortIds([...loans,...(paymentIds.length?await ids('SELECT "Ref Target Loan" AS id FROM public."Payments" WHERE "Row ID"=ANY($1::text[]) AND "Ref Target Loan" IS NOT NULL UNION SELECT c."Ref Loans" AS id FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=ANY($1::text[]) AND c."Ref Loans" IS NOT NULL',[paymentIds]):[])]);within(relatedLoans.length,TARGETED_LIMITS.loans);
+ // loanRelated carries no rebate data: the loans of the payments above, before the rebate closing payments.
+ const relatedLoans=sortIds([...loans,...(basePaymentIds.length?await ids('SELECT "Ref Target Loan" AS id FROM public."Payments" WHERE "Row ID"=ANY($1::text[]) AND "Ref Target Loan" IS NOT NULL UNION SELECT c."Ref Loans" AS id FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=ANY($1::text[]) AND c."Ref Loans" IS NOT NULL',[basePaymentIds]):[])]);within(relatedLoans.length,TARGETED_LIMITS.loans);
  const details=async(key,read,list)=>detailRows(client,stamp,key,read,list,count=>within(values+count>cap?Number.POSITIVE_INFINITY:0,0));
  patches.push(...await details('borrowers',readBorrowerRecord,borrowerIds),...await details('loans',readLoanRecord,loans),...await details('charges',readChargeRecord,charges),...await details('payments',readPaymentRecord,paymentIds),...await details('expenses',readExpenseRecord,expenseIds));
  if(B.length){

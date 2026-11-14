@@ -5,8 +5,11 @@ const defaultModules=()=>Promise.all([import('@google-cloud/cloud-sql-connector'
  * IAM-authenticated Cloud SQL pool with the request budget (lib/budget.mjs).
  * Modules are imported only after the caller has validated its configuration.
  * Callers with a longer budget (scheduled jobs) pass explicit millisecond overrides.
- * The command service (offline dataset walks plus writes) keeps 4 connections; every
+ * The command service (offline dataset walks plus writes) keeps 6 connections; every
  * other service keeps 2, within the shared Cloud SQL max_connections budget.
+ * R159: the offline read lanes (api/offline-read-slot.mjs) hold at most 4 command connections and an instance serves
+ * at most 5 requests (Cloud Run containerConcurrency), so pages and commands never wait for a connection; two
+ * instances per environment hold at most 12 of max_connections=200.
  * R078: the command service keeps idle connections for 10 minutes (others 30 s) so a 30-second
  * dataset poll does not open a new IAM connector connection per request. Limits checked: the
  * instance sets no idle_session_timeout (flags: cloudsql.iam_authentication, max_connections);
@@ -17,7 +20,7 @@ const defaultModules=()=>Promise.all([import('@google-cloud/cloud-sql-connector'
  * @param {{instance:string,dbUser:string,database:string,serviceRole?:string,max?:number,connectMs?:number,statementMs?:number,queryMs?:number}} options
  * @param {() => Promise<{connector:any,pg:any}>} [loadModules]
  */
-export async function createIamPool({instance,dbUser,database,serviceRole,max=serviceRole==='command'?4:2,connectMs=BUDGET.connectMs,statementMs=BUDGET.statementMs[serviceRole],queryMs=BUDGET.queryMs[serviceRole]},loadModules=defaultModules) {
+export async function createIamPool({instance,dbUser,database,serviceRole,max=serviceRole==='command'?6:2,connectMs=BUDGET.connectMs,statementMs=BUDGET.statementMs[serviceRole],queryMs=BUDGET.queryMs[serviceRole]},loadModules=defaultModules) {
   if(!Number.isSafeInteger(statementMs)||!Number.isSafeInteger(queryMs)||queryMs<=statementMs)throw Error('Invalid database budget');
   const {connector:{Connector,AuthTypes,IpAddressTypes},pg}=await loadModules();
   const connector=new Connector();
