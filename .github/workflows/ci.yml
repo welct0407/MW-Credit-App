@@ -79,7 +79,7 @@ jobs:
           grep -E '^project/scripts/monitoring/' changed.txt | grep -Ev '^project/scripts/monitoring/grafana-mcp-bridge/|\.md$' >> app.txt || true
           app=false; e2e=false; terraform=false
           if [ -s app.txt ]; then app=true; fi
-          if grep -Eq '^(apps/pwa/|tests/e2e/|playwright\.config\.ts$|package(-lock)?\.json$|vite\.config\.ts$|tsconfig\.json$|index\.html$|\.nvmrc$|\.github/workflows/ci\.yml$)' app.txt; then e2e=true; fi
+          if grep -Eq '^(apps/pwa/|tests/e2e/|services/lib/offline-dataset-digest\.(mjs|d\.mts)$|services/api/(read-access|synthetic-read-adapter)\.(mjs|d\.mts)$|playwright\.config\.ts$|package(-lock)?\.json$|vite\.config\.ts$|tsconfig\.json$|index\.html$|\.nvmrc$|\.github/workflows/ci\.yml$)' app.txt; then e2e=true; fi
           if grep -Eq '^(infrastructure/|\.github/workflows/ci\.yml$)' app.txt; then terraform=true; fi
           echo "app=$app" >> "$GITHUB_OUTPUT"; echo "e2e=$e2e" >> "$GITHUB_OUTPUT"; echo "terraform=$terraform" >> "$GITHUB_OUTPUT"
           printf 'changed=%s app=%s e2e=%s terraform=%s\n' "$(wc -l < changed.txt)" "$app" "$e2e" "$terraform"

@@ -279,6 +279,21 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     if(!row?.value?.notePredecessor||row.sync?.leaseOwner!==owner||row.sync.attempted!==false||command?.operation!=='borrower.update'||command.requestId!==id||JSON.stringify({...prior,expectedVersion:command.expectedVersion})!==JSON.stringify(command)){done(false);return;}
     const value={...row.value,command};delete value.notePredecessor;store.put({...row,value,identity:JSON.stringify(value)});done(true)}});
   },
+  /** R156 D2: removes a saved change and every later note change chained to it (notePredecessor), in one transaction.
+   * Refused ('leased') while it or a dependant is being sent under another active lease; 'missing' when it is gone.
+   * Bumps the read revision and announces mw-offline-saved and mw-read-invalidated (never mw-offline-synced: nothing
+   * was applied). The caller (offline-sync.ts discardSavedRequest) first checks a sent request with the server. */
+  async discardPending(id:string):Promise<{result:'removed'|'leased'|'missing';removed:string[]}>{
+   let removed:string[]=[];
+   const result=await transaction<'removed'|'leased'|'missing'>('readwrite',(store,done)=>{const request=store.getAll(kindRange('pending'));request.onsuccess=()=>{
+    const rows=request.result as Saved<any>[],requestId=(row:Saved<any>)=>row.key.slice('pending:'.length);
+    if(!rows.some(row=>requestId(row)===id)){done('missing');return}
+    const ids=new Set([id]);for(let grew=true;grew;){grew=false;for(const row of rows){const predecessor=row.value?.notePredecessor?.requestId;if(typeof predecessor==='string'&&ids.has(predecessor)&&!ids.has(requestId(row))){ids.add(requestId(row));grew=true}}}
+    if(rows.some(row=>ids.has(requestId(row))&&row.sync?.state==='syncing'&&(row.sync?.leaseUntil??0)>Date.now())){done('leased');return}
+    for(const value of ids)store.delete('pending:'+value);bumpReadRevision(store);removed=[...ids];done('removed')}});
+   if(result==='removed'){for(const value of removed)imageCopies.delete(value);changed();readsInvalidated()}
+   return {result,removed};
+  },
   async settlePending(id:string,owner:string,sync:PendingSync|null){
    const image=sync===null?null:await pendingImageCopy(id);imageCopies.delete(id);
    let deferred=false;await transaction<void>('readwrite',(store,done)=>{const request=store.get('pending:'+id);request.onsuccess=()=>{const row=request.result as Saved<any>|undefined;if(row?.sync?.leaseOwner===owner){deferred=row.sync.deferred===true;if(sync===null){store.delete(row.key);bumpReadRevision(store)}else store.put(withImageCopy({...row,sync:{...sync,deferred:true}},image));}done()}});changed();if(sync===null){if(deferred)window.dispatchEvent(new CustomEvent('mw-offline-synced',{detail:{id}}));readsInvalidated()}

@@ -6,6 +6,7 @@ import {releaseNumber} from './release';
 import {readRunningBuildVersion} from './build-version';
 import {releaseLabel,environmentLabel,copyText} from './about-details';
 import {useContextRefresh} from './context-refresh';
+import {chatDevice} from './ig-group-url';
 import {prepareTroubleshootingFile,troubleshootingAvailable,type TroubleshootingContext} from './troubleshooting-collect';
 /** One status line; the newest outcome (file or copy) replaces the previous one. */
 type Notice='copied'|'copy-failed'|'shared'|'downloaded'|'file-failed'|null;
@@ -17,7 +18,11 @@ export function About({pwa,thai,email,signedIn,logo,hasCommandAccess,pendingVisi
  const [build,setBuild]=useState<string|null|undefined>(undefined),[notice,setNotice]=useState<Notice>(null),fallback=useRef<HTMLTextAreaElement|null>(null),generation=useRef(0);
  const readBuild=()=>{const current=++generation.current;setBuild(undefined);void readRunningBuildVersion().then(value=>{if(current===generation.current)setBuild(value)})};
  // Prebuilt on open, refresh and after each use: iOS drops the tap's user activation if the click awaits storage or worker reads.
- const available=troubleshootingAvailable(),[share]=useState(canShareFiles),context=useRef(troubleshooting);context.current=troubleshooting;
+ // R156 (owner, 14 November 2026: "in web browser, send troubleshooting file triggers share screen while i just want to
+ // save it through the browser"): a computer (chatDevice, the R154 phone/computer rule) always saves the file through the
+ // browser's download; a phone keeps the share sheet with the download as its fallback.
+ const [computer]=useState(()=>chatDevice()==='computer');
+ const available=troubleshootingAvailable(),[share]=useState(()=>!computer&&canShareFiles()),context=useRef(troubleshooting);context.current=troubleshooting;
  const [prepared,setPrepared]=useState<{file:File;failedSaves:number}|null>(null),[fileFailed,setFileFailed]=useState(false),fileGeneration=useRef(0);
  const prepare=()=>{if(!available)return;const current=++fileGeneration.current;setFileFailed(false);void prepareTroubleshootingFile(context.current()).then(value=>{if(current===fileGeneration.current){setPrepared(value);setNotice(prior=>prior==='file-failed'?null:prior)}},()=>{if(current===fileGeneration.current){setPrepared(null);setFileFailed(true);setNotice('file-failed')}})};
  // biome-ignore lint/correctness/useExhaustiveDependencies: read once on open; Refresh reads again.
@@ -32,7 +37,7 @@ export function About({pwa,thai,email,signedIn,logo,hasCommandAccess,pendingVisi
   navigator.share({files:[file]}).then(()=>{setNotice('shared');prepare()},(error:unknown)=>{if((error as {name?:string}|null)?.name==='AbortError')setNotice(null);else download(file)});
  };
  const row=(label:string,value:React.ReactNode)=><div><dt>{label}</dt><dd>{value}</dd></div>;
- const failedSaves=prepared?.failedSaves??0,status=notice==='file-failed'?t('Could not create the file. Try again or use Copy details.','สร้างไฟล์ไม่สำเร็จ ลองอีกครั้งหรือใช้คัดลอกรายละเอียด'):notice==='copied'?t('Copied','คัดลอกแล้ว'):notice==='copy-failed'?t('Could not copy. Select the text below.','คัดลอกไม่สำเร็จ กรุณาเลือกข้อความด้านล่างเพื่อคัดลอก'):notice==='shared'?t('Shared.','แชร์แล้ว'):notice==='downloaded'?t('Downloaded. Send the file to the owner by LINE or email.','ดาวน์โหลดแล้ว ส่งไฟล์ให้เจ้าของทาง LINE หรืออีเมล'):'';
+ const failedSaves=prepared?.failedSaves??0,status=notice==='file-failed'?t('Could not create the file. Try again or use Copy details.','สร้างไฟล์ไม่สำเร็จ ลองอีกครั้งหรือใช้คัดลอกรายละเอียด'):notice==='copied'?t('Copied','คัดลอกแล้ว'):notice==='copy-failed'?t('Could not copy. Select the text below.','คัดลอกไม่สำเร็จ กรุณาเลือกข้อความด้านล่างเพื่อคัดลอก'):notice==='shared'?t('Shared.','แชร์แล้ว'):notice==='downloaded'?(computer?t('Saved. Send the file to the owner by LINE or email.','บันทึกแล้ว ส่งไฟล์ให้เจ้าของทาง LINE หรืออีเมล'):t('Downloaded. Send the file to the owner by LINE or email.','ดาวน์โหลดแล้ว ส่งไฟล์ให้เจ้าของทาง LINE หรืออีเมล')):'';
  return <section className="borrower-record about-record" aria-label={t('About','เกี่ยวกับ')}><h2>{t('About','เกี่ยวกับ')}</h2>
   <div className="about-identity"><img src={logo} alt=""/><strong>{t('MW Credit','MW สินเชื่อ')}</strong>{dev&&<span className="about-environment-tag">DEV</span>}</div>
   <section><h3>{t('Version','เวอร์ชัน')}</h3><dl>
@@ -55,7 +60,7 @@ export function About({pwa,thai,email,signedIn,logo,hasCommandAccess,pendingVisi
   <section className="about-troubleshooting"><h3>{t('Troubleshooting','การแก้ปัญหา')}</h3>
    <p id="about-troubleshooting-help">{t('Creates an encrypted file for the app owner. Only the owner can open it. It may include details of saves that did not go through. Send it only to the owner.','สร้างไฟล์ที่เข้ารหัสสำหรับเจ้าของแอป เฉพาะเจ้าของเท่านั้นที่เปิดได้ อาจมีรายละเอียดของรายการที่บันทึกไม่สำเร็จ ส่งให้เจ้าของเท่านั้น')}</p>
    <div className="about-copy">
-    <button type="button" disabled={!prepared} aria-busy={available&&!prepared&&!fileFailed} aria-describedby="about-troubleshooting-help" onClick={send}>{share?t('Send troubleshooting file','ส่งไฟล์ข้อมูลแก้ปัญหา'):t('Download troubleshooting file','ดาวน์โหลดไฟล์ข้อมูลแก้ปัญหา')}</button>
+    <button type="button" disabled={!prepared} aria-busy={available&&!prepared&&!fileFailed} aria-describedby="about-troubleshooting-help" onClick={send}>{computer?t('Save troubleshooting file','บันทึกไฟล์ข้อมูลแก้ปัญหา'):share?t('Send troubleshooting file','ส่งไฟล์ข้อมูลแก้ปัญหา'):t('Download troubleshooting file','ดาวน์โหลดไฟล์ข้อมูลแก้ปัญหา')}</button>
     {!available&&<span className="about-unavailable">{t('Unavailable on this device','ใช้ไม่ได้บนอุปกรณ์นี้')}</span>}
     <button type="button" className="secondary-button" onClick={async()=>{try{await navigator.clipboard.writeText(text);setNotice('copied')}catch{setNotice('copy-failed')}}}>{t('Copy details','คัดลอกรายละเอียด')}</button>
     <span role="status">{status}</span>{fileFailed&&<button type="button" className="secondary-button" onClick={()=>{setNotice(null);prepare()}}>{t('Retry','ลองอีกครั้ง')}</button>}
