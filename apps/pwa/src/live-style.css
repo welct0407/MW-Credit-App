@@ -347,7 +347,7 @@
 /* R154 UX-BRW-IGLINK-01: a refused Save scrolls the failing field's label to the top, below the sticky header. */
 .borrower-record form>label{scroll-margin-top:calc(var(--live-header-height,60px) + 12px)}
 .borrower-record a.ig-group-link{color:#0b57d0;overflow-wrap:anywhere;word-break:break-all}
-.collection-tile-main .collection-chat-mark{width:16px;height:16px;margin-left:6px;vertical-align:-2px;color:#555}
+.collection-tile-main .collection-chat-mark{box-sizing:border-box;width:22px;height:22px;padding:4px;margin-left:6px;vertical-align:-4px;border-radius:50%;background:#0b57d0;color:#fff;stroke-width:2.5}
 
 /* Required markers follow actual native field requirements; optional borrower fields stay optional. */
 label:has(input:required,select:required,textarea:required)>.field-title{font-weight:700}
