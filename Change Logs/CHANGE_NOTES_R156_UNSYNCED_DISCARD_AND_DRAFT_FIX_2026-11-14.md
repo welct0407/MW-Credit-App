@@ -29,6 +29,8 @@ As built (Byte). No SQL, server or agent change.
 | `npm test` | 1366 tests (1365 pass, 1 skipped); the guard test passes after Forge's two `.d.mts` additions (guard, ci-reuse-evidence and component-versions 22/22) |
 | e2e `saved-change-discard`, `full-sync`, `live-signout`, `back-consumers`, `dataset-replay` and `about`, on desktop-chromium, mobile-chromium and mobile-webkit | 282 passed, 0 failed |
 | `npm run typecheck`, `npm run lint` | Typecheck clean; lint 1 pre-existing info |
+| `Development checks` run 43567610544, `Database migrations` run 43567594376 and `Agent tests` run 43567610571 on `8d0f2f85` | Green (e2e ran: 3 Chromium and 3 iPhone WebKit) |
+| PROD verification | Pass, see the PROD promotion record |
 | Chase's review | Data safety passes; the findings above are fixed (draft-conflict test 180/180 after) |
 | Echo's review | Two must-fixes and the optional items applied |
 
@@ -38,8 +40,34 @@ The pull request's `Development checks` is not yet recorded; it must run e2e now
 ## Recovery
 Git baseline `44efb437` (R155 closure). The change is PWA and CI only: redeploy the R155 Hosting version `6becd9ab119af520`. A discarded saved change cannot be restored.
 
+## DEV deployment record (Forge, 14 November 2026 UTC)
+Authority: owner "yes, push R156 to prod once it passes". Package `04ae87b574c79ad6b10953ecf3de6b736e6e6de8` (merge of PR #322), deployed from a clean worktree (git archive). CI on `8d0f2f85`: `Development checks` run 43567610544 (check, lint, terraform, 3 Chromium and 3 iPhone WebKit e2e), `Database migrations` run 43567594376 (guards, four rebuilds) and `Agent tests` run 43567610571. No image was rebuilt (no `services/` change since R155 `44efb437`); DEV read, command and chat stay on the R155 image `e1a30fff…`.
+
+| Item | Record |
+| --- | --- |
+| Hosting | Build R156 `cde21210008751742c991fd7`, version `8a1142ca2d1c548f`, release `1794639314851000`, 06:55:06Z to 06:55:15Z |
+| Smoke | Three origins R156; `sw.js` no-store; unauthenticated 401 |
+
+Rollback: Hosting `7ed477d4abc90d21` (R155).
+
+## PROD promotion record (Forge, 14 November 2026 UTC)
+Authority: owner "yes, push R156 to prod once it passes". Frontend only: no SQL, no backup (`database/README.md`), no image, no agent and no data write. Freeze 06:55:30Z, package `04ae87b5`, baseline R155 `44efb437`. Resulting versions: PWA R156; read, command and chat R155; notify and jobs R144; schema V149; agent R153.
+
+| Step | Result |
+| --- | --- |
+| Baseline | Flyway 149 (read-only verify 06:56:20Z clean); read `00061-n4n`, command `00066-njp`, chat `00045-7gr` on the R155 image `9c14d2d6…`; notify `00030-285` and jobs `00030-29l` on `63e5b48f…` (R144); Hosting `6becd9ab119af520` (R155) |
+| Hosting | The generic runner, frontend-only, as `mw-credit-unattended-admin`; `--check` passed (18 files); `--apply` 06:56:57Z to 06:57:30Z: version `91da4b928cdc9f62`, release `1794639443522000`, build R156 `f8cf7e48816cd44dddd71a39` |
+| Smoke | Three origins R156; `sw.js` no-store; unauthenticated 401; the services' `/health` R155 `44efb437` (unchanged, as intended); no ERROR logs after 06:55Z |
+| Tag | `R156` on `04ae87b5` (Release tag run [43568818762](https://github.com/welct0407/MW-Credit-App/actions/runs/43568818762), 06:57:42Z to 06:58:09Z; tag object `3257c3b0…` peels to `04ae87b5`) |
+| Closure | Component versions rendered: PWA R156 (now derived correctly through the registry fix); read, command and chat R155; schema R154 at V149; agent R153; notify and jobs R144. Drift 06:58:15Z: 0 drift, 2 unverified (Grafana, Metabase). No dictionary capture |
+| Pruned | `Change Logs/CHANGE_NOTES_R153_GROUP_CHAT_LINK_AND_PROMPT_2026-11-13.md` and `integration-agent/Change Logs/CHANGE_NOTES_R153_GROUP_CHAT_PROMPT_V4_2026-11-13.md` (R153 is outside the three most recent Released releases; inbound links repointed to the permalink at `04ae87b5`) |
+
+Rollback: Hosting `6becd9ab119af520` (R155). No database or service step.
+
+Limitations: a discarded saved change cannot be restored; the owner checks the Discard flow, Full sync dialog and the troubleshooting file save on the devices in use.
+
 ## Open questions
 None.
 
 ## Remaining work
-Build and review, the pull request, the PROD promotion record (Forge) and owner acceptance.
+Owner acceptance.
