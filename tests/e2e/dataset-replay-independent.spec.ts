@@ -327,14 +327,17 @@ for(const action of ['cancel','save'] as const)test(`R156 a draft with real edit
 
 // R158 case 6: offline, the Collection detail's borrower comes from the stored collection items, which carry the group links
 // (chatUrl, chatInviteUrl): the header link is there from the bundle alone, without a summary row, with command access.
+// R160 case 7: the list tile's chat link too, with the same link.
 test('R158 offline: the Collection header opens the group from the stored item, with no summary row',async({page},info)=>{
  const web='https://www.instagram.com/direct/t/100000000000001/',invite='https://ig.me/j/AbCdEfGh12345678/';
  const item={id:'B-R158',displayName:'ผู้กู้ออฟไลน์ - Offline borrower',status:'not_paid',amountDue:'10',amountCollected:'0',amountRemaining:'10',chatSummaryAt:null,chatUrl:web,chatInviteUrl:invite};
  await fixture(page,'r158-offline',{collection:{items:[item],charges:[{borrowerId:'B-R158',id:'C-R158',loanId:'L-R158',loanDisplayKey:'Synthetic loan',chargeDate:businessDate,paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'10',totalPaid:'0',receivedToday:'0'}],groupChatByBorrower:[]}});
  await page.route('**/api/**',r=>r.abort());
- await select(page,'prepared-collection');await page.locator('.collection-tile-main[data-record-id="B-R158"]').click();
- const link=page.locator('.collection-context').getByRole('link',{name:info.project.name.startsWith('desktop')?'Open chat':'Open group chat in Instagram',exact:true});
+ await select(page,'prepared-collection');
  const phone=await page.evaluate(()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));expect(phone).toBe(!info.project.name.startsWith('desktop'));
+ await expect(page.locator('.collection-compact-tile').getByRole('link',{name:'Open group chat in Instagram, '+item.displayName,exact:true})).toHaveAttribute('href',phone?invite:web);
+ await page.locator('.collection-tile-main[data-record-id="B-R158"]').click();
+ const link=page.locator('.collection-context').getByRole('link',{name:info.project.name.startsWith('desktop')?'Open chat':'Open group chat in Instagram',exact:true});
  await expect(link).toHaveAttribute('href',phone?invite:web);await expect(page.locator('.collection-chat-summary')).toHaveCount(0);
  await expect(page.locator('.collection-context .collection-name-link')).toHaveText(item.displayName);
 });
