@@ -35,12 +35,13 @@ async function routeApp(page:Page,external:string[]){
 }
 /** Downloads the troubleshooting file and decrypts it with the test private key (never written to disk outside Playwright's temp download). */
 async function downloadTroubleshooting(page:Page,about:ReturnType<Page['getByRole']>){
- const button=about.getByRole('button',{name:'Download troubleshooting file'});await expect(button).toBeEnabled({timeout:15000});
+ // R156: a computer saves through the browser ("Save"); a phone without file sharing downloads ("Download").
+ const button=about.getByRole('button',{name:/^(Save|Download) troubleshooting file$/});await expect(button).toBeEnabled({timeout:15000});
  const [download]=await Promise.all([page.waitForEvent('download'),button.click()]);
  expect(download.suggestedFilename()).toMatch(/^mw-credit-troubleshooting-dev-\d{8}-\d{4}\.txt$/);
  const text=readFileSync((await download.path())!,'utf8');
  expect(text.split('\n')[0]).toBe('MW Credit troubleshooting file (encrypted). Send it only to the app owner.');
- await expect(about.getByRole('status')).toHaveText('Downloaded. Send the file to the owner by LINE or email.');
+ await expect(about.getByRole('status')).toHaveText(/^(Saved|Downloaded)\. Send the file to the owner by LINE or email\.$/);
  const envelope=parseTroubleshootingFile(text);expect(envelope.environment).toBe('dev');
  return {text,payload:decryptTroubleshooting(envelope,testKey.privateKey)};
 }
@@ -138,10 +139,31 @@ test('A file failure and Copy details share one status: the newest wins, and Ret
  await page.addInitScript(()=>{let failures=1;const importKey=SubtleCrypto.prototype.importKey;SubtleCrypto.prototype.importKey=function(this:SubtleCrypto,...args:any[]){if(failures-->0)return Promise.reject(Error('synthetic failure'));return (importKey as any).apply(this,args)} as any});
  await routeApp(page,external);
  await page.goto(base);await page.locator('.access-blocked').getByRole('button',{name:'About',exact:true}).click();
- const about=page.getByRole('region',{name:'About',exact:true}),status=about.getByRole('status'),file=about.getByRole('button',{name:'Download troubleshooting file'});
+ const about=page.getByRole('region',{name:'About',exact:true}),status=about.getByRole('status'),file=about.getByRole('button',{name:/^(Save|Download) troubleshooting file$/});
  await expect(status).toHaveText('Could not create the file. Try again or use Copy details.');await expect(file).toBeDisabled();
  await about.getByRole('button',{name:'Copy details'}).click();await expect(status).toHaveText('Copied');
  await about.getByRole('button',{name:'Retry',exact:true}).click();await expect(status).toHaveText('');await expect(file).toBeEnabled({timeout:15000});
  await expect(about.getByRole('button',{name:'Retry',exact:true})).toHaveCount(0);
+ expect(external).toEqual([]);
+});
+
+// R156 (owner, 14 November 2026): on a computer the file is saved through the browser even where the browser offers file
+// sharing (desktop Chrome or Edge open the system share sheet); a phone keeps the share sheet.
+test('the troubleshooting file is saved on a computer and shared on a phone, file sharing offered on both',async({page},info)=>{
+ const external:string[]=[];await routeApp(page,external);
+ await page.addInitScript(()=>{const w=window as any;w.__shared=0;Object.defineProperty(Navigator.prototype,'canShare',{configurable:true,value:()=>true});Object.defineProperty(Navigator.prototype,'share',{configurable:true,value:async()=>{w.__shared++}})});
+ await page.goto(base);await page.locator('.access-blocked').getByRole('button',{name:'About',exact:true}).click();
+ const about=page.getByRole('region',{name:'About',exact:true}),phone=!info.project.name.startsWith('desktop');
+ if(!phone){
+  const button=about.getByRole('button',{name:'Save troubleshooting file'});await expect(button).toBeEnabled({timeout:15000});
+  const [download]=await Promise.all([page.waitForEvent('download'),button.click()]);expect(download.suggestedFilename()).toMatch(/^mw-credit-troubleshooting-dev-/);
+  await expect(about.getByRole('status')).toHaveText('Saved. Send the file to the owner by LINE or email.');
+  expect(await page.evaluate(()=>(window as any).__shared)).toBe(0);
+ }else{
+  const button=about.getByRole('button',{name:'Send troubleshooting file'});await expect(button).toBeEnabled({timeout:15000});
+  const downloads:string[]=[];page.on('download',download=>downloads.push(download.suggestedFilename()));
+  await button.click();await expect.poll(()=>page.evaluate(()=>(window as any).__shared)).toBe(1);
+  await expect(about.getByRole('status')).toHaveText('Shared.');expect(downloads).toEqual([]);
+ }
  expect(external).toEqual([]);
 });

@@ -44,10 +44,12 @@ test('Full sync on the Saved changes page confirms, sends saved changes first, t
  log.length=0;await context.setOffline(false);await expect(full).toBeEnabled();
  await expect.poll(()=>log.includes('saved-change'),{timeout:10000}).toBe(true);
  await expect(async()=>{const before=log.length;await page.waitForTimeout(700);expect(log.length).toBe(before)}).toPass({timeout:10000});await expect(full).toBeEnabled();
- // UX-FULL-02/06: one confirmation; saved changes go first, then every domain walks (no source version).
+ // UX-FULL-02/06: one confirmation; saved changes go first, then every domain walks (no source version). R156 D5: with a
+ // saved change waiting, the confirmation is a dialog whose default choice (Send) is this same order.
  const dialogs:string[]=[];page.on('dialog',dialog=>{dialogs.push(dialog.message());void dialog.accept()});
  log.length=0;hold=true;applied=true;await full.click();
- await expect.poll(()=>dialogs).toEqual(['Re-download all data? Saved data stays usable; this takes about 20 seconds.']);
+ const choice=page.getByRole('dialog',{name:'1 saved change is not synced'});await expect(choice).toBeVisible();
+ await choice.getByRole('button',{name:'Send saved changes, then re-download',exact:true}).click();expect(dialogs).toEqual([]);
  await expect.poll(()=>log.filter(entry=>entry.startsWith('dataset:')).length).toBeGreaterThanOrEqual(1);
  expect(log[0]).toBe('saved-change');expect(log.filter(entry=>entry.startsWith('dataset:')).every(entry=>entry.endsWith(':walk'))).toBe(true);
  // UX-FULL-03: while it runs the button is disabled and busy, the page stays open and the header progress shows.

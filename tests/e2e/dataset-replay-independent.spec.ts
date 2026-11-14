@@ -225,3 +225,102 @@ test('R141 Cash Position: the Rebates payable line opens the referrers owed reba
  await page.getByRole('button',{name:'Back to Cash Position'}).click();
  await expect(page.getByRole('button',{name:'Show referrers owed rebates',exact:true})).toContainText('฿0');
 });
+
+// R155 (owner's PROD report of 14 November 2026): after R154 the borrower edit form hid "IG Group Invite Link (mobile)"
+// for a borrower, also after a Full sync. The form shows each link field only when its record carries the key. This drives
+// the real offline path: a records walk served by the dataset protocol (encodeDeltaChunk) carries the borrower with
+// igGroupUrl set and igGroupInviteLink null; the record read from the network fails, so the form's record is the stored one.
+// The form is mounted afresh: another case renders first (its own element seen), so React never folds the two switches
+// into one render that keeps the earlier form and its state (seen once on WebKit: the conflict message stayed).
+const reopenBorrower=async(page:Page)=>{await select(page,'queue-badge');await expect(page.locator('.waiting-sync-button').first()).toBeVisible();await select(page,'borrower-offline-record')};
+const r155Borrower=(over:Record<string,any>={}):Record<string,any>=>({id:'B-R155',version:'a'.repeat(64),createdDate:'2026-10-01',aiCollectionEnabled:true,name:'ผู้กู้ทดสอบ',description:'Synthetic R155',communicationName:null,instagramUsername:null,city:null,workingLocation:null,address:null,hidden:false,referrerId:null,preferredReceivingAccountId:null,note:null,referralRebateRate:null,referralRebateCap:null,details:{},...over});
+test('R155 a borrower record from the offline dataset keeps igGroupInviteLink null and the edit form shows both link fields',async({page})=>{
+ const before=r155Borrower({igGroupUrl:'https://www.instagram.com/direct/t/100000000000001/'}),after:Record<string,any>={...before,version:'b'.repeat(64),igGroupInviteLink:null};
+ await fixture(page,'r155-borrower',{records:{borrowers:[before]}});
+ await serve(page,path=>path.startsWith('/api/borrower-records/')?{__status:503,ok:false,code:'source_unavailable'}:path==='/api/borrower-options'?{ok:true,accounts:[],referrers:[]}:undefined,
+  {versions:{...Object.fromEntries(domains.map(d=>[d,OLD])),records:NEW},data:{records:{borrowers:[after]}}});
+ await start(page);await settled(page);
+ const stored=await page.evaluate(async()=>(await (window as any).__syncRepo.readDataset('records')).data.borrowers);
+ expect(stored).toEqual([after]);expect(Object.hasOwn(stored[0],'igGroupInviteLink')).toBe(true);
+ await select(page,'borrower-offline-record');
+ await expect(page.getByRole('link',{name:after.igGroupUrl,exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Edit borrower',exact:true}).click();
+ await expect(page.getByRole('textbox',{name:'IG Group URL (computer)',exact:true})).toHaveValue(after.igGroupUrl);
+ await expect(page.getByRole('textbox',{name:'IG Group Invite Link (mobile)',exact:true})).toHaveValue('');
+ await page.evaluate(()=>(window as any).__stopPreparation());
+});
+// R155 root cause: tapping Edit autosaved a borrower draft holding the record as it was then, Cancel kept the draft, and
+// every later open restored it (opening in edit mode, without reading the record again). A draft saved from a record read
+// before V149 has no igGroupInviteLink, so the field stayed hidden through a Full sync. Now an Edit without a change saves
+// no draft, Cancel discards it, and a restored draft with no change is dropped for the current record.
+test('R155 an unchanged borrower draft from an older record never hides the invite link field after a Full sync',async({page})=>{
+ const url='https://www.instagram.com/direct/t/100000000000001/',stale=r155Borrower({igGroupUrl:url}),fresh={...stale,version:'b'.repeat(64),igGroupInviteLink:null};
+ let network:any={__status:503,ok:false,code:'source_unavailable'};
+ await fixture(page,'r155-draft',{records:{borrowers:[stale]}});
+ await serve(page,path=>path.startsWith('/api/borrower-records/')?network:path==='/api/borrower-options'?{ok:true,accounts:[],referrers:[]}:undefined,
+  {versions:{...Object.fromEntries(domains.map(d=>[d,OLD])),records:NEW},data:{records:{borrowers:[fresh]}}});
+ const drafts=()=>page.evaluate(async()=>(await (window as any).__syncRepo.list('draft')).map((row:any)=>row.key));
+ // Before the walk: the stored record is the old one. Edit then Cancel leaves no draft behind.
+ await select(page,'borrower-offline-record');await page.getByRole('button',{name:'Edit borrower',exact:true}).click();
+ await expect(page.getByRole('textbox',{name:'IG Group URL (computer)',exact:true})).toHaveValue(url);await expect(page.getByRole('textbox',{name:'IG Group Invite Link (mobile)',exact:true})).toHaveCount(0);
+ await page.waitForTimeout(700);expect(await drafts(),'an Edit without a change saves no draft').toEqual([]);
+ // A draft left by the earlier build (Edit autosaved one with the record; Cancel kept it): restored with no change, it is
+ // dropped and the current record is read.
+ await page.getByRole('button',{name:'Cancel',exact:true}).click();
+ await page.evaluate(async({stale})=>{const repo=(window as any).__syncRepo;const fields=Object.fromEntries(['aiCollectionEnabled','name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note','referralRebateRate','referralRebateCap','igGroupUrl','igGroupInviteLink'].map(key=>[key,(stale as any)[key]]));
+  await repo.saveDraft('borrower:B-R155',{domain:'borrower',label:'SYNTHETIC',draft:{id:'B-R155',record:stale,fields,accounts:[],referrers:[]}})},{stale});
+ // The Full sync delivers the current record; the network answers it too.
+ await start(page);await settled(page);network={ok:true,item:fresh};
+ // On a phone or PC the stored records bundle is large, so reading the one draft row finishes before the record is read
+ // from it: the draft wins and the form opened in edit mode on the draft's record. Reading the bundle is slowed here
+ // to the same effect.
+ await page.evaluate(()=>{const repo=(window as any).__syncRepo,read=repo.readDataset.bind(repo);repo.readDataset=async(domain:string)=>{if(domain==='records')await new Promise(done=>setTimeout(done,600));return read(domain)}});
+ await reopenBorrower(page);
+ const edit=page.getByRole('button',{name:'Edit borrower',exact:true});await expect(edit).toBeVisible();await edit.click();
+ await expect(page.getByRole('textbox',{name:'IG Group Invite Link (mobile)',exact:true}),'the field of the current record is shown').toHaveValue('');await expect(page.getByRole('textbox',{name:'IG Group URL (computer)',exact:true})).toHaveValue(url);
+ await expect.poll(drafts).toEqual([]);
+ // A real change saves a draft as before; undoing it removes the draft; Cancel discards one.
+ const invite=page.getByRole('textbox',{name:'IG Group Invite Link (mobile)',exact:true});
+ await invite.fill('https://ig.me/j/AbCdEfGh12345678/');await expect.poll(drafts).toEqual(['draft:borrower:B-R155']);
+ await invite.fill('');await expect.poll(drafts,{message:'undoing every change removes the draft'}).toEqual([]);
+ await invite.fill('https://ig.me/j/AbCdEfGh12345678/');await expect.poll(drafts).toEqual(['draft:borrower:B-R155']);
+ await page.getByRole('button',{name:'Cancel',exact:true}).click();await expect.poll(drafts,{message:'Cancel discards the draft'}).toEqual([]);
+ await expect(page.getByRole('link',{name:url,exact:true})).toBeVisible();
+ await page.evaluate(()=>(window as any).__stopPreparation());
+});
+// R156 (owner, PROD: the PC form restored an old Edit draft after the iPhone had saved the borrower). A draft with real
+// edits is restored even when the stored record is read first (it is applied only after the draft check). Cancel drops it
+// and shows the current record. Saved, it keeps its base version: the existing conflict path stops it (the sync reads the
+// current record first) and nothing is saved over the newer record.
+const r156Draft=async(page:Page,base:Record<string,any>)=>page.evaluate(async({base})=>{const repo=(window as any).__syncRepo;const fields:any=Object.fromEntries(['aiCollectionEnabled','name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note','referralRebateRate','referralRebateCap','igGroupUrl','igGroupInviteLink'].map(key=>[key,(base as any)[key]]));
+ await repo.saveDraft('borrower:B-R155',{domain:'borrower',label:'SYNTHETIC',draft:{id:'B-R155',record:base,fields:{...fields,city:'Changed city'},accounts:[],referrers:[]}})},{base});
+for(const action of ['cancel','save'] as const)test(`R156 a draft with real edits is restored over the stored record; ${action==='cancel'?'Cancel shows the current record':'Save stops at the conflict, nothing saved over the newer record'}`,async({page})=>{
+ const base=r155Borrower({igGroupUrl:null,igGroupInviteLink:null}),current={...base,version:'c'.repeat(64),igGroupInviteLink:'https://ig.me/j/ZyXwVuTs98765432'};
+ const posts:any[]=[];
+ await fixture(page,'r156-draft-'+action,{records:{borrowers:[current]}});
+ await serve(page,path=>path.startsWith('/api/borrower-records/')?{ok:true,item:current}:path==='/api/borrower-options'?{ok:true,accounts:[],referrers:[]}:undefined,undefined,[],body=>posts.push(body));
+ // The command service refuses a version that is not the current one (pwa_submit_operation_v2: source_conflict).
+ await page.route('**/api/operations',async r=>{if(r.request().method()!=='POST')return r.fallback();const body=r.request().postDataJSON();posts.push(body);
+  return body?.expectedVersion===current.version?r.fallback():r.fulfill({json:{kind:'recorded',originalOutcome:{status:'rejected',code:'source_conflict'}}})});
+ await r156Draft(page,base);
+ // The dataset coordinator runs, as in the app: the stored record is ready to apply as soon as the form subscribes.
+ await start(page);await settled(page);
+ await select(page,'borrower-offline-record');
+ await expect(page.getByRole('textbox',{name:'City',exact:true})).toHaveValue('Changed city');await expect(page.getByRole('button',{name:'Edit borrower',exact:true})).toHaveCount(0);
+ await page.waitForTimeout(800);await expect(page.getByRole('textbox',{name:'City',exact:true}),'the stored record does not replace the restored edit').toHaveValue('Changed city');
+ const drafts=()=>page.evaluate(async()=>(await (window as any).__syncRepo.list('draft')).map((row:any)=>row.key));
+ if(action==='cancel'){
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  await expect(page.getByRole('link',{name:current.igGroupInviteLink,exact:true}),'the current record').toBeVisible();await expect(page.getByRole('button',{name:'Edit borrower',exact:true})).toBeVisible();
+  await expect.poll(drafts).toEqual([]);
+ }else{
+  await page.getByRole('button',{name:'Save borrower',exact:true}).click();
+  await expect(page.getByText(/The record changed/)).toBeVisible();
+  expect(posts.map(body=>body?.expectedVersion),'sent with the draft\'s base version and refused').toEqual(['a'.repeat(64)]);
+  // The existing conflict path: the refused request stays on Saved changes with its reference; the draft is gone, and the
+  // borrower reopened shows the current record.
+  await expect.poll(drafts).toEqual([]);await reopenBorrower(page);
+  await expect(page.getByRole('link',{name:current.igGroupInviteLink,exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Edit borrower',exact:true})).toBeVisible();
+ }
+ await page.evaluate(()=>(window as any).__stopPreparation());
+});

@@ -23,6 +23,12 @@
       "kind": "app",
       "paths": [
         "apps/pwa",
+        "services/lib/offline-dataset-digest.mjs",
+        "services/lib/offline-dataset-digest.d.mts",
+        "services/api/read-access.mjs",
+        "services/api/synthetic-read-adapter.mjs",
+        "services/api/read-access.d.mts",
+        "services/api/synthetic-read-adapter.d.mts",
         "public",
         "index.html",
         "vite.config.ts",

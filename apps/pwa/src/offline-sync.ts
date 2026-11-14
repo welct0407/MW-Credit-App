@@ -77,6 +77,8 @@ const REJECTION_MESSAGES:Record<string,[string,string]>={
   saved_note_invalid:['The saved note change is invalid.','การแก้ไขหมายเหตุที่บันทึกไม่ถูกต้อง'],
   previous_note_not_applied:['The preceding note change was not applied.','การแก้ไขหมายเหตุก่อนหน้าไม่สำเร็จ'],
   current_note_unavailable:['The current note record no longer exists.','ไม่พบข้อมูลหมายเหตุปัจจุบันแล้ว'],
+  // R156 D6: the user discarded the saved change on this device (discardSavedRequest); nothing was applied.
+  request_discarded:['This saved change was discarded on this device.','รายการที่บันทึกนี้ถูกทิ้งบนอุปกรณ์นี้แล้ว'],
  };
 /** R136 (V139): the cash pool refusal of a new loan (loan.create only; the shared code's text stays neutral). */
 export const LOAN_CASH_POOL_REFUSAL:[string,string]=['Not enough cash in the cash pool. Lower the amount or add contributed capital.','เงินในกองทุนไม่พอ ลดจำนวนเงินหรือเพิ่มเงินทุนสมทบ'];
@@ -211,6 +213,62 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false,fre
  }catch{
   return settle({kind:'queued'},'connection_unavailable').catch(()=>({kind:'queued'}));
  }
+}
+
+/** R156 D1 (owner, 14 November 2026: "a way to drop the not-yet-synced changes"). One saved change, checked before it is
+ * dropped, under the same per-request browser lock as a send (nothing mid-send):
+ * - never sent (attempted false): discarded, online or offline;
+ * - sent at least once: the server's status is read first (AGENTS.md: reconcile an unknown outcome). Applied or posted:
+ *   settled as synced and kept as applied ('applied'). Rejected or never recorded ('unresolved'): discarded. Offline, an
+ *   unreadable status or a send in progress: kept ('unchecked' / 'sending').
+ * A discard also removes the later note changes chained to it (discardPending), the matching form draft
+ * (<domain>:<targetId>) and emits mw-offline-sync-outcome {kind:'blocked', code:'request_discarded'} for each removed
+ * request, so a form waiting on it stops waiting. */
+export type DiscardResult={result:'discarded'|'applied'|'unchecked'|'sending'|'missing';removed:string[]};
+export const savedChangeDraftKey=(value:any)=>{const command=value?.command??value;return typeof value?.domain==='string'&&typeof command?.targetId==='string'&&command.targetId?value.domain+':'+command.targetId:null};
+export async function discardSavedRequest(access:CommandAccess,requestId:string):Promise<DiscardResult>{
+ const repository=access.offline;
+ if(!repository||!uuid.test(requestId))return {result:'missing',removed:[]};
+ // A send in progress holds the per-request browser lock (below) and its lease (state syncing); a settled send's
+ // entry kept briefly in inFlight is no send.
+ const run=async():Promise<DiscardResult>=>{
+  const row=await repository.pending<any>(requestId);if(!row)return {result:'missing',removed:[]};
+  if(row.sync?.state==='syncing'&&(row.sync?.leaseUntil??0)>Date.now())return {result:'sending',removed:[]};
+  if(row.sync?.attempted!==false){
+   if(!navigator.onLine||access.offlineOnly||!allowedOrigin(access)||!await repository.syncAuthorized())return {result:'unchecked',removed:[]};
+   const command=row.value?.command??row.value,payment=Number.isInteger(command?.schemaVersion)&&typeof command?.borrowerId==='string';
+   let status:{response:Response;data:any};
+   const controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);
+   try{
+    const token=await access.token();
+    const response=await fetch(access.origin+(payment?'/api/payment-commands/':'/api/operations/')+requestId,{signal:controller.signal,headers:{Authorization:'Bearer '+token,'X-MW-Wake-Deadline':String(deadline)},cache:'no-store',credentials:'omit',redirect:'error'});
+    if(response.status===401||response.status===403){access.authFailure(response.status);return {result:'unchecked',removed:[]}}
+    status={response,data:await response.json().catch(()=>null)};
+   }catch{return {result:'unchecked',removed:[]}}finally{clearTimeout(timer)}
+   if(status.data?.kind==='recorded'&&['applied','posted'].includes(status.data.originalOutcome?.status)){
+    // Applied after all: settle it as synced (a claim, then the settle that removes it and announces it), never "discarded".
+    // Only this row goes: later note changes chained to it are now valid to send and stay queued (never the chain delete).
+    const owner=crypto.randomUUID();
+    if(await repository.claimPending(requestId,owner,true))await repository.settlePending(requestId,owner,null);else await repository.remove('pending',requestId);
+    outcome(repository.scopeName,requestId,{kind:'synced',data:status.data,status:status.response.status});
+    return {result:'applied',removed:[]};
+   }
+   const rejected=status.data?.kind==='recorded'&&status.data.originalOutcome?.status==='rejected';
+   if(!rejected&&!(status.response.ok&&status.data?.kind==='unresolved'))return {result:'unchecked',removed:[]};
+  }
+  const pending=await repository.list('pending');
+  const discarded=await repository.discardPending(requestId);
+  if(discarded.result==='leased')return {result:'sending',removed:[]};
+  if(discarded.result==='missing')return {result:'missing',removed:[]};
+  for(const id of discarded.removed){
+   const draft=savedChangeDraftKey(pending.find(item=>item.key==='pending:'+id)?.value);
+   if(draft)await repository.remove('draft',draft).catch(()=>{});
+   outcome(repository.scopeName,id,{kind:'blocked',code:'request_discarded'});
+  }
+  return {result:'discarded',removed:discarded.removed};
+ };
+ if(typeof navigator.locks!=='undefined')return navigator.locks.request('mw-credit-request:'+repository.scopeName+':'+requestId,{ifAvailable:true},async lock=>lock?await run():{result:'sending',removed:[]} as DiscardResult);
+ return run();
 }
 
 export async function syncSavedRequests(access:CommandAccess):Promise<SavedSyncSummary>{

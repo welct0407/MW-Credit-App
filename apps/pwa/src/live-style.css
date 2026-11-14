@@ -903,3 +903,22 @@ button.line-action:not(#_):disabled{cursor:default;opacity:.7}
 .expense-filter-bar{min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:4px 0 8px;padding:4px 0 4px 10px;border:1px solid #d5dbe0;border-radius:8px}
 .expense-filter-bar .rebate-chip{margin-top:0;font-size:14px;overflow-wrap:anywhere}.expense-filter-total{font-variant-numeric:tabular-nums;color:#3c4650}
 .expense-filter-bar .expense-filter-clear:not(#_){margin-left:auto;min-width:44px;min-height:44px}
+/* R156 D4/D5/D7: the Discard confirmation and the Full sync choice; native modal dialogs, actions wrap on a phone, the
+   destructive choice last. */
+.saved-discard-dialog{box-sizing:border-box;width:min(440px,calc(100vw - 32px));border:1px solid #c7c7c7;border-radius:8px;padding:16px;background:#fff;color:#202124}
+.saved-discard-dialog::backdrop{background:rgb(0 0 0 / 40%)}
+.saved-discard-dialog h3{margin:0 0 8px;font-size:18px}
+.saved-discard-dialog p{margin:6px 0;line-height:1.45;overflow-wrap:anywhere}
+.saved-discard-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:12px}
+.saved-discard-actions button,.saved-discard-button{min-height:44px}
+.saved-discard-dialog .destructive-action{background:#b3261e;border-color:#b3261e;color:#fff}
+/* R156: a saved change card wraps (label and time, the status on its own line, then the reference and the buttons), so
+   View failure details, Retry sync and Discard stay on screen on a phone. */
+.borrower-card.saved-change-card{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-width:0}
+.borrower-card.saved-change-card>span{flex:1 1 100%;min-width:0;overflow-wrap:anywhere}
+.borrower-card.saved-change-card>button{min-height:44px}
+/* R156 Echo review: the card Discard reads as destructive (as borrower Delete); Send is the normal primary choice; below
+   480px the three dialog choices stack full width, Cancel first. */
+.borrower-card.saved-change-card .saved-discard-button{color:#b3261e;border:1px solid #b3261e;background:#fff}
+.saved-discard-dialog .saved-send-button{background:#0b57d0;border:1px solid #0b57d0;color:#fff}
+@media(max-width:480px){.saved-discard-actions{flex-direction:column;align-items:stretch}.saved-discard-actions button{width:100%}}
