@@ -74,4 +74,4 @@ Limitations: the owner checks that borrower details refresh after a referrer cha
 None.
 
 ## Remaining work
-Owner acceptance. The Edit-draft cause and the classifier gap are fixed in R156.
+None. Owner-accepted in PROD on 14 November 2026 ("i accept R153 to R157, and i've done everything.").

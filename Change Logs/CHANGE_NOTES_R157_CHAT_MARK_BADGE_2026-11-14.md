@@ -58,4 +58,4 @@ Limitations: the owner checks that the mark is easy to see on the devices in use
 None.
 
 ## Remaining work
-Owner acceptance.
+None. Owner-accepted in PROD on 14 November 2026 ("i accept R153 to R157, and i've done everything.").
