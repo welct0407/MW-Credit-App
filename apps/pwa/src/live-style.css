@@ -342,8 +342,18 @@
    target, never wrapping on its own; the borrower record shows the stored link wrapped anywhere. */
 .collection-chat-latest{font-weight:700}
 .collection-chat-points li.collection-chat-latest-point{border-left:3px solid var(--chat-role-business);padding-left:6px}
-.collection-chat-summary .collection-chat-open{margin-left:auto;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 4px;white-space:nowrap;font-size:16px;text-underline-offset:3px}
-.collection-chat-open .collection-chat-open-icon{width:16px;height:16px;flex:0 0 16px}
+/* R158: Open chat in the Collection page header, after the borrower's name: link colour and underline, the chat icon and
+   a 44px target that never wraps; the visible text names it (title gives the full purpose). */
+.payment-context .collection-header-chat{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:44px;min-width:44px;padding:0 4px;white-space:nowrap;font-size:16px;text-underline-offset:3px}
+.collection-header-chat .collection-header-chat-icon{width:18px;height:18px;flex:0 0 18px}
+/* R158 UX-HDR-CHAT-02: at 480px and below the icon alone, in the same bordered 44px frame as Payment history (secondary-button
+   border, radius and background; 24px icon), so it reads as a tappable action (blue icon, no underline); aria-label and title name it. */
+@media(max-width:480px){.payment-context .collection-header-chat>span{display:none}.payment-context .collection-header-chat{box-sizing:border-box;width:44px;height:44px;padding:0;border:1px solid #dedede;border-radius:5px;background:#fff;color:#0b57d0;text-decoration:none}.collection-header-chat .collection-header-chat-icon{width:24px;height:24px;flex-basis:24px}}
+/* R158 UX-HDR-CHAT-01: with Open chat present the name no longer grows, so the link sits right after it and Payment history
+   follows on the same row; the reserved widths keep both on that row (rows without the link keep today's layout). */
+.collection-context:has(>.collection-header-chat)>strong,.collection-context:has(>.collection-header-chat)>.collection-name-link{flex:0 1 auto;min-width:0;max-width:calc(100% - 180px)}
+.collection-context:has(>.collection-header-chat)>strong{max-width:calc(100% - 124px)}
+@media(max-width:480px){.collection-context:has(>.collection-header-chat)>.collection-name-link{max-width:calc(100% - 112px)}.collection-context:has(>.collection-header-chat)>strong{max-width:calc(100% - 58px)}}
 /* R154 UX-BRW-IGLINK-01: a refused Save scrolls the failing field's label to the top, below the sticky header. */
 .borrower-record form>label{scroll-margin-top:calc(var(--live-header-height,60px) + 12px)}
 .borrower-record a.ig-group-link{color:#0b57d0;overflow-wrap:anywhere;word-break:break-all}

@@ -68,7 +68,7 @@ async function readSourceFingerprints(client,sources){
 // version: the unchanged rows kept their old shape for good (until a reconciliation or a full sync). The shape is now
 // also stamped into the version itself (its last 8 hex digits), so the server tells a bundle read under an earlier shape
 // and walks it instead (acceptsRowDelta). A version from before this stamp matches it with probability 2^-32.
-export const OFFLINE_DATASET_SHAPE='business-offline-v11';
+export const OFFLINE_DATASET_SHAPE='business-offline-v12';
 const SHAPE_STAMP='5a9e'+Number(OFFLINE_DATASET_SHAPE.slice(OFFLINE_DATASET_SHAPE.lastIndexOf('-v')+2)).toString(16).padStart(4,'0');
 /** The 64-hex version with the current shape stamped into its last 8 digits. */
 export const shapedVersion=hash=>hash.slice(0,56)+SHAPE_STAMP;
@@ -89,6 +89,8 @@ function domainVersion(fingerprints,actor,domain,businessDate){
  // the group chat summaries their url; every bundle walks once.
  // v11 (R154): borrower records carry igGroupInviteLink (V149 changes every borrower version) and the group chat
  // summaries their inviteUrl; every bundle walks once.
+ // v12 (R158): the collection items carry chatUrl and chatInviteUrl and the group chat summaries no longer carry the
+ // links; every bundle walks once (the R155 shape stamp makes every device take it).
  return shapedVersion(deltaValueHash([OFFLINE_DATASET_SHAPE,actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]));
 }
 export async function readOfflineSourceVersion(client,actor,domain,businessDate){

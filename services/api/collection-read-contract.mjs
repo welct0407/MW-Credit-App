@@ -197,9 +197,6 @@ export async function readIgGroupUrls(client, ids) {
   if (!ids.length || (await client.query(igGroupUrlAllowedSql)).rows[0]?.allowed !== true) return new Map();
   return new Map((await client.query(igGroupUrlSql, [ids])).rows.filter(row => validIgGroupUrl(row.url)).map(row => [row.id, row.url]));
 }
-/** R153: the summary with its "Open chat" link (url) when the borrower has a valid one; a summary without a link, or no
- * summary (no card, so no link), is returned as it is. */
-export const withGroupChatUrl = (groupChat, url) => groupChat && validIgGroupUrl(url) ? { ...groupChat, url } : groupChat;
 /** R154: id -> {url, inviteUrl} for the given borrowers, each present only when its column is readable and the value
  * matches its rule. */
 export async function readIgGroupLinks(client, ids) {
@@ -210,17 +207,23 @@ export async function readIgGroupLinks(client, ids) {
   }
   return links;
 }
-/** R154: the summary with url and inviteUrl as the borrower has them (each only when valid); the card picks one per device. */
-export const withGroupChatLinks = (groupChat, links) => {
-  const value = withGroupChatUrl(groupChat, links?.url);
-  return value && validIgGroupInviteLink(links?.inviteUrl) ? { ...value, inviteUrl: links.inviteUrl } : value;
-};
-/** R146: the borrower's current group chat summary, or null (none, or the reader may not read the table). R153: with the
- * borrower's group chat link as url when one is set and readable. R154: and the invite link as inviteUrl. */
+/** R158 (owner, 14 November 2026: "i want the link to the group to be moved out of the summary card ... i want to open the
+ * group even there's no conversation"): every collection item (list and detail borrower) carries chatUrl and chatInviteUrl,
+ * each only when its column is readable and the value valid. The Collection page header opens one per device; the summary
+ * card no longer carries the links. */
+export async function markGroupLinks(client, items) {
+  if (!items.length) return items;
+  const links = await readIgGroupLinks(client, items.map(item => item.id));
+  return items.map(item => {
+    const link = links.get(item.id);
+    return link ? { ...item, ...(link.url ? { chatUrl: link.url } : {}), ...(link.inviteUrl ? { chatInviteUrl: link.inviteUrl } : {}) } : item;
+  });
+}
+/** R146: the borrower's current group chat summary, or null (none, or the reader may not read the table). R158: without
+ * the group links (they ride on the collection item, markGroupLinks). */
 async function readGroupChat(client, borrowerId) {
   if ((await client.query(groupChatAllowedSql)).rows[0]?.allowed !== true) return null;
-  const groupChat = projectGroupChat((await client.query(groupChatDetailSql, [borrowerId])).rows[0]);
-  return groupChat ? withGroupChatLinks(groupChat, (await readIgGroupLinks(client, [borrowerId])).get(borrowerId)) : null;
+  return projectGroupChat((await client.query(groupChatDetailSql, [borrowerId])).rows[0]);
 }
 export function projectCollection(row) {
   if (!validLoanId(row.id) || !collectionStatuses[row.rank] || typeof row.prepaid_only !== 'boolean' || !(row.overdue_days === null || (Number.isSafeInteger(row.overdue_days) && row.overdue_days > 0))) throw new Error('Invalid collection source');
@@ -277,7 +280,7 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
   const collectionCte = collectionCteFor(late, paymentSource);
   if (borrowerId === null) {
     const result = await client.query(`${collectionCte}, filtered AS (SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0)), totals AS (SELECT *, CASE WHEN count(*) FILTER (WHERE amount_remaining IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_remaining::numeric) OVER (PARTITION BY rank)::text END AS group_remaining, CASE WHEN count(*) FILTER (WHERE amount_collected IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_collected::numeric) OVER (PARTITION BY rank)::text END AS group_collected FROM filtered) SELECT * FROM totals WHERE ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND (sort_days > $8::integer OR (sort_days = $8::integer AND (COALESCE(borrower_name, '') COLLATE "C" > $7::text COLLATE "C" OR (COALESCE(borrower_name, '') COLLATE "C" = $7::text COLLATE "C" AND id COLLATE "C" > $4::text COLLATE "C")))))) ORDER BY rank, sort_days, COALESCE(borrower_name, '') COLLATE "C" ASC, id COLLATE "C" ASC LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query, after?.name ?? null, after?.days ?? null]);
-    const items = await markChatSummary(client, await markPrepaidSource(client, businessDate, result.rows.slice(0, limit).map(projectCollection), paymentSource), partnerId);
+    const items = await markGroupLinks(client, await markChatSummary(client, await markPrepaidSource(client, businessDate, result.rows.slice(0, limit).map(projectCollection), paymentSource), partnerId));
     const last = result.rows[Math.min(limit, result.rows.length) - 1];
     return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, days: last.sort_days, name: last.borrower_name ?? '', id: last.id }, query) : null };
   }
@@ -287,7 +290,7 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
     WHERE ($3::date IS NULL OR charge_date < $3::date OR (charge_date = $3::date AND id COLLATE "C" > $4::text COLLATE "C"))
     ORDER BY charge_date DESC, id COLLATE "C" LIMIT $5`, [businessDate, borrowerId, after?.chargeDate ?? null, after?.id ?? null, limit + 1]);
   const items = charges.rows.slice(0, limit).map(projectCollectionCharge);
-  const [borrower] = await markPrepaidSource(client, businessDate, [projectCollection(summary.rows[0])], paymentSource);
+  const [borrower] = await markGroupLinks(client, await markPrepaidSource(client, businessDate, [projectCollection(summary.rows[0])], paymentSource));
   // R146: the detail envelope carries the borrower's group chat summary (null when there is none).
   const groupChat = await readGroupChat(client, borrowerId);
   return { ...metadata, borrower, groupChat, items, nextCursor: charges.rows.length > limit ? encodeCollectionCursor({ kind: 'collection-charges', businessDate, parentId: borrowerId, chargeDate: items.at(-1).chargeDate, id: items.at(-1).id }) : null };

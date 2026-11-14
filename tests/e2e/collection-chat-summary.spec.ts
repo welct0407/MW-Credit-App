@@ -39,16 +39,18 @@ const summaries:Record<string,unknown>={
   lastSpeaker:{role:'partner'},lastMessageAt:fresh,generatedAt:'2026-11-11T09:00:00.000Z',messageCount:2,shared:false},
 };
 const envelope={ok:true,source:'dev',businessDate:'2026-11-12',timezone:'Asia/Bangkok',asOf:NOW};
-async function open(page:Page,{desktop,replace={},now=NOW}:{desktop:boolean;replace?:Record<string,unknown>;now?:string}){
- if(desktop)await page.setViewportSize({width:1440,height:900});
+// R158: links adds the group links (chatUrl, chatInviteUrl) to board items, as the read service does.
+async function open(page:Page,{desktop,replace={},now=NOW,links={},width}:{desktop:boolean;replace?:Record<string,unknown>;now?:string;links?:Record<string,Record<string,string>>;width?:number}){
+ const rows=board.map(row=>({...row,...(links[row.id]??{})}));
+ if(desktop)await page.setViewportSize({width:1440,height:900});if(width)await page.setViewportSize({width,height:780});
  await page.clock.setFixedTime(new Date(now));
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
  await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{const u=new URL(r.request().url()),json=(body:unknown)=>r.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(body)}).catch(()=>{});
-  if(u.pathname==='/api/collection')return json({...envelope,items:board,nextCursor:null});
+  if(u.pathname==='/api/collection')return json({...envelope,items:rows,nextCursor:null});
   const charges=/^\/api\/collection\/([^/]+)\/charges$/.exec(u.pathname);
   if(charges){const id=decodeURIComponent(charges[1]),source={...summaries,...replace};
    // chat-e answers like a payload from before R146: no groupChat key at all.
-   return json({...envelope,borrower:board.find(row=>row.id===id),items:[{id:'charge-'+id,loanId:'loan-'+id,loanDisplayKey:'Synthetic loan',chargeDate:'2026-11-12',paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'1200',totalPaid:'0',receivedToday:'0'}],nextCursor:null,...(id==='chat-e'?{}:{groupChat:source[id]??null})});}
+   return json({...envelope,borrower:rows.find(row=>row.id===id),items:[{id:'charge-'+id,loanId:'loan-'+id,loanDisplayKey:'Synthetic loan',chargeDate:'2026-11-12',paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'1200',totalPaid:'0',receivedToday:'0'}],nextCursor:null,...(id==='chat-e'?{}:{groupChat:source[id]??null})});}
   return json({...envelope,horizonEnd:'2027-02-12',reviewRequired:false,items:[]});});
  await page.goto(base);await page.getByRole('button',{name:'Continue with Google'}).click();await page.getByRole('button',{name:'Collection',exact:true}).click();
  await expect(page.locator('.collection-compact-tile')).toHaveCount(6);
@@ -185,11 +187,10 @@ test('a newer summary relights the mark; with the seen storage blocked there are
 });
 
 // R153 (owner, 13 November 2026): points come oldest first, so the last point of a current card with two or more points is
-// bold with a hidden "Latest:"; a stale card or a lone point has none. The borrower's group chat link (groupChat.url) is an
-// "Open chat" link in the heading, also on a stale card, opened in a new tab; a value that is not a valid link shows nothing.
-test('R153 the latest point is bold on a current card; Open chat carries the borrower link',async({page},info)=>{
- const desktop=info.project.name.startsWith('desktop'),link='https://www.instagram.com/direct/t/100000000000001/',d=summaries['chat-d'] as {points:unknown[]};
- await open(page,{desktop,replace:{'chat-a':{...(summaries['chat-a'] as object),url:link},'chat-b':{...(summaries['chat-b'] as object),url:'https://ig.me/j/InventedLink01/'},'chat-d':{...d,points:[d.points[1]],url:'javascript:alert(1)'}}});
+// bold with a hidden "Latest:"; a stale card or a lone point has none. R158: the card carries no link.
+test('R153 the latest point is bold on a current card; R158 the card has no link',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop'),d=summaries['chat-d'] as {points:unknown[]};
+ await open(page,{desktop,replace:{'chat-d':{...d,points:[d.points[1]]}},links:{'chat-a':{chatUrl:'https://www.instagram.com/direct/t/100000000000001/',chatInviteUrl:'https://ig.me/j/AbCdEfGh12345678/'}}});
  await tile(page,'chat-a').click();await expect(card(page)).toBeVisible();
  const points=card(page).locator('.collection-chat-points li');await expect(points).toHaveCount(4);await expect(card(page).locator('strong')).toHaveCount(1);
  for(const index of [0,1,2])await expect(points.nth(index).locator('strong')).toHaveCount(0);
@@ -198,43 +199,78 @@ test('R153 the latest point is bold on a current card; Open chat carries the bor
  // UX-CHAT-LATEST-01: not weight alone: a 3px accent bar (the MW Credit role colour) on the latest point's left.
  expect(await points.nth(3).evaluate(node=>{const s=getComputedStyle(node);return [s.borderLeftWidth,s.borderLeftStyle,s.borderLeftColor,s.paddingLeft]})).toEqual(['3px','solid','rgb(11, 107, 122)','6px']);
  for(const index of [0,1,2])expect(await points.nth(index).evaluate(node=>getComputedStyle(node).borderLeftWidth)).toBe('0px');
- const openChat=card(page).getByRole('link',{name:'Open chat',exact:true});await expect(openChat).toHaveAttribute('href',link);await expect(openChat).toHaveAttribute('target','_blank');await expect(openChat).toHaveAttribute('rel','noopener noreferrer');
- // UX-CHAT-LINK-01: the link look (colour, underline 3px below) and the 16px chat icon before the label, hidden from readers.
- expect(await openChat.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.textDecorationLine,s.textUnderlineOffset,s.whiteSpace]})).toEqual(['rgb(11, 87, 208)','underline','3px','nowrap']);
- {const icon=openChat.locator('svg.collection-chat-open-icon');await expect(icon).toHaveAttribute('aria-hidden','true');await expect(icon).toHaveAttribute('data-icon','chat');const box=(await icon.boundingBox())!;expect([Math.round(box.width),Math.round(box.height)]).toEqual([16,16]);
-  expect(await openChat.evaluate(node=>node.firstElementChild?.tagName.toLowerCase())).toBe('svg');}
- await expect(card(page).locator('.collection-chat-heading a')).toHaveCount(1);await expect(card(page).locator('a')).toHaveCount(1);
- {const box=(await openChat.boundingBox())!,panel=(await page.locator('.detail-panel').boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);expect(box.x+box.width).toBeLessThanOrEqual(panel.x+panel.width+1);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true)}
+ // R158 case 2: the borrower has links, the card shows none (the header does).
+ await expect(card(page).locator('a')).toHaveCount(0);await expect(header(page).locator('a.collection-header-chat')).toHaveCount(1);
  if(!desktop)await back(page);
- // Stale with a link: the link stays, nothing is bold.
- await tile(page,'chat-b').click();await expect(card(page)).toHaveClass(/stale/);await expect(card(page).getByRole('link',{name:'Open chat',exact:true})).toHaveAttribute('href','https://ig.me/j/InventedLink01/');await expect(card(page).locator('strong')).toHaveCount(0);await expect(card(page).locator('.collection-chat-latest-point')).toHaveCount(0);
+ // Stale: nothing is bold.
+ await tile(page,'chat-b').click();await expect(card(page)).toHaveClass(/stale/);await expect(card(page).locator('strong')).toHaveCount(0);await expect(card(page).locator('.collection-chat-latest-point')).toHaveCount(0);
  if(!desktop)await back(page);
- // One point on a current card: not bold; an invalid link is not rendered.
- await tile(page,'chat-d').click();await expect(card(page).locator('.collection-chat-points li')).toHaveCount(1);await expect(card(page).locator('strong')).toHaveCount(0);await expect(card(page).locator('a')).toHaveCount(0);
+ // One point on a current card: not bold.
+ await tile(page,'chat-d').click();await expect(card(page).locator('.collection-chat-points li')).toHaveCount(1);await expect(card(page).locator('strong')).toHaveCount(0);
  if(!desktop)await back(page);
- // Without a url (chat-a above in the other tests) there is no link; Thai copy.
  await chooseLanguage(page,'ไทย');await tile(page,'chat-a').click();
- await expect(card(page).getByRole('link',{name:'เปิดแชท',exact:true})).toHaveAttribute('href',link);await expect(card(page).locator('strong.collection-chat-latest .visually-hidden')).toHaveText('ล่าสุด: ');
+ await expect(card(page).locator('strong.collection-chat-latest .visually-hidden')).toHaveText('ล่าสุด: ');
 });
 
-// R154 (D4): the card picks the link per device. A phone (here Android chromium and the iPhone WebKit project) opens the
-// group's invite link, which opens the group itself in the Instagram app; a computer opens the instagram.com link. Each
-// falls back to the other when its own is missing. Same label, icon and style as R153. Invented links only.
-test('R154 Open chat opens the invite link on a phone and the instagram.com link on a computer, with fallbacks',async({page},info)=>{
- const desktop=info.project.name.startsWith('desktop'),web='https://www.instagram.com/direct/t/100000000000001/',invite='https://ig.me/j/AbCdEfGh12345678/';
- await open(page,{desktop,replace:{'chat-a':{...(summaries['chat-a'] as object),url:web,inviteUrl:invite},'chat-b':{...(summaries['chat-b'] as object),inviteUrl:invite},'chat-d':{...(summaries['chat-d'] as object),url:web,inviteUrl:'https://ig.me/m/invented_user/'}}});
- const phone=await page.evaluate(()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1));
- expect(phone).toBe(!desktop);
- await tile(page,'chat-a').click();
- const openChat=card(page).getByRole('link',{name:'Open chat',exact:true});await expect(openChat).toHaveAttribute('href',phone?invite:web);
- await expect(openChat).toHaveAttribute('target','_blank');await expect(openChat).toHaveAttribute('rel','noopener noreferrer');await expect(card(page).locator('a')).toHaveCount(1);
- await expect(openChat.locator('svg.collection-chat-open-icon')).toHaveAttribute('data-icon','chat');
+// R158 (owner, 14 November 2026: "i want the link to the group to be moved out of the summary card. maybe just next to the
+// borrower's name. i want to open the group even there's no conversation"): "Open chat" in the Collection page header after
+// the borrower's name, with or without a summary, read-only included (this page is read-only; the owner shell below has
+// command access); the device picks the link (R154 rule). Invented links only.
+const web='https://www.instagram.com/direct/t/100000000000001/',invite='https://ig.me/j/AbCdEfGh12345678/';
+const header=(page:Page)=>page.locator('.collection-context');
+const isPhone=(page:Page)=>page.evaluate(()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1));
+// UX-HDR-CHAT-02/03: wider than 480px the visible "Open chat" names the link (no aria-label); at 480px and below (the phone
+// projects) it is an icon button named by its aria-label. The title is always the full purpose.
+const purpose={en:'Open group chat in Instagram',th:'เปิดแชทกลุ่มใน Instagram'};
+const linkName=(narrow:boolean,lang:'en'|'th'='en')=>narrow?purpose[lang]:lang==='en'?'Open chat':'เปิดแชท';
+// UX-HDR-CHAT-01: the link's left edge is within 16px of the name's right edge on the name's row, or it starts the next
+// line directly after the name.
+async function expectAfterName(page:Page,label:string){
+ const [name,link]=await header(page).evaluate(row=>{const box=(node:Element)=>{const r=node.getBoundingClientRect(),o=row.getBoundingClientRect();return {left:r.left-o.left,right:r.right-o.left,top:r.top,bottom:r.bottom}};
+  return [box(row.querySelector(':scope>strong,:scope>.collection-name-link')!),box(row.querySelector(':scope>.collection-header-chat')!)]});
+ if(link.top<name.bottom&&link.bottom>name.top){expect(link.left-name.right,label+': gap after the name').toBeGreaterThanOrEqual(0);expect(link.left-name.right,label+': gap after the name').toBeLessThanOrEqual(16)}
+ else{expect(link.top,label+': the next line').toBeGreaterThanOrEqual(name.bottom-1);expect(link.left,label+': the next line starts with it').toBeLessThanOrEqual(16)}
+ return link;
+}
+test('R158 Open chat sits after the name with no summary, picks the link per device and falls back; none without a valid link',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop');
+ await open(page,{desktop,links:{'chat-c':{chatUrl:web,chatInviteUrl:invite},'chat-b':{chatInviteUrl:invite},'chat-d':{chatUrl:web},'chat-e':{chatUrl:'javascript:alert(1)',chatInviteUrl:'https://ig.me/m/invented_user/'}}});
+ const phone=await isPhone(page);expect(phone).toBe(!desktop);
+ // Case 1 and 4: chat-c has no summary at all; the header link is there, after the name, the link for this device.
+ await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(card(page)).toHaveCount(0);
+ const link=header(page).getByRole('link',{name:linkName(!desktop),exact:true});await expect(link).toHaveAttribute('href',phone?invite:web);
+ await expect(link).toHaveAttribute('target','_blank');await expect(link).toHaveAttribute('rel','noopener noreferrer');await expect(link).toHaveAttribute('title',purpose.en);
+ // UX-HDR-CHAT-03: no aria-label beside the visible text; UX-HDR-CHAT-02: the phone's icon button, framed like Payment history.
+ if(desktop)expect(await link.getAttribute('aria-label')).toBeNull();else await expect(link).toHaveAttribute('aria-label',purpose.en);
+ await expect(link.locator('svg')).toHaveAttribute('data-icon','chat');await expect(link.locator('svg')).toHaveAttribute('aria-hidden','true');
+ expect(await link.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.textDecorationLine]})).toEqual(['rgb(11, 87, 208)',desktop?'underline':'none']);
+ if(!desktop)expect(await link.evaluate(node=>{const s=getComputedStyle(node);return [s.borderTopWidth,s.borderTopStyle,s.borderTopColor,s.borderRadius,s.backgroundColor]})).toEqual(['1px','solid','rgb(222, 222, 222)','5px','rgb(255, 255, 255)']);
+ await expectAfterName(page,`read-only ${page.viewportSize()!.width}px`);
+ // After the name, before anything else in the row.
+ expect(await header(page).evaluate(row=>[...row.children].slice(1).map(child=>child.tagName.toLowerCase()+(child.classList.contains('collection-header-chat')?'.chat':'')))).toEqual(['strong','a.chat']);
+ {const box=(await link.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44)}
  if(!desktop)await back(page);
- // Only the invite link (a stale card): every device opens it.
- await tile(page,'chat-b').click();await expect(card(page).getByRole('link',{name:'Open chat',exact:true})).toHaveAttribute('href',invite);
- if(!desktop)await back(page);
- // An inviteUrl that is not an invite link is ignored: the instagram.com link everywhere.
- await tile(page,'chat-d').click();await expect(card(page).getByRole('link',{name:'Open chat',exact:true})).toHaveAttribute('href',web);await expect(card(page).locator('a')).toHaveCount(1);
+ // Fallbacks: only an invite link opens it everywhere; only the instagram.com link opens it everywhere.
+ await tile(page,'chat-b').click();await expect(header(page).getByRole('link',{name:linkName(!desktop),exact:true})).toHaveAttribute('href',invite);if(!desktop)await back(page);
+ await tile(page,'chat-d').click();await expect(header(page).getByRole('link',{name:linkName(!desktop),exact:true})).toHaveAttribute('href',web);if(!desktop)await back(page);
+ // Case 3: no valid link (a script URL, an ig.me link that is not an invite) or none at all: no element.
+ await tile(page,'chat-e').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(header(page).locator('a')).toHaveCount(0);if(!desktop)await back(page);
+ await tile(page,'chat-a').click();await expect(card(page)).toBeVisible();await expect(header(page).locator('a')).toHaveCount(0);if(!desktop)await back(page);
+ // Thai copy.
+ await chooseLanguage(page,'ไทย');await tile(page,'chat-c').click();await expect(header(page).getByRole('link',{name:linkName(!desktop,'th'),exact:true})).toHaveAttribute('title',purpose.th);
+});
+// Case 7: a long Thai name at 320 and 390px: the page never scrolls sideways, the name wraps, the link (icon only at 480px
+// and below, named by aria-label and title) keeps a 44px target right after the name (UX-HDR-CHAT-01).
+for(const width of [320,390])test(`R158 the header link at ${width}px with a long name: no overflow, 44px target, icon only, the name wraps`,async({page},info)=>{
+ test.skip(info.project.name.startsWith('desktop'),'phone widths');
+ await open(page,{desktop:false,width,links:{'chat-f':{chatUrl:web,chatInviteUrl:invite}}});
+ await tile(page,'chat-f').click();const link=header(page).getByRole('link',{name:purpose.en,exact:true});await expect(link).toBeVisible();
+ await expect(link.locator('span')).toBeHidden();
+ const box=(await link.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);expect(box.x+box.width).toBeLessThanOrEqual(width);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+ const name=(await header(page).locator('strong').boundingBox())!;expect(name.x+name.width).toBeLessThanOrEqual(width);
+ expect(await header(page).locator('strong').evaluate(node=>getComputedStyle(node).overflowWrap)).toBe('anywhere');
+ await expectAfterName(page,`read-only ${width}px`);
 });
 
 // R150: every card time is the browser's own wall clock, and "today" is the browser's day. Same instants, three clocks.
@@ -284,9 +320,12 @@ test.describe('owner testing shell',()=>{
   await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:ownerAuth}));
   const json=(r:import('@playwright/test').Route,body:unknown)=>r.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(body)}).catch(()=>{});
   await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{const u=new URL(r.request().url());
-   if(u.pathname==='/api/collection')return json(r,{...envelope,items:board,nextCursor:null});
+   // R158: chat-c carries the group links (no summary): the header link sits after the name button (command access).
+   // chat-f (a long Thai name) too, for the header layout.
+   const linked=(row:any)=>row&&['chat-c','chat-f'].includes(row.id)?{...row,chatUrl:web,chatInviteUrl:invite}:row;
+   if(u.pathname==='/api/collection')return json(r,{...envelope,items:board.map(linked),nextCursor:null});
    const charges=/^\/api\/collection\/([^/]+)\/charges$/.exec(u.pathname);
-   if(charges){const id=decodeURIComponent(charges[1]);return json(r,{...envelope,borrower:board.find(row=>row.id===id),items:[{id:'charge-'+id,loanId:'loan-'+id,loanDisplayKey:'Synthetic loan',chargeDate:'2026-11-12',paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'1200',totalPaid:'0',receivedToday:'0'}],nextCursor:null,groupChat:summaries[id]??null});}
+   if(charges){const id=decodeURIComponent(charges[1]);return json(r,{...envelope,borrower:linked(board.find(row=>row.id===id)),items:[{id:'charge-'+id,loanId:'loan-'+id,loanDisplayKey:'Synthetic loan',chargeDate:'2026-11-12',paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'1200',totalPaid:'0',receivedToday:'0'}],nextCursor:null,groupChat:summaries[id]??null});}
    return json(r,{...envelope,horizonEnd:'2027-02-12',reviewRequired:false,items:[]});});
   // The command service: the borrower record the note reads, and empty answers for everything else the owner shell asks.
   await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{const u=new URL(r.request().url()),record=/^\/api\/borrower-records\/([^/]+)$/.exec(u.pathname);
@@ -308,6 +347,26 @@ test.describe('owner testing shell',()=>{
   await visit('chat-b','Borrower asked to pay on Friday.');
   await visit('chat-d','มีเฉพาะภาษาไทยในหัวข้อนี้');
   await visit('chat-c',null);
+  // R158 case 5 with command access: the header link after the name button, the summary card absent.
+  await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);
+  expect(await page.locator('.collection-context').evaluate(row=>[...row.children].slice(1,3).map(child=>child.tagName.toLowerCase()+(child.classList.contains('collection-header-chat')?'.chat':'')))).toEqual(['button','a.chat']);
+  await expect(page.locator('.collection-context').getByRole('link',{name:linkName(!desktop),exact:true})).toHaveAttribute('href',desktop?web:invite);
+  if(!desktop)await back(page);
+  // UX-HDR-CHAT-01 with command access: the link right after the name button at 390 and 1440px, Payment history next on the
+  // link's row at 390px; at 320px the page never scrolls sideways.
+  const viewport=page.viewportSize()!;
+  for(const id of ['chat-c','chat-f']){
+   await tile(page,id).click();await expect(page.locator('.collection-charge')).toHaveCount(1);
+   for(const width of [1440,390,320]){
+    await page.setViewportSize({width,height:800});const label=`command ${id} ${width}px`;
+    const history=page.locator('.collection-context').getByRole('button',{name:'Payment history',exact:true});await expect(history).toBeVisible();
+    const link=await expectAfterName(page,label);
+    const after=await history.evaluate(node=>{const r=node.getBoundingClientRect(),o=node.parentElement!.getBoundingClientRect();return {left:r.left-o.left,right:r.right-o.left,top:r.top,bottom:r.bottom}});
+    if(width===390){expect(after.top<link.bottom&&after.bottom>link.top,label+': Payment history on the link\'s row').toBe(true);expect(after.left-link.right,label).toBeGreaterThanOrEqual(0);expect(after.left-link.right,label).toBeLessThanOrEqual(16)}
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth),label+': no sideways scroll').toBeLessThanOrEqual(width);
+   }
+   await page.setViewportSize(viewport);if(!desktop)await back(page);
+  }
   await visit('chat-a','Borrower asks to pay 2,000 on Friday instead of today; partner agreed.');
   expect(consoleText.filter(text=>/two children with the same key|same key/i.test(text))).toEqual([]);
  });
