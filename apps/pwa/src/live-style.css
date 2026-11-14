@@ -347,7 +347,9 @@
 /* R154 UX-BRW-IGLINK-01: a refused Save scrolls the failing field's label to the top, below the sticky header. */
 .borrower-record form>label{scroll-margin-top:calc(var(--live-header-height,60px) + 12px)}
 .borrower-record a.ig-group-link{color:#0b57d0;overflow-wrap:anywhere;word-break:break-all}
-.collection-tile-main .collection-chat-mark{box-sizing:border-box;width:22px;height:22px;padding:4px;margin-left:6px;vertical-align:-4px;border-radius:50%;background:#0b57d0;color:#fff;stroke-width:2.5}
+/* R157: the 22px badge adds no line height: its margin box is 14px tall (-4px above and below) and centred on the line,
+   so a tile with the badge is as tall as one without, whatever the font metrics. */
+.collection-tile-main .collection-chat-mark{box-sizing:border-box;width:22px;height:22px;padding:4px;margin:-4px 0 -4px 6px;vertical-align:middle;border-radius:50%;background:#0b57d0;color:#fff;stroke-width:2.5}
 
 /* Required markers follow actual native field requirements; optional borrower fields stay optional. */
 label:has(input:required,select:required,textarea:required)>.field-title{font-weight:700}

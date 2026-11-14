@@ -1278,4 +1278,6 @@ button, .filters select { min-height: 44px; }
 .collection-chat-name-end{white-space:nowrap}
 .collection-chat-summary .collection-chat-text{min-width:0}
 .collection-chat-summary.stale .collection-chat-headline,.collection-chat-summary.stale .collection-chat-text{color:#555}
-.person .collection-chat-mark{box-sizing:border-box;width:22px;height:22px;padding:4px;margin-left:6px;vertical-align:-4px;border-radius:50%;background:#0b57d0;color:#fff;stroke-width:2.5}
+/* R157: the 22px badge adds no line height: its margin box is 14px tall (-4px above and below) and centred on the line,
+   so a tile with the badge is as tall as one without, whatever the font metrics. */
+.person .collection-chat-mark{box-sizing:border-box;width:22px;height:22px;padding:4px;margin:-4px 0 -4px 6px;vertical-align:middle;border-radius:50%;background:#0b57d0;color:#fff;stroke-width:2.5}

@@ -67,6 +67,11 @@ test('list mark and card: hidden without a summary, everything shown without an 
  expect(await tile(page,'chat-a').locator('.collection-chat-mark').evaluate(node=>{const s=getComputedStyle(node);return {background:s.backgroundColor,color:s.color,radius:s.borderTopLeftRadius,stroke:s.strokeWidth,padding:s.paddingTop}})).toEqual({background:'rgb(11, 87, 208)',color:'rgb(255, 255, 255)',radius:'50%',stroke:'2.5px',padding:'4px'});
  // The mark does not make a tile taller: a short name with the mark is as tall as a short name without it.
  {const [marked,plain]=await Promise.all([tile(page,'chat-d'),tile(page,'chat-b')].map(async locator=>(await locator.boundingBox())!.height));expect(Math.abs(marked-plain)).toBeLessThanOrEqual(1)}
+ // The badge is drawn whole: inside its tile, and no clipping ancestor cuts it.
+ {const mark=tile(page,'chat-d').locator('.collection-chat-mark'),box=(await mark.boundingBox())!,row=(await tile(page,'chat-d').boundingBox())!;
+  expect(box.y).toBeGreaterThanOrEqual(row.y);expect(box.y+box.height).toBeLessThanOrEqual(row.y+row.height);
+  // No ancestor that clips its overflow (up to the page) cuts the badge's box.
+  expect(await mark.evaluate(node=>{const own=node.getBoundingClientRect();for(let parent=node.parentElement;parent;parent=parent.parentElement){const style=getComputedStyle(parent);if(style.overflowX==='visible'&&style.overflowY==='visible')continue;const box=parent.getBoundingClientRect();if(own.top<box.top-0.5||own.bottom>box.bottom+0.5||own.left<box.left-0.5||own.right>box.right+0.5)return parent.className||parent.tagName}return 'none'})).toBe('none')}
  await expect(tile(page,'chat-a').locator('.collection-chat-mark')).toHaveAttribute('aria-hidden','true');
  {const mark=(await tile(page,'chat-a').locator('.collection-chat-mark').boundingBox())!;expect(Math.round(mark.width)).toBe(22);expect(Math.round(mark.height)).toBe(22);
   // The mark adds no column: it sits inside the name, within the tile's left part.
