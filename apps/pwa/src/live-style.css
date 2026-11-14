@@ -354,6 +354,16 @@
 .collection-context:has(>.collection-header-chat)>strong,.collection-context:has(>.collection-header-chat)>.collection-name-link{flex:0 1 auto;min-width:0;max-width:calc(100% - 180px)}
 .collection-context:has(>.collection-header-chat)>strong{max-width:calc(100% - 124px)}
 @media(max-width:480px){.collection-context:has(>.collection-header-chat)>.collection-name-link{max-width:calc(100% - 112px)}.collection-context:has(>.collection-header-chat)>strong{max-width:calc(100% - 58px)}}
+/* R160 (owner, 14 November 2026): the Collection list tile's chat link, left of Receive, with the 480px-and-below header
+   chat look (white box, grey border, blue 24px icon) at every width; icon only. The actions row sits under the paid amount.
+   When any tile of the page shows a link (collection-list-chat), every tile reserves the same right column, left empty:
+   the 44px actions row, and for a command user (collection-list-command) the width of chat + gap + Receive, so a name
+   wraps the same with or without its own link. */
+.collection-tile-actions{display:flex;flex-direction:row;align-items:center;justify-content:flex-end;gap:8px}
+.collection-list-chat .collection-tile-right{display:grid;grid-template-rows:auto 44px;justify-items:end;align-content:center}
+.collection-list-command .collection-tile-right{min-width:96px}
+.collection-tile-chat{box-sizing:border-box;width:44px;height:44px;flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #dedede;border-radius:5px;background:#fff;color:#0b57d0;text-decoration:none}
+.collection-tile-right .collection-tile-chat svg{width:24px;height:24px}
 /* R154 UX-BRW-IGLINK-01: a refused Save scrolls the failing field's label to the top, below the sticky header. */
 .borrower-record form>label{scroll-margin-top:calc(var(--live-header-height,60px) + 12px)}
 .borrower-record a.ig-group-link{color:#0b57d0;overflow-wrap:anywhere;word-break:break-all}

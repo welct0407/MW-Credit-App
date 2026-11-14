@@ -40,8 +40,8 @@ const summaries:Record<string,unknown>={
 };
 const envelope={ok:true,source:'dev',businessDate:'2026-11-12',timezone:'Asia/Bangkok',asOf:NOW};
 // R158: links adds the group links (chatUrl, chatInviteUrl) to board items, as the read service does.
-async function open(page:Page,{desktop,replace={},now=NOW,links={},width}:{desktop:boolean;replace?:Record<string,unknown>;now?:string;links?:Record<string,Record<string,string>>;width?:number}){
- const rows=board.map(row=>({...row,...(links[row.id]??{})}));
+async function open(page:Page,{desktop,replace={},now=NOW,links={},width,boardRows=board}:{desktop:boolean;replace?:Record<string,unknown>;now?:string;links?:Record<string,Record<string,string>>;width?:number;boardRows?:typeof board}){
+ const rows=boardRows.map(row=>({...row,...(links[row.id]??{})}));
  if(desktop)await page.setViewportSize({width:1440,height:900});if(width)await page.setViewportSize({width,height:780});
  await page.clock.setFixedTime(new Date(now));
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
@@ -53,7 +53,7 @@ async function open(page:Page,{desktop,replace={},now=NOW,links={},width}:{deskt
    return json({...envelope,borrower:rows.find(row=>row.id===id),items:[{id:'charge-'+id,loanId:'loan-'+id,loanDisplayKey:'Synthetic loan',chargeDate:'2026-11-12',paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'1200',totalPaid:'0',receivedToday:'0'}],nextCursor:null,...(id==='chat-e'?{}:{groupChat:source[id]??null})});}
   return json({...envelope,horizonEnd:'2027-02-12',reviewRequired:false,items:[]});});
  await page.goto(base);await page.getByRole('button',{name:'Continue with Google'}).click();await page.getByRole('button',{name:'Collection',exact:true}).click();
- await expect(page.locator('.collection-compact-tile')).toHaveCount(6);
+ await expect(page.locator('.collection-compact-tile')).toHaveCount(rows.length);
 }
 const tile=(page:Page,id:string)=>page.locator(`.collection-tile-main[data-record-id="${id}"]`);
 const card=(page:Page)=>page.locator('.collection-chat-summary');
@@ -273,6 +273,78 @@ for(const width of [320,390])test(`R158 the header link at ${width}px with a lon
  await expectAfterName(page,`read-only ${width}px`);
 });
 
+// R160 (owner, 14 November 2026: "i want to add that chat button (same blue color one in the collection details page) into
+// the collection borrowers list page, put it next to the payment receiving button, on its left side"): the tile's chat link,
+// the narrow header look at every width, a sibling of the tile button (opening it never opens the borrower), shown to a
+// read-only user too (this page; the owner shell below has Receive). Invented links only.
+const tileChat=(page:Page,id:string)=>page.locator('.collection-compact-tile').filter({has:tile(page,id)}).locator('a.collection-tile-chat');
+const tileChatName=(name:string,lang:'en'|'th'='en')=>purpose[lang]+', '+name;
+const nameOf=(id:string)=>board.find(row=>row.id===id)!.displayName;
+test('R160 list tile chat link: device link and fallbacks, none without a valid link, read-only without Receive, never opens the borrower, Thai',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop');
+ await page.context().route(/^https:\/\/(www\.instagram\.com|ig\.me)\//,r=>r.fulfill({contentType:'text/html',body:'<title>Invented group</title>'}));
+ const chargeReads:string[]=[];page.on('request',request=>{if(/\/api\/collection\/[^/]+\/charges/.test(request.url()))chargeReads.push(request.url())});
+ await open(page,{desktop,links:{'chat-c':{chatUrl:web,chatInviteUrl:invite},'chat-b':{chatInviteUrl:invite},'chat-d':{chatUrl:web},'chat-e':{chatUrl:'javascript:alert(1)',chatInviteUrl:'https://ig.me/m/invented_user/'}}});
+ const phone=await isPhone(page);expect(phone).toBe(!desktop);
+ // Case 1 and 3: the link for this device, named per borrower, in a new tab; the header's narrow look (white box, grey
+ // border, blue 24px icon, no text) at every width.
+ const link=page.getByRole('link',{name:tileChatName(nameOf('chat-c')),exact:true});
+ await expect(link).toHaveAttribute('href',phone?invite:web);await expect(link).toHaveAttribute('target','_blank');await expect(link).toHaveAttribute('rel','noopener noreferrer');await expect(link).toHaveAttribute('title',purpose.en);
+ await expect(link).toHaveClass('collection-tile-chat');await expect(link).toHaveText('');
+ await expect(link.locator('svg')).toHaveAttribute('data-icon','chat');await expect(link.locator('svg')).toHaveAttribute('aria-hidden','true');
+ expect(await link.evaluate(node=>{const s=getComputedStyle(node),icon=getComputedStyle(node.querySelector('svg')!);return [s.color,s.textDecorationLine,s.borderTopWidth,s.borderTopStyle,s.borderTopColor,s.borderRadius,s.backgroundColor,icon.width,icon.height]}))
+  .toEqual(['rgb(11, 87, 208)','none','1px','solid','rgb(222, 222, 222)','5px','rgb(255, 255, 255)','24px','24px']);
+ {const box=(await link.boundingBox())!;expect(box.width).toBeCloseTo(44,0);expect(box.height).toBeCloseTo(44,0)}
+ // Fallbacks, and no element without a valid link (a script URL, a non-invite ig.me link) or without any link.
+ await expect(tileChat(page,'chat-b')).toHaveAttribute('href',invite);await expect(tileChat(page,'chat-d')).toHaveAttribute('href',web);
+ for(const id of ['chat-e','chat-a','chat-f'])await expect(tileChat(page,id),id).toHaveCount(0);
+ await expect(page.locator('.collection-tile-chat')).toHaveCount(3);
+ // Case 6: read-only: the chat link without a Receive button; a tile without either has no actions row.
+ await expect(page.locator('.collection-compact-tile button.icon-action')).toHaveCount(0);await expect(page.locator('.collection-tile-actions')).toHaveCount(3);
+ // A sibling of the tile button, inside the right column, after the paid amount.
+ expect(await link.evaluate(node=>[node.parentElement!.className,node.parentElement!.parentElement!.className,node.closest('button')===null])).toEqual(['collection-tile-actions','collection-tile-right',true]);
+ // Case 4: the link opens a new page; the list stays, no tile is selected and no charges are read.
+ const popup=page.context().waitForEvent('page');await link.click();const opened=await popup;await opened.waitForLoadState();
+ expect(opened.url()).toBe(phone?invite:web);await opened.close();
+ await expect(page.locator('.collection-compact-tile.selected')).toHaveCount(0);await expect(page.locator('.collection-charge')).toHaveCount(0);expect(chargeReads).toEqual([]);
+ await expect(page.locator('.collection-compact-tile')).toHaveCount(6);
+ // The tile body still opens the borrower.
+ await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);expect(chargeReads.length).toBe(1);if(!desktop)await back(page);
+ // Case 10: Thai copy.
+ await chooseLanguage(page,'ไทย');await expect(page.getByRole('link',{name:tileChatName(nameOf('chat-c'),'th'),exact:true})).toHaveAttribute('title',purpose.th);
+});
+
+// R160 review (UX-R160-02, case 9): realistic names (25-35 characters, Latin and Thai), each as four tiles with the same
+// name: no link, link, mark, mark and link. When any tile shows a link every tile reserves the same right column, so a
+// tile's own link never changes its height, for a read-only and a command user, at 320 and 390px.
+const heightNames=['Somchai Synthetic Borrower Name','ผู้กู้ตัวอย่างชื่อยาวสำหรับทดสอบ'];
+const heightVariants=['none','link','mark','mark-link'];
+const heightRows=heightNames.flatMap((name,index)=>heightVariants.map(variant=>({...board[0],id:`h${index}-${variant}`,displayName:name,chatSummaryAt:variant.startsWith('mark')?fresh:null})));
+const heightLinked=heightRows.filter(row=>row.id.endsWith('link')).map(row=>row.id);
+async function expectEqualHeights(page:Page,label:string){
+ const measured:Record<string,Record<string,number>>={};
+ for(const width of [320,390]){
+  await page.setViewportSize({width,height:800});
+  for(const [index] of heightNames.entries()){
+   const heights=await Promise.all(heightVariants.map(async variant=>Math.round((await page.locator('.collection-compact-tile').filter({has:tile(page,`h${index}-${variant}`)}).boundingBox())!.height*10)/10));
+   measured[`${width}px ${index?'thai':'latin'}`]=Object.fromEntries(heightVariants.map((variant,at)=>[variant,heights[at]]));
+   // A link never changes the height: none = link and mark = mark-link. The mark's own width (R146/R157, unchanged) can wrap
+   // the last word of a name near a line end, so mark vs no mark is measured and reported here, not asserted.
+   expect(heights[1],`${label} ${width}px name ${index} link vs none: ${JSON.stringify(heights)}`).toBeCloseTo(heights[0],0);
+   expect(heights[3],`${label} ${width}px name ${index} mark-link vs mark: ${JSON.stringify(heights)}`).toBeCloseTo(heights[2],0);
+  }
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth),`${label} ${width}px: no sideways scroll`).toBeLessThanOrEqual(width);
+ }
+ console.log(`R160 tile heights ${label} ${test.info().project.name}: ${JSON.stringify(measured)}`);
+}
+test('R160 read-only: with any link on the page, a tile with a link is as tall as one without (with or without the mark)',async({page},info)=>{
+ await open(page,{desktop:info.project.name.startsWith('desktop'),boardRows:heightRows,links:Object.fromEntries(heightLinked.map(id=>[id,{chatUrl:web,chatInviteUrl:invite}]))});
+ await expect(page.locator('.collection-tile-chat')).toHaveCount(heightLinked.length);await expect(page.locator('.collection-compact-tile button.icon-action')).toHaveCount(0);
+ // The reserved space stays empty: no placeholder element.
+ await expect(page.locator('.collection-tile-actions')).toHaveCount(heightLinked.length);
+ await expectEqualHeights(page,'read-only');
+});
+
 // R150: every card time is the browser's own wall clock, and "today" is the browser's day. Same instants, three clocks.
 test('card times follow the browser time zone: clock times for today here, dates for another day here',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');
@@ -312,9 +384,9 @@ test.describe('owner testing shell',()=>{
   await expect.poll(async()=>{try{return(await fetch(ownerBase)).status}catch{return 0}},{timeout:20000}).toBe(200);
  });
  test.afterAll(()=>owner?.kill());
- test('one card per borrower with that borrower\'s own summary; none stays from the borrower opened before; no duplicate React keys',async({page},info)=>{
-  const desktop=info.project.name.startsWith('desktop');if(desktop)await page.setViewportSize({width:1440,height:900});
-  const consoleText:string[]=[];page.on('console',message=>consoleText.push(message.text()));page.on('pageerror',error=>consoleText.push(error.message));
+ // The owner shell on the mocked read and command services; rows carry the group links when their id is in linkedIds.
+ async function ownerOpen(page:Page,desktop:boolean,rows:typeof board=board,linkedIds:string[]=['chat-c','chat-f'],hold?:Promise<unknown>){
+  if(desktop)await page.setViewportSize({width:1440,height:900});
   await page.clock.setFixedTime(new Date(NOW));
   const ownerAuth=`let listener;const user={uid:'chat-summary-owner',getIdToken:async()=>'synthetic-bearer'};export const browserLocalPersistence='local',inMemoryPersistence='memory',browserPopupRedirectResolver={};export function initializeAuth(){return {}};export function onAuthStateChanged(a,fn){listener=fn;fn(null);return()=>{}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){listener(user)};export async function signOut(){listener(null)};`;
   await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:ownerAuth}));
@@ -322,10 +394,10 @@ test.describe('owner testing shell',()=>{
   await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{const u=new URL(r.request().url());
    // R158: chat-c carries the group links (no summary): the header link sits after the name button (command access).
    // chat-f (a long Thai name) too, for the header layout.
-   const linked=(row:any)=>row&&['chat-c','chat-f'].includes(row.id)?{...row,chatUrl:web,chatInviteUrl:invite}:row;
-   if(u.pathname==='/api/collection')return json(r,{...envelope,items:board.map(linked),nextCursor:null});
+   const linked=(row:any)=>row&&linkedIds.includes(row.id)?{...row,chatUrl:web,chatInviteUrl:invite}:row;
+   if(u.pathname==='/api/collection')return json(r,{...envelope,items:rows.map(linked),nextCursor:null});
    const charges=/^\/api\/collection\/([^/]+)\/charges$/.exec(u.pathname);
-   if(charges){const id=decodeURIComponent(charges[1]);return json(r,{...envelope,borrower:linked(board.find(row=>row.id===id)),items:[{id:'charge-'+id,loanId:'loan-'+id,loanDisplayKey:'Synthetic loan',chargeDate:'2026-11-12',paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'1200',totalPaid:'0',receivedToday:'0'}],nextCursor:null,groupChat:summaries[id]??null});}
+   if(charges){await hold;const id=decodeURIComponent(charges[1]);return json(r,{...envelope,borrower:linked(rows.find(row=>row.id===id)),items:[{id:'charge-'+id,loanId:'loan-'+id,loanDisplayKey:'Synthetic loan',chargeDate:'2026-11-12',paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'1200',totalPaid:'0',receivedToday:'0'}],nextCursor:null,groupChat:summaries[id]??null});}
    return json(r,{...envelope,horizonEnd:'2027-02-12',reviewRequired:false,items:[]});});
   // The command service: the borrower record the note reads, and empty answers for everything else the owner shell asks.
   await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{const u=new URL(r.request().url()),record=/^\/api\/borrower-records\/([^/]+)$/.exec(u.pathname);
@@ -334,7 +406,12 @@ test.describe('owner testing shell',()=>{
    return json(r,{...envelope,items:[],nextCursor:null,months:[],item:null});});
   await routeSyntheticPreferences(page);await page.route('https://mw-credit-app-command-dev-test.run.app/api/dashboard',r=>json(r,{collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]}));
   await page.goto(ownerBase);await page.getByRole('button',{name:/Google/}).click();await chooseLanguagePreservingForm(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();
-  await expect(page.locator('.collection-compact-tile')).toHaveCount(6);
+  await expect(page.locator('.collection-compact-tile')).toHaveCount(rows.length);
+ }
+ test('one card per borrower with that borrower\'s own summary; none stays from the borrower opened before; no duplicate React keys',async({page},info)=>{
+  const desktop=info.project.name.startsWith('desktop');
+  const consoleText:string[]=[];page.on('console',message=>consoleText.push(message.text()));page.on('pageerror',error=>consoleText.push(error.message));
+  await ownerOpen(page,desktop);
   const visit=async(id:string,headline:string|null)=>{
    await tile(page,id).click();await expect(page.locator('.collection-charge')).toHaveCount(1);
    // Owner testing is on: the note is there, right below where the card goes.
@@ -369,5 +446,52 @@ test.describe('owner testing shell',()=>{
   }
   await visit('chat-a','Borrower asks to pay 2,000 on Friday instead of today; partner agreed.');
   expect(consoleText.filter(text=>/two children with the same key|same key/i.test(text))).toEqual([]);
+ });
+ // R160 with command access: the chat link left of Receive on one row, 8px apart (cases 1, 5, 8; UX-R160-01).
+ test('R160 chat link left of Receive: same row, 8px gap, tab order, 44px targets, no overflow with a long Thai name',async({page},info)=>{
+  const desktop=info.project.name.startsWith('desktop');
+  await ownerOpen(page,desktop);
+  const article=(id:string)=>page.locator('.collection-compact-tile').filter({has:tile(page,id)});
+  const receive=(id:string)=>page.getByRole('button',{name:'Receive payment for '+nameOf(id),exact:true});
+  // DOM and tab order: tile button, chat, Receive.
+  expect(await article('chat-c').evaluate(node=>[...node.querySelectorAll('button,a')].map(item=>item.className))).toEqual(['collection-tile-main','collection-tile-chat','secondary-button icon-action']);
+  await expect(article('chat-a').locator('.collection-tile-chat')).toHaveCount(0);await expect(receive('chat-a')).toBeVisible();
+  await tile(page,'chat-c').focus();await page.keyboard.press('Tab');await expect(tileChat(page,'chat-c')).toBeFocused();
+  await page.keyboard.press('Tab');await expect(receive('chat-c')).toBeFocused();
+  const viewport=page.viewportSize()!;
+  for(const width of desktop?[1440]:[390,320]){
+   await page.setViewportSize({width,height:800});const label=`${width}px`;
+   for(const id of ['chat-c','chat-f']){
+    const chat=(await tileChat(page,id).boundingBox())!,pay=(await receive(id).boundingBox())!;
+    expect(Math.abs(chat.y-pay.y),label+' '+id+': same row').toBeLessThanOrEqual(1);expect(pay.x-(chat.x+chat.width),label+' '+id+': 8px left of Receive').toBeCloseTo(8,0);
+    for(const box of [chat,pay]){expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44)}
+    expect(await article(id).evaluate(node=>node.scrollWidth<=node.clientWidth),label+' '+id+': no tile overflow').toBe(true);
+   }
+   // Every tile reserves the same right column (chat + gap + Receive), with or without its own link.
+   const right=await page.locator('.collection-tile-right').evaluateAll(nodes=>nodes.map(node=>Math.round(node.getBoundingClientRect().width)));
+   expect(new Set(right).size,label+': one right-column width '+JSON.stringify(right)).toBe(1);expect(right[0]).toBeGreaterThanOrEqual(96);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth),label+': no sideways scroll').toBeLessThanOrEqual(width);
+   // The long Thai name wraps inside its column.
+   const name=article('chat-f').locator('.collection-tile-main strong');expect(await name.evaluate(node=>getComputedStyle(node).overflowWrap)).toBe('anywhere');
+   const main=(await tile(page,'chat-f').boundingBox())!,text=(await name.boundingBox())!,chat=(await tileChat(page,'chat-f').boundingBox())!;
+   expect(text.x+text.width,label+': the name stays in its column').toBeLessThanOrEqual(main.x+main.width+1);expect(main.x+main.width,label+': the name column ends before the chat link').toBeLessThanOrEqual(chat.x);
+  }
+  await page.setViewportSize(viewport);
+ });
+ test('R160 command user: with any link on the page, a tile with a link is as tall as one without (with or without the mark)',async({page},info)=>{
+  await ownerOpen(page,info.project.name.startsWith('desktop'),heightRows,heightLinked);
+  await expect(page.locator('.collection-tile-chat')).toHaveCount(heightLinked.length);await expect(page.locator('.collection-compact-tile button.icon-action')).toHaveCount(heightRows.length);
+  await expectEqualHeights(page,'command');
+ });
+ // Chase Should 1: while a read is busy the tile button and Receive are disabled; the chat link stays usable.
+ test('R160 busy: tile button and Receive disabled, the chat link stays enabled',async({page},info)=>{
+  let release=()=>{};const hold=new Promise<void>(resolve=>{release=resolve});
+  await ownerOpen(page,info.project.name.startsWith('desktop'),board,['chat-c','chat-f'],hold);
+  const article=page.locator('.collection-compact-tile').filter({has:tile(page,'chat-c')});
+  await tile(page,'chat-a').click();
+  await expect(article.locator('.collection-tile-main')).toBeDisabled();await expect(article.locator('button.icon-action')).toBeDisabled();
+  await expect(tileChat(page,'chat-c')).toBeEnabled();expect(await tileChat(page,'chat-c').evaluate(node=>[node.hasAttribute('disabled'),node.getAttribute('aria-disabled'),getComputedStyle(node).pointerEvents])).toEqual([false,null,'auto']);
+  release();await expect(page.locator('.collection-charge')).toHaveCount(1);
+  if(info.project.name.startsWith('desktop'))await expect(article.locator('button.icon-action')).toBeEnabled();
  });
 });
