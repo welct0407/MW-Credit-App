@@ -304,6 +304,10 @@ async function allPages(read){const items=[];let cursor=null,first=null;for(let 
 /** The records patches for a resolved scope (see resolveRecordsScope). */
 /** Rows embedding another row's data, and how a delta reaches them (R078 v4 dependency audit):
  * - borrower detail: referrer's name -> borrowers whose "Ref Referrer" is an affected borrower;
+ *   isReferrer and the rebates owed (R155) -> the current referrer of an affected borrower (a referrer the link left is
+ *   the old value the change log lacks: the client holds the old referrerId and walks, deltaMovesRows);
+ *   expensesOwedAmount/Count and the rebates owed (R155) -> the payee of a changed expense (a payee the expense left:
+ *   the client walks, deltaMovesRows);
  *   preferred receiving account label -> Cash Accounts change walks.
  * - loan detail: borrower name, version over the loan's charges/repayments -> loans of affected borrowers;
  *   disbursing account label -> walk.
@@ -332,7 +336,11 @@ export async function readRecordsTargeted(client,actor,stamp,{borrowers,payments
  const paymentIds=sortIds([...payments,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Payments" WHERE "Ref Borrower"=ANY($1::text[])',[B]):[]),
   ...(loans.length?await ids('SELECT DISTINCT a."Ref Payment" AS id FROM public."Payment Allocations" a JOIN public."Charges" c ON c."Row ID"=a."Ref Charge" WHERE c."Ref Loans"=ANY($1::text[]) AND a."Ref Payment" IS NOT NULL',[loans]):[])]);
  within(paymentIds.length,TARGETED_LIMITS.payments);
- const borrowerIds=sortIds([...B,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Borrowers" WHERE "Ref Referrer"=ANY($1::text[])',[B]):[])]);within(borrowerIds.length,TARGETED_LIMITS.borrowers*8);
+ // R155: also the current referrers of the scoped borrowers (isReferrer and the rebates owed follow the link) and the
+ // payees of the changed expenses (expensesOwedAmount and the rebates owed follow the expense), detail rows only.
+ const borrowerIds=sortIds([...B,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Borrowers" WHERE "Ref Referrer"=ANY($1::text[])',[B]):[]),
+  ...(B.length?await ids('SELECT "Ref Referrer" AS id FROM public."Borrowers" WHERE "Row ID"=ANY($1::text[]) AND "Ref Referrer" IS NOT NULL',[B]):[]),
+  ...(expenses.length?await ids('SELECT "Ref Payee Borrower" AS id FROM public."Business Expenses" WHERE "Row ID"=ANY($1::text[]) AND "Ref Payee Borrower" IS NOT NULL',[expenses]):[])]);within(borrowerIds.length,TARGETED_LIMITS.borrowers*8);
  const expenseIds=sortIds([...expenses,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Business Expenses" WHERE "Ref Related Borrower"=ANY($1::text[]) OR "Ref Payee Borrower"=ANY($1::text[]) OR "Ref Related Loan"=ANY($2::text[])',[B,loans]):[])]);within(expenseIds.length,TARGETED_LIMITS.expenses);
  const relatedLoans=sortIds([...loans,...(paymentIds.length?await ids('SELECT "Ref Target Loan" AS id FROM public."Payments" WHERE "Row ID"=ANY($1::text[]) AND "Ref Target Loan" IS NOT NULL UNION SELECT c."Ref Loans" AS id FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=ANY($1::text[]) AND c."Ref Loans" IS NOT NULL',[paymentIds]):[])]);within(relatedLoans.length,TARGETED_LIMITS.loans);
  const details=async(key,read,list)=>detailRows(client,stamp,key,read,list,count=>within(values+count>cap?Number.POSITIVE_INFINITY:0,0));

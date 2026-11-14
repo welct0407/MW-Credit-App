@@ -22,6 +22,12 @@ test('moved rows walk: a replaceWhere row still held under another owner, a chan
  assert.equal(deltaMovesRows(data,[{key:'charges',mode:'replaceWhere',field:'borrowerId',values:['B'],value:[{id:'c2',borrowerId:'B'}]}]),false);
  assert.equal(deltaMovesRows(data,[{key:'charges',mode:'replaceWhere',field:'borrowerId',values:['B'],value:[{id:'c1',borrowerId:'B'}]}]),true,'c1 is still under A');
  assert.equal(deltaMovesRows(data,[{key:'receipts',mode:'replaceWhere',field:'borrowerId',values:['A','B'],value:[{id:'p1',borrowerId:'B'}]}]),false,'both owners replaced');
+ // R155: a records delta re-sending a borrower whose referrer changed walks (the old referrer's details are stale);
+ // the same referrer or a new borrower does not.
+ const held={borrowers:[{id:'C',referrerId:'A'}]};
+ assert.equal(deltaMovesRows(held,[{key:'borrowers',mode:'upsert',value:[{id:'C',referrerId:'B'}]}]),true,'referrer changed');
+ assert.equal(deltaMovesRows(held,[{key:'borrowers',mode:'upsert',value:[{id:'C',referrerId:null}]}]),true,'referrer cleared');
+ assert.equal(deltaMovesRows(held,[{key:'borrowers',mode:'upsert',value:[{id:'C',referrerId:'A',note:'x'}]},{key:'borrowers',mode:'upsert',value:[{id:'E',referrerId:'C'}]}]),false,'same referrer, new row');
  assert.equal(deltaScopeMoves(data,{borrowers:['B'],loans:['L2']}),false);
  assert.equal(deltaScopeMoves(data,{borrowers:['B'],loans:['L1']}),true,'L1 still has a charge under A');
  assert.equal(deltaScopeMoves({borrowerUpcomingByKey:{'["borrower","A"]':{borrowerId:'A',previews:[{items:[{loanId:'L9'}]}]}}},{borrowers:['B'],loans:['L9']}),true,'an upcoming entry of A shows the loan');

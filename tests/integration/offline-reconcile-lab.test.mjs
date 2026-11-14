@@ -57,7 +57,10 @@ test('reconciliation matches a walked bundle, names exactly a mutated key, and r
   assert.equal((await reconcile(client,'records',before)).result,'stale');
   // Changed: a write lands between the two version reads (only possible outside REPEATABLE READ; the service uses it).
   const current=await walk(client,'collection'),digests=await datasetDigests(current.data,sha256);let wrote=false;
-  const racing={query:async(sql,params)=>{if(!wrote&&!sql.includes('AS fingerprint')&&!sql.startsWith('SELECT to_char')){wrote=true;await writer.query(`UPDATE "Charges" SET "Interest Due"=11::money WHERE "Row ID"=$1`,['RC-CH-'+id])}return client.query(sql,params)}};
+  // The write lands on the first statement after the first fingerprint read (the optional-source check, V146, now comes
+  // before it), so the two version reads straddle it.
+  let fingerprinted=false;
+  const racing={query:async(sql,params)=>{if(sql.includes('AS fingerprint'))fingerprinted=true;else if(fingerprinted&&!wrote&&!sql.startsWith('SELECT to_char')){wrote=true;await writer.query(`UPDATE "Charges" SET "Interest Due"=11::money WHERE "Row ID"=$1`,['RC-CH-'+id])}return client.query(sql,params)}};
   const changed=await rr(client,()=>readOfflineDatasetDelta(racing,actor,'collection',{reconcile:true,sourceVersion:current.sourceVersion,digests}),'READ COMMITTED');
   assert.equal(changed.result,'changed');
   console.log('mutated keys named: '+report.join(', '));

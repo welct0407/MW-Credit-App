@@ -97,6 +97,10 @@ test('a client holding the previous bundle ends equal to a fresh full walk after
    ['rename borrower named by an expense',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Alpha again '||$2 WHERE "Row ID"=$1`,[A,id])],
    ['referrer cleared on C',async()=>q(`UPDATE "Borrowers" SET "Ref Referrer"=NULL WHERE "Row ID"=$1`,[C])],
    ['referrer set to B on C',async()=>q(`UPDATE "Borrowers" SET "Ref Referrer"=$2 WHERE "Row ID"=$1`,[C,B])],
+   // R155: a borrower detail of the referrer (isReferrer) and of an expense payee (expensesOwedAmount) depends on other rows.
+   ['new borrower referred by C',async()=>q(`INSERT INTO "Borrowers"("Row ID","Borrower Name","Ref Referrer") VALUES ($1,'Echo '||$2,$3)`,['EQ-E-'+id,id,C])],
+   ['pending expense with payee C',async()=>q(`INSERT INTO "Business Expenses"("Row ID","Expense Date","Amount","Ref Payee Borrower","Expense Category","Source Type") VALUES ($1,current_date,25::money,$2,'Other','Manual')`,['EQ-EXP-'+id,C])],
+   ['pending expense of payee C paid',async()=>q(`UPDATE "Business Expenses" SET "Ref Paid By Cash Account"='CI-LISA' WHERE "Row ID"=$1`,['EQ-EXP-'+id])],
    ['rename B (referrer of C, payee of expense)',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Bravo renamed '||$2 WHERE "Row ID"=$1`,[B,id])],
    ['repayment on A paid via payment of B',async()=>q(`INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Ref Payment","Payment Date","Principal Paid","Interest Paid") VALUES ($1,$2,$3,$4,current_date,1::money,1::money)`,['EQ-R2-'+id,LA,`EQ-CH-${LA}-3`,'EQ-PAY1-'+id])],
    ['direct repayment row on B charge',async()=>q(`INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Payment Date","Principal Paid","Interest Paid") VALUES ($1,$2,$3,current_date,1::money,1::money)`,['EQ-R-'+id,LA,`EQ-CH-${LA}-2`])],

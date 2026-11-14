@@ -24,6 +24,8 @@ python3 project/scripts/dictionary/dictionary.py validate
 
 `--only` takes `kind:name` (repeatable or comma-separated) and needs `--postgres-only`; a named object the capture lacks is refused. Run it against `production`, because the dictionary records `loan_manager_prod` only, and after a migration is applied to PROD. Evidence for the R103 run is in `project/outputs/dictionary-r103-20261028/`; the targeted R146, R149, R153 and R154 runs left the sanitized observations their records cite in `project/outputs/dictionary-r146-20261113/`, `project/outputs/dictionary-r149-20261113/`, `project/outputs/dictionary-r153-20261113/` and `project/outputs/dictionary-r154-20261114/`.
 
+Authored content is preserved (R155). A PostgreSQL reconcile replaces catalog-observed facts only (the relation's definition, columns, constraints, indexes, triggers, policies and dependencies, a routine's definition) and carries over every authored key already on the record: top-level keys such as `business_rules`, `purpose`, `grants`, `release`, `dev_prod_equal` and `development_definition`, and entry keys such as a column's `business_rule` (for example the Borrower Name rule of 17 October 2026, which the R153 and R154 runs dropped). `plan.json` lists `preserved_authored` and `orphaned_authored` (authored keys on a column or object the capture no longer has; they are dropped with it, so review them). The catalog key sets are `CATALOG_TOP` and `CATALOG_ENTRY` in `reconcile_captures.py`; a new key the collector starts to emit belongs there. Evidence is not authored: `verification.source` names the new capture and `verification.previous_record` names the replaced record.
+
 ## Commands
 
 From the repository root, using the established Python executable:
