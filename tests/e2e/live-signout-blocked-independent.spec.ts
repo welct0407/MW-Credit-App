@@ -58,7 +58,9 @@ test('sign-out is blocked with sync and review affordances until the saved reque
  await context.setOffline(true);await account(page);await syncSaved.click();await expect(page.getByText('Waiting for a connection. Saved changes remain on this device.',{exact:true}).filter({visible:true})).toBeVisible();await context.setOffline(false);
  await account(page);await syncSaved.click();
  // The row cannot be applied (503) so it stays queued and the saved-changes screen opens with its reason.
- await expect(page.getByRole('region',{name:'Saved unsynced changes'})).toBeVisible();await expect.poll(()=>routes.posts.length).toBeGreaterThan(0);expect(routes.statusGets).toBeGreaterThan(0);
+ await expect(page.getByRole('region',{name:'Saved unsynced changes'})).toBeVisible();await expect.poll(()=>routes.posts.length).toBeGreaterThan(0);
+ // The header names the Saved changes page while it is open, not the section it was opened from.
+ await expect(page.locator('.topbar h1')).toHaveText('Saved changes');expect(routes.statusGets).toBeGreaterThan(0);
  expect(await pendingRows(page)).toHaveLength(1);expect(await page.evaluate(()=>(window as any).signouts??0)).toBe(0);
  await page.evaluate(async({identity,id}:{identity:{issuer:string;uid:string};id:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');await ownerOfflineRepository(identity).remove('pending',id)},{identity,id});
  await account(page);
@@ -77,6 +79,7 @@ test('denied session keeps saved changes reviewable and a same-UID re-sign-in sy
  const blocked=page.getByRole('button',{name:'Sign out',exact:true}).filter({visible:true});await expect(blocked).toBeVisible();await expect(blocked).toBeDisabled();await expect(blocked).toHaveAccessibleDescription(/^1 saved change not synced yet/);
  await page.getByRole('button',{name:'Review saved changes',exact:true}).filter({visible:true}).click();
  const region=page.getByRole('region',{name:'Saved unsynced changes',exact:true});await expect(region).toBeVisible();await expect(region).toContainText(id);
+ await expect(page.locator('.topbar h1')).toHaveText('Saved changes');
  await expect(region.getByText('Connect to verify this account before accessing saved records.',{exact:true})).toBeVisible();
  await expect(region.getByRole('button',{name:'Remove saved change',exact:true})).toHaveCount(0);
  // Membership is restored and the same UID signs in again: the saved request must sync with the fresh repository.
@@ -104,4 +107,15 @@ test('the header refresh also wakes the saved-change sync while changes are save
  await emitSyntheticUser(page);
  const refresh=page.locator('button.collection-update');await expect(refresh).toBeEnabled();
  await refresh.click();expect(await page.evaluate(()=>(window as any).__inTap)).toEqual(['prepare-all','queued']);
+});
+// IPAD-NAV-05: from 1051 to 1199px (iPad landscape) the expanded sidebar is scrolled down to reach Review saved changes;
+// Review collapses it, and the icon rail comes back at its top, not at the expanded scroll position that hid the first icons.
+test('iPad landscape: Review saved changes collapses the sidebar and the icon rail starts at its top',async({page})=>{
+ await setup(page);await seedPending(page);await emitSyntheticUser(page);
+ test.skip(layout(page)!=='compact','The overlaying sidebar of 1051-1199px');
+ await account(page);const rail=page.locator('#live-desktop-navigation'),review=page.getByRole('button',{name:'Review saved changes',exact:true}).filter({visible:true});
+ await expect(review).toBeVisible();await rail.evaluate(e=>{e.scrollTop=e.scrollHeight});expect(await rail.evaluate(e=>e.scrollTop),'the expanded sidebar scrolls').toBeGreaterThan(0);
+ await review.click();await expect(page.getByRole('region',{name:'Saved unsynced changes',exact:true})).toBeVisible();
+ await expect(page.locator('.live-body')).toHaveClass(/nav-collapsed/);await expect.poll(()=>rail.evaluate(e=>e.scrollTop)).toBe(0);
+ await expect(page.locator('.topbar h1')).toHaveText('Saved changes');
 });

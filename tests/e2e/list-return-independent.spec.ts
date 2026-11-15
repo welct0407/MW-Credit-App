@@ -317,6 +317,19 @@ test.describe('list return on the real pages',()=>{
    after=await track(page,tile);near(after.rowTop!,board0.rowTop!,3);near(after.scrollY,board0.scrollY,3);await session.detach();
    return;
   }
+  // Compact (1051-1199px, iPad landscape): the board beside the detail on one page scroll and no section scrollers. A charge
+  // detail and Back, then the loan link (a workspace remount) and Back, each return the page and the row where they were.
+  if(layout(page)==='compact'){
+   for(const [selector,back,focus] of [['.charge-tile-action[data-record-id="ch-20"]','Back to charges','ch-20'],['.charge-loan-link[data-record-id="ch-20:loan"]','Back to loans','ch-20:loan']]){
+    await scrollTo(page,selector);await page.waitForTimeout(100);
+    const before=await track(page,selector);expect(before.scrollerTops,'no section scroller').toEqual([]);expect(before.scrollY,'the page scrolled to the row').toBeGreaterThan(100);
+    await page.locator(selector).evaluate(node=>(node as HTMLElement).click());await expect(page.getByRole('button',{name:back})).toBeVisible();
+    await page.getByRole('button',{name:back}).click();
+    await expect.poll(async()=>(await track(page,selector)).focus).toBe(focus);await settleBack(page);
+    const after=await track(page,selector);near(after.scrollY,before.scrollY,3);near(after.rowTop!,before.rowTop!,3);
+   }
+   return;
+  }
   // Desktop: the board stays beside the detail, each in its own section scroller (1200px and wider). Charge detail, then Back.
   test.skip(layout(page)!=='desktop','The section scrollers are the desktop layout (>= 1200px).');
   const lists=await panelTops(page);expect(lists.list).toBeGreaterThan(100);

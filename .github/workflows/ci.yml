@@ -288,7 +288,8 @@ jobs:
           overwrite: true
 
   # iPhone and iPad runs: the same specs in WebKit on the iPhone 17 Pro Max
-  # profile and on iPad portrait (820x1180) and landscape (1180x820)
+  # profile and on iPad portrait and landscape (screens 820x1180 and 1180x820;
+  # the viewports are 74 px shorter for Safari's status and address bars)
   # (PLAYWRIGHT_WEBKIT=1 adds the mobile-webkit and tablet-webkit-* projects),
   # part of `Development checks result`. WebKit test-harness differences are
   # handled in tests/e2e/fixtures/test.ts.
