@@ -1,5 +1,5 @@
 import {chooseLanguagePreservingForm,signOut} from './live-controls';
-import {test,expect} from './fixtures/test';
+import {test,expect,deviceClass,layout,stacked} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
@@ -31,7 +31,8 @@ test('R115 Collection loads one board of up to 100 borrowers; more than 100 show
  expect(Math.abs((await page.locator('.collection-workspace .list-count').boundingBox())!.x-(await page.locator('.collection-workspace .list-meaning-legend').boundingBox())!.x)).toBeLessThan(1);
  expect(board).toEqual(['?limit=100']);await expect(page.getByRole('button',{name:/Collection page$/})).toHaveCount(0);await expect(page.locator('.collection-workspace .list-more')).toHaveCount(0);
  // COLL-2 (phone): the page scrolls, not an inner list; the last row clears the bottom bar.
- if(info.project.name.startsWith('mobile')){const panel=page.locator('.collection-workspace .list-panel');expect(await panel.evaluate(e=>e.scrollHeight<=e.clientHeight+1)).toBe(true);await page.locator('.collection-compact-tile').last().scrollIntoViewIfNeeded();await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));const last=(await page.locator('.collection-compact-tile').last().boundingBox())!,bar=await page.locator('.live-bottom-nav').boundingBox();if(bar)expect(last.y+last.height).toBeLessThanOrEqual(bar.y)}
+ // Below the 1200px section scrollers the page scrolls, not the list, and the last tile clears the bottom navigation.
+ if(layout(page)!=='desktop'){const panel=page.locator('.collection-workspace .list-panel');expect(await panel.evaluate(e=>e.scrollHeight<=e.clientHeight+1)).toBe(true);await page.locator('.collection-compact-tile').last().scrollIntoViewIfNeeded();await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));const last=(await page.locator('.collection-compact-tile').last().boundingBox())!,bar=await page.locator('.live-bottom-nav').boundingBox();if(bar)expect(last.y+last.height).toBeLessThanOrEqual(bar.y)}
  // R131: a server that still has more rows: the board pager (next only on page 1) and the page range, no hint line.
  more=true;await page.getByRole('button',{name:'Refresh Collection — return to first page'}).click();await expect(page.getByRole('button',{name:'Next borrowers page',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Previous borrowers page',exact:true})).toHaveCount(0);await expect(page.locator('.collection-workspace .list-count')).toHaveText('Borrowers 1–27');await expect(page.locator('.collection-workspace .list-more')).toHaveCount(0);
  // A 400 on the board read stays an error.
@@ -55,7 +56,7 @@ test('Collection board child pages financial display rollover errors and route/l
 // end of the board, the page range in the count line, the search kept across pages, each page from the top, and Back from a
 // borrower on page 2 returns to that tile on page 2.
 test('Collection board pager: next and previous 100-borrower pages keep the search and return to the opened tile',async({page},info)=>{
- const mobile=info.project.name.startsWith('mobile');await page.setViewportSize({width:mobile?390:1440,height:900});
+ if(deviceClass(info)!=='tablet')await page.setViewportSize({width:deviceClass(info)==='phone'?390:1440,height:900});
  const board=Array.from({length:150},(_,i)=>({id:'board-'+i,displayName:'ผู้กู้ '+i+' - Board '+i,status:'not_paid',overdueDays:null,amountDue:'10',amountCollected:'0',amountRemaining:'10'}));
  const envelope={ok:true,source:'dev',businessDate:'2026-10-07',timezone:'Asia/Bangkok',asOf:'2026-10-07T05:00:00Z'};const requests:URLSearchParams[]=[];
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
@@ -73,7 +74,7 @@ test('Collection board pager: next and previous 100-borrower pages keep the sear
  // Back from a borrower opened on page 2 returns to that tile on page 2 (the desktop board stays beside the detail).
  const row=page.locator(tile+'[data-record-id="board-140"]');await row.scrollIntoViewIfNeeded();await page.waitForTimeout(100);const before=await row.evaluate(e=>e.getBoundingClientRect().top);
  await row.click();await expect(page.getByRole('button',{name:'Back to Collection',exact:true})).toBeVisible();
- if(!mobile)await expect(page.locator(tile)).toHaveCount(50);
+ if(!stacked(page))await expect(page.locator(tile)).toHaveCount(50);
  await page.getByRole('button',{name:'Back to Collection',exact:true}).click();
  await expect(page.locator(tile)).toHaveCount(50);await expect(count).toHaveText('Borrowers 101–150');await expect(row).toBeFocused();
  await expect.poll(async()=>Math.abs(await row.evaluate(e=>e.getBoundingClientRect().top)-before)).toBeLessThanOrEqual(3);

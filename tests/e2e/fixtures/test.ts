@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {test as base,expect,type BrowserContext,type Page,type Route} from '@playwright/test';
 export * from '@playwright/test';
 // Specs import `test` from here instead of '@playwright/test'. In WebKit (the
-// mobile-webkit iPhone project) each test's context is a fresh persistent
+// mobile-webkit iPhone and tablet-webkit-* iPad projects) each test's context is a fresh persistent
 // context: Playwright's ephemeral WebKit contexts behave like private browsing
 // and abort any IndexedDB transaction that stores a Blob, which an iPhone
 // Home Screen app does not. Every other browser keeps Playwright's context.
@@ -33,6 +33,9 @@ export const test=base.extend({
   if(actionTimeout)persistent.setDefaultTimeout(actionTimeout);
   if(navigationTimeout)persistent.setDefaultNavigationTimeout(navigationTimeout);
   await emulateOffline(persistent);
+  // A touch profile reports the iPhone's and iPad's five touch points: Playwright's WebKit reports none even with hasTouch,
+  // and iPad Safari, which sends the Mac user agent, is told apart from a Mac only by them (chatDevice).
+  if(hasTouch)await persistent.addInitScript(()=>Object.defineProperty(Navigator.prototype,'maxTouchPoints',{configurable:true,get:()=>5}));
   // WebKit refuses screenshots taller than 32767 device pixels; at the iPhone's 3x scale a long full page
   // passes that, so full-page captures default to CSS pixels there.
   const fullPageInCss=(page:Page)=>{const original=page.screenshot.bind(page);page.screenshot=(options={})=>original(options.fullPage&&!options.scale?{...options,scale:'css'}:options)};
@@ -40,6 +43,30 @@ export const test=base.extend({
   try{await use(persistent)}finally{await persistent.close();await rm(profile,{recursive:true,force:true})}
  },
 });
+// Device and layout. The device class follows the project (an iPad is a phone device to the app: chatDevice),
+// while the layout follows the viewport width against the app's breakpoints, never the project name:
+// phone <=767, tablet 768-1050 (stacked list and record, bottom navigation, drawer),
+// compact 1051-1199 (two panes, 72px collapsed sidebar, no section scrollers), desktop >=1200.
+type ProjectInfo={project:{name:string}};
+export type DeviceClass='computer'|'phone'|'tablet';
+export type Layout='phone'|'tablet'|'compact'|'desktop';
+export function deviceClass(info:ProjectInfo):DeviceClass{
+ const name=info.project.name;
+ if(name.startsWith('desktop-'))return 'computer';
+ if(name.startsWith('mobile-'))return 'phone';
+ if(name.startsWith('tablet-'))return 'tablet';
+ throw Error('deviceClass: unknown project '+name);
+}
+/** A touch device: the phone and tablet projects. */
+export const touchDevice=(info:ProjectInfo)=>deviceClass(info)!=='computer';
+/** Integration tests that need one browser (SDK, worker, storage, two tabs) run on desktop-chromium only. */
+export const runsOnce=(info:ProjectInfo)=>info.project.name==='desktop-chromium';
+const width=(page:Page)=>page.viewportSize()!.width;
+export function layout(page:Page):Layout{const w=width(page);return w<=767?'phone':w<=1050?'tablet':w<=1199?'compact':'desktop'}
+/** List and record stacked, bottom navigation and drawer: 1050px and narrower. */
+export const stacked=(page:Page)=>width(page)<=1050;
+/** The narrow phone look: 480px and narrower. */
+export const narrow=(page:Page)=>width(page)<=480;
 type TouchPoint={x:number;y:number};
 /**
  * Touch input for specs that drive real touch sequences. Chromium uses the

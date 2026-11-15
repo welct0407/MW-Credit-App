@@ -1,5 +1,5 @@
 import {chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
-import {test,expect,type BrowserContext,type Page,type Route} from './fixtures/test';
+import {test,expect,stacked,type BrowserContext,type Page,type Route} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 // R149: the "new group chat summary" list mark agrees across one user's devices. Two browser contexts (two devices) sign
 // in as the same mocked user against one shared mocked server: the read API answers the list with the user's stored
@@ -63,10 +63,10 @@ async function start(page:Page,desktop:boolean){
 }
 const reopen=async(page:Page)=>{await page.reload();await enter(page)};
 /** Open the borrower's card and wait for this version of the summary (the card rendering it is what counts as seen; a
- * saved earlier version may show first), then return to the list on a phone. */
-async function show(page:Page,id:string,desktop:boolean,version:string){
+ * saved earlier version may show first), then return to the list where the record replaces it (1050px and narrower). */
+async function show(page:Page,id:string,version:string){
  await tile(page,id).click();await expect(card(page).locator('.collection-chat-headline')).toHaveText('Synthetic summary for '+id+' at '+version);
- if(!desktop)await page.getByRole('button',{name:/^(Back to Collection|กลับงานติดตาม)$/}).click();
+ if(stacked(page))await page.getByRole('button',{name:/^(Back to Collection|กลับงานติดตาม)$/}).click();
  await expect(tile(page,id)).toBeVisible();
 }
 const unsent=(page:Page)=>page.evaluate(()=>Object.keys(localStorage).filter(key=>key.startsWith('mw-credit.chat-seen-unsent:')).map(key=>localStorage.getItem(key)));
@@ -82,19 +82,19 @@ test('one user, two devices: seen on one clears the mark on the other; a newer s
   // Device A: the mark is there; opening the card sends one request and clears it.
   const a=await device('A',page.context(),page);await start(a,desktop);
   await expect(mark(a,'seen-a')).toHaveCount(1);await expect(mark(a,'seen-d')).toHaveCount(1);await expect(mark(a,'seen-c')).toHaveCount(0);
-  await show(a,'seen-a',desktop,first);
+  await show(a,'seen-a',first);
   await expect(mark(a,'seen-a')).toHaveCount(0);await expect(mark(a,'seen-d')).toHaveCount(1);
   await expect.poll(()=>state.posts.length).toBe(1);
   expect(state.posts[0]).toEqual({device:'A',id:'seen-a',body:{lastMessageAt:first},authorization:'Bearer synthetic-bearer',contentType:'application/json'});
   expect(state.seen).toEqual({'seen-a':first});expect(await unsent(a)).toEqual([]);
   // Opening the same card again sends nothing more.
-  await show(a,'seen-a',desktop,first);await a.waitForTimeout(300);expect(state.attempts).toEqual(['A:seen-a']);
+  await show(a,'seen-a',first);await a.waitForTimeout(300);expect(state.attempts).toEqual(['A:seen-a']);
 
   // Device B, same user, empty storage: no mark for the summary seen on A; opening that card sends nothing (the server has it).
   const b=await device('B',contextB);await start(b,desktop);
   await expect(mark(b,'seen-a')).toHaveCount(0);await expect(mark(b,'seen-d')).toHaveCount(1);
   expect(await b.evaluate(()=>Object.keys(localStorage).filter(key=>key.startsWith('mw-credit.chat-seen')))).toEqual([]);
-  await show(b,'seen-a',desktop,first);await b.waitForTimeout(300);expect(state.attempts).toEqual(['A:seen-a']);
+  await show(b,'seen-a',first);await b.waitForTimeout(300);expect(state.attempts).toEqual(['A:seen-a']);
 
   // A newer summary relights the mark on both devices.
   state.summaryAt['seen-a']=second;
@@ -103,7 +103,7 @@ test('one user, two devices: seen on one clears the mark on the other; a newer s
 
   // Device A loses its connection to the service: the mark still clears there at once, the value waits, B keeps its mark.
   state.down.add('A');
-  await show(a,'seen-a',desktop,second);
+  await show(a,'seen-a',second);
   await expect(mark(a,'seen-a')).toHaveCount(0);
   await expect.poll(()=>state.attempts.filter(entry=>entry==='A:seen-a').length).toBe(2);
   expect(state.posts.length).toBe(1);expect(state.seen).toEqual({'seen-a':first});
@@ -129,7 +129,7 @@ test('one user, two devices: seen on one clears the mark on the other; a newer s
    Storage.prototype.removeItem=function(key:string){if(blocked(key))throw new DOMException('blocked','SecurityError');return remove.call(this,key)}});
   const c=await device('C',contextC);await start(c,desktop);
   await expect(mark(c,'seen-a')).toHaveCount(0);await expect(mark(c,'seen-d')).toHaveCount(1);
-  await show(c,'seen-d',desktop,first);
+  await show(c,'seen-d',first);
   await expect(mark(c,'seen-d')).toHaveCount(0);
   await expect.poll(()=>state.posts.length).toBe(3);expect(state.posts[2]).toMatchObject({device:'C',id:'seen-d',body:{lastMessageAt:first}});
   await reopen(c);await expect(mark(c,'seen-d')).toHaveCount(0);await expect(mark(c,'seen-a')).toHaveCount(0);

@@ -1,4 +1,4 @@
-import {test,expect,type Page} from './fixtures/test';
+import {test,expect,deviceClass,type Page} from './fixtures/test';
 import {chooseLanguage,routeSyntheticPreferences} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 // Wave 5 UX states (APP-UX-RECEIVE-01/03/04/05/06, SETTINGS-01/02/03, NAV-02, APP-OFFLINE-05) on the live-dev shell with synthetic data.
@@ -90,7 +90,7 @@ test('W5 Notifications shows its state on open without a tap and never prompts',
 });
 
 test('W5 desktop sidebar fits 1280×800 with sign-out separated from language',async({page},info)=>{
- test.skip(info.project.name.startsWith('mobile'),'Desktop sidebar only');await page.setViewportSize({width:1280,height:800});await setup(page);
+ test.skip(deviceClass(info)!=='computer','Desktop sidebar only');await page.setViewportSize({width:1280,height:800});await setup(page);
  const nav=page.locator('.live-desktop-nav');await expect(page.getByRole('button',{name:'Sign out',exact:true})).toBeVisible();
  expect(await nav.evaluate(e=>e.scrollHeight<=e.clientHeight)).toBe(true);
  const gap=await page.evaluate(()=>{const language=document.querySelector('.live-desktop-nav .language')!.getBoundingClientRect(),group=document.querySelector('.live-desktop-nav .live-account-signout-group')!,signOut=group.querySelector('.live-account-signout')!.getBoundingClientRect();return {space:signOut.top-language.bottom,border:getComputedStyle(group).borderTopStyle}});

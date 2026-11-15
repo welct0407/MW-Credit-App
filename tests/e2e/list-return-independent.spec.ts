@@ -1,4 +1,4 @@
-import {test,expect,touchSession,type Page} from './fixtures/test';
+import {test,expect,touchSession,deviceClass,layout,stacked,touchDevice,type Page} from './fixtures/test';
 // R131 (e): after opening an item from a list and pressing Back, the list is where it was. Part 1 runs the list-return
 // contract on a harness (nested panel + window); the rest drives the real pages with synthetic auth and HTTP seams.
 // It does not claim live authentication, the durable operation journal or any financial rule.
@@ -114,7 +114,7 @@ test.describe('list-return safety',()=>{
   expect((await where(page)).panel).toBe(300);
  });
  test('a real touch tap inside main (browser-generated, hasTouch) cancels the restore',async({page},info)=>{
-  test.skip(!info.project.name.startsWith('mobile'),'Touch is the phone projects.');
+  test.skip(!touchDevice(info),'Touch is the phone and tablet projects.');
   await harness(page);await openRow(page,'r30',100,1400);
   await page.getByRole('button',{name:'Back slow',exact:true}).click();
   const box=(await page.locator('main').boundingBox())!;await page.touchscreen.tap(box.x+20,Math.max(box.y,0)+30);
@@ -298,14 +298,13 @@ test.describe('list return on the real pages',()=>{
  };
  const panelTops=(page:Page)=>page.evaluate(()=>({list:(document.querySelector('.list-panel') as HTMLElement|null)?.scrollTop??null,detail:(document.querySelector('.detail-panel') as HTMLElement|null)?.scrollTop??null,y:scrollY}));
 
- test('Collection: the board returns to the opened tile with Back and with a swipe (mobile); both panels return (desktop)',async({page},info)=>{
-  const mobile=info.project.name.startsWith('mobile');
+ test('Collection: the board returns to the opened tile with Back and with a swipe (mobile); both panels return (desktop)',async({page})=>{
   await signIn(page,base,collectionRead,collectionCommand);
   await menu(page,'Collection');const tile='.collection-tile-main[data-record-id="cb-30"]';await expect(page.locator(tile)).toBeVisible();
   await scrollTo(page,tile);await page.waitForTimeout(100);
   const board0=await track(page,tile);expect(board0.scrollY+board0.scrollerTops.reduce((a,b)=>a+b,0)).toBeGreaterThan(300);
   await page.locator(tile).evaluate(node=>(node as HTMLElement).click());await expect(page.locator('.collection-charge-row')).toHaveCount(30);
-  if(mobile){
+  if(stacked(page)){
    await page.getByRole('button',{name:'Back to Collection'}).click();
    await expect.poll(async()=>(await track(page,tile)).focus).toBe('cb-30');await settleBack(page);
    let after=await track(page,tile);near(after.rowTop!,board0.rowTop!,2);near(after.scrollY,board0.scrollY,2);
@@ -318,7 +317,21 @@ test.describe('list return on the real pages',()=>{
    after=await track(page,tile);near(after.rowTop!,board0.rowTop!,3);near(after.scrollY,board0.scrollY,3);await session.detach();
    return;
   }
-  // Desktop: the board stays beside the detail. Charge detail, then Back.
+  // Compact (1051-1199px, iPad landscape): the board beside the detail on one page scroll and no section scrollers. A charge
+  // detail and Back, then the loan link (a workspace remount) and Back, each return the page and the row where they were.
+  if(layout(page)==='compact'){
+   for(const [selector,back,focus] of [['.charge-tile-action[data-record-id="ch-20"]','Back to charges','ch-20'],['.charge-loan-link[data-record-id="ch-20:loan"]','Back to loans','ch-20:loan']]){
+    await scrollTo(page,selector);await page.waitForTimeout(100);
+    const before=await track(page,selector);expect(before.scrollerTops,'no section scroller').toEqual([]);expect(before.scrollY,'the page scrolled to the row').toBeGreaterThan(100);
+    await page.locator(selector).evaluate(node=>(node as HTMLElement).click());await expect(page.getByRole('button',{name:back})).toBeVisible();
+    await page.getByRole('button',{name:back}).click();
+    await expect.poll(async()=>(await track(page,selector)).focus).toBe(focus);await settleBack(page);
+    const after=await track(page,selector);near(after.scrollY,before.scrollY,3);near(after.rowTop!,before.rowTop!,3);
+   }
+   return;
+  }
+  // Desktop: the board stays beside the detail, each in its own section scroller (1200px and wider). Charge detail, then Back.
+  test.skip(layout(page)!=='desktop','The section scrollers are the desktop layout (>= 1200px).');
   const lists=await panelTops(page);expect(lists.list).toBeGreaterThan(100);
   const chargeSel='.charge-tile-action[data-record-id="ch-20"]';await scrollTo(page,chargeSel);await page.waitForTimeout(100);
   const detail0=await panelTops(page),row0=await track(page,chargeSel);expect(detail0.detail).toBeGreaterThan(100);
@@ -336,7 +349,7 @@ test.describe('list return on the real pages',()=>{
  });
 
  test('Borrowers (owner): loan, then Back keeps loans page 2 and the row; a related charge keeps related page 2',async({page},info)=>{
-  test.skip(info.project.name.startsWith('mobile'),'The owner Borrowers flow is a desktop layout (a section scroller); the Collection and Referrers tests cover the phone window scroll.');
+  test.skip(deviceClass(info)!=='computer','The owner Borrowers flow is a desktop layout (a section scroller); the Collection and Referrers tests cover the phone and tablet window scroll.');
   const loans=Array.from({length:30},(_,i)=>({id:'pl-'+i,borrowerId:'BX',borrowerDisplayName:'ผู้กู้ Synthetic',originalDailyInterestRate:'2',loanDate:'2026-10-'+String(1+(i%28)).padStart(2,'0'),dueDate:null,closeDate:null,status:'ยังไม่ปิดยอด',loanType:'ดอกเบี้ยรายวัน',principalAmount:String(10000+i),outstandingPrincipal:'100',totalPrincipalReceived:'0',totalInterestReceived:'0',totalAmountReceived:'0',defaulted:false,autoChargeEnabled:false}));
   const charges=Array.from({length:30},(_,i)=>({id:'rc-'+i,date:'2026-10-'+String(1+(i%28)).padStart(2,'0'),status:'ยังไม่ชำระ',principal:'100',interest:'10',lateCharge:'0'}));
   const cur=(array:any[],cursor:string|null)=>cursor?{items:array.slice(25),nextCursor:null}:{items:array.slice(0,25),nextCursor:array.length>25?Buffer.from('p2').toString('base64url'):null};
@@ -438,7 +451,7 @@ test.describe('list return on the real pages',()=>{
   const after=await track(page,sel);near(after.rowTop!,before.rowTop!,3);
  });
  test('LRP-LAY-1: at 1280 the Management list scrolls in one container and restores',async({page},info)=>{
-  test.skip(info.project.name.startsWith('mobile'),'The fixed desktop shell is the layout under test (>= 1200px).');
+  test.skip(deviceClass(info)!=='computer','The fixed desktop shell is the layout under test (>= 1200px).');
   await page.setViewportSize({width:1280,height:720});
   await openAssessments(page);const sel='[data-record-id="as-40"]';
   const shape=await page.evaluate(()=>{const row=document.querySelector('[data-record-id="as-40"]')!;const scrollers:string[]=[];for(let n:HTMLElement|null=row.parentElement;n&&n!==document.documentElement;n=n.parentElement)if(/^(auto|scroll)$/.test(getComputedStyle(n).overflowY)&&n.scrollHeight>n.clientHeight+1)scrollers.push(n.tagName.toLowerCase()+'.'+n.className.split(' ')[0]);return {scrollers,windowScrolls:document.documentElement.scrollHeight>innerHeight+1}});
@@ -450,8 +463,8 @@ test.describe('list return on the real pages',()=>{
   const after=await track(page,sel);near(after.rowTop!,before.rowTop!,3);near(after.scrollerTops[0],before.scrollerTops[0],3);
  });
 
- test('LRP-BOR-1 (owner): a loan opened from the borrower returns to its row although the borrower page rebuilds about 700 ms after Back',async({page},info)=>{
-  test.skip(info.project.name.startsWith('mobile'),'Desktop two-pane layout.');
+ test('LRP-BOR-1 (owner): a loan opened from the borrower returns to its row although the borrower page rebuilds about 700 ms after Back',async({page})=>{
+  test.skip(stacked(page),'Two-pane layout (wider than 1050px).');
   const loans=Array.from({length:25},(_,i)=>({id:'ol-'+i,borrowerId:'BX',borrowerDisplayName:'ผู้กู้ Synthetic',originalDailyInterestRate:'2',loanDate:'2026-10-'+String(1+(i%28)).padStart(2,'0'),dueDate:null,closeDate:null,status:'ยังไม่ปิดยอด',loanType:'ดอกเบี้ยรายวัน',principalAmount:String(10000+i),outstandingPrincipal:'100',totalPrincipalReceived:'0',totalInterestReceived:'0',totalAmountReceived:'0',defaulted:false,autoChargeEnabled:false}));
   let recordReads=0;
   await signIn(page,base,(path)=>{
@@ -477,7 +490,7 @@ test.describe('list return on the real pages',()=>{
  });
 
  test('LRP-LAY-2: at 1280 Cash Accounts keeps its heading and scrolls the holders and the accounts panes separately',async({page},info)=>{
-  test.skip(info.project.name.startsWith('mobile'),'The fixed desktop shell (>= 1200px).');
+  test.skip(deviceClass(info)!=='computer','The fixed desktop shell (>= 1200px).');
   await page.setViewportSize({width:1280,height:720});
   const rows=Array.from({length:40},(_,i)=>({id:'ch-'+i,label:'Holder '+i,name:'Holder '+i,holderId:'ch-0',currentBalance:'10',cashIn:'1',cashOut:'1',active:true,isDefault:false}));
   await signIn(page,base,()=>undefined,(path,_u,method)=>{if(method!=='GET')return undefined;if(path.startsWith('/api/management/'))return {ok:true,source:'dev',asOf:ASOF,businessDate:BD,items:rows,nextCursor:null};return undefined});
@@ -534,7 +547,7 @@ test.describe('list return on the legacy read-only Borrowers',()=>{
   await expect.poll(async()=>(await track(page,tile)).focus).toBe('lb-50');await settleBack(page);
   const after=await track(page,tile);near(after.rowTop!,before.rowTop!,3);near(after.scrollY,before.scrollY,3);
  });
- test('pager: Back then an immediate page change is not dragged back; opening a borrower and paging closes the detail cleanly',async({page},info)=>{
+ test('pager: Back then an immediate page change is not dragged back; opening a borrower and paging closes the detail cleanly',async({page})=>{
   const records=Array.from({length:150},(_,i)=>({id:'pg-'+i,name:'ผู้กู้ '+i,borrowerDisplayName:'ผู้กู้ '+i+' - English '+i,totalProfitEarned:'10',createdDate:'2026-10-07',hasActiveLoan:true,outstandingPrincipal:'9000',note:null}));
   await signIn(page,base,(path,url)=>{
    const env={ok:true,source:'dev',businessDate:BD,asOf:ASOF};
@@ -544,8 +557,8 @@ test.describe('list return on the legacy read-only Borrowers',()=>{
   },()=>undefined);
   const next=page.getByRole('button',{name:'Next borrowers page',exact:true}),previous=page.getByRole('button',{name:'Previous borrowers page',exact:true});
   await expect(page.locator('.borrower-tile-main')).toHaveCount(100);
-  // Desktop: a borrower is open on page 1; Next replaces the list and closes the detail.
-  if(!info.project.name.startsWith('mobile')){
+  // Two panes: a borrower is open on page 1; Next replaces the list and closes the detail.
+  if(!stacked(page)){
    await page.locator('.borrower-tile-main[data-record-id="pg-3"]').click();await expect(page.locator('.detail-panel')).toContainText('English 3');
    await next.scrollIntoViewIfNeeded();await next.click();await expect(page.locator('.borrower-tile-main')).toHaveCount(50);
    await expect(page.locator('.detail-panel.unselected')).toHaveCount(1);

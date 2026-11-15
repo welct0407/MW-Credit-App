@@ -1,9 +1,9 @@
-import {test,expect} from './fixtures/test';
+import {test,runsOnce,expect} from './fixtures/test';
 import {createServer} from 'node:http';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 test('P4-09/17 real SW caches public shell; offline restart retains IDB draft and pending',async({browser},info)=>{
- test.skip(info.project.name.startsWith('mobile'),'Worker lifecycle verified once');
+ test.skip(!runsOnce(info),'Worker lifecycle verified once');
  const repository=ts.transpileModule(readFileSync('apps/pwa/src/owner-offline.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText.replace("from './viewed-snapshot'","from './viewed-snapshot.js'").replace("from './environment'","from './environment.js'");
  const environment=ts.transpileModule(readFileSync('apps/pwa/src/environment.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
  const projection=ts.transpileModule(readFileSync('apps/pwa/src/viewed-snapshot.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;

@@ -1,4 +1,4 @@
-import {test,expect,type Page} from './fixtures/test';
+import {test,expect,deviceClass,type Page} from './fixtures/test';
 import {chooseLanguage} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
@@ -39,7 +39,7 @@ test('amount-first manual grid retains edits and returns to Collection after exp
  await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('9');await expect(row.getByRole('textbox',{name:/Principal for/})).toHaveValue('7');await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeDisabled();
  await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('7');await page.getByRole('textbox',{name:/^Notes(?: \*)?$/}).fill('manual ไทย');
  await page.locator('.payment-charge-scroll').evaluate(el=>el.scrollTop=0);await page.evaluate(()=>window.scrollTo(0,0));await page.locator('.selected-payment').evaluate(el=>el.scrollTop=0);
- mkdirSync('test-results/r052-unified-receiving',{recursive:true});for(const width of info.project.name.startsWith('mobile')?[320,390]:[1440]){await page.setViewportSize({width,height:850});await page.evaluate(()=>window.scrollTo(0,0));await page.locator('.selected-payment').evaluate(el=>el.scrollTop=0);await page.locator('.payment-charge-scroll').evaluate(el=>el.scrollTop=0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'test-results/r052-unified-receiving/amount-first-'+info.project.name+'-'+width+'.png'});}
+ mkdirSync('test-results/r052-unified-receiving',{recursive:true});const device=deviceClass(info),sizes=device==='tablet'?[page.viewportSize()!]:(device==='phone'?[320,390]:[1440]).map(width=>({width,height:850}));for(const size of sizes){const width=size.width;await page.setViewportSize(size);await page.evaluate(()=>window.scrollTo(0,0));await page.locator('.selected-payment').evaluate(el=>el.scrollTop=0);await page.locator('.payment-charge-scroll').evaluate(el=>el.scrollTop=0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'test-results/r052-unified-receiving/amount-first-'+info.project.name+'-'+width+'.png'});}
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.getByRole('button',{name:'Confirm payment',exact:true})).toBeEnabled();
  expect(fixture.posts).toHaveLength(0);await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect(page.getByRole('heading',{name:'Collection borrowers',exact:true})).toBeVisible();
  expect(fixture.posts).toHaveLength(1);expect(fixture.posts[0]).toMatchObject({schemaVersion:11,amountReceived:'7',notes:'manual ไทย',allocations:[{principal:'7',interest:'0'}]});

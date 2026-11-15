@@ -1,7 +1,12 @@
-import {test,expect,type Page} from './fixtures/test';
+import {test,expect,deviceClass,stacked,type Page,type TestInfo} from './fixtures/test';
 import {borrowers,sampleDate} from '../../apps/pwa/src/fixtures';
 const cards=(page:Page)=>page.locator('.borrower-card');
-const nav=(page:Page)=>page.getByRole('navigation',{name: page.viewportSize()!.width<900?'Quick navigation':'Main navigation'});
+// The preview shell: the record replaces the list (Back to list) at 1050px and below (stacked); the quick navigation
+// bar and the navigation menu button replace the sidebar at 650px and below.
+const menu=(page:Page)=>page.viewportSize()!.width<=650;
+const nav=(page:Page)=>page.getByRole('navigation',{name:menu(page)?'Quick navigation':'Main navigation'});
+/** The phone and computer projects take the 390px and 1440px review windows and an iPad keeps its own; returns the capture label. */
+async function sizeFor(page:Page,info:TestInfo){const device=deviceClass(info);if(device==='tablet')return info.project.name;await page.setViewportSize(device==='phone'?{width:390,height:844}:{width:1440,height:900});return device==='phone'?'mobile':'desktop'}
 const amount=(text:string|null)=>Number(text?.replace(/[^0-9]/g,''));
 async function noOverflow(page:Page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)}
 test.beforeEach(async({page},info)=>{
@@ -31,9 +36,9 @@ test('borrower groups, two-loan detail and back preserve list context',async({pa
  await nav(page).getByRole('button',{name:/Borrowers/}).click();await expect(cards(page)).toHaveCount(5);
  await page.getByLabel('Filter borrowers').selectOption('active');await expect(cards(page)).toHaveCount(4);
  await page.getByLabel('Filter borrowers').selectOption('inactive');await expect(cards(page)).toHaveCount(1);await page.getByTestId('borrower-SAMPLE-005').click();await expect(page.getByRole('region',{name:'Borrower details'})).toContainText('No active sample loans.');
- if(page.viewportSize()!.width<900)await page.getByRole('button',{name:'Back to list'}).click();await page.getByLabel('Filter borrowers').selectOption('all');await page.getByLabel('Search borrowers').fill('Somchai');await page.getByTestId('borrower-SAMPLE-002').click();
+ if(stacked(page))await page.getByRole('button',{name:'Back to list'}).click();await page.getByLabel('Filter borrowers').selectOption('all');await page.getByLabel('Search borrowers').fill('Somchai');await page.getByTestId('borrower-SAMPLE-002').click();
  const detail=page.getByRole('region',{name:'Borrower details'});await expect(detail).toContainText('DEMO-L002');await expect(detail).toContainText('DEMO-L003');await expect(detail).toContainText('2,300');await expect(detail).toContainText('36,000');await expect(detail).toContainText('Placeholder only.');await expect(detail.getByRole('button',{name:'Record payment · planned'})).toBeDisabled();await noOverflow(page);
- if(page.viewportSize()!.width<900)await page.getByRole('button',{name:'Back to list'}).click();await expect(page.getByLabel('Search borrowers')).toHaveValue('Somchai');await expect(cards(page)).toHaveCount(1);
+ if(stacked(page))await page.getByRole('button',{name:'Back to list'}).click();await expect(page.getByLabel('Search borrowers')).toHaveValue('Somchai');await expect(cards(page)).toHaveCount(1);
 });
 test('Thai controls and narrow layout remain usable',async({page})=>{
  await page.getByRole('button',{name:'ไทย',exact:true}).click();await expect(page.locator('html')).toHaveAttribute('lang','th');await expect(page.getByRole('heading',{name:'ติดตามชำระ',exact:true})).toBeVisible();await expect(page.getByLabel('ค้นหาผู้กู้')).toBeVisible();
@@ -43,19 +48,19 @@ test('Thai controls and narrow layout remain usable',async({page})=>{
 });
 test('preview has no external business requests or persistent client data',async({page})=>{
  const unwanted:string[]=[];page.on('request',r=>{const url=new URL(r.url());if(url.hostname!=='127.0.0.1'||r.method()!=='GET'||url.pathname.startsWith('/api'))unwanted.push(r.method()+' '+r.url())});
- await page.reload();await expect(page.locator('.preview-strip')).toBeVisible();await expect(page.getByText('Sample business date',{exact:true})).toBeVisible();await page.getByTestId('borrower-SAMPLE-002').click();if(page.viewportSize()!.width<900)await page.getByRole('button',{name:'Back to list'}).click();await nav(page).getByRole('button',{name:/Borrowers/}).click();
+ await page.reload();await expect(page.locator('.preview-strip')).toBeVisible();await expect(page.getByText('Sample business date',{exact:true})).toBeVisible();await page.getByTestId('borrower-SAMPLE-002').click();if(stacked(page))await page.getByRole('button',{name:'Back to list'}).click();await nav(page).getByRole('button',{name:/Borrowers/}).click();
  expect(unwanted).toEqual([]);expect(await page.evaluate(async()=>({local:localStorage.length,session:sessionStorage.length,caches:await caches.keys(),workers:(await navigator.serviceWorker.getRegistrations()).length}))).toEqual({local:0,session:0,caches:[],workers:0});
 });
 test('keyboard controls and planned workflows are reachable',async({page})=>{
  await page.getByLabel('Search borrowers').focus();await expect(page.getByLabel('Search borrowers')).toBeFocused();await page.keyboard.press('Tab');await expect(page.getByLabel('Filter borrowers')).toBeFocused();await page.keyboard.press('Tab');await expect(page.getByTestId('borrower-SAMPLE-001')).toBeFocused();await page.keyboard.press('Enter');await expect(page.getByRole('region',{name:'Borrower details'})).toContainText('Mali · Sample');
- if(page.viewportSize()!.width<900)await page.getByRole('button',{name:'Open navigation',exact:true}).click();
+ if(menu(page))await page.getByRole('button',{name:'Open navigation',exact:true}).click();
  await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Analytics / history'}).click();await expect(page.getByText('PLANNED WORKFLOW',{exact:true})).toBeVisible();await expect(page.getByText(/Metabase integration follows production go-live/)).toBeVisible();await noOverflow(page);
  await page.getByRole('button',{name:'Explore Collection'}).click();await expect(cards(page)).toHaveCount(3);
 });
 test('captures synthetic desktop and mobile review screens',async({page},testInfo)=>{
- const mobile=testInfo.project.name.startsWith('mobile');await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:900});await noOverflow(page);
- if(mobile)await page.screenshot({path:'test-results/r052-loan-read/NEUTRAL-mobile-viewport.png'});
- await page.screenshot({path:`test-results/r052-loan-read/NEUTRAL-${mobile?'mobile':'desktop'}-collection.png`,fullPage:true});await page.getByTestId('borrower-SAMPLE-002').click();await noOverflow(page);await page.screenshot({path:`test-results/r052-loan-read/NEUTRAL-${mobile?'mobile':'desktop'}-detail.png`,fullPage:true});
+ const label=await sizeFor(page,testInfo);await noOverflow(page);
+ if(label==='mobile')await page.screenshot({path:'test-results/r052-loan-read/NEUTRAL-mobile-viewport.png'});
+ await page.screenshot({path:`test-results/r052-loan-read/NEUTRAL-${label}-collection.png`,fullPage:true});await page.getByTestId('borrower-SAMPLE-002').click();await noOverflow(page);await page.screenshot({path:`test-results/r052-loan-read/NEUTRAL-${label}-detail.png`,fullPage:true});
 });
 
 test('mobile drawer traps focus, closes with Escape and returns focus',async({page})=>{
@@ -66,8 +71,7 @@ test('Thai mobile review screenshot',async({page},testInfo)=>{
 });
 
 test('AppSheet colors are presentation only with neutral surfaces and themed headers and theme logos',async({page},testInfo)=>{
- const mobile=testInfo.project.name.startsWith('mobile');
- await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:900});
+ const label=await sizeFor(page,testInfo);
  const requests:string[]=[];page.on('request',request=>{requests.push(request.url())});
  const logo=page.locator('.brand-logo');
  await expect.poll(()=>logo.evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
@@ -83,10 +87,10 @@ test('AppSheet colors are presentation only with neutral surfaces and themed hea
   for(const metric of await page.locator('.metric,.list-panel,.detail-panel').all())await expect(metric).toHaveCSS('background-color',tint);
   for(const label of await page.locator('.metric > span,.metric > strong,.metric small,.status').all())await expect(label).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
   await noOverflow(page);
-  await page.screenshot({path:`${process.env.FOUNDATION_CAPTURE_OUTPUT_ROOT??'test-results/r052-loan-read'}/NEUTRAL-${theme}-${mobile?'mobile':'desktop'}-style-viewport.png`});
+  await page.screenshot({path:`${process.env.FOUNDATION_CAPTURE_OUTPUT_ROOT??'test-results/r052-loan-read'}/NEUTRAL-${theme}-${label}-style-viewport.png`});
   await page.getByTestId('borrower-SAMPLE-002').click();await page.mouse.move(0,0);await expect(page.locator('.borrower-card.selected')).toHaveCSS('background-color',selected);
   await checkTextContrast(page);
-  if(mobile){await page.getByRole('button',{name:'Back to list'}).click();await page.getByRole('button',{name:'Open navigation',exact:true}).click();await expect(logo).toBeVisible();await page.screenshot({path:(process.env.FOUNDATION_CAPTURE_OUTPUT_ROOT??'test-results/r052-loan-read')+'/NEUTRAL-logo-'+theme+'-mobile-menu.png'});await page.keyboard.press('Escape');}
+  if(stacked(page)){await page.getByRole('button',{name:'Back to list'}).click();if(menu(page))await page.getByRole('button',{name:'Open navigation',exact:true}).click();await expect(logo).toBeVisible();await page.screenshot({path:(process.env.FOUNDATION_CAPTURE_OUTPUT_ROOT??'test-results/r052-loan-read')+'/NEUTRAL-logo-'+theme+'-'+label+'-menu.png'});if(menu(page))await page.keyboard.press('Escape');}
  }
  expect(requests.every(url=>{const parsed=new URL(url);return parsed.hostname==='127.0.0.1'&&parsed.pathname.endsWith('.png')})).toBe(true);
  await page.reload();await expect(page.locator('.app-shell')).toHaveAttribute('data-preview-theme','dev');

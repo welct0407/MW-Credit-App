@@ -134,6 +134,12 @@ test('variantOf and evidenceName for every check named in stages.json', () => {
     ['ci', 'e2e', 'e2e iPhone WebKit (shard w1 of 3)', 'w1', `evidence-ci-e2e-${h}-w1`],
     ['ci', 'e2e', 'e2e iPhone WebKit (shard w2 of 3)', 'w2', `evidence-ci-e2e-${h}-w2`],
     ['ci', 'e2e', 'e2e iPhone WebKit (shard w3 of 3)', 'w3', `evidence-ci-e2e-${h}-w3`],
+    ['ci', 'e2e', 'e2e iPad portrait WebKit (shard p1 of 3)', 'p1', `evidence-ci-e2e-${h}-p1`],
+    ['ci', 'e2e', 'e2e iPad portrait WebKit (shard p2 of 3)', 'p2', `evidence-ci-e2e-${h}-p2`],
+    ['ci', 'e2e', 'e2e iPad portrait WebKit (shard p3 of 3)', 'p3', `evidence-ci-e2e-${h}-p3`],
+    ['ci', 'e2e', 'e2e iPad landscape WebKit (shard l1 of 3)', 'l1', `evidence-ci-e2e-${h}-l1`],
+    ['ci', 'e2e', 'e2e iPad landscape WebKit (shard l2 of 3)', 'l2', `evidence-ci-e2e-${h}-l2`],
+    ['ci', 'e2e', 'e2e iPad landscape WebKit (shard l3 of 3)', 'l3', `evidence-ci-e2e-${h}-l3`],
     ['database', 'rebuild', 'rebuild (migrations)', 'migrations', `evidence-database-rebuild-${h}-migrations`],
     ['database', 'rebuild', 'rebuild (receiving)', 'receiving', `evidence-database-rebuild-${h}-receiving`],
     ['database', 'rebuild', 'rebuild (phase5)', 'phase5', `evidence-database-rebuild-${h}-phase5`],
@@ -145,8 +151,8 @@ test('variantOf and evidenceName for every check named in stages.json', () => {
   for (const [, , , , name] of names) assert.doesNotMatch(name, /["':<>|*?\\/\r\n ]/);
 });
 
-test('e2e is reused only with evidence for all six shards (Chromium and iPhone WebKit), which may come from different runs', async () => {
-  const partial = table(Object.fromEntries(E2E.slice(0, 5).map((c) => [c, ev(c)])));
+test('e2e is reused only with evidence for all twelve shards (Chromium, iPhone and iPad WebKit), which may come from different runs', async () => {
+  const partial = table(Object.fromEntries(E2E.slice(0, 11).map((c) => [c, ev(c)])));
   const missing = await decide(stages, { e2e: true }, partial.getEvidence);
   assert.equal(missing.e2e.run, true);
   assert.equal(missing.e2e.reason, 'no evidence');
@@ -154,8 +160,8 @@ test('e2e is reused only with evidence for all six shards (Chromium and iPhone W
   const covered = await decide(stages, { e2e: true }, all.getEvidence);
   assert.equal(covered.e2e.run, false);
   assert.equal(covered.e2e.reason, 'reused');
-  assert.deepEqual(covered.e2e.evidence.map((e) => e.runId), [7, 7, 9, 7, 7, 7]);
-  assert.equal(evidenceLine(covered), 'e2e: run 7 @abcdef0 (1,2,w1,w2,w3), run 9 @1234567 (3)');
+  assert.deepEqual(covered.e2e.evidence.map((e) => e.runId), [7, 7, 9, 7, 7, 7, 7, 7, 7, 7, 7, 7]);
+  assert.equal(evidenceLine(covered), 'e2e: run 7 @abcdef0 (1,2,w1,w2,w3,p1,p2,p3,l1,l2,l3), run 9 @1234567 (3)');
   // A missing first shard stops the stage without asking for the others.
   const first = table(Object.fromEntries(E2E.slice(1).map((c) => [c, ev(c)])));
   await decide(stages, { e2e: true }, first.getEvidence);
@@ -180,10 +186,10 @@ test('summarize renders one row per stage and cites the runs; the evidence outpu
   const result = await decide(stages, { check: true, e2e: true, terraform: true }, rows.getEvidence);
   const text = summarize(result);
   assert.ok(text.includes('| check | skip | reused | [run 120](https://example.invalid/runs/120) @abcdef0 |'));
-  assert.ok(text.includes('| e2e | skip | reused | [run 123](https://example.invalid/runs/123) @abcdef0 (1,2,3,w1,w2,w3) |'));
+  assert.ok(text.includes('| e2e | skip | reused | [run 123](https://example.invalid/runs/123) @abcdef0 (1,2,3,w1,w2,w3,p1,p2,p3,l1,l2,l3) |'));
   assert.ok(text.includes('| terraform | run | no evidence |  |'));
   assert.ok(text.includes('| lint | skip | not needed |  |'));
-  assert.equal(evidenceLine(result), 'check: run 120 @abcdef0; e2e: run 123 @abcdef0 (1,2,3,w1,w2,w3)');
+  assert.equal(evidenceLine(result), 'check: run 120 @abcdef0; e2e: run 123 @abcdef0 (1,2,3,w1,w2,w3,p1,p2,p3,l1,l2,l3)');
   const database = await decide(loadStages('database'), { rebuild: true }, async (_s, check) => ev(check, 5));
   assert.equal(evidenceLine(database), 'rebuild: run 5 @abcdef0 (migrations,receiving,phase5,phase8)');
 });

@@ -1,4 +1,4 @@
-import {test,expect,type Page} from './fixtures/test';
+import {test,expect,layout,type Page} from './fixtures/test';
 import {chooseLanguage,chooseLanguagePreservingForm} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {mkdirSync} from 'node:fs';
@@ -56,6 +56,26 @@ for(const width of [320,390,1440])test(`F2 borrower ordered fields/read-only met
 });
 
 test('F2 full detail groups precede contact fields, exact notes/referrer and related navigation remain available',async({page})=>{const s=await setup(page);await full(page);const region=page.getByRole('region',{name:'Borrower record',exact:true});await expect(region).toContainText('Active Loans');await expect(region).toContainText('Closed Loans');await expect(region).toContainText('ผู้แนะนำจำลอง');await expect(region).toContainText(fields.note.trim());const order=await region.evaluate(e=>{const nodes=Array.from(e.querySelectorAll('h3,label'));return nodes.map(n=>n.textContent||'')});expect(order.indexOf('Active Loans')).toBeLessThan(order.findIndex(t=>t.startsWith('Instagram Username')));expect(order.findIndex(t=>t.startsWith('Payer names on slips'))).toBe(order.findIndex(t=>t.startsWith('Preferred Receiving Cash Account'))+1);await expect(region).toContainText('Payer names on slips'+fields.communicationName);await expect(region).not.toContainText('(borrower)');await expect(region.getByRole('region',{name:'Related loans',exact:true})).toBeVisible();expect(s.writes).toHaveLength(0)});
+
+// BORR-02: with no payer name yet, the hint sits on its own line under the label instead of running on from it.
+test('BORR-02 the empty payer names hint is on its own line under the label',async({page})=>{
+ const s=await setup(page);s.borrowerItem={...record,communicationName:null};await full(page);
+ const region=page.getByRole('region',{name:'Borrower record',exact:true});
+ const label=region.locator('form>label').filter({hasText:/^Payer names on slips/});await expect(label.locator('.field-help')).toHaveText('Filled from the first processed slip');
+ const [title,hint]=await label.evaluate(e=>{const range=document.createRange();range.selectNodeContents(e.childNodes[0]);const t=range.getBoundingClientRect(),h=e.querySelector('.field-help')!.getBoundingClientRect();return [{bottom:t.bottom,left:t.left},{top:h.top,left:h.left}]});
+ expect(hint.top,'the hint starts below the label').toBeGreaterThanOrEqual(title.bottom-1);expect(Math.abs(hint.left-title.left),'aligned with the label').toBeLessThanOrEqual(1);
+});
+
+// IPAD-BORR-01: at 768-1050px (iPad portrait) the owner's record actions (New loan, Payment history, Edit, Delete) take their
+// own row under the name, which keeps most of the record's width instead of a narrow column beside them.
+test('IPAD-BORR-01 iPad portrait: the borrower name keeps the record width above its actions',async({page})=>{
+ test.skip(layout(page)!=='tablet','The 768-1050px tablet layout');
+ await setup(page);await full(page);
+ const region=page.getByRole('region',{name:'Borrower record',exact:true}),heading=region.locator('.related-loans-heading').first();
+ const name=(await heading.locator('h2').boundingBox())!,actions=(await heading.locator('.borrower-direct-actions').boundingBox())!,record=(await region.boundingBox())!;
+ expect(name.width,`name ${Math.round(name.width)}px of ${Math.round(record.width)}px`).toBeGreaterThanOrEqual(record.width*.6);
+ expect(actions.y,'actions under the name').toBeGreaterThanOrEqual(name.y+name.height-1);
+});
 
 // R120: the referrer's own rebate terms on the Borrower record (Echo BR-1 to BR-4, BR-7). View names the default the server
 // resolves or the custom term; edit sends JSON numbers (commas stripped, blank is null); a bad value is refused inline before

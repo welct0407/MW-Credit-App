@@ -146,6 +146,11 @@ function App() {
   const [navigationCollapsed, setNavigationCollapsed] = useState(()=>matchMedia('(min-width:768px) and (max-width:1199px)').matches);
   useEffect(()=>{const tablet=matchMedia('(min-width:768px) and (max-width:1199px)');const entered=()=>{if(tablet.matches)setNavigationCollapsed(true)};tablet.addEventListener('change',entered);return()=>tablet.removeEventListener('change',entered)},[]);
   const collapseTabletNavigation=()=>{if(matchMedia('(min-width:768px) and (max-width:1199px)').matches)setNavigationCollapsed(true)};
+  // IPAD-NAV-05: from 1051 to 1199px the rail opens at its top after collapsing, not at the expanded sidebar's scroll position.
+  useLayoutEffect(()=>{if(navigationCollapsed&&matchMedia('(min-width:1051px) and (max-width:1199px)').matches){const rail=document.getElementById('live-desktop-navigation');if(rail)rail.scrollTop=0}},[navigationCollapsed]);
+  // IPAD-NAV-01: from 1051 to 1199px the expanded sidebar overlays the page; a tap or click outside it (not in a dialog)
+  // collapses it to the icon rail. At 1200px and wider it is a layout column and stays as chosen.
+  useEffect(()=>{if(navigationCollapsed)return;const overlay=matchMedia('(min-width:1051px) and (max-width:1199px)');const outside=(event:PointerEvent)=>{if(overlay.matches&&event.target instanceof Element&&!event.target.closest('#live-desktop-navigation,dialog'))setNavigationCollapsed(true)};document.addEventListener('pointerdown',outside,true);return()=>document.removeEventListener('pointerdown',outside,true)},[navigationCollapsed]);
   const [languageChoices, setLanguageChoices] = useState(false);
   const languageToggle = useRef<HTMLButtonElement | null>(null);
   const languagePanel = useRef<HTMLDivElement | null>(null);
@@ -176,7 +181,8 @@ function App() {
   useEffect(()=>{if(!('serviceWorker' in navigator))return;const receive=(event:MessageEvent)=>{const data=event.data;if(data?.type==='GET_CLIENT_ENTRY'){event.ports[0]?.postMessage({entry:Array.from(document.scripts).map(script=>new URL(script.src||location.href)).find(url=>url.origin===location.origin&&/^\/assets\/[^/]+\.js$/.test(url.pathname))?.pathname??null});return}if(data?.type!=='NOTIFICATION_OPEN'||typeof data.eventId!=='string'||!/^[a-f0-9-]{36}$/.test(data.eventId))return;event.ports[0]?.postMessage({handled:true});setIncomingNotification({eventId:data.eventId,nonce:Date.now()})};navigator.serviceWorker.addEventListener('message',receive);return()=>navigator.serviceWorker.removeEventListener('message',receive)},[]);
   const [appUpdated,setAppUpdated]=useState(false);
   useEffect(()=>{let updated=false;try{updated=sessionStorage.getItem('mw-app-updated')==='1';sessionStorage.removeItem('mw-app-updated')}catch{/* The notice is optional. */}if(!updated)return;const show=setTimeout(()=>setAppUpdated(true),300),hide=setTimeout(()=>setAppUpdated(false),4300);return()=>{clearTimeout(show);clearTimeout(hide)}},[]);
-  const openSavedChanges=()=>menuDrawer.close(()=>setSavedPayments(true));
+  // Like the workspace buttons, it closes the expanded tablet sidebar (768-1199px), which overlays the screen it opens.
+  const openSavedChanges=()=>{collapseTabletNavigation();menuDrawer.close(()=>setSavedPayments(true))};
   // UX-RECON-06: the header indicator opens the Saved changes page at the data-check line.
   const openDataCheck=()=>{openSavedChanges();revealWhenShown('#'+DATA_CHECK_WARNING_ID)};
   const [fullLoan,setFullLoan]=useState<string|null>(null);
@@ -241,7 +247,9 @@ function App() {
   const [loanPage, setLoanPage] = useState(1);
   const listPanel = useRef<HTMLElement | null>(null);
   const detailPanel = useRef<HTMLElement | null>(null);
-  const resetScroll = (element: HTMLElement | null) => { if (!element) return; element.scrollTop = 0; if (window.innerWidth <= 1050) element.scrollIntoView({ block: 'start' }); };
+  // The list and detail panels scroll themselves only from 1200px (live-style.css); below, the page scrolls: stacked (1050px
+  // and below) the panel is brought to the top, and side by side (1051-1199px) both panels start at the top of the page.
+  const resetScroll = (element: HTMLElement | null) => { if (!element) return; element.scrollTop = 0; if (window.innerWidth >= 1200) return; if (window.innerWidth > 1050) window.scrollTo({ top: 0 }); else element.scrollIntoView({ block: 'start' }); };
   const [loans, setLoans] = useState<LoanRecord[]>([]);
   const [selectedLoan, setSelectedLoan] = useState<LoanRecord | null>(null);
   const [loanCursor, setLoanCursor] = useState<string | null>(null);
@@ -257,7 +265,7 @@ function App() {
     const panel = detailPanel.current;
     const related = panel?.querySelector<HTMLElement>('.related-loans');
     if (!panel || !related) return;
-    if (window.innerWidth > 1050) panel.scrollTop += related.getBoundingClientRect().top - panel.getBoundingClientRect().top - panel.clientTop;
+    if (window.innerWidth >= 1200) panel.scrollTop += related.getBoundingClientRect().top - panel.getBoundingClientRect().top - panel.clientTop;
     else related.scrollIntoView({ block: 'start' });
   };
   // biome-ignore lint/correctness/useExhaustiveDependencies: scrolls the related pane when the selected loan changes; scrollRelated is recreated every render
@@ -700,7 +708,7 @@ function App() {
       <span className="live-status-text" role="status" aria-live="polite">{searchPending || headerState === 'loading' ? t('Loading…', 'กำลังโหลด…') : headerState === 'error' ? t('Could not update', 'อัปเดตไม่สำเร็จ') : t('Updated', 'อัปเดตแล้ว')}</span>
     </form> : <>
     {(!signedOutCard||activeBack||(pwa.canonical&&(!pwa.standalone||pwa.waiting||pwa.reloadAvailable||pwa.unavailable)))&&<button type="button" ref={menuToggle} className={"live-menu-toggle secondary-button"+(activeBack?" has-back":"")} disabled={activeBack?.disabled} aria-label={activeBack?.label??t('Open navigation', 'เปิดเมนู')} onClick={event => activeBack?activeBack.run(event):menuDrawer.open()}><Icon name={activeBack?"back":"menu"}/></button>}
-    <LiveBrand logo={logo} alt={t('MW Credit','MW สินเชื่อ')} title={showAboutOverlay?t('About','เกี่ยวกับ'):user?liveTitle(view,managementSection,t):t('MW Credit','MW สินเชื่อ')} query={view==='chat'&&user&&!showAboutOverlay?chatTitle:appliedQuery}/>
+    <LiveBrand logo={logo} alt={t('MW Credit','MW สินเชื่อ')} title={showAboutOverlay?t('About','เกี่ยวกับ'):user&&savedPayments?t('Saved changes','รายการที่บันทึก'):user?liveTitle(view,managementSection,t):t('MW Credit','MW สินเชื่อ')} query={view==='chat'&&user&&!showAboutOverlay?chatTitle:appliedQuery}/>
     <div className="live-header-actions">{(pwa.activating||pwa.reloading||pwa.startup==='upgrading'||pwa.startup==='checking'&&!workspaceVisible)&&<span className="app-update-status" role="status">{pwa.startup==='checking'?t('Checking app…','กำลังตรวจสอบแอป…'):pwa.activating||pwa.reloading?t('Updating app… you will return to this screen.','กำลังอัปเดตแอป… จะกลับมาที่หน้าจอนี้'):t('Updating app…','กำลังอัปเดตแอป…')}</span>}{status === 'ready' && !['expenses','cash','dashboard','upcoming','notifications','about','chat'].includes(view) && <button type="button" ref={searchToggle} className="live-header-refresh" aria-label={t('Search borrowers', 'ค้นหาผู้กู้')} title={t('Search borrowers', 'ค้นหาผู้กู้')} onClick={() => { setSearchDraft(searchQuery.current); setSearchOpen(true); }}><Icon name="search"/></button>}<span className="header-sync-cell"><SyncStatus preparation={offlinePreparation} thai={thai} visible={status==='ready'||offlinePreparation.syncActive} activity={activity}/></span>{status==='ready'&&user&&<DataCheckIndicator preparation={offlinePreparation} thai={thai} onOpen={openDataCheck}/>}{(user||headerState==='loading')&&<button type="button" ref={refreshButton} className={"live-header-refresh collection-update"+(headerState==='error'?' refresh-failed':'')} data-refresh-state={headerState} aria-busy={headerState==='loading'} disabled={status!=='ready'||startupHeld||headerState==='loading'} aria-label={activeRefresh?.label??(view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก'))} title={headerState==='error'?t('Refresh failed — tap to retry','รีเฟรชไม่สำเร็จ — แตะเพื่อลองอีกครั้ง'):activeRefresh?.label??(view === 'collection' ? t('Refresh Collection — return to first page', 'รีเฟรชงานติดตาม — กลับหน้าแรก') : t('Refresh Borrowers — return to first page', 'รีเฟรชผู้กู้ — กลับหน้าแรก'))} onClick={refreshCurrentScreen}><span aria-hidden="true" className={headerState==='loading'?'collection-spinner':''}>{headerState!=='loading'&&<Icon name="refresh"/>}</span>{headerState==='error'&&<span className="refresh-failure-badge" aria-hidden="true"><Icon name="warning"/></span>}<span className="live-status-text" role="status" aria-live="polite">{refreshFeedback||(headerState==='loading'?activityLabel(activity,thai):headerState==='error'?t('Could not update','อัปเดตไม่สำเร็จ'):t('Ready','พร้อม'))}</span></button>}</div>
     </>}
   </header><div className={'live-body ' + (navigationCollapsed ? 'nav-collapsed' : '')}><aside id="live-desktop-navigation" className="live-desktop-nav"><button type="button" className="live-nav-collapse" aria-expanded={!navigationCollapsed} aria-controls="live-desktop-navigation" aria-label={navigationCollapsed ? t('Expand navigation', 'ขยายเมนู') : t('Collapse navigation', 'ย่อเมนู')} title={navigationCollapsed ? t('Expand navigation', 'ขยายเมนู') : t('Collapse navigation', 'ย่อเมนู')} onClick={() => setNavigationCollapsed(value => !value)}><Icon name={navigationCollapsed?'panel-open':'panel-close'}/></button>{navigation('desktop')}{accountControls(navigationCollapsed,'sidebar')}</aside><main ref={workspace} data-workspace={view} data-management-section={managementSection} onClickCapture={event => { if (searchOpen && event.target instanceof Element && event.target.closest('button:not(:disabled)')) finishSearchNavigation(); }}>

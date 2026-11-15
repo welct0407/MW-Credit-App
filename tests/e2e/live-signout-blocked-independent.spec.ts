@@ -1,4 +1,4 @@
-import {test,expect,type Page,emitSyntheticUser} from './fixtures/test';
+import {test,expect,type Page,emitSyntheticUser,layout,stacked} from './fixtures/test';
 import {signOut} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 // APP-OFFLINE-02 / APP-UX-SETTINGS-05: while unsynced saved requests exist the Sign out button is disabled and described by a note
@@ -11,8 +11,18 @@ const auth=`let listener;export const browserLocalPersistence='local',inMemoryPe
 const identity={issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic'},id='44444444-4444-4444-8444-444444444444';
 const pendingRows=(page:Page)=>page.evaluate(async(identity:{issuer:string;uid:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return ownerOfflineRepository(identity).list('pending')},identity);
 const seedPending=(page:Page)=>page.evaluate(async({identity,id}:{identity:{issuer:string;uid:string};id:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository(identity);await repo.authorize();await repo.savePending(id,{domain:'borrower',command:{requestId:id,operation:'borrower.update',targetId:'synthetic-target',expectedVersion:'a'.repeat(64),predecessorRequestId:null,receiptId:null,inputs:{note:'unsynced'}}})},{identity,id});
-async function account(page:Page){if(page.viewportSize()!.width<=1050&&await page.locator('dialog[open]').count()===0)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click()}
-async function closeAccount(page:Page){if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:/^(Close menu|ปิดเมนู)$/}).click()}
+// The account controls: in the drawer up to 1050px; in the sidebar above, which starts as the 72px icon rail from 1051 to
+// 1199px (iPad landscape), where the sign-out note is only a title, so the sidebar is expanded as a touch user would.
+const expand=(page:Page)=>page.getByRole('button',{name:/^(Expand navigation|ขยายเมนู)$/});
+const collapse=(page:Page)=>page.getByRole('button',{name:/^(Collapse navigation|ย่อเมนู)$/});
+async function account(page:Page){if(stacked(page)){if(await page.locator('dialog[open]').count()===0)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click()}else if(await expand(page).count())await expand(page).click()}
+// IPAD-NAV-01: from 1051 to 1199px the expanded sidebar overlays the page and a tap outside it collapses it again.
+async function closeAccount(page:Page){
+ if(stacked(page)){await page.getByRole('button',{name:/^(Close menu|ปิดเมนู)$/}).click();return}
+ if(layout(page)!=='compact'||!await collapse(page).count())return;
+ const {width,height}=page.viewportSize()!;await page.mouse.click(width-8,height-8);
+ await expect(expand(page)).toBeVisible();await expect(page.locator('.live-body')).toHaveClass(/nav-collapsed/);
+}
 type Routes={posts:string[];statusGets:number;status:number;applied:boolean};
 async function setup(page:Page):Promise<Routes>{
  const routes:Routes={posts:[],statusGets:0,status:200,applied:false};
@@ -48,7 +58,9 @@ test('sign-out is blocked with sync and review affordances until the saved reque
  await context.setOffline(true);await account(page);await syncSaved.click();await expect(page.getByText('Waiting for a connection. Saved changes remain on this device.',{exact:true}).filter({visible:true})).toBeVisible();await context.setOffline(false);
  await account(page);await syncSaved.click();
  // The row cannot be applied (503) so it stays queued and the saved-changes screen opens with its reason.
- await expect(page.getByRole('region',{name:'Saved unsynced changes'})).toBeVisible();await expect.poll(()=>routes.posts.length).toBeGreaterThan(0);expect(routes.statusGets).toBeGreaterThan(0);
+ await expect(page.getByRole('region',{name:'Saved unsynced changes'})).toBeVisible();await expect.poll(()=>routes.posts.length).toBeGreaterThan(0);
+ // The header names the Saved changes page while it is open, not the section it was opened from.
+ await expect(page.locator('.topbar h1')).toHaveText('Saved changes');expect(routes.statusGets).toBeGreaterThan(0);
  expect(await pendingRows(page)).toHaveLength(1);expect(await page.evaluate(()=>(window as any).signouts??0)).toBe(0);
  await page.evaluate(async({identity,id}:{identity:{issuer:string;uid:string};id:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');await ownerOfflineRepository(identity).remove('pending',id)},{identity,id});
  await account(page);
@@ -67,6 +79,7 @@ test('denied session keeps saved changes reviewable and a same-UID re-sign-in sy
  const blocked=page.getByRole('button',{name:'Sign out',exact:true}).filter({visible:true});await expect(blocked).toBeVisible();await expect(blocked).toBeDisabled();await expect(blocked).toHaveAccessibleDescription(/^1 saved change not synced yet/);
  await page.getByRole('button',{name:'Review saved changes',exact:true}).filter({visible:true}).click();
  const region=page.getByRole('region',{name:'Saved unsynced changes',exact:true});await expect(region).toBeVisible();await expect(region).toContainText(id);
+ await expect(page.locator('.topbar h1')).toHaveText('Saved changes');
  await expect(region.getByText('Connect to verify this account before accessing saved records.',{exact:true})).toBeVisible();
  await expect(region.getByRole('button',{name:'Remove saved change',exact:true})).toHaveCount(0);
  // Membership is restored and the same UID signs in again: the saved request must sync with the fresh repository.
@@ -94,4 +107,15 @@ test('the header refresh also wakes the saved-change sync while changes are save
  await emitSyntheticUser(page);
  const refresh=page.locator('button.collection-update');await expect(refresh).toBeEnabled();
  await refresh.click();expect(await page.evaluate(()=>(window as any).__inTap)).toEqual(['prepare-all','queued']);
+});
+// IPAD-NAV-05: from 1051 to 1199px (iPad landscape) the expanded sidebar is scrolled down to reach Review saved changes;
+// Review collapses it, and the icon rail comes back at its top, not at the expanded scroll position that hid the first icons.
+test('iPad landscape: Review saved changes collapses the sidebar and the icon rail starts at its top',async({page})=>{
+ await setup(page);await seedPending(page);await emitSyntheticUser(page);
+ test.skip(layout(page)!=='compact','The overlaying sidebar of 1051-1199px');
+ await account(page);const rail=page.locator('#live-desktop-navigation'),review=page.getByRole('button',{name:'Review saved changes',exact:true}).filter({visible:true});
+ await expect(review).toBeVisible();await rail.evaluate(e=>{e.scrollTop=e.scrollHeight});expect(await rail.evaluate(e=>e.scrollTop),'the expanded sidebar scrolls').toBeGreaterThan(0);
+ await review.click();await expect(page.getByRole('region',{name:'Saved unsynced changes',exact:true})).toBeVisible();
+ await expect(page.locator('.live-body')).toHaveClass(/nav-collapsed/);await expect.poll(()=>rail.evaluate(e=>e.scrollTop)).toBe(0);
+ await expect(page.locator('.topbar h1')).toHaveText('Saved changes');
 });

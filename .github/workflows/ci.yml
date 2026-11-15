@@ -287,10 +287,12 @@ jobs:
           if-no-files-found: error
           overwrite: true
 
-  # iPhone run: the same specs in WebKit on the iPhone 17 Pro Max profile
-  # (PLAYWRIGHT_WEBKIT=1 adds the mobile-webkit project), part of
-  # `Development checks result`. WebKit test-harness differences are handled
-  # in tests/e2e/fixtures/test.ts.
+  # iPhone and iPad runs: the same specs in WebKit on the iPhone 17 Pro Max
+  # profile and on iPad portrait and landscape (screens 820x1180 and 1180x820;
+  # the viewports are 74 px shorter for Safari's status and address bars)
+  # (PLAYWRIGHT_WEBKIT=1 adds the mobile-webkit and tablet-webkit-* projects),
+  # part of `Development checks result`. WebKit test-harness differences are
+  # handled in tests/e2e/fixtures/test.ts.
   e2e-webkit:
     needs: changes
     if: needs.changes.outputs.e2e == 'true'
@@ -299,9 +301,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        device:
+          - { label: iPhone, key: w, project: mobile-webkit }
+          - { label: iPad portrait, key: p, project: tablet-webkit-portrait }
+          - { label: iPad landscape, key: l, project: tablet-webkit-landscape }
         shard: [1, 2, 3]
-    # The `w` keeps each shard's evidence name distinct from the Chromium shards'.
-    name: e2e iPhone WebKit (shard w${{ matrix.shard }} of 3)
+    # The device key (w, p, l) keeps each shard's evidence name distinct from
+    # the Chromium shards' and from the other devices'.
+    name: e2e ${{ matrix.device.label }} WebKit (shard ${{ matrix.device.key }}${{ matrix.shard }} of 3)
     env:
       PLAYWRIGHT_WEBKIT: '1'
     steps:
@@ -309,7 +316,7 @@ jobs:
         with: { persist-credentials: false }
       - name: Evidence key
         id: evidence
-        run: node scripts/ci/reuse-evidence.mjs --hash --workflow ci --stage e2e --check "e2e iPhone WebKit (shard w${{ matrix.shard }} of 3)" --out "$RUNNER_TEMP/evidence/{name}.json"
+        run: node scripts/ci/reuse-evidence.mjs --hash --workflow ci --stage e2e --check "e2e ${{ matrix.device.label }} WebKit (shard ${{ matrix.device.key }}${{ matrix.shard }} of 3)" --out "$RUNNER_TEMP/evidence/{name}.json"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
@@ -332,22 +339,22 @@ jobs:
       - if: steps.pw-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps webkit
       # The app's font stack (Inter, Segoe UI, Tahoma, sans-serif) falls back to
-      # the generic sans-serif, which is Helvetica on an iPhone. Map it to the
-      # Helvetica-metric Liberation Sans so iPhone text widths are measured,
+      # the generic sans-serif, which is Helvetica on an iPhone and iPad. Map it
+      # to the Helvetica-metric Liberation Sans so Apple text widths are measured,
       # not the much wider DejaVu Sans the runner picks by default.
-      - name: iPhone sans-serif metrics
+      - name: Apple sans-serif metrics
         run: |
           mkdir -p ~/.config/fontconfig
           printf '%s\n' '<?xml version="1.0"?>' '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">' '<fontconfig>' '<alias binding="strong"><family>sans-serif</family><prefer><family>Liberation Sans</family></prefer></alias>' '<alias binding="strong"><family>Helvetica</family><prefer><family>Liberation Sans</family></prefer></alias>' '</fontconfig>' > ~/.config/fontconfig/fonts.conf
           fc-match sans-serif
-      - run: npx playwright test --project=mobile-webkit --shard=${{ matrix.shard }}/3
+      - run: npx playwright test --project=${{ matrix.device.project }} --shard=${{ matrix.shard }}/3
       - name: Specs leave the checkout clean
         run: git diff --exit-code --stat && test -z "$(git status --porcelain)"
       - name: Keep traces and report for failed or flaky tests
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: e2e-webkit-shard-${{ matrix.shard }}
+          name: e2e-webkit-shard-${{ matrix.device.key }}${{ matrix.shard }}
           path: |
             test-results/
             playwright-report/

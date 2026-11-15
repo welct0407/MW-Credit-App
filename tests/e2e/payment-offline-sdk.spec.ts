@@ -1,4 +1,4 @@
-import {test,expect,chromium} from './fixtures/test';
+import {test,runsOnce,expect,chromium} from './fixtures/test';
 import {spawnSync} from 'node:child_process';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {startCanonicalFixture,fixtureLaunchArgs,assertServed} from './fixtures/canonical-server';
 
 test('actual Firebase SDK restored owner can open saved payment draft after offline boot',async({},info)=>{
- test.skip(info.project.name.startsWith('mobile'),'Actual SDK and worker integration runs once');
+ test.skip(!runsOnce(info),'Actual SDK and worker integration runs once');
  test.setTimeout(90000);
  const root=mkdtempSync(join(tmpdir(),'mw-offline-sdk-')),out=join(root,'public'),profile=join(root,'profile');
  const build=spawnSync(process.execPath,['--input-type=module','-e',`import {build} from 'vite';await build({mode:'live-dev',build:{outDir:${JSON.stringify(out)},emptyOutDir:true},plugins:[{name:'synthetic-sdk-bridge',enforce:'pre',transform(code,id){if(id.endsWith('/apps/pwa/src/live-main.tsx'))return code+";import {getAuth as fixtureGetAuth,signInWithCustomToken as fixtureSignIn} from 'firebase/auth';globalThis.__syntheticSdk={fixtureGetAuth,fixtureSignIn};";}}]});`],{cwd:process.cwd(),encoding:'utf8',env:{...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-key',VITE_FIREBASE_APP_ID:'synthetic-app',VITE_API_ORIGIN:'https://mw-credit-app-read-dev-test.run.app',VITE_COMMAND_API_ORIGIN:'https://mw-credit-app-command-dev-test.run.app',VITE_COMMAND_MODE:'dev-owner-testing'}});
