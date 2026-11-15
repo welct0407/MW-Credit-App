@@ -8,7 +8,15 @@ Owner request of 15 November 2026: include the iPad experience in CI for the iPa
 - `.github/workflows/ci.yml`, `scripts/ci/stages.json`, `tests/unit/ci-reuse-evidence.test.mjs`: the WebKit job matrix is now device × shard: `e2e iPad portrait WebKit (shard pN of 3)` and `e2e iPad landscape WebKit (shard lN of 3)` beside the iPhone `wN` shards. The e2e stage lists 12 checks (variants `w1`–`w3`, `p1`–`p3`, `l1`–`l3`); all gate `Development checks result`.
 - `tests/e2e/fixtures/test.ts`: WebKit touch profiles report `maxTouchPoints` 5 (Playwright WebKit reports 0, and the app's chat device choice tells an iPad from a Mac by touch points); shared helpers `deviceClass`, `touchDevice`, `runsOnce`, `layout`, `stacked` and `narrow`. Convention: choose the device by project, the layout by width, and run once-only integration tests on `desktop-chromium` only.
 - 24 e2e spec files adapted to the convention (widths instead of project names, run-once cases pinned to `desktop-chromium`; see the diff). No test was weakened to hide an app defect.
-- App fixes approved by the owner (`apps/pwa/src/CollectionRecords.tsx`, `apps/pwa/src/live-main.tsx`, `apps/pwa/src/live-style.css` where stated by the diff):
+- App fixes approved by the owner (`apps/pwa/src/live-main.tsx`, `apps/pwa/src/CollectionRecords.tsx`, `apps/pwa/src/live-style.css`, `apps/pwa/src/BorrowerRecord.tsx`):
+  - Scroll: the window-versus-panel split moves from 1050 to 1200 px (the point from which the list and detail panels scroll themselves) in `resetScroll`, loans paging, and `CollectionRecords` (the reset effect, the detail scroll restore and save, and the charge-tile click save). At 1051–1199 px a reset scrolls the page to the top, so both panels start at the page top; at 1050 px and below nothing changes (`scrollIntoView`). A sticky-header scroll margin at 1051–1199 px keeps the Related loans and Upcoming sections below the header. In landscape at 1051–1199 px lists did not return to the top after a page change and the related-loans heading stayed off-screen. Unchanged on purpose: the drawer, bottom-nav and menu thresholds, the chat Enter-key and two-pane checks, `CashWorkspace`, and `ManagementCash.tsx:6` (see Open questions).
+  - "Review saved changes" calls `collapseTabletNavigation`, as the workspace buttons do, so the expanded sidebar at 768–1199 px no longer overlays the page it opens.
+  - IPAD-COLL-01: the Collection tile row is sized `minmax(min-content, auto)`; WebKit did not regrow long-name tiles when the pane narrowed (same result in Chromium).
+  - IPAD-BORR-01: the 480 px rule that puts the borrower record actions on their own row extends to 768–1050 px, so the name is no longer squeezed beside four actions in portrait.
+  - IPAD-NAV-01: at 1051–1199 px a tap or click outside the expanded sidebar collapses it (dialogs are ignored, the tap is not swallowed, no backdrop); 1200 px and wider is unchanged.
+  - IPAD-NAV-02: a white field behind the sticky collapse button at 1051–1199 px.
+  - IPAD-BORR-02: the payer-names empty-state hint sits on its own line at all widths.
+  - New assertions in `collection-chat-summary`, `phase5-borrower-independent`, `borrower-chat-button` and `live-signout-blocked-independent`.
   - (a) The scroll code uses the 1200 px layout point where the list and detail panels scroll themselves (`live-style.css`), instead of 1050. In landscape at 1051–1199 px lists did not return to the top after a page change and the related-loans heading stayed off-screen.
   - (b) "Review saved changes" collapses the expanded sidebar at 768–1199 px, as the workspace buttons do.
   - Echo findings IPAD-COLL-01 (long-name Collection tiles overlap in WebKit landscape after the list narrows), IPAD-BORR-01 (borrower record name squeezed beside four actions in portrait), IPAD-NAV-01 (the expanded overlay sidebar closes on an outside tap at 1051–1199 px), IPAD-NAV-02 (solid background on the sticky collapse button) and IPAD-BORR-02 (the payer-names empty-state text sat on its own line, all widths).
@@ -20,10 +28,13 @@ Owner request of 15 November 2026: include the iPad experience in CI for the iPa
 | --- | --- |
 | Development checks run 43734380959 on `f12c6c3` (dispatched) | `check`, lint, Terraform, Chromium e2e shards and the three iPhone WebKit shards passed; the iPad shards failed with 37 test failures: harness assumptions, run-once tests and the four app defects above. All were addressed in the later commits and Byte's changes |
 | Echo's iPad review (WebKit portrait and landscape) | Findings IPAD-COLL-01, IPAD-BORR-01, IPAD-NAV-01, IPAD-NAV-02, IPAD-BORR-02, fixed here |
-| Fix (a), (b): changed specs on the iPad projects and `desktop-chromium` | TODO (Byte) |
-| Full iPad WebKit run after the fixes (local) | TODO (Byte) |
-| Development checks on the pull request head | TODO (after the push) |
-| `npm run typecheck`, `npm run lint`, `node --test tests/unit/ci-reuse-evidence.test.mjs` | TODO (Byte) |
+| Local Playwright, final code at `286bf3e` (Byte): `borrower-search` 15, `grouped-read` 5, `collection-read` 15, `collection-loading-shift` 10, `upcoming-read` 15, `list-return` 173 passed and 17 skipped, `collection-chat-summary`, `borrower-chat-button`, `phase5-borrower-independent` | Pass (also on `mobile-webkit`) |
+| Local Playwright, final code at `286bf3e` (Byte): `live-signout-blocked-independent`, `pending-flash-independent`, `data-check`, `full-sync`, `collection-chat-seen-sync` | Pass on `desktop-chromium`, `mobile-chromium` and both iPad projects |
+| `npm run typecheck` (Byte, `286bf3e`) | Pass |
+| `npm run lint` (Byte, `286bf3e`) | Baseline: 1 warning and 1 info, both in files this batch does not touch |
+| Chase's review | TODO |
+| Echo's re-check of the fixed findings | TODO |
+| Development checks on the pull request head | TODO |
 | `npm run check:docs` | Pass (Dewey, working tree of 15 November 2026) |
 
 ## Not run
@@ -35,7 +46,7 @@ Owner request of 15 November 2026: include the iPad experience in CI for the iPa
 Revert the merge; tests, CI, documentation and PWA layout and scroll code only, no data or deployed service change. Hosting rolls back through the usual previous version in the [environment inventory](../project/Documents/Environment_Inventory.md) if the PWA ships and a fix misbehaves.
 
 ## Open questions
-None.
+- `ManagementCash.tsx:6` still uses the 1050 px split. The cash accounts page is two columns from 768 px, so on iPad portrait it may scroll the page needlessly. Left unchanged on purpose; the owner decides whether to align it with 1200 px.
 
 ## Remaining work
 - Open item: `refresh-hold-independent` line 137 is a pre-existing WebKit fake-clock flake (1 of 3 iPad portrait, 1 of 5 iPhone shards); it is not iPad specific. Investigate or tolerate it before it blocks a merge.
