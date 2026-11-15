@@ -1,4 +1,4 @@
-import {test,expect,type Page,type Route} from './fixtures/test';
+import {test,expect,narrow,touchDevice,type Page,type Route} from './fixtures/test';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
 import {referrerRoute,referrerMaiDetail,referrerMai,referrerPond,rebateExpenses,accruingLoans,REFERRERS_BUSINESS_DATE} from './fixtures/referrers-fixture';
 
@@ -334,10 +334,11 @@ test('R158 offline: the Collection header opens the group from the stored item, 
  await fixture(page,'r158-offline',{collection:{items:[item],charges:[{borrowerId:'B-R158',id:'C-R158',loanId:'L-R158',loanDisplayKey:'Synthetic loan',chargeDate:businessDate,paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'10',totalPaid:'0',receivedToday:'0'}],groupChatByBorrower:[]}});
  await page.route('**/api/**',r=>r.abort());
  await select(page,'prepared-collection');
- const phone=await page.evaluate(()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));expect(phone).toBe(!info.project.name.startsWith('desktop'));
+ // A phone or iPad (Mac user agent with touch points, as chatDevice tells them apart) gets the invite link.
+ const phone=touchDevice(info);expect(await page.evaluate(()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1)).toBe(phone);
  await expect(page.locator('.collection-compact-tile').getByRole('link',{name:'Open group chat in Instagram, '+item.displayName,exact:true})).toHaveAttribute('href',phone?invite:web);
  await page.locator('.collection-tile-main[data-record-id="B-R158"]').click();
- const link=page.locator('.collection-context').getByRole('link',{name:info.project.name.startsWith('desktop')?'Open chat':'Open group chat in Instagram',exact:true});
+ const link=page.locator('.collection-context').getByRole('link',{name:narrow(page)?'Open group chat in Instagram':'Open chat',exact:true});
  await expect(link).toHaveAttribute('href',phone?invite:web);await expect(page.locator('.collection-chat-summary')).toHaveCount(0);
  await expect(page.locator('.collection-context .collection-name-link')).toHaveText(item.displayName);
 });

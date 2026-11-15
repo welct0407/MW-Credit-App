@@ -1,5 +1,5 @@
 
-import {test,expect} from './fixtures/test';
+import {test,expect,deviceClass} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
@@ -20,7 +20,7 @@ const _charges=Array.from({length:27},(_,i)=>({id:'private-charge-'+i,loanId:'pr
 
 
 for(const view of ['Borrowers','Collection'])test(view+' live-search debounce composition dedupe and navigation cancellation',async({page},info)=>{
- await page.setViewportSize({width:info.project.name.startsWith('mobile')?320:1440,height:900});
+ if(deviceClass(info)!=='tablet')await page.setViewportSize({width:deviceClass(info)==='phone'?320:1440,height:900});
  const records=Array.from({length:30},(_,i)=>({id:'search-'+i,name:i===29?'เป้าหมาย':'ผู้กู้ '+i,borrowerDisplayName:i===29?'เป้าหมาย - Unique Needle':'ผู้กู้ '+i+' - English '+i,displayName:i===29?'เป้าหมาย - Unique Needle':'ผู้กู้ '+i+' - English '+i,hasActiveLoan:true,createdDate:null,outstandingPrincipal:'100',totalProfitEarned:'1',note:null,status:'not_paid',amountDue:'100',amountCollected:'0',amountRemaining:'100'}));
  const root=view==='Borrowers'?'/api/borrowers':'/api/collection',card=view==='Borrowers'?'.borrower-tile-main':'.collection-tile-main';const requests:string[]=[];let _releaseOld:(()=>void)|undefined,_releaseLatest:(()=>void)|undefined;const envelope={ok:true,source:'dev',businessDate:'2026-10-07',asOf:'2026-10-07T05:00:00Z',horizonEnd:'2027-01-07'};
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));

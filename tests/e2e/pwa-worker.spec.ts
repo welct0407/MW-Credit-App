@@ -1,4 +1,4 @@
-import {test,expect,type Page} from './fixtures/test';
+import {test,runsOnce,expect,type Page} from './fixtures/test';
 import {resolve} from 'node:path';
 import {readFileSync} from 'node:fs';
 import {startWorkerFixture} from './fixtures/worker-server';
@@ -9,7 +9,7 @@ const activated=['/__activated',...allowlist];
 const cacheEntries=(page:Page)=>page.evaluate(async()=>Object.fromEntries(await Promise.all((await caches.keys()).map(async name=>[name,(await(await caches.open(name)).keys()).map(r=>new URL(r.url).pathname).sort()]))));
 
 test('real worker public-only cache, explicit update, failed install and rollback',async({browser},info)=>{
- test.skip(info.project.name.startsWith('mobile'),'Worker lifecycle runs once; responsive application checks run separately');
+ test.skip(!runsOnce(info),'Worker lifecycle runs once; responsive application checks run separately');
  const fixture=await startWorkerFixture(resolve('apps/pwa/pwa'));
  const context=await browser.newContext();const page=await context.newPage();
  try{

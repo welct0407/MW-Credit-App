@@ -1,8 +1,8 @@
-import {test,expect,chromium} from './fixtures/test';
+import {test,runsOnce,expect,chromium} from './fixtures/test';
 import {startCanonicalFixture,fixtureLaunchArgs,assertServed} from './fixtures/canonical-server';
 
 test('built canonical update is announced, retries failed activation and reloads tabs only on request',async({},info)=>{
- test.skip(info.project.name.startsWith('mobile'),'Real two-tab worker integration runs once');const fixture=await startCanonicalFixture();
+ test.skip(!runsOnce(info),'Real two-tab worker integration runs once');const fixture=await startCanonicalFixture();
  const browser=await chromium.launch({args:fixtureLaunchArgs(fixture.port,['mw-credit-app-dev-737787224638.web.app'])});const context=await browser.newContext();
  try{
   await context.route('**/*',r=>['dev-lm.mw-credit.com','mw-credit-app-dev-737787224638.web.app'].includes(new URL(r.request().url()).hostname)?r.continue():r.abort());

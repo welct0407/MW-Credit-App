@@ -1,4 +1,4 @@
-import {test,expect,type Page,emitSyntheticUser} from './fixtures/test';
+import {test,expect,type Page,emitSyntheticUser,layout,stacked} from './fixtures/test';
 import {signOut} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 // APP-OFFLINE-02 / APP-UX-SETTINGS-05: while unsynced saved requests exist the Sign out button is disabled and described by a note
@@ -11,8 +11,12 @@ const auth=`let listener;export const browserLocalPersistence='local',inMemoryPe
 const identity={issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic'},id='44444444-4444-4444-8444-444444444444';
 const pendingRows=(page:Page)=>page.evaluate(async(identity:{issuer:string;uid:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return ownerOfflineRepository(identity).list('pending')},identity);
 const seedPending=(page:Page)=>page.evaluate(async({identity,id}:{identity:{issuer:string;uid:string};id:string})=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository(identity);await repo.authorize();await repo.savePending(id,{domain:'borrower',command:{requestId:id,operation:'borrower.update',targetId:'synthetic-target',expectedVersion:'a'.repeat(64),predecessorRequestId:null,receiptId:null,inputs:{note:'unsynced'}}})},{identity,id});
-async function account(page:Page){if(page.viewportSize()!.width<=1050&&await page.locator('dialog[open]').count()===0)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click()}
-async function closeAccount(page:Page){if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:/^(Close menu|ปิดเมนู)$/}).click()}
+// The account controls: in the drawer up to 1050px; in the sidebar above, which starts as the 72px icon rail from 1051 to
+// 1199px (iPad landscape), where the sign-out note is only a title, so the sidebar is expanded as a touch user would.
+const expand=(page:Page)=>page.getByRole('button',{name:/^(Expand navigation|ขยายเมนู)$/});
+const collapse=(page:Page)=>page.getByRole('button',{name:/^(Collapse navigation|ย่อเมนู)$/});
+async function account(page:Page){if(stacked(page)){if(await page.locator('dialog[open]').count()===0)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click()}else if(await expand(page).count())await expand(page).click()}
+async function closeAccount(page:Page){if(stacked(page))await page.getByRole('button',{name:/^(Close menu|ปิดเมนู)$/}).click();else if(layout(page)==='compact'&&await collapse(page).count())await collapse(page).click()}
 type Routes={posts:string[];statusGets:number;status:number;applied:boolean};
 async function setup(page:Page):Promise<Routes>{
  const routes:Routes={posts:[],statusGets:0,status:200,applied:false};

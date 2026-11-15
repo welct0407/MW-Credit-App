@@ -176,7 +176,8 @@ function App() {
   useEffect(()=>{if(!('serviceWorker' in navigator))return;const receive=(event:MessageEvent)=>{const data=event.data;if(data?.type==='GET_CLIENT_ENTRY'){event.ports[0]?.postMessage({entry:Array.from(document.scripts).map(script=>new URL(script.src||location.href)).find(url=>url.origin===location.origin&&/^\/assets\/[^/]+\.js$/.test(url.pathname))?.pathname??null});return}if(data?.type!=='NOTIFICATION_OPEN'||typeof data.eventId!=='string'||!/^[a-f0-9-]{36}$/.test(data.eventId))return;event.ports[0]?.postMessage({handled:true});setIncomingNotification({eventId:data.eventId,nonce:Date.now()})};navigator.serviceWorker.addEventListener('message',receive);return()=>navigator.serviceWorker.removeEventListener('message',receive)},[]);
   const [appUpdated,setAppUpdated]=useState(false);
   useEffect(()=>{let updated=false;try{updated=sessionStorage.getItem('mw-app-updated')==='1';sessionStorage.removeItem('mw-app-updated')}catch{/* The notice is optional. */}if(!updated)return;const show=setTimeout(()=>setAppUpdated(true),300),hide=setTimeout(()=>setAppUpdated(false),4300);return()=>{clearTimeout(show);clearTimeout(hide)}},[]);
-  const openSavedChanges=()=>menuDrawer.close(()=>setSavedPayments(true));
+  // Like the workspace buttons, it closes the expanded tablet sidebar (768-1199px), which overlays the screen it opens.
+  const openSavedChanges=()=>{collapseTabletNavigation();menuDrawer.close(()=>setSavedPayments(true))};
   // UX-RECON-06: the header indicator opens the Saved changes page at the data-check line.
   const openDataCheck=()=>{openSavedChanges();revealWhenShown('#'+DATA_CHECK_WARNING_ID)};
   const [fullLoan,setFullLoan]=useState<string|null>(null);
@@ -241,7 +242,8 @@ function App() {
   const [loanPage, setLoanPage] = useState(1);
   const listPanel = useRef<HTMLElement | null>(null);
   const detailPanel = useRef<HTMLElement | null>(null);
-  const resetScroll = (element: HTMLElement | null) => { if (!element) return; element.scrollTop = 0; if (window.innerWidth <= 1050) element.scrollIntoView({ block: 'start' }); };
+  // The list and detail panels scroll themselves only from 1200px (live-style.css); below, the page scrolls.
+  const resetScroll = (element: HTMLElement | null) => { if (!element) return; element.scrollTop = 0; if (window.innerWidth < 1200) element.scrollIntoView({ block: 'start' }); };
   const [loans, setLoans] = useState<LoanRecord[]>([]);
   const [selectedLoan, setSelectedLoan] = useState<LoanRecord | null>(null);
   const [loanCursor, setLoanCursor] = useState<string | null>(null);
@@ -257,7 +259,7 @@ function App() {
     const panel = detailPanel.current;
     const related = panel?.querySelector<HTMLElement>('.related-loans');
     if (!panel || !related) return;
-    if (window.innerWidth > 1050) panel.scrollTop += related.getBoundingClientRect().top - panel.getBoundingClientRect().top - panel.clientTop;
+    if (window.innerWidth >= 1200) panel.scrollTop += related.getBoundingClientRect().top - panel.getBoundingClientRect().top - panel.clientTop;
     else related.scrollIntoView({ block: 'start' });
   };
   // biome-ignore lint/correctness/useExhaustiveDependencies: scrolls the related pane when the selected loan changes; scrollRelated is recreated every render

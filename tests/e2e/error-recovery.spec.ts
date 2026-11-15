@@ -1,5 +1,5 @@
 import {chooseLanguage} from './live-controls';
-import {test,expect} from './fixtures/test';
+import {test,expect,deviceClass} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
@@ -18,7 +18,7 @@ const ref='12345678-1234-4234-8234-123456789abc';
 async function clearReadCache(page:import('@playwright/test').Page){await page.evaluate(async()=>{const path='/apps/pwa/src/owner-offline.ts';const {ownerOfflineRepository}=await import(path);await ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-owner'}).invalidateReads()})}
 
 for(const view of ['Borrowers','Collection'])test(view+' reference copying and scoped manual recovery',async({page},info)=>{
- await page.setViewportSize({width:info.project.name.startsWith('mobile')?320:1440,height:900});
+ if(deviceClass(info)!=='tablet')await page.setViewportSize({width:deviceClass(info)==='phone'?320:1440,height:900});
  await page.addInitScript(()=>Object.defineProperty(navigator,'clipboard',{value:{writeText:async(v:string)=>{if((window as any).rejectCopy)throw Error('denied');(window as any).copied=v}}}));
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
  const row={id:'synthetic-row',name:'Synthetic',borrowerDisplayName:'Synthetic - Example',displayName:'Synthetic - Example',hasActiveLoan:true,createdDate:null,outstandingPrincipal:'100',totalProfitEarned:'0',note:null,status:'not_paid',amountDue:'100',amountCollected:'0',amountRemaining:'100'};

@@ -1,4 +1,4 @@
-import {test,expect,type Page,emitSyntheticUser} from './fixtures/test';
+import {test,expect,type Page,type TestInfo,emitSyntheticUser,deviceClass,narrow,touchDevice} from './fixtures/test';
 import {chooseLanguage} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
@@ -40,7 +40,8 @@ const json=(r:import('@playwright/test').Route,body:unknown)=>r.fulfill({content
 const tileOf=(page:Page,id:string)=>page.locator('article.borrower-tile').filter({has:page.locator(`.borrower-tile-main[data-record-id="${id}"]`)});
 const chatIn=(page:Page,id:string)=>tileOf(page,id).locator('a.borrower-tile-chat');
 const nameOf=(id:string)=>people.find(p=>p.id===id)!.name;
-const phone=(page:Page)=>page.evaluate(()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+// The windows measured: 1440 on the computer, the given phone widths at 800 tall on the phones; an iPad keeps its own.
+const sizes=(page:Page,info:TestInfo,phone:number[])=>{const device=deviceClass(info);return device==='tablet'?[page.viewportSize()!]:(device==='computer'?[1440]:phone).map(width=>({width,height:800}))};
 async function boot(page:Page,base:string,{links=true,dataset}:{links?:boolean;dataset?:boolean}={}){
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:auth}));
  await page.context().route(/^https:\/\/(www\.instagram\.com|ig\.me)\//,r=>r.fulfill({contentType:'text/html',body:'<title>Invented chat</title>'}));
@@ -90,7 +91,7 @@ async function expectLook(link:import('@playwright/test').Locator,color:string){
 
 test('R161 read-only Borrowers list and details: the DM button (pink), the group button when there is a group link, none otherwise; it never opens the borrower',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');if(desktop)await page.setViewportSize({width:1440,height:900});
- const reads=await boot(page,readerBase);await borrowers(page);const onPhone=await phone(page);
+ const reads=await boot(page,readerBase);await borrowers(page);const onPhone=touchDevice(info);
  const dm=page.getByRole('link',{name:purpose.dm.en+', '+nameOf('b-dm'),exact:true});
  await expect(dm).toHaveAttribute('href','https://ig.me/m/invented.dm');await expect(dm).toHaveAttribute('title',purpose.dm.en);await expectLook(dm,DM);
  // A group link wins over the DM (blue, group name); not enabled or an invalid handle (the server sends no DM link): none.
@@ -105,15 +106,15 @@ test('R161 read-only Borrowers list and details: the DM button (pink), the group
  const popup=page.context().waitForEvent('page');await dm.click();const opened=await popup;await opened.waitForLoadState();expect(opened.url()).toBe('https://ig.me/m/invented.dm');await opened.close();
  await expect(page.locator('article.borrower-tile.selected')).toHaveCount(0);expect(reads.filter(path=>path.includes('/loans')).length).toBe(before);
  // Tiles with and without a button (names of one length) are equally tall; nothing scrolls sideways (320, 390, this width).
- for(const width of desktop?[1440]:[320,390]){
-  await page.setViewportSize({width,height:800});
+ for(const size of sizes(page,info,[320,390])){
+  const width=size.width;await page.setViewportSize(size);
   const heights=await page.locator('article.borrower-tile').evaluateAll(nodes=>nodes.slice(0,4).map(node=>Math.round(node.getBoundingClientRect().height)));
   expect(new Set(heights).size,`${width}px ${JSON.stringify(heights)}`).toBe(1);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth),`${width}px`).toBeLessThanOrEqual(width);
   const long=(await chatIn(page,'b-long').boundingBox())!,main=(await tileOf(page,'b-long').locator('.borrower-tile-main').boundingBox())!;expect(main.x+main.width).toBeLessThanOrEqual(long.x+1);
  }
  // Thai names for both kinds.
- if(!desktop)await page.setViewportSize({width:390,height:800});
+ if(deviceClass(info)==='phone')await page.setViewportSize({width:390,height:800});
  await chooseLanguage(page,'ไทย');
  await expect(page.getByRole('link',{name:purpose.dm.th+', '+nameOf('b-dm'),exact:true})).toHaveAttribute('title',purpose.dm.th);
  await expect(chatIn(page,'b-group')).toHaveAttribute('title',purpose.group.th);await expect(chatIn(page,'b-group')).toHaveAttribute('aria-label',purpose.group.th+', '+nameOf('b-group'));
@@ -122,8 +123,8 @@ test('R161 read-only Borrowers list and details: the DM button (pink), the group
  await tileOf(page,'b-dm').locator('.borrower-tile-main').click();
  const detail=page.locator('.detail-panel').getByRole('link',{name:purpose.dm.en,exact:true});await expect(detail).toHaveAttribute('href','https://ig.me/m/invented.dm');await expectLook(detail,DM);
  await expect(page.locator('.detail-panel .borrower-direct-actions')).toHaveCount(0);
- for(const width of desktop?[1440]:[320,390]){
-  await page.setViewportSize({width,height:800});
+ for(const size of sizes(page,info,[320,390])){
+  const width=size.width;await page.setViewportSize(size);
   const heading=page.locator('.detail-panel .borrower-readonly-heading'),name=(await heading.locator('h2').boundingBox())!,link=(await detail.boundingBox())!,row=(await heading.boundingBox())!;
   expect(link.y,`${width}px on the name's line`).toBeLessThan(name.y+name.height);expect(link.y+link.height,`${width}px on the name's line`).toBeGreaterThan(name.y);
   expect(Math.abs(row.x+row.width-(link.x+link.width)),`${width}px right`).toBeLessThanOrEqual(1);expect(name.x+name.width).toBeLessThanOrEqual(link.x);
@@ -139,8 +140,8 @@ test('R161 Borrowers list with command access: the chat button left of New loan 
  await expect(chat).toHaveAttribute('href','https://ig.me/m/invented.dm');await expectLook(chat,DM);
  expect(await tile.evaluate(node=>[...node.querySelectorAll('button,a')].map(item=>item.className))).toEqual(['borrower-tile-main','borrower-tile-chat chat-link-dm','icon-action']);
  await tile.locator('.borrower-tile-main').focus();await page.keyboard.press('Tab');await expect(chat).toBeFocused();await page.keyboard.press('Tab');await expect(newLoan).toBeFocused();
- for(const width of desktop?[1440]:[320,390]){
-  await page.setViewportSize({width,height:800});
+ for(const size of sizes(page,info,[320,390])){
+  const width=size.width;await page.setViewportSize(size);
   const a=(await chat.boundingBox())!,b=(await newLoan.boundingBox())!;
   expect(Math.abs(a.y-b.y),`${width}px same row`).toBeLessThanOrEqual(1);expect(b.x-(a.x+a.width),`${width}px 8px left of New loan`).toBeCloseTo(8,0);
   const heights=await page.locator('article.borrower-tile').evaluateAll(nodes=>nodes.slice(0,4).map(node=>Math.round(node.getBoundingClientRect().height)));
@@ -153,7 +154,7 @@ test('R161 Borrowers list with command access: the chat button left of New loan 
   console.log(`R161 Borrowers New loan x ${info.project.name} ${width}px: ${JSON.stringify(loans)}`);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth),`${width}px`).toBeLessThanOrEqual(width);
  }
- if(desktop)await page.setViewportSize({width:1440,height:900});else await page.setViewportSize({width:390,height:800});
+ if(desktop)await page.setViewportSize({width:1440,height:900});else if(deviceClass(info)==='phone')await page.setViewportSize({width:390,height:800});
  // The details (the borrower record): first in the actions row, left of New loan; from the record (no list fields needed).
  await tileOf(page,'b-long').locator('.borrower-tile-main').click();
  const record=page.getByRole('region',{name:'Borrower record',exact:true});await expect(record.getByRole('button',{name:'Edit borrower',exact:true})).toBeVisible();
@@ -161,12 +162,12 @@ test('R161 Borrowers list with command access: the chat button left of New loan 
  expect(await record.locator('.borrower-direct-actions').evaluate(node=>node.firstElementChild!.className)).toBe('borrower-detail-chat chat-link-dm');
  // UX-R161-BRD-01: at 480px and below the actions take their own right-aligned row under the name, which keeps the full
  // width beside Back; wider, one line as before. Measured with the long Thai name.
- for(const width of desktop?[1440]:[320,390,480]){
-  await page.setViewportSize({width,height:800});
+ for(const size of sizes(page,info,[320,390,480])){
+  const width=size.width;await page.setViewportSize(size);
   const heading=record.locator('.related-loans-heading').first(),name=(await heading.locator('h2').boundingBox())!,row=(await heading.boundingBox())!,actions=(await heading.locator('.borrower-direct-actions').boundingBox())!;
   const a=(await detail.boundingBox())!,b=(await record.getByRole('button',{name:'New loan',exact:true}).boundingBox())!;
   expect(a.x+a.width,`${width}px chat left of New loan`).toBeLessThanOrEqual(b.x);expect(Math.abs(a.y-b.y)).toBeLessThanOrEqual(1);
-  if(!desktop){
+  if(narrow(page)){
    expect(actions.y,`${width}px actions under the name`).toBeGreaterThanOrEqual(name.y+name.height-1);
    expect(Math.abs(actions.x+actions.width-(row.x+row.width)),`${width}px actions right-aligned`).toBeLessThanOrEqual(2);
    expect(name.width,`${width}px the name keeps the width beside Back`).toBeGreaterThanOrEqual(row.width-44-24);
@@ -182,7 +183,7 @@ test('R161 offline from the held records bundle (fetches aborted): DM buttons on
  await boot(page,commandBase,{links:false,dataset:true});
  await expect.poll(()=>page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');const repo=ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-chat-member'});const [records,collection]=await Promise.all([repo.readDataset('records'),repo.readDataset('collection')]);return !!records?.complete&&records.data?.borrowers?.length===5&&!!collection?.complete}),{timeout:20000}).toBe(true);
  await page.route('**/api/**',r=>r.abort());
- const onPhone=await phone(page);
+ const onPhone=touchDevice(info);
  await borrowers(page);
  await expect(chatIn(page,'b-dm')).toHaveAttribute('href','https://ig.me/m/invented.dm');await expectLook(chatIn(page,'b-dm'),DM);
  await expect(chatIn(page,'b-group')).toHaveAttribute('href',onPhone?invite:web);await expect(chatIn(page,'b-long')).toHaveAttribute('href','https://ig.me/m/invented.long');

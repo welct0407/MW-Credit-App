@@ -1,4 +1,4 @@
-import {test,expect,type Page,emitSyntheticUser} from './fixtures/test';
+import {test,expect,type Page,emitSyntheticUser,stacked} from './fixtures/test';
 import {chooseLanguage,routeSyntheticPreferences} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 // Owner report (PROD R064, iPhone): an ordinary online language change must not flash the
@@ -21,7 +21,9 @@ async function setup(page:Page){
  return writes;
 }
 const flashes=(page:Page)=>page.evaluate(()=>[...new Set((window as any).__flashes as string[])]);
-async function drawer(page:Page){if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click()}
+// The account controls: in the drawer up to 1050px; in the sidebar above, expanded from the 72px icon rail it starts as
+// from 1051 to 1199px (iPad landscape), where the sign-out note is only a title.
+async function drawer(page:Page){if(stacked(page)){await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click();return}const expand=page.getByRole('button',{name:/^(Expand navigation|ขยายเมนู)$/});if(await expand.count())await expand.click()}
 test('an ordinary online language change never shows the pending badge, waiting message or blocked sign-out label',async({page})=>{
  const writes=await setup(page);
  await chooseLanguage(page,'ไทย');await expect.poll(()=>writes.length).toBe(1);

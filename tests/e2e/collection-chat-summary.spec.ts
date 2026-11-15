@@ -1,5 +1,5 @@
 import {chooseLanguage,chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
-import {test,expect,type Page} from './fixtures/test';
+import {test,expect,narrow,stacked,type Page} from './fixtures/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 // R146 group chat summary: the collection detail card and the list mark, on a mocked read API. Invented text only.
 // R150: the card's times follow the browser's time zone. The device clock is fixed at 12 November 2026 08:00 UTC and the
@@ -59,9 +59,8 @@ const tile=(page:Page,id:string)=>page.locator(`.collection-tile-main[data-recor
 const card=(page:Page)=>page.locator('.collection-chat-summary');
 const back=(page:Page)=>page.getByRole('button',{name:/^(Back to Collection|กลับงานติดตาม)$/}).click();
 // The record replaces the list up to 1050px (phones, iPad portrait) and sits beside it above (iPad landscape, desktop).
-const backIfStacked=async(page:Page)=>{if(page.viewportSize()!.width<=1050)await back(page)};
-// The header link is an icon button at 480px and below, a visible underlined label above (desktop and iPad).
-const narrow=(page:Page)=>page.viewportSize()!.width<=480;
+const backIfStacked=async(page:Page)=>{if(stacked(page))await back(page)};
+// The header link is an icon button at 480px and below (narrow), a visible underlined label above (desktop and iPad).
 
 test('list mark and card: hidden without a summary, everything shown without an expander, role colours, local times, stale, language fallback, mark cleared when the card renders',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');await open(page,{desktop});
