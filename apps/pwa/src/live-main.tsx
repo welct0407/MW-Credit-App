@@ -245,8 +245,9 @@ function App() {
   const [loanPage, setLoanPage] = useState(1);
   const listPanel = useRef<HTMLElement | null>(null);
   const detailPanel = useRef<HTMLElement | null>(null);
-  // The list and detail panels scroll themselves only from 1200px (live-style.css); below, the page scrolls.
-  const resetScroll = (element: HTMLElement | null) => { if (!element) return; element.scrollTop = 0; if (window.innerWidth < 1200) element.scrollIntoView({ block: 'start' }); };
+  // The list and detail panels scroll themselves only from 1200px (live-style.css); below, the page scrolls: stacked (1050px
+  // and below) the panel is brought to the top, and side by side (1051-1199px) both panels start at the top of the page.
+  const resetScroll = (element: HTMLElement | null) => { if (!element) return; element.scrollTop = 0; if (window.innerWidth >= 1200) return; if (window.innerWidth > 1050) window.scrollTo({ top: 0 }); else element.scrollIntoView({ block: 'start' }); };
   const [loans, setLoans] = useState<LoanRecord[]>([]);
   const [selectedLoan, setSelectedLoan] = useState<LoanRecord | null>(null);
   const [loanCursor, setLoanCursor] = useState<string | null>(null);

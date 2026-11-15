@@ -135,8 +135,9 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     const panel = scrollTarget.kind === 'list' ? listPanel.current : detailPanel.current;
     if (!panel) return;
     panel.scrollTop = 0;
-    // The list and detail panels scroll themselves only from 1200px (live-style.css); below, the page scrolls.
-    if (window.innerWidth < 1200) panel.scrollIntoView({ block: 'start' });
+    // The list and detail panels scroll themselves only from 1200px (live-style.css); below, the page scrolls: stacked
+    // (1050px and below) the panel is brought to the top, and side by side (1051-1199px) both start at the top of the page.
+    if (window.innerWidth < 1200) { if (window.innerWidth > 1050) window.scrollTo({ top: 0 }); else panel.scrollIntoView({ block: 'start' }); }
   }, [scrollTarget]);
   useLayoutEffect(() => {
     if (restoreDetailScroll.current && !selectedCharge && !upcomingDetail) {
