@@ -16,7 +16,13 @@ const seedPending=(page:Page)=>page.evaluate(async({identity,id}:{identity:{issu
 const expand=(page:Page)=>page.getByRole('button',{name:/^(Expand navigation|ขยายเมนู)$/});
 const collapse=(page:Page)=>page.getByRole('button',{name:/^(Collapse navigation|ย่อเมนู)$/});
 async function account(page:Page){if(stacked(page)){if(await page.locator('dialog[open]').count()===0)await page.getByRole('button',{name:/^(Open navigation|เปิดเมนู)$/}).click()}else if(await expand(page).count())await expand(page).click()}
-async function closeAccount(page:Page){if(stacked(page))await page.getByRole('button',{name:/^(Close menu|ปิดเมนู)$/}).click();else if(layout(page)==='compact'&&await collapse(page).count())await collapse(page).click()}
+// IPAD-NAV-01: from 1051 to 1199px the expanded sidebar overlays the page and a tap outside it collapses it again.
+async function closeAccount(page:Page){
+ if(stacked(page)){await page.getByRole('button',{name:/^(Close menu|ปิดเมนู)$/}).click();return}
+ if(layout(page)!=='compact'||!await collapse(page).count())return;
+ const {width,height}=page.viewportSize()!;await page.mouse.click(width-8,height-8);
+ await expect(expand(page)).toBeVisible();await expect(page.locator('.live-body')).toHaveClass(/nav-collapsed/);
+}
 type Routes={posts:string[];statusGets:number;status:number;applied:boolean};
 async function setup(page:Page):Promise<Routes>{
  const routes:Routes={posts:[],statusGets:0,status:200,applied:false};

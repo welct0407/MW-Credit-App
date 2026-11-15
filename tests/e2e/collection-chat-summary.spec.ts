@@ -348,6 +348,24 @@ test('R160 read-only: with any link on the page, a tile with a link is as tall a
  await expectEqualHeights(page,'read-only');
 });
 
+// IPAD-COLL-01 (Echo): with the record beside the list (two panes), selecting a borrower narrows the list; a long name then
+// wraps further and its tile grows with it instead of keeping its earlier height and overlapping the next tile (WebKit
+// at iPad landscape kept the old height until a rotation).
+test('two panes: after a borrower is selected, long-name tiles grow with the narrower list and never overlap',async({page},info)=>{
+ const long='ผู้กู้ตัวอย่างชื่อยาวมากสำหรับทดสอบการตัดบรรทัด - Synthetic borrower with a deliberately long English name';
+ const rows=[0,1,2,3].map(i=>({...board[0],id:`long-${i}`,displayName:`${long} ${i}`,chatSummaryAt:null}));
+ await open(page,{desktop:info.project.name.startsWith('desktop'),boardRows:rows,links:{'long-1':{chatUrl:web,chatInviteUrl:invite}}});
+ test.skip(stacked(page),'The record replaces the list at 1050px and below.');
+ await expect(page.locator('.collection-list-chat')).toHaveCount(1);
+ await tile(page,'long-2').click();await expect(page.locator('.collection-context')).toContainText(`${long} 2`);
+ await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+ const tiles=await page.locator('.collection-compact-tile').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {top:Math.round(r.top),bottom:Math.round(r.bottom),scroll:node.scrollHeight,client:node.clientHeight}}));
+ for(const [index,box] of tiles.entries()){
+  expect(box.scroll,`tile ${index} content fits: ${JSON.stringify(tiles)}`).toBeLessThanOrEqual(box.client+1);
+  if(index)expect(box.top,`tile ${index} below tile ${index-1}: ${JSON.stringify(tiles)}`).toBeGreaterThanOrEqual(tiles[index-1].bottom-1);
+ }
+});
+
 // R161 (owner, 15 November 2026): AI collection enabled and no usable group link: the same button opens the borrower's
 // Instagram direct message (chatDmUrl from the read service), pink, named as a direct message; a group link wins.
 const dmPurpose={en:'Open Instagram direct message',th:'เปิดแชทส่วนตัวใน Instagram'};

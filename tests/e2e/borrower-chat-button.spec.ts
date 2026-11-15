@@ -1,4 +1,4 @@
-import {test,expect,type Page,type TestInfo,emitSyntheticUser,deviceClass,narrow,touchDevice} from './fixtures/test';
+import {test,expect,type Page,type TestInfo,emitSyntheticUser,deviceClass,layout,narrow,touchDevice} from './fixtures/test';
 import {chooseLanguage} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
@@ -167,10 +167,12 @@ test('R161 Borrowers list with command access: the chat button left of New loan 
   const heading=record.locator('.related-loans-heading').first(),name=(await heading.locator('h2').boundingBox())!,row=(await heading.boundingBox())!,actions=(await heading.locator('.borrower-direct-actions').boundingBox())!;
   const a=(await detail.boundingBox())!,b=(await record.getByRole('button',{name:'New loan',exact:true}).boundingBox())!;
   expect(a.x+a.width,`${width}px chat left of New loan`).toBeLessThanOrEqual(b.x);expect(Math.abs(a.y-b.y)).toBeLessThanOrEqual(1);
-  if(narrow(page)){
+  // IPAD-BORR-01: also at 768-1050px (iPad portrait) the actions take their own row and the name keeps the record's width.
+  if(narrow(page)||layout(page)==='tablet'){
    expect(actions.y,`${width}px actions under the name`).toBeGreaterThanOrEqual(name.y+name.height-1);
    expect(Math.abs(actions.x+actions.width-(row.x+row.width)),`${width}px actions right-aligned`).toBeLessThanOrEqual(2);
    expect(name.width,`${width}px the name keeps the width beside Back`).toBeGreaterThanOrEqual(row.width-44-24);
+   if(layout(page)==='tablet')expect(name.width,`${width}px the name takes most of the record`).toBeGreaterThanOrEqual((await record.boundingBox())!.width*.6);
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth),`${width}px`).toBeLessThanOrEqual(width);
   console.log(`R161 borrower details ${info.project.name} ${width}px: name ${Math.round(name.width)}px of ${Math.round(row.width)}px; actions row at y ${Math.round(actions.y-row.y)} (name ends ${Math.round(name.y+name.height-row.y)})`);

@@ -146,6 +146,9 @@ function App() {
   const [navigationCollapsed, setNavigationCollapsed] = useState(()=>matchMedia('(min-width:768px) and (max-width:1199px)').matches);
   useEffect(()=>{const tablet=matchMedia('(min-width:768px) and (max-width:1199px)');const entered=()=>{if(tablet.matches)setNavigationCollapsed(true)};tablet.addEventListener('change',entered);return()=>tablet.removeEventListener('change',entered)},[]);
   const collapseTabletNavigation=()=>{if(matchMedia('(min-width:768px) and (max-width:1199px)').matches)setNavigationCollapsed(true)};
+  // IPAD-NAV-01: from 1051 to 1199px the expanded sidebar overlays the page; a tap or click outside it (not in a dialog)
+  // collapses it to the icon rail. At 1200px and wider it is a layout column and stays as chosen.
+  useEffect(()=>{if(navigationCollapsed)return;const overlay=matchMedia('(min-width:1051px) and (max-width:1199px)');const outside=(event:PointerEvent)=>{if(overlay.matches&&event.target instanceof Element&&!event.target.closest('#live-desktop-navigation,dialog'))setNavigationCollapsed(true)};document.addEventListener('pointerdown',outside,true);return()=>document.removeEventListener('pointerdown',outside,true)},[navigationCollapsed]);
   const [languageChoices, setLanguageChoices] = useState(false);
   const languageToggle = useRef<HTMLButtonElement | null>(null);
   const languagePanel = useRef<HTMLDivElement | null>(null);
