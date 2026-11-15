@@ -345,6 +345,33 @@ test('R160 read-only: with any link on the page, a tile with a link is as tall a
  await expectEqualHeights(page,'read-only');
 });
 
+// R161 (owner, 15 November 2026): AI collection enabled and no usable group link: the same button opens the borrower's
+// Instagram direct message (chatDmUrl from the read service), teal, named as a direct message; a group link wins.
+const dmPurpose={en:'Open Instagram direct message',th:'เปิดแชทส่วนตัวใน Instagram'};
+test('R161 Collection list and header: the DM button (teal) without a group link, the group button with one, none for an invalid DM link; Thai',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop');
+ await open(page,{desktop,links:{'chat-c':{chatDmUrl:'https://ig.me/m/invented.c'},'chat-b':{chatInviteUrl:invite,chatDmUrl:'https://ig.me/m/invented.b'},'chat-d':{chatDmUrl:'https://ig.me/m/a b'},'chat-f':{chatDmUrl:'https://ig.me/m/invented_f'}}});
+ const dm=page.getByRole('link',{name:dmPurpose.en+', '+nameOf('chat-c'),exact:true});
+ await expect(dm).toHaveAttribute('href','https://ig.me/m/invented.c');await expect(dm).toHaveAttribute('title',dmPurpose.en);await expect(dm).toHaveAttribute('target','_blank');await expect(dm).toHaveAttribute('rel','noopener noreferrer');
+ await expect(dm).toHaveClass('collection-tile-chat chat-link-dm');await expect(dm.locator('svg')).toHaveAttribute('data-icon','chat');
+ expect(await dm.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.borderTopColor,s.backgroundColor]})).toEqual(['rgb(0, 105, 92)','rgb(222, 222, 222)','rgb(255, 255, 255)']);
+ {const box=(await dm.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44)}
+ // A group link wins (blue, the group name); an invalid DM link: no button.
+ await expect(tileChat(page,'chat-b')).toHaveAttribute('href',invite);await expect(tileChat(page,'chat-b')).toHaveAttribute('title',purpose.en);
+ expect(await tileChat(page,'chat-b').evaluate(node=>getComputedStyle(node).color)).toBe('rgb(11, 87, 208)');
+ await expect(tileChat(page,'chat-d')).toHaveCount(0);await expect(tileChat(page,'chat-f')).toHaveAttribute('href','https://ig.me/m/invented_f');
+ // The header: the DM colour; at 480px and below the icon named by aria-label, wider the visible "Open chat"; the title says DM.
+ await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);
+ // UX-R161-TXT-01: wider than 480px the visible label says DM ("Open DM"); at 480px and below the icon, named by aria-label.
+ const link=header(page).getByRole('link',{name:desktop?'Open DM':dmPurpose.en,exact:true});if(desktop)await expect(link.locator('span')).toHaveText('Open DM');
+ await expect(link).toHaveAttribute('href','https://ig.me/m/invented.c');await expect(link).toHaveAttribute('title',dmPurpose.en);await expect(link).toHaveClass(/chat-link-dm/);
+ expect(await link.evaluate(node=>getComputedStyle(node).color)).toBe('rgb(0, 105, 92)');if(!desktop)await back(page);
+ // Thai.
+ await chooseLanguage(page,'ไทย');
+ await expect(page.getByRole('link',{name:dmPurpose.th+', '+nameOf('chat-c'),exact:true})).toHaveAttribute('title',dmPurpose.th);
+ await tile(page,'chat-c').click();await expect(header(page).locator('a.collection-header-chat')).toHaveAttribute('title',dmPurpose.th);if(desktop)await expect(header(page).locator('a.collection-header-chat span')).toHaveText('เปิดแชทส่วนตัว');
+});
+
 // R150: every card time is the browser's own wall clock, and "today" is the browser's day. Same instants, three clocks.
 test('card times follow the browser time zone: clock times for today here, dates for another day here',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');
@@ -470,6 +497,11 @@ test.describe('owner testing shell',()=>{
    // Every tile reserves the same right column (chat + gap + Receive), with or without its own link.
    const right=await page.locator('.collection-tile-right').evaluateAll(nodes=>nodes.map(node=>Math.round(node.getBoundingClientRect().width)));
    expect(new Set(right).size,label+': one right-column width '+JSON.stringify(right)).toBe(1);expect(right[0]).toBeGreaterThanOrEqual(96);
+   // UX-R161-COL-01: Receive and the paid amount stay in one straight column on rows with and without a chat button.
+   const receiveX=await page.getByRole('button',{name:/^Receive payment for /}).evaluateAll(nodes=>nodes.map(node=>Math.round(node.getBoundingClientRect().x)));
+   const paidRight=await page.locator('.collection-tile-right>strong').evaluateAll(nodes=>nodes.map(node=>Math.round(node.getBoundingClientRect().right)));
+   expect(new Set(receiveX).size,label+': Receive x '+JSON.stringify(receiveX)).toBe(1);expect(new Set(paidRight).size,label+': paid amount right '+JSON.stringify(paidRight)).toBe(1);
+   console.log(`R161 Collection Receive x ${test.info().project.name} ${label}: ${JSON.stringify(receiveX)}; paid right ${JSON.stringify(paidRight)}`);
    expect(await page.evaluate(()=>document.documentElement.scrollWidth),label+': no sideways scroll').toBeLessThanOrEqual(width);
    // The long Thai name wraps inside its column.
    const name=article('chat-f').locator('.collection-tile-main strong');expect(await name.evaluate(node=>getComputedStyle(node).overflowWrap)).toBe('anywhere');

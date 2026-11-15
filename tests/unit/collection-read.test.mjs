@@ -203,3 +203,57 @@ test('R158 collection items carry chatUrl and chatInviteUrl with or without a su
  for(const column of ['IG Group URL','IG Group Invite Link'])assert.ok(contract.includes(column),column);
  assert.equal(validIgGroupUrl(undefined),false);assert.equal(validIgGroupInviteLink(web),false);
 });
+
+// R161: collection items and borrower list rows carry chatDmUrl only when both columns ("AI Collection Enabled",
+// "Instagram Username") exist and are granted, the flag is true (in SQL) and the username gives a handle. Invented handles.
+test('R161 chatDmUrl rides the read service\'s collection items and borrower list rows under the column guards, the flag and the handle rule; never the offline walk',async()=>{
+ const {readCollection,markGroupLinks,igGroupUrlAllowedSql,igGroupInviteAllowedSql,aiCollectionAllowedSql,igUsernameAllowedSql,igGroupUrlSql,igDmSql}=await import('../../services/api/collection-read-contract.mjs');
+ assert.match(igDmSql,/b\."AI Collection Enabled" IS TRUE/);assert.match(igDmSql,/b\."Instagram Username" AS username/);
+ for(const sql of [aiCollectionAllowedSql,igUsernameAllowedSql]){assert.match(sql,/FROM pg_attribute a/);assert.match(sql,/to_regclass\('public\."Borrowers"'\)/)}
+ assert.match(aiCollectionAllowedSql,/a\.attname = 'AI Collection Enabled'/);assert.match(igUsernameAllowedSql,/a\.attname = 'Instagram Username'/);
+ const web='https://www.instagram.com/direct/t/100000000000001/';
+ // a: enabled, valid; b: enabled, @handle and a group link; c: not enabled; d: enabled, invalid handle; e: enabled, profile link.
+ const borrowers={a:{flag:true,username:'invented.a'},b:{flag:true,username:'@invented_b',url:web},c:{flag:false,username:'invented_c'},d:{flag:true,username:'a b'},e:{flag:null,username:'invented_e'},f:{flag:true,username:'https://www.instagram.com/invented.f/?igsh=x'}};
+ const client=({flagAllowed=true,userAllowed=true}={})=>{const calls=[];return {calls,query:async(sql,args)=>{calls.push(sql);
+  if(sql===igGroupUrlAllowedSql)return {rows:[{allowed:true}]};
+  if(sql===igGroupInviteAllowedSql)return {rows:[{allowed:false}]};
+  if(sql===aiCollectionAllowedSql)return flagAllowed==='missing'?{rows:[]}:{rows:[{allowed:flagAllowed}]};
+  if(sql===igUsernameAllowedSql)return userAllowed==='missing'?{rows:[]}:{rows:[{allowed:userAllowed}]};
+  if(sql===igGroupUrlSql)return {rows:args[0].filter(id=>borrowers[id]?.url).map(id=>({id,url:borrowers[id].url}))};
+  if(sql===igDmSql)return {rows:args[0].filter(id=>borrowers[id]?.flag===true).map(id=>({id,username:borrowers[id].username}))};
+  throw Error('unexpected '+sql.slice(0,60));}}};
+ const items=Object.keys(borrowers).map(id=>({id}));
+ const marked=await markGroupLinks(client(),items,{dm:true});
+ // Without dm (the offline walk, which stays v12) the username is never read and no item carries chatDmUrl.
+ {const c=client(),plain=await markGroupLinks(c,items);assert.equal(plain.some(item=>Object.hasOwn(item,'chatDmUrl')),false);assert.equal(c.calls.includes(igDmSql)||c.calls.includes(aiCollectionAllowedSql),false);assert.equal(plain[1].chatUrl,web)}
+ assert.deepEqual(marked.map(item=>[item.id,item.chatDmUrl,item.chatUrl]),[['a','https://ig.me/m/invented.a',undefined],['b','https://ig.me/m/invented_b',web],['c',undefined,undefined],['d',undefined,undefined],['e',undefined,undefined],['f','https://ig.me/m/invented.f',undefined]]);
+ for(const item of marked)for(const key of ['username','instagramUsername','aiCollectionEnabled','flag'])assert.equal(Object.hasOwn(item,key),false,key);
+ // Either column missing or not granted: no chatDmUrl, the username is never selected, the group link still rides.
+ for(const options of [{flagAllowed:false},{flagAllowed:'missing'},{userAllowed:false},{userAllowed:'missing'}]){
+  const c=client(options),value=await markGroupLinks(c,items,{dm:true});
+  assert.equal(value.some(item=>Object.hasOwn(item,'chatDmUrl')),false,JSON.stringify(options));assert.equal(c.calls.includes(igDmSql),false);assert.equal(value[1].chatUrl,web);
+ }
+ // The collection board: the same field on its items (one read per page).
+ const row=id=>({id,rank:0,overdue_days:null,borrower_name:id,amount_due:'100',amount_collected:'0',amount_remaining:'100',prepaid_today:'0',prepaid_only:false,prepaid_payment_date:null});
+ const base=client();const collection={query:async(sql,args)=>{
+  if(sql.includes('CURRENT_TIMESTAMP AS "asOf"'))return {rows:[{asOf:'2026-11-12T08:00:00Z',businessDate:'2026-11-12'}]};
+  if(sql.includes('AS invalid'))return {rows:[{invalid:false}]};
+  if([igGroupUrlAllowedSql,igGroupInviteAllowedSql,aiCollectionAllowedSql,igUsernameAllowedSql,igGroupUrlSql,igDmSql].includes(sql))return base.query(sql,args);
+  if(sql.includes('AS allowed'))return {rows:[{allowed:false}]};
+  return {rows:['a','c'].map(row)};}};
+ const board=(await readCollection(collection,{limit:10,after:null,dm:true})).items;
+ assert.deepEqual(board.map(item=>[item.id,item.chatDmUrl]),[['a','https://ig.me/m/invented.a'],['c',undefined]]);assert.equal(base.calls.filter(sql=>sql===igDmSql).length,1);
+ // The read service's borrower list and item carry the same fields.
+ const store=createBorrowerReadStore({pool:{connect:async()=>({release(){},query:async(sql,args)=>{
+  if(sql.includes('current_database()'))return {rows:[{database:'synthetic_db',principal:'synthetic_reader'}]};
+  if(sql.includes('"Login Email"'))return {rows:[{id:'P-MAPPED'}]};
+  if([igGroupUrlAllowedSql,igGroupInviteAllowedSql,aiCollectionAllowedSql,igUsernameAllowedSql,igGroupUrlSql,igDmSql].includes(sql))return base.query(sql,args);
+  if(sql.includes('FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE'))return {rows:(sql.includes('"Row ID" = $1')?[args[0]]:['a','b','c']).map(id=>({id,name:'Synthetic '+id,description:null,totalProfitEarned:null,createdDate:'2026-11-01',hasActiveLoan:true,outstandingPrincipal:'0',note:null}))};
+  return {rows:[]};}})},config:{database:'synthetic_db',dbUser:'synthetic_reader',ownerEmail:'synthetic@example.invalid'}});
+ const list=await store.listBorrowers('synthetic@example.invalid',{});assert.equal(list.ok,true,JSON.stringify(list));
+ assert.deepEqual(list.items.map(item=>[item.id,item.chatDmUrl,item.chatUrl]),[['a','https://ig.me/m/invented.a',undefined],['b','https://ig.me/m/invented_b',web],['c',undefined,undefined]]);
+ const item=await store.getBorrower('synthetic@example.invalid','a');assert.equal(item.ok,true,JSON.stringify(item));assert.equal(item.item.chatDmUrl,'https://ig.me/m/invented.a');
+});
+test('R161 the offline dataset stays v12 (a bundle derives the DM link from its held borrower records)',async()=>{
+ const {OFFLINE_DATASET_SHAPE}=await import('../../services/business/offline-dataset-delta.mjs');assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v12');
+});

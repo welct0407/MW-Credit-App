@@ -341,3 +341,20 @@ test('R158 offline: the Collection header opens the group from the stored item, 
  await expect(link).toHaveAttribute('href',phone?invite:web);await expect(page.locator('.collection-chat-summary')).toHaveCount(0);
  await expect(page.locator('.collection-context .collection-name-link')).toHaveText(item.displayName);
 });
+
+// R161 (Chase Should 2): an item without links gets its DM button from the borrower record held in the records bundle (the
+// offline dataset stays v12): no button while the records hold no record for the borrower; it appears once the records
+// bundle is published (mw-offline-dataset-ready, records), on the list tile and in the header. Invented handle only.
+test('R161 offline: the Collection DM button comes from the held records and appears when the records bundle arrives',async({page})=>{
+ const item={id:'B-R161',displayName:'ผู้กู้ออฟไลน์ DM - Offline DM borrower',status:'not_paid',amountDue:'10',amountCollected:'0',amountRemaining:'10',chatSummaryAt:null};
+ await fixture(page,'r161-held',{collection:{items:[item],charges:[{borrowerId:'B-R161',id:'C-R161',loanId:'L-R161',loanDisplayKey:'Synthetic loan',chargeDate:businessDate,paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'10',totalPaid:'0',receivedToday:'0'}],groupChatByBorrower:[]}});
+ await page.route('**/api/**',r=>r.abort());
+ await select(page,'prepared-collection');
+ const tile=page.locator('.collection-compact-tile');await expect(tile).toHaveCount(1);await expect(tile.locator('.collection-tile-main')).toBeVisible();
+ await expect(tile.locator('a')).toHaveCount(0);
+ await publish(page,'records',{borrowers:[{id:'B-R161',aiCollectionEnabled:true,instagramUsername:'@invented.offline',igGroupUrl:null,igGroupInviteLink:null}]});
+ const link=tile.getByRole('link',{name:'Open Instagram direct message, '+item.displayName,exact:true});
+ await expect(link).toHaveAttribute('href','https://ig.me/m/invented.offline');await expect(link).toHaveClass('collection-tile-chat chat-link-dm');
+ await tile.locator('.collection-tile-main').click();
+ await expect(page.locator('.collection-context a.collection-header-chat')).toHaveAttribute('href','https://ig.me/m/invented.offline');
+});
