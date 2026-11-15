@@ -500,6 +500,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(min-width:768px) and (max-width:1199px){
  .live-shell,.live-shell .workspace{height:auto;min-height:100dvh;overflow:visible}
  .live-shell .topbar{position:sticky;top:0;z-index:40}
+ /* The page scrolls below 1200px, so a list, record or section brought into view clears the sticky header as at 1050px and below. */
+ .live-shell .list-panel,.live-shell .detail-panel,.live-shell .related-loans,.live-shell .upcoming-charges{scroll-margin-top:calc(var(--live-header-height,60px) + 8px)}
  .live-shell main{height:auto;min-height:0;overflow:visible;padding-bottom:max(24px,env(safe-area-inset-bottom))}
  .live-shell .work-grid,.live-shell .collection-workspace{height:auto;min-height:0}
  .live-shell .work-grid>.list-panel,.live-shell .work-grid>.detail-panel,.live-shell .standalone-records,.live-shell .borrower-record,.live-shell .selected-payment{height:auto;max-height:none;overflow-y:visible}
