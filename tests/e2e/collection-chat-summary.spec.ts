@@ -58,6 +58,10 @@ async function open(page:Page,{desktop,replace={},now=NOW,links={},width,boardRo
 const tile=(page:Page,id:string)=>page.locator(`.collection-tile-main[data-record-id="${id}"]`);
 const card=(page:Page)=>page.locator('.collection-chat-summary');
 const back=(page:Page)=>page.getByRole('button',{name:/^(Back to Collection|กลับงานติดตาม)$/}).click();
+// The record replaces the list up to 1050px (phones, iPad portrait) and sits beside it above (iPad landscape, desktop).
+const backIfStacked=async(page:Page)=>{if(page.viewportSize()!.width<=1050)await back(page)};
+// The header link is an icon button at 480px and below, a visible underlined label above (desktop and iPad).
+const narrow=(page:Page)=>page.viewportSize()!.width<=480;
 
 test('list mark and card: hidden without a summary, everything shown without an expander, role colours, local times, stale, language fallback, mark cleared when the card renders',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');await open(page,{desktop});
@@ -87,8 +91,8 @@ test('list mark and card: hidden without a summary, everything shown without an 
   const original=page.viewportSize()!;for(const width of [320,360,390,412,440,original.width]){await page.setViewportSize({width,height:original.height});const word=(await end.boundingBox())!,icon=(await tile(page,'chat-a').locator('.collection-chat-mark').boundingBox())!;/* R157: the 22px circle is taller than the text box, so its centre (not its edges) lies on the last word's line. */const middle=icon.y+icon.height/2;expect(middle,'mark on the last word\'s line at '+width).toBeGreaterThanOrEqual(word.y);expect(middle).toBeLessThanOrEqual(word.y+word.height);expect(word.height).toBeLessThan(40)}}
  // No summary: no card, no placeholder.
  await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(card(page)).toHaveCount(0);await expect(page.getByRole('heading',{name:'Group chat summary'})).toHaveCount(0);
- if(!desktop)await back(page);
- await tile(page,'chat-e').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(card(page)).toHaveCount(0);if(!desktop)await back(page);
+ await backIfStacked(page);
+ await tile(page,'chat-e').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(card(page)).toHaveCount(0);await backIfStacked(page);
  // R150: title, freshness, headline, all four points and the last-message line, always; no expander. Both times fall on
  // 11 November in this browser's zone (today is the 12th here), so both show the date.
  await tile(page,'chat-a').click();await expect(card(page)).toBeVisible();
@@ -141,7 +145,7 @@ test('list mark and card: hidden without a summary, everything shown without an 
  {const panel=(await page.locator('.detail-panel').boundingBox())!,box=(await card(page).boundingBox())!;expect(box.x+box.width).toBeLessThanOrEqual(panel.x+panel.width+1);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true)}
  // The card rendering this version cleared the mark (without a reload); other borrowers keep theirs.
  expect(await page.evaluate(()=>Object.keys(localStorage).filter(key=>key.startsWith('mw-credit.chat-seen:')).map(key=>JSON.parse(localStorage.getItem(key)!)))).toEqual([{'chat-a':'2026-11-12T06:10:00.000Z'}]);
- if(!desktop)await back(page);
+ await backIfStacked(page);
  await expect(tile(page,'chat-a').locator('.collection-chat-mark')).toHaveCount(0);await expect(tile(page,'chat-a').locator('.visually-hidden')).toHaveCount(0);await expect(tile(page,'chat-d').locator('.collection-chat-mark')).toHaveCount(1);
  // Stale: muted, "Last conversation" replaces the freshness line, headline and points still readable, no expander.
  await tile(page,'chat-b').click();await expect(card(page)).toHaveClass(/stale/);
@@ -151,12 +155,12 @@ test('list mark and card: hidden without a summary, everything shown without an 
  // UX-CHAT-02: a stale card has no last-message line (the Last conversation line carries the date).
  await expect(card(page).locator('.collection-chat-meta')).toHaveCount(1);await expect(card(page)).not.toContainText('Last message');await expect(card(page).locator('.collection-chat-foot')).toHaveCount(0);
  await expect(card(page).getByRole('button')).toHaveCount(0);await expect(card(page).locator('.collection-chat-heading .expense-payee-tag')).toHaveCount(0);
- if(!desktop)await back(page);
+ await backIfStacked(page);
  // Language fallback: a missing language shows the other one; generated on another day shows the date.
  await tile(page,'chat-d').click();await expect(card(page).locator('.collection-chat-headline')).toHaveText('มีเฉพาะภาษาไทยในหัวข้อนี้');
  await expect(card(page).locator('.collection-chat-meta').first()).toHaveText('Updated 11-Nov · last 3 days');
  await expect(card(page).locator('.collection-chat-points li').first()).toContainText('Only English in this point.');await expect(card(page).locator('.collection-chat-points .expense-payee-tag').first()).toHaveText('Other');await expect(card(page).locator('.collection-chat-points .expense-payee-tag').first()).toHaveClass(/chat-role-other( |$)/);
- if(!desktop)await back(page);
+ await backIfStacked(page);
  // Thai copy.
  await chooseLanguage(page,'ไทย');
  await expect(tile(page,'chat-d').locator('.visually-hidden')).toHaveCount(0); // shown above: its mark is cleared too
@@ -166,7 +170,7 @@ test('list mark and card: hidden without a summary, everything shown without an 
  await expect(card(page).locator('.collection-chat-heading .expense-payee-tag')).toHaveText('กลุ่มร่วม');
  await expect(card(page).locator('.collection-chat-points .expense-payee-tag')).toHaveText(['ผู้กู้','หุ้นส่วน','ผู้แนะนำ','ผู้กู้อื่น']);
  await expect(card(page).getByRole('button')).toHaveCount(0);await expect(card(page).locator('.collection-chat-points li')).toHaveCount(4);
- if(!desktop)await back(page);
+ await backIfStacked(page);
  await tile(page,'chat-b').click();await expect(card(page).locator('.collection-chat-meta').first()).toHaveText('คุยล่าสุด 07-พ.ย.');await expect(card(page).locator('.collection-chat-points .expense-payee-tag')).toHaveText('MW Credit');
 });
 
@@ -182,7 +186,7 @@ test('a newer summary relights the mark; with the seen storage blocked there are
  await page.reload();await page.getByRole('button',{name:'Continue with Google'}).click();await page.getByRole('button',{name:'Collection',exact:true}).click();await expect(page.locator('.collection-compact-tile')).toHaveCount(6);
  await expect(page.locator('.collection-chat-mark')).toHaveCount(0);await expect(page.locator('.collection-tile-main .visually-hidden')).toHaveCount(0);
  await tile(page,'chat-a').click();await expect(card(page).locator('.collection-chat-headline')).toBeVisible();await expect(card(page).locator('.collection-chat-meta').first()).toHaveText('Updated 11-Nov · last 3 days');
- if(!desktop)await back(page);
+ await backIfStacked(page);
  await expect(page.locator('.collection-chat-mark')).toHaveCount(0);expect(errors).toEqual([]);
 });
 
@@ -201,13 +205,13 @@ test('R153 the latest point is bold on a current card; R158 the card has no link
  for(const index of [0,1,2])expect(await points.nth(index).evaluate(node=>getComputedStyle(node).borderLeftWidth)).toBe('0px');
  // R158 case 2: the borrower has links, the card shows none (the header does).
  await expect(card(page).locator('a')).toHaveCount(0);await expect(header(page).locator('a.collection-header-chat')).toHaveCount(1);
- if(!desktop)await back(page);
+ await backIfStacked(page);
  // Stale: nothing is bold.
  await tile(page,'chat-b').click();await expect(card(page)).toHaveClass(/stale/);await expect(card(page).locator('strong')).toHaveCount(0);await expect(card(page).locator('.collection-chat-latest-point')).toHaveCount(0);
- if(!desktop)await back(page);
+ await backIfStacked(page);
  // One point on a current card: not bold.
  await tile(page,'chat-d').click();await expect(card(page).locator('.collection-chat-points li')).toHaveCount(1);await expect(card(page).locator('strong')).toHaveCount(0);
- if(!desktop)await back(page);
+ await backIfStacked(page);
  await chooseLanguage(page,'ไทย');await tile(page,'chat-a').click();
  await expect(card(page).locator('strong.collection-chat-latest .visually-hidden')).toHaveText('ล่าสุด: ');
 });
@@ -238,26 +242,26 @@ test('R158 Open chat sits after the name with no summary, picks the link per dev
  const phone=await isPhone(page);expect(phone).toBe(!desktop);
  // Case 1 and 4: chat-c has no summary at all; the header link is there, after the name, the link for this device.
  await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(card(page)).toHaveCount(0);
- const link=header(page).getByRole('link',{name:linkName(!desktop),exact:true});await expect(link).toHaveAttribute('href',phone?invite:web);
+ const link=header(page).getByRole('link',{name:linkName(narrow(page)),exact:true});await expect(link).toHaveAttribute('href',phone?invite:web);
  await expect(link).toHaveAttribute('target','_blank');await expect(link).toHaveAttribute('rel','noopener noreferrer');await expect(link).toHaveAttribute('title',purpose.en);
  // UX-HDR-CHAT-03: no aria-label beside the visible text; UX-HDR-CHAT-02: the phone's icon button, framed like Payment history.
- if(desktop)expect(await link.getAttribute('aria-label')).toBeNull();else await expect(link).toHaveAttribute('aria-label',purpose.en);
+ if(!narrow(page))expect(await link.getAttribute('aria-label')).toBeNull();else await expect(link).toHaveAttribute('aria-label',purpose.en);
  await expect(link.locator('svg')).toHaveAttribute('data-icon','chat');await expect(link.locator('svg')).toHaveAttribute('aria-hidden','true');
- expect(await link.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.textDecorationLine]})).toEqual(['rgb(11, 87, 208)',desktop?'underline':'none']);
- if(!desktop)expect(await link.evaluate(node=>{const s=getComputedStyle(node);return [s.borderTopWidth,s.borderTopStyle,s.borderTopColor,s.borderRadius,s.backgroundColor]})).toEqual(['1px','solid','rgb(222, 222, 222)','5px','rgb(255, 255, 255)']);
+ expect(await link.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.textDecorationLine]})).toEqual(['rgb(11, 87, 208)',narrow(page)?'none':'underline']);
+ if(narrow(page))expect(await link.evaluate(node=>{const s=getComputedStyle(node);return [s.borderTopWidth,s.borderTopStyle,s.borderTopColor,s.borderRadius,s.backgroundColor]})).toEqual(['1px','solid','rgb(222, 222, 222)','5px','rgb(255, 255, 255)']);
  await expectAfterName(page,`read-only ${page.viewportSize()!.width}px`);
  // After the name, before anything else in the row.
  expect(await header(page).evaluate(row=>[...row.children].slice(1).map(child=>child.tagName.toLowerCase()+(child.classList.contains('collection-header-chat')?'.chat':'')))).toEqual(['strong','a.chat']);
  {const box=(await link.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44)}
- if(!desktop)await back(page);
+ await backIfStacked(page);
  // Fallbacks: only an invite link opens it everywhere; only the instagram.com link opens it everywhere.
- await tile(page,'chat-b').click();await expect(header(page).getByRole('link',{name:linkName(!desktop),exact:true})).toHaveAttribute('href',invite);if(!desktop)await back(page);
- await tile(page,'chat-d').click();await expect(header(page).getByRole('link',{name:linkName(!desktop),exact:true})).toHaveAttribute('href',web);if(!desktop)await back(page);
+ await tile(page,'chat-b').click();await expect(header(page).getByRole('link',{name:linkName(narrow(page)),exact:true})).toHaveAttribute('href',invite);await backIfStacked(page);
+ await tile(page,'chat-d').click();await expect(header(page).getByRole('link',{name:linkName(narrow(page)),exact:true})).toHaveAttribute('href',web);await backIfStacked(page);
  // Case 3: no valid link (a script URL, an ig.me link that is not an invite) or none at all: no element.
- await tile(page,'chat-e').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(header(page).locator('a')).toHaveCount(0);if(!desktop)await back(page);
- await tile(page,'chat-a').click();await expect(card(page)).toBeVisible();await expect(header(page).locator('a')).toHaveCount(0);if(!desktop)await back(page);
+ await tile(page,'chat-e').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(header(page).locator('a')).toHaveCount(0);await backIfStacked(page);
+ await tile(page,'chat-a').click();await expect(card(page)).toBeVisible();await expect(header(page).locator('a')).toHaveCount(0);await backIfStacked(page);
  // Thai copy.
- await chooseLanguage(page,'ไทย');await tile(page,'chat-c').click();await expect(header(page).getByRole('link',{name:linkName(!desktop,'th'),exact:true})).toHaveAttribute('title',purpose.th);
+ await chooseLanguage(page,'ไทย');await tile(page,'chat-c').click();await expect(header(page).getByRole('link',{name:linkName(narrow(page),'th'),exact:true})).toHaveAttribute('title',purpose.th);
 });
 // Case 7: a long Thai name at 320 and 390px: the page never scrolls sideways, the name wraps, the link (icon only at 480px
 // and below, named by aria-label and title) keeps a 44px target right after the name (UX-HDR-CHAT-01).
@@ -309,7 +313,7 @@ test('R160 list tile chat link: device link and fallbacks, none without a valid 
  await expect(page.locator('.collection-compact-tile.selected')).toHaveCount(0);await expect(page.locator('.collection-charge')).toHaveCount(0);expect(chargeReads).toEqual([]);
  await expect(page.locator('.collection-compact-tile')).toHaveCount(6);
  // The tile body still opens the borrower.
- await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);expect(chargeReads.length).toBe(1);if(!desktop)await back(page);
+ await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);expect(chargeReads.length).toBe(1);await backIfStacked(page);
  // Case 10: Thai copy.
  await chooseLanguage(page,'ไทย');await expect(page.getByRole('link',{name:tileChatName(nameOf('chat-c'),'th'),exact:true})).toHaveAttribute('title',purpose.th);
 });
@@ -363,16 +367,16 @@ test('R161 Collection list and header: the DM button (pink) without a group link
  // The header: the DM colour; at 480px and below the icon named by aria-label, wider the visible "Open chat"; the title says DM.
  await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);
  // UX-R161-TXT-01: wider than 480px the visible label says DM ("Open DM"); at 480px and below the icon, named by aria-label.
- const link=header(page).getByRole('link',{name:desktop?'Open DM':dmPurpose.en,exact:true});if(desktop)await expect(link.locator('span')).toHaveText('Open DM');
+ const link=header(page).getByRole('link',{name:narrow(page)?dmPurpose.en:'Open DM',exact:true});if(!narrow(page))await expect(link.locator('span')).toHaveText('Open DM');
  await expect(link).toHaveAttribute('href','https://ig.me/m/invented.c');await expect(link).toHaveAttribute('title',dmPurpose.en);await expect(link).toHaveClass(/chat-link-dm/);
  expect(await link.evaluate(node=>getComputedStyle(node).color)).toBe('rgb(199, 21, 133)');
- // The pink on every form: the desktop "Open DM" label, the phone's icon box with its pink border.
- if(desktop)expect(await link.locator('span').evaluate(node=>getComputedStyle(node).color)).toBe('rgb(199, 21, 133)');else expect(await link.evaluate(node=>getComputedStyle(node).borderTopColor)).toBe('rgb(240, 179, 214)');
- if(!desktop)await back(page);
+ // The pink on every form: the "Open DM" label wider than 480px, the icon box with its pink border at 480px and below.
+ if(!narrow(page))expect(await link.locator('span').evaluate(node=>getComputedStyle(node).color)).toBe('rgb(199, 21, 133)');else expect(await link.evaluate(node=>getComputedStyle(node).borderTopColor)).toBe('rgb(240, 179, 214)');
+ await backIfStacked(page);
  // Thai.
  await chooseLanguage(page,'ไทย');
  await expect(page.getByRole('link',{name:dmPurpose.th+', '+nameOf('chat-c'),exact:true})).toHaveAttribute('title',dmPurpose.th);
- await tile(page,'chat-c').click();await expect(header(page).locator('a.collection-header-chat')).toHaveAttribute('title',dmPurpose.th);if(desktop)await expect(header(page).locator('a.collection-header-chat span')).toHaveText('เปิดแชทส่วนตัว');
+ await tile(page,'chat-c').click();await expect(header(page).locator('a.collection-header-chat')).toHaveAttribute('title',dmPurpose.th);if(!narrow(page))await expect(header(page).locator('a.collection-header-chat span')).toHaveText('เปิดแชทส่วนตัว');
 });
 
 // R150: every card time is the browser's own wall clock, and "today" is the browser's day. Same instants, three clocks.
@@ -384,7 +388,7 @@ test('card times follow the browser time zone: clock times for today here, dates
  await tile(page,'chat-a').click();
  // Today here: 11:40 and 10:15 (Bangkok would read 02:40 and 01:15).
  await expect(card(page).locator('.collection-chat-meta').first()).toHaveText('Updated 11:40 · last 3 days');await expect(card(page).locator('.collection-chat-meta').last()).toHaveText('Last message: Referrer · 10:15');
- if(!desktop)await back(page);
+ await backIfStacked(page);
  // Either side of local midnight: generated at 23:59 on the 11th here (a date), last message at 00:01 today (a time,
  // 24-hour). In Bangkok both are 12 November afternoon, the day before its "today".
  await tile(page,'chat-d').click();
@@ -397,7 +401,7 @@ test.describe('another time zone',()=>{
   // 08:00 UTC is 17:00 on 12 November in Tokyo: generated 16:32 and last message 15:10 today (Bangkok: 14:32, 13:10).
   await tile(page,'chat-a').click();
   await expect(card(page).locator('.collection-chat-meta').first()).toHaveText('Updated 16:32 · last 3 days');await expect(card(page).locator('.collection-chat-meta').last()).toHaveText('Last message: Referrer · 15:10');
-  if(!desktop)await back(page);
+  await backIfStacked(page);
   // Stale: 8 November 03:00 UTC is 12:00 on the 8th in Tokyo (19:00 on the 7th in Los Angeles).
   await tile(page,'chat-b').click();await expect(card(page).locator('.collection-chat-meta').first()).toHaveText('Last conversation 08-Nov');
  });
@@ -448,7 +452,7 @@ test.describe('owner testing shell',()=>{
    await expect(page.locator('.collection-note')).toHaveCount(1);
    if(headline===null)await expect(card(page)).toHaveCount(0);
    else{await expect(card(page).locator('.collection-chat-headline')).toHaveText(headline);await expect(card(page)).toHaveCount(1);await expect(page.getByRole('heading',{level:3,name:'Group chat summary'})).toHaveCount(1)}
-   if(!desktop)await back(page);
+   await backIfStacked(page);
   };
   await visit('chat-a','Borrower asks to pay 2,000 on Friday instead of today; partner agreed.');
   await visit('chat-b','Borrower asked to pay on Friday.');
@@ -457,8 +461,8 @@ test.describe('owner testing shell',()=>{
   // R158 case 5 with command access: the header link after the name button, the summary card absent.
   await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);
   expect(await page.locator('.collection-context').evaluate(row=>[...row.children].slice(1,3).map(child=>child.tagName.toLowerCase()+(child.classList.contains('collection-header-chat')?'.chat':'')))).toEqual(['button','a.chat']);
-  await expect(page.locator('.collection-context').getByRole('link',{name:linkName(!desktop),exact:true})).toHaveAttribute('href',desktop?web:invite);
-  if(!desktop)await back(page);
+  await expect(page.locator('.collection-context').getByRole('link',{name:linkName(narrow(page)),exact:true})).toHaveAttribute('href',desktop?web:invite);
+  await backIfStacked(page);
   // UX-HDR-CHAT-01 with command access: the link right after the name button at 390 and 1440px, Payment history next on the
   // link's row at 390px; at 320px the page never scrolls sideways.
   const viewport=page.viewportSize()!;
@@ -472,7 +476,7 @@ test.describe('owner testing shell',()=>{
     if(width===390){expect(after.top<link.bottom&&after.bottom>link.top,label+': Payment history on the link\'s row').toBe(true);expect(after.left-link.right,label).toBeGreaterThanOrEqual(0);expect(after.left-link.right,label).toBeLessThanOrEqual(16)}
     expect(await page.evaluate(()=>document.documentElement.scrollWidth),label+': no sideways scroll').toBeLessThanOrEqual(width);
    }
-   await page.setViewportSize(viewport);if(!desktop)await back(page);
+   await page.setViewportSize(viewport);await backIfStacked(page);
   }
   await visit('chat-a','Borrower asks to pay 2,000 on Friday instead of today; partner agreed.');
   expect(consoleText.filter(text=>/two children with the same key|same key/i.test(text))).toEqual([]);
