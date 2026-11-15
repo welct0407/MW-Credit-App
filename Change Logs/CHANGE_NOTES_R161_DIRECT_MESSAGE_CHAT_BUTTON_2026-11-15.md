@@ -54,16 +54,20 @@ No local wide browser suite; the pull request's `Development checks` is the one 
 ## Recovery
 Git baseline `90df4d2c`. No migration. Redeploy the previous read image (and any other image the component derive lists) and Hosting version recorded in the environment inventory (roll back Hosting first, then the images). The two reader column grants may stay (harmless) or be revoked by the operator; revoking is not needed to roll back.
 
-## DEV deployment record (Forge, to be filled)
-Authority: the owner's request quoted in Purpose and "Stop at DEV first". Scope: DEV reader column grants, the read image (other images only as the component derive lists them), then Hosting. No Flyway step.
+## DEV deployment record (Forge, 15 November 2026 UTC)
+Authority: the owner's request quoted in Purpose and "Stop at DEV first". Package `0c969f56` (merge of PR #332, `Development checks` green), deployed from a clean export (git archive). `component-versions.mjs derive` at `0c969f56`: PWA, read, command and chat change (command and chat import `collection-read-contract.mjs`); notify and jobs stay R159, schema V149, agent R153. Order: grants, images, Hosting. No Flyway step and no backup: the DEV rules require a backup for a database change in PROD, not for a DEV column grant, and the grant script keeps its own private ACL snapshot.
 
 | Step | Result |
 | --- | --- |
-| Baseline | To fill |
-| Reader grants | To fill |
-| Images | To fill |
-| Hosting | To fill |
-| Smoke | To fill |
+| Baseline | DEV read `00097-zg2`, command `00114-bs4`, chat `00066-527` (R159 image `94768995…`), notify and jobs R159; Hosting `77358df71286bbc4` (R160); the reader `mw-credit-app-read-dev` could select 80 columns |
+| Reader grants | `scripts/configure-dev-read-role.py` through the IAP tunnel: the read-only plan listed exactly `GRANT SELECT ("AI Collection Enabled", "Instagram Username") ON TABLE public."Borrowers"` to the DEV reader; `--apply` 05:51:17Z to 05:51:27Z on `loan_manager_dev` (identity check: database, `postgres` session, Cloud SQL role) committed it. Verification in the same run: 82 readable columns (both new ones present), membership `cloudsqliamserviceaccount` only, 0 business write and 0 schema create privileges, `forecast_schedule_v1` EXECUTE kept. Private ACL snapshot `read-role-before-20261115T055122527104Z.json` |
+| Images | Cloud Build `25abd287-285d-4dc8-9acf-54785d4d5e52` (`cloudbuild-command.yaml`, `_MW_RELEASE=R161`), 05:51:39Z to 05:52:18Z, digest `sha256:178a0f031ff5c86cedad04f782ba24d6ac258c56372cd820b99e5aae69faa06e`. Terraform 0 to add, 3 to change, 0 to destroy, image only (JSON plan read back), 05:53:16Z to 05:53:52Z: read `00098-fcv`, command `00115-h26`, chat `00067-tz4`; notify and jobs unchanged |
+| Hosting | `build:live-dev` with `MW_RELEASE_NUMBER=R161` and the R160 DEV settings (env file from `mw-credit-app-dev-firebase-web`, deleted after the build); `deploy-hosting.mjs --live-dev --check` (17 files) then apply 05:54:37Z to 05:54:46Z: version `1d31a3056573bec2`, release `1794722085899000`, build R161 `475f965d279c40295213d185` |
+| Smoke | `/health` R161 `0c969f56` on read, command and chat; three origins R161, index and entry 200, `sw.js` no-store; unauthenticated 401. With the DEV test account, 05:55Z (read only, no data written): DEV already holds 20 borrowers with AI collection on, a valid username and no group or invite link. `/api/collection` returned 42 items, and all 15 eligible borrowers on it carry `chatDmUrl`; `/api/borrowers` returned 87 rows, and all 20 eligible borrowers carry it; every link is `https://ig.me/m/<handle>`, no other row has one, and no username or AI flag field leaves the server. No ERROR, permission-denied or 42501 log on any DEV service after 05:50Z (checked 05:55:45Z) |
+
+Rollback: Hosting `77358df71286bbc4` (R160) first, then `dev.activation.tfvars.before-r161` (R159 image `94768995…` on read, command and chat). The grants may stay; the snapshot's recovery guide revokes them if wanted.
+
+Not run in DEV: the two-browser and iPhone checks of the DM button (owner-observed).
 
 ## PROD promotion record (Forge, to be filled only on the owner's later go-ahead)
 Authority: to be recorded when the owner approves the promotion. Scope: verified restorable backup, the two reader column grants in one guarded transaction (as R154), the read image (other images only as the component derive lists them), then Hosting. No Flyway step.
