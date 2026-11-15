@@ -365,11 +365,12 @@
 .collection-tile-chat,.borrower-tile-chat,.borrower-detail-chat{box-sizing:border-box;width:44px;height:44px;flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #dedede;border-radius:5px;background:#fff;color:#0b57d0;text-decoration:none}
 .collection-tile-right .collection-tile-chat svg,.borrower-tile-chat svg,.borrower-direct-actions .borrower-detail-chat svg{width:24px;height:24px}
 /* R161 (owner, 15 November 2026): the same button opens the borrower's Instagram direct message when AI collection is on and
-   there is no usable group link; teal marks it (UX-R161-CLR-01, 6.61:1 on white; the name says so too). Borrower list: left of New loan, a flex row beside
+   there is no usable group link; pink marks it (owner, 15 November 2026: "i want to differentiate group from individual chat
+   color"): icon #c71585 (5.42:1 on white, nearer violet than the red states) and border #f0b3d6; the name says so too. Borrower list: left of New loan, a flex row beside
    the tile button; when any tile of the page shows a chat button (borrower-list-chat) every tile reserves the same width,
    left empty: chat + gap + New loan for the owner (borrower-list-command), the chat slot for a read-only user. Borrower
    details: first in the actions row, left of New loan. */
-.collection-tile-chat.chat-link-dm,.borrower-tile-chat.chat-link-dm,.borrower-detail-chat.chat-link-dm,.payment-context .collection-header-chat.chat-link-dm{color:#00695c}
+.collection-tile-chat.chat-link-dm,.borrower-tile-chat.chat-link-dm,.borrower-detail-chat.chat-link-dm,.payment-context .collection-header-chat.chat-link-dm{color:#c71585;border-color:#f0b3d6}
 .borrower-tile-main{min-height:44px}
 .borrower-tile-actions{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:8px}
 .borrower-tile-actions>.icon-action{flex:0 0 44px}

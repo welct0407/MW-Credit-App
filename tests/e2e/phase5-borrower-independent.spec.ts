@@ -200,14 +200,14 @@ test('R154 a record read before V149 (group link only) shows no invite field and
  await page.getByRole('button',{name:'Edit borrower',exact:true}).click();await expect(region.getByRole('textbox',{name:'IG Group Invite Link (mobile)',exact:true})).toHaveCount(0);
  await page.getByRole('button',{name:'Save borrower',exact:true}).click();await expect.poll(()=>s.writes.length).toBe(1);expect(s.writes[0].body.inputs.igGroupUrl).toBe(igLink);expect(Object.hasOwn(s.writes[0].body.inputs,'igGroupInviteLink')).toBe(false);
 });
-// R161 (owner, 15 November 2026): the borrower details' chat button, left of New loan: the direct message (teal) when AI
+// R161 (owner, 15 November 2026): the borrower details' chat button, left of New loan: the direct message (pink) when AI
 // collection is enabled and there is no group link, from the record's Instagram Username; hidden while editing; a saved
 // username moves it; a group link wins; none when AI collection is off. Invented handles only.
 test('R161 borrower details: the DM button left of New loan, hidden while editing, follows a saved Instagram Username; group wins; none when off',async({page})=>{
  const s=await setup(page);s.borrowerItem={...record,instagramUsername:'@invented.handle',igGroupUrl:null,igGroupInviteLink:null};await full(page);
  const region=page.getByRole('region',{name:'Borrower record',exact:true}),dm=region.getByRole('link',{name:'Open Instagram direct message',exact:true});
  await expect(dm).toHaveAttribute('href','https://ig.me/m/invented.handle');await expect(dm).toHaveAttribute('target','_blank');await expect(dm).toHaveAttribute('rel','noopener noreferrer');
- expect(await dm.evaluate(e=>getComputedStyle(e).color)).toBe('rgb(0, 105, 92)');
+ expect(await dm.evaluate(e=>getComputedStyle(e).color)).toBe('rgb(199, 21, 133)');
  expect(await region.locator('.borrower-direct-actions').evaluate(e=>[...e.children].slice(0,2).map(child=>child.tagName.toLowerCase()+'.'+child.className.split(' ')[0]))).toEqual(['a.borrower-detail-chat','button.record-action']);
  {const a=(await dm.boundingBox())!,b=(await region.getByRole('button',{name:'New loan',exact:true}).boundingBox())!;expect(a.x+a.width).toBeLessThanOrEqual(b.x);expect(Math.abs(a.y-b.y)).toBeLessThanOrEqual(1);expect(a.width).toBeGreaterThanOrEqual(44);expect(a.height).toBeGreaterThanOrEqual(44)}
  await page.getByRole('button',{name:'Edit borrower',exact:true}).click();await expect(region.locator('a.borrower-detail-chat')).toHaveCount(0);

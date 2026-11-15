@@ -346,15 +346,15 @@ test('R160 read-only: with any link on the page, a tile with a link is as tall a
 });
 
 // R161 (owner, 15 November 2026): AI collection enabled and no usable group link: the same button opens the borrower's
-// Instagram direct message (chatDmUrl from the read service), teal, named as a direct message; a group link wins.
+// Instagram direct message (chatDmUrl from the read service), pink, named as a direct message; a group link wins.
 const dmPurpose={en:'Open Instagram direct message',th:'เปิดแชทส่วนตัวใน Instagram'};
-test('R161 Collection list and header: the DM button (teal) without a group link, the group button with one, none for an invalid DM link; Thai',async({page},info)=>{
+test('R161 Collection list and header: the DM button (pink) without a group link, the group button with one, none for an invalid DM link; Thai',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');
  await open(page,{desktop,links:{'chat-c':{chatDmUrl:'https://ig.me/m/invented.c'},'chat-b':{chatInviteUrl:invite,chatDmUrl:'https://ig.me/m/invented.b'},'chat-d':{chatDmUrl:'https://ig.me/m/a b'},'chat-f':{chatDmUrl:'https://ig.me/m/invented_f'}}});
  const dm=page.getByRole('link',{name:dmPurpose.en+', '+nameOf('chat-c'),exact:true});
  await expect(dm).toHaveAttribute('href','https://ig.me/m/invented.c');await expect(dm).toHaveAttribute('title',dmPurpose.en);await expect(dm).toHaveAttribute('target','_blank');await expect(dm).toHaveAttribute('rel','noopener noreferrer');
  await expect(dm).toHaveClass('collection-tile-chat chat-link-dm');await expect(dm.locator('svg')).toHaveAttribute('data-icon','chat');
- expect(await dm.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.borderTopColor,s.backgroundColor]})).toEqual(['rgb(0, 105, 92)','rgb(222, 222, 222)','rgb(255, 255, 255)']);
+ expect(await dm.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.borderTopColor,s.backgroundColor]})).toEqual(['rgb(199, 21, 133)','rgb(240, 179, 214)','rgb(255, 255, 255)']);
  {const box=(await dm.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44)}
  // A group link wins (blue, the group name); an invalid DM link: no button.
  await expect(tileChat(page,'chat-b')).toHaveAttribute('href',invite);await expect(tileChat(page,'chat-b')).toHaveAttribute('title',purpose.en);
@@ -365,7 +365,10 @@ test('R161 Collection list and header: the DM button (teal) without a group link
  // UX-R161-TXT-01: wider than 480px the visible label says DM ("Open DM"); at 480px and below the icon, named by aria-label.
  const link=header(page).getByRole('link',{name:desktop?'Open DM':dmPurpose.en,exact:true});if(desktop)await expect(link.locator('span')).toHaveText('Open DM');
  await expect(link).toHaveAttribute('href','https://ig.me/m/invented.c');await expect(link).toHaveAttribute('title',dmPurpose.en);await expect(link).toHaveClass(/chat-link-dm/);
- expect(await link.evaluate(node=>getComputedStyle(node).color)).toBe('rgb(0, 105, 92)');if(!desktop)await back(page);
+ expect(await link.evaluate(node=>getComputedStyle(node).color)).toBe('rgb(199, 21, 133)');
+ // The pink on every form: the desktop "Open DM" label, the phone's icon box with its pink border.
+ if(desktop)expect(await link.locator('span').evaluate(node=>getComputedStyle(node).color)).toBe('rgb(199, 21, 133)');else expect(await link.evaluate(node=>getComputedStyle(node).borderTopColor)).toBe('rgb(240, 179, 214)');
+ if(!desktop)await back(page);
  // Thai.
  await chooseLanguage(page,'ไทย');
  await expect(page.getByRole('link',{name:dmPurpose.th+', '+nameOf('chat-c'),exact:true})).toHaveAttribute('title',dmPurpose.th);
