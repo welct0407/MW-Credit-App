@@ -19,7 +19,7 @@ test.beforeAll(async({},info)=>{
 test.afterAll(()=>{reader?.kill();command?.kill()});test.setTimeout(60000);
 const auth=`let listener;export const browserLocalPersistence='local',inMemoryPersistence='memory',browserPopupRedirectResolver={};export function initializeAuth(){return {}};export function getAuth(){return {}};export async function setPersistence(){};const user={uid:'synthetic-chat-member',getIdToken:async()=>'synthetic'};export function onAuthStateChanged(a,fn){listener=fn;window.emitUser=()=>fn(user);return()=>{listener=null}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){listener(user)};export async function signOut(){listener(null)};`;
 const web='https://www.instagram.com/direct/t/100000000000001/',invite='https://ig.me/j/AbCdEfGh12345678/';
-const DM='rgb(0, 105, 92)',GROUP='rgb(11, 87, 208)';
+const DM='rgb(199, 21, 133)',GROUP='rgb(11, 87, 208)',BORDER={[DM]:'rgb(240, 179, 214)',[GROUP]:'rgb(222, 222, 222)'};
 const purpose={dm:{en:'Open Instagram direct message',th:'เปิดแชทส่วนตัวใน Instagram'},group:{en:'Open group chat in Instagram',th:'เปิดแชทกลุ่มใน Instagram'}};
 const longThai='ผู้กู้ตัวอย่างชื่อยาวมากสำหรับทดสอบปุ่มแชท';
 // The borrowers: detail records (instagramUsername, aiCollectionEnabled, group links) and the list rows the read service
@@ -84,11 +84,11 @@ async function go(page:Page,name:string,tiles:string){
 const borrowers=(page:Page)=>go(page,'Borrowers','article.borrower-tile');
 async function expectLook(link:import('@playwright/test').Locator,color:string){
  await expect(link).toHaveAttribute('target','_blank');await expect(link).toHaveAttribute('rel','noopener noreferrer');await expect(link.locator('svg')).toHaveAttribute('data-icon','chat');await expect(link.locator('svg')).toHaveAttribute('aria-hidden','true');
- expect(await link.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.borderTopColor,s.borderRadius,s.backgroundColor,s.textDecorationLine]})).toEqual([color,'rgb(222, 222, 222)','5px','rgb(255, 255, 255)','none']);
+ expect(await link.evaluate(node=>{const s=getComputedStyle(node);return [s.color,s.borderTopColor,s.borderRadius,s.backgroundColor,s.textDecorationLine]})).toEqual([color,BORDER[color],'5px','rgb(255, 255, 255)','none']);
  const box=(await link.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
 }
 
-test('R161 read-only Borrowers list and details: the DM button (teal), the group button when there is a group link, none otherwise; it never opens the borrower',async({page},info)=>{
+test('R161 read-only Borrowers list and details: the DM button (pink), the group button when there is a group link, none otherwise; it never opens the borrower',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');if(desktop)await page.setViewportSize({width:1440,height:900});
  const reads=await boot(page,readerBase);await borrowers(page);const onPhone=await phone(page);
  const dm=page.getByRole('link',{name:purpose.dm.en+', '+nameOf('b-dm'),exact:true});
