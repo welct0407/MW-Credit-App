@@ -183,6 +183,25 @@ export const validIgGroupUrl = value => typeof value === 'string' && IG_GROUP_UR
 // opens the group itself in the Instagram app on a phone. The same one-rule arrangement as the group chat link.
 export const IG_GROUP_INVITE_PATTERN = /^https:\/\/ig\.me\/j\/[A-Za-z0-9._~%/?=&+-]{1,255}$/;
 export const validIgGroupInviteLink = value => typeof value === 'string' && IG_GROUP_INVITE_PATTERN.test(value);
+// R161 (owner, 15 November 2026): a borrower with AI collection enabled and no usable group link gets a direct-message
+// button to https://ig.me/m/<handle>, the handle taken from "Borrowers"."Instagram Username" (free text). One rule here and
+// in the PWA (apps/pwa/src/ig-group-url.ts igDmUrl): trimmed, one leading @ dropped, a profile link
+// (https://(www.)instagram.com/<handle>[/][?...]) or a DM link (https://ig.me/m/<handle>[/]) reduced to its handle, which
+// must be 1-30 letters, digits, dots or underscores, not dots only; a handle taken from a link must not be an Instagram path.
+// Else null.
+export const IG_DM_PATTERN = /^https:\/\/ig\.me\/m\/[A-Za-z0-9._]{1,30}$/;
+export const IG_HANDLE_PATTERN = /^[A-Za-z0-9._]{1,30}$/;
+export const IG_RESERVED_PATHS = ['direct', 'p', 'reel', 'reels', 'explore', 'accounts', 'stories', 'tv'];
+export function igDmUrl(value) {
+  if (typeof value !== 'string') return null;
+  let handle = value.trim();
+  if (handle.startsWith('@')) handle = handle.slice(1);
+  const link = /^https:\/\/(?:www\.)?instagram\.com\/([^/?#]+)\/?(?:\?[^#]*)?$/.exec(handle) ?? /^https:\/\/ig\.me\/m\/([^/?#]+)\/?$/.exec(handle);
+  if (link) { handle = link[1]; if (IG_RESERVED_PATHS.includes(handle.toLowerCase())) return null; }
+  // A handle of dots only ('.', '..') is a path, never an account.
+  return IG_HANDLE_PATTERN.test(handle) && !/^\.+$/.test(handle) ? `https://ig.me/m/${handle}` : null;
+}
+export const validIgDmUrl = value => typeof value === 'string' && IG_DM_PATTERN.test(value);
 // The reader login holds column grants only, and has_column_privilege by column name raises before the column exists, so
 // each guard finds its column in pg_attribute first: no column (an older database) or no grant reads false and that link is
 // left out. One guard per column: the reader is granted each column after its own migration.
@@ -192,31 +211,42 @@ export const igGroupUrlAllowedSql = borrowerColumnAllowedSql('IG Group URL');
 export const igGroupInviteAllowedSql = borrowerColumnAllowedSql('IG Group Invite Link');
 export const igGroupInviteSql = `SELECT b."Row ID" AS id, b."IG Group Invite Link" AS url FROM public."Borrowers" b WHERE b."Row ID" = ANY($1::text[]) AND b."IG Group Invite Link" IS NOT NULL`;
 export const igGroupUrlSql = `SELECT b."Row ID" AS id, b."IG Group URL" AS url FROM public."Borrowers" b WHERE b."Row ID" = ANY($1::text[]) AND b."IG Group URL" IS NOT NULL`;
+// R161: both columns must be readable (the reader is granted them together); the flag must be true.
+export const aiCollectionAllowedSql = borrowerColumnAllowedSql('AI Collection Enabled');
+export const igUsernameAllowedSql = borrowerColumnAllowedSql('Instagram Username');
+export const igDmSql = `SELECT b."Row ID" AS id, b."Instagram Username" AS username FROM public."Borrowers" b WHERE b."Row ID" = ANY($1::text[]) AND b."AI Collection Enabled" IS TRUE AND b."Instagram Username" IS NOT NULL`;
 /** R153: id -> link for the given borrowers (only links that match the rule); empty when the column is missing or not granted. */
 export async function readIgGroupUrls(client, ids) {
   if (!ids.length || (await client.query(igGroupUrlAllowedSql)).rows[0]?.allowed !== true) return new Map();
   return new Map((await client.query(igGroupUrlSql, [ids])).rows.filter(row => validIgGroupUrl(row.url)).map(row => [row.id, row.url]));
 }
 /** R154: id -> {url, inviteUrl} for the given borrowers, each present only when its column is readable and the value
- * matches its rule. */
-export async function readIgGroupLinks(client, ids) {
+ * matches its rule. R161 (dm, the read service only): also dmUrl, when both the flag and the username columns are readable,
+ * the flag is true and the username gives a handle (igDmUrl); read whether or not a group link exists (the PWA prefers the
+ * group). The offline dataset never asks for it (it stays v12): a member's bundle derives it from the held borrower
+ * records in the PWA. */
+export async function readIgGroupLinks(client, ids, { dm = false } = {}) {
   const links = new Map(), urls = await readIgGroupUrls(client, ids);
   for (const [id, url] of urls) links.set(id, { url });
   if (ids.length && (await client.query(igGroupInviteAllowedSql)).rows[0]?.allowed === true) {
     for (const row of (await client.query(igGroupInviteSql, [ids])).rows) if (validIgGroupInviteLink(row.url)) links.set(row.id, { ...links.get(row.id), inviteUrl: row.url });
+  }
+  if (dm && ids.length && (await client.query(aiCollectionAllowedSql)).rows[0]?.allowed === true && (await client.query(igUsernameAllowedSql)).rows[0]?.allowed === true) {
+    for (const row of (await client.query(igDmSql, [ids])).rows) { const dmUrl = igDmUrl(row.username); if (dmUrl) links.set(row.id, { ...links.get(row.id), dmUrl }); }
   }
   return links;
 }
 /** R158 (owner, 14 November 2026: "i want the link to the group to be moved out of the summary card ... i want to open the
  * group even there's no conversation"): every collection item (list and detail borrower) carries chatUrl and chatInviteUrl,
  * each only when its column is readable and the value valid. The Collection page header opens one per device; the summary
- * card no longer carries the links. */
-export async function markGroupLinks(client, items) {
+ * card no longer carries the links. R161: with dm (the read service), also chatDmUrl, on collection items and borrower
+ * list rows alike; no username or flag leaves the server. */
+export async function markGroupLinks(client, items, { dm = false } = {}) {
   if (!items.length) return items;
-  const links = await readIgGroupLinks(client, items.map(item => item.id));
+  const links = await readIgGroupLinks(client, items.map(item => item.id), { dm });
   return items.map(item => {
     const link = links.get(item.id);
-    return link ? { ...item, ...(link.url ? { chatUrl: link.url } : {}), ...(link.inviteUrl ? { chatInviteUrl: link.inviteUrl } : {}) } : item;
+    return link ? { ...item, ...(link.url ? { chatUrl: link.url } : {}), ...(link.inviteUrl ? { chatInviteUrl: link.inviteUrl } : {}), ...(link.dmUrl ? { chatDmUrl: link.dmUrl } : {}) } : item;
   });
 }
 /** R146: the borrower's current group chat summary, or null (none, or the reader may not read the table). R158: without
@@ -267,7 +297,8 @@ export function decodeCollectionCursor(cursor, kind, parentId, query = '') {
   if (canonical !== cursor) throw new Error('Invalid cursor');
   return parsed;
 }
-export async function readCollection(client, { limit, after, borrowerId = null, query = '', partnerId = null }) {
+// R161: dm (the read service) adds chatDmUrl to the items and the detail borrower; the offline walk leaves it out (v12).
+export async function readCollection(client, { limit, after, borrowerId = null, query = '', partnerId = null, dm = false }) {
   const late = await lateChargeSchema(client);
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
   const { businessDate, asOf } = clock.rows[0];
@@ -280,7 +311,7 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
   const collectionCte = collectionCteFor(late, paymentSource);
   if (borrowerId === null) {
     const result = await client.query(`${collectionCte}, filtered AS (SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0)), totals AS (SELECT *, CASE WHEN count(*) FILTER (WHERE amount_remaining IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_remaining::numeric) OVER (PARTITION BY rank)::text END AS group_remaining, CASE WHEN count(*) FILTER (WHERE amount_collected IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_collected::numeric) OVER (PARTITION BY rank)::text END AS group_collected FROM filtered) SELECT * FROM totals WHERE ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND (sort_days > $8::integer OR (sort_days = $8::integer AND (COALESCE(borrower_name, '') COLLATE "C" > $7::text COLLATE "C" OR (COALESCE(borrower_name, '') COLLATE "C" = $7::text COLLATE "C" AND id COLLATE "C" > $4::text COLLATE "C")))))) ORDER BY rank, sort_days, COALESCE(borrower_name, '') COLLATE "C" ASC, id COLLATE "C" ASC LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query, after?.name ?? null, after?.days ?? null]);
-    const items = await markGroupLinks(client, await markChatSummary(client, await markPrepaidSource(client, businessDate, result.rows.slice(0, limit).map(projectCollection), paymentSource), partnerId));
+    const items = await markGroupLinks(client, await markChatSummary(client, await markPrepaidSource(client, businessDate, result.rows.slice(0, limit).map(projectCollection), paymentSource), partnerId), { dm });
     const last = result.rows[Math.min(limit, result.rows.length) - 1];
     return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, days: last.sort_days, name: last.borrower_name ?? '', id: last.id }, query) : null };
   }
@@ -290,7 +321,7 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
     WHERE ($3::date IS NULL OR charge_date < $3::date OR (charge_date = $3::date AND id COLLATE "C" > $4::text COLLATE "C"))
     ORDER BY charge_date DESC, id COLLATE "C" LIMIT $5`, [businessDate, borrowerId, after?.chargeDate ?? null, after?.id ?? null, limit + 1]);
   const items = charges.rows.slice(0, limit).map(projectCollectionCharge);
-  const [borrower] = await markGroupLinks(client, await markPrepaidSource(client, businessDate, [projectCollection(summary.rows[0])], paymentSource));
+  const [borrower] = await markGroupLinks(client, await markPrepaidSource(client, businessDate, [projectCollection(summary.rows[0])], paymentSource), { dm });
   // R146: the detail envelope carries the borrower's group chat summary (null when there is none).
   const groupChat = await readGroupChat(client, borrowerId);
   return { ...metadata, borrower, groupChat, items, nextCursor: charges.rows.length > limit ? encodeCollectionCursor({ kind: 'collection-charges', businessDate, parentId: borrowerId, chargeDate: items.at(-1).chargeDate, id: items.at(-1).id }) : null };

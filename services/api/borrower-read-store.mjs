@@ -2,7 +2,7 @@ import { statementTimeoutSql } from '../lib/budget.mjs';
 import { businessToday, BUSINESS_TZ } from '../lib/business-date.mjs';
 import { normalizeSearchQuery, searchQueryHash } from './search-query.mjs';
 import { readUpcoming, validUpcomingDate, decodeUpcomingCursor } from './upcoming-read-contract.mjs';
-import { readCollection, decodeCollectionCursor } from './collection-read-contract.mjs';
+import { readCollection, decodeCollectionCursor, markGroupLinks } from './collection-read-contract.mjs';
 import { loanColumns, loanPaidThroughColumn, validLoanId, projectLoan, encodeLoanCursor, decodeLoanCursor, loanRankSql, borrowerDisplayName } from './loan-read-contract.mjs';
 const borrowerRankSql = 'CASE WHEN "Has Active Loan" IS TRUE THEN 0 WHEN "Has Active Loan" IS FALSE THEN 1 ELSE 2 END';
 const borrowerRank = value => value === true ? 0 : value === false ? 1 : 2;
@@ -102,7 +102,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       let after;
       try { q = normalizeSearchQuery(q); after = decodeCollectionCursor(cursor, 'collection', undefined, q); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
       catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
-      return run(email, (client, partnerId) => readCollection(client, { limit, after, query: q, partnerId }), true)
+      return run(email, (client, partnerId) => readCollection(client, { limit, after, query: q, partnerId, dm: true }), true)
         .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
     },
     getCollectionCharges: (email, borrowerId, { limit = 25, cursor = null } = {}) => {
@@ -110,7 +110,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       let after;
       try { after = decodeCollectionCursor(cursor, 'collection-charges', borrowerId); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
       catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
-      return run(email, client => readCollection(client, { limit, after, borrowerId }), true)
+      return run(email, client => readCollection(client, { limit, after, borrowerId, dm: true }), true)
         .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
     },
     listBorrowers: (email, { limit = 25, cursor = null, q = '' } = {}) => {
@@ -124,7 +124,8 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
             ($3::date IS NOT NULL AND ("Creation Date" > $3::date OR "Creation Date" IS NULL OR ("Creation Date" = $3::date AND "Row ID" COLLATE "C" > $4::text COLLATE "C")))
             OR ($3::date IS NULL AND "Creation Date" IS NULL AND "Row ID" COLLATE "C" > $4::text COLLATE "C"))))
           ORDER BY (${borrowerRankSql}), "Creation Date" ASC NULLS LAST, "Row ID" COLLATE "C" ASC LIMIT $5`, [after !== null, after?.rank ?? null, after?.createdDate ?? null, after?.id ?? null, limit + 1, q]);
-        const items = result.rows.slice(0, limit).map(project);
+        // R161: the rows carry the borrower's chat links (chatUrl, chatInviteUrl, chatDmUrl) as the collection items do.
+        const items = await markGroupLinks(client, result.rows.slice(0, limit).map(project), { dm: true });
         return { items, nextCursor: result.rows.length > limit ? encodeCursor(items.at(-1), q) : null, order: 'active-inactive-unknown,created-date-asc-null-last,row-id-asc' };
       });
     },
@@ -159,7 +160,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       return run(email, async client => {
         const result = await client.query(`SELECT ${borrowerColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND "Row ID" = $1 LIMIT 2`, [id]);
         if (result.rows.length !== 1) return { item: null };
-        return { item: project(result.rows[0]) };
+        return { item: (await markGroupLinks(client, [project(result.rows[0])], { dm: true }))[0] };
       }).then(result => result.ok && !result.item ? { ok: false, status: 404, code: 'not_found' } : result);
     },
   };

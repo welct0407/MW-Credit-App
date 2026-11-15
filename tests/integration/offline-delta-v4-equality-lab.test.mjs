@@ -126,6 +126,9 @@ test('a client holding the previous bundle ends equal to a fresh full walk after
    ['rename referrer R (named by closing payments)',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Romeo renamed '||$2 WHERE "Row ID"=$1`,[R,id])],
    ['offset payment amount changed',async()=>replica(()=>q(`UPDATE "Payments" SET "Amount Received"=4::money WHERE "Row ID"=$1`,[PO]))],
    ['settlement of the rebate of X removed',async()=>replica(async()=>{await q(`UPDATE "Business Expenses" SET "Ref Rebate Settlement"=NULL WHERE "Row ID"=$1`,[E1]);await q(`DELETE FROM pwa_rebate_settlements WHERE id=$1`,[ST])})],
+   // R161: the DM button reads the held borrower record (instagramUsername, aiCollectionEnabled); an edit of either reaches it.
+   ['Instagram Username edited (R161 DM link source)',async()=>q(`UPDATE "Borrowers" SET "Instagram Username"='@invented.r161' WHERE "Row ID"=$1`,[X])],
+   ['AI collection turned off (R161 DM link source)',async()=>q(`UPDATE "Borrowers" SET "AI Collection Enabled"=false WHERE "Row ID"=$1`,[X])],
    ['Daily Analytics refreshed (dashboard)',async()=>q('SELECT refresh_daily_analytics(current_date-1,current_date)')],
    ['TRUNCATE Daily Analytics (marker, dashboard re-read)',async()=>q('TRUNCATE "Daily Analytics"')],
    ['cash account label (expect walk)',async()=>q(`UPDATE "Cash Accounts" SET "Account Label"='Renamed '||$2 WHERE "Row ID"=$1`,['CI-DAD',id])],
