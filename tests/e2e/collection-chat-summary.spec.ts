@@ -98,7 +98,8 @@ test('list mark and card: hidden without a summary, everything shown without an 
  await expect(card(page).getByRole('heading',{level:3,name:'Group chat summary'})).toBeVisible();
  const meta=card(page).locator('.collection-chat-meta');
  await expect(meta.first()).toHaveText('Updated 11-Nov · last 3 days');await expect(meta.last()).toHaveText('Last message: Referrer · 11-Nov');
- await expect(card(page).getByRole('button')).toHaveCount(0);await expect(card(page)).not.toContainText(/Show (more|less)/);
+ await expect(card(page).locator('button:not(.collection-chat-refresh)')).toHaveCount(0); // R165: only the Refresh button (no expander)
+ await expect(card(page)).not.toContainText(/Show (more|less)/);
  await expect(card(page).locator('[aria-expanded],[aria-controls]')).toHaveCount(0);await expect(card(page).locator('.collection-chat-foot,.collection-chat-toggle')).toHaveCount(0);
  // UX-CHAT-04: the point tags are 13px; the shared tag rule (the Shared group label) stays 12px.
  expect(await card(page).locator('.collection-chat-points .expense-payee-tag').first().evaluate(node=>getComputedStyle(node).fontSize)).toBe('13px');expect(await card(page).locator('.collection-chat-heading .expense-payee-tag').evaluate(node=>getComputedStyle(node).fontSize)).toBe('12px');
@@ -153,7 +154,8 @@ test('list mark and card: hidden without a summary, everything shown without an 
  await expect(card(page).locator('.collection-chat-points .expense-payee-tag')).toHaveText('MW Credit');await expect(card(page).locator('.collection-chat-points .expense-payee-tag')).toHaveClass(/chat-role-business/);
  // UX-CHAT-02: a stale card has no last-message line (the Last conversation line carries the date).
  await expect(card(page).locator('.collection-chat-meta')).toHaveCount(1);await expect(card(page)).not.toContainText('Last message');await expect(card(page).locator('.collection-chat-foot')).toHaveCount(0);
- await expect(card(page).getByRole('button')).toHaveCount(0);await expect(card(page).locator('.collection-chat-heading .expense-payee-tag')).toHaveCount(0);
+ await expect(card(page).locator('button:not(.collection-chat-refresh)')).toHaveCount(0); // R165: only the Refresh button (no expander)
+ await expect(card(page).locator('.collection-chat-heading .expense-payee-tag')).toHaveCount(0);
  await backIfStacked(page);
  // Language fallback: a missing language shows the other one; generated on another day shows the date.
  await tile(page,'chat-d').click();await expect(card(page).locator('.collection-chat-headline')).toHaveText('มีเฉพาะภาษาไทยในหัวข้อนี้');
@@ -168,7 +170,8 @@ test('list mark and card: hidden without a summary, everything shown without an 
  await expect(card(page).locator('.collection-chat-meta').first()).toHaveText('อัปเดต 11-พ.ย. · 3 วันล่าสุด');await expect(card(page).locator('.collection-chat-meta').last()).toHaveText('ข้อความล่าสุด: ผู้แนะนำ · 11-พ.ย.');
  await expect(card(page).locator('.collection-chat-heading .expense-payee-tag')).toHaveText('กลุ่มร่วม');
  await expect(card(page).locator('.collection-chat-points .expense-payee-tag')).toHaveText(['ผู้กู้','หุ้นส่วน','ผู้แนะนำ','ผู้กู้อื่น']);
- await expect(card(page).getByRole('button')).toHaveCount(0);await expect(card(page).locator('.collection-chat-points li')).toHaveCount(4);
+ await expect(card(page).locator('button:not(.collection-chat-refresh)')).toHaveCount(0); // R165: only the Refresh button (no expander)
+ await expect(card(page).locator('.collection-chat-points li')).toHaveCount(4);
  await backIfStacked(page);
  await tile(page,'chat-b').click();await expect(card(page).locator('.collection-chat-meta').first()).toHaveText('คุยล่าสุด 07-พ.ย.');await expect(card(page).locator('.collection-chat-points .expense-payee-tag')).toHaveText('MW Credit');
 });

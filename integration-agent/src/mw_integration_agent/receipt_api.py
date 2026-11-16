@@ -121,7 +121,8 @@ def call(config, method, request=None, body=None, route='receipt-payments', answ
     if request is not None and not re.fullmatch(r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}', request):
         raise ConfigurationError('INVALID_RECEIPT_REQUEST_ID')
     # R146: group-chat-summaries is the agent's display-only summary route (POST {command}).
-    if route not in ('receipt-payments', 'loan-closes', 'group-chat-summaries') and not route.startswith('loan-closes/quote/'):
+    # R165: group-chat-refreshes, the PWA's refresh requests (GET the open ones, POST one outcome {command}).
+    if route not in ('receipt-payments', 'loan-closes', 'group-chat-summaries', 'group-chat-refreshes') and not route.startswith('loan-closes/quote/'):
         raise ConfigurationError('INVALID_RECEIPT_API_ROUTE')
     opener = http_opener()
     until = time.monotonic() + 20

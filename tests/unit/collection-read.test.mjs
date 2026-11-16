@@ -254,6 +254,6 @@ test('R161 chatDmUrl rides the read service\'s collection items and borrower lis
  assert.deepEqual(list.items.map(item=>[item.id,item.chatDmUrl,item.chatUrl]),[['a','https://ig.me/m/invented.a',undefined],['b','https://ig.me/m/invented_b',web],['c',undefined,undefined]]);
  const item=await store.getBorrower('synthetic@example.invalid','a');assert.equal(item.ok,true,JSON.stringify(item));assert.equal(item.item.chatDmUrl,'https://ig.me/m/invented.a');
 });
-test('R161 the offline dataset stays v12 (a bundle derives the DM link from its held borrower records)',async()=>{
- const {OFFLINE_DATASET_SHAPE}=await import('../../services/business/offline-dataset-delta.mjs');assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v12');
+test('R161 the offline dataset added no DM link (v12; R165 made it v13 for the refresh rows)',async()=>{
+ const {OFFLINE_DATASET_SHAPE}=await import('../../services/business/offline-dataset-delta.mjs');assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v13');
 });

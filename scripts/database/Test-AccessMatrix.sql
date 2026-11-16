@@ -47,6 +47,8 @@ INSERT INTO am_expected_tables VALUES
   ('mw_app_dev','public.pwa_group_chat_summaries','DELETE,INSERT,SELECT,UPDATE'),
   -- V147 (R149): the application role reads and writes the group chat seen values (the mark function runs with its rights).
   ('mw_app_dev','public.pwa_group_chat_seen','DELETE,INSERT,SELECT,UPDATE'),
+  -- V150 (R165): the application role reads and writes the refresh requests (both functions run with its rights).
+  ('mw_app_dev','public.pwa_group_chat_refresh_requests','DELETE,INSERT,SELECT,UPDATE'),
   ('mw_business_audit_owner','agent_audit.exports','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_business_audit_owner','agent_audit.row_changes','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_jobs_owner_dev','public.pwa_job_runs','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
@@ -103,6 +105,9 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','pwa_put_group_chat_summary_v1(text)'),
   -- V147 (R149): the group chat seen mark.
   ('mw_app_dev','pwa_mark_group_chat_seen_v1(jsonb,text,timestamp with time zone)'),
+  -- V150 (R165): the group chat summary refresh request and its completion.
+  ('mw_app_dev','pwa_request_group_chat_refresh_v1(jsonb,text)'),
+  ('mw_app_dev','pwa_complete_group_chat_refresh_v1(text)'),
   -- V137 (R129): the rebate state reads and the settlement version.
   ('mw_app_dev','pwa_rebate_pending_v1(text)'),
   ('mw_app_dev','pwa_rebates_owed_v1(text)'),
@@ -484,6 +489,25 @@ DO $$ BEGIN
     OR EXISTS(SELECT 1 FROM unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,'public.pwa_group_chat_seen',p))) THEN
   RAISE EXCEPTION 'V147: no migration-owned group chat seen access outside the application role'; END IF;
  IF has_table_privilege('mw_app_dev','public.pwa_group_chat_seen','TRUNCATE') THEN RAISE EXCEPTION 'V147: the application role must not truncate the seen values'; END IF;
+END $$;
+-- V150 (R165): both refresh functions run with the caller's rights (owner postgres, pinned search_path, no PUBLIC execution);
+-- only the application role (and the command login through it) writes the table; the reader, the chat roles and the
+-- closed owners hold nothing from the migration (the reader's column grant is the operator's step).
+DO $$ DECLARE fn text; BEGIN
+ FOREACH fn IN ARRAY ARRAY['public.pwa_request_group_chat_refresh_v1(jsonb,text)','public.pwa_complete_group_chat_refresh_v1(text)'] LOOP
+  IF NOT (SELECT NOT prosecdef AND pg_get_userbyid(proowner)='postgres' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid=fn::regprocedure) THEN
+   RAISE EXCEPTION 'V150: % must be postgres''s invoker-rights function',fn; END IF;
+  IF NOT has_function_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam',fn,'EXECUTE') THEN RAISE EXCEPTION 'V150: the command login runs % through mw_app_dev',fn; END IF;
+ END LOOP;
+ IF (SELECT pg_get_userbyid(relowner) FROM pg_class WHERE oid='public.pwa_group_chat_refresh_requests'::regclass)<>'postgres'
+  OR NOT has_table_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_group_chat_refresh_requests','INSERT') THEN RAISE EXCEPTION 'V150: postgres''s table, written by the command login through mw_app_dev'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw-credit-app-read-dev@clever-oasis-508610-n7.iam','mw-credit-app-chat-dev@clever-oasis-508610-n7.iam','mw_chat_read_dev','mw_chat_api_dev','mw_reviewer_dml',
+    'mw_jobs_owner_dev','mw_notify_owner_dev','mw_ledger_owner_dev','mw_changes_owner_dev']) r
+   WHERE has_function_privilege(r,'public.pwa_request_group_chat_refresh_v1(jsonb,text)','EXECUTE') OR has_function_privilege(r,'public.pwa_complete_group_chat_refresh_v1(text)','EXECUTE')
+    OR has_any_column_privilege(r,'public.pwa_group_chat_refresh_requests','SELECT')
+    OR EXISTS(SELECT 1 FROM unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,'public.pwa_group_chat_refresh_requests',p))) THEN
+  RAISE EXCEPTION 'V150: no migration-owned group chat refresh access outside the application role'; END IF;
+ IF has_table_privilege('mw_app_dev','public.pwa_group_chat_refresh_requests','TRUNCATE') THEN RAISE EXCEPTION 'V150: the application role must not truncate the refresh requests'; END IF;
 END $$;
 -- V133 (R118): column-grant parity. A role that reads an interest column column by column also reads its late-charge
 -- sibling (V132 added the late columns; a column-level grant does not cover a new column, which broke the DEV jobs owner).

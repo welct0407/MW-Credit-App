@@ -6,6 +6,7 @@ import {ChargeRecord} from './ChargeRecord';
 import {LoanRecord} from './LoanRecord';
 import {CollectionNote} from './CollectionNote';
 import {CollectionChatSummary,NameWithChatMark,type GroupChat} from './CollectionChatSummary';
+import type {GroupChatRefresh} from './chat-refresh';
 import {chatDevice,chatPurpose,chooseChat,rowChatLinks} from './ig-group-url';
 import {useHeldChatLinks} from './held-chat-links';
 import {CHAT_SEEN_EVENT,chatMarkShown,markChatSeen,readChatSeen,sessionChatSeen} from './chat-seen';
@@ -48,7 +49,8 @@ type Charge = { id: string; loanId: string; loanDisplayKey: string; chargeDate: 
 const latePaidOf=(charge:Charge)=>{const due=wholeText(charge.lateChargeDue??'0')??'0',left=wholeText(charge.lateChargeRemaining??'0')??'0';return /^\d+$/.test(due)&&/^\d+$/.test(left)&&BigInt(due)>=BigInt(left)?(BigInt(due)-BigInt(left)).toString():'0'};
 type Envelope = { ok: true; source: 'dev'; businessDate: string; asOf: string; nextCursor: string | null };
 type BoardResult = Envelope & { items: Summary[] };
-type DetailResult = Envelope & { borrower: Summary; items: Charge[]; groupChat?: GroupChat | null };
+// R165: groupChatRefresh is the borrower's summary refresh request (left out by a service or database without V150).
+type DetailResult = Envelope & { borrower: Summary; items: Charge[]; groupChat?: GroupChat | null; groupChatRefresh?: GroupChatRefresh | null };
 export type CollectionReadError = 'not_found' | 'unavailable' | 'business_date_changed';
 export type CollectionRequest = <T>(path: string, onError: (failure: ReadFailure<CollectionReadError>) => void, onCached?: (value:T)=>void) => Promise<T | null>;
 export function CollectionRecords({ thai, request, cancel, onStatus, refreshToken, query, commandAccess }: { thai: boolean; request: CollectionRequest; cancel: () => void; onStatus: (value: 'idle' | 'loading' | 'success' | 'error') => void; refreshToken: number; query: string; commandAccess?: CommandAccess }) {
@@ -71,6 +73,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   // R146: the selected borrower's group chat summary (from the detail envelope), which borrowers' cards are expanded
   // (kept while the page stays open) and what this device has already shown (list mark; null = storage blocked, no marks).
   const [groupChat, setGroupChat] = useState<GroupChat | null>(null);
+  const [groupChatRefresh, setGroupChatRefresh] = useState<GroupChatRefresh | null>(null);
   const chatScope = commandAccess?.offline?.scopeName ?? 'local';
   const [chatSeen, setChatSeen] = useState(() => readChatSeen(chatScope));
   const [chatSession, setChatSession] = useState(() => sessionChatSeen(chatScope));
@@ -155,7 +158,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     if(window.innerWidth>=1200&&detailPanel.current)detailPanel.current.scrollTop=savedDetailScroll.current;else window.scrollTo({top:savedDetailScroll.current});
     if(!busy)reapplyAfterReload.current=false;
   },[charges,upcoming,busy,selectedCharge,upcomingDetail]);
-  function reset(keepBoard=false) { setPaymentOpen(false); previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); if(!keepBoard){setItems([]);setCursor(null);setBusinessDate('');setAsOf('');setPage(1)}setSelected(null);setCharges([]);setGroupChat(null);setChargeCursor(null);setChargeAsOf('');setChargePage(1); }
+  function reset(keepBoard=false) { setPaymentOpen(false); previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); if(!keepBoard){setItems([]);setCursor(null);setBusinessDate('');setAsOf('');setPage(1)}setSelected(null);setCharges([]);setGroupChat(null);setGroupChatRefresh(null);setChargeCursor(null);setChargeAsOf('');setChargePage(1); }
   function fail(code: ReadFailure<CollectionReadError>) { reset(); setError(code); setUpdateState('error'); }
   async function loadBoard(next?: string, pageNumber = 1) {
     if(pageNumber===1)boardCursors.current=[undefined];boardCursors.current[pageNumber-1]=next;
@@ -179,7 +182,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       stops.push(subscribeOfflineDataset<DetailResult>(commandAccess,base+'/charges?limit=10'+(cursor?'&cursor='+encodeURIComponent(cursor):''),value=>{setSelected(value.borrower);setCharges(value.items);setChargeCursor(value.nextCursor);setChargeAsOf(value.asOf);
         // R146: a new summary replaces the card in place (detailHold already waits while the detail is touched or scrolled);
         // not while a late-charge refresh is restoring the scroll position, which a height change would break.
-        if(!reapplyAfterReload.current)setGroupChat(value.groupChat??null)},undefined,detailHold));
+        if(!reapplyAfterReload.current){setGroupChat(value.groupChat??null);setGroupChatRefresh(value.groupChatRefresh??null)}},undefined,detailHold));
       stops.push(subscribeOfflineDataset<UpcomingSummary>(commandAccess,base+'/upcoming',value=>{setUpcoming(value);previews.current={borrowerId:selected.id,businessDate:value.businessDate,asOf:value.asOf,receivedAt:performance.now(),items:value.previews??[]}},undefined,detailHold));
       if(upcomingDetail){const next=upcomingCursors.current[upcomingPage-1];stops.push(subscribeOfflineDataset<UpcomingDetail>(commandAccess,base+'/upcoming/'+encodeURIComponent(upcomingDetail.dueDate)+'?limit=25'+(next?'&cursor='+encodeURIComponent(next):''),setUpcomingDetail,undefined,detailHold))}
     }
@@ -203,12 +206,12 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     if(pageNumber===1)chargeCursors.current=[undefined];chargeCursors.current[pageNumber-1]=next;
     cancel(); const current = ++revision.current;
     previews.current = null; setSelected(row); if(!keepCharge)setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null);
-    setChildError(null);if(selected?.id!==row.id)setGroupChat(null);if(selected?.id!==row.id||chargePage!==pageNumber){setCharges([]);setChargeCursor(null);setChargeAsOf('')}setError(null); setBusy(true); setUpdateState('loading');
+    setChildError(null);if(selected?.id!==row.id){setGroupChat(null);setGroupChatRefresh(null)}if(selected?.id!==row.id||chargePage!==pageNumber){setCharges([]);setChargeCursor(null);setChargeAsOf('')}setError(null); setBusy(true); setUpdateState('loading');
     // Keep the shared charge detail mounted while refreshing its Collection context.
     if(!keepCharge)setScrollTarget(value => ({ kind: 'detail', sequence: value.sequence + 1 }));
     let parentUnavailable = false;
     let upcomingTask:Promise<boolean>|null=null;
-    const apply=(value:DetailResult)=>{if(current!==revision.current)return;if(!reapplyAfterReload.current)setGroupChat(value.groupChat??null);setSelected(value.borrower);setCharges(value.items);setChargeCursor(value.nextCursor);setChargePage(pageNumber);setBusinessDate(value.businessDate);setChargeAsOf(value.asOf);setBusy(false)};
+    const apply=(value:DetailResult)=>{if(current!==revision.current)return;if(!reapplyAfterReload.current){setGroupChat(value.groupChat??null);setGroupChatRefresh(value.groupChatRefresh??null)}setSelected(value.borrower);setCharges(value.items);setChargeCursor(value.nextCursor);setChargePage(pageNumber);setBusinessDate(value.businessDate);setChargeAsOf(value.asOf);setBusy(false)};
     const result = await request<DetailResult>('/api/collection/' + encodeURIComponent(row.id) + '/charges?limit=10' + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => {
       if (current !== revision.current) return;
       if (code.code === 'business_date_changed') { parentUnavailable = true; fail(code); return; }
@@ -325,6 +328,14 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   // key (the borrower id) on both, React kept the previous borrower's card mounted and the cards stacked up (owner account).
   // R146: one clock reading per render for the card's freshness and the list mark's 72-hour window.
   const chatNow=Date.now();chatServerSeen.current=items;
+  // R165: while a summary refresh is pending the open detail is checked every 15 seconds: with the offline bundle a delta
+  // check of the collection domain (the detail subscription applies what changed); without one, a quiet re-read of the
+  // detail's group chat fields only.
+  const pollChatRefresh=()=>{
+    if(commandAccess?.offline){window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{domain:'collection'}}));return}
+    const row=selected;if(!row)return;const current=revision.current,next=chargeCursors.current[chargePage-1];
+    void request<DetailResult>('/api/collection/'+encodeURIComponent(row.id)+'/charges?limit=10'+(next?'&cursor='+encodeURIComponent(next):''),()=>{}).then(value=>{if(value&&current===revision.current&&!reapplyAfterReload.current){setGroupChat(value.groupChat??null);setGroupChatRefresh(value.groupChatRefresh??null)}});
+  };
   return <>{late.toastElement}<section className="collection-workspace" aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
 
 
@@ -353,7 +364,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
           const link=chatOf(selected);
           // UX-HDR-CHAT-02/03: at 480px and below an icon button named by aria-label; wider, the visible text names it.
           const name=link?chatPurpose(link.kind,thai):'';
-          return link?<a className={'collection-header-chat link-button'+(link.kind==='dm'?' chat-link-dm':'')} href={link.href} target="_blank" rel="noopener noreferrer" aria-label={narrowHeader?name:undefined} title={name}><Icon name="chat" className="collection-header-chat-icon"/><span>{link.kind==='dm'?t('Open DM','เปิดแชทส่วนตัว'):t('Open chat','เปิดแชท')}</span></a>:null})()}{commandAccess&&<PaymentHistory compact access={commandAccess} borrowerId={selected.id} thai={thai}/>}</div>{amounts(selected)}<CollectionChatSummary key={'chat-summary:'+selected.id} groupChat={groupChat} borrowerId={selected.id} thai={thai} now={chatNow} onShown={at=>{markChatSeen(chatScope,selected.id,at);const sync=chatSync.current,known=chatServerSeen.current.find(row=>row.id===selected.id)?.chatSeenAt;if(sync?.send)void syncChatSeen(sync.scope,sync.access,selected.id,at,known);else if(sync)queueChatSeen(sync.scope,selected.id,at,known)}}/>{commandAccess?.ownerTesting&&<CollectionNote key={'note:'+selected.id} access={commandAccess} id={selected.id} thai={thai}/>}<div className="related-loans-heading collection-charges-heading"><h3>{t('Today’s charges', 'ยอดเรียกเก็บวันนี้')}</h3>{commandAccess&&(commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===selected.id)&&<RecordAction icon="receive" className="secondary-button icon-action" aria-label={t('Receive selected charges','รับชำระรายการที่เลือก')} title={t('Receive selected charges','รับชำระรายการที่เลือก')} onClick={()=>{cancel();revision.current++;previews.current=null;setBusy(false);setUpdateState('idle');setPaymentOpen(true)}}></RecordAction>}</div>
+          return link?<a className={'collection-header-chat link-button'+(link.kind==='dm'?' chat-link-dm':'')} href={link.href} target="_blank" rel="noopener noreferrer" aria-label={narrowHeader?name:undefined} title={name}><Icon name="chat" className="collection-header-chat-icon"/><span>{link.kind==='dm'?t('Open DM','เปิดแชทส่วนตัว'):t('Open chat','เปิดแชท')}</span></a>:null})()}{commandAccess&&<PaymentHistory compact access={commandAccess} borrowerId={selected.id} thai={thai}/>}</div>{amounts(selected)}<CollectionChatSummary key={'chat-summary:'+selected.id} groupChat={groupChat} borrowerId={selected.id} thai={thai} now={chatNow} refresh={commandAccess?{access:commandAccess,server:groupChatRefresh,online:online&&!commandAccess.offlineOnly,poll:pollChatRefresh}:undefined} onShown={at=>{markChatSeen(chatScope,selected.id,at);const sync=chatSync.current,known=chatServerSeen.current.find(row=>row.id===selected.id)?.chatSeenAt;if(sync?.send)void syncChatSeen(sync.scope,sync.access,selected.id,at,known);else if(sync)queueChatSeen(sync.scope,selected.id,at,known)}}/>{commandAccess?.ownerTesting&&<CollectionNote key={'note:'+selected.id} access={commandAccess} id={selected.id} thai={thai}/>}<div className="related-loans-heading collection-charges-heading"><h3>{t('Today’s charges', 'ยอดเรียกเก็บวันนี้')}</h3>{commandAccess&&(commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===selected.id)&&<RecordAction icon="receive" className="secondary-button icon-action" aria-label={t('Receive selected charges','รับชำระรายการที่เลือก')} title={t('Receive selected charges','รับชำระรายการที่เลือก')} onClick={()=>{cancel();revision.current++;previews.current=null;setBusy(false);setUpdateState('idle');setPaymentOpen(true)}}></RecordAction>}</div>
           {childError?.code === 'unavailable' && <div role="status"><ErrorReference failure={childError} thai={thai} />{selected&&<button type="button" className="secondary-button" disabled={busy} onClick={()=>void loadCharges(selected)}>{t('Retry charges','ลองโหลดยอดเรียกเก็บอีกครั้ง')}</button>}<p>{t('Unable to load charges. Refresh the charges page to try again.', 'ไม่สามารถโหลดรายการเรียกเก็บได้ กรุณารีเฟรชหน้ายอดเรียกเก็บเพื่อลองอีกครั้ง')}</p></div>}
           {charges.map(charge=><article className="collection-charge collection-charge-row" key={charge.id}><span className="charge-row-left"><strong>{date(charge.chargeDate)}</strong>{commandAccess?<button type="button" className="record-field-link charge-loan-link" data-record-id={charge.id+':loan'} disabled={busy} onClick={event=>{leaveDetail(event.currentTarget);setLoanOpen(charge.loanId)}}>{charge.loanDisplayKey}</button>:<span>{charge.loanDisplayKey}</span>}{charge.paymentStatus==='ชำระแล้ว'&&charge.paymentDate!==null&&businessDate!==''&&charge.paymentDate<businessDate&&<small className="charge-prepaid-note">{t('Paid in advance','ชำระล่วงหน้า')} · {date(charge.paymentDate)}</small>}{late.pending[charge.id]&&late.pending[charge.id].state!=='reverted'?<small className="charge-prepaid-note charge-late-note" id={'charge-late-note-'+charge.id}>{t('Late charge ','ค่าปรับล่าช้า ')}<LateChargeSaving pending={late.pending[charge.id]} thai={thai}/></small>:lateNote(wholeText(charge.lateChargeDue??'0'),latePaidOf(charge),thai)&&<small className="charge-prepaid-note charge-late-note" id={'charge-late-note-'+charge.id}>{lateNote(wholeText(charge.lateChargeDue??'0'),latePaidOf(charge),thai)}</small>}</span><span className="charge-row-right"><strong className={'charge-remaining '+(charge.amountRemaining!==null&&Number(charge.amountRemaining)===0?'zero-currency':'')}>{money(charge.amountRemaining)}</strong><strong className={'charge-received '+(charge.totalPaid!==null&&Number(charge.totalPaid)===0?'zero-currency':'')}>{money(charge.totalPaid)}</strong></span>{lateShortcut&&lateLine(charge)}<button type="button" className="charge-tile-action" disabled={busy} aria-label={t('Charge details for ','รายละเอียดรายการเรียกเก็บ ')+charge.loanDisplayKey+' '+date(charge.chargeDate)} data-record-id={charge.id} onClick={event=>{savedDetailScroll.current=window.innerWidth>=1200?detailPanel.current?.scrollTop??0:window.scrollY;if(commandAccess)leaveDetail(event.currentTarget);setSelectedCharge(charge);setScrollTarget(value=>({kind:'detail',sequence:value.sequence+1}))}}></button></article>)}
           <CompactPager busy={busy} previous={chargePage>1?()=>void loadCharges(selected,chargeCursors.current[chargePage-2],chargePage-1):undefined} next={chargeCursor?()=>void loadCharges(selected,chargeCursor,chargePage+1):undefined} previousLabel={t('Previous charges page','หน้ายอดเรียกเก็บก่อนหน้า')} nextLabel={t('Next charges page','หน้าถัดไปของยอดเรียกเก็บ')}/>

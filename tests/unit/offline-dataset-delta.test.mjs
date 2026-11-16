@@ -154,17 +154,18 @@ test('per-domain source sets keep every table a domain reads and leave out analy
  // The records dashboard reads olap_portfolio_summary: Statistics by row identity, Daily Analytics by content.
  for(const source of ['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Business Expenses','Cash Accounts','Cash Holders','Cash Ledger','Cash Pool Contributions','Settlements','Partners','r008_cash_account_cutover','pwa_payment_commands','Statistics#identity','Daily Analytics#content'])assert.ok(has('records',source),source);
  assert.equal(has('records','Statistics'),false);assert.equal(has('records','Daily Analytics'),false);
- assert.deepEqual([...offlineSourceTables.collection].sort(),['Borrowers','Cash Accounts','Charges','Loans','Payment Allocations','Payments','Repayments','pwa_group_chat_seen','pwa_group_chat_summaries']); // R146: the group chat summaries (V146); R149: the seen values (V147)
+ assert.deepEqual([...offlineSourceTables.collection].sort(),['Borrowers','Cash Accounts','Charges','Loans','Payment Allocations','Payments','Repayments','pwa_group_chat_refresh_requests','pwa_group_chat_seen','pwa_group_chat_summaries']); // R146: the group chat summaries (V146); R149: the seen values (V147); R165: the refresh requests (V150)
  for(const source of ['Cash Statement Context','Borrowers','Cash Ledger','r008_cash_account_cutover'])assert.ok(has('cash',source),source);
  for(const source of ['Daily Analytics','Statistics','Loan Assessment SQL Lab','Charges',...offlineSourceTables.cash])assert.ok(has('management',source),source);
  for(const domain of ['collection','cash'])for(const source of ['Daily Analytics','Statistics','pwa_payment_commands'])assert.equal(offlineSourceTables[domain].some(item=>item.startsWith(source)),false,domain+' '+source);
 });
 test('fingerprint SQL keys each table by its primary key, aggregates without a sort and runs once for all domains',async()=>{
- const sql=[];const client={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[{name:'pwa_group_chat_summaries'},{name:'pwa_group_chat_seen'}]};sql.push(query);return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
+ const sql=[];const client={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[{name:'pwa_group_chat_summaries'},{name:'pwa_group_chat_seen'},{name:'pwa_group_chat_refresh_requests'}]};sql.push(query);return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
  const versions=await readOfflineSourceVersions(client,actor,stamp.businessDate);
  assert.equal(sql.length,1);const query=sql[0];
  assert.doesNotMatch(query,/ORDER BY|string_agg|to_jsonb\(s\)::text\|\|/);assert.match(query,/hashtextextended\(s\."Row ID"::text\|\|':'\|\|s\.xmin::text,0\)/);
  assert.match(query,/s\.request_id::text\|\|':'\|\|s\.xmin::text[\s\S]*FROM public\."pwa_payment_commands" s/);
+ assert.match(query,/s\.borrower_id::text\|\|':'\|\|s\.xmin::text[\s\S]*FROM public\."pwa_group_chat_refresh_requests" s/,'R165: keyed by its borrower');
  assert.match(query,/s\."Ref Cash Account"::text\|\|':'\|\|s\.xmin::text[\s\S]*FROM public\."r008_cash_account_cutover" s/);
  assert.match(query,/s\."Ref Partner"::text\|\|':'\|\|s\.xmin::text[\s\S]*FROM public\."Cash Statement Context" s/);
  assert.match(query,/'Statistics#identity'[\s\S]*coalesce\(s\."Statistics ID"::text,''\)[\s\S]*FROM public\."Statistics" s(?! WHERE)/);
@@ -236,15 +237,20 @@ test('an absent or unreadable optional source is left out of the fingerprint; th
    if(query.includes('has_table_privilege(to_regclass')){guards.push(params);return {rows:present.map(name=>({name}))}}
    statements.push(query);return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
   return {versions:await readOfflineSourceVersions(client,actor,stamp.businessDate),collection:await readOfflineSourceVersion(client,actor,'collection',stamp.businessDate),records:await readOfflineSourceVersion(client,actor,'records',stamp.businessDate),guards,statements}};
- const without=await run([]),withTable=await run(['pwa_group_chat_summaries']),withBoth=await run(['pwa_group_chat_summaries','pwa_group_chat_seen']);
+ const without=await run([]),withTable=await run(['pwa_group_chat_summaries']),withBoth=await run(['pwa_group_chat_summaries','pwa_group_chat_seen']),withAll=await run(['pwa_group_chat_summaries','pwa_group_chat_seen','pwa_group_chat_refresh_requests']);
  for(const statement of without.statements)assert.doesNotMatch(statement,/pwa_group_chat_/,'a missing table is never read');
  for(const statement of withTable.statements)assert.doesNotMatch(statement,/pwa_group_chat_seen/,'a database at V146 is fingerprinted without the seen table');
+ // R165: a database at V147 to V149 (or a reader without the grant) is fingerprinted without the refresh table; it walks once when it appears.
+ for(const statement of withBoth.statements)assert.doesNotMatch(statement,/pwa_group_chat_refresh_requests/);
+ assert.match(withAll.statements[0],/s\.borrower_id::text\|\|':'\|\|s\.xmin::text[\s\S]*FROM public\."pwa_group_chat_refresh_requests" s/);
+ assert.notEqual(withBoth.collection,withAll.collection);
+ for(const domain of ['records','cash','management'])assert.equal(withBoth.versions[domain],withAll.versions[domain],domain+' does not depend on the refresh table');
  assert.match(withBoth.statements[0],/s\.borrower_id::text\|\|':'\|\|s\.xmin::text[\s\S]*FROM public\."pwa_group_chat_seen" s/);
  assert.notEqual(withTable.collection,withBoth.collection,'collection walks once when the seen table appears');
  for(const domain of ['records','cash','management'])assert.equal(withTable.versions[domain],withBoth.versions[domain],domain+' does not depend on the seen table');
  assert.match(withTable.statements[0],/s\.borrower_id::text\|\|':'\|\|s\.xmin::text[\s\S]*FROM public\."pwa_group_chat_summaries" s/);
  // The guard names only the optional table, and only for a read that wants it (records does not read it at all).
- assert.deepEqual(without.guards,[[['pwa_group_chat_summaries','pwa_group_chat_seen']],[['pwa_group_chat_summaries','pwa_group_chat_seen']]]);assert.equal(without.statements.length,3);
+ assert.deepEqual(without.guards,[[['pwa_group_chat_summaries','pwa_group_chat_seen','pwa_group_chat_refresh_requests']],[['pwa_group_chat_summaries','pwa_group_chat_seen','pwa_group_chat_refresh_requests']]]);assert.equal(without.statements.length,3);
  assert.equal(without.versions.collection,without.collection);assert.equal(withTable.versions.collection,withTable.collection);
  assert.notEqual(without.collection,withTable.collection,'collection walks once when the table appears');
  for(const domain of ['records','cash','management'])assert.equal(without.versions[domain],withTable.versions[domain],domain+' does not depend on the table');
@@ -256,7 +262,7 @@ test('R158 the dataset version is v12 and the offline group chat rows carry no l
  const {projectGroupChatRows}=await import('../../services/business/offline-dataset-chunks.mjs');
  const fingerprints={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[]};return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
  const rows=[...offlineSourceTables.records].filter(relation=>!relation.startsWith('pwa_group_chat_')).sort((a,b)=>a<b?-1:a>b?1:0).map(relation=>({relation,fingerprint:'1:42'}));
- assert.equal(await readOfflineSourceVersion(fingerprints,actor,'records',stamp.businessDate),shapedVersion(deltaValueHash(['business-offline-v12',actor.issuer,actor.subject,actor.partnerId,'records',stamp.businessDate,rows])));
+ assert.equal(await readOfflineSourceVersion(fingerprints,actor,'records',stamp.businessDate),shapedVersion(deltaValueHash(['business-offline-v13',actor.issuer,actor.subject,actor.partnerId,'records',stamp.businessDate,rows])));
  const stored=id=>({borrower_id:id,shared_group:false,headline_th:'สรุป',headline_en:'Summary',points:[],last_speaker_role:'partner',last_speaker_borrower_id:null,message_count:2,last_message_at:'2026-11-12T07:05:00.000Z',generated_at:'2026-11-12T07:32:00.000Z'});
  const value=projectGroupChatRows([stored('A'),stored('B'),{...stored('D'),points:'x'}]);
  assert.deepEqual(value.map(row=>row.borrowerId),['A','B'],'a bad row is dropped');
@@ -282,9 +288,10 @@ test('R153 a Borrowers-only change (the link) scopes the collection row delta to
 // case: a records bundle walked before V149 (no igGroupInviteLink on its borrower records), then any row change since
 // its cursor; the old server answered a records delta with the new version and the unchanged borrowers kept the old shape.
 test('R154 hotfix: versions carry the shape stamp; a client version of an earlier shape gets a walk, not a delta',async()=>{
- assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v12');
- const stamped=shapedVersion('c'.repeat(64));assert.match(stamped,/^c{56}5a9e000c$/);assert.equal(acceptsRowDelta(stamped),true);
- for(const old of ['c'.repeat(64),'0'.repeat(56)+'5a9e000b','5a9e000c'])assert.equal(acceptsRowDelta(old),false,old);
+ assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v13');
+ const stamped=shapedVersion('c'.repeat(64));assert.match(stamped,/^c{56}5a9e000d$/);assert.equal(acceptsRowDelta(stamped),true);
+ // R165: v13; a v12 bundle (5a9e000c) walks once to get groupChatRefreshByBorrower.
+ for(const old of ['c'.repeat(64),'0'.repeat(56)+'5a9e000b','0'.repeat(56)+'5a9e000c','5a9e000d'])assert.equal(acceptsRowDelta(old),false,old);
  assert.equal(acceptsRowDelta(null),true,'own writes applied locally keep their delta (a reconciliation heals them)');
  const fingerprints={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[]};return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
  for(const domain of ['records','collection','cash','management'])assert.equal(acceptsRowDelta(await readOfflineSourceVersion(fingerprints,actor,domain,stamp.businessDate)),true,domain);

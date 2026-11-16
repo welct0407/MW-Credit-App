@@ -4,7 +4,8 @@
 -- every table, read-only protected relations incl. pwa_row_changes), then each DML kind, each writer
 -- role and the hourly retention are exercised. Trigger placement is asserted by Test-TriggerOrder.sql.
 -- V146 (R146) adds pwa_group_chat_summaries (key borrower_id) as the twentieth tracked table; V147 (R149) adds
--- pwa_group_chat_seen (first key column borrower_id) as the twenty-first.
+-- pwa_group_chat_seen (first key column borrower_id) as the twenty-first; V150 (R165) adds pwa_group_chat_refresh_requests
+-- (key borrower_id) as the twenty-second.
 \set ON_ERROR_STOP on
 BEGIN;
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
@@ -126,6 +127,19 @@ TRUNCATE public.pwa_group_chat_seen;
 DO $$ DECLARE got text; BEGIN
  SELECT string_agg(table_name||':'||row_key,' ' ORDER BY seq) INTO got FROM public.pwa_row_changes WHERE seq>(SELECT seq FROM rc_mark_n);
  IF got IS DISTINCT FROM 'pwa_group_chat_seen:RC-B pwa_group_chat_seen:RC-B pwa_group_chat_seen:RC-B pwa_group_chat_seen:*' THEN RAISE EXCEPTION 'Change log for the group chat seen value differs: %',got; END IF;
+END $$;
+
+-- V150 (R165): the refresh request is tracked under its borrower for each DML kind, an identical UPDATE logs nothing, and
+-- its TRUNCATE leaves the marker row. Invented rows.
+CREATE TEMP TABLE rc_mark_r ON COMMIT DROP AS SELECT coalesce(max(seq),0) AS seq FROM public.pwa_row_changes;
+INSERT INTO public.pwa_group_chat_refresh_requests(borrower_id,request_id,requested_by,requested_at) VALUES('RC-B','0c970c97-0c97-4c97-8c97-0c970c970c98','RC-A',now()-interval '2 minutes');
+UPDATE public.pwa_group_chat_refresh_requests SET completed_at=now(),outcome='unchanged' WHERE borrower_id='RC-B';
+UPDATE public.pwa_group_chat_refresh_requests SET outcome='unchanged' WHERE borrower_id='RC-B';
+DELETE FROM public.pwa_group_chat_refresh_requests WHERE borrower_id='RC-B';
+TRUNCATE public.pwa_group_chat_refresh_requests;
+DO $$ DECLARE got text; BEGIN
+ SELECT string_agg(table_name||':'||row_key,' ' ORDER BY seq) INTO got FROM public.pwa_row_changes WHERE seq>(SELECT seq FROM rc_mark_r);
+ IF got IS DISTINCT FROM 'pwa_group_chat_refresh_requests:RC-B pwa_group_chat_refresh_requests:RC-B pwa_group_chat_refresh_requests:RC-B pwa_group_chat_refresh_requests:*' THEN RAISE EXCEPTION 'Change log for the group chat refresh request differs: %',got; END IF;
 END $$;
 
 -- G. Paths that skip ordinary triggers: under session_replication_role=replica the ALWAYS trigger still logs

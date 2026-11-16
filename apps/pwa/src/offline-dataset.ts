@@ -787,7 +787,11 @@ export async function readOfflineDataset(access:Access,path:string):Promise<any|
   if(parts[1]==='collection'&&id&&tail==='charges'){const borrower=data.items?.find((row:any)=>row.id===id);
    // R146: the borrower's group chat summary from the synced rows (null when none was synced); items carry chatSummaryAt.
    const chat=(data.groupChatByBorrower??[]).find((row:any)=>row.borrowerId===id),groupChat=chat?(({borrowerId:_borrower,...value})=>value)(chat):null;
-   return borrower?page((data.charges??[]).filter((row:any)=>row.borrowerId===id).sort(byDate('chargeDate')),url,bundle,{...envelope,borrower,groupChat}):null}
+   // R165: the borrower's refresh request beside it (v13 bundles; a bundle without the rows leaves the field out, as the
+   // online read does without V150 or the reader grant).
+   const refreshRows=data.groupChatRefreshByBorrower,refreshRow=Array.isArray(refreshRows)?refreshRows.find((row:any)=>row.borrowerId===id):undefined;
+   const refresh=Array.isArray(refreshRows)?{groupChatRefresh:refreshRow?(({borrowerId:_borrower,...value})=>value)(refreshRow):null}:{};
+   return borrower?page((data.charges??[]).filter((row:any)=>row.borrowerId===id).sort(byDate('chargeDate')),url,bundle,{...envelope,borrower,groupChat,...refresh}):null}
   if(tail==='upcoming'){
    const entry=(data.borrowerUpcoming??Object.values(data.borrowerUpcomingByKey??{})).find((row:any)=>row.borrowerId===id&&row.scope===(parts[1]==='collection'?'collection':'borrower'));if(!entry)return null;
    if(!parts[4])return {...envelope,...entry};const detail=entry.previews?.find((row:any)=>row.dueDate===parts[4]);return detail?page(detail.items,url,bundle,{...envelope,...detail}):null;

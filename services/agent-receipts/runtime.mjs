@@ -1,5 +1,5 @@
 import {OAuth2Client} from 'google-auth-library';
-import {agentCloseIdentity,agentIdentity,canonicalAgentClose,canonicalAgentCommand,canonicalGroupChatSummary} from './contract.mjs';
+import {agentCloseIdentity,agentIdentity,canonicalAgentClose,canonicalAgentCommand,canonicalGroupChatRefresh,canonicalGroupChatSummary} from './contract.mjs';
 import {readLoanCloseQuote} from '../payment-command/store.mjs';
 import {validBorrowerId} from '../business/borrowers.mjs';
 import {PROJECT_ID as project,runUrl} from '../lib/identity.mjs';
@@ -11,6 +11,11 @@ const receiptRoute=new RegExp(`^/internal/agent/receipt-payments(?:/(${uuid}))?$
 const closeRoute=new RegExp(`^/internal/agent/loan-closes(?:/(${uuid}))?$`),quoteRoute=/^\/internal\/agent\/loan-closes\/quote\/([^/?#]+)$/;
 // R146: the agent's group chat summary (display only): POST {command}, no actor Partner, no after-commit effect.
 const summaryRoute='/internal/agent/group-chat-summaries';
+// R165: the PWA's refresh requests (V150): GET the open ones, POST one outcome {command}. No actor Partner, no wake.
+const refreshRoute='/internal/agent/group-chat-refreshes';
+// Open requests the agent serves: younger than 10 minutes (an older one is replaced by the next tap), oldest first, 20 at most.
+export const groupChatRefreshesSql=`SELECT r.borrower_id AS "borrowerId",r.request_id::text AS "requestId",to_char(r.requested_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "requestedAt"
+ FROM public.pwa_group_chat_refresh_requests r WHERE r.completed_at IS NULL AND r.requested_at>clock_timestamp()-interval '10 minutes' ORDER BY r.requested_at,r.borrower_id COLLATE "C" LIMIT 20`;
 const fail=()=>{throw Error('invalid_agent_receipt_configuration');};
 export function loadAgentReceiptPolicy(env,environment){
  if(env.AGENT_RECEIPT_API_ENABLED===undefined||env.AGENT_RECEIPT_API_ENABLED==='false')return null;
@@ -26,10 +31,11 @@ export function loadAgentReceiptPolicy(env,environment){
  return Object.freeze(p);
 }
 
-/** The route a machine request names: {kind: receipt|close|quote|summary, id} or null (unknown path or method). */
+/** The route a machine request names: {kind: receipt|close|quote|summary|refreshes|refresh, id} or null (unknown path or method). */
 function route(req){
  const url=req.url??'',receipt=receiptRoute.exec(url),quote=quoteRoute.exec(url),close=closeRoute.exec(url);
  if(url===summaryRoute)return req.method==='POST'?{kind:'summary',id:null}:null;
+ if(url===refreshRoute)return req.method==='GET'?{kind:'refreshes',id:null}:req.method==='POST'?{kind:'refresh',id:null}:null;
  if(receipt)return req.method===(receipt[1]?'GET':'POST')?{kind:'receipt',id:receipt[1]??null}:null;
  if(quote){if(req.method!=='GET')return null;let loanId;try{loanId=decodeURIComponent(quote[1]);}catch{return null;}return validBorrowerId(loanId)?{kind:'quote',id:loanId}:null;}
  if(close)return req.method===(close[1]?'GET':'POST')?{kind:'close',id:close[1]??null}:null;
@@ -51,6 +57,39 @@ export function createAgentReceiptHandler({next,policy,pool,guardConnection,afte
    claims=await verify(token[1],policy.audience);
    if(!claims||claims.aud!==policy.audience||!['https://accounts.google.com','accounts.google.com'].includes(claims.iss)||claims.email!==policy.callerEmail||claims.sub!==policy.callerSubject||claims.email_verified!==true||!Number.isFinite(claims.exp)||claims.exp*1000<=now()||!Number.isFinite(claims.iat)||claims.iat*1000>now()+60000)throw Error();
   }catch{return send(res,401,{error:'unauthorized'});}
+  if(target.kind==='refreshes'){
+   // R165: the open refresh requests, read only. A database before V150 answers 503 (the agent then serves none).
+   let client,requests;
+   try{
+    client=await pool.connect();await client.query('BEGIN READ ONLY');await guardConnection(client);
+    await client.query(statementTimeoutSql('command'));await client.query(lockTimeoutSql);
+    requests=(await client.query(groupChatRefreshesSql)).rows.filter(row=>validBorrowerId(row.borrowerId)&&typeof row.requestId==='string'&&typeof row.requestedAt==='string')
+     .map(row=>({borrowerId:row.borrowerId,requestId:row.requestId,requestedAt:row.requestedAt}));
+    await client.query('COMMIT');
+   }catch{try{await client?.query('ROLLBACK');}catch{}return send(res,503,{error:'refresh_unavailable'});}
+   finally{try{client?.release();}catch{}}
+   return send(res,200,{environment:policy.environment,requests});
+  }
+  if(target.kind==='refresh'){
+   // R165: body exactly {command}, at most 4,096 bytes, for this policy's environment. 22023 is a refused command (400).
+   let canonical;
+   try{const chunks=[];let length=0;for await(const chunk of req){const bytes=Buffer.from(chunk);length+=bytes.length;if(length>4096)throw Error();chunks.push(bytes);}
+    const body=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)));if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).join(',')!=='command')throw Error();
+    canonical=canonicalGroupChatRefresh(body.command);if(canonical.environment!==policy.environment)throw Error();
+   }catch{return send(res,400,{error:'invalid_refresh_command'});}
+   let client,kind,commitStarted=false,quarantine=false;
+   try{
+    client=await pool.connect();await client.query('BEGIN');await guardConnection(client);
+    await client.query(statementTimeoutSql('command'));await client.query(lockTimeoutSql);
+    kind=(await client.query('SELECT public.pwa_complete_group_chat_refresh_v1($1) value',[JSON.stringify({command:canonical})])).rows[0].value?.kind;
+    if(!['completed','replayed','unknown_request'].includes(kind))throw Error('invalid_refresh_result');
+    commitStarted=true;await client.query('COMMIT');
+   }catch(error){quarantine=commitStarted;try{await client?.query('ROLLBACK');}catch{quarantine=true;}
+    if(!commitStarted&&error?.code==='22023')return send(res,400,{error:'invalid_refresh_command'});
+    return send(res,503,{error:commitStarted?'refresh_outcome_unknown':'refresh_unavailable'});
+   }finally{try{client?.release(quarantine);}catch{}}
+   return send(res,200,{kind});
+  }
   if(target.kind==='summary'){
    // R146: body exactly {command}, at most 16,384 bytes, for this policy's environment. pwa_put_group_chat_summary_v1 (V146)
    // runs with the command service's own rights. 22023 is a refused command (400), P0002 an unknown borrower (422).

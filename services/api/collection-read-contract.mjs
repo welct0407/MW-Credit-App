@@ -174,6 +174,31 @@ async function markChatSummary(client, items, partnerId) {
   const seen = new Map((await client.query(groupChatSeenListSql, [ids, partnerId])).rows.map(row => [row.id, instant(row.seen_last_message_at)]));
   return marked.map(item => ({ ...item, chatSeenAt: seen.get(item.id) ?? null }));
 }
+// R165 group chat summary refresh (V150): the borrower's current refresh request as the detail's groupChatRefresh
+// {requestedAt, completedAt, outcome}, a sibling of groupChat. The reader holds column grants on these four columns only
+// (request_id and requested_by are never read here). Same guard as the summaries: without the table or the grant the
+// field is left out and the PWA shows no refresh state; with them and no row it is null. The PWA decides from the times
+// whether a request is still pending (6 minutes) or was completed in the page view.
+export const GROUP_CHAT_REFRESH_COLUMNS = ['borrower_id', 'requested_at', 'completed_at', 'outcome'];
+export const GROUP_CHAT_REFRESH_OUTCOMES = ['stored', 'unchanged', 'cleared', 'no_group', 'failed'];
+export const groupChatRefreshAllowedSql = `SELECT COALESCE((SELECT bool_and(has_column_privilege(t.oid, c.name, 'SELECT'))
+  FROM (SELECT to_regclass('public.pwa_group_chat_refresh_requests')::oid AS oid) t, unnest(ARRAY[${GROUP_CHAT_REFRESH_COLUMNS.map(name => `'${name}'`).join(', ')}]) c(name)
+  WHERE t.oid IS NOT NULL), false) AS allowed`;
+export const groupChatRefreshColumnsSql = GROUP_CHAT_REFRESH_COLUMNS.map(name => 'r.' + name).join(', ');
+export const groupChatRefreshDetailSql = `SELECT ${groupChatRefreshColumnsSql} FROM public.pwa_group_chat_refresh_requests r WHERE r.borrower_id = $1`;
+/** One pwa_group_chat_refresh_requests row as {requestedAt, completedAt, outcome}; null for a row that is not the V150
+ * shape (display only: a bad row never fails the collection read). */
+export function projectGroupChatRefresh(row) {
+  if (!row) return null;
+  const requestedAt = instant(row.requested_at), completedAt = row.completed_at === null ? null : instant(row.completed_at), outcome = row.outcome;
+  if (!requestedAt || (row.completed_at !== null && !completedAt) || (completedAt === null) !== (outcome === null) || (outcome !== null && !GROUP_CHAT_REFRESH_OUTCOMES.includes(outcome))) return null;
+  return { requestedAt, completedAt, outcome };
+}
+/** R165: {groupChatRefresh} for the detail envelope, or {} when the table or the reader grant is missing. */
+async function readGroupChatRefresh(client, borrowerId) {
+  if ((await client.query(groupChatRefreshAllowedSql)).rows[0]?.allowed !== true) return {};
+  return { groupChatRefresh: projectGroupChatRefresh((await client.query(groupChatRefreshDetailSql, [borrowerId])).rows[0]) };
+}
 // R153 (V148) the borrower's Instagram group chat link, "Borrowers"."IG Group URL", set by the owner. One rule in SQL (the
 // column check borrowers_ig_group_url_check and pwa_submit_operation_v2), here (the borrower command's canonicaliser in
 // services/business/borrowers.mjs imports it) and in the PWA (apps/pwa/src/ig-group-url.ts).
@@ -324,5 +349,7 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
   const [borrower] = await markGroupLinks(client, await markPrepaidSource(client, businessDate, [projectCollection(summary.rows[0])], paymentSource), { dm });
   // R146: the detail envelope carries the borrower's group chat summary (null when there is none).
   const groupChat = await readGroupChat(client, borrowerId);
-  return { ...metadata, borrower, groupChat, items, nextCursor: charges.rows.length > limit ? encodeCollectionCursor({ kind: 'collection-charges', businessDate, parentId: borrowerId, chargeDate: items.at(-1).chargeDate, id: items.at(-1).id }) : null };
+  // R165: the refresh request state rides beside it (left out without V150 or the reader grant).
+  const refresh = await readGroupChatRefresh(client, borrowerId);
+  return { ...metadata, borrower, groupChat, ...refresh, items, nextCursor: charges.rows.length > limit ? encodeCollectionCursor({ kind: 'collection-charges', businessDate, parentId: borrowerId, chargeDate: items.at(-1).chargeDate, id: items.at(-1).id }) : null };
 }
