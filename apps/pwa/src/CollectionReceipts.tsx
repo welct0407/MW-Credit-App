@@ -30,7 +30,7 @@ export function CollectionReceipts({access,borrowerId,chargeIds,thai,onOpen}:{ac
    const collected:any[]=[];const visited=new Set<string>();let value:any;
    for(;;){
     const {response,data}=await readCachedJson<any>(access,'/api/borrowers/'+encodeURIComponent(borrowerId)+'/collection-receipts?'+params,{signal:controller.signal,onCached:data=>{if(current!==generation.current)return;const rows=data.items.filter((row:any)=>row.manualReceiptPresent||row.agentReceiptPresent);setItems(previous=>Array.from(new Map([...(from?previous:[]),...collected,...rows].map(row=>[row.id,row])).values()));setNext(data.nextCursor??null);setBusy(false)}});
-    if(response.status===409&&data?.code==='business_date_changed'&&!retried){retried=true;day=bangkokClock().date;params.set('businessDate',day);params.delete('cursor');from=undefined;collected.length=0;visited.clear();continue}
+    if(response.status===409&&data?.code==='business_date_changed'&&!retried){retried=true;day=bangkokClock().date;params.set('businessDate',day);params.delete('cursor');from=undefined;retryCursor.current=undefined;collected.length=0;visited.clear();continue}
     if(!response.ok)throw Error();value=data;
     collected.push(...value.items.filter((row:any)=>row.manualReceiptPresent||row.agentReceiptPresent));
     if(value.nextCursor){if(seen.current.has(value.nextCursor)||visited.has(value.nextCursor)||value.nextCursor===from)throw Error();visited.add(value.nextCursor);params.set('cursor',value.nextCursor);}
