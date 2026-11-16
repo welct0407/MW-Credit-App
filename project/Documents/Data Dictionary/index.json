@@ -6573,6 +6573,85 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/public-pwa-group-chat-refresh-requests-e5350db2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_group_chat_refresh_requests",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "request_id",
+          "pointer": "/content/columns/request_id"
+        },
+        {
+          "subject": "requested_by",
+          "pointer": "/content/columns/requested_by"
+        },
+        {
+          "subject": "requested_at",
+          "pointer": "/content/columns/requested_at"
+        },
+        {
+          "subject": "completed_at",
+          "pointer": "/content/columns/completed_at"
+        },
+        {
+          "subject": "outcome",
+          "pointer": "/content/columns/outcome"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_completed",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_completed"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_order",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_order"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_requests_borrower_id_fkey",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_requests_borrower_id_fkey"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_requests_borrower_id_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_requests_borrower_id_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_requests_outcome_check",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_requests_outcome_check"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_requests_pkey",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_requests_pkey"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_requests_request_id_key",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_requests_request_id_key"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_requests_request_id_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_requests_request_id_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_requests_requested_at_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_requests_requested_at_not_null"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_requests_requested_by_fkey",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_requests_requested_by_fkey"
+        },
+        {
+          "subject": "pwa_group_chat_refresh_requests_requested_by_not_null",
+          "pointer": "/content/constraints/pwa_group_chat_refresh_requests_requested_by_not_null"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/public-pwa-group-chat-seen-56cc11df.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -12133,6 +12212,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-complete-group-chat-refresh-v1-canonical-json-text-dfae28f9.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_complete_group_chat_refresh_v1(canonical_json text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-convert-legacy-rebate-v1-p-expense-id-text-c50365a2.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -12568,6 +12657,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-request-group-chat-refresh-v1-actor-jsonb-p-borrower-id-text-02b3d3b6.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_request_group_chat_refresh_v1(actor jsonb, p_borrower_id text)",
       "scope": "production",
       "status": "documented",
       "lookup": []
