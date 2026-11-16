@@ -50,7 +50,7 @@ BEGIN
  opened:=public.pwa_request_group_chat_refresh_v1(one,'GR-A');
  IF opened->>'kind'<>'accepted' OR opened->>'requestId' !~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
    OR opened->>'requestedAt' !~ '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$' OR opened->'completedAt'<>'null'::jsonb OR opened->'outcome'<>'null'::jsonb
-   OR (SELECT array_agg(k ORDER BY k) FROM jsonb_object_keys(opened) k)<>ARRAY['completedAt','kind','outcome','requestId','requestedAt'] THEN RAISE EXCEPTION 'accepted result %',opened; END IF;
+   OR (SELECT array_agg(k ORDER BY k COLLATE "C") FROM jsonb_object_keys(opened) k)<>ARRAY['completedAt','kind','outcome','requestId','requestedAt'] THEN RAISE EXCEPTION 'accepted result %',opened; END IF;
  request:=opened->>'requestId';
  IF NOT EXISTS(SELECT 1 FROM public.pwa_group_chat_refresh_requests WHERE borrower_id='GR-A' AND request_id=request::uuid AND requested_by='GR-P1' AND completed_at IS NULL AND outcome IS NULL)
   OR (SELECT count(*) FROM public.pwa_group_chat_refresh_requests)<>1 THEN RAISE EXCEPTION 'accepted row differs'; END IF;

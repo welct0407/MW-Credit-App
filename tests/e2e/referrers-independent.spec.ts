@@ -34,7 +34,8 @@ async function setup(page:Page){
 async function openReferrers(page:Page){
  if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:'Open navigation',exact:true}).click();
  await page.getByRole('button',{name:'Referrers',exact:true}).filter({visible:true}).click();
- await expect(page.getByRole('heading',{name:'Referrers',exact:true})).toBeVisible();
+ // The page's own h2, not the header h1 that shows the view title once signed in (both read "Referrers").
+ await expect(page.getByRole('heading',{name:'Referrers',exact:true,level:2})).toBeVisible();
 }
 const noHorizontalScroll=(page:Page)=>expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 const sizes=[{label:'phone 390px',viewport:{width:390,height:844}},{label:'desktop',viewport:{width:1280,height:900}}];
