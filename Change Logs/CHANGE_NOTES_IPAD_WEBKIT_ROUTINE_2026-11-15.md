@@ -1,4 +1,4 @@
-# Change notes — iPad WebKit check routine and iPad layout fixes, 15 November 2026
+# Change notes — iPad WebKit check routine and iPad layout fixes (R162), 15 November 2026
 
 ## Purpose
 Owner request of 15 November 2026: include the iPad experience in CI for the iPad 11th generation and later, the iPad Air 5th generation and later (11 and 13 inches) and the iPad Pro M5 (11 and 13 inches) and later, open a pull request when ready, and engage the team. Until now no check ran on an iPad profile. The owner also approved app fixes in this pull request, for defects the new projects exposed and Echo found. R162 is Open and carries this batch.
@@ -37,7 +37,7 @@ Owner request of 15 November 2026: include the iPad experience in CI for the iPa
 | Byte, final round at `cfe3c9c`: `live-signout-blocked` 21 passed and 4 skipped, `list-return` 174 and 16 skipped, `about` 25, `w5-ux` 21 and 4 skipped, `full-sync` 5, `offline-retention` 30, `payment-phase4` 20, `saved-change-discard` 90, `data-check` 10, `pending-flash` 10, `back-consumers` 259 passed and 1 failed, `phase5-borrower` 349 passed, 2 failed and 4 skipped | The 3 failures (`back-consumers` offline loan draft on `mobile-webkit`; `phase5-borrower` R120 Thai alert and F12 draft-count poll on iPad portrait) each passed 3 of 3 when repeated alone and touch no changed code: load flakes, see Remaining work |
 | Chase's independent review | No blocking findings; desktop 1200 px and wider and phones 767 px and narrower unchanged; no test weakened; 560 tests per project (557 before); CI wiring matches `stages.json`; `ci-reuse-evidence` unit test 10 of 10; `foundation`, `dataset-replay`, `persistence`, `unified-receiving` (and independent), `error-recovery`, `live-search-timer`, `w5-ux` on all five projects: 247 passed, 15 skipped, 0 failed. Not verified: negative runs of COLL-01, NAV-01 and NAV-02 |
 | Echo's re-check | IPAD-COLL-01, BORR-01, BORR-02, NAV-01, NAV-02, the scroll return and Review saved changes fixed at 820, 1180 and 1376 px; desktop 1440 and iPhone unchanged; found IPAD-NAV-05, now fixed |
-| Development checks on the pull request head | TODO |
+| Development checks on the pull request head | Pass: run 43747953271 on `300ae4e3` (check, lint, terraform, 3 Chromium, 3 iPhone WebKit, 3 iPad portrait WebKit and 3 iPad landscape WebKit shards, all green); the merge `9cf191f2` has the same tree |
 | `npm run check:docs` | Pass (Dewey, working tree of 15 November 2026) |
 
 ## Not run
@@ -64,6 +64,12 @@ Authority: the owner, 16 November 2026, after PR #335 merged: "Push to prod then
 Rollback: PROD Hosting `d8c87e560fe08d2e` (R161); DEV Hosting `afa8ec1e5495e1a6` (R161). No database or service step.
 
 Limitations: the owner accepts the iPad layout on a real iPad (portrait and landscape, keyboard and Home Screen).
+
+## Closure prune (Dewey, 16 November 2026)
+R162 is Released. Deleted in the closure pull request:
+- `Change Logs/CHANGE_NOTES_R159_SYNC_QUEUE_AND_PAYMENTS_MISMATCH_2026-11-14.md`: outside the retention window (R162, R161 and R160 are the three most recent Released releases). Its six inbound links (two in the release tracker, one in Development Changes, three in the Environment Inventory) now point at commit `9cf191f2`, the last commit where it exists.
+- The R162 row of Development Changes, replaced by the "R162 follow-up" row, as for earlier releases.
+- No evidence directory was deleted: `npm run check:docs` reports none uncited.
 
 ## Open questions
 None.
