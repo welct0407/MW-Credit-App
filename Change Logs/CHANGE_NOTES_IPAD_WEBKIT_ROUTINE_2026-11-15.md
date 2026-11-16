@@ -1,4 +1,4 @@
-# Change notes — iPad WebKit check routine and iPad layout fixes, 15 November 2026
+# Change notes — iPad WebKit check routine and iPad layout fixes (R162), 15 November 2026
 
 ## Purpose
 Owner request of 15 November 2026: include the iPad experience in CI for the iPad 11th generation and later, the iPad Air 5th generation and later (11 and 13 inches) and the iPad Pro M5 (11 and 13 inches) and later, open a pull request when ready, and engage the team. Until now no check ran on an iPad profile. The owner also approved app fixes in this pull request, for defects the new projects exposed and Echo found. R162 is Open and carries this batch.
@@ -37,7 +37,7 @@ Owner request of 15 November 2026: include the iPad experience in CI for the iPa
 | Byte, final round at `cfe3c9c`: `live-signout-blocked` 21 passed and 4 skipped, `list-return` 174 and 16 skipped, `about` 25, `w5-ux` 21 and 4 skipped, `full-sync` 5, `offline-retention` 30, `payment-phase4` 20, `saved-change-discard` 90, `data-check` 10, `pending-flash` 10, `back-consumers` 259 passed and 1 failed, `phase5-borrower` 349 passed, 2 failed and 4 skipped | The 3 failures (`back-consumers` offline loan draft on `mobile-webkit`; `phase5-borrower` R120 Thai alert and F12 draft-count poll on iPad portrait) each passed 3 of 3 when repeated alone and touch no changed code: load flakes, see Remaining work |
 | Chase's independent review | No blocking findings; desktop 1200 px and wider and phones 767 px and narrower unchanged; no test weakened; 560 tests per project (557 before); CI wiring matches `stages.json`; `ci-reuse-evidence` unit test 10 of 10; `foundation`, `dataset-replay`, `persistence`, `unified-receiving` (and independent), `error-recovery`, `live-search-timer`, `w5-ux` on all five projects: 247 passed, 15 skipped, 0 failed. Not verified: negative runs of COLL-01, NAV-01 and NAV-02 |
 | Echo's re-check | IPAD-COLL-01, BORR-01, BORR-02, NAV-01, NAV-02, the scroll return and Review saved changes fixed at 820, 1180 and 1376 px; desktop 1440 and iPhone unchanged; found IPAD-NAV-05, now fixed |
-| Development checks on the pull request head | TODO |
+| Development checks on the pull request head | Pass: run 43747953271 on `300ae4e3` (check, lint, terraform, 3 Chromium, 3 iPhone WebKit, 3 iPad portrait WebKit and 3 iPad landscape WebKit shards, all green); the merge `9cf191f2` has the same tree |
 | `npm run check:docs` | Pass (Dewey, working tree of 15 November 2026) |
 
 ## Not run
@@ -48,6 +48,28 @@ Owner request of 15 November 2026: include the iPad experience in CI for the iPa
 
 ## Recovery
 Revert the merge; tests, CI, documentation and PWA layout and scroll code only, no data or deployed service change. Hosting rolls back through the usual previous version in the [environment inventory](../project/Documents/Environment_Inventory.md) if the PWA ships and a fix misbehaves.
+
+## PROD promotion record (Forge, 16 November 2026 UTC)
+Authority: the owner, 16 November 2026, after PR #335 merged: "Push to prod then close the release" (R162; Hosting only; no SQL, image, agent, notification or job change). Freeze 00:26:59Z, package `9cf191f2` (merge of PR #335), baseline R161 `07b1d48a`. `component-versions.mjs derive` at `9cf191f2`: only the PWA changed (R162); read, command and chat stay R161, notify and jobs R159, schema R154 at V149, agent R153. The other non-PWA files since R161 are CI (`.github/workflows/ci.yml`, `scripts/ci/stages.json`, `playwright.config.ts`), an agent definition and records; no runtime input. Both bundles were built from a clean export (git archive) of `9cf191f2` with its own `npm ci`.
+
+| Step | Result |
+| --- | --- |
+| Baseline | Project `clever-oasis-508610-n7`, region `asia-southeast1`. PROD Hosting `d8c87e560fe08d2e` (release `1794730883591000`, R161); read `00064-xnt`, command `00069-gnv`, chat `00048-zqm` (R161 image `a68fdedc…`), notify `00031-mzf`, jobs `00031-dmq` (R159 image `56f17745…`). DEV Hosting `afa8ec1e5495e1a6` (release `1794725834818000`, R161). Flyway read-only as `codex-cloud-read` through the IAP tunnel, 00:29:05Z: `loan_manager_prod` V149, 149 rows, none failed |
+| DEV | `build:live-dev` with `MW_RELEASE_NUMBER=R162`; the env file was written from `mw-credit-app-dev-firebase-web` and the settings of the live DEV bundle (read, command and chat DEV origins, `dev-owner-testing`, notifications on; the DEV web app) and deleted after the build. `deploy-hosting.mjs --live-dev --check` (17 files) then apply 00:27:50Z to 00:28:00Z: version `a2e4ba6ee02291ae`, release `1794788879980000`, build R162 `7768964b94a127f0baaf7082`. Smoke: three origins R162, index and entry 200, `sw.js` no-store, the stylesheet carries `minmax(min-content`, unauthenticated 401 |
+| Hosting | The generic runner, frontend-only, from `buildProductionBusinessCandidate` (R158's pinned public config, unchanged; PROD origins and web app only). Receipts: `Development checks` run 43747953271 on `300ae4e3` (check, lint, terraform, 3 Chromium, 3 iPhone, 3 iPad portrait and 3 iPad landscape WebKit e2e); the merge `9cf191f2` has the same tree as `300ae4e3` (its first parent is `ad9841a`, the merge base; main had no other change). `Database migrations` run 43734374979 on `f12c6c3a` (guards and all four rebuild groups; no rebuild-stage input changed since; the push run on `9cf191f2` skipped rebuild). SQL readback: 00:29:05Z above. `--check` passed (18 files, services on their R161 and R159 pins); `--apply` 00:31:06Z to 00:31:42Z: version `81660e7a5fec843c`, release `1794789095371000`, build R162 `b714f94b2610b5fb8f6807ac` |
+| Smoke | Three origins R162 (`lm.mw-credit.com`, `web.app`, `firebaseapp.com`), index and entry 200, `sw.js` no-store, the stylesheet carries `minmax(min-content`; unauthenticated 401; read, command and chat `/health` R161 `07b1d48a` (unchanged); Cloud Run revisions unchanged after the apply; no ERROR logs on any PROD service after 00:25Z (checked 00:31:58Z). No notification, payment or job was run |
+| Tag | `R162` on `9cf191f2` (Release tag run [43780955688](https://github.com/welct0407/MW-Credit-App/actions/runs/43780955688), 00:32:15Z to 00:32:43Z; tag object `3a8b94b2…` peels to `9cf191f2`). The GitHub Release body shows the derive table twice (once in the notes, once appended by the workflow) |
+| Closure | Components: PWA R162; read, command and chat R161; notify and jobs R159; schema R154 at V149; agent R153. `render --write` updated the inventory block to R162 (`render --check` ok). Drift 00:33:50Z (`--env all`; notify `/health` read with an identity token in DEV and PROD, jobs by the shared digest, Flyway 149 read live in DEV and PROD at 00:33Z): 0 drift, 3 unverified (agent, Grafana, Metabase). No dictionary capture |
+
+Rollback: PROD Hosting `d8c87e560fe08d2e` (R161); DEV Hosting `afa8ec1e5495e1a6` (R161). No database or service step.
+
+Limitations: the owner accepts the iPad layout on a real iPad (portrait and landscape, keyboard and Home Screen).
+
+## Closure prune (Dewey, 16 November 2026)
+R162 is Released. Deleted in the closure pull request:
+- `Change Logs/CHANGE_NOTES_R159_SYNC_QUEUE_AND_PAYMENTS_MISMATCH_2026-11-14.md`: outside the retention window (R162, R161 and R160 are the three most recent Released releases). Its six inbound links (two in the release tracker, one in Development Changes, three in the Environment Inventory) now point at commit `9cf191f2`, the last commit where it exists.
+- The R162 row of Development Changes, replaced by the "R162 follow-up" row, as for earlier releases.
+- No evidence directory was deleted: `npm run check:docs` reports none uncited.
 
 ## Open questions
 None.
