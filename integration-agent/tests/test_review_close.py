@@ -124,12 +124,12 @@ class TextTests(unittest.TestCase):
 
     def test_close_request_english_and_thai(self):
         self.assertEqual(request_text(self.proposal, 'English'), ('Loan close approval requested', '\n'.join([
-            'Loan close approval requested', 'Borrower: Cha', 'Amount: 1100.00 baht', f'Transferred: {TODAY} 13:16 (Bangkok)', 'Account: Dad SCB',
+            'Loan close approval requested', 'Borrower: Cha', 'Amount: 1,100 baht', f'Transferred: {TODAY} 13:16 (Bangkok)', 'Account: Dad SCB',
             'Loan: Cha - -฿1,000-26/10-1.5%', 'Closing amount ฿1,100 (principal ฿1,000 + interest ฿100) matches this slip.',
             'Proposed: Close the loan; agent records the Loan Close',
             'Use Reply on THIS message: Yes / Approve / Approved (any case) to close the loan. Other direct replies reject. Nothing has been posted.'])))
         self.assertEqual(request_text(self.proposal, 'ไทย'), ('ขออนุมัติปิดสัญญา', '\n'.join([
-            'ขออนุมัติปิดสัญญา', 'ผู้กู้: ชา', 'ยอด: 1100.00 บาท', f'เวลาโอน: {TODAY} 13:16', 'บัญชีรับ: Dad SCB', 'สัญญา: Cha - -฿1,000-26/10-1.5%',
+            'ขออนุมัติปิดสัญญา', 'ผู้กู้: ชา', 'ยอด: 1,100 บาท', f'เวลาโอน: {TODAY} 13:16', 'บัญชีรับ: Dad SCB', 'สัญญา: Cha - -฿1,000-26/10-1.5%',
             'ยอดปิด ฿1,100 (เงินต้น ฿1,000 + ดอกเบี้ย ฿100) ตรงกับสลิป', 'รายการที่เสนอ: ปิดสัญญา ระบบจะบันทึกการปิดให้',
             'กรุณาใช้ Reply ตอบข้อความนี้ว่า อนุมัติ เพื่อปิดสัญญา คำตอบอื่นถือว่าปฏิเสธ ยังไม่ได้บันทึกรายการ'])))
         for language in ('English', 'ไทย'):
@@ -181,11 +181,11 @@ class TextTests(unittest.TestCase):
         detail = json.dumps({'closeRebate': {'path': 'offset', 'amount': '30', 'offsetAmount': '30', 'payable': '0'}})
         subject, body = close_notice(dict(self.proposal, close=close(referrer='Ann')), 'English', 'pwa:x', detail)
         self.assertEqual(subject, 'Loan closed')
-        self.assertEqual(body, '\n'.join(['Loan closed', 'Borrower: Cha', 'Amount: 1,100.00 baht', f'Transferred: {TODAY} 13:16 (Bangkok)', 'Received into: Dad SCB',
-                                         'Payment ID: pwa:x', 'Loan closed: Cha - -฿1,000-26/10-1.5%', "Referral rebate ฿30: offset to Ann's loan"]))
+        self.assertEqual(body, '\n'.join(['Loan closed', 'Borrower: Cha', 'Amount: 1,100 baht', f'Transferred: {TODAY} 13:16 (Bangkok)', 'Received into: Dad SCB',
+                                         'Loan closed: Cha - -฿1,000-26/10-1.5%', "Referral rebate ฿30: offset to Ann's loan"]))
         subject, body = close_notice(dict(self.proposal, close=close(referrer='Ann')), 'ไทย', 'pwa:x', json.dumps({'closeRebate': {'path': 'expense', 'amount': '30', 'offsetAmount': '0', 'payable': '30'}}))
         self.assertEqual(subject, 'ปิดสัญญาสำเร็จ');self.assertTrue(body.startswith('ปิดสัญญาสำเร็จ\nผู้ชำระ: ชา\n'))
-        self.assertTrue(body.endswith('\nรายการชำระเงิน: pwa:x\nปิดสัญญาแล้ว: Cha - -฿1,000-26/10-1.5%\nค่าแนะนำ ฿30: ค้างจ่ายให้ Ann'))
+        self.assertTrue(body.endswith('\nรับเข้าบัญชี: Dad SCB\nปิดสัญญาแล้ว: Cha - -฿1,000-26/10-1.5%\nค่าแนะนำ ฿30: ค้างจ่ายให้ Ann'))
         self.assertNotIn('Referral', close_notice(self.proposal, 'English', 'pwa:x', json.dumps({'closeRebate': None}))[1])
         p = self.proposal
         self.assertEqual(close_failure_line('STALE', 'LOAN_CLOSE_QUOTE_CHANGED:1150', p, False), 'Closing amount is now ฿1,150; slip ฿1,100. Loan not closed; nothing posted. Close it in the app.')

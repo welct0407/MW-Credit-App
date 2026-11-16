@@ -6,6 +6,7 @@ import sqlite3
 from .state import connect as state_connect, is_postgres
 import time
 from datetime import datetime, UTC
+from decimal import Decimal
 
 from .config import ConfigurationError
 from .graph_email import GraphEmail, EmailRejected, valid_email
@@ -155,23 +156,31 @@ class NoticeJournal:
     def close(self):self.db.close()
 
 
+def notice_amount(value):
+    """A baht amount for a partner notice, exact (never rounded): whole baht without decimals ('1,100'), satang with two or more
+    places as given ('800.50')."""
+    amount=Decimal(str(value))
+    if amount==amount.to_integral_value():return f'{amount:,.0f}'
+    return f'{amount:,.2f}' if amount==amount.quantize(Decimal('0.01')) else f'{amount:,}'
+
+
 def receipt_notice(receipt,borrower,language,payment_id=None,facts_changed=False):
-    """payment_id may be supplied only by the verified posting/readback workflow."""
+    """payment_id may be supplied only by the verified posting/readback workflow. It selects the posted wording; the notice does
+    not print it (R164: not meaningful to the reader)."""
     if language not in ('English','ไทย'):raise ConfigurationError('PARTNER_LANGUAGE_UNSUPPORTED')
     thai=language=='ไทย'
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
-    from decimal import Decimal
-    amount=f"{Decimal(receipt['amount']):,.2f}"
+    amount=notice_amount(receipt['amount'])
     when=receipt['date']+' '+receipt['time'][:5]
     if thai:
         subject='บันทึกการชำระเงินสำเร็จ' if payment_id else 'ได้รับสลิปการชำระเงิน'
         body=f"{subject}\nผู้ชำระ: {name}\nจำนวน: {amount} บาท\nวันเวลาโอน: {when} (เวลาไทย)\nรับเข้าบัญชี: {receipt['account_label']}"
-        body+=f'\nรายการชำระเงิน: {payment_id}' if payment_id else '\nผ่านการตรวจสอบสลิปเบื้องต้น ยังไม่ได้บันทึกการชำระเงิน'
+        if not payment_id:body+='\nผ่านการตรวจสอบสลิปเบื้องต้น ยังไม่ได้บันทึกการชำระเงิน'
         if payment_id and facts_changed:body+='\nหมายเหตุ: มีการแก้ไขข้อมูลสัญญาหลังอนุมัติ ระบบยังบันทึกยอดเต็มเป็น Lump Sum'
     else:
         subject='Payment processed' if payment_id else 'Payment receipt received'
         body=f"{subject}\nBorrower: {name}\nAmount: {amount} baht\nTransferred: {when} (Bangkok)\nReceived into: {receipt['account_label']}"
-        body+=f'\nPayment ID: {payment_id}' if payment_id else '\nBasic receipt checks passed. Payment has not been recorded.'
+        if not payment_id:body+='\nBasic receipt checks passed. Payment has not been recorded.'
         if payment_id and facts_changed:body+='\nNote: loan details were updated after approval; the full amount was still posted as Lump Sum.'
     if len(body)>1000:raise ConfigurationError('NOTICE_TOO_LONG')
     return subject,body

@@ -210,7 +210,7 @@ class OptionsCycleTests(unittest.TestCase):
         notices=NoticeJournal(self.root/'partner-notices.db')
         try:
             ack=notices.db.execute("SELECT body FROM partner_notices WHERE event_key=?",('review-result:'+self.key+':RECHECK',)).fetchone()
-            self.assertIsNotNone(ack);self.assertIn('Nothing has been posted yet',ack[0])
+            self.assertIsNotNone(ack);self.assertIn('Nothing has been posted yet',ack[0]);self.assertIn(' ฿1,500\n',ack[0])
             request=notices.db.execute("SELECT body FROM partner_notices WHERE event_key=?",('review:'+new['id'],)).fetchone()
             self.assertTrue(request[0].startswith('Corrected request'),'the new request says it replaces the earlier one')
         finally:notices.close()

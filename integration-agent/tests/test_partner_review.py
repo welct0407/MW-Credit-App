@@ -113,7 +113,7 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(p['action'],'Overpayment review');self.assertEqual(p['approved_allocation_method'],'Lump Sum')
         for language in ('English','ไทย'):
             body=request_text(p,language)[1]
-            self.assertIn('Lump Sum',body);self.assertIn('450.00',body)
+            self.assertIn('Lump Sum',body);self.assertIn(': 450 ',body);self.assertNotIn('450.00',body)
             self.assertNotIn('record this in the app yourself',body);self.assertNotIn('ด้วยตนเอง',body)
         p.pop('approved_allocation_method')
         self.assertIn('record this in the app yourself',request_text(p,'English')[1])

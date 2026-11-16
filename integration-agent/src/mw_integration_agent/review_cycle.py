@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from .receipt_rules import ReceiptInvalid
 from .receipt_master import masters
 from .payment_match import check
-from .partner_notice import NoticeJournal,receipt_notice
+from .partner_notice import NoticeJournal,notice_amount,receipt_notice
 from .statement_delivery import resolve_recipient
 from .partner_review import OPTIONS_REQUIRED,RECHECKED,ReviewStore,close_failure_line,close_notice,request_text,review_id,unidentified_review
 from .review_proposal import (LOAN_CLOSE_CHANGED,OPTIONS,chosen_plan,close_enabled,facts,options_enabled,plan,review_posts_close,
@@ -208,8 +208,8 @@ class Run:
                         proposal=json.loads(row['proposal']);thai=partner['language']=='ไทย'
                         name=proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id']
                         subject='ตรวจสลิปใหม่' if thai else 'Rechecking slip'
-                        body=(f"{subject}\n{name} ฿{proposal['receipt']['amount']}\nกำลังคำนวณใหม่จากยอดปัจจุบันในแอป ข้อความถัดไปจะแจ้งผล ยังไม่ได้บันทึกรายการ" if thai
-                              else f"{subject}\n{name} ฿{proposal['receipt']['amount']}\nPlanning again from the current charges in the app; the result follows in the next message. Nothing has been posted yet.")
+                        body=(f"{subject}\n{name} ฿{notice_amount(proposal['receipt']['amount'])}\nกำลังคำนวณใหม่จากยอดปัจจุบันในแอป ข้อความถัดไปจะแจ้งผล ยังไม่ได้บันทึกรายการ" if thai
+                              else f"{subject}\n{name} ฿{notice_amount(proposal['receipt']['amount'])}\nPlanning again from the current charges in the app; the result follows in the next message. Nothing has been posted yet.")
                         notices.reserve('review-result:'+review_id(notice['event_key'])+':RECHECK',partner,subject,body)
                 if outcome==OPTIONS_REQUIRED:
                     # R112 (Echo AG-2): an unclear reply to the options gets the prompt and the options again, to the
