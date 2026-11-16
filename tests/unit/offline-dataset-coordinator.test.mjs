@@ -75,7 +75,8 @@ function harness({failing=null,walks={},failOnce=null,rejectVersions=false,patch
    if(!walks[domain]&&body.sourceVersion===version(domain))return reply(200,{schemaVersion:3,domain,...stamp,sourceVersion:version(domain),unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...versions});
    const chunks=walks[domain]??1,last=step===chunks-1;
    // Chase R163: the first need answer of needDiffers.domain carries other patches (a changed manifest, 200 manifest_changed); tamperNeed's value hash does not match its content (invalid_content).
-   const differs=body.need?.length&&needDiffers&&needDiffers.domain===domain&&!needDiffers.done&&(needDiffers.done=true);
+   const differs=!!(body.need?.length&&needDiffers&&needDiffers.domain===domain&&!needDiffers.done);
+   if(differs)needDiffers.done=true;
    const answer=encodeDeltaChunk({schemaVersion:2,domain,generation:'new-'+domain,startedAt:stamp.asOf,...stamp,sourceVersion:walks[domain]?changed(domain):version(domain),patches:[{key:'items',mode:'append',value:[differs?{id:domain+'-other'}:walks[domain]?{id:domain+'-'+step}:{id:'old'}]}],complete:last,nextCursor:last?null:String(step+1),progress:{completed:step+1,total:chunks},...versions},body.need??[]);
    if(body.need?.length&&tamperNeed&&tamperNeed.domain===domain&&!tamperNeed.done){tamperNeed.done=true;for(const key of Object.keys(answer.values))answer.values[key]={...answer.values[key],tampered:true}}
    return reply(200,answer);
