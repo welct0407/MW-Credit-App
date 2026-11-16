@@ -127,6 +127,16 @@ export function canonicalGroupChatSummary(input){
  }
  return{schemaVersion:1,requestId:input.requestId,environment:input.environment,conversationKey:input.conversationKey,borrowerIds,sourceSha256:input.sourceSha256,summary};
 }
+// R165 group chat summary refresh: the agent's outcome of one PWA refresh request (V150). Exact keys; requestId is the
+// lowercase id GET /internal/agent/group-chat-refreshes handed out. pwa_complete_group_chat_refresh_v1 repeats every rule.
+export const GROUP_CHAT_REFRESH_OUTCOMES=Object.freeze(['stored','unchanged','cleared','no_group','failed']);
+const refreshFail=()=>{throw Error('invalid_refresh_command');};
+export function canonicalGroupChatRefresh(input){
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).sort().join(',')!=='environment,outcome,requestId,schemaVersion')refreshFail();
+ if(input.schemaVersion!==1||!['dev','prod'].includes(input.environment)||typeof input.requestId!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(input.requestId)
+  ||!GROUP_CHAT_REFRESH_OUTCOMES.includes(input.outcome))refreshFail();
+ return{schemaVersion:1,environment:input.environment,requestId:input.requestId,outcome:input.outcome};
+}
 export function agentIdentity(input,actor){
  const command=canonicalAgentCommand(input);
  exact(actor,['issuer','subject','partnerId','loginEmail']);

@@ -17,7 +17,7 @@ import {readManagementAssessments} from './management-assessments.mjs';
 import {readManagementAnalytics,readAnalyticsOverview,readAnalyticsChart} from './management-analytics.mjs';
 import {readManagementPosition} from './management-position.mjs';
 import {readManagementOpenings} from './management-openings.mjs';
-import {readCollection,decodeCollectionCursor,collectionCte,collectionCteFor,collectionQualitySql,projectCollectionCharge,GROUP_CHAT_COLUMNS,groupChatAllowedSql,projectGroupChat} from '../api/collection-read-contract.mjs';
+import {readCollection,decodeCollectionCursor,collectionCte,collectionCteFor,collectionQualitySql,projectCollectionCharge,GROUP_CHAT_COLUMNS,groupChatAllowedSql,projectGroupChat,groupChatRefreshAllowedSql,groupChatRefreshColumnsSql,projectGroupChatRefresh} from '../api/collection-read-contract.mjs';
 import {lateChargeSchema} from '../lib/late-charge-schema.mjs';
 import {projectUpcomingEvent,validUpcomingDate} from '../api/upcoming-read-contract.mjs';
 import {readStandaloneUpcoming} from './upcoming.mjs';
@@ -144,6 +144,17 @@ async function groupChatByBorrower(c,_a,_stamp,state){
  const rows=(await c.query(`SELECT ${groupChatColumns} FROM public.pwa_group_chat_summaries g WHERE ($1::text IS NULL OR g.borrower_id COLLATE "C">$1 COLLATE "C") ORDER BY g.borrower_id COLLATE "C" LIMIT 129`,[text(state)])).rows;
  return result([append('groupChatByBorrower',projectGroupChatRows(rows.slice(0,128)))],rows.length>128?rows[127].borrower_id:null);
 }
+// R165 (V150): the borrowers' refresh requests as rows {borrowerId, requestedAt, completedAt, outcome}, ordered by
+// borrower; the offline detail takes the borrower's row as groupChatRefresh. Without V150 or the reader grant: no rows.
+const groupChatRefreshAllowed=async client=>(await client.query(groupChatRefreshAllowedSql)).rows[0]?.allowed===true;
+export function projectGroupChatRefreshRows(rows){
+ return rows.map(row=>{const value=projectGroupChatRefresh(row);return value?{borrowerId:row.borrower_id,...value}:null}).filter(Boolean);
+}
+async function groupChatRefreshByBorrower(c,_a,_stamp,state){
+ if(!await groupChatRefreshAllowed(c))return result([append('groupChatRefreshByBorrower',[])]);
+ const rows=(await c.query(`SELECT ${groupChatRefreshColumnsSql} FROM public.pwa_group_chat_refresh_requests r WHERE ($1::text IS NULL OR r.borrower_id COLLATE "C">$1 COLLATE "C") ORDER BY r.borrower_id COLLATE "C" LIMIT 129`,[text(state)])).rows;
+ return result([append('groupChatRefreshByBorrower',projectGroupChatRefreshRows(rows.slice(0,128)))],rows.length>128?rows[127].borrower_id:null);
+}
 const collectionPhases=[
  // R149: the bundle is per actor, so each item carries that user's chatSeenAt (V147).
  page('items',(c,cursor,a)=>readCollection(c,{limit:100,after:decodeCollectionCursor(cursor,'collection'),partnerId:a?.partnerId})),
@@ -151,7 +162,8 @@ const collectionPhases=[
  async(c,_a,_stamp,state)=>{const value=await readStandaloneUpcoming(c,{limit:100,cursor:text(state)}),{items,nextCursor,...metadata}=value;const {dateTotals,...context}=metadata;return result([...(state?[]:[replace('upcoming',{...metadata,items:[],nextCursor:null})]),append('upcoming',items,['items']),...items.map(row=>replace('upcomingDetailsByKey',{...context,borrowerId:row.borrowerId,borrowerLabel:row.label,dueDate:row.dueDate,totalCharge:row.totalCharge,items:[],nextCursor:null},[JSON.stringify([row.borrowerId,row.dueDate])]))],nextCursor)},
  upcomingDetail,borrowerUpcomingMetadata(),borrowerUpcomingEvents(),
  async(c,_a,stamp,state)=>{const rows=(await c.query(`${receiptSql('($3::text IS NULL OR p."Row ID" COLLATE "C">$3 COLLATE "C")')} LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('receipts',rows.slice(0,128))],rows.length>128?rows[127].id:null)},
- groupChatByBorrower
+ groupChatByBorrower,
+ groupChatRefreshByBorrower
 ];
 
 /** from (R078 day change): only account-days on or after this date. */
@@ -395,9 +407,10 @@ function rowBudget(){
  const started=Date.now(),list=[];
  return {list,push(...items){list.push(...items);if(rowPatchValues(list)>4*MAX_CHUNK_VALUES||Date.now()-started>TARGETED_LIMITS.milliseconds)throw Error('targeted_limit')}};
 }
-const collectionRowTables=['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Cash Ledger','pwa_payment_commands','pwa_group_chat_summaries','pwa_group_chat_seen'];
+const collectionRowTables=['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Cash Ledger','pwa_payment_commands','pwa_group_chat_summaries','pwa_group_chat_seen','pwa_group_chat_refresh_requests'];
 // R146/R149: tables whose change-log key is the borrower itself (the summary row; a user's seen row, first key column).
-const borrowerKeyedChatTables=['pwa_group_chat_summaries','pwa_group_chat_seen'];
+// R165: the borrower's refresh request (V150) too.
+const borrowerKeyedChatTables=['pwa_group_chat_summaries','pwa_group_chat_seen','pwa_group_chat_refresh_requests'];
 /** Collection works per borrower, through the records lookups. A Cash Accounts change, an unmapped table or a
  * hidden changed borrower walks. loans: the changed loans (the client checks they did not leave a borrower). */
 export async function resolveCollectionScope(client,changes){
@@ -431,6 +444,9 @@ export async function readCollectionTargeted(client,actor,stamp,{borrowers}){
   // R146: the borrowers' group chat summaries (none left for a pruned or deleted row); items above carry chatSummaryAt.
   const chats=await groupChatAllowed(client)?projectGroupChatRows((await client.query(`SELECT ${groupChatColumns} FROM public.pwa_group_chat_summaries g WHERE g.borrower_id=ANY($1::text[]) ORDER BY g.borrower_id COLLATE "C"`,[B])).rows):[];
   patches.push(replaceWhere('groupChatByBorrower','borrowerId',B,chats,'borrowerId'));
+  // R165: the borrowers' refresh requests (none left for a deleted borrower).
+  const refreshes=await groupChatRefreshAllowed(client)?projectGroupChatRefreshRows((await client.query(`SELECT ${groupChatRefreshColumnsSql} FROM public.pwa_group_chat_refresh_requests r WHERE r.borrower_id=ANY($1::text[]) ORDER BY r.borrower_id COLLATE "C"`,[B])).rows):[];
+  patches.push(replaceWhere('groupChatRefreshByBorrower','borrowerId',B,refreshes,'borrowerId'));
  }
  return patches.list;
 }

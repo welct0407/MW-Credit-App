@@ -4777,6 +4777,49 @@ END $_$;
 
 
 --
+-- Name: pwa_complete_group_chat_refresh_v1(text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_complete_group_chat_refresh_v1(canonical_json text) RETURNS jsonb
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE root jsonb; c jsonb; request uuid; result text; existing public.pwa_group_chat_refresh_requests%ROWTYPE;
+BEGIN
+ -- Shape. Every rule is a positive condition that must be true (a NULL fails); a failure raises invalid_request (22023).
+ BEGIN
+  root:=canonical_json::jsonb;
+  IF (jsonb_typeof(root)='object' AND ARRAY(SELECT jsonb_object_keys(root))=ARRAY['command'] AND jsonb_typeof(root->'command')='object') IS NOT TRUE THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  c:=root->'command';
+  IF (ARRAY(SELECT k FROM jsonb_object_keys(c) k ORDER BY k COLLATE "C")=ARRAY['environment','outcome','requestId','schemaVersion']
+    AND jsonb_typeof(c->'schemaVersion')='number' AND c->>'schemaVersion'='1'
+    AND jsonb_typeof(c->'requestId')='string' AND c->>'requestId' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    AND jsonb_typeof(c->'environment')='string' AND c->>'environment'=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END
+    AND jsonb_typeof(c->'outcome')='string' AND c->>'outcome' IN ('stored','unchanged','cleared','no_group','failed')) IS NOT TRUE THEN
+   RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  request:=(c->>'requestId')::uuid; result:=c->>'outcome';
+ EXCEPTION WHEN data_exception THEN
+  -- Class 22 only: malformed JSON and the rules above. Any other error is a real one and propagates.
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023';
+ END;
+ SELECT * INTO existing FROM public.pwa_group_chat_refresh_requests t WHERE t.request_id=request FOR UPDATE;
+ -- Replaced by a newer request, or the borrower is gone: nothing to complete.
+ IF NOT FOUND THEN RETURN jsonb_build_object('kind','unknown_request'); END IF;
+ -- A replay (or a second report) leaves the first outcome as it is and writes no change-log row.
+ IF existing.completed_at IS NOT NULL THEN RETURN jsonb_build_object('kind','replayed'); END IF;
+ UPDATE public.pwa_group_chat_refresh_requests t SET completed_at=greatest(clock_timestamp(),t.requested_at),outcome=result WHERE t.request_id=request;
+ RETURN jsonb_build_object('kind','completed');
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_complete_group_chat_refresh_v1(canonical_json text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_complete_group_chat_refresh_v1(canonical_json text) IS 'R165: completes the open group chat summary refresh request named by the integration agent''s command {"command":{schemaVersion,environment,requestId,outcome}} (outcome stored, unchanged, cleared, no_group or failed). Returns {kind: completed | replayed (already completed; unchanged) | unknown_request (no row carries the id; nothing changes)}. Raises invalid_request (22023). Invoker rights.';
+
+
+--
 -- Name: pwa_convert_legacy_rebate_v1(text); Type: FUNCTION
 --
 
@@ -6683,6 +6726,61 @@ END $$;
 --
 
 COMMENT ON FUNCTION public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb) IS 'R111/R118/R120/R129: the referral rebate a Loan Close with this calculation creates (create_referral_rebate rule: the referrer''s rate of interest and late charges, at most the referrer''s cap), its referrer, whether the referrer has an open loan, the profit base, the terms (rate, cap, custom) and owedBefore (the referrer''s pending rebates now); null when none. Read only.';
+
+
+--
+-- Name: pwa_request_group_chat_refresh_v1(jsonb, text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_request_group_chat_refresh_v1(actor jsonb, p_borrower_id text) RETURNS jsonb
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE matches integer; partner text; existing public.pwa_group_chat_refresh_requests%ROWTYPE; now_at timestamptz; kind text;
+ iso text:='YYYY-MM-DD"T"HH24:MI:SS.MS"Z"';
+BEGIN
+ -- The actor: exactly {issuer, loginEmail, partnerId, subject}, and the login email maps to exactly that Partner.
+ IF actor IS NULL OR jsonb_typeof(actor) IS DISTINCT FROM 'object'
+  OR (SELECT array_agg(key ORDER BY key COLLATE "C") FROM jsonb_object_keys(actor) key) IS DISTINCT FROM ARRAY['issuer','loginEmail','partnerId','subject']::text[]
+  OR EXISTS(SELECT 1 FROM jsonb_each(actor) e WHERE jsonb_typeof(e.value) IS DISTINCT FROM 'string')
+  OR coalesce(length(actor->>'issuer'),0) NOT BETWEEN 1 AND 1024 OR coalesce(length(actor->>'subject'),0) NOT BETWEEN 1 AND 128
+  OR coalesce(length(actor->>'partnerId'),0) NOT BETWEEN 1 AND 256 OR coalesce(length(actor->>'loginEmail'),0) NOT BETWEEN 1 AND 320
+  OR actor->>'loginEmail'<>lower(btrim(actor->>'loginEmail')) THEN
+  RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ SELECT count(*),min("Row ID") INTO matches,partner FROM public."Partners" WHERE lower(btrim("Login Email"))=actor->>'loginEmail';
+ IF matches<>1 OR partner IS DISTINCT FROM actor->>'partnerId' THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ IF p_borrower_id IS NULL OR octet_length(p_borrower_id) NOT BETWEEN 1 AND 256 THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public."Borrowers" b WHERE b."Row ID"=p_borrower_id) THEN
+  RAISE EXCEPTION 'unknown_borrower' USING ERRCODE='P0002'; END IF;
+ -- One decision per borrower at a time: two taps on two devices never both insert.
+ PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('group-chat-refresh',p_borrower_id));
+ now_at:=clock_timestamp();
+ SELECT * INTO existing FROM public.pwa_group_chat_refresh_requests t WHERE t.borrower_id=p_borrower_id FOR UPDATE;
+ IF FOUND AND existing.completed_at IS NULL AND existing.requested_at>now_at-interval '10 minutes' THEN
+  kind:='pending';
+ ELSIF FOUND AND existing.completed_at IS NOT NULL AND existing.completed_at>now_at-interval '60 seconds' THEN
+  kind:='recent';
+ ELSE
+  -- None, completed earlier, or open for 10 minutes or more (stale): a new request replaces the row.
+  INSERT INTO public.pwa_group_chat_refresh_requests AS t(borrower_id,request_id,requested_by,requested_at,completed_at,outcome)
+   VALUES(p_borrower_id,gen_random_uuid(),partner,now_at,NULL,NULL)
+   ON CONFLICT (borrower_id) DO UPDATE SET request_id=EXCLUDED.request_id,requested_by=EXCLUDED.requested_by,requested_at=EXCLUDED.requested_at,
+    completed_at=NULL,outcome=NULL
+   RETURNING * INTO existing;
+  kind:='accepted';
+ END IF;
+ RETURN jsonb_build_object('kind',kind,'requestId',existing.request_id::text,
+  'requestedAt',to_char(existing.requested_at AT TIME ZONE 'UTC',iso),
+  'completedAt',CASE WHEN existing.completed_at IS NULL THEN NULL ELSE to_char(existing.completed_at AT TIME ZONE 'UTC',iso) END,
+  'outcome',existing.outcome);
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_request_group_chat_refresh_v1(actor jsonb, p_borrower_id text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_request_group_chat_refresh_v1(actor jsonb, p_borrower_id text) IS 'R165: records that the actor (its login email must map to exactly its Partner, 42501 otherwise) asks for the borrower''s group chat summary to be refreshed. Returns {kind: accepted (a new request) | pending (an open request younger than 10 minutes, same requestId) | recent (completed less than 60 seconds ago), requestId, requestedAt, completedAt, outcome}. Raises unknown_borrower (P0002) or invalid_request (22023). Invoker rights.';
 
 
 --

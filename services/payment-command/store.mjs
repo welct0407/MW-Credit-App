@@ -318,6 +318,28 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       },true,'receipt.read');
       return second;
     },
+    /** R165: ask for the borrower's group chat summary to be refreshed now (V150, pwa_request_group_chat_refresh_v1). The
+     *  Partner is the server-resolved actor only; the body is exactly {}. Capability read, as the seen mark: a display hint,
+     *  nothing financial reads it, and the integration agent serves it. Answers accepted (a new request), pending (an open
+     *  request younger than 10 minutes: the same requestId, so a repeat tap is harmless) or recent (completed less than 60
+     *  seconds ago), each with requestId, requestedAt, completedAt and outcome. No notification wake. Not gated on
+     *  ownerTesting: every signed-in member the policy gives the read capability may ask. */
+    async requestChatRefresh(principal,id,input){
+      if(!validBorrowerId(id)||!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)return failure(400,'invalid_request');
+      return run(principal,async(client,actor)=>{
+        try{
+          const value=(await client.query('SELECT public.pwa_request_group_chat_refresh_v1($1::jsonb,$2::text) AS value',[JSON.stringify(actor),id])).rows[0]?.value;
+          const stamp=item=>typeof item==='string'&&Number.isFinite(Date.parse(item));
+          if(!value||!['accepted','pending','recent'].includes(value.kind)||typeof value.requestId!=='string'||!stamp(value.requestedAt)
+            ||(value.completedAt!==null&&!stamp(value.completedAt))||(value.outcome!==null&&!['stored','unchanged','cleared','no_group','failed'].includes(value.outcome)))throw Error('Unexpected group chat refresh result');
+          return {ok:true,value:{kind:value.kind,requestId:value.requestId,requestedAt:value.requestedAt,completedAt:value.completedAt,outcome:value.outcome}};
+        }catch(error){
+          if(error?.code==='P0002')return failure(404,'not_found');
+          if(error?.code==='22023')return failure(400,'invalid_request');
+          throw error;
+        }
+      },false,'read',false);
+    },
     /** R149: the signed-in user's own "group chat summary seen" value (V147, pwa_mark_group_chat_seen_v1). The Partner is
      *  the server-resolved actor only; the body is exactly {lastMessageAt:"<ISO UTC, Z>"}. Capability read: the row is the
      *  reader's own display hint, nothing financial reads it. Idempotent and forward only, so a resend is always safe.

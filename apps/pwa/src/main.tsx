@@ -6,6 +6,8 @@ import { createRoot } from 'react-dom/client';
 import { sampleGroupChats, sampleNow, type Locale } from './fixtures';
 import { CollectionChatSummary, NameWithChatMark } from './CollectionChatSummary';
 import { chatMarkShown } from './chat-seen';
+import type { GroupChatRefresh } from './chat-refresh';
+import { useOnline } from './online-status';
 import { previewReadAdapter, toPreviewBorrower, previewBusinessDate as sampleDate, type PreviewAccessState, type PreviewBorrower as Borrower } from './preview-session';
 import './style.css';
 const prodLogoUrl = new URL('./assets/loan-manager-logo-prod-pink.png', import.meta.url).href;
@@ -24,6 +26,15 @@ function App() {
   // R146 sample: which sample summaries this preview session has shown (the live app keeps this per device), and the open cards.
   const [chatSeen, setChatSeen] = useState<Record<string, string>>({});
   const chatNow = Date.parse(sampleNow);
+  // R165 preview: the Refresh button answers locally (no command service): pending for a few seconds, then "No new messages".
+  const [chatRefresh, setChatRefresh] = useState<Record<string, GroupChatRefresh>>({});
+  const online = useOnline();
+  const previewRefresh = async (_access: unknown, borrowerId: string) => {
+    const requestedAt = new Date().toISOString(), state: GroupChatRefresh = { requestedAt, completedAt: null, outcome: null };
+    setChatRefresh(value => ({ ...value, [borrowerId]: state }));
+    setTimeout(() => setChatRefresh(value => value[borrowerId]?.requestedAt === requestedAt ? { ...value, [borrowerId]: { requestedAt, completedAt: new Date().toISOString(), outcome: 'unchanged' } } : value), 4000);
+    return { ok: true as const, kind: 'accepted' as const, state };
+  };
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [selected, setSelected] = useState<string | null>(null);
@@ -319,7 +330,7 @@ function App() {
                     </strong>
                   </div>
                 </div>
-                {route === 'collection' && <CollectionChatSummary key={'chat-summary:' + current.id} groupChat={sampleGroupChats[current.id] ?? null} borrowerId={current.id} thai={locale === 'th'} now={chatNow} onShown={at => setChatSeen(value => value[current.id] === at ? value : { ...value, [current.id]: at })}/>}
+                {route === 'collection' && <CollectionChatSummary key={'chat-summary:' + current.id} groupChat={sampleGroupChats[current.id] ?? null} borrowerId={current.id} thai={locale === 'th'} now={chatNow} refresh={{ access: { origin: location.origin, token: async () => '' }, server: chatRefresh[current.id] ?? null, online, poll: () => {}, send: previewRefresh }} onShown={at => setChatSeen(value => value[current.id] === at ? value : { ...value, [current.id]: at })}/>}
                 {current.note && <div className={'issue-note ' + (current.status === 'overdue' ? 'attention' : '')}>
                   <strong>
                     {t('Follow-up note', 'หมายเหตุการติดตาม')}

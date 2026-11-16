@@ -82,6 +82,12 @@
       "partner_id",
       "seen_last_message_at"
     ],
+    "pwa_group_chat_refresh_requests": [
+      "borrower_id",
+      "requested_at",
+      "completed_at",
+      "outcome"
+    ],
     "oltp_upcoming_charge_summary_v2": [
       "Row ID",
       "Ref Borrower",

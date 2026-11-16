@@ -6,6 +6,11 @@ MAX_WAIT_SECONDS (10 minutes since the first new substantive message, R151: a ch
 re-reads their last three days through the poll's own conversation-list route, asks Claude for a headline and up to four
 points in Thai and English, and posts the result to the command service (POST /internal/agent/group-chat-summaries).
 
+R165: a user's Refresh tap in the PWA queues a request in the app database (V150). Each run first reads the open
+requests (GET /internal/agent/group-chat-refreshes), finds the requested borrowers' groups through the state table's
+member_borrower_ids, summarises those groups first (no marker, quiet period or backoff needed; within MAX_GROUPS and the
+run budget), and reports one outcome per request (POST /internal/agent/group-chat-refreshes).
+
 Chat text and the summary exist only in memory during a run. Results, audit plans, the state table and every exception
 carry counts, the hashed conversation key, digests and fixed error codes only. The model has no tools; its output is
 validated here before anything is posted. Nothing financial depends on a summary.
@@ -63,6 +68,12 @@ RESPONSE_LIMIT = 1_048_576
 URL = 'https://api.anthropic.com/v1/messages'
 ROLES = ('business', 'partner', 'referrer', 'borrower', 'other')
 OUTCOMES = ('stored', 'unchanged', 'superseded', 'cleared')
+REFRESH_ROUTE = 'group-chat-refreshes'
+# R165: one outcome per PWA refresh request: a new summary, no new messages, the summary removed, no group known for the
+# borrower, or a failed run (the previous summary stays).
+REFRESH_OUTCOMES = ('stored', 'unchanged', 'cleared', 'no_group', 'failed')
+REFRESH_LIMIT = 20  # the command service hands out at most 20 open requests
+REQUEST_ID = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
 CODE = re.compile(r'[A-Z][A-Z0-9_]{0,63}')
 # Instagram usernames: letters, digits, underscore and period, never ending in a period, so a mention at the end of a
 # sentence (@name.) is the mention of name.
@@ -725,15 +736,18 @@ def conversations(api, config):
     return found
 
 
-def summarise_group(config, api, master, conversation, now, model_call, post_call, remembered=None):
+def summarise_group(config, api, master, conversation, now, model_call, post_call, remembered=None, known=None):
     """One due group: read, resolve, summarise or prune, post. Returns (outcome kind, source digest, subjects digest,
-    member borrower ids). The subjects digest returned (and stored by finish) is the participants-only one; see
-    resolve(). `remembered` is the row's member_borrower_ids; the ids returned are what finish() stores there."""
-    kind, digest, resolution = _summarise_group(config, api, master, conversation, now, model_call, post_call, remembered)
-    return kind, digest, resolution['digest'], remembered_members(master, resolution, remembered)
+    member borrower ids, posted). The subjects digest returned (and stored by finish) is the participants-only one; see
+    resolve(). `remembered` is the row's member_borrower_ids; the ids returned are what finish() stores there.
+    R165: `known` (a forced refresh only) is the row's summarised_source_sha256: a window with the same digest is
+    'unchanged' with no model call and no post. `posted` is {'ids': the command's borrowerIds, 'summary': whether a
+    summary was posted} (refresh_outcome() reads it per borrower)."""
+    kind, digest, resolution, posted = _summarise_group(config, api, master, conversation, now, model_call, post_call, remembered, known)
+    return kind, digest, resolution['digest'], remembered_members(master, resolution, remembered), posted
 
 
-def _summarise_group(config, api, master, conversation, now, model_call, post_call, remembered):
+def _summarise_group(config, api, master, conversation, now, model_call, post_call, remembered, known=None):
     from .audit import activity
     from .conversation_poll import history_since
     peers = conversation.get('participants', {})
@@ -753,12 +767,16 @@ def _summarise_group(config, api, master, conversation, now, model_call, post_ca
     if not subjects:
         # Nobody gets this group's summary any more (or it is too small or ambiguous): its rows go.
         digest = source_sha256([], [], model_id)
-        return post_call(config, command(key, [], digest)), digest, resolution
+        return post_call(config, command(key, [], digest)), digest, resolution, {'ids': [], 'summary': False}
     rows = window(config, resolution, found)
     digest = source_sha256(rows, subjects, model_id)
     if not any(row['substantive'] for row in rows):
         # No model call: removed subjects lose the row, nothing else changes.
-        return post_call(config, command(key, subjects, digest)), digest, resolution
+        return post_call(config, command(key, subjects, digest)), digest, resolution, {'ids': list(subjects), 'summary': False}
+    if known is not None and digest == known:
+        # R165: a forced refresh of a window already summarised (same messages, subjects, prompt and model): no new
+        # messages, so no model call and no post; the stored summary is the current one.
+        return 'unchanged', digest, resolution, {'ids': list(subjects), 'summary': True}
     text = transcript(rows, resolution)
     plan = {'conversationKey': key, 'sourceSha256': digest, 'model': model_id, 'messages': len(rows), 'subjects': len(subjects)}
     with activity(config, 'group_chat_summary_model', plan=plan):
@@ -766,47 +784,181 @@ def _summarise_group(config, api, master, conversation, now, model_call, post_ca
     if output is None:
         # R148: nothing collection-relevant in the window, so this group shows no card: the same prune command as a group
         # without subjects (its rows go, nothing is stored). The digest is kept, so the marker clears as after any run.
-        return post_call(config, command(key, [], digest)), digest, resolution
+        return post_call(config, command(key, [], digest)), digest, resolution, {'ids': [], 'summary': False}
     value = command(key, subjects, digest, summary_value(rows, resolution, output, since, now, model_id))
-    return post_call(config, value), digest, resolution
+    return post_call(config, value), digest, resolution, {'ids': list(subjects), 'summary': True}
 
 
-def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=None, clock=time.monotonic):
-    """Summarise the due groups. Nothing due: no API call, no master read, nothing written."""
+# Refresh requests (R165) ---------------------------------------------------------------------------
+
+def refresh_requests(config):
+    """The open PWA refresh requests: [{'borrowerId', 'requestId', 'requestedAt'}], oldest first. A 404 (a command service
+    without the route) is none. A reply of any other shape is SummaryFailed('REFRESH_LIST_INVALID')."""
+    from .receipt_api import call
+    result = call(config, 'GET', route=REFRESH_ROUTE, answered=(404,))
+    if isinstance(result, dict) and set(result) == {'error'}:
+        return []
+    try:
+        valid = (set(result) == {'environment', 'requests'} and result['environment'] == ENVIRONMENT and isinstance(result['requests'], list)
+                 and len(result['requests']) <= REFRESH_LIMIT
+                 and all(isinstance(item, dict) and set(item) == {'borrowerId', 'requestId', 'requestedAt'}
+                         and isinstance(item['borrowerId'], str) and 0 < len(item['borrowerId'].encode()) <= 256
+                         and isinstance(item['requestId'], str) and REQUEST_ID.fullmatch(item['requestId'])
+                         and isinstance(item['requestedAt'], str) for item in result['requests']))
+    except TypeError:
+        valid = False
+    if not valid:
+        raise SummaryFailed('REFRESH_LIST_INVALID')
+    return [{'borrowerId': item['borrowerId'], 'requestId': item['requestId'], 'requestedAt': item['requestedAt']} for item in result['requests']]
+
+
+def report_refresh(config, request_id, outcome):
+    """POST one request's outcome. Returns the reply kind (completed, replayed or unknown_request); a refused or
+    unexpected reply is SummaryFailed('REFRESH_POST_REFUSED')."""
+    from .audit import activity
+    from .receipt_api import call
+    if outcome not in REFRESH_OUTCOMES or not REQUEST_ID.fullmatch(request_id or ''):
+        raise SummaryFailed('REFRESH_POST_REFUSED')
+    body = {'command': {'schemaVersion': 1, 'environment': ENVIRONMENT, 'requestId': request_id, 'outcome': outcome}}
+    # An idempotent report: a replay is answered `replayed`, an uncertain one is simply reported again by the next run.
+    with activity(config, 'group_chat_summary_refresh_post', action='UPDATE', plan={'requestId': request_id, 'outcome': outcome}):
+        result = call(config, 'POST', body=body, route=REFRESH_ROUTE, answered=(400,))
+        kind = result.get('kind') if isinstance(result, dict) else None
+        if kind not in ('completed', 'replayed', 'unknown_request'):
+            raise SummaryFailed('REFRESH_POST_REFUSED')
+    return kind
+
+
+def refresh_outcome(borrower, group):
+    """One requested borrower's outcome from one group's run: ('failed', None) for a failed run, else (kind, posted)."""
+    kind, posted = group
+    if kind == 'failed':
+        return 'failed'
+    if borrower not in posted['ids']:
+        return 'cleared'  # the group no longer gives this borrower a summary (pruned, not relevant, or not a subject)
+    if not posted['summary']:
+        return 'unchanged'  # nothing substantive in the window: the stored summary stays
+    return {'stored': 'stored', 'unchanged': 'unchanged', 'superseded': 'unchanged'}.get(kind, 'cleared')
+
+
+def combined_outcome(outcomes):
+    """A borrower in several groups: a new summary wins, then unchanged, then failed, then cleared."""
+    for outcome in ('stored', 'unchanged', 'failed', 'cleared'):
+        if outcome in outcomes:
+            return outcome
+    return 'cleared'
+
+
+def requested_groups(db, requests):
+    """Requested borrower -> the groups whose remembered members (member_borrower_ids) include the borrower, in the
+    requests' order (oldest first). A borrower in no group is absent."""
+    rows = db.execute('SELECT conversation_id,member_borrower_ids FROM group_chat_summary_state ORDER BY conversation_id').fetchall()
+    groups = {}
+    for request in requests:
+        borrower = request['borrowerId']
+        if borrower not in groups:
+            found = [row[0] for row in rows if borrower in member_ids(row[1])]
+            if found:
+                groups[borrower] = found
+    return groups
+
+
+# The cycle -------------------------------------------------------------------------------------------
+
+def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=None, clock=time.monotonic, refreshes=None, report=None):
+    """Summarise the requested and the due groups. Nothing requested or due: no Instagram call, no master read, nothing
+    written.
+
+    R165 (`refreshes` and `report` are given by run(); without them there are no refresh requests): the open requests are
+    read first; a borrower whose groups are unknown is reported no_group at once. The requested groups run first, in the
+    requests' order, regardless of their marker, quiet wait and backoff; then the due groups fill the run up to
+    MAX_GROUPS. A requested group's failure does not back the group off (fail() is not called; its marker, if any, stays
+    for the normal run). A request is reported only when all its groups ran; a group left out by MAX_GROUPS or the run
+    budget leaves its requests open for the next run (the PWA stops waiting after 6 minutes, the server takes them for 10).
+    """
     now = time.time() if now is None else now
     model_call, post_call = model_call or summarise, post_call or post
     started = clock()
-    selected = due(db, now)
-    result = {'status': 'ok', 'due': len(selected), 'summarised': 0, 'failed': 0, 'deferred': 0,
+    result = {'status': 'ok', 'due': 0, 'summarised': 0, 'failed': 0, 'deferred': 0,
               'outcomes': {kind: 0 for kind in OUTCOMES}, 'errors': []}
-    if not selected:
-        return {**result, 'status': 'idle'}
-    master = master_reader()
-    listing = None
-    for cid, attempts in selected:
-        if clock() - started > RUN_BUDGET_SECONDS:
-            result['deferred'] += 1
-            continue
+    requests, wanted = [], {}
+    if refreshes is not None:
+        refresh = {'requested': 0, 'groups': 0, 'reported': 0, 'pending': 0, 'outcomes': {kind: 0 for kind in REFRESH_OUTCOMES}, 'errors': []}
+        result['refresh'] = refresh
         try:
-            if listing is None:
-                listing = conversations(api, config)
-            if cid not in listing:
-                raise SummaryFailed('GROUP_NOT_FOUND')
-            stored = db.execute('SELECT member_borrower_ids FROM group_chat_summary_state WHERE conversation_id=?', (cid,)).fetchone()
-            kind, digest, subjects, members = summarise_group(config, api, master, listing[cid], now, model_call, post_call, stored[0] if stored else None)
-        except Exception as exc:  # the code only: never the exception text, which may quote the chat or the model
-            code = error_code(exc)
+            requests = refreshes(config)
+        except Exception as exc:  # the code only
+            refresh['errors'].append(error_code(exc))
+        refresh['requested'] = len(requests)
+        if requests:
+            wanted = requested_groups(db, requests)
+    forced = []
+    for request in requests:
+        for cid in wanted.get(request['borrowerId'], []):
+            if cid not in forced:
+                forced.append(cid)
+    taken = forced[:MAX_GROUPS]
+    selected = [(cid, None) for cid in taken]
+    due_rows = [(cid, attempts) for cid, attempts in due(db, now) if cid not in forced]
+    selected += due_rows[:MAX_GROUPS - len(selected)]
+    result['due'] = len(selected) - len(taken)
+    if refreshes is not None:
+        result['refresh']['groups'] = len(taken)
+    ran = {}
+    if selected:
+        master = master_reader()
+        listing = None
+        for cid, attempts in selected:
+            if clock() - started > RUN_BUDGET_SECONDS:
+                result['deferred'] += 1
+                continue
+            requested = attempts is None
+            try:
+                if listing is None:
+                    listing = conversations(api, config)
+                if cid not in listing:
+                    raise SummaryFailed('GROUP_NOT_FOUND')
+                stored = db.execute('SELECT member_borrower_ids,summarised_source_sha256 FROM group_chat_summary_state WHERE conversation_id=?', (cid,)).fetchone()
+                kind, digest, subjects, members, posted = summarise_group(config, api, master, listing[cid], now, model_call, post_call,
+                                                                          stored[0] if stored else None, stored[1] if stored and requested else None)
+            except Exception as exc:  # the code only: never the exception text, which may quote the chat or the model
+                code = error_code(exc)
+                if not requested:
+                    with db:
+                        fail(db, cid, attempts, code, now)
+                ran[cid] = ('failed', None)
+                result['failed'] += 1
+                if len(result['errors']) < 20:
+                    result['errors'].append({'conversation_key': conversation_key(cid), 'error': code})
+                continue
             with db:
-                fail(db, cid, attempts, code, now)
-            result['failed'] += 1
-            if len(result['errors']) < 20:
-                result['errors'].append({'conversation_key': conversation_key(cid), 'error': code})
-            continue
-        with db:
-            finish(db, cid, digest, subjects, now, members)
-        result['summarised'] += 1
-        result['outcomes'][kind] += 1
+                finish(db, cid, digest, subjects, now, members)
+            ran[cid] = (kind, posted)
+            result['summarised'] += 1
+            result['outcomes'][kind] += 1
+    if refreshes is not None:
+        report_all(config, requests, wanted, ran, result['refresh'], report or report_refresh)
+    if not selected and not requests:
+        return {**result, 'status': 'idle'}
     return result
+
+
+def report_all(config, requests, wanted, ran, refresh, report):
+    """Report each request whose groups all ran (or that has no group); leave the others open."""
+    for request in requests:
+        groups = wanted.get(request['borrowerId'], [])
+        if any(cid not in ran for cid in groups):
+            refresh['pending'] += 1
+            continue
+        outcome = combined_outcome([refresh_outcome(request['borrowerId'], ran[cid]) for cid in groups]) if groups else 'no_group'
+        try:
+            report(config, request['requestId'], outcome)
+        except Exception as exc:  # the code only; the request stays open and the next run reports it again
+            if len(refresh['errors']) < 20:
+                refresh['errors'].append(error_code(exc))
+            continue
+        refresh['reported'] += 1
+        refresh['outcomes'][outcome] += 1
 
 
 def dry_run(config, api, master):
@@ -903,6 +1055,8 @@ def run(config_path, catalogue_path, dry=False, mark=False):
             if mark:
                 # R147: the same switches, lock and job fence as a run; it only sets markers for the next runs.
                 return mark_all(config, Instagram(config, read_timeout=READ_TIMEOUT), masters(config), journal.db)
-            return cycle(config, Instagram(config, read_timeout=READ_TIMEOUT), lambda: masters(config), journal.db)
+            # R165: the PWA's refresh requests are read and reported under the same switches.
+            return cycle(config, Instagram(config, read_timeout=READ_TIMEOUT), lambda: masters(config), journal.db,
+                         refreshes=refresh_requests, report=report_refresh)
         finally:
             journal.close()

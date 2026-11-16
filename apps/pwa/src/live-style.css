@@ -323,8 +323,17 @@
 .collection-note textarea{font-family:inherit;font-size:18px;line-height:1.4}#root{touch-action:pan-x pan-y}
 /* R146 group chat summary: a plain section with the note's spacing (no border, shadow or tint); neutral speaker tags. */
 .collection-chat-summary{margin:8px 0;overflow-wrap:anywhere}
-.collection-chat-heading{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.collection-chat-heading{display:flex;flex-wrap:nowrap;align-items:center;gap:8px}
 .collection-chat-heading h3{margin:0;font-size:20px;min-width:0}
+/* R165 (Echo UX 03-05): the title and the Shared group tag wrap inside their own box; the 44px Refresh button keeps the
+   right of the row at 320px in Thai, with the icon-action look (no extra spacing). */
+.collection-chat-title{display:flex;flex:1 1 auto;min-width:0;flex-wrap:wrap;align-items:center;gap:8px}
+.collection-chat-heading>.collection-chat-refresh{flex:0 0 44px;margin:0}
+.collection-chat-refresh[aria-disabled="true"]{cursor:default}
+/* UX-CHATREF-18: offline (real disabled) uses the app's disabled look; a pending request (aria-disabled) keeps the normal one. */
+.collection-chat-refresh:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
+.collection-chat-refresh .collection-spinner{vertical-align:middle}
+.collection-chat-summary .collection-chat-refresh-status{color:#555}
 .collection-chat-meta{font-size:14px;line-height:1.4;color:#555;margin:2px 0}
 .collection-chat-headline{margin:4px 0;line-height:1.4}
 .collection-chat-points{list-style:none;margin:4px 0;padding:0;display:grid;gap:4px}

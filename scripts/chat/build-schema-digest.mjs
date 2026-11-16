@@ -27,7 +27,8 @@ const COMMENT_LIMIT=200;
 // The chat journal and (batch 2, B4) the job journal, which the SQL role reads only through pwa_job_status_v1.
 // R146: the group chat summaries, which the SQL role cannot read (no chat access in that release).
 // R149: the per-user group chat seen values (V147), likewise outside the SQL role's reach.
-const EXCLUDED_RELATIONS=/^public\.(?:pwa_chat_|pwa_job_runs$|pwa_group_chat_summaries$|pwa_group_chat_seen$)/;
+// R165: the group chat summary refresh requests (V150), likewise.
+const EXCLUDED_RELATIONS=/^public\.(?:pwa_chat_|pwa_job_runs$|pwa_group_chat_summaries$|pwa_group_chat_seen$|pwa_group_chat_refresh_requests$)/;
 
 // Owner (R085), Archie's classification, verbatim from the agent builder.
 export const ALLOWED=new Map([

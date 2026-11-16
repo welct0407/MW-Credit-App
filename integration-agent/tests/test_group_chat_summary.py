@@ -1058,6 +1058,192 @@ class PostTests(Base):
                 receipt_api.call(config, 'POST', body={}, route='group-chat-summaries/extra')
 
 
+class RefreshTests(Base):
+    """R165: PWA refresh requests: read first, the requested groups run first, one outcome per request."""
+    REQUEST = '0c970c97-0c97-4c97-8c97-0c970c970c97'
+    OTHER = '0c970c97-0c97-4c97-8c97-0c970c970c98'
+
+    def requested(self, *items):
+        return Mock(return_value=[{'borrowerId': borrower, 'requestId': request, 'requestedAt': '2026-11-12T07:59:00.000Z'} for borrower, request in items])
+
+    def group(self, cid='g1', members=('B-A',), **columns):
+        # A group summarised before (no marker, a backoff still running): only a request makes it run now.
+        self.mark(cid, member_borrower_ids=json.dumps(list(members)), next_attempt_at=self.now + 5000, attempts=3, last_error='MODEL_TIMEOUT', **columns)
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=NULL WHERE conversation_id=?', (cid,))
+        self.db.commit()
+
+    def cycle(self, api, refreshes, report=None, **kwargs):
+        self.report = report or Mock(return_value='completed')
+        return self.run_cycle(api, refreshes=refreshes, report=self.report, **kwargs)
+
+    def test_a_requested_group_runs_without_marker_quiet_wait_or_backoff_and_reports_stored(self):
+        self.group()
+        api = self.api(conversation('g1', self.members, [message('m1', '20', 2, PROMISE)]))  # the borrower wrote 2 minutes ago
+        result = self.cycle(api, self.requested(('B-A', self.REQUEST)))
+        self.model.assert_called_once()
+        self.post.assert_called_once()
+        self.report.assert_called_once_with(self.config, self.REQUEST, 'stored')
+        self.assertEqual((result['status'], result['due'], result['summarised'], result['refresh']['groups'], result['refresh']['reported']), ('ok', 0, 1, 1, 1))
+        self.assertEqual(result['refresh']['outcomes']['stored'], 1)
+        state = self.state()
+        # A success resets the backoff like any successful run, and remembers the digest.
+        self.assertEqual((state['attempts'], state['next_attempt_at'], state['last_error'], state['changed_at']), (0, 0, None, None))
+        self.assertIsNotNone(state['summarised_source_sha256'])
+
+    def test_the_same_window_again_is_unchanged_without_a_model_call_or_a_post(self):
+        self.group()
+        api = self.api(conversation('g1', self.members, [message('m1', '20', 20, PROMISE)]))
+        self.cycle(api, self.requested(('B-A', self.REQUEST)))
+        self.cycle(api, self.requested(('B-A', self.OTHER)))
+        self.model.assert_not_called()
+        self.post.assert_not_called()
+        self.report.assert_called_once_with(self.config, self.OTHER, 'unchanged')
+
+    def test_server_replies_map_to_outcomes_per_borrower(self):
+        cases = [('stored', 'stored'), ('unchanged', 'unchanged'), ('superseded', 'unchanged'), ('cleared', 'cleared')]
+        for index, (reply, outcome) in enumerate(cases):
+            cid = f'g{index}'
+            self.group(cid)
+            api = self.api(conversation(cid, self.members, [message('m1', '20', 20, PROMISE)]))
+            with self.subTest(reply=reply):
+                self.cycle(api, self.requested(('B-A', self.REQUEST)), post=reply)
+                self.report.assert_called_once_with(self.config, self.REQUEST, outcome)
+            self.db.execute('DELETE FROM group_chat_summary_state')
+            self.db.commit()
+
+    def test_a_borrower_the_group_no_longer_summarises_is_cleared_and_routine_only_is_unchanged(self):
+        # The model finds nothing relevant: the group's rows are pruned (an empty list): cleared.
+        self.group()
+        api = self.api(conversation('g1', self.members, [message('m1', '20', 20, PROMISE)]))
+        self.cycle(api, self.requested(('B-A', self.REQUEST)), model={'relevant': False, 'headline': {'th': '', 'en': ''}, 'points': []}, post='cleared')
+        self.report.assert_called_once_with(self.config, self.REQUEST, 'cleared')
+        # Only routine messages: no model call, the stored summary stays: unchanged.
+        self.db.execute('DELETE FROM group_chat_summary_state')
+        self.group()
+        routine = [message('r1', '10', 50, REMINDER), message('r2', '20', 40, image=True)]
+        self.cycle(self.api(conversation('g1', self.members, routine)), self.requested(('B-A', self.OTHER)), post='cleared')
+        self.model.assert_not_called()
+        self.report.assert_called_once_with(self.config, self.OTHER, 'unchanged')
+
+    def test_no_known_group_is_no_group_without_an_instagram_call(self):
+        self.group(members=('B-C',))
+        api = self.api()
+        result = self.cycle(api, self.requested(('B-A', self.REQUEST)))
+        api.request.assert_not_called()
+        self.reader.assert_not_called()
+        self.report.assert_called_once_with(self.config, self.REQUEST, 'no_group')
+        self.assertEqual((result['status'], result['refresh']['outcomes']['no_group']), ('ok', 1))
+
+    def test_a_failed_requested_group_reports_failed_and_keeps_the_backoff(self):
+        self.group()
+        before = self.state()
+        api = self.api(conversation('g1', self.members, [message('m1', '20', 20, PROMISE + ' ' + SENTINEL)]))
+        result = self.cycle(api, self.requested(('B-A', self.REQUEST)), model=Mock(side_effect=summary.SummaryFailed('MODEL_TIMEOUT')))
+        self.report.assert_called_once_with(self.config, self.REQUEST, 'failed')
+        self.assertEqual(self.state(), before)  # fail() is not called: attempts, next attempt and error unchanged
+        self.assertEqual(result['errors'], [{'conversation_key': summary.conversation_key('g1'), 'error': 'MODEL_TIMEOUT'}])
+        self.assertNotIn(SENTINEL, json.dumps(result, ensure_ascii=False))
+        # A missing group fails the same way.
+        self.cycle(self.api(), self.requested(('B-A', self.OTHER)))
+        self.report.assert_called_once_with(self.config, self.OTHER, 'failed')
+
+    def test_requested_groups_run_first_within_max_groups_and_due_groups_fill_the_rest(self):
+        for index in range(summary.MAX_GROUPS + 1):
+            self.mark(f'due{index}', changed=self.now - 9000 + index)
+        self.group('g1')
+        self.group('g2', members=('B-C',))
+        chats = [conversation(cid, self.members, [message('m1', '20', 20, PROMISE)]) for cid in ['g1', 'g2'] + [f'due{i}' for i in range(summary.MAX_GROUPS + 1)]]
+        chats[1] = conversation('g2', self.members + [member('21', 'chai_invented')], [message('m1', '20', 20, PROMISE)])  # B-C is a member
+        result = self.cycle(self.api(*chats), self.requested(('B-C', self.OTHER), ('B-A', self.REQUEST)))
+        keys = [call.args[1]['conversationKey'] for call in self.post.call_args_list]
+        expected = [summary.conversation_key(cid) for cid in ['g2', 'g1', 'due0', 'due1', 'due2']]  # the requests' order, then the oldest markers
+        self.assertEqual(keys, expected)
+        self.assertEqual((result['refresh']['groups'], result['due'], result['summarised']), (2, 3, 5))
+        self.assertEqual(sorted(call.args[1] for call in self.report.call_args_list), sorted([self.OTHER, self.REQUEST]))
+
+    def test_a_group_left_out_by_the_limit_or_the_budget_leaves_its_request_open(self):
+        for index in range(summary.MAX_GROUPS + 1):
+            self.group(f'g{index}', members=(f'B-{index}',))
+        requests = self.requested(*[(f'B-{index}', f'0c970c97-0c97-4c97-8c97-0c970c970c{index:02d}') for index in range(summary.MAX_GROUPS + 1)])
+        result = self.cycle(self.api(), requests)
+        self.assertEqual((result['refresh']['groups'], result['refresh']['pending'], result['refresh']['reported']), (summary.MAX_GROUPS, 1, summary.MAX_GROUPS))
+        self.assertNotIn('0c970c97-0c97-4c97-8c97-0c970c970c05', [call.args[1] for call in self.report.call_args_list])
+        # The run budget: the second group is deferred; its request stays open, the first is reported.
+        self.db.execute('DELETE FROM group_chat_summary_state')
+        self.group('g1')
+        self.group('g2', members=('B-C',))
+        ticks = iter([0, 10, 400, 500])
+        api = self.api(conversation('g1', self.members, [message('m1', '20', 20, PROMISE)]))
+        result = self.cycle(api, self.requested(('B-A', self.REQUEST), ('B-C', self.OTHER)), clock=lambda: next(ticks))
+        self.report.assert_called_once_with(self.config, self.REQUEST, 'stored')
+        self.assertEqual((result['deferred'], result['refresh']['pending']), (1, 1))
+
+    def test_a_borrower_in_two_groups_takes_the_best_outcome(self):
+        self.assertEqual(summary.combined_outcome(['cleared', 'failed', 'unchanged']), 'unchanged')
+        self.assertEqual(summary.combined_outcome(['failed', 'stored']), 'stored')
+        self.assertEqual(summary.combined_outcome(['cleared', 'failed']), 'failed')
+        self.assertEqual(summary.combined_outcome(['cleared']), 'cleared')
+
+    def test_a_list_or_report_failure_is_a_code_and_does_not_stop_the_run(self):
+        self.mark()
+        api = self.api(conversation('g1', self.members, [message('m1', '20', 20, PROMISE)]))
+        result = self.cycle(api, Mock(side_effect=ConfigurationError('RECEIPT_API_OUTCOME_UNCERTAIN')))
+        self.assertEqual((result['summarised'], result['refresh']['errors'], result['refresh']['requested']), (1, ['RECEIPT_API_OUTCOME_UNCERTAIN'], 0))
+        self.db.execute('DELETE FROM group_chat_summary_state')
+        self.group()
+        result = self.cycle(api, self.requested(('B-A', self.REQUEST)), report=Mock(side_effect=RuntimeError(SENTINEL)))
+        self.assertEqual((result['refresh']['reported'], result['refresh']['errors']), (0, ['GROUP_SUMMARY_FAILED']))
+        self.assertNotIn(SENTINEL, json.dumps(result, ensure_ascii=False))
+
+    def test_without_refreshes_the_cycle_reads_no_requests_and_an_idle_run_stays_idle(self):
+        self.db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
+        self.assertEqual(self.run_cycle(self.api())['status'], 'idle')
+        self.assertNotIn('refresh', self.run_cycle(self.api()))
+        result = self.cycle(self.api(), Mock(return_value=[]))
+        self.assertEqual((result['status'], result['refresh']['requested']), ('idle', 0))
+        self.reader.assert_not_called()
+
+    def test_the_list_and_report_use_the_refresh_route(self):
+        valid = {'environment': 'prod', 'requests': [{'borrowerId': 'B-A', 'requestId': self.REQUEST, 'requestedAt': '2026-11-12T07:59:00.000Z'}]}
+        with patch('mw_integration_agent.receipt_api.call', return_value=valid) as call:
+            self.assertEqual(summary.refresh_requests(self.config), valid['requests'])
+        self.assertEqual(call.call_args.args, (self.config, 'GET'))
+        self.assertEqual(call.call_args.kwargs, {'route': 'group-chat-refreshes', 'answered': (404,)})
+        with patch('mw_integration_agent.receipt_api.call', return_value={'error': 'not_found'}):
+            self.assertEqual(summary.refresh_requests(self.config), [])  # a command service without the route: none
+        for reply in ({'environment': 'dev', 'requests': []}, {'environment': 'prod'}, {'environment': 'prod', 'requests': [{'borrowerId': 'B-A'}]},
+                      {'environment': 'prod', 'requests': [dict(valid['requests'][0], requestId='X')]}, [], {'environment': 'prod', 'requests': [valid['requests'][0]] * 21}):
+            with self.subTest(reply=reply), patch('mw_integration_agent.receipt_api.call', return_value=reply), self.assertRaises(summary.SummaryFailed) as raised:
+                summary.refresh_requests(self.config)
+            self.assertEqual(raised.exception.code, 'REFRESH_LIST_INVALID')
+        for kind in ('completed', 'replayed', 'unknown_request'):
+            with patch('mw_integration_agent.receipt_api.call', return_value={'kind': kind}) as call:
+                self.assertEqual(summary.report_refresh(self.config, self.REQUEST, 'no_group'), kind)
+        self.assertEqual(call.call_args.kwargs, {'body': {'command': {'schemaVersion': 1, 'environment': 'prod', 'requestId': self.REQUEST, 'outcome': 'no_group'}},
+                                                 'route': 'group-chat-refreshes', 'answered': (400,)})
+        for reply in ({'error': 'invalid_refresh_command'}, {'kind': 'stored'}, []):
+            with self.subTest(reply=reply), patch('mw_integration_agent.receipt_api.call', return_value=reply), self.assertRaises(summary.SummaryFailed):
+                summary.report_refresh(self.config, self.REQUEST, 'stored')
+        with self.assertRaises(summary.SummaryFailed):
+            summary.report_refresh(self.config, self.REQUEST, 'pending')
+        from mw_integration_agent import receipt_api
+        with patch.object(receipt_api, 'validate'), patch.object(receipt_api, 'identity_token', side_effect=RuntimeError('stop')):
+            # The route passes the allowlist (the call then stops at the token, before any request is built).
+            config = {'receipt_payment_api_enabled': True, 'receipt_payment_api_origin': 'https://example.invalid', 'receipt_payment_api_audience': 'https://example.invalid'}
+            with self.assertRaisesRegex(ConfigurationError, 'RECEIPT_API_NOT_SENT_TOKEN'):
+                receipt_api.call(config, 'GET', route='group-chat-refreshes')
+            with self.assertRaisesRegex(ConfigurationError, 'INVALID_RECEIPT_API_ROUTE'):
+                receipt_api.call(config, 'GET', route='group-chat-refreshes/extra')
+
+    def test_switch_off_reads_no_requests(self):
+        config = dict(self.config, group_chat_summary_enabled=False, state_directory=self.tmp.name)
+        catalogue = {'services': {'group_chat_summary': {'enabled': True}, 'conversation_poll': {'enabled': True}, 'shared_receipt_payment_api': {'enabled': True}}}
+        with patch.object(summary, 'load_controls', return_value=(config, catalogue)), patch.object(summary, 'refresh_requests') as listed, \
+                self.assertRaisesRegex(ConfigurationError, 'GROUP_CHAT_SUMMARY_DISABLED'):
+            summary.run('unused', 'unused')
+        listed.assert_not_called()
+
+
 class NoTextAtRestTests(Base):
     def test_sentinel_is_absent_from_output_audit_plans_and_state(self):
         from mw_integration_agent import cli
@@ -1386,7 +1572,7 @@ class ConfigurationTests(unittest.TestCase):
     def test_catalogue_knows_the_service_disabled_and_implemented(self):
         catalogue = json.loads((ROOT / 'service-catalogue.json').read_text(encoding='utf-8'))
         validate_catalogue(catalogue)
-        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (38, {'enabled': False, 'implemented': True}))
+        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (39, {'enabled': False, 'implemented': True}))  # R165 (39) changes no service
 
 
 class UnitFileTests(unittest.TestCase):
