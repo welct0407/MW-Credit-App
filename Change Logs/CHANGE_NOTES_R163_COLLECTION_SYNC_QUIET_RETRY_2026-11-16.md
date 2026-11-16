@@ -44,10 +44,21 @@ Data rules: no borrower data, account identifiers, addresses or secrets are reco
 | `npx biome lint` on `offline-dataset.ts`, `client-events.ts`, `CollectionReceipts.tsx`, `CollectionRecords.tsx` | Pass, no findings (Byte; HEAD `f01cf01` plus the work tree, committed as `b93a00e`) |
 | `npm run -s typecheck` | Pass, exit 0 (Byte; same content, `b93a00e`) |
 | `node --test` on 9 unit files | Pass, 254 of 254 (Byte; same content, `b93a00e`) |
-| Chase's verification, the `Development checks` run and the DEV device check | To be filled |
+| `node --test` on the coordinator and troubleshooting unit files | Pass, 61 of 61 (Chase; `c98272c`) |
+| `npx biome lint` on the edited e2e specs | Pass, clean (Chase) |
+| `collection-read.spec.ts -g R163`, desktop-chromium | Pass, 4 (Chase). The same 4 fail against the `f01cf01` versions of `CollectionReceipts` and `CollectionRecords`, so they detect the defect |
+| `payment-command.spec.ts -g "R163 a transient"`, desktop-chromium | Pass (Chase). It fails against the `f01cf01` `offline-dataset.ts` |
+| Both R163 groups, mobile-chromium (Pixel 7) | Pass, 5 (Chase) |
+| `payment-command.spec.ts -g "One refresh icon\|Full app preparation"` | Pass, 2 (Chase) |
+| `refresh-hold-independent.spec.ts` "backs off" and "failing receipt" | Pass, 2, after the expectation update; the old test passes on the old code and fails on the new, so the expectation change is the only difference (Chase) |
+| 22 coordinator cases across `offline-delta-independent`, `back-consumers-independent` and `dataset-replay-independent` | Pass, all, after `back-consumers-independent.spec.ts:267` was updated to expect 3 requests (503, quiet retry 503, after reload) (Chase) |
+| `npx biome lint` and `npm run -s typecheck`, then `collection-read.spec.ts -g R163`, after the retryCursor fix (`95c1e0d`) | Clean, exit 0, 4 pass (Byte) |
+| Chase's review | No blocking defects. Finding 1 (stale `retryCursor`) fixed by Byte in `95c1e0d`; finding 2 (the notifications domain also gets the quiet retry) accepted; finding 3 (a brief busy state during a quiet reload) accepted as cosmetic |
+| The pull request's `Development checks` run, then DEV and PROD | To be filled |
 
 ## Not run
-To be filled after verification.
+- The local `mobile-webkit` device check: the WebKit binary is missing in this cloud session and `playwright install webkit` fails on host requirements. mobile-chromium (Pixel 7) was the substitute; the pull request's `e2e iPhone WebKit` shards run every spec on WebKit. A skipped check is not a pass.
+- Chase did not run the chat, error-recovery and late-charge specs (they produce 503s on other endpoints, not on the changed paths) or `reconcile-independent` and `own-receipt-seed-independent` (no failure-state assertions). The wide suite is left to CI.
 
 ## Recovery
 Git baseline `main` `2d8dc0f`. A PWA-only release is undone by redeploying the previous Hosting version recorded in the [environment inventory](../project/Documents/Environment_Inventory.md); no backup is expected.
