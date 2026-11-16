@@ -90,3 +90,112 @@ test('Collection board pager: next and previous 100-borrower pages keep the sear
  await expect(page.locator(tile)).toHaveCount(100);await next.scrollIntoViewIfNeeded();await next.click();await expect(count).toHaveText('Borrowers 101–150');
  await page.getByRole('button',{name:'Refresh Collection — return to first page'}).click();await expect(count).toHaveText('Borrowers 1–100');expect(requests.at(-1)!.has('cursor')).toBe(false);
 });
+
+// R163 (owner testing): the receipts read always asks for Bangkok today, a day change never empties the shown receipts, and a
+// saved answer of another day never starts the early upcoming read. These cases need the owner-testing workspace
+// (VITE_COMMAND_MODE=dev-owner-testing), so they run on their own dev server.
+test.describe('R163 Collection receipts and the business date',()=>{
+ let ownerServer:ChildProcess,ownerBase='',ownerLog='';
+ test.beforeAll(async({},info)=>{
+  const port=5700+info.workerIndex;ownerBase=`http://127.0.0.1:${port}`;
+  ownerServer=spawn(process.execPath,['--input-type=module','-e',`import {createServer} from 'vite';const s=await createServer({mode:'live-dev',cacheDir:'node_modules/.cache/playwright-live-owner-${port}-${Date.now()}',server:{host:'127.0.0.1',port:${port},strictPort:true}});await s.listen();`],{env:{...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-test-key',VITE_FIREBASE_APP_ID:'synthetic-app-id',VITE_API_ORIGIN:'https://mw-credit-app-read-dev-test.run.app',VITE_COMMAND_API_ORIGIN:'https://mw-credit-app-command-dev-test.run.app',VITE_COMMAND_MODE:'dev-owner-testing'},stdio:'pipe'});
+  ownerServer.stdout?.on('data',data=>{ownerLog+=String(data)});ownerServer.stderr?.on('data',data=>{ownerLog+=String(data)});
+  await expect.poll(async()=>{try{return(await fetch(ownerBase)).status}catch{return 0}},{timeout:20000}).toBe(200);
+ });
+ test.afterAll(()=>ownerServer?.kill());test.afterEach(async({},info)=>{if(info.status!==info.expectedStatus)console.log(ownerLog)});
+ const readOrigin='https://mw-credit-app-read-dev-test.run.app',commandOrigin='https://mw-credit-app-command-dev-test.run.app',cors={'access-control-allow-origin':'*'};
+ const day={yesterday:'2026-10-06',today:'2026-10-07',next:'2026-10-08'};
+ // Bangkok is UTC+7: 2026-10-07 12:00 Bangkok, and one minute before the next midnight.
+ const noon=new Date('2026-10-07T05:00:00Z'),beforeMidnight=new Date('2026-10-07T16:59:00Z'),afterMidnight=new Date('2026-10-07T17:00:30Z');
+ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==','base64');
+ /** The servers: the read origin answers the board, a borrower's charges and the upcoming read for `server.day`; the command
+  * origin answers receipts through `server.receipts` (a handler) and everything else with an empty ok answer. */
+ function serve(){
+  const server={day:day.today,hold:null as null|Promise<void>,holdCharges:null as null|Promise<void>,upcoming:[] as string[],receipts:[] as URL[],receiptsAnswer:(_count:number):{status:number;body:any}=>({status:200,body:{ok:true,businessDate:'',items:[{id:'R-1',paymentDate:'2026-10-05',amount:'10',manualReceiptPresent:true,agentReceiptPresent:false,receiptAt:'2026-10-07T05:00:00Z'}],nextCursor:null}}),holdReceipts:null as null|Promise<void>,answered:[] as string[]};
+  const row={id:'board-1',displayName:'ผู้กู้ตัวอย่าง - Synthetic 1',status:'partially_paid',overdueDays:null,amountDue:'20',amountCollected:'10',amountRemaining:'10'};
+  const charge={id:'charge-1',loanId:'loan-1',loanDisplayKey:'Synthetic loan',chargeDate:'2026-10-05',paymentStatus:'ชำระบางส่วน',paymentDate:null,amountRemaining:'10',totalPaid:'10',receivedToday:'0'};
+  const envelope=()=>({ok:true,source:'dev',businessDate:server.day,timezone:'Asia/Bangkok',asOf:server.day+'T05:00:00Z'});
+  const install=async(page:import('@playwright/test').Page)=>{
+   await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
+   await page.route(readOrigin+'/**',async r=>{
+    const u=new URL(r.request().url());let body:any={...envelope(),horizonEnd:'2027-01-07',reviewRequired:false,items:[],nextCursor:null};
+    if(u.pathname.endsWith('/upcoming')){server.upcoming.push(u.searchParams.get('businessDate')??'');body={...body,businessDate:u.searchParams.get('businessDate')??server.day,borrower:row}}
+    else if(u.pathname.endsWith('/charges')){if(server.holdCharges)await server.holdCharges;body={...envelope(),borrower:row,items:[charge],nextCursor:null}}
+    else if(u.pathname==='/api/collection'){if(server.hold)await server.hold;body={...envelope(),items:[row],nextCursor:null}}
+    await r.fulfill({contentType:'application/json',headers:cors,body:JSON.stringify(body)}).catch(()=>{});
+   });
+   await page.route(commandOrigin+'/**',async r=>{
+    const u=new URL(r.request().url());
+    if(u.pathname.endsWith('/receipt'))return r.fulfill({contentType:'image/png',headers:cors,body:png}).catch(()=>{});
+    if(u.pathname.endsWith('/collection-receipts')){
+     server.receipts.push(u);if(server.holdReceipts&&server.receipts.length>1)await server.holdReceipts;
+     const answer=server.receiptsAnswer(server.receipts.length);server.answered.push(String(answer.status));
+     return r.fulfill({status:answer.status,contentType:'application/json',headers:cors,body:JSON.stringify(answer.status===200?{...answer.body,businessDate:u.searchParams.get('businessDate')}:{ok:false,code:answer.status===409?'business_date_changed':'source_unavailable'})}).catch(()=>{});
+    }
+    if(u.pathname==='/api/dashboard')return r.fulfill({contentType:'application/json',headers:cors,body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})}).catch(()=>{});
+    return r.fulfill({contentType:'application/json',headers:cors,body:JSON.stringify({ok:true,item:{language:null},items:[],accounts:[],dates:[]})}).catch(()=>{});
+   });
+  };
+  return {server,install};
+ }
+ async function openBorrower(page:import('@playwright/test').Page){
+  await page.setViewportSize({width:1440,height:900});await page.goto(ownerBase);await page.getByRole('button',{name:'Continue with Google'}).click();
+  await page.getByRole('button',{name:'Collection',exact:true}).filter({visible:true}).first().click();
+  await page.locator('.collection-tile-main').first().click();
+ }
+ const receiptsRegion=(page:import('@playwright/test').Page)=>page.getByRole('region',{name:'Collection receipts'});
+ const errorHeading=(page:import('@playwright/test').Page)=>page.getByRole('heading',{name:/^(Collection is unavailable|The business date has changed)$/});
+ const bangkokDays=(urls:URL[])=>urls.map(url=>url.searchParams.get('businessDate'));
+
+ test('a saved answer of yesterday with a live answer of today: receipts ask for today, no upcoming read for yesterday, no error',async({page})=>{
+  const {server,install}=serve();await page.clock.install({time:noon});await install(page);
+  // First visit: the server is still on yesterday (as an old saved answer would be); wait until the charges answer is saved.
+  server.day=day.yesterday;await openBorrower(page);await expect(page.locator('.collection-charge')).toHaveCount(1);
+  await expect.poll(()=>page.evaluate(async()=>{const names=(await indexedDB.databases()).map(d=>d.name!).filter(n=>n.startsWith('mw-credit-dev-owner:'));for(const name of names){const db=await new Promise<IDBDatabase>((resolve,reject)=>{const q=indexedDB.open(name);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});const keys=await new Promise<IDBValidKey[]>(resolve=>{const q=db.transaction('records').objectStore('records').getAllKeys();q.onsuccess=()=>resolve(q.result)});db.close();if(keys.some(key=>String(key).startsWith('cache:')&&String(key).includes('/charges?limit=10')))return true}return false})).toBe(true);
+  // Reload on the new day: the saved charges (yesterday) show first while the live charges answer (today) is held.
+  await expect.poll(()=>server.upcoming.includes(day.yesterday)).toBe(true);await page.waitForTimeout(300);
+  server.day=day.today;server.upcoming.length=0;server.receipts.length=0;let release:()=>void=()=>{};server.holdCharges=new Promise<void>(resolve=>{release=resolve});
+  await page.reload();await page.getByRole('button',{name:'Continue with Google'}).click();await page.getByRole('button',{name:'Collection',exact:true}).filter({visible:true}).first().click();await page.locator('.collection-tile-main').first().click();
+  await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(receiptsRegion(page).locator('.collection-receipt-card')).toHaveCount(1);
+  expect(server.upcoming,'the saved answer of yesterday starts no upcoming read').not.toContain(day.yesterday);
+  release();await expect.poll(()=>server.upcoming.includes(day.today)).toBe(true);
+  expect(server.upcoming).not.toContain(day.yesterday);expect(bangkokDays(server.receipts).every(value=>value===day.today),JSON.stringify(bangkokDays(server.receipts))).toBe(true);
+  await expect(errorHeading(page)).toHaveCount(0);await expect(receiptsRegion(page).getByRole('alert')).toHaveCount(0);
+ });
+
+ test('a receipts 409 business_date_changed is asked again once, silently',async({page})=>{
+  const {server,install}=serve();await page.clock.install({time:noon});await install(page);
+  server.receiptsAnswer=count=>count===1?{status:409,body:{}}:{status:200,body:{ok:true,items:[{id:'R-1',paymentDate:'2026-10-05',amount:'10',manualReceiptPresent:true,agentReceiptPresent:false,receiptAt:'2026-10-07T05:00:00Z'}],nextCursor:null}};
+  await openBorrower(page);
+  await expect(receiptsRegion(page).locator('.collection-receipt-card')).toHaveCount(1);
+  expect(server.receipts.length,'one request, one silent retry').toBe(2);expect(bangkokDays(server.receipts)).toEqual([day.today,day.today]);expect(server.answered).toEqual(['409','200']);
+  await expect(page.getByText('Receipts unavailable.')).toHaveCount(0);await expect(receiptsRegion(page).getByRole('alert')).toHaveCount(0);
+ });
+
+ test('a second 409 shows the alert; Retry receipts asks for today again and recovers',async({page})=>{
+  const {server,install}=serve();await page.clock.install({time:noon});await install(page);
+  server.receiptsAnswer=()=>({status:409,body:{}});
+  await openBorrower(page);
+  await expect(page.getByText('Receipts unavailable.')).toBeVisible();expect(server.receipts.length).toBe(2);
+  const before=server.receipts.length;server.receiptsAnswer=()=>({status:200,body:{ok:true,items:[{id:'R-1',paymentDate:'2026-10-05',amount:'10',manualReceiptPresent:true,agentReceiptPresent:false,receiptAt:'2026-10-07T05:00:00Z'}],nextCursor:null}});
+  await page.getByRole('button',{name:'Retry receipts'}).click();
+  await expect(receiptsRegion(page).locator('.collection-receipt-card')).toHaveCount(1);await expect(page.getByText('Receipts unavailable.')).toHaveCount(0);
+  expect(server.receipts.length).toBe(before+1);expect(bangkokDays(server.receipts.slice(before))).toEqual([day.today]);
+ });
+
+ test('across Bangkok midnight, coming back to the app reloads the receipts quietly and the shown ones stay',async({page})=>{
+  const {server,install}=serve();await page.clock.install({time:beforeMidnight});await install(page);
+  await openBorrower(page);
+  await expect(receiptsRegion(page).locator('.collection-receipt-card')).toHaveCount(1);expect(bangkokDays(server.receipts)).toEqual([day.today]);
+  // The day turns while the app is in the background; the new day's answer is held so the intermediate state can be seen.
+  let release:()=>void=()=>{};server.holdReceipts=new Promise<void>(resolve=>{release=resolve});
+  await page.clock.setSystemTime(afterMidnight);
+  await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  await expect.poll(()=>server.receipts.length).toBe(2);expect(bangkokDays(server.receipts)).toEqual([day.today,day.next]);
+  await expect(receiptsRegion(page).locator('.collection-receipt-card'),'the shown receipts stay while the new day loads').toHaveCount(1);await expect(page.getByText('Receipts unavailable.')).toHaveCount(0);
+  release();await expect(receiptsRegion(page).locator('.collection-receipt-card')).toHaveCount(1);await expect(page.getByText('Receipts unavailable.')).toHaveCount(0);
+  // A second return on the same day asks nothing more.
+  await expect.poll(()=>server.answered.length).toBe(2);await page.waitForTimeout(300);
+  await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await page.waitForTimeout(300);expect(server.receipts.length).toBe(2);
+ });
+});

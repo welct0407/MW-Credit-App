@@ -351,3 +351,43 @@ test('One refresh icon: it delta-syncs every local dataset domain with a progres
  await page.route('https://mw-credit-app-read-dev-test.run.app/api/borrowers**',r=>r.fulfill({status:503,json:{ok:false,code:'unavailable'}}));await refresh.click();await expect(page.locator('.refresh-failure-badge')).toBeVisible();await expect(refresh).toHaveAttribute('data-refresh-state','error');
  await page.unroute('https://mw-credit-app-read-dev-test.run.app/api/borrowers**');await refresh.click();await expect(page.locator('.refresh-failure-badge')).toHaveCount(0);await expect(refresh).toHaveAttribute('data-refresh-state','success');
 });
+
+// R163 quiet retry (header): one transient 503 of a data domain is retried once after about 3 s without any header change; two in a
+// row show the "not updated" warning once. Statuses and announcements are recorded by a MutationObserver from before the first
+// paint, so a flash of a few milliseconds is caught. Also run on the iPhone (mobile-webkit, PLAYWRIGHT_WEBKIT=1).
+test('R163 a transient 503 is retried quietly: the header, the progress bar and the announcements stay as they were; two 503s warn once',async({page})=>{
+ await page.setViewportSize({width:390,height:844});const directoryBorrower={id:borrower.id,name:'Prepared synthetic borrower',borrowerDisplayName:'Prepared synthetic borrower',totalProfitEarned:'10',createdDate:'2026-10-14',hasActiveLoan:true,outstandingPrincipal:'330',note:null};
+ const posts:string[]=[];const failTimes:Record<string,number>={};
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications';if(!url.pathname.includes('offline-dataset'))return route.fulfill({json:{item:{language:'English'}}});if(route.request().method()==='POST'){posts.push(domain);if((failTimes[domain]??0)>0){failTimes[domain]--;return route.fulfill({status:503,json:{code:'unavailable'}})}return route.fulfill({json:{schemaVersion:3,domain,complete:true,unchanged:true,sourceVersion:'synthetic-v1',nextCursor:null,asOf:'2026-10-14T00:00:00Z',businessDate:'2026-10-14',patches:[],values:{}}})}return route.fulfill({json:preparedWire({schemaVersion:1,domain,complete:true,ok:true,sourceVersion:'synthetic-v1',asOf:'2026-10-14T00:00:00Z',businessDate:'2026-10-14',data:domain==='records'?{borrowerList:[directoryBorrower],borrowers:[],payments:[]}:domain==='collection'?{items:[],charges:[],borrowerUpcoming:[]}:{}})})});
+ await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>r.fulfill({json:{ok:true,source:'dev',businessDate:'2026-10-14',asOf:'2026-10-14T00:00:00Z',items:[directoryBorrower],nextCursor:null}}));
+ await page.addInitScript(()=>{const w=window as any,h={status:[] as string[],announce:[] as string[],bar:0,warnings:0};w.__hdr=h;
+  const scan=()=>{const s=document.querySelector('.live-sync-status'),text=s?.textContent?.replace(/\s+/g,' ').trim()??'';if(text&&h.status.at(-1)!==text){h.status.push(text);if(/not updated|Update failed/.test(text)&&!/not updated|Update failed/.test(h.status.at(-2)??''))h.warnings++}
+   const a=document.querySelector('.sync-announcement')?.textContent?.trim()??'';if(a&&h.announce.at(-1)!==a)h.announce.push(a);if(document.querySelector('.header-load-progress'))h.bar++};
+  new MutationObserver(scan).observe(document,{subtree:true,childList:true,characterData:true,attributes:true});setInterval(scan,50)});
+ await page.goto(base);await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');
+ await page.evaluate(async()=>{const m=await import('/apps/pwa/src/owner-offline.ts');await m.ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-owner'},'dev').authorize();window.dispatchEvent(new Event('mw-offline-prepare'))});
+ const refresh=page.locator('button.collection-update'),status=page.locator('.live-sync-status'),progress=page.locator('.header-load-progress'),region=page.locator('.header-sync-cell .sync-announcement');
+ await expect(status).toContainText('Updated');await expect(progress).toHaveCount(0);await expect.poll(()=>region.textContent(),{timeout:7000}).toBe('');
+ const hdr=()=>page.evaluate(()=>({...(window as any).__hdr}));const reset=()=>page.evaluate(()=>{const h=(window as any).__hdr;h.status.length=0;h.announce.length=0;h.bar=0;h.warnings=0});
+ const cashPosts=()=>posts.filter(domain=>domain==='cash').length;
+ // 1. An automatic check (focus): cash 503 once. Nothing changes in the header; cash is asked twice; the time returns.
+ await reset();posts.length=0;failTimes.cash=1;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+ await expect.poll(cashPosts).toBe(1);await page.waitForTimeout(1500);
+ expect(await hdr()).toMatchObject({warnings:0,bar:0,announce:[]});await expect(status).toContainText('Updated');await expect(status).not.toContainText('not updated');
+ await expect.poll(cashPosts,{timeout:8000}).toBe(2);await page.waitForTimeout(800);
+ expect(await hdr()).toMatchObject({warnings:0,bar:0,announce:[]});await expect(status).toContainText('Updated');expect((await hdr()).status.every(text=>/^Updated \d\d:\d\d$/.test(text)),JSON.stringify((await hdr()).status)).toBe(true);
+ // 2. A tap: cash 503 once. The bar and percentage stay through the hold and the retry (never dropped and shown again), and the region
+ // announces "Syncing…" once and then the time once.
+ await reset();posts.length=0;failTimes.cash=1;await refresh.click();await expect(progress).toBeVisible();await expect.poll(cashPosts).toBe(1);
+ await page.waitForTimeout(1500);await expect(progress,'the bar is held during the quiet retry').toBeVisible();await expect(status).not.toContainText('Updated');await expect(status).not.toContainText('not updated');
+ await expect.poll(cashPosts,{timeout:8000}).toBe(2);await expect(status).toContainText('Updated');await expect(progress).toHaveCount(0);
+ await expect.poll(async()=>(await hdr()).announce.length).toBe(2);
+ const tap=await hdr();expect(tap.warnings).toBe(0);expect(tap.announce[0]).toBe('Syncing…');expect(tap.announce[1]).toMatch(/^Updated \d\d:\d\d$/);expect(tap.status.some(text=>/not updated|failed/i.test(text))).toBe(false);
+ await expect.poll(()=>region.textContent(),{timeout:7000}).toBe('');
+ // 3. Two 503s in a row on a tap: the warning appears once, after the retry, with one announcement of it.
+ await reset();posts.length=0;failTimes.cash=2;await refresh.click();await expect.poll(cashPosts).toBe(1);await page.waitForTimeout(1500);await expect(status).not.toContainText('not updated');
+ await expect.poll(cashPosts,{timeout:8000}).toBe(2);await expect(status).toHaveText(/^Cash not updated/);await page.waitForTimeout(800);
+ const two=await hdr();expect(two.warnings).toBe(1);expect(two.announce.filter(text=>/^Cash not updated/.test(text))).toHaveLength(1);expect(cashPosts()).toBe(2);
+ // 4. A tap after the failure succeeds and returns the time.
+ await reset();posts.length=0;await refresh.click();await expect(status).toContainText('Updated');
+});
