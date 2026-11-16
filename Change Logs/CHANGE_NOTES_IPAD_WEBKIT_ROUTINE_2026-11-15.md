@@ -49,6 +49,22 @@ Owner request of 15 November 2026: include the iPad experience in CI for the iPa
 ## Recovery
 Revert the merge; tests, CI, documentation and PWA layout and scroll code only, no data or deployed service change. Hosting rolls back through the usual previous version in the [environment inventory](../project/Documents/Environment_Inventory.md) if the PWA ships and a fix misbehaves.
 
+## PROD promotion record (Forge, 16 November 2026 UTC)
+Authority: the owner, 16 November 2026, after PR #335 merged: "Push to prod then close the release" (R162; Hosting only; no SQL, image, agent, notification or job change). Freeze 00:26:59Z, package `9cf191f2` (merge of PR #335), baseline R161 `07b1d48a`. `component-versions.mjs derive` at `9cf191f2`: only the PWA changed (R162); read, command and chat stay R161, notify and jobs R159, schema R154 at V149, agent R153. The other non-PWA files since R161 are CI (`.github/workflows/ci.yml`, `scripts/ci/stages.json`, `playwright.config.ts`), an agent definition and records; no runtime input. Both bundles were built from a clean export (git archive) of `9cf191f2` with its own `npm ci`.
+
+| Step | Result |
+| --- | --- |
+| Baseline | Project `clever-oasis-508610-n7`, region `asia-southeast1`. PROD Hosting `d8c87e560fe08d2e` (release `1794730883591000`, R161); read `00064-xnt`, command `00069-gnv`, chat `00048-zqm` (R161 image `a68fdedc…`), notify `00031-mzf`, jobs `00031-dmq` (R159 image `56f17745…`). DEV Hosting `afa8ec1e5495e1a6` (release `1794725834818000`, R161). Flyway read-only as `codex-cloud-read` through the IAP tunnel, 00:29:05Z: `loan_manager_prod` V149, 149 rows, none failed |
+| DEV | `build:live-dev` with `MW_RELEASE_NUMBER=R162`; the env file was written from `mw-credit-app-dev-firebase-web` and the settings of the live DEV bundle (read, command and chat DEV origins, `dev-owner-testing`, notifications on; the DEV web app) and deleted after the build. `deploy-hosting.mjs --live-dev --check` (17 files) then apply 00:27:50Z to 00:28:00Z: version `a2e4ba6ee02291ae`, release `1794788879980000`, build R162 `7768964b94a127f0baaf7082`. Smoke: three origins R162, index and entry 200, `sw.js` no-store, the stylesheet carries `minmax(min-content`, unauthenticated 401 |
+| Hosting | The generic runner, frontend-only, from `buildProductionBusinessCandidate` (R158's pinned public config, unchanged; PROD origins and web app only). Receipts: `Development checks` run 43747953271 on `300ae4e3` (check, lint, terraform, 3 Chromium, 3 iPhone, 3 iPad portrait and 3 iPad landscape WebKit e2e); the merge `9cf191f2` has the same tree as `300ae4e3` (its first parent is `ad9841a`, the merge base; main had no other change). `Database migrations` run 43734374979 on `f12c6c3a` (guards and all four rebuild groups; no rebuild-stage input changed since; the push run on `9cf191f2` skipped rebuild). SQL readback: 00:29:05Z above. `--check` passed (18 files, services on their R161 and R159 pins); `--apply` 00:31:06Z to 00:31:42Z: version `81660e7a5fec843c`, release `1794789095371000`, build R162 `b714f94b2610b5fb8f6807ac` |
+| Smoke | Three origins R162 (`lm.mw-credit.com`, `web.app`, `firebaseapp.com`), index and entry 200, `sw.js` no-store, the stylesheet carries `minmax(min-content`; unauthenticated 401; read, command and chat `/health` R161 `07b1d48a` (unchanged); Cloud Run revisions unchanged after the apply; no ERROR logs on any PROD service after 00:25Z (checked 00:31:58Z). No notification, payment or job was run |
+| Tag | `R162` on `9cf191f2` (Release tag run [43780955688](https://github.com/welct0407/MW-Credit-App/actions/runs/43780955688), 00:32:15Z to 00:32:43Z; tag object `3a8b94b2…` peels to `9cf191f2`). The GitHub Release body shows the derive table twice (once in the notes, once appended by the workflow) |
+| Closure | Components: PWA R162; read, command and chat R161; notify and jobs R159; schema R154 at V149; agent R153. `render --write` updated the inventory block to R162 (`render --check` ok). Drift 00:33:50Z (`--env all`; notify `/health` read with an identity token in DEV and PROD, jobs by the shared digest, Flyway 149 read live in DEV and PROD at 00:33Z): 0 drift, 3 unverified (agent, Grafana, Metabase). No dictionary capture |
+
+Rollback: PROD Hosting `d8c87e560fe08d2e` (R161); DEV Hosting `afa8ec1e5495e1a6` (R161). No database or service step.
+
+Limitations: the owner accepts the iPad layout on a real iPad (portrait and landscape, keyboard and Home Screen).
+
 ## Open questions
 None.
 
