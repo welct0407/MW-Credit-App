@@ -30,12 +30,21 @@ Files:
 - Tests (Chase): `tests/unit/offline-dataset-coordinator.test.mjs`, `tests/unit/troubleshooting.test.mjs`, `tests/e2e/collection-read.spec.ts`.
 - Documents (Dewey): this note, `project/Documents/Release_Tracker.md`, `project/Documents/Development_Changes.md`, `project/Documents/Solution_Design.md`, `project/Documents/PWA_Data_Model_Overview.md`. The data dictionary is unchanged (no column, constraint or routine change).
 
+Implementation (Byte, complete). Files: `apps/pwa/src/offline-dataset.ts`, `apps/pwa/src/client-events.ts`, `apps/pwa/src/CollectionReceipts.tsx`, `apps/pwa/src/CollectionRecords.tsx`. No new helper: the receipts reuse `bangkokClock()` and `bangkokToday()`.
+- New `dataset-retry` event kind; `DATASET_QUIET_RETRY_MS` is 3000.
+- The reason-code list as designed, plus `save_refused` for a refused media save; media is never retried quietly.
+- Receipts always ask for the Bangkok date of today and retry once on `business_date_changed`.
+- Interpretations: (1) status 0 counts as transient only for `network` or `timeout`; (2) a domain that has failed visibly gets no quiet retry until it succeeds again (`fail()` adds it to `quietUsed`); (3) a receipts 409 during "Load more" restarts from the first page of the new day, because a cursor belongs to its day. A quiet reload on returning to the app on a new day keeps the receipts already shown and shows no error if it fails.
+
 Data rules: no borrower data, account identifiers, addresses or secrets are recorded here; tests use invented data only.
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| to be filled after verification | pending |
+| `npx biome lint` on `offline-dataset.ts`, `client-events.ts`, `CollectionReceipts.tsx`, `CollectionRecords.tsx` | Pass, no findings (Byte; HEAD `f01cf01` plus the work tree, committed as `b93a00e`) |
+| `npm run -s typecheck` | Pass, exit 0 (Byte; same content, `b93a00e`) |
+| `node --test` on 9 unit files | Pass, 254 of 254 (Byte; same content, `b93a00e`) |
+| Chase's verification, the `Development checks` run and the DEV device check | To be filled |
 
 ## Not run
 To be filled after verification.
@@ -43,8 +52,24 @@ To be filled after verification.
 ## Recovery
 Git baseline `main` `2d8dc0f`. A PWA-only release is undone by redeploying the previous Hosting version recorded in the [environment inventory](../project/Documents/Environment_Inventory.md); no backup is expected.
 
+## Promotion record (DEV and PROD; Forge and Dewey, to be filled)
+Authority: the owner, 16 November 2026: "push to prod when ready". Under [AGENTS](../AGENTS.md#hard-rules) and [Promotion](../project/Documents/Rules/Release_Workflow.md#promotion) this approves promoting R163 through DEV to PROD. Scope: PWA Hosting only; no SQL, migration, backup, Terraform, service image or agent change. Freeze: to be filled. Package: to be filled (merge of the R163 pull request), baseline R162 `9cf191f2`. `component-versions.mjs derive` at the package commit: to be filled (expected: only the PWA changed; read, command and chat stay R161, notify and jobs R159, schema R154 at V149, agent R153).
+
+| Step | Result |
+| --- | --- |
+| Baseline | To be filled: PROD and DEV Hosting versions before the apply (pins live in the [environment inventory](../project/Documents/Environment_Inventory.md)); service revisions unchanged |
+| DEV | To be filled: `build:live-dev` with `MW_RELEASE_NUMBER=R163`, `deploy-hosting.mjs --live-dev --check` then apply, times and result; the owner or Echo's iPhone WebKit device check |
+| Hosting | To be filled: the generic runner, frontend-only; receipts for the checks (`Development checks` run on the package tree) |
+| Smoke | To be filled: three origins on R163, index and entry 200, `sw.js` no-store, the new build marker present, unauthenticated 401, service `/health` unchanged, no ERROR logs after the apply |
+| Tag | To be filled: `R163` on the package commit (Release tag run) |
+| Closure | To be filled: components, `render --write` and `--check`, drift result, prune list |
+
+Rollback: the PROD and DEV Hosting versions recorded under Baseline (R162). No database or service step.
+
+Limitations: to be filled (owner acceptance of the quiet retry and receipts date on a real device).
+
 ## Open questions
 None so far.
 
 ## Remaining work
-Design, code, review, checks, DEV deployment record and closure.
+Chase's verification and checks, DEV deployment, PROD promotion, tag and closure (records above).
