@@ -1,0 +1,68 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_complete_group_chat_refresh_v1(canonical_json text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r165-20261116/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_complete_group_chat_refresh_v1"
+    "arguments": "canonical_json text"
+    "kind": "f"
+    "arguments_with_defaults": "canonical_json text"
+    "result": "jsonb"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_complete_group_chat_refresh_v1(canonical_json text)
+       RETURNS jsonb
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE root jsonb; c jsonb; request uuid; result text; existing public.pwa_group_chat_refresh_requests%ROWTYPE;
+      BEGIN
+       -- Shape. Every rule is a positive condition that must be true (a NULL fails); a failure raises invalid_request (22023).
+       BEGIN
+        root:=canonical_json::jsonb;
+        IF (jsonb_typeof(root)='object' AND ARRAY(SELECT jsonb_object_keys(root))=ARRAY['command'] AND jsonb_typeof(root->'command')='object') IS NOT TRUE THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+        c:=root->'command';
+        IF (ARRAY(SELECT k FROM jsonb_object_keys(c) k ORDER BY k COLLATE "C")=ARRAY['environment','outcome','requestId','schemaVersion']
+          AND jsonb_typeof(c->'schemaVersion')='number' AND c->>'schemaVersion'='1'
+          AND jsonb_typeof(c->'requestId')='string' AND c->>'requestId' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+          AND jsonb_typeof(c->'environment')='string' AND c->>'environment'=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END
+          AND jsonb_typeof(c->'outcome')='string' AND c->>'outcome' IN ('stored','unchanged','cleared','no_group','failed')) IS NOT TRUE THEN
+         RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+        request:=(c->>'requestId')::uuid; result:=c->>'outcome';
+       EXCEPTION WHEN data_exception THEN
+        -- Class 22 only: malformed JSON and the rules above. Any other error is a real one and propagates.
+        RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023';
+       END;
+       SELECT * INTO existing FROM public.pwa_group_chat_refresh_requests t WHERE t.request_id=request FOR UPDATE;
+       -- Replaced by a newer request, or the borrower is gone: nothing to complete.
+       IF NOT FOUND THEN RETURN jsonb_build_object('kind','unknown_request'); END IF;
+       -- A replay (or a second report) leaves the first outcome as it is and writes no change-log row.
+       IF existing.completed_at IS NOT NULL THEN RETURN jsonb_build_object('kind','replayed'); END IF;
+       UPDATE public.pwa_group_chat_refresh_requests t SET completed_at=greatest(clock_timestamp(),t.requested_at),outcome=result WHERE t.request_id=request;
+       RETURN jsonb_build_object('kind','completed');
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": "R165: completes the open group chat summary refresh request named by the integration agent's command {\"command\"\
+      :{schemaVersion,environment,requestId,outcome}} (outcome stored, unchanged, cleared, no_group or failed). Returns {kind:\
+      \ completed | replayed (already completed; unchanged) | unknown_request (no row carries the id; nothing changes)}. Raises\
+      \ invalid_request (22023). Invoker rights."
+    "extension": null

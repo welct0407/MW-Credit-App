@@ -1,0 +1,466 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.pwa_group_chat_refresh_requests"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r165-20261116/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_group_chat_refresh_requests"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_app_prod=arwd/postgres}"
+    "comment": "R165: the current group chat summary refresh request of each borrower: a user asked for the summary to be\
+      \ refreshed now, the integration agent completes it with an outcome. Written only by pwa_request_group_chat_refresh_v1\
+      \ and pwa_complete_group_chat_refresh_v1. Display hint: nothing financial reads it; holds no chat text."
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "borrower_id":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "borrower_id"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R165: the borrower whose summary is to be refreshed; one current request per borrower; the row goes with\
+        \ the borrower."
+    "request_id":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "request_id"
+      "ordinal": 2
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R165: the request id the agent completes; a new request (none open, the last completed 60 seconds or more\
+        \ ago, or open for 10 minutes or more) gets a new one."
+    "requested_by":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "requested_by"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "R165: the user (Partner row of the signed-in login) who asked for the request; the row goes with the Partner."
+    "requested_at":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "requested_at"
+      "ordinal": 4
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R165: when the request was recorded; the agent takes open requests younger than 10 minutes."
+    "completed_at":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "completed_at"
+      "ordinal": 5
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R165: when the agent reported the outcome; null while the request is open."
+    "outcome":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "outcome"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
+      "comment": "R165: stored (a new summary), unchanged (no new messages), cleared (the summary was removed), no_group (no\
+        \ group known for the borrower) or failed; null while open."
+  "constraints":
+    "pwa_group_chat_refresh_completed":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_completed"
+      "kind": "c"
+      "definition": "CHECK ((completed_at IS NULL) = (outcome IS NULL))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_refresh_order":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_order"
+      "kind": "c"
+      "definition": "CHECK (completed_at IS NULL OR completed_at >= requested_at)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_refresh_requests_borrower_id_fkey":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_borrower_id_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (borrower_id) REFERENCES \"Borrowers\"(\"Row ID\") ON DELETE CASCADE"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Borrowers\""
+      "update_action": "a"
+      "delete_action": "c"
+      "match_type": "s"
+      "comment": null
+    "pwa_group_chat_refresh_requests_borrower_id_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_borrower_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL borrower_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_refresh_requests_outcome_check":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_outcome_check"
+      "kind": "c"
+      "definition": "CHECK (outcome = ANY (ARRAY['stored'::text, 'unchanged'::text, 'cleared'::text, 'no_group'::text, 'failed'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_refresh_requests_pkey":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (borrower_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_refresh_requests_request_id_key":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_request_id_key"
+      "kind": "u"
+      "definition": "UNIQUE (request_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_refresh_requests_request_id_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_request_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL request_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_refresh_requests_requested_at_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_requested_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL requested_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_group_chat_refresh_requests_requested_by_fkey":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_requested_by_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (requested_by) REFERENCES \"Partners\"(\"Row ID\") ON DELETE CASCADE"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Partners\""
+      "update_action": "a"
+      "delete_action": "c"
+      "match_type": "s"
+      "comment": null
+    "pwa_group_chat_refresh_requests_requested_by_not_null":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_requested_by_not_null"
+      "kind": "n"
+      "definition": "NOT NULL requested_by"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "pwa_group_chat_refresh_requests_pkey":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_group_chat_refresh_requests_pkey ON public.pwa_group_chat_refresh_requests USING\
+        \ btree (borrower_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_group_chat_refresh_requests_request_id_key":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_request_id_key"
+      "definition": "CREATE UNIQUE INDEX pwa_group_chat_refresh_requests_request_id_key ON public.pwa_group_chat_refresh_requests\
+        \ USING btree (request_id)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "pwa_group_chat_refresh_requests_requested_by":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "pwa_group_chat_refresh_requests_requested_by"
+      "definition": "CREATE INDEX pwa_group_chat_refresh_requests_requested_by ON public.pwa_group_chat_refresh_requests USING\
+        \ btree (requested_by)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_42491":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "RI_ConstraintTrigger_c_42491"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_42491\" AFTER INSERT ON pwa_group_chat_refresh_requests\
+        \ FROM \"Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_42492":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "RI_ConstraintTrigger_c_42492"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_42492\" AFTER UPDATE ON pwa_group_chat_refresh_requests\
+        \ FROM \"Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_42496":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "RI_ConstraintTrigger_c_42496"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_42496\" AFTER INSERT ON pwa_group_chat_refresh_requests\
+        \ FROM \"Partners\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_42497":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "RI_ConstraintTrigger_c_42497"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_42497\" AFTER UPDATE ON pwa_group_chat_refresh_requests\
+        \ FROM \"Partners\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzzz_pwa_row_change":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "zzzzzzz_pwa_row_change"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_change AFTER INSERT OR DELETE OR UPDATE ON pwa_group_chat_refresh_requests\
+        \ FOR EACH ROW EXECUTE FUNCTION pwa_track_row_change('borrower_id')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzzz_pwa_row_truncate":
+      "schema": "public"
+      "relation": "pwa_group_chat_refresh_requests"
+      "name": "zzzzzzz_pwa_row_truncate"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_truncate AFTER TRUNCATE ON pwa_group_chat_refresh_requests FOR EACH STATEMENT\
+        \ EXECUTE FUNCTION pwa_track_row_change('borrower_id')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

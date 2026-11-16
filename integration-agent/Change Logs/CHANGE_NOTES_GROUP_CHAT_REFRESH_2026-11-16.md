@@ -17,17 +17,21 @@ R165, owner request of 16 November 2026: the PWA's refresh button on the Collect
 | `python -m unittest discover -s tests` (in `integration-agent/`) | 993 run; only `test_receipt_qr` fails, because `zxingcpp` is missing in the container (Byte, uncommitted tree on `58fc004`) |
 | `ruff check` | Pass (Byte, same tree) |
 | `python -m unittest tests.test_group_chat_summary` | 82 OK (Chase, uncommitted tree on `58fc004`); Chase's verdict on the whole batch is a pass, see the [root note](../../Change%20Logs/CHANGE_NOTES_R165_GROUP_CHAT_REFRESH_2026-11-16.md#checks) |
-| Integration-agent workflow `test` and `lab` | Pending: the run id is added after the push |
+| `Development checks` run 43907338253 (PR #341, head `b67a4aa7`) | Success; see the [root note](../../Change%20Logs/CHANGE_NOTES_R165_GROUP_CHAT_REFRESH_2026-11-16.md#checks). The integration-agent workflow `test` and `lab` run id is added if it ran separately |
+| PROD agent deploy and read-back | Pass: see the PROD record below and the [root note's promotion record](../../Change%20Logs/CHANGE_NOTES_R165_GROUP_CHAT_REFRESH_2026-11-16.md#prod-promotion-record-forge-16-november-2026-utc) |
 | `npm run check:docs` | Pass, 0 failures (Dewey) |
 
 ## Not run
-- No deployment yet. `test_receipt_qr` was not passed locally (missing `zxingcpp`). The agent half is not exercisable in DEV (there is no DEV agent). Not run either: the full `mw-db-ci` and Playwright suite locally (left to the pull request's CI) and live polling against the DEV API.
+- No DEV agent exists, so the agent half was verified only in PROD. `test_receipt_qr` was not passed locally (missing `zxingcpp`). The agent half is not exercisable in DEV (there is no DEV agent). Not run either: the full `mw-db-ci` and Playwright suite locally (left to the pull request's CI) and live polling against the DEV API.
 
 ## Recovery
-Before deployment: revert the commit. After deployment: `deploy-runtime.py rollback --commit <previous>`; the PWA then waits out its 6-minute cutoff and shows no new summary. V150 stays.
+After deployment: `deploy-runtime.py rollback --commit <previous>`; the PWA then waits out its 6-minute cutoff and shows no new summary. V150 stays.
 
 ## Open questions
 None.
 
 ## Remaining work
-Byte's code and tests, Chase's evidence, the PROD agent deploy with the R165 promotion after V150, its grants and the command and read images, and its promotion record.
+None for the deployment (applied to PROD, see below); owner acceptance, including the first real refresh tap.
+
+## PROD agent record (Forge, 16 November 2026 UTC)
+Authority: the owner's production approval of 16 November 2026, "push when it's all verified. promote all the way to prod." The full promotion (V150, grant, images, Hosting) is in the [root note](../../Change%20Logs/CHANGE_NOTES_R165_GROUP_CHAT_REFRESH_2026-11-16.md#prod-promotion-record-forge-16-november-2026-utc). Agent: `deploy-runtime.py` updated `/opt/mw-integration-agent-src` on `vm-mw-credit-agent` from `d10a445e` to `907650de4a928392e76805503724dd607828c2db`; no agent migration (V13 stays), so no `mw_agent` backup. Freeze 17:18:39Z (rollback `runtime-20261116T171839515323Z`, metadata sha256 `c2fe3b3e62cf39df2f0c98c4b0e95dc45488ea9fee2cd5e06dfd40da75b44968`); install 17:18:43Z; activate 17:18:47Z to 17:18:52Z (probe `d54acf3e-e78e-4ce5-b1e3-c724f3e59008`); `mw-chat-relay` restarted 17:19:07Z; the temporary operator file was shredded. Catalogue revision 38 to 39 with the same switches. `/ready` true at R165. The first R165 `group_chat_summary` run at 17:20:42Z reported the refresh block with 0 requested and no errors, and the command service logged `GET /internal/agent/group-chat-refreshes` 200 at 17:20:42Z. A real refresh tap has not yet been exercised in PROD. Rollback: `deploy-runtime.py rollback --commit d10a445e…`; the PWA then waits out its 6-minute cutoff; V150 stays.
