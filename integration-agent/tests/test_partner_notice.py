@@ -1,7 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
-from mw_integration_agent.partner_notice import NoticeJournal,receipt_notice
+from mw_integration_agent.partner_notice import NoticeJournal,notice_amount,receipt_notice
 from mw_integration_agent.config import ConfigurationError
 from mw_integration_agent.graph_email import EmailRejected
 from mw_integration_agent.instagram import InstagramAPIError, InstagramRejected
@@ -199,7 +199,24 @@ class NoticeTests(unittest.TestCase):
         borrower={'id':'b','name_en':'Test Borrower','name_th':'ผู้กู้ทดสอบ'}
         for language in ('English','ไทย'):
             subject,body=receipt_notice(receipt,borrower,language,'payment-test')
-            self.assertIn('1,300.00',body);self.assertIn('12:10',body);self.assertNotIn('12:10:59',body)
-            self.assertIn('payment-test',body)
+            self.assertIn('1,300 ',body);self.assertNotIn('1,300.00',body);self.assertIn('12:10',body);self.assertNotIn('12:10:59',body)
+            # R164: the payment ID is not meaningful to the reader and is not printed.
+            self.assertNotIn('payment-test',body);self.assertNotIn('Payment ID',body);self.assertNotIn('รายการชำระเงิน:',body)
         subject,body=receipt_notice(receipt,borrower,'English')
         self.assertIn('has not been recorded',body);self.assertNotIn('processed',subject)
+
+    def test_notice_amount_whole_baht_and_satang_exact(self):
+        borrower={'id':'b','name_en':'Test Borrower','name_th':'ผู้กู้ทดสอบ'}
+        receipt={'amount':'1100.00','date':'2026-09-21','time':'12:10:59','account_label':'Test TTB'}
+        self.assertEqual(receipt_notice(receipt,borrower,'English','pwa:x'),('Payment processed','\n'.join([
+            'Payment processed','Borrower: Test Borrower','Amount: 1,100 baht','Transferred: 2026-09-21 12:10 (Bangkok)','Received into: Test TTB'])))
+        self.assertEqual(receipt_notice(receipt,borrower,'ไทย','pwa:x'),('บันทึกการชำระเงินสำเร็จ','\n'.join([
+            'บันทึกการชำระเงินสำเร็จ','ผู้ชำระ: ผู้กู้ทดสอบ','จำนวน: 1,100 บาท','วันเวลาโอน: 2026-09-21 12:10 (เวลาไทย)','รับเข้าบัญชี: Test TTB'])))
+        satang=dict(receipt,amount='800.50')
+        self.assertEqual(receipt_notice(satang,borrower,'English')[1],'\n'.join([
+            'Payment receipt received','Borrower: Test Borrower','Amount: 800.50 baht','Transferred: 2026-09-21 12:10 (Bangkok)','Received into: Test TTB',
+            'Basic receipt checks passed. Payment has not been recorded.']))
+        self.assertEqual(receipt_notice(satang,borrower,'ไทย')[1],'\n'.join([
+            'ได้รับสลิปการชำระเงิน','ผู้ชำระ: ผู้กู้ทดสอบ','จำนวน: 800.50 บาท','วันเวลาโอน: 2026-09-21 12:10 (เวลาไทย)','รับเข้าบัญชี: Test TTB',
+            'ผ่านการตรวจสอบสลิปเบื้องต้น ยังไม่ได้บันทึกการชำระเงิน']))
+        self.assertEqual([notice_amount(v) for v in ('800','800.00','1234.5','1612345.00','800.505')],['800','800','1,234.50','1,612,345','800.505'])

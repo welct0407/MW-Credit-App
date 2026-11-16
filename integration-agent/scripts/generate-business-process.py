@@ -74,7 +74,7 @@ pages=[
  'Commit UNKNOWN intent before calling Meta API',
  'Accepted message ID → record success; no email',
  'Unavailable, incomplete or uncertain → email fallback'],
- 'All partner notifications start with IG.\nNever replay an uncertain IG send.\nNo receipt-success message to borrower/group.\nSummary: explicitly says payment not recorded.\nProcessed template: borrower, amount, date/time HH:mm, receiving account, payment ID.\nUnknown IG may have arrived; fallback is separately recorded.',
+ 'All partner notifications start with IG.\nNever replay an uncertain IG send.\nNo receipt-success message to borrower/group.\nSummary: explicitly says payment not recorded.\nProcessed template: borrower, amount (no ".00"), date/time HH:mm, receiving account; no payment ID.\nUnknown IG may have arrived; fallback is separately recorded.',
  'partner_notice.py · instagram.py\nstatement_delivery.py · statement_run.py'),
 ('email','Email fallback and retry','LIVE',[
  'Start only after unavailable/incomplete/uncertain IG',
