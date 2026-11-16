@@ -1,6 +1,6 @@
 // Self-contained (no relative imports) so unit tests can load it directly.
 /** R072 troubleshooting: the last 40 client events (R133: 25 before), in memory and mirrored to this tab's sessionStorage. Read only by the encrypted troubleshooting file. */
-export type ClientEventKind='error'|'rejection'|'sync-blocked'|'sync-outcome'|'dataset-failed'|'read-failure'|'sign-in'|'session'|'startup'|'reconcile-match'|'reconcile-mismatch';
+export type ClientEventKind='error'|'rejection'|'sync-blocked'|'sync-outcome'|'dataset-failed'|'dataset-retry'|'read-failure'|'sign-in'|'session'|'startup'|'reconcile-match'|'reconcile-mismatch';
 export type ClientEvent={at:string;kind:ClientEventKind;code?:string;ref?:string;message?:string;stack?:string};
 export const CLIENT_EVENT_LIMIT=40,CLIENT_EVENT_TEXT_BYTES=2048;
 const storageKey='mw-credit-client-events',encoder=new TextEncoder(),marker='…[truncated]';
@@ -45,6 +45,7 @@ export function installClientEventListeners(target:Window=window){
  target.addEventListener('mw-offline-sync-outcome',event=>{const detail=(event as CustomEvent).detail;if(detail?.kind==='blocked')recordClientEvent({kind:'sync-blocked',code:detail.code??detail.data?.code,ref:detail.requestId});else recordSyncOutcome(detail)});
  // R133: queued and busy results are not sync outcomes (forms keep waiting); offline-sync.ts reports them on their own event.
  target.addEventListener('mw-offline-sync-attempt',event=>recordSyncOutcome((event as CustomEvent).detail));
- // R133: dataset-failed is recorded by the coordinator (offline-dataset.ts fail), with status, code and duration.
+ // R133: dataset-failed is recorded by the coordinator (offline-dataset.ts fail), with status, code and duration; R163:
+ // dataset-retry (same message) when a transient failure is retried quietly once instead.
 }
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function')installClientEventListeners();
