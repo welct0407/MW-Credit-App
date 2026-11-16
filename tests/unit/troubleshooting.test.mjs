@@ -182,3 +182,18 @@ test('the decrypt CLI prints the schema, each domain and the startup marks; a sc
   const bare=await decrypt(payload,'bare');assert.match(bare,/^Domains: unknown$/m);assert.match(bare,/Failed saves: 1/);
  }finally{rmSync(work,{recursive:true,force:true})}
 });
+// R163: a quiet retry of a data domain is one dataset-retry event (same message format as dataset-failed); it is kept in the
+// log, ages out like the other non-session kinds, travels into the troubleshooting payload and prints in the file.
+test('a dataset-retry event is logged, passes into the payload and the encrypted file',async()=>{
+ events.clearClientEvents();
+ events.recordClientEvent({kind:'dataset-retry',code:'collection',message:'503 temporary 412ms'});events.recordClientEvent({kind:'dataset-failed',code:'collection',message:'503 temporary 380ms'});
+ const log=events.clientEvents();assert.deepEqual(log.map(event=>[event.kind,event.code,event.message]),[['dataset-retry','collection','503 temporary 412ms'],['dataset-failed','collection','503 temporary 380ms']]);
+ const built=report.buildTroubleshootingPayload({app:{release:'R163'},events:log,offline:{domains:[]}},{createdAt});
+ assert.deepEqual(built.events,log);assert.equal(built.events[0].kind,'dataset-retry');
+ const envelope=await encryptTroubleshooting(built,{publicKeyPem:pair.publicKey,environment:'synthetic',createdAt});
+ const read=decryptTroubleshooting(parseTroubleshootingFile(troubleshootingFileText(envelope)),pair.privateKey);
+ assert.deepEqual(read.events.map(event=>event.kind),['dataset-retry','dataset-failed']);assert.equal(read.events[0].message,'503 temporary 412ms');
+ // Like dataset-failed, it ages out before session and startup events at the limit.
+ for(let i=0;i<45;i++)events.recordClientEvent({kind:'error',code:'e'+i});
+ assert.equal(events.clientEvents().some(event=>event.kind==='dataset-retry'),false);events.clearClientEvents();
+});

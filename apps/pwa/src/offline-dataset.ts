@@ -134,6 +134,10 @@ export const DATASET_RECHECK_MIN_MS=10*1000;
  * Background triggers (the poll, a successful live read, a page served from the local bundle) wait
  * for the back-off; an explicit sync, an own write and a waiting screen retry at once. */
 export const DATASET_RETRY_BACKOFF_MS=[30*1000,60*1000,2*60*1000,5*60*1000] as const;
+/** R163 quiet retry: a data domain whose check failed transiently (no answer, a timeout, a 5xx, or an ok answer the client
+ * rejected for a reason other than authorization or a missing revision) stays queued and is tried once more after this
+ * hold, without the failed state, the back-off or the header warning; one per domain until it succeeds again. */
+export const DATASET_QUIET_RETRY_MS=3000;
 const REQUEST_TIMEOUT_MS=25000;
 /** services/api/offline-dataset-delta.mjs rejects a need list longer than this. */
 const NEED_BATCH=2048;
@@ -240,13 +244,32 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
  // Back-off bookkeeping: a failed task is waiting until its next retry time.
  const waiting=(task:string)=>failed.has(task)&&(backoff.get(task)?.next??0)>Date.now();
- const succeeded=(task:string)=>{failed.delete(task);backoff.delete(task);quietMedia.delete(task);if(!isMediaTask(task)){diag.reported.delete(task);const value=domainDiagnostics(diag,task);value.lastSuccessAt=Date.now()}};
+ // R163 quiet retry: holds keeps a re-queued domain from starting before its time (one timer for the earliest);
+ // quietUsed: domains that had their quiet retry, or failed visibly, since their last success.
+ const holds=new Map<string,number>(),quietUsed=new Set<string>();let holdTimer:ReturnType<typeof setTimeout>|undefined;
+ const held=(task:string)=>(holds.get(task)??0)>Date.now();
+ const armHold=()=>{if(holdTimer){clearTimeout(holdTimer);holdTimer=undefined}if(stopped||!holds.size)return;const due=Math.min(...holds.values());holdTimer=setTimeout(()=>{holdTimer=undefined;for(const [task,at] of [...holds])if(at<=Date.now())holds.delete(task);armHold();void pump()},Math.max(0,due-Date.now()))};
+ const releaseHolds=()=>{if(!holds.size)return;holds.clear();armHold()};
+ const succeeded=(task:string)=>{failed.delete(task);backoff.delete(task);quietMedia.delete(task);if(holds.delete(task))armHold();quietUsed.delete(task);if(!isMediaTask(task)){diag.reported.delete(task);const value=domainDiagnostics(diag,task);value.lastSuccessAt=Date.now()}};
  // R133: one dataset-failed client event per domain and distinct code (the status when there is none) until the domain
  // succeeds, so a long outage alternating statuses does not fill the log; background failures included, never a receipt
  // or the offline path.
- const reportFailure=(task:string,status:number,code:string|null,durationMs:number|null)=>{const key=code??'status '+status,seen=diag.reported.get(task)??new Set<string>();if(seen.has(key))return;seen.add(key);diag.reported.set(task,seen);recordClientEvent({kind:'dataset-failed',code:task,message:status+(code?' '+code:'')+(durationMs!==null?' '+durationMs+'ms':'')})};
- const fail=(task:string,failure?:{status:number;code:string|null;durationMs:number})=>{failed.add(task);if(isMediaTask(task))quietMedia.add(task);const attempts=(backoff.get(task)?.attempts??0)+1;backoff.set(task,{attempts,next:Date.now()+DATASET_RETRY_BACKOFF_MS[Math.min(attempts,DATASET_RETRY_BACKOFF_MS.length)-1]});
-  if(!isMediaTask(task)&&failure){const value=domainDiagnostics(diag,task);value.lastFailureAt=Date.now();value.failures++;value.lastStatus=failure.status;value.lastCode=failure.code;reportFailure(task,failure.status,failure.code,failure.durationMs)}};
+ const failureMessage=(status:number,code:string|null,durationMs:number|null)=>status+(code?' '+code:'')+(durationMs!==null?' '+durationMs+'ms':'');
+ const reportFailure=(task:string,status:number,code:string|null,durationMs:number|null)=>{const key=code??'status '+status,seen=diag.reported.get(task)??new Set<string>();if(seen.has(key))return;seen.add(key);diag.reported.set(task,seen);recordClientEvent({kind:'dataset-failed',code:task,message:failureMessage(status,code,durationMs)})};
+ type Failure={status:number;code:string|null;durationMs:number};
+ const noteFailure=(task:string,failure:Failure)=>{const value=domainDiagnostics(diag,task);value.lastFailureAt=Date.now();value.failures++;value.lastStatus=failure.status;value.lastCode=failure.code};
+ const fail=(task:string,failure?:Failure)=>{failed.add(task);if(isMediaTask(task))quietMedia.add(task);else quietUsed.add(task);const attempts=(backoff.get(task)?.attempts??0)+1;backoff.set(task,{attempts,next:Date.now()+DATASET_RETRY_BACKOFF_MS[Math.min(attempts,DATASET_RETRY_BACKOFF_MS.length)-1]});
+  if(!isMediaTask(task)&&failure){noteFailure(task,failure);reportFailure(task,failure.status,failure.code,failure.durationMs)}};
+ // R163: a transient failure of a data domain (no answer, timeout, 5xx, or an ok answer this client rejected for a reason
+ // other than authorization or a missing revision) is retried once, quietly: diagnostics and a dataset-retry event, no
+ // failed state, back-off or give-up; the task stays queued (the cycle stays open) and starts once its hold ends.
+ const quietRetry=(task:string,failure:Failure)=>{
+  if(isMediaTask(task)||paused||stopped||quietUsed.has(task)||failed.has(task))return false;
+  const transient=failure.code==='network'||failure.code==='timeout'||failure.status>=500||failure.status>=200&&failure.status<300&&failure.code!=='not_authorized'&&failure.code!=='no_revision';
+  if(!transient)return false;
+  quietUsed.add(task);noteFailure(task,failure);recordClientEvent({kind:'dataset-retry',code:task,message:failureMessage(failure.status,failure.code,failure.durationMs)});
+  holds.set(task,Date.now()+DATASET_QUIET_RETRY_MS);queue=queue.filter(queued=>queued!==task);enqueue(task,true);armHold();return true;
+ };
  const resetBackoff=()=>{backoff.clear();if(retryTimer){clearTimeout(retryTimer);retryTimer=undefined}};
  // One timer for the earliest due failed task; resume() then re-queues only the due ones.
  const retryLater=()=>{if(stopped||!navigator.onLine||paused||!failed.size)return;const due=Math.min(...[...failed].map(task=>backoff.get(task)?.next??0));if(retryTimer)clearTimeout(retryTimer);retryTimer=setTimeout(()=>{retryTimer=undefined;resume()},Math.max(0,due-Date.now()))};
@@ -297,7 +320,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // receipt never delays them. While the user is busy (a live read in flight) or the app is hidden,
  // only a domain a screen is waiting on runs.
  const pick=():string|undefined=>{
-  const free=(task:string)=>!active.has(task)&&!(versionsPending&&versionPeer(task)&&task!==requestedDomain);
+  const free=(task:string)=>!active.has(task)&&!held(task)&&!(versionsPending&&versionPeer(task)&&task!==requestedDomain);
   if(activitySnapshot()>0||document.visibilityState==='hidden'){
    const index=requestedDomain?queue.indexOf(requestedDomain):-1;
    return index>=0&&free(requestedDomain!)&&dataFlights()<DATASET_DATA_FLIGHTS?queue.splice(index,1)[0]:undefined;
@@ -322,6 +345,11 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   const isMedia=isMediaTask(task),flight=new AbortController(),mediaAt=isMedia?mediaVersion.get(task):undefined;active.set(task,flight);
   const startedAt=Date.now(),record=isMedia?null:domainDiagnostics(diag,task);if(record){record.attempts++;record.lastAttemptAt=startedAt}
   let lastResponse:Response|null=null;
+  // R163: a local rejection names its reason (a fixed code) with the status of the last answer (0 before any answer).
+  const refuse=(code:string)=>datasetFailure(lastResponse?.status??0,code);
+  // A body that cannot be read as JSON; an abort while reading it stays the timeout.
+  const readJson=(response:Response)=>response.json().catch(error=>{throw flight.signal.aborted?error:refuse('invalid_json')});
+  let quiet=false;
   // A starting records check also asks for the other domains' versions (applyVersions).
   const forced=forceWalk.has(task);
   let ownsVersions=false;if(task==='records'&&!forced&&!versionsPending&&queue.some(queued=>versionPeer(queued)&&!active.has(queued))){versionsPending=true;ownsVersions=true}
@@ -330,13 +358,13 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   let timeout=setTimeout(()=>flight.abort(),REQUEST_TIMEOUT_MS);
   let softGiveUp=false,continued=false;
   try{
-   let revision=await repo.readRevision();if(revision===null||stopped)throw Error();
+   let revision=await repo.readRevision();if(revision===null||stopped)throw refuse('no_revision');
    // A read revision bump (own settled write) between or during chunks re-pins
    // the partial to the current revision and schedules one trailing recheck;
    // it never restarts the walk.
    // A bump with no invalidation event in this tab (another tab's write) rechecks every confirm domain.
    const seenInvalidations=invalidations,revisionMoved=()=>{if(invalidations!==seenInvalidations)recheckDomains.add(task);else recheck=true};
-   const refreshRevision=async()=>{const current=await repo.readRevision();if(current===null||stopped)throw Error();if(current!==revision){revision=current;revisionMoved()}};
+   const refreshRevision=async()=>{const current=await repo.readRevision();if(current===null||stopped)throw refuse('no_revision');if(current!==revision){revision=current;revisionMoved()}};
    const memo=isMedia?undefined:partials.get(task);
    const partial=isMedia?null:memo?memo.partial:await repo.readDatasetProgress(task);
    let bundle=isMedia?null:memo?memo.bundle:await repo.readDataset(task);
@@ -356,7 +384,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    // A day change (level 4) also uses the change cursor of cash and management bundles.
    const since=delta&&!partial&&!forced&&!walkNext.has(task)&&(task==='records'&&level>=3||dates&&DATASET_DAY_DOMAINS.includes(task)||rowDeltas)&&validChangeCursor(bundle?.changes)?bundle.changes:null;
    if(!askVersions)releaseVersions();
-   const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
+   const token=await access.token().catch(()=>{throw refuse('token_failed')});if(stopped||flight.signal.aborted)throw Error();
    // R133: a request that got no answer (not the timeout) is a network failure, status 0.
    const answered=(request:Promise<Response>)=>request.catch(error=>{throw flight.signal.aborted?error:datasetFailure(0,'network')});
    const fetchSegment=(need:string[]=[])=>answered(fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:forced||localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{}),...(dates?{dates:true}:{}),...(rowDeltas?{rowDeltas:true}:{}),...(inlineValues?{inlineValues:true}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'}));
@@ -370,13 +398,13 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(isMedia&&response.status===422&&(await response.json().catch(()=>null))?.code==='receipt_reference_unsupported'){
     // A receipt that changed while it was asked for is not marked: it is queued again at its new receipt time.
     if(mediaAt===undefined||mediaVersion.get(task)!==mediaAt)return;
-    if(!await repo.saveDatasetMediaRefusal('blob:'+url.href,mediaAt))throw Error('Receipt refusal not saved');
+    if(!await repo.saveDatasetMediaRefusal('blob:'+url.href,mediaAt))throw refuse('save_refused');
     if(stopped)return;refused.set(task,{version:mediaAt,at:Date.now()});succeeded(task);return;
    }
    if(response.status===400&&delta&&level>0){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){pathLevels.set(url.pathname,inlineValues?5:rowDeltas?4:level>=4?3:since?2:askVersions?1:0);enqueue(task,true);continued=true;return}throw datasetFailure(400,error?.code)}
    if(response.status===409&&!isMedia){const error=await response.json().catch(()=>({}));if(error?.code==='dataset_changed'){await changedOnServer();return}throw datasetFailure(409,error?.code)}
-   if(!response.ok)throw isMedia?datasetFailure(response.status,null):await failureOf(response);let value=isMedia?await response.blob():await response.json();
-   if(stopped||flight.signal.aborted||!await repo.syncAuthorized())throw Error();
+   if(!response.ok)throw isMedia?datasetFailure(response.status,null):await failureOf(response);let value=isMedia?await response.blob():await readJson(response);
+   if(stopped||flight.signal.aborted)throw Error();if(!await repo.syncAuthorized())throw refuse('not_authorized');
    await refreshRevision();
    if(askVersions){try{if(value?.schemaVersion===3)await applyVersions(value.versions)}catch{/* The peers then check on their own. */}releaseVersions()}
    let full=value;
@@ -385,11 +413,11 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const v4=!isMedia&&value.schemaVersion===4&&value.delta===true&&!!since,day=v4&&value.dayChange!==undefined?value.dayChange:null;
    if(!isMedia&&(value.schemaVersion===3||v4)){
     if(value.unchanged){
-     if(value.domain!==task||!value.complete||value.nextCursor!==null||!bundle?.complete||partial||value.sourceVersion!==bundle.sourceVersion)throw Error('Invalid unchanged checkpoint');
+     if(value.domain!==task||!value.complete||value.nextCursor!==null||!bundle?.complete||partial||value.sourceVersion!==bundle.sourceVersion)throw refuse('invalid_unchanged');
      // UX-REFRESH-02: a current bundle is not rewritten; only the check time is recorded.
      // A bundle without a change cursor takes the one of this check once (protocol v4 starts from it).
      const cursor=!bundle.changes&&validChangeCursor(value.changes)?{changes:value.changes}:null;
-     if((bundle.cacheStale||cursor)&&!await repo.saveDataset(task,{...bundle,cacheStale:false,...cursor},revision,null,base,!!bundle.cacheStale))throw Error('Dataset changed during check');
+     if((bundle.cacheStale||cursor)&&!await repo.saveDataset(task,{...bundle,cacheStale:false,...cursor},revision,null,base,!!bundle.cacheStale))throw refuse('save_refused');
      completed.add(task);cycleDone.add(task);succeeded(task);changedRetries.delete(task);domainChecked.set(task,Date.now());if(forced)forceWalk.delete(task);
      if(task==='records')await refreshMedia(bundle);
      ready(task,false);return;
@@ -397,9 +425,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     const indexed=valueIndexes.get(task);
     const values=indexed?.base===datasetBase(bundle)?indexed.values:await indexDataset(bundle);
     valueIndexes.set(task,{base:datasetBase(bundle),values});Object.assign(values,partial?.contentValues??{});
-    if(!Array.isArray(value.patches))throw Error('Invalid delta manifest');
+    if(!Array.isArray(value.patches))throw refuse('invalid_manifest');
     const refs=value.patches.flatMap((patch:any)=>patch.refs??[]);
-    if(refs.some((ref:any)=>typeof ref!=='string'||!/^[a-f0-9]{64}$/.test(ref)))throw Error('Invalid delta reference');
+    if(refs.some((ref:any)=>typeof ref!=='string'||!/^[a-f0-9]{64}$/.test(ref)))throw refuse('invalid_reference');
     // Inline values (level 6) are verified like fetched ones; a missing or wrong one is asked for with need.
     const wanted=new Set<string>(refs);for(const [hash,item] of Object.entries(value.values??{}))if(!(hash in values)&&wanted.has(hash)&&await valueHash(item)===hash)values[hash]=item;
     const missing=[...new Set<string>(refs.filter((ref:string)=>!(ref in values)))];
@@ -412,31 +440,32 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
       response=await fetchSegment(missing.slice(offset,offset+NEED_BATCH));lastResponse=response;
       if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw datasetFailure(response.status,null)}
       if(response.status===409){await changedOnServer();return}
-      if(!response.ok)throw await failureOf(response);const batch=await response.json();
-      if(partial&&batch.generation!==generation||JSON.stringify(batch.patches)!==manifest)throw Error('Delta manifest changed');
-      for(const [hash,item] of Object.entries(batch.values??{})){if(await valueHash(item)!==hash)throw Error('Invalid delta content');values[hash]=item}
+      if(!response.ok)throw await failureOf(response);const batch=await readJson(response);
+      if(partial&&batch.generation!==generation)throw refuse('generation_changed');
+      if(JSON.stringify(batch.patches)!==manifest)throw refuse('manifest_changed');
+      for(const [hash,item] of Object.entries(batch.values??{})){if(await valueHash(item)!==hash)throw refuse('invalid_content');values[hash]=item}
       value=batch;
      }
     }
-    if(stopped||flight.signal.aborted||!await repo.syncAuthorized())throw Error('Stale delta response');
+    if(stopped||flight.signal.aborted)throw Error('Stale delta response');if(!await repo.syncAuthorized())throw refuse('not_authorized');
     await refreshRevision();
     const contentValues:Record<string,any>={...(v4?bundle.contentValues:partial?.contentValues)};
     const patches=value.patches.map((patch:any)=>{
-     if(!Array.isArray(patch.refs)||patch.refs.some((ref:string)=>!(ref in values))||!rowsMode(patch.mode)&&patch.refs.length!==1)throw Error('Missing delta content');
+     if(!Array.isArray(patch.refs)||patch.refs.some((ref:string)=>!(ref in values))||!rowsMode(patch.mode)&&patch.refs.length!==1)throw refuse('missing_content');
      for(const ref of patch.refs)contentValues[ref]=values[ref];
      return {...patch,value:rowsMode(patch.mode)?patch.refs.map((ref:string)=>hydrateValue(values[ref],value.asOf,dates?value.businessDate:null)):hydrateValue(values[patch.refs[0]],value.asOf,dates?value.businessDate:null)};
     });
     value={...value,patches,contentValues};
-   }else if(!isMedia&&(delta||value.schemaVersion!==2))throw Error('Unsupported dataset protocol');
+   }else if(!isMedia&&(delta||value.schemaVersion!==2))throw refuse('unsupported_protocol');
    // R064 torn commit: the server finished the walk but its source changed under
    // it. Keep the bundle without a source version and recheck (bounded).
    const torn=!isMedia&&value.complete===true&&value.changed===true;
    if(!isMedia){
-    if(value.domain!==task||typeof value.generation!=='string'||!Array.isArray(value.patches)||typeof value.complete!=='boolean'||value.complete!==(value.nextCursor===null)||partial&&partial.generation!==value.generation)throw Error('Invalid dataset segment');
+    if(value.domain!==task||typeof value.generation!=='string'||!Array.isArray(value.patches)||typeof value.complete!=='boolean'||value.complete!==(value.nextCursor===null)||partial&&partial.generation!==value.generation)throw refuse('invalid_segment');
     // The memoized partial was already handed to IndexedDB by value, or was never
     // stored; mutating it in place is safe. A durable partial read back is cloned once.
-    if(!day&&(value.dayChange?.from??null)!==(partial?.dayChange?.from??null))throw Error('Invalid dataset segment');
-    if(v4&&(!day&&(!value.complete||value.nextCursor!==null)||!validChangeCursor(value.changes)||value.sourceVersion!==null&&typeof value.sourceVersion!=='string'))throw Error('Invalid dataset delta');
+    if(!day&&(value.dayChange?.from??null)!==(partial?.dayChange?.from??null))throw refuse('invalid_segment');
+    if(v4&&(!day&&(!value.complete||value.nextCursor!==null)||!validChangeCursor(value.changes)||value.sourceVersion!==null&&typeof value.sourceVersion!=='string'))throw refuse('invalid_delta');
     // A delta that moved a row to another owner cannot be applied (the old owner's rows are not re-read): walk.
     // R078 day change: kept keys stay (their business date moves to the new one), the server re-read the rest.
     // An invalid answer, a bundle key the server did not name, a kept key holding another date or a locally
@@ -458,23 +487,23 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     if(v4&&localPatch(bundle)){if(hasLocalRows(full.data))Object.assign(full,{localPending:bundle.localPending,changes:null,sourceVersion:null})}
     if(value.complete){delete full.forced;delete full.dayChange}
     if(!value.complete){
-     if(!value.nextCursor||value.nextCursor===partial?.nextCursor)throw Error();
+     if(!value.nextCursor||value.nextCursor===partial?.nextCursor)throw refuse('cursor_not_advanced');
      // R078: persist the first chunk of a walk (a resume point), then every few chunks, and before a pause.
      const unsaved=(memo?.unsaved??0)+1,save=durable===null||unsaved>=DATASET_PROGRESS_SAVE_CHUNKS||document.visibilityState==='hidden'||!navigator.onLine;
-     if(save&&!await repo.saveDatasetProgress(task,full,revision,durable))throw Error();
+     if(save&&!await repo.saveDatasetProgress(task,full,revision,durable))throw refuse('progress_refused');
      partials.set(task,save?{partial:full,bundle,saved:full.nextCursor,unsaved:0,revision}:{partial:full,bundle,saved:durable,unsaved,revision});
      chunkCounts.set(task,full.chunks);if(value.progress?.total>0)fractions.set(task,Math.min(.99,value.progress.completed/value.progress.total));
      // The next segment of a walk in progress goes first and starts without the settle delay.
      enqueue(task,true);continued=true;return;
     }
     // Commit against the durable bundle, not a memoized copy of it.
-    if(memo){bundle=await repo.readDataset(task);if((partial.base??null)!==datasetBase(bundle))throw Error('Dataset base changed')}
+    if(memo){bundle=await repo.readDataset(task);if((partial.base??null)!==datasetBase(bundle))throw refuse('base_changed')}
    }
    const dataChanged=!isMedia&&JSON.stringify(canonicalValue(bundle?.data))!==JSON.stringify(canonicalValue(full.data));
    // UX-REFRESH-02: a single-chunk check that changed nothing (notifications has no source
    // watermark and re-sends its content each time) keeps the stored bundle as it is.
    const keep=!isMedia&&!v4&&!dataChanged&&!torn&&!partial&&!!bundle?.complete&&!bundle.cacheStale&&full.sourceVersion===bundle.sourceVersion&&full.businessDate===bundle.businessDate;
-   const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):keep||await repo.saveDataset(task,full,revision,durable,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
+   const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):keep||await repo.saveDataset(task,full,revision,durable,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw refuse('save_refused');partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
    if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);succeeded(task);if(!v4)walkNext.delete(task);if(forced)forceWalk.delete(task);if(task==='records')await refreshMedia(full);
    if(!isMedia){
     domainChecked.set(task,Date.now());
@@ -488,9 +517,11 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    // R133: the status and code of the failure; an abort is the request timeout here (offline and stop are handled apart).
    const tagged=error instanceof Error&&typeof (error as DatasetFailure).status==='number'?error as DatasetFailure:null;
    const failure={status:tagged?tagged.status:flight.signal.aborted?0:lastResponse?.status??0,code:tagged?tagged.code:flight.signal.aborted?'timeout':'client',durationMs:Date.now()-startedAt};
-   if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task,failure);if(!isMedia)giveUp(task)}}}finally{
+   if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else if(quietRetry(task,failure))quiet=true;else{fail(task,failure);if(!isMedia)giveUp(task)}}}finally{
    clearTimeout(timeout);if(active.get(task)===flight)active.delete(task);releaseVersions();
-   if(record&&!stopped){record.lastDurationMs=Date.now()-startedAt;if(lastResponse&&!failed.has(task)){record.lastStatus=lastResponse.status;record.lastCode=null}}
+   // A quiet retry keeps the failure's status and code (quietRetry recorded them); the task stays queued, so the
+   // cycle, a full sync's forced walk, the requested domain and lastChecked below behave as for a walk in progress.
+   if(record&&!stopped){record.lastDurationMs=Date.now()-startedAt;if(lastResponse&&!failed.has(task)&&!quiet){record.lastStatus=lastResponse.status;record.lastCode=null}}
    // A full sync requested while this check ran walks the domain next; a forced walk that failed ends its part of the full sync.
    if(!stopped&&forceWalk.has(task)){if(forced&&failed.has(task))forceWalk.delete(task);else if(!forced&&!queue.includes(task)&&!failed.has(task))enqueue(task,true)}if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}
    if(!stopped){
@@ -508,6 +539,8 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   const background=!!detail?.background,trigger:DatasetCycleTrigger=detail?.full?'full':detail?.all?'tap':'screen';
   if(background&&priority&&(waiting(priority)||completed.has(priority)&&!failed.has(priority)&&!stale(priority)))return;
   if(!background&&retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}
+  // R163: a tap, a waiting screen or an own write runs a quietly held domain at once.
+  if(!background||event?.type==='mw-read-invalidated')releaseHolds();
   if(detail?.foreground)requestedDomain=priority;
   // UX-FULL: every domain walks from the start (detail.full, with detail.all for the header progress); stored
   // receipts are re-checked against their receipt time and only missing or outdated ones are downloaded; receipts the
@@ -640,7 +673,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const receiptCounts=()=>{const markers=[...refused.values()];return {downloaded:media.filter(path=>completed.has(path)).length,queued:queue.filter(isMediaTask).length+[...active.keys()].filter(isMediaTask).length,failed:[...failed].filter(isMediaTask).length,refused:media.filter(refusedNow).length,lastRefusalAt:markers.length?Math.max(...markers.map(marker=>marker.at)):null}};
  diag.receipts=receiptCounts;
  void initialize();
- return()=>{stopped=true;if(syncingProbes.get(repo.scopeName)===probe)syncingProbes.delete(repo.scopeName);closeCycle();if(diag.receipts===receiptCounts)diag.receipts=null;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);for(const flight of active.values())flight.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
+ return()=>{stopped=true;if(syncingProbes.get(repo.scopeName)===probe)syncingProbes.delete(repo.scopeName);closeCycle();if(diag.receipts===receiptCounts)diag.receipts=null;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);if(holdTimer)clearTimeout(holdTimer);holds.clear();for(const flight of active.values())flight.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
 }
 
 export const routeDomain=(route:string)=>route.startsWith('/api/management')?'management':route.startsWith('/api/cash-')||route==='/api/preferences'?'cash':route.startsWith('/api/notifications')?'notifications':route.startsWith('/api/collection')||route.includes('/upcoming')||route.includes('/collection-receipts')?'collection':'records';

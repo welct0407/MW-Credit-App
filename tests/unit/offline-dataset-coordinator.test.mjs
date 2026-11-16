@@ -39,7 +39,7 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({failing=null,walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags,rowDelta=null,rejectInline=false,tamperInline=false}={}){
+function harness({failing=null,walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags,rowDelta=null,rejectInline=false,tamperInline=false,hold=30,needDiffers=null,tamperNeed=null}={}){
  const navigator={onLine:true};
  const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
@@ -70,14 +70,19 @@ function harness({failing=null,walks={},failOnce=null,rejectVersions=false,patch
    if(v4&&body.since&&domain==='records')return reply(200,{...encodeDeltaChunk({domain,generation:'v4:20',startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),delta:true,patches:v4.patches,complete:true,nextCursor:null,progress:{completed:1,total:1},changes:{seq:'20',xmin:'600',businessDate:stamp.businessDate}},body.need??[]),schemaVersion:4});
    const step=body.cursor?Number(body.cursor):0;
    if(failing&&failing.domain===domain&&failing.times>0){failing.times--;return failing.status===0?(()=>{throw TypeError('Failed to fetch')})():reply(failing.status,failing.code?{code:failing.code,message:'SYNTHETIC SERVER TEXT'}:{})}
-   if(failOnce&&failOnce.domain===domain&&failOnce.step===step&&!failOnce.done){failOnce.done=true;return reply(503,{code:'temporary'})}
+   if(failOnce&&failOnce.domain===domain&&failOnce.step===step&&!failOnce.done){failOnce.seen=(failOnce.seen??0)+1;if(failOnce.seen>=(failOnce.count??1))failOnce.done=true;return reply(503,{code:'temporary'})}
    const versions=body.versions&&!body.cursor?{versions:Object.fromEntries(data.map(name=>[name,walks[name]?changed(name):version(name)]))}:{};
    if(!walks[domain]&&body.sourceVersion===version(domain))return reply(200,{schemaVersion:3,domain,...stamp,sourceVersion:version(domain),unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...versions});
    const chunks=walks[domain]??1,last=step===chunks-1;
-   return reply(200,encodeDeltaChunk({schemaVersion:2,domain,generation:'new-'+domain,startedAt:stamp.asOf,...stamp,sourceVersion:walks[domain]?changed(domain):version(domain),patches:[{key:'items',mode:'append',value:[walks[domain]?{id:domain+'-'+step}:{id:'old'}]}],complete:last,nextCursor:last?null:String(step+1),progress:{completed:step+1,total:chunks},...versions},body.need??[]));
+   // Chase R163: the first need answer of needDiffers.domain carries other patches (a changed manifest, 200 manifest_changed); tamperNeed's value hash does not match its content (invalid_content).
+   const differs=!!(body.need?.length&&needDiffers&&needDiffers.domain===domain&&!needDiffers.done);
+   if(differs)needDiffers.done=true;
+   const answer=encodeDeltaChunk({schemaVersion:2,domain,generation:'new-'+domain,startedAt:stamp.asOf,...stamp,sourceVersion:walks[domain]?changed(domain):version(domain),patches:[{key:'items',mode:'append',value:[differs?{id:domain+'-other'}:walks[domain]?{id:domain+'-'+step}:{id:'old'}]}],complete:last,nextCursor:last?null:String(step+1),progress:{completed:step+1,total:chunks},...versions},body.need??[]);
+   if(body.need?.length&&tamperNeed&&tamperNeed.domain===domain&&!tamperNeed.done){tamperNeed.done=true;for(const key of Object.keys(answer.values))answer.values[key]={...answer.values[key],tampered:true}}
+   return reply(200,answer);
   }finally{inflight--;flights.set(domain,flights.get(domain)-1)}
  }
- const trackedTimeout=(callback,delay)=>{timers.push(delay);return setTimeout(callback,delay)};
+ const trackedTimeout=(callback,delay)=>{timers.push(delay);return setTimeout(callback,delay===3000?hold:delay)};
  let offset=clockOffset;
  class Clock extends Date{constructor(...args){if(args.length)super(...args);else super(Date.now()+offset)}static now(){return Date.now()+offset}}
  const sandbox={Date:Clock,exports:{},require:name=>name==='./client-events'?{recordClientEvent:event=>clientEvents.push(event)}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:(()=>{throw Error('Unexpected import '+name)})(),
@@ -125,13 +130,14 @@ test('a walk in progress continues without the settle delay and writes progress 
  }finally{h.stop()}
 });
 test('a failed segment keeps the chunks applied in memory; the retry resumes after them',async()=>{
- const failOnce={domain:'records',step:3};const h=harness({walks:{records:5},failOnce});try{
+ // R163: one 503 is retried quietly, so two in a row are needed for the domain to fail.
+ const failOnce={domain:'records',step:3,count:2};const h=harness({walks:{records:5},failOnce});try{
   await until(()=>failOnce.done&&h.state().failedDomains==='records');
   assert.equal(h.repo.rows.get('dataset-progress:records').nextCursor,'3','the unsaved chunks 2 and 3 were written when the segment failed');
   assert.deepEqual(h.repo.rows.get('dataset-progress:records').data.items.map(item=>item.id),['records-0','records-1','records-2']);
   h.window.dispatchEvent(new Event('focus'));await settled(h);
   const cursors=h.requests.filter(request=>request.domain==='records'&&!request.need).map(request=>request.cursor??'start');
-  assert.deepEqual(cursors,['start','1','2','3','3','4']);
+  assert.deepEqual(cursors,['start','1','2','3','3','3','4']);
   assert.deepEqual(h.repo.rows.get('dataset:records').data.items.map(item=>item.id),['records-0','records-1','records-2','records-3','records-4']);
  }finally{h.stop()}
 });
@@ -470,4 +476,122 @@ test('an unchanged status keeps its snapshot and wakes no listener (activity inc
   h.window.dispatchEvent(new Event('mw-offline-queued'));await new Promise(resolve=>setTimeout(resolve,300));
   assert.equal(calls,before);assert.equal(h.state(),snapshot);assert.equal(snapshot.activity,'');
  }finally{stop();h.stop()}
+});
+
+
+// R163 quiet retry: a transient failure of a data domain is retried once after DATASET_QUIET_RETRY_MS (30 ms here) without
+// marking the domain failed; the second failure is the real one. The harness maps the 3000 ms hold to `hold`.
+const retryEvents=h=>h.clientEvents.filter(event=>event.kind==='dataset-retry'),failedEvents=h=>h.clientEvents.filter(event=>event.kind==='dataset-failed');
+const asked=(h,domain)=>h.requests.filter(request=>request.domain===domain&&!request.need);
+test('R163 the quiet-retry hold is exported as 3000 ms and the event kind is dataset-retry',()=>{
+ assert.match(source,/DATASET_QUIET_RETRY_MS\s*=\s*3000/);assert.match(source,/dataset-retry/);
+});
+test('R163 a collection 503 once is retried quietly: never failed, pending until the retry ends, one dataset-retry and no dataset-failed',async()=>{
+ const failing={domain:'collection',status:503,code:'temporary',times:1};const h=harness({walks:{collection:1},failing});
+ const failedSeen=new Set(),checkedWhen=[];const stop=h.subscribe(()=>{const state=h.state();failedSeen.add(state.failedDomains);if(state.lastChecked!==null&&!checkedWhen.length)checkedWhen.push({requests:asked(h,'collection').length,pending:state.domainsPending})});
+ try{
+  await until(()=>retryEvents(h).length===1);
+  assert.equal(h.state().failedDomains,'','not failed during the hold');assert.equal(h.state().domainsPending,true,'pending during the hold');
+  await settled(h);
+  assert.deepEqual([...failedSeen],[''],'failedDomains stayed empty throughout');
+  assert.equal(asked(h,'collection').length,2,'one request, one quiet retry');assert.equal(checkedWhen[0].requests,2,'lastChecked was set only after the retry ended');assert.equal(checkedWhen[0].pending,false);
+  assert.equal(retryEvents(h).length,1);assert.equal(failedEvents(h).length,0);
+  assert.match(retryEvents(h)[0].message,/^503 temporary \d+ms$/);assert.equal(retryEvents(h)[0].code,'collection');
+  const collection=h.diagnostics().domains.collection;
+  assert.equal(collection.lastStatus,200);assert.equal(collection.lastCode,null);assert.equal(typeof collection.lastSuccessAt,'number');assert.equal(collection.failures,1,'the transient failure is counted');assert.equal(typeof collection.lastFailureAt,'number');
+  assert.equal(h.repo.rows.get('dataset:collection').data.items[0].id,'collection-0','the retry completed the walk');
+  assert.equal(JSON.stringify(h.clientEvents).includes('SYNTHETIC SERVER TEXT'),false);
+ }finally{stop();h.stop()}
+});
+test('R163 the retry is recorded in the diagnostics while the hold lasts (failures, last failure, status and code)',async()=>{
+ const failing={domain:'collection',status:503,code:'temporary',times:1};const h=harness({walks:{collection:1},failing,hold:400});try{
+  await until(()=>retryEvents(h).length===1);
+  const collection=h.diagnostics().domains.collection;
+  assert.equal(collection.failures,1);assert.equal(collection.lastStatus,503);assert.equal(collection.lastCode,'temporary');assert.equal(typeof collection.lastFailureAt,'number');assert.equal(collection.lastSuccessAt,null);
+  assert.equal(h.state().failedDomains,'');
+  await settled(h);
+ }finally{h.stop()}
+});
+test('R163 two 503s in a row: one dataset-retry, then one dataset-failed, two requests, the back-off armed and no second quiet retry',async()=>{
+ const failing={domain:'collection',status:503,code:'temporary',times:2};const h=harness({walks:{collection:1},failing});try{
+  await until(()=>h.state().failedDomains==='collection'&&!h.state().activity.includes('collection'));
+  await new Promise(resolve=>setTimeout(resolve,150));
+  assert.equal(asked(h,'collection').length,2,'exactly two requests');assert.deepEqual(h.clientEvents.filter(event=>event.kind==='dataset-retry'||event.kind==='dataset-failed').map(event=>event.kind),['dataset-retry','dataset-failed']);
+  assert.match(failedEvents(h)[0].message,/^503 temporary \d+ms$/);
+  assert.ok(h.timers.some(delay=>delay>=25000&&delay<=35000),'the 30 s back-off is armed: '+JSON.stringify(h.timers.filter(delay=>delay>=1000)));
+  // The next failure of an already failed domain (focus resets the back-off) gets no quiet retry.
+  failing.times=1;const before=asked(h,'collection').length;h.window.dispatchEvent(new Event('focus'));
+  await until(()=>asked(h,'collection').length>before);await new Promise(resolve=>setTimeout(resolve,200));
+  assert.equal(asked(h,'collection').length,before+1,'one request, no quiet retry');assert.equal(retryEvents(h).length,1);assert.equal(h.state().failedDomains,'collection');
+ }finally{h.stop()}
+});
+test('R163 a success clears the quiet retry: the next transient failure after a success is retried again',async()=>{
+ const failing={domain:'collection',status:503,code:'temporary',times:1};const h=harness({walks:{collection:1},failing});try{
+  await settled(h);assert.equal(retryEvents(h).length,1);
+  failing.times=1;h.window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true,full:true}}));
+  await until(()=>retryEvents(h).length===2);await until(()=>!h.state().fullSync&&!h.state().domainsPending&&h.state().state==='ready');
+  assert.equal(failedEvents(h).length,0);assert.equal(h.state().failedDomains,'');
+ }finally{h.stop()}
+});
+test('R163 a 401 pauses with one request and no retry; 409 dataset_changed, 400 invalid_request and 429 get no quiet retry',async()=>{
+ const unauthorized=harness({walks:{collection:1},failing:{domain:'collection',status:401,code:'unauthorized',times:Infinity}});try{
+  await until(()=>asked(unauthorized,'collection').length>=1);await new Promise(resolve=>setTimeout(resolve,200));
+  assert.equal(asked(unauthorized,'collection').length,1,'one request');assert.equal(retryEvents(unauthorized).length,0);
+ }finally{unauthorized.stop()}
+ for(const [status,code] of [[409,'dataset_changed'],[400,'invalid_request'],[429,'rate_limited']]){
+  const h=harness({walks:{collection:1},failing:{domain:'collection',status,code,times:Infinity}});try{
+   await until(()=>asked(h,'collection').length>=1);await new Promise(resolve=>setTimeout(resolve,500));await until(()=>!h.state().activity.includes('collection'));
+   assert.equal(retryEvents(h).length,0,status+' is not retried quietly');assert.equal(asked(h,'collection').length,{409:2,400:5,429:1}[status],status+': the request count is what it was before R163 (409 one changed-retry, 400 steps down the levels, 429 one)');
+  }finally{h.stop()}
+ }
+});
+test('R163 a lost connection (status 0 network) is retried once; offline during the hold sends nothing until online',async()=>{
+ const network=harness({walks:{collection:1},failing:{domain:'collection',status:0,times:1}});try{
+  await settled(network);
+  assert.equal(asked(network,'collection').length,2);assert.match(retryEvents(network)[0].message,/^0 network \d+ms$/);assert.equal(failedEvents(network).length,0);assert.equal(network.state().failedDomains,'');
+ }finally{network.stop()}
+ const h=harness({walks:{collection:1},failing:{domain:'collection',status:0,times:1},hold:400});try{
+  await until(()=>retryEvents(h).length===1);h.navigator.onLine=false;
+  await new Promise(resolve=>setTimeout(resolve,700));
+  assert.equal(asked(h,'collection').length,1,'no request while offline');assert.equal(failedEvents(h).length,0);assert.equal(h.state().failedDomains,'');
+  h.navigator.onLine=true;h.window.dispatchEvent(new Event('online'));await settled(h);
+  assert.equal(asked(h,'collection').length,2);assert.equal(failedEvents(h).length,0);assert.equal(h.state().failedDomains,'');
+ }finally{h.stop()}
+});
+test('R163 a need answer whose patches differ once is 200 manifest_changed and retried; a tampered need value is invalid_content',async()=>{
+ const needDiffers={domain:'collection',done:false},h=harness({walks:{collection:1},needDiffers});try{
+  await settled(h);
+  assert.equal(retryEvents(h).length,1);assert.match(retryEvents(h)[0].message,/^200 manifest_changed \d+ms$/);assert.equal(failedEvents(h).length,0);
+  const collection=h.diagnostics().domains.collection;assert.equal(collection.lastCode,null,'cleared by the success');assert.equal(collection.lastStatus,200);
+  assert.equal(h.repo.rows.get('dataset:collection').data.items[0].id,'collection-0');
+ }finally{h.stop()}
+ const tamperNeed={domain:'collection',done:false},t=harness({walks:{collection:1},tamperNeed});try{
+  await settled(t);
+  assert.equal(retryEvents(t).length,1);assert.match(retryEvents(t)[0].message,/^200 invalid_content \d+ms$/);assert.equal(failedEvents(t).length,0);
+  assert.ok(t.repo.rows.get('dataset:collection').data.items.every(item=>!item.tampered),'the tampered value is never stored');
+ }finally{t.stop()}
+});
+test('R163 a full sync with a 503 in the middle of a walk resumes after the kept chunks, never goes back and ends',async()=>{
+ const failOnce={domain:'records',step:3,done:true};const h=harness({walks:{records:5},failOnce});try{
+  await settled(h);h.requests.length=0;failOnce.done=false;failOnce.seen=0;
+  const progress=[];const unsubscribe=h.subscribe(()=>progress.push(h.state().progress));
+  h.window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true,full:true}}));
+  await until(()=>failOnce.done);await until(()=>!h.state().fullSync&&!h.state().domainsPending&&h.state().state==='ready');unsubscribe();
+  assert.deepEqual(h.requests.filter(request=>request.domain==='records'&&!request.need).map(request=>request.cursor??'start'),['start','1','2','3','3','4'],'resumed at the failed chunk');
+  for(let index=1;index<progress.length;index++)assert.ok(progress[index]>=progress[index-1]||progress[index]===100,'progress '+progress.join(','));
+  assert.equal(h.state().fullSync,false);assert.equal(h.state().failedDomains,'');assert.equal(retryEvents(h).length,1);assert.equal(failedEvents(h).length,0);
+  assert.deepEqual(h.repo.rows.get('dataset:records').data.items.map(item=>item.id),['records-0','records-1','records-2','records-3','records-4']);
+ }finally{h.stop()}
+});
+test('R163 a tap or an own write during the hold starts the retry at once; never two requests for one domain',async()=>{
+ for(const event of [new CustomEvent('mw-offline-prepare',{detail:{all:true}}),new Event('mw-read-invalidated')]){
+  const failing={domain:'collection',status:503,code:'temporary',times:1};const h=harness({walks:{collection:1},failing,hold:2500});try{
+   await until(()=>retryEvents(h).length===1);const first=asked(h,'collection')[0].at;
+   h.window.dispatchEvent(event);
+   await until(()=>asked(h,'collection').length>=2,1500);
+   assert.ok(asked(h,'collection')[1].at-first<1500,event.type+': the retry did not wait for the hold ('+(asked(h,'collection')[1].at-first)+' ms)');
+   await settled(h);
+   assert.equal(asked(h,'collection').length,2,'one retry only, the hold timer does not add another');assert.equal(failedEvents(h).length,0);assert.equal(h.state().failedDomains,'');
+  }finally{h.stop()}
+ }
 });
