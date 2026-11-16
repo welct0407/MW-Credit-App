@@ -142,30 +142,32 @@ test('a failing domain backs off 30 s, 60 s, 2 min, then every 5 min; success, o
  });
  const state=()=>page.evaluate(()=>{const w=window as any;return w.__datasetTest.getOfflinePreparation(w.__syncRepo.scopeName)});
  await page.evaluate(()=>{const w=window as any;w.__stopPreparation=w.__datasetTest.startOfflinePreparation(w.__syncAccess)});
- await page.clock.runFor(2000);await expect.poll(()=>cashCalls).toBe(1);await expect.poll(async()=>(await state()).updateFailed).toBe(true);
+ // R163: the first failure is retried once, quietly, after 3 s (no failed state); the second one is the failure that backs off.
+ await page.clock.runFor(2000);await expect.poll(()=>cashCalls).toBe(1);expect((await state()).updateFailed).toBe(false);await page.clock.runFor(2000);await expect.poll(()=>cashCalls).toBe(2);await expect.poll(async()=>(await state()).updateFailed).toBe(true);
  // A successful live read (mw-offline-queued) and a background page prepare no longer retry it at once.
  await page.evaluate(()=>{window.dispatchEvent(new Event('mw-offline-queued'));window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{domain:'cash',background:true}}))});
- await page.clock.runFor(1000);expect(cashCalls).toBe(1);
+ await page.clock.runFor(1000);expect(cashCalls).toBe(2);
  // 30 s, 60 s, 2 min, then 5 min (cap): the 30-second poll keeps checking the other domains meanwhile.
  for(const [index,delay] of [30000,60000,120000,300000,300000].entries()){
   const polled=calls.filter(domain=>domain==='records').length;
-  await page.clock.runFor(delay-3000);expect(cashCalls).toBe(index+1);
-  await page.clock.runFor(6000);await expect.poll(()=>cashCalls).toBe(index+2);
+  await page.clock.runFor(delay-3000);expect(cashCalls).toBe(index+2);
+  await page.clock.runFor(6000);await expect.poll(()=>cashCalls).toBe(index+3);
   if(delay>30000)expect(calls.filter(domain=>domain==='records').length).toBeGreaterThan(polled);
  }
  // Success resets the back-off: the next failure waits 30 s again.
- cashOk=true;await page.evaluate(()=>window.dispatchEvent(new Event('mw-offline-prepare')));await expect.poll(()=>cashCalls).toBe(7);await expect.poll(async()=>(await state()).updateFailed).toBe(false);
- cashOk=false;await page.clock.runFor(31000);await expect.poll(()=>cashCalls).toBe(8);await expect.poll(async()=>(await state()).updateFailed).toBe(true);
- await page.clock.runFor(27000);expect(cashCalls).toBe(8);await page.clock.runFor(6000);await expect.poll(()=>cashCalls).toBe(9);
+ cashOk=true;await page.evaluate(()=>window.dispatchEvent(new Event('mw-offline-prepare')));await expect.poll(()=>cashCalls).toBe(8);await expect.poll(async()=>(await state()).updateFailed).toBe(false);
+ // The success cleared the quiet retry: the next failure is retried quietly again, then backs off 30 s.
+ cashOk=false;await page.clock.runFor(31000);await expect.poll(()=>cashCalls).toBe(9);expect((await state()).updateFailed).toBe(false);await page.clock.runFor(3000);await expect.poll(()=>cashCalls).toBe(10);await expect.poll(async()=>(await state()).updateFailed).toBe(true);
+ await page.clock.runFor(27000);expect(cashCalls).toBe(10);await page.clock.runFor(6000);await expect.poll(()=>cashCalls).toBe(11);
  // Now 60 s away: 'online' resets it and retries at once, and the following failure waits 30 s.
- await page.clock.runFor(2000);await page.evaluate(()=>window.dispatchEvent(new Event('online')));await page.clock.runFor(1000);await expect.poll(()=>cashCalls).toBe(10);
- await page.clock.runFor(26000);expect(cashCalls).toBe(10);await page.clock.runFor(6000);await expect.poll(()=>cashCalls).toBe(11);
+ await page.clock.runFor(2000);await page.evaluate(()=>window.dispatchEvent(new Event('online')));await page.clock.runFor(1000);await expect.poll(()=>cashCalls).toBe(12);
+ await page.clock.runFor(26000);expect(cashCalls).toBe(12);await page.clock.runFor(6000);await expect.poll(()=>cashCalls).toBe(13);
  // While hidden nothing is fetched, even once the back-off has passed; returning (focus/visible) refreshes every domain once.
- await page.evaluate(()=>Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'}));await page.clock.runFor(120000);expect(cashCalls).toBe(11);
+ await page.evaluate(()=>Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'}));await page.clock.runFor(120000);expect(cashCalls).toBe(13);
  const before=calls.length;await page.evaluate(()=>{Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('focus'))});
- await page.clock.runFor(2000);await expect.poll(()=>cashCalls).toBe(12);await expect.poll(()=>calls.length-before).toBeGreaterThanOrEqual(5);await page.clock.runFor(1000);
+ await page.clock.runFor(2000);await expect.poll(()=>cashCalls).toBe(14);await expect.poll(()=>calls.length-before).toBeGreaterThanOrEqual(5);await page.clock.runFor(1000);
  expect(calls.slice(before).filter(domain=>domain==='cash')).toHaveLength(1);expect([...new Set(calls.slice(before))].sort()).toEqual([...domains].sort());
  // Focus reset it too: the next retry is 30 s later.
- await page.clock.runFor(25000);expect(cashCalls).toBe(12);await page.clock.runFor(8000);await expect.poll(()=>cashCalls).toBe(13);
+ await page.clock.runFor(25000);expect(cashCalls).toBe(14);await page.clock.runFor(8000);await expect.poll(()=>cashCalls).toBe(15);
  await page.evaluate(()=>(window as any).__stopPreparation());
 });
