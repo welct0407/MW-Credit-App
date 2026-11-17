@@ -16,7 +16,9 @@ spec.loader.exec_module(helper)
 
 TIMERS = {'mw-audit-relay.timer', 'mw-audit-retention.timer', 'mw-cash-statement-email-retry.timer', 'mw-cash-statement.timer',
           'mw-conversation-poll.timer', 'mw-receipt-summary.timer', 'mw-resource-health.timer',
-          'mw-group-chat-summary.timer'}  # R146
+          'mw-group-chat-summary.timer',  # R146
+          'mw-group-chat-refresh-watch.timer'}  # R169
+WAKES = {'mw-receipt-wake.path', 'mw-group-chat-refresh-wake.path'}  # R169: the group chat refresh wake
 OLD = {'listen_host': '127.0.0.1', 'listen_port': 8000, 'receipt_recognition_enabled': True,
        'receipt_recognition_listen_host': '10.148.0.2', 'receipt_recognition_listen_port': 8790,
        'chat_relay_enabled': False, 'chat_relay_listen_host': '10.148.0.2', 'version': 'old'}
@@ -35,7 +37,7 @@ class FakeHost:
         self.private, self.backups = root / 'etc', root / 'root'
         self.private.mkdir(); self.backups.mkdir()
         self.calls, self.busy, self.enabled_units, self.on_restart = [], busy, set(enabled), on_restart
-        self.states = {t: 'active' for t in TIMERS | {'mw-receipt-wake.path'}}
+        self.states = {t: 'active' for t in TIMERS | WAKES}
         self.states['mw-audit-retention.timer'] = 'inactive'  # an inactive trigger must stay inactive
         self.custom_check, self.missing, self.stop_codes = check, set(missing), stop_codes or {}
         for unit in self.missing | set(self.stop_codes):
@@ -103,8 +105,10 @@ class ConfigOnlyChangeTests(unittest.TestCase):
 
     def test_triggers_come_from_the_repository_units(self):
         found = dict(helper.worker_triggers(helper.UNIT_DIRS))
-        self.assertEqual(set(found), TIMERS | {'mw-receipt-wake.path'})
+        self.assertEqual(set(found), TIMERS | WAKES)
         self.assertEqual(found['mw-receipt-wake.path'], 'mw-receipt-summary.service')
+        self.assertEqual(found['mw-group-chat-refresh-wake.path'], 'mw-group-chat-summary.service')
+        self.assertEqual(found['mw-group-chat-refresh-watch.timer'], 'mw-group-chat-refresh-watch.service')
         self.assertEqual(found['mw-resource-health.timer'], 'mw-resource-health.service')
 
     def test_apply_backs_up_installs_checks_and_brings_everything_back(self):
@@ -116,12 +120,12 @@ class ConfigOnlyChangeTests(unittest.TestCase):
         self.assertEqual((mode(backup), mode(fake.private / 'config.json')), (0o640, 0o640))
         self.assertFalse((fake.backups / 'service-catalogue.json.pre-r103').exists())
         self.assertEqual(fake.verbs(), ['stop', 'agent check', 'restart', 'agent receiver-ready', 'restart', 'start'])
-        self.assertEqual(fake.stopped(), TIMERS | {'mw-receipt-wake.path'})
+        self.assertEqual(fake.stopped(), TIMERS | WAKES)
         self.assertEqual(report['skipped_not_installed'], [])
         restarts = [c[1] for c in fake.calls if c[0] == 'restart']
         self.assertEqual(restarts, ['mw-instagram-webhook.service', 'mw-receipt-recognition.service'])  # the relay is not enabled
         start = next(c for c in fake.calls if c[0] == 'start')
-        self.assertEqual(set(start[1:]), (TIMERS - {'mw-audit-retention.timer'}) | {'mw-receipt-wake.path'})
+        self.assertEqual(set(start[1:]), (TIMERS - {'mw-audit-retention.timer'}) | WAKES)
         self.assertTrue(report['check'] and not report['problems'])
         self.assertNotIn('restored', report)
         self.assertIn(('agent', 'receiver-ready', '--config', str(fake.private / 'config.json'), '--wait', '2'), fake.calls)

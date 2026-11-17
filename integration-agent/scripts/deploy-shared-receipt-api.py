@@ -35,11 +35,13 @@ OAUTH_BACKUP = 'secrets/outlook-email-oauth.json.bak'
 READY_TIMEOUT = 30
 # These oneshot workers can import the replaced package; they stay paused until the receiver is ready.
 # R146: mw-group-chat-summary imports the package too. Its timer is installed by hand, disabled (the helper installs
-# service and path files only), before the first deploy that pauses it.
+# service and path files only), before the first deploy that pauses it. R169: mw-group-chat-refresh-watch likewise (its
+# timer is stopped unconditionally like every listed worker's, so it must be on the host first).
 UNITS = ['mw-conversation-poll', 'mw-receipt-summary', 'mw-cash-statement',
-         'mw-cash-statement-email-retry', 'mw-audit-relay', 'mw-group-chat-summary']
-# Path units start a worker on demand (R082 B1 receipt wake); paused, recorded and resumed exactly like the timers.
-PATHS = ['mw-receipt-wake.path']
+         'mw-cash-statement-email-retry', 'mw-audit-relay', 'mw-group-chat-summary', 'mw-group-chat-refresh-watch']
+# Path units start a worker on demand (R082 B1 receipt wake; R169 group chat refresh wake); paused, recorded and resumed
+# exactly like the timers. A path unit not yet on the host reads inactive and is installed by the helper.
+PATHS = ['mw-receipt-wake.path', 'mw-group-chat-refresh-wake.path']
 TRIGGERS = [u + '.timer' for u in UNITS] + PATHS
 UNIT_FILES = [RECEIVER] + [u + '.service' for u in UNITS] + PATHS
 # R091: the Instagram Partner conversation's units (already disabled since phase 0). Freeze stops a still-active

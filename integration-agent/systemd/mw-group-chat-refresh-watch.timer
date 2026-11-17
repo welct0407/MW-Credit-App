@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for open group chat refresh requests every 15 seconds (R169)
+
+[Timer]
+OnBootSec=3min
+OnUnitInactiveSec=15s
+AccuracySec=1s
+Unit=mw-group-chat-refresh-watch.service
+
+[Install]
+WantedBy=timers.target

@@ -504,8 +504,13 @@ class EngineFlowTests(unittest.TestCase):
         return stops
 
     def test_wake_paths_are_trigger_units(self):
-        # R082 B1: installed with the units, stopped beside the worker timers, resumed like a timer (R091: receipt only).
-        self.assertEqual(deploy.PATHS, ['mw-receipt-wake.path'])
+        # R082 B1: installed with the units, stopped beside the worker timers, resumed like a timer (R091: receipt only;
+        # R169: the group chat refresh wake, with its watcher among the paused workers).
+        self.assertEqual(deploy.PATHS, ['mw-receipt-wake.path', 'mw-group-chat-refresh-wake.path'])
+        self.assertIn('mw-group-chat-refresh-watch', deploy.UNITS)
+        self.assertIn('mw-group-chat-refresh-watch.service', deploy.UNIT_FILES)
+        self.assertIn('mw-group-chat-refresh-watch.timer', deploy.TRIGGERS)
+        self.assertNotIn('mw-group-chat-refresh-watch.timer', deploy.UNIT_FILES)  # installed by hand, like the summary's
         self.assertNotIn('mw-partner-conversation', deploy.UNITS)
         self.assertEqual(set(deploy.TRIGGERS), set(deploy.PATHS) | {u + '.timer' for u in deploy.UNITS})
         for name in deploy.PATHS:

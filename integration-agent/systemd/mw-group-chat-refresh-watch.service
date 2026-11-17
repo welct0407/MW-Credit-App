@@ -1,0 +1,19 @@
+[Unit]
+Description=M&W Credit group chat refresh watch: wake the summary when PWA refresh requests are open (R169)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=mwagent
+Group=mwagent
+UMask=0077
+Environment=HOME=/var/lib/mw-integration-agent
+ExecStart=/opt/mw-integration-agent/.venv/bin/mw-integration-agent group-chat-refresh-watch --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json
+TimeoutStartSec=30s
+# Every 15 seconds: only notice and above reach the journal (the command is silent unless it wakes the summary).
+LogLevelMax=notice
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mw-integration-agent
