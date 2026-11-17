@@ -1,10 +1,12 @@
 """Group chat summary (R146): a short summary of a borrower's Instagram group chat for the collection page.
 
 The conversation poll marks a group when a new substantive text arrives (runtime.group_chat_summary_state, agent V12).
-This service, every two minutes, takes the groups that have been quiet for QUIET_SECONDS (10 minutes) or marked for
-MAX_WAIT_SECONDS (10 minutes since the first new substantive message, R151: a chat that never pauses is still refreshed),
-re-reads their last three days through the poll's own conversation-list route, asks Claude for a headline and up to four
-points in Thai and English, and posts the result to the command service (POST /internal/agent/group-chat-summaries).
+This service, every minute (R168; every two minutes before), takes the groups that have been quiet for QUIET_SECONDS
+(3 minutes, R168; 10 before) or marked for MAX_WAIT_SECONDS (10 minutes since the first new substantive message, R151: a
+chat that never pauses is still refreshed), re-reads their last three days through the poll's conversation-list route
+(R168: its own page sizes, LIST_CONVERSATIONS conversations of LIST_MESSAGES messages, and it stops paging once every
+group of the run is found), asks Claude for a headline and up to four points in Thai and English, and posts the result to
+the command service (POST /internal/agent/group-chat-summaries).
 
 R165: a user's Refresh tap in the PWA queues a request in the app database (V150). Each run first reads the open
 requests (GET /internal/agent/group-chat-refreshes), finds the requested borrowers' groups through the state table's
@@ -15,6 +17,7 @@ Chat text and the summary exist only in memory during a run. Results, audit plan
 carry counts, the hashed conversation key, digests and fixed error codes only. The model has no tools; its output is
 validated here before anything is posted. Nothing financial depends on a summary.
 """
+import contextlib
 import hashlib
 import json
 import os
@@ -45,12 +48,17 @@ REQUEST_SALT = 'mw-credit-agent-group-summary-v1'
 PROMPT_VERSION = 4
 WINDOW_SECONDS = 3 * 86400
 MAX_MESSAGES = 100
-QUIET_SECONDS = 600
+# R168 (owner, 17 November 2026): a group is due after 3 quiet minutes (was 10).
+QUIET_SECONDS = 180
 # R151 (owner, 13 November 2026): at most 10 minutes from a group's first new substantive message (changed_at) to its
-# refresh, even while the chat goes on (was one hour). With QUIET_SECONDS equal, a group is due after 10 quiet minutes or
-# 10 minutes after changed_at, whichever comes first.
+# refresh, even while the chat goes on (was one hour). R168: a group is due after 3 quiet minutes or 10 minutes after
+# changed_at, whichever comes first.
 MAX_WAIT_SECONDS = 600
 MAX_GROUPS = 5
+# R168: the summariser's own conversation-list read: 25 conversations per page, each with its newest 100 messages, so a
+# three-day window usually needs no history_page call. The poll's query (conversation_poll) is unchanged.
+LIST_CONVERSATIONS = 25
+LIST_MESSAGES = 100
 RUN_BUDGET_SECONDS = 150  # stop taking groups after this (the unit's TimeoutStartSec is 4 minutes)
 BACKOFF_SECONDS = 600
 BACKOFF_LIMIT = 21600
@@ -725,16 +733,48 @@ def fail(db, cid, attempts, code, now):
                (now + delay, code, cid))
 
 
-def conversations(api, config):
-    """One conversation-list read with the poll's exact query; serves every due group of the run."""
-    from .conversation_poll import FIRST_PAGE_MESSAGES, MESSAGE_FIELDS, pages
-    found = {}
+def conversations(api, config, wanted):
+    """One conversation-list read that serves every group of the run (`wanted`, conversation ids). R168: its own page
+    sizes (LIST_CONVERSATIONS, LIST_MESSAGES; the poll's message fields) and no further page once every wanted id is
+    found; an id never found still reads to the end, and the cycle then fails that group with GROUP_NOT_FOUND."""
+    from .conversation_poll import MESSAGE_FIELDS, pages
+    wanted, found = set(wanted), {}
     for batch in pages(api, config['instagram_account_id'] + '/conversations',
-                       {'platform': 'instagram', 'fields': 'id,participants,messages.limit(' + str(FIRST_PAGE_MESSAGES) + '){' + MESSAGE_FIELDS + '}', 'limit': 100}):
+                       {'platform': 'instagram', 'fields': 'id,participants,messages.limit(' + str(LIST_MESSAGES) + '){' + MESSAGE_FIELDS + '}',
+                        'limit': LIST_CONVERSATIONS}):
         for conversation in batch:
             if isinstance(conversation, dict) and conversation.get('id'):
                 found[conversation['id']] = conversation
+        if wanted <= set(found):
+            break
     return found
+
+
+# R168: the run's time per stage and its Instagram requests, for the JOB record (durations and a count only).
+STAGES = ('listing', 'groups', 'model', 'post')
+
+
+@contextlib.contextmanager
+def timed(seconds, stage, clock):
+    """Add the seconds spent in the block to seconds[stage], also when it raises."""
+    began = clock()
+    try:
+        yield
+    finally:
+        seconds[stage] += clock() - began
+
+
+class CountingApi:
+    """The Instagram client with its request() calls counted (the count only: no path, query or reply is kept)."""
+    def __init__(self, api):
+        self._api, self.calls = api, 0
+
+    def request(self, *args, **kwargs):
+        self.calls += 1
+        return self._api.request(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._api, name)
 
 
 def summarise_group(config, api, master, conversation, now, model_call, post_call, remembered=None, known=None):
@@ -878,8 +918,20 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
     budget leaves its requests open for the next run (the PWA stops waiting after 6 minutes, the server takes them for 10).
     """
     now = time.time() if now is None else now
-    model_call, post_call = model_call or summarise, post_call or post
     started = clock()
+    # R168: seconds per stage (listing: the conversation-list read; groups: each group's read, model call and post after
+    # the listing; model and post: those calls, parts of groups) and the Instagram requests made, for the run totals.
+    seconds = {stage: 0.0 for stage in STAGES}
+    counted = CountingApi(api)
+    model_call, post_call = model_call or summarise, post_call or post
+
+    def timed_model(*args, **kwargs):
+        with timed(seconds, 'model', clock):
+            return model_call(*args, **kwargs)
+
+    def timed_post(*args, **kwargs):
+        with timed(seconds, 'post', clock):
+            return post_call(*args, **kwargs)
     # R166: waits are the seconds from a summarised group's marker (changed_at) to this run, one per such group.
     result = {'status': 'ok', 'due': 0, 'summarised': 0, 'failed': 0, 'deferred': 0,
               'outcomes': {kind: 0 for kind in OUTCOMES}, 'errors': [], 'waits': []}
@@ -918,14 +970,16 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
             requested = attempts is None
             try:
                 if listing is None:
-                    listing = conversations(api, config)
+                    with timed(seconds, 'listing', clock):
+                        listing = conversations(counted, config, [row[0] for row in selected])
                 if cid not in listing:
                     raise SummaryFailed('GROUP_NOT_FOUND')
-                stored = db.execute('SELECT member_borrower_ids,summarised_source_sha256,changed_at FROM group_chat_summary_state WHERE conversation_id=?', (cid,)).fetchone()
-                if requested and stored:
-                    changed = stored[2]  # a requested group with a marker waited too; one without has no wait
-                kind, digest, subjects, members, posted = summarise_group(config, api, master, listing[cid], now, model_call, post_call,
-                                                                          stored[0] if stored else None, stored[1] if stored and requested else None)
+                with timed(seconds, 'groups', clock):
+                    stored = db.execute('SELECT member_borrower_ids,summarised_source_sha256,changed_at FROM group_chat_summary_state WHERE conversation_id=?', (cid,)).fetchone()
+                    if requested and stored:
+                        changed = stored[2]  # a requested group with a marker waited too; one without has no wait
+                    kind, digest, subjects, members, posted = summarise_group(config, counted, master, listing[cid], now, timed_model, timed_post,
+                                                                              stored[0] if stored else None, stored[1] if stored and requested else None)
             except Exception as exc:  # the code only: never the exception text, which may quote the chat or the model
                 code = error_code(exc)
                 if not requested:
@@ -945,6 +999,8 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
             result['outcomes'][kind] += 1
     if refreshes is not None:
         report_all(config, requests, wanted, ran, result['refresh'], report or report_refresh, now)
+    result['seconds'] = {stage: round(value, 1) for stage, value in seconds.items()}
+    result['instagram_calls'] = counted.calls
     if not selected and not requests:
         return {**result, 'status': 'idle'}
     return result
@@ -987,8 +1043,9 @@ def request_age(requested_at, now):
 
 def run_effect(result):
     """R166: the numbers of a non-idle run for runtime.job_runs.summary->'effect' (the Grafana collector sums them):
-    counts, outcome counts, error codes with their counts, waits and the refresh numbers. No conversation key, borrower
-    id, request id or text. None for an idle, dry, backfill or already-running result."""
+    counts, outcome counts, error codes with their counts, waits and the refresh numbers. R168: `seconds`, the run's
+    totals per stage (listing, groups, model, post; one decimal), and `instagram_calls`, its Instagram requests. No
+    conversation key, borrower id, request id or text. None for an idle, dry, backfill or already-running result."""
     if not isinstance(result, dict) or result.get('status') != 'ok' or 'outcomes' not in result:
         return None
     errors = {}
@@ -998,6 +1055,10 @@ def run_effect(result):
             errors[code] = errors.get(code, 0) + 1
     effect = {'due': result['due'], 'summarised': result['summarised'], 'failed': result['failed'], 'deferred': result['deferred'],
               'outcomes': dict(result['outcomes']), 'errors': errors, 'waits': list(result.get('waits', []))}
+    taken = result.get('seconds') if isinstance(result.get('seconds'), dict) else {}
+    effect['seconds'] = {stage: round(float(taken.get(stage, 0) or 0), 1) for stage in STAGES}
+    calls = result.get('instagram_calls', 0)
+    effect['instagram_calls'] = calls if type(calls) is int and calls >= 0 else 0
     refresh = result.get('refresh')
     if isinstance(refresh, dict):
         effect['refresh'] = {'reported': refresh['reported'], 'pending': refresh['pending'], 'outcomes': dict(refresh['outcomes']),

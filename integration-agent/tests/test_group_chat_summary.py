@@ -51,6 +51,18 @@ def conversation(cid, members, messages):
     return {'id': cid, 'participants': {'data': members}, 'messages': {'data': ordered}}
 
 
+class Clock:
+    """A fake monotonic clock: stubs move it forward with advance()."""
+    def __init__(self):
+        self.value = 0.0
+
+    def __call__(self):
+        return self.value
+
+    def advance(self, seconds):
+        self.value += seconds
+
+
 class Base(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -541,7 +553,8 @@ class SelectionTests(Base):
     def test_quiet_period_max_wait_backoff_order_and_cap(self):
         self.mark('quiet', changed=self.now - 700, text=self.now - 601)
         # R151: the longest wait is 10 minutes from the first new substantive message, even if the chat never pauses.
-        self.assertEqual((summary.MAX_WAIT_SECONDS, summary.QUIET_SECONDS), (600, 600))
+        # R168: 3 quiet minutes are enough.
+        self.assertEqual((summary.MAX_WAIT_SECONDS, summary.QUIET_SECONDS), (600, 180))
         self.mark('busy', changed=self.now - 500, text=self.now - 30)        # still talking, under 10 minutes
         self.mark('almost', changed=self.now - 599, text=self.now - 1)       # one second short of the maximum wait
         self.mark('starved', changed=self.now - 601, text=self.now - 5)      # talking for 10 minutes: taken
@@ -557,6 +570,13 @@ class SelectionTests(Base):
         for index in range(8):
             self.mark(f'more{index}', changed=self.now - 8000 - index)
         self.assertEqual(len(summary.due(self.db, self.now)), summary.MAX_GROUPS)
+
+    def test_r168_three_quiet_minutes_or_ten_minutes_of_talk(self):
+        self.mark('quiet', changed=self.now - 300, text=self.now - 180)      # the last text exactly 3 minutes old: due
+        self.mark('recent', changed=self.now - 300, text=self.now - 179)     # one second short of the quiet period
+        self.mark('busy', changed=self.now - 600, text=self.now - 1)         # talking for exactly 10 minutes: due
+        self.mark('younger', changed=self.now - 599, text=self.now - 1)      # one second short of the maximum wait
+        self.assertEqual(sorted(cid for cid, *_ in summary.due(self.db, self.now)), ['busy', 'quiet'])
 
     def test_nothing_due_makes_no_call_and_writes_nothing(self):
         self.mark(changed=self.now - 100, text=self.now - 100)
@@ -586,9 +606,10 @@ class CycleTests(Base):
         api = self.api(conversation('g1', self.four, self.chat()))
         result = self.run_cycle(api, model=self.reply())
         self.assertEqual((result['status'], result['summarised'], result['failed'], result['outcomes']['stored']), ('ok', 1, 0, 1))
-        # One conversation-list read with the poll's query serves the run.
+        # One conversation-list read serves the run; R168: its own page sizes, the poll's message fields.
         self.assertEqual(api.request.call_count, 1)
-        self.assertIn('messages.limit(20)', api.request.call_args.args[1]['fields'])
+        self.assertEqual(api.request.call_args.args, (ACCOUNT + '/conversations', {
+            'platform': 'instagram', 'fields': 'id,participants,messages.limit(100){id,created_time,from,message,attachments}', 'limit': 25}))
         text = self.model.call_args.args[1]
         lines = text.split('\n')
         self.assertEqual(len(lines), 10)  # the message older than three days is not in the window
@@ -736,11 +757,86 @@ class CycleTests(Base):
     def test_run_budget_defers_the_remaining_groups(self):
         for index in range(3):
             self.mark(f'g{index}', changed=self.now - 900 + index)
-        ticks = iter([0, 10, 200, 400, 600])
+        clock = Clock()
+
+        def slow(config, text):
+            clock.advance(200)  # the first group's model call uses up the run budget
+            return self.reply(partner=False)
         api = self.api(*[conversation(f'g{i}', self.members, [message('m1', '20', 20, PROMISE)]) for i in range(3)])
-        result = self.run_cycle(api, clock=lambda: next(ticks))
+        result = self.run_cycle(api, model=slow, clock=clock)
         self.assertEqual((result['summarised'], result['deferred']), (1, 2))
         self.assertIsNotNone(self.state('g2')['changed_at'])
+
+
+class ListingTests(Base):
+    """R168: the summariser's own conversation-list read stops once every group of the run is found, and its 100-message
+    first page usually proves the three-day boundary without a history page."""
+
+    def page(self, cids, after=None):
+        value = {'data': [conversation(cid, self.members, [message('m1', '20', 20, PROMISE)]) for cid in cids]}
+        if after:
+            value['paging'] = {'next': 'https://example.invalid/next', 'cursors': {'after': after}}
+        return value
+
+    def test_constants_and_query(self):
+        self.assertEqual((summary.LIST_CONVERSATIONS, summary.LIST_MESSAGES), (25, 100))
+        api = Mock(request=Mock(side_effect=[self.page(['g0'], 'p1'), self.page(['g1'])]))
+        found = summary.conversations(api, self.config, ['g1'])
+        self.assertEqual(sorted(found), ['g0', 'g1'])
+        first, second = (call.args[1] for call in api.request.call_args_list)
+        self.assertEqual(first, {'platform': 'instagram', 'fields': 'id,participants,messages.limit(100){id,created_time,from,message,attachments}', 'limit': 25})
+        self.assertEqual(second, dict(first, after='p1'))
+        self.assertIn('messages.limit(100){', first['fields'])
+
+    def test_a_wanted_group_on_the_first_page_needs_one_request(self):
+        self.mark('g1')
+        api = Mock(request=Mock(side_effect=[self.page(['g1', 'g9'], 'p1'), self.page(['g2'])]))
+        result = self.run_cycle(api)
+        self.assertEqual((result['summarised'], api.request.call_count, result['instagram_calls']), (1, 1, 1))
+
+    def test_two_groups_across_two_pages_need_two_requests(self):
+        self.mark('g1', changed=self.now - 900)
+        self.mark('g2', changed=self.now - 800)
+        api = Mock(request=Mock(side_effect=[self.page(['g1'], 'p1'), self.page(['g2'], 'p2'), self.page(['g3'])]))
+        result = self.run_cycle(api)
+        self.assertEqual((result['summarised'], api.request.call_count, result['instagram_calls']), (2, 2, 2))
+
+    def test_a_group_never_found_reads_every_page_then_fails_and_backs_off(self):
+        self.mark('g1', changed=self.now - 900)
+        self.mark('gone', changed=self.now - 800)
+        api = Mock(request=Mock(side_effect=[self.page(['g1'], 'p1'), self.page(['g2'], 'p2'), self.page(['g3'])]))
+        result = self.run_cycle(api)
+        self.assertEqual(api.request.call_count, 3)
+        self.assertEqual((result['summarised'], result['failed'], result['errors'][0]['error']), (1, 1, 'GROUP_NOT_FOUND'))
+        state = self.state('gone')
+        self.assertEqual((state['last_error'], state['attempts'], state['next_attempt_at']), ('GROUP_NOT_FOUND', 1, self.now + summary.BACKOFF_SECONDS))
+        self.assertIsNotNone(state['changed_at'])
+
+    def window_chat(self, count, older):
+        """`count` substantive messages inside the window, newest first, then `older` messages before it."""
+        inside = [message(f'w{i}', '20', 10 + i, f'ข้อความทดสอบลำดับที่ {i} ยาวพอสมควร') for i in range(count)]
+        return inside + [message(f'o{i}', '20', 3 * 1440 + 5 + i, PROMISE) for i in range(older)]
+
+    def test_a_full_first_page_that_crosses_the_window_start_reads_no_history_page(self):
+        self.mark()
+        chat = self.window_chat(99, 1)
+        listed = dict(conversation('g1', self.members, []), messages={'data': chat, 'paging': {'next': 'n', 'cursors': {'after': 'h1'}}})
+        api = Mock(request=Mock(return_value={'data': [listed]}))
+        result = self.run_cycle(api)
+        self.assertEqual((result['summarised'], api.request.call_count), (1, 1))
+        self.assertEqual(len(self.model.call_args.args[1].split('\n')), 99)
+
+    def test_a_full_first_page_inside_the_window_continues_after_its_cursor(self):
+        self.mark()
+        chat = self.window_chat(101, 1)
+        listed = dict(conversation('g1', self.members, []), messages={'data': chat[:100], 'paging': {'next': 'n', 'cursors': {'after': 'h1'}}})
+        api = Mock(request=Mock(side_effect=[{'data': [listed]}, {'data': [{'id': 'g1', 'messages': {'data': chat[100:]}}]}]))
+        result = self.run_cycle(api)
+        self.assertEqual((result['summarised'], api.request.call_count, result['instagram_calls']), (1, 2, 2))
+        self.assertEqual(api.request.call_args.args[1]['fields'], 'id,messages.limit(100).after(h1){id,created_time,from,message,attachments}')
+        lines = self.model.call_args.args[1].split('\n')
+        self.assertEqual(len(lines), summary.MAX_MESSAGES)  # the newest 100 of 101 in the window
+        self.assertIn('ลำดับที่ 99 ', lines[0])
 
 
 class OutputValidationTests(Base):
@@ -857,7 +953,7 @@ class OutputValidationTests(Base):
         self.assertEqual((value['borrowerIds'], value['summary'], value['conversationKey']), ([], None, summary.conversation_key('g1')))
         self.assertNotIn(MODEL_SENTINEL, json.dumps(value, ensure_ascii=False))
         self.assertEqual((result['summarised'], result['failed'], result['outcomes']), (1, 0, {'stored': 0, 'unchanged': 0, 'superseded': 0, 'cleared': 1}))
-        self.assertEqual(set(result), {'status', 'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits'})  # counts only (R166: waits in seconds)
+        self.assertEqual(set(result), {'status', 'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'seconds', 'instagram_calls'})  # counts only (R166: waits in seconds; R168: stage seconds, Instagram calls)
         state = self.state()
         self.assertEqual((state['changed_at'], state['summarised_source_sha256'], state['summarised_at'], state['attempts'], state['last_error']),
                          (None, value['sourceSha256'], self.now, 0, None))
@@ -1172,9 +1268,13 @@ class RefreshTests(Base):
         self.db.execute('DELETE FROM group_chat_summary_state')
         self.group('g1')
         self.group('g2', members=('B-C',))
-        ticks = iter([0, 10, 400, 500])
+        clock = Clock()
+
+        def slow(config, text):
+            clock.advance(400)  # the first group's model call uses up the run budget
+            return self.reply(partner=False)
         api = self.api(conversation('g1', self.members, [message('m1', '20', 20, PROMISE)]))
-        result = self.cycle(api, self.requested(('B-A', self.REQUEST), ('B-C', self.OTHER)), clock=lambda: next(ticks))
+        result = self.cycle(api, self.requested(('B-A', self.REQUEST), ('B-C', self.OTHER)), model=slow, clock=clock)
         self.report.assert_called_once_with(self.config, self.REQUEST, 'stored')
         self.assertEqual((result['deferred'], result['refresh']['pending']), (1, 1))
 
@@ -1264,7 +1364,7 @@ class RunEffectTests(Base):
         self.assertEqual(sorted(result['waits']), [50, 700])
         self.assertEqual(result['refresh']['seconds'], [90])  # an unreadable requestedAt gives no sample
         effect = summary.run_effect(result)
-        self.assertEqual(set(effect), {'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'refresh'})
+        self.assertEqual(set(effect), {'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'refresh', 'seconds', 'instagram_calls'})
         self.assertEqual((effect['due'], effect['summarised'], effect['errors'], sorted(effect['waits'])), (1, 3, {}, [50, 700]))
         self.assertEqual(effect['refresh'], {'reported': 2, 'pending': 0, 'outcomes': dict(result['refresh']['outcomes']), 'seconds': [90]})
 
@@ -1277,10 +1377,58 @@ class RunEffectTests(Base):
         self.assertEqual(effect['errors'], {'MODEL_TIMEOUT': 2, 'GROUP_NOT_FOUND': 1})
         self.assertEqual((effect['failed'], effect['waits']), (3, []))
         self.assertNotIn('refresh', effect)
+        # R168: stage seconds and the Instagram request count only.
+        self.assertEqual((set(effect['seconds']), effect['instagram_calls']), ({'listing', 'groups', 'model', 'post'}, 1))
+        self.assertTrue(all(type(value) is float for value in effect['seconds'].values()))
         text = json.dumps(effect, ensure_ascii=False)
         for value in [summary.conversation_key(cid) for cid in ('g1', 'g2', 'gone')] + ['g1', 'gone', 'B-A', SENTINEL, 'conversation']:
             self.assertNotIn(value, text)
         self.assertEqual(summary.run_effect({**result, 'errors': [{'error': 'not a code'}, {'error': 'OK_CODE'}, 'x']})['errors'], {'OK_CODE': 1})
+
+    def test_r168_stage_seconds_and_instagram_calls_come_from_the_injected_clock(self):
+        self.mark('g1', changed=self.now - 900)
+        self.mark('g2', changed=self.now - 800)
+        clock = Clock()
+        pages = [{'data': [conversation('g1', self.members, [message('m1', '20', 20, PROMISE)])],
+                  'paging': {'next': 'https://example.invalid/next', 'cursors': {'after': 'p1'}}},
+                 {'data': [conversation('g2', self.members, [message('m1', '20', 20, PROMISE)])]}]
+
+        def listed(path, query):
+            clock.advance(1.5)
+            return pages.pop(0)
+
+        def model(config, text):
+            clock.advance(4.04)
+            return self.reply(partner=False)
+
+        def posted(config, value):
+            clock.advance(0.25)
+            return 'stored'
+        result = self.run_cycle(Mock(request=Mock(side_effect=listed)), model=model, post=posted, clock=clock)
+        self.assertEqual(result['summarised'], 2)
+        self.assertEqual(result['seconds'], {'listing': 3.0, 'groups': 8.6, 'model': 8.1, 'post': 0.5})
+        self.assertEqual(result['instagram_calls'], 2)
+        effect = summary.run_effect(result)
+        self.assertEqual((effect['seconds'], effect['instagram_calls']), ({'listing': 3.0, 'groups': 8.6, 'model': 8.1, 'post': 0.5}, 2))
+        # A failed post still counts its time.
+        self.db.execute('UPDATE group_chat_summary_state SET changed_at=?', (self.now - 900,))
+        self.db.commit()
+        pages[:] = [{'data': [conversation(cid, self.members, [message('m1', '20', 20, PROMISE)]) for cid in ('g1', 'g2')]}]
+
+        def refused(config, value):
+            clock.advance(0.25)
+            raise summary.SummaryFailed('POST_REFUSED')
+        result = self.run_cycle(Mock(request=Mock(side_effect=listed)), model=model, post=refused, clock=clock)
+        self.assertEqual((result['failed'], result['seconds'], result['instagram_calls']),
+                         (2, {'listing': 1.5, 'groups': 8.6, 'model': 8.1, 'post': 0.5}, 1))
+
+    def test_an_idle_run_writes_no_effect_and_makes_no_call(self):
+        self.mark(changed=self.now - 100, text=self.now - 100)
+        api = self.api()
+        result = self.run_cycle(api)
+        self.assertEqual((result['status'], result['instagram_calls'], result['seconds']), ('idle', 0, {'listing': 0.0, 'groups': 0.0, 'model': 0.0, 'post': 0.0}))
+        self.assertIsNone(summary.run_effect(result))
+        api.request.assert_not_called()
 
     def test_idle_dry_backfill_and_busy_results_have_no_effect(self):
         for result in ({'status': 'idle', 'due': 0, 'summarised': 0, 'failed': 0, 'deferred': 0, 'outcomes': {}, 'errors': []},
@@ -1291,12 +1439,16 @@ class RunEffectTests(Base):
     def test_the_cli_writes_the_effect_only_for_a_run_that_did_something(self):
         from mw_integration_agent import cli
         args = cli.build_parser().parse_args(['group-chat-summary', '--config', 'c', '--catalogue', 'k'])
-        busy = {'status': 'ok', 'due': 1, 'summarised': 1, 'failed': 0, 'deferred': 0, 'outcomes': {'stored': 1}, 'errors': [], 'waits': [600]}
+        timings = {'listing': 1.2, 'groups': 9.4, 'model': 8.0, 'post': 0.3}
+        busy = {'status': 'ok', 'due': 1, 'summarised': 1, 'failed': 0, 'deferred': 0, 'outcomes': {'stored': 1}, 'errors': [], 'waits': [600],
+                'seconds': timings, 'instagram_calls': 1}
         idle = {'status': 'idle', 'due': 0, 'summarised': 0, 'failed': 0, 'deferred': 0, 'outcomes': {}, 'errors': [], 'waits': []}
         failed = dict(busy, summarised=0, failed=1, outcomes={}, waits=[], errors=[{'conversation_key': 'a' * 32, 'error': 'MODEL_TIMEOUT'}])
-        for result, code, effect in ((busy, 0, {'due': 1, 'summarised': 1, 'failed': 0, 'deferred': 0, 'outcomes': {'stored': 1}, 'errors': {}, 'waits': [600]}),
+        for result, code, effect in ((busy, 0, {'due': 1, 'summarised': 1, 'failed': 0, 'deferred': 0, 'outcomes': {'stored': 1}, 'errors': {}, 'waits': [600],
+                                                'seconds': timings, 'instagram_calls': 1}),
                                      (idle, 0, None), ({'status': 'already_running'}, 0, None),
-                                     (failed, 2, {'due': 1, 'summarised': 0, 'failed': 1, 'deferred': 0, 'outcomes': {}, 'errors': {'MODEL_TIMEOUT': 1}, 'waits': []})):
+                                     (failed, 2, {'due': 1, 'summarised': 0, 'failed': 1, 'deferred': 0, 'outcomes': {}, 'errors': {'MODEL_TIMEOUT': 1}, 'waits': [],
+                                                  'seconds': timings, 'instagram_calls': 1})):
             with self.subTest(status=result['status'], failed=result.get('failed')):
                 outcome = {'exit_code': None}
                 with patch.object(summary, 'run', return_value=result), contextlib.redirect_stdout(io.StringIO()):
@@ -1638,7 +1790,7 @@ class ConfigurationTests(unittest.TestCase):
     def test_catalogue_knows_the_service_disabled_and_implemented(self):
         catalogue = json.loads((ROOT / 'service-catalogue.json').read_text(encoding='utf-8'))
         validate_catalogue(catalogue)
-        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (40, {'enabled': False, 'implemented': True}))  # R166 (40) and R165 (39) change no service
+        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (41, {'enabled': False, 'implemented': True}))  # R168 (41), R166 (40) and R165 (39) change no service
 
 
 class UnitFileTests(unittest.TestCase):
@@ -1650,7 +1802,9 @@ class UnitFileTests(unittest.TestCase):
         self.assertIn('mw-integration-agent group-chat-summary --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json\n', service)
         self.assertNotIn('--dry-run', service)
         timer = (ROOT / 'systemd/mw-group-chat-summary.timer').read_text(encoding='utf-8')
-        self.assertIn('OnUnitInactiveSec=2min\n', timer)
+        self.assertIn('OnUnitInactiveSec=1min\n', timer)  # R168: every minute (was 2min)
+        self.assertNotIn('2min', timer)
+        self.assertIn('every minute', timer.splitlines()[1])
         self.assertIn('Unit=mw-group-chat-summary.service\n', timer)
 
     def test_deploy_helper_pauses_the_unit(self):
