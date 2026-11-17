@@ -392,11 +392,11 @@ class PostgreSQLStateTests(unittest.TestCase):
         row=receipt.db.execute('SELECT changed_at,last_text_at,subjects_sha256 FROM group_chat_summary_state WHERE conversation_id=?',(cid,)).fetchone()
         self.assertEqual(tuple(row.values()),(now-650,now-700,'c'*64))
         self.assertIn(cid,summary.poll_context(dict(self.config,group_chat_summary_enabled=True,group_chat_summary_cutoff='2026-01-01T00:00:00+00:00'),{'partners':[]},receipt.db)['known'])
-        self.assertIn((cid,0),summary.due(receipt.db,now))
+        self.assertIn((cid,0),[row[:2] for row in summary.due(receipt.db,now)])
         with receipt.db:
             summary.fail(receipt.db,cid,0,'MODEL_HTTP_529',now)
-        self.assertNotIn(cid,[c for c,_ in summary.due(receipt.db,now+599)])
-        self.assertIn((cid,1),summary.due(receipt.db,now+600))
+        self.assertNotIn(cid,[row[0] for row in summary.due(receipt.db,now+599)])
+        self.assertIn((cid,1),[row[:2] for row in summary.due(receipt.db,now+600)])
         with receipt.db:
             summary.finish(receipt.db,cid,'d'*64,'e'*64,now)
         row=receipt.db.execute('SELECT changed_at,summarised_source_sha256,summarised_at,subjects_sha256,attempts,next_attempt_at,last_error FROM group_chat_summary_state WHERE conversation_id=?',(cid,)).fetchone()
@@ -444,7 +444,7 @@ class PostgreSQLStateTests(unittest.TestCase):
         self.assertEqual(read(waiting),(now-50,now-40,'c'*64,2,now+1200,'MODEL_TIMEOUT'))
         self.assertEqual(read(fresh),(now,None,summary.resolve(config,master,members)['digest'],0,0.0,None))
         self.assertIsNone(receipt.db.execute('SELECT 1 FROM group_chat_summary_state WHERE conversation_id=?',(self.key+'-small',)).fetchone())
-        self.assertIn((fresh,0),summary.due(receipt.db,now))
+        self.assertIn((fresh,0),[row[:2] for row in summary.due(receipt.db,now)])
         self.assertEqual(summary.mark_all(config,api,master,receipt.db,now+60),{'conversations':3,'small':1,'ambiguous':0,'incomplete':0,'groups':2,'marked':0,'already_due':2})
         self.assertEqual(read(fresh)[0],now)
         with psycopg.connect(**self.admin) as c:
