@@ -58,6 +58,9 @@ Audit note (Forge's correction): per-run audit records exist under the service n
 ## Recovery
 Before deployment, revert the commit. Dashboards roll back by redeploying the previous `mw-agent` JSON; the alert rule by pausing or removing it in Alert rules (the other rules are unaffected); the agent by `deploy-runtime.py rollback --commit <previous>`; the collector by restoring the previous `debian-health.py`. No SQL, so no backup is needed.
 
+## Known issue after release
+On 17 November 2026 the owner's live view of tile 26 "Group chat · last run" showed "Run took: Down" beside "Last run: OK". Cause (Forge, read-only, through the PROD Grafana `/api/ds/query` and a render): the tile's panel-level default value map (0 Down to 4 Unknown) still applies in Grafana 13.4 to the duration fields despite their own mapping overrides, so durations of 0 to 4 s render as state words; idle runs take 0 s. The data is correct (`last_run_seconds` 0; `last_run_age_seconds` for example 1 to 117). Tiles 27 to 32 are not affected; the Recognizer tile 6 has the same latent fault. Echo's local Grafana 12.2.1 render with TestData did not show it (see Checks). The fix ships as R167, dashboard only, which the owner approved to build and apply to PROD on 17 November 2026.
+
 ## Open questions
 None.
 
