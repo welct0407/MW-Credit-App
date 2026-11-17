@@ -6,8 +6,9 @@ This service, every minute (R168; every two minutes before), takes the groups th
 chat that never pauses is still refreshed), re-reads their last three days through the poll's conversation-list route
 (R168: its own page sizes, LIST_CONVERSATIONS conversations of LIST_MESSAGES messages, and it stops paging once every
 group of the run is found; R169: a first request for the LIST_CONVERSATIONS_FIRST most recent conversations usually finds
-them all, and a group's history read stops once MAX_MESSAGES are found), asks Claude for a headline and up to four points in Thai and English, and posts the result to
-the command service (POST /internal/agent/group-chat-summaries).
+them all, and a group's history read stops once MAX_MESSAGES are found; R170: that first request only when the poll's
+records make it likely to be enough), asks Claude for a headline and up to four points in Thai and English, and posts the
+result to the command service (POST /internal/agent/group-chat-summaries).
 
 R169: `group-chat-refresh-watch` (refresh_watch, every 15 seconds, outside a job) reads the open refresh requests and,
 when there are any, touches the wake file that starts this service through mw-group-chat-refresh-wake.path.
@@ -66,6 +67,12 @@ LIST_MESSAGES = 100
 # R169: the first conversation-list request asks for only the 5 most recently active conversations (a due or requested
 # group has just been written in, so it is usually among them); a miss falls back to the R168 read above.
 LIST_CONVERSATIONS_FIRST = 5
+# R170: the first 5-conversation request is made only when the poll's records make it likely to hold every group of the
+# run (first_page_likely): each group had a message in the last RECENT_SECONDS, and at most FIRST_PAGE_RANK_MAX
+# conversations (those groups included) had one since the oldest of those messages. Otherwise the R168 read comes at once.
+RECENT_SECONDS = 3600
+FIRST_PAGE_RANK_MAX = 4
+FIRST_PAGE_COUNTS = ('hit', 'miss', 'skipped')
 # R169: the file refresh_watch touches; mw-group-chat-refresh-wake.path starts mw-group-chat-summary.service on it.
 REFRESH_WAKE = 'group-chat-refresh-wake'
 RUN_BUDGET_SECONDS = 150  # stop taking groups after this (the unit's TimeoutStartSec is 4 minutes)
@@ -742,12 +749,36 @@ def fail(db, cid, attempts, code, now):
                (now + delay, code, cid))
 
 
-def conversations(api, config, wanted):
+def first_page_likely(db, wanted, now):
+    """R170: whether the LIST_CONVERSATIONS_FIRST request is likely to hold every `wanted` conversation, from the poll's
+    records (conversation_poll_messages: the conversation and the message time of every message the poll read). One read
+    query, the latest message time per conversation within RECENT_SECONDS: true only when every wanted id is among them
+    and at most FIRST_PAGE_RANK_MAX conversations (the wanted ones included) had a message at or after the oldest of the
+    wanted ids' latest messages. Instagram lists conversations by their latest activity, so those are the top ones. A
+    failed read (a SQLite journal the poll never wrote) is false: the R168 read is always correct, only slower."""
+    wanted = set(wanted)
+    if not wanted:
+        return False
+    try:
+        rows = db.execute('SELECT conversation_id,MAX(event_time) FROM conversation_poll_messages WHERE event_time>=? GROUP BY conversation_id',
+                          (now - RECENT_SECONDS,)).fetchall()
+    except Exception:  # never the exception text; the slower read is taken
+        return False
+    latest = {row[0]: row[1] for row in rows}
+    if not wanted <= set(latest):
+        return False
+    oldest = min(latest[cid] for cid in wanted)
+    return sum(1 for value in latest.values() if value >= oldest) <= FIRST_PAGE_RANK_MAX
+
+
+def conversations(api, config, wanted, first_page=True):
     """The conversation-list read that serves every group of the run (`wanted`, conversation ids; requested, due or
     both). R169: first one request for the LIST_CONVERSATIONS_FIRST most recent conversations; when every wanted id is
     there, that is the read. Otherwise the R168 read follows (listing()) and is merged over the first, the later read
-    winning."""
+    winning. R170: `first_page` false (first_page_likely) goes straight to the R168 read."""
     from .conversation_poll import pages
+    if not first_page:
+        return listing(api, config, wanted)
     wanted, first = set(wanted), {}
     for batch in pages(api, config['instagram_account_id'] + '/conversations', listing_query(LIST_CONVERSATIONS_FIRST)):
         collect(first, batch)
@@ -995,6 +1026,9 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
     if selected:
         master = master_reader()
         listing = None
+        # R170: one read of the poll's records decides whether the 5-conversation request is tried first.
+        likely = first_page_likely(db, [row[0] for row in selected], now)
+        result['first_page'] = {kind: 0 for kind in FIRST_PAGE_COUNTS}
         for cid, attempts, changed in selected:
             if clock() - started > RUN_BUDGET_SECONDS:
                 result['deferred'] += 1
@@ -1002,8 +1036,11 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
             requested = attempts is None
             try:
                 if listing is None:
+                    before = counted.calls
                     with timed(seconds, 'listing', clock):
-                        listing = conversations(counted, config, [row[0] for row in selected])
+                        listing = conversations(counted, config, [row[0] for row in selected], likely)
+                    # R170: hit, the first request served the run; miss, the R168 read followed; skipped, not tried.
+                    result['first_page']['skipped' if not likely else 'hit' if counted.calls - before == 1 else 'miss'] += 1
                 if cid not in listing:
                     raise SummaryFailed('GROUP_NOT_FOUND')
                 with timed(seconds, 'groups', clock):
@@ -1075,7 +1112,8 @@ def request_age(requested_at, now):
 
 def run_effect(result):
     """R166: the numbers of a non-idle run for runtime.job_runs.summary->'effect' (the Grafana collector sums them):
-    counts, outcome counts, error codes with their counts, waits and the refresh numbers. R168: `seconds`, the run's
+    counts, outcome counts, error codes with their counts, waits and the refresh numbers. R170: `first_page` {hit, miss,
+    skipped}, one count per run that listed. R168: `seconds`, the run's
     totals per stage (listing, groups, model, post; one decimal), and `instagram_calls`, its Instagram requests. No
     conversation key, borrower id, request id or text. None for an idle, dry, backfill or already-running result."""
     if not isinstance(result, dict) or result.get('status') != 'ok' or 'outcomes' not in result:
@@ -1091,6 +1129,9 @@ def run_effect(result):
     effect['seconds'] = {stage: round(float(taken.get(stage, 0) or 0), 1) for stage in STAGES}
     calls = result.get('instagram_calls', 0)
     effect['instagram_calls'] = calls if type(calls) is int and calls >= 0 else 0
+    # R170: whether the run's listing tried the 5-conversation request and whether it was enough (zeros when absent).
+    first = result.get('first_page') if isinstance(result.get('first_page'), dict) else {}
+    effect['first_page'] = {kind: first[kind] if type(first.get(kind)) is int and first[kind] >= 0 else 0 for kind in FIRST_PAGE_COUNTS}
     refresh = result.get('refresh')
     if isinstance(refresh, dict):
         effect['refresh'] = {'reported': refresh['reported'], 'pending': refresh['pending'], 'outcomes': dict(refresh['outcomes']),
