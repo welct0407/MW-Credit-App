@@ -422,6 +422,24 @@ class PostgreSQLStateTests(unittest.TestCase):
                 AND plan->>'statement' LIKE '%group_chat_summary_state%' ORDER BY created_at DESC LIMIT 20""")]
         self.assertTrue(statements)  # journal audit rows carry the statement and a parameter digest, never values
 
+    def test_group_chat_summary_first_page_guess_runs_on_postgres(self):
+        # R170: first_page_likely's one read of the poll's records through the adapter (invented ids; a time far from
+        # every other test's rows, one hour apart per run of this suite).
+        from mw_integration_agent import group_chat_summary as summary
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        now=4_000_000_000.0+(uuid.UUID(self.generation).int%100_000)*7200
+        ids=[f'{self.key}-{i}' for i in range(5)]
+        with receipt.db:
+            for index,cid in enumerate(ids[:4]):
+                receipt.db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',(cid+'-m',cid,now-100*(index+1),now,'IGNORED'))
+        self.assertTrue(summary.first_page_likely(receipt.db,[ids[3]],now))          # the fourth most recent
+        self.assertFalse(summary.first_page_likely(receipt.db,[ids[0],ids[4]],now))  # a wanted id without rows
+        with receipt.db:
+            receipt.db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',(ids[4]+'-m',ids[4],now-10,now,'IGNORED'))
+        self.assertFalse(summary.first_page_likely(receipt.db,[ids[3]],now))         # now ranked fifth
+        self.assertTrue(summary.first_page_likely(receipt.db,[ids[4],ids[1]],now))
+        self.assertFalse(summary.first_page_likely(receipt.db,[ids[0]],now+3600))     # its message is over an hour old
+
     def test_group_chat_summary_mark_all_statements_run_on_postgres(self):
         # R147: the backfill's insert-or-ignore and conditional update through the adapter (invented ids, no API text).
         from unittest.mock import Mock

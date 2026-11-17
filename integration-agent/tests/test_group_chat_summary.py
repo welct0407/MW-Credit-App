@@ -97,6 +97,14 @@ class Base(unittest.TestCase):
         self.db.execute('INSERT INTO group_chat_summary_state(' + ','.join(values) + ') VALUES (' + ','.join('?' for _ in values) + ')', tuple(values.values()))
         self.db.commit()
 
+    def polled(self, *items):
+        """R170: the poll's records, (conversation id, seconds before now) per message (first_page_likely reads them)."""
+        from mw_integration_agent.conversation_poll import POLL_TABLES_SQLITE
+        self.db.executescript(POLL_TABLES_SQLITE)
+        for index, (cid, ago) in enumerate(items):
+            self.db.execute('INSERT INTO conversation_poll_messages VALUES (?,?,?,?,?)', (f'{cid}-m{index}', cid, self.now - ago, self.now - ago, 'IGNORED'))
+        self.db.commit()
+
     def reply(self, speaker='borrower_1', partner=True):
         return {'relevant': True, 'headline': {'th': 'ผู้กู้ขอเลื่อนจ่ายเป็นวันศุกร์ หุ้นส่วนตกลง', 'en': 'Borrower asks to pay on Friday; partner agreed.'},
                 'points': [{'speaker': speaker, 'th': 'เงินเดือนออกช้า จะโอนวันศุกร์', 'en': 'Salary is late, will transfer on Friday.'},
@@ -609,7 +617,7 @@ class CycleTests(Base):
         # One conversation-list read serves the run; R168: its own page sizes, the poll's message fields.
         self.assertEqual(api.request.call_count, 1)
         self.assertEqual(api.request.call_args.args, (ACCOUNT + '/conversations', {
-            'platform': 'instagram', 'fields': 'id,participants,messages.limit(100){id,created_time,from,message,attachments}', 'limit': 5}))  # R169
+            'platform': 'instagram', 'fields': 'id,participants,messages.limit(100){id,created_time,from,message,attachments}', 'limit': 25}))  # R170: no poll record, no first-page try
         text = self.model.call_args.args[1]
         lines = text.split('\n')
         self.assertEqual(len(lines), 10)  # the message older than three days is not in the window
@@ -820,32 +828,39 @@ class ListingTests(Base):
 
     def test_a_wanted_group_on_the_first_page_needs_one_request(self):
         self.mark('g3')
+        self.polled(('g3', 60))  # R170: the poll saw it a minute ago, so the 5-conversation request is tried
         api = self.listing(60)
         result = self.run_cycle(api)
         self.assertEqual((result['summarised'], len(api.queries), result['instagram_calls']), (1, 1, 1))
         self.assertEqual(api.queries[0]['limit'], 5)
+        self.assertEqual(result['first_page'], {'hit': 1, 'miss': 0, 'skipped': 0})
 
     def test_a_requested_and_a_due_group_on_the_first_page_need_one_request(self):
         self.mark('g4', changed=self.now - 900)
         self.mark('g1', member_borrower_ids=json.dumps(['B-A']))
         self.db.execute("UPDATE group_chat_summary_state SET changed_at=NULL WHERE conversation_id='g1'")
         self.db.commit()
+        self.polled(('g4', 300), ('g1', 30))
         api = self.listing(60)
         requested = Mock(return_value=[{'borrowerId': 'B-A', 'requestId': '0c970c97-0c97-4c97-8c97-0c970c970c97', 'requestedAt': '2026-11-12T07:59:00.000Z'}])
         result = self.run_cycle(api, refreshes=requested, report=Mock(return_value='completed'))
         self.assertEqual((result['summarised'], result['refresh']['reported'], len(api.queries)), (2, 1, 1))
+        self.assertEqual((api.queries[0]['limit'], result['first_page']['hit']), (5, 1))
 
     def test_two_groups_one_on_the_first_page_need_two_requests(self):
         self.mark('g1', changed=self.now - 900)
         self.mark('g20', changed=self.now - 800)
+        self.polled(('g1', 100), ('g20', 200))  # the poll's records say likely; Instagram's order says otherwise
         api = self.listing(60)
         result = self.run_cycle(api)
         self.assertEqual((result['summarised'], len(api.queries), result['instagram_calls']), (2, 2, 2))
         self.assertEqual([q['limit'] for q in api.queries], [5, 25])
+        self.assertEqual(result['first_page'], {'hit': 0, 'miss': 1, 'skipped': 0})
 
     def test_a_group_never_found_reads_every_page_then_fails_and_backs_off(self):
         self.mark('g1', changed=self.now - 900)
         self.mark('gone', changed=self.now - 800)
+        self.polled(('g1', 100), ('gone', 200))
         api = self.listing(60)
         result = self.run_cycle(api)
         self.assertEqual([(q['limit'], q.get('after')) for q in api.queries], [(5, None), (25, None), (25, 'c25'), (25, 'c50')])
@@ -857,12 +872,58 @@ class ListingTests(Base):
     def test_a_failed_first_request_fails_the_group_and_the_next_group_reads_again(self):
         self.mark('g1', changed=self.now - 900)
         self.mark('g2', changed=self.now - 800)
+        self.polled(('g1', 100), ('g2', 200))
         api = self.listing(10, fail=True)
         result = self.run_cycle(api)
         self.assertEqual((result['summarised'], result['failed'], result['errors'][0]['error']), (1, 1, 'POLL_INVALID_PAGE'))
         self.assertEqual(self.state('g1')['last_error'], 'POLL_INVALID_PAGE')
         self.assertIsNone(self.state('g2')['changed_at'])
         self.assertEqual([q['limit'] for q in api.queries], [5, 5])
+        self.assertEqual(result['first_page'], {'hit': 1, 'miss': 0, 'skipped': 0})  # one count per run that listed
+
+    def test_r170_first_page_likely_from_the_poll_records(self):
+        self.assertEqual((summary.RECENT_SECONDS, summary.FIRST_PAGE_RANK_MAX), (3600, 4))
+        self.assertFalse(summary.first_page_likely(self.db, ['g1'], self.now))  # no poll table on this journal: the R168 read
+        self.polled()
+        self.assertFalse(summary.first_page_likely(self.db, ['g1'], self.now))  # an empty table
+        self.polled(('g1', 3000), ('g1', 4000), ('g2', 2000), ('g3', 1000), ('g4', 3000), ('old', 5000))
+        # g1's latest message is 3000 s old; g2, g3 and g4 (exactly as old) are newer or equal: four conversations.
+        self.assertTrue(summary.first_page_likely(self.db, ['g1'], self.now))
+        self.assertTrue(summary.first_page_likely(self.db, ['g1', 'g3'], self.now))
+        self.assertTrue(summary.first_page_likely(self.db, ['g3'], self.now))
+        self.assertFalse(summary.first_page_likely(self.db, ['g1', 'g9'], self.now))  # a wanted id without rows
+        self.assertFalse(summary.first_page_likely(self.db, [], self.now))
+        self.polled(('g5', 10))
+        self.assertFalse(summary.first_page_likely(self.db, ['g1'], self.now))  # a fifth conversation since g1's message
+        self.assertTrue(summary.first_page_likely(self.db, ['g5', 'g3'], self.now))
+        self.polled(('quiet', 3601))
+        self.assertFalse(summary.first_page_likely(self.db, ['quiet'], self.now))  # the oldest wanted is 3601 s old
+        self.polled(('edge', 3600))
+        self.assertFalse(summary.first_page_likely(self.db, ['edge'], self.now))  # within the hour, but ranked sixth
+
+    def test_r170_a_quiet_requested_group_goes_straight_to_the_r168_read(self):
+        self.mark('g3', member_borrower_ids=json.dumps(['B-A']))
+        self.db.execute("UPDATE group_chat_summary_state SET changed_at=NULL WHERE conversation_id='g3'")
+        self.db.commit()
+        self.polled(('g3', 7200), *[(f'busy{i}', 60) for i in range(6)])
+        api = self.listing(60)
+        requested = Mock(return_value=[{'borrowerId': 'B-A', 'requestId': '0c970c97-0c97-4c97-8c97-0c970c970c97', 'requestedAt': '2026-11-12T07:59:00.000Z'}])
+        result = self.run_cycle(api, refreshes=requested, report=Mock(return_value='completed'))
+        self.assertEqual(api.queries, [dict(self.QUERY, limit=25)])  # exactly one request, no 5-conversation try
+        self.assertEqual((result['summarised'], result['instagram_calls'], result['first_page']), (1, 1, {'hit': 0, 'miss': 0, 'skipped': 1}))
+        self.assertEqual(summary.run_effect(result)['first_page'], {'hit': 0, 'miss': 0, 'skipped': 1})
+
+    def test_r170_an_idle_run_reads_no_poll_record_and_has_no_first_page(self):
+        self.mark(changed=self.now - 100, text=self.now - 100)
+        self.polled(('g1', 60))
+        statements = []
+        self.db.set_trace_callback(statements.append)
+        self.addCleanup(self.db.set_trace_callback, None)
+        result = self.run_cycle(self.listing(5))
+        self.assertEqual(result['status'], 'idle')
+        self.assertNotIn('first_page', result)
+        self.assertFalse([sql for sql in statements if 'conversation_poll_messages' in sql])
+        self.assertIsNone(summary.run_effect(result))
 
     def window_chat(self, count, older):
         """`count` substantive messages inside the window, newest first, then `older` messages before it."""
@@ -1110,7 +1171,7 @@ class OutputValidationTests(Base):
         self.assertEqual((value['borrowerIds'], value['summary'], value['conversationKey']), ([], None, summary.conversation_key('g1')))
         self.assertNotIn(MODEL_SENTINEL, json.dumps(value, ensure_ascii=False))
         self.assertEqual((result['summarised'], result['failed'], result['outcomes']), (1, 0, {'stored': 0, 'unchanged': 0, 'superseded': 0, 'cleared': 1}))
-        self.assertEqual(set(result), {'status', 'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'seconds', 'instagram_calls'})  # counts only (R166: waits in seconds; R168: stage seconds, Instagram calls)
+        self.assertEqual(set(result), {'status', 'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'seconds', 'instagram_calls', 'first_page'})  # counts only (R166: waits in seconds; R168: stage seconds, Instagram calls; R170: first-page counts)
         state = self.state()
         self.assertEqual((state['changed_at'], state['summarised_source_sha256'], state['summarised_at'], state['attempts'], state['last_error']),
                          (None, value['sourceSha256'], self.now, 0, None))
@@ -1521,7 +1582,7 @@ class RunEffectTests(Base):
         self.assertEqual(sorted(result['waits']), [50, 700])
         self.assertEqual(result['refresh']['seconds'], [90])  # an unreadable requestedAt gives no sample
         effect = summary.run_effect(result)
-        self.assertEqual(set(effect), {'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'refresh', 'seconds', 'instagram_calls'})
+        self.assertEqual(set(effect), {'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'refresh', 'seconds', 'instagram_calls', 'first_page'})
         self.assertEqual((effect['due'], effect['summarised'], effect['errors'], sorted(effect['waits'])), (1, 3, {}, [50, 700]))
         self.assertEqual(effect['refresh'], {'reported': 2, 'pending': 0, 'outcomes': dict(result['refresh']['outcomes']), 'seconds': [90]})
 
@@ -1535,8 +1596,9 @@ class RunEffectTests(Base):
         self.assertEqual((effect['failed'], effect['waits']), (3, []))
         self.assertNotIn('refresh', effect)
         # R168: stage seconds and the Instagram request count only.
-        # R169: the absent group makes the first 5-conversation request a miss, so the R168 read follows.
-        self.assertEqual((set(effect['seconds']), effect['instagram_calls']), ({'listing', 'groups', 'model', 'post'}, 2))
+        # R170: no poll record for these groups, so the R168 read comes at once (one request).
+        self.assertEqual((set(effect['seconds']), effect['instagram_calls']), ({'listing', 'groups', 'model', 'post'}, 1))
+        self.assertEqual(effect['first_page'], {'hit': 0, 'miss': 0, 'skipped': 1})
         self.assertTrue(all(type(value) is float for value in effect['seconds'].values()))
         text = json.dumps(effect, ensure_ascii=False)
         for value in [summary.conversation_key(cid) for cid in ('g1', 'g2', 'gone')] + ['g1', 'gone', 'B-A', SENTINEL, 'conversation']:
@@ -1603,10 +1665,10 @@ class RunEffectTests(Base):
         idle = {'status': 'idle', 'due': 0, 'summarised': 0, 'failed': 0, 'deferred': 0, 'outcomes': {}, 'errors': [], 'waits': []}
         failed = dict(busy, summarised=0, failed=1, outcomes={}, waits=[], errors=[{'conversation_key': 'a' * 32, 'error': 'MODEL_TIMEOUT'}])
         for result, code, effect in ((busy, 0, {'due': 1, 'summarised': 1, 'failed': 0, 'deferred': 0, 'outcomes': {'stored': 1}, 'errors': {}, 'waits': [600],
-                                                'seconds': timings, 'instagram_calls': 1}),
+                                                'seconds': timings, 'instagram_calls': 1, 'first_page': {'hit': 0, 'miss': 0, 'skipped': 0}}),
                                      (idle, 0, None), ({'status': 'already_running'}, 0, None),
                                      (failed, 2, {'due': 1, 'summarised': 0, 'failed': 1, 'deferred': 0, 'outcomes': {}, 'errors': {'MODEL_TIMEOUT': 1}, 'waits': [],
-                                                  'seconds': timings, 'instagram_calls': 1})):
+                                                  'seconds': timings, 'instagram_calls': 1, 'first_page': {'hit': 0, 'miss': 0, 'skipped': 0}})):
             with self.subTest(status=result['status'], failed=result.get('failed')):
                 outcome = {'exit_code': None}
                 with patch.object(summary, 'run', return_value=result), contextlib.redirect_stdout(io.StringIO()):
@@ -1948,7 +2010,7 @@ class ConfigurationTests(unittest.TestCase):
     def test_catalogue_knows_the_service_disabled_and_implemented(self):
         catalogue = json.loads((ROOT / 'service-catalogue.json').read_text(encoding='utf-8'))
         validate_catalogue(catalogue)
-        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (42, {'enabled': False, 'implemented': True}))  # R169 (42), R168 (41), R166 (40) and R165 (39) change no service
+        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (43, {'enabled': False, 'implemented': True}))  # R170 (43), R169 (42), R168 (41), R166 (40) and R165 (39) change no service
 
 
 class UnitFileTests(unittest.TestCase):
