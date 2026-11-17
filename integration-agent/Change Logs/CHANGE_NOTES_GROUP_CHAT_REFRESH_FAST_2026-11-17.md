@@ -24,7 +24,9 @@ Owner request, 17 November 2026: "go ahead with all three, promote R169 to prod"
 | Byte: PostgreSQL lab | Not run: no database path is touched |
 | Chase: adversarial review and `test_group_chat_summary test_deploy_runtime test_conversation_poll test_cli test_systemd_units test_deploy_shared_receipt_api test_config_only_change` | Pass, no blocking defects. 264 OK; ruff pass. Reviewed: the `limit` path keeps every read page's validation and the poll's behaviour; `[:100]` equivalence; merge and `GROUP_NOT_FOUND`; the watcher writes only the wake file (`open('w')` gives `PathChanged`, as `mw-receipt-wake.path`) and no database, job, heartbeat or audit row, with its token from the metadata server and no cache write; a wake lost during a running summary is re-sent 15 s later; an open request re-wakes every 15 s until closed (unchanged groups make no model call). Minor, not fixed: `conversations()` with an empty `wanted` still makes the first request (never called that way). |
 | `npm run check:docs` | 0 failures, 0 warnings (Chase, same tree) |
-| The pull request's `Development checks` and integration-agent tests runs | PENDING: to be cited at closure |
+| PROD promotion and read-back | Pass: see the PROD deployment record below |
+| `Development checks` run 44127710305 and integration-agent tests run 44127710350 on the tested head `7900c63` | Success (PR #349; merged as `d7b467c0`, tree identical) |
+| Release tag | `R169` on `d7b467c0` (Release tag run 44129645702) |
 
 ## Not run
 - The full Playwright and `mw-db-ci` suites: the pull request's CI is the one broad run.
@@ -37,4 +39,30 @@ Before deployment: none needed. After deployment: `systemctl disable --now mw-gr
 None. The owner approved promotion on 17 November 2026: "go ahead with all three, promote R169 to prod".
 
 ## Remaining work
-Pull request CI, merge; PROD promotion with Forge's hand-install of the watcher `.service` and `.timer`, the agent deploy at revision 42, `enable --now` of the path and timer and the read-back; tag; closure.
+Owner acceptance; observe the first refresh tap on R169 (a run within about 15 s of `requestedAt`, `instagram_calls` 1, listing about 2 s). Everything else (pull request CI, merge, PROD promotion, tag, closure) is done.
+
+## PROD deployment record (Forge, 17 November 2026 UTC)
+Authority: owner, 17 November 2026, "go ahead with all three, promote R169 to prod". Package `main` `d7b467c039f70ee3c0253de972f3d1e4a585e75f` (PR #349; tree identical to the tested head `7900c63`), from R168 `605f334e`. Host `vm-mw-credit-agent` (project `clever-oasis-508610-n7`). No agent migration, setting, secret or switch change.
+
+| Step | Result |
+| --- | --- |
+| Watcher units | `mw-group-chat-refresh-watch.service` and `.timer` installed by hand 16:41:17Z (root 0644, sha256 `48e756bd…` and `0b5e2571…`), `systemd-analyze verify` ok, `daemon-reload`, left disabled |
+| Deploy | `update-from-github` to `d7b467c0`, clean; dry-run: `cli.py`, `conversation_poll.py`, `group_chat_summary.py` differ, the wake path missing on the host. Temporary operator file `/root/r169-op` 16:41:31Z to 16:41:48Z (shredded). Freeze `--release R169` 16:41:36Z (backup `runtime-20261117T164136263443Z`); install to 16:41:44Z (installed `mw-group-chat-refresh-wake.path`, sha256 `f05495a2…`); activate to 16:41:48Z (probe `ad2d8193-5bdf-4e5f-841a-6d2d4d54c379`); `mw-chat-relay` restarted 16:41:59Z |
+| Read-back | `/ready` true at R169 `d7b467c0`; recognizer and relay `/healthz` R169; catalogue 41 to 42 |
+| Enable | `enable --now` of `mw-group-chat-refresh-wake.path` and `mw-group-chat-refresh-watch.timer` 16:42:03Z; both active; `OnUnitInactiveUSec=15s`, `AccuracyUSec=1s`; summary timer still 1 min |
+| Verification | The watcher runs every about 15 s, exit 0, with no journal line (`LogLevelMax=notice` hides systemd's own start and finish lines too); no `job_runs`, audit or heartbeat row from it; collector exported at 16:43:45Z with `code_version` `d7b467c0` |
+| Refresh tap | Not yet observed (no tap during the session; none forced) |
+
+Correction to `docs/OPERATIONS.md` (for Dewey): the read-back "the watcher's journal lines are at notice level or above only" holds, but because `LogLevelMax=notice` also drops systemd's info-level "Starting" and "Finished" lines, an idle watcher leaves no journal line at all; read its cadence from `systemctl list-timers mw-group-chat-refresh-watch.timer` or `systemctl show mw-group-chat-refresh-watch.service -p ExecMainStartTimestamp -p Result`.
+
+Rollback: `systemctl disable --now mw-group-chat-refresh-wake.path mw-group-chat-refresh-watch.timer`, then `deploy-runtime.py rollback --commit 605f334e64bfcbbc9d805034b59bfd4c614ba886` and restart `mw-chat-relay` if the code must go back. Full record: the [root R169 change note](../../Change%20Logs/CHANGE_NOTES_R169_GROUP_CHAT_REFRESH_FAST_2026-11-17.md#prod-promotion-record-forge-17-november-2026-utc).
+
+Tag record: `R169` on `d7b467c039f70ee3c0253de972f3d1e4a585e75f`, created by Release tag run 44129645702 (success, 16:47Z), which also published the GitHub Release.
+
+Component versions at this release (`component-versions.mjs derive --release R169 --commit R169`): the integration agent changed in R169 (revision 42); every other component keeps its earlier release (PWA, read, command, chat and schema R165; notify and jobs R159; Grafana dashboards R167; Metabase reports R144).
+
+Drift after the tag: re-run by Dewey with public facts only (`node scripts/promotion/component-versions.mjs drift --env all`): drift 0, unverified 11 (every credentialed fact, as no observed file was supplied); the public PWA, read, command and chat builds match R165. Forge's pre-tag run with the credentialed facts gave drift 1, the PROD agent at R169 against the last tag's R168, which the tag clears; its unverified schema, Grafana and Metabase are untouched by R169. The credentialed run was not repeated after the tag.
+
+Not yet observed: tap timing on R169 (no tap since the deploy). The R168 summary run at 16:18Z failed with `RECEIPT_API_OUTCOME_UNCERTAIN` before R169 was deployed (the next run completed); it is not an R169 effect. Owner acceptance is pending.
+
+Closure: the tag exists; the freeze pin, this record, the tag record and the prune are published in the R169 closure pull request. Pruned (outside the window of Open plus the three newest Released releases): the R166 change notes `Change Logs/CHANGE_NOTES_R166_GROUP_CHAT_SUMMARY_MONITORING_2026-11-17.md` and `integration-agent/Change Logs/CHANGE_NOTES_GROUP_CHAT_SUMMARY_MONITORING_2026-11-17.md`; their links now point to commit `d7b467c0`.
