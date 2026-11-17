@@ -199,6 +199,74 @@ class OpsHealth(unittest.TestCase):
                 self.q(data)
 
 
+class GroupChatSelectors(unittest.TestCase):
+    """R166: the group chat summary tiles (signed durations, the last-error text) and the backlog alert rule."""
+    def snapshot(self, sample_age, **values):
+        t = point(sample_age, 0)['interval']
+        return {'timeSeries': [series([{'interval': t, 'value': {'int64Value': str(v)}}], field=k) for k, v in values.items()]}
+
+    def test_signed_fields_keep_minus_one_and_others_do_not(self):
+        fields = [{'key': 'wait_median_seconds', 'label': 'Median', 'signed': True}, {'key': 'waiting', 'label': 'Waiting'}]
+        self.assertEqual(query('ops-health.jq', self.snapshot(0, wait_median_seconds=-1, waiting=0), FIELDS=fields)[0], {'Median': -1, 'Waiting': 0})
+        self.assertEqual(query('ops-health.jq', self.snapshot(0, wait_median_seconds=640, waiting=3), FIELDS=fields)[0], {'Median': 640, 'Waiting': 3})
+        self.assertEqual(query('ops-health.jq', self.snapshot(0, wait_median_seconds=-2, waiting=-1), FIELDS=fields)[0], {'Median': None, 'Waiting': None})
+        self.assertEqual(query('ops-health.jq', self.snapshot(400, wait_median_seconds=-1, waiting=0), FIELDS=fields)[0], {'Median': None, 'Waiting': None})
+
+    WORDS = {'MODEL_TIMEOUT': 'Model timeout', 'MODEL_OUTPUT_INVALID*': 'Bad summary', 'GROUP_NOT_FOUND': 'Group not found'}
+
+    def error(self, data):
+        return query('group-chat-error.jq', data, WORDS=self.WORDS)[0]['Last error']
+
+    def test_last_error_text(self):
+        self.assertEqual(self.error(self.snapshot(0, last_error_at=0)), 'None')
+        at = int(time.time()) - 7300
+        self.assertEqual(self.error(self.snapshot(0, last_error_at=at, **{'last_error:MODEL_TIMEOUT': 1})), 'Model timeout · 2 h')
+        # UX-CSMON-10: only the most frequent code (rank 1), +N for the others, no "ago"; an unknown code is "Other error".
+        three = self.snapshot(0, last_error_at=int(time.time()) - 90, **{'last_error:MODEL_OUTPUT_INVALID_POINT_AT_SIGN': 1, 'last_error:NEW_CODE': 2,
+                                                                         'last_error:MODEL_TIMEOUT': 3})
+        self.assertEqual(self.error(three), 'Bad summary +2 · 1 min')
+        self.assertEqual(self.error(self.snapshot(0, last_error_at=int(time.time()) - 3 * 86400, **{'last_error:' + 'X' * 64: 1})), 'Other error · 3 d')
+        # Every text the selector builds from the dashboard's own words fits the tile (the layout model checks the longest).
+        words = __import__('re').findall(r"'([^']+)'(?=[,}])", (ROOT / 'dashboards/agent.cjs').read_text().split('const GROUP_CHAT_ERRORS = ')[1].split('};')[0])
+        self.assertEqual(max(map(len, words + ['Other error'])), 15, 'at most 15 characters, the layout model\'s longest sample')
+        self.assertIsNone(self.error(self.snapshot(400, last_error_at=0)), 'stale: No report')
+        self.assertIsNone(self.error({'timeSeries': []}))
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                self.error(data)
+
+    def rule(self):
+        owned = json.loads((ROOT.parents[2] / 'infrastructure/grafana/owned-services.tf.json').read_text())['resource']['grafana_rule_group']
+        rules = [r for r in owned['performance']['rule'] if r['uid'] == 'mw-group-chat-backlog']
+        self.assertEqual(len(rules), 1)
+        return rules[0]
+
+    def test_backlog_rule_settings(self):
+        rule = self.rule()
+        self.assertEqual((rule['name'], rule['for'], rule['no_data_state'], rule['exec_err_state'], rule['is_paused'], rule['condition']),
+                         ('MW | Group chat summary backlog', '5m', 'KeepLast', 'KeepLast', False, 'C'))
+        self.assertEqual(rule['notification_settings'], [{'contact_point': 'MW Performance IRM'}])
+        self.assertEqual(rule['annotations']['summary'], 'A group chat has waited over 20 minutes for its summary')
+        self.assertIn('Paused or no report does not page.', rule['annotations']['description'])
+        model = json.loads(rule['data'][0]['model'])
+        filter_ = urllib.parse.unquote(model['url'].split('filter=')[1].split('&')[0])
+        self.assertIn('metric.labels.component = "group_chat_summary" AND metric.labels.field = "oldest_wait_seconds"', filter_)
+        threshold = json.loads(rule['data'][2]['model'])
+        self.assertEqual((threshold['type'], threshold['conditions'][0]['evaluator']), ('threshold', {'params': [0], 'type': 'gt'}))
+
+    def test_backlog_rule_fires_only_over_twenty_minutes_from_a_fresh_sample(self):
+        selector = json.loads(self.rule()['data'][0]['model'])['root_selector']
+        value = lambda data: run(selector, data)[0]['value']
+        self.assertEqual(value(self.snapshot(0, oldest_wait_seconds=1201)), 1)
+        for wait in (1200, 0, -1):  # -1: nothing waits, or Paused (UX-CSMON-12)
+            self.assertEqual(value(self.snapshot(0, oldest_wait_seconds=wait)), 0, wait)
+        self.assertEqual(value(self.snapshot(400, oldest_wait_seconds=5000)), 0, 'stale: no page')
+        self.assertEqual(value({'timeSeries': []}), 0, 'no report: no page')
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                run(selector, data)
+
+
 class GcpStatus(unittest.TestCase):
     def incident(self, product='Cloud Run', locations=(), end=None):
         return {'external_desc': 'Elevated errors', 'end': end, 'affected_products': [{'title': product}],

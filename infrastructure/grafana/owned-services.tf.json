@@ -649,6 +649,66 @@
                 "contact_point": "MW Performance IRM"
               }
             ]
+          },
+          {
+            "uid": "mw-group-chat-backlog",
+            "name": "MW | Group chat summary backlog",
+            "condition": "C",
+            "for": "5m",
+            "no_data_state": "KeepLast",
+            "exec_err_state": "KeepLast",
+            "is_paused": false,
+            "annotations": {
+              "description": "The oldest group waiting for a summary has waited over 20 minutes (target 10). Summaries and Refresh taps are delayed; no payments or messages are affected. See Agent & Receipts, Group chat row: last run, failures, model time. Paused or no report does not page.",
+              "runbook_url": "https://monitor.mw-credit.com/d/mw-agent",
+              "summary": "A group chat has waited over 20 minutes for its summary"
+            },
+            "labels": {
+              "severity": "page"
+            },
+            "data": [
+              {
+                "ref_id": "A",
+                "datasource_uid": "mw-gcp-monitoring",
+                "query_type": "",
+                "relative_time_range": [
+                  {
+                    "from": 600,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"def stamp: sub(\\\"[.][0-9]+Z$\\\";\\\"Z\\\") | fromdateiso8601;\\nif .nextPageToken or .error then error(\\\"Worker timing response unavailable or truncated\\\") else\\n[(.timeSeries // [])[] | {f:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)} | select(.p != null and .f == \\\"oldest_wait_seconds\\\")] as $rows |\\n($rows|map(.p)|sort_by(.interval.endTime)|last) as $p |\\n(try ($p.interval.endTime|stamp) catch null) as $t |\\n(try ($p.value.int64Value|tonumber) catch null) as $v |\\n{component:\\\"group_chat_summary\\\",value:(if $t != null and now - $t <= 360 and $t - now <= 120 and $v != null and $v > 1200 then 1 else 0 end)}\\nend\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22group_chat_summary%22%20AND%20metric.labels.field%20%3D%20%22oldest_wait_seconds%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+              },
+              {
+                "ref_id": "reducer",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
+              },
+              {
+                "ref_id": "C",
+                "datasource_uid": "__expr__",
+                "query_type": "expression",
+                "relative_time_range": [
+                  {
+                    "from": 0,
+                    "to": 0
+                  }
+                ],
+                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
+              }
+            ],
+            "notification_settings": [
+              {
+                "contact_point": "MW Performance IRM"
+              }
+            ]
           }
         ],
         "lifecycle": {

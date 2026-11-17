@@ -147,6 +147,12 @@ def execute(args, outcome=None) -> int:
             result=run(args.config,args.catalogue,dry=args.dry_run,mark=args.mark_all)
             # R147: a backfill that marked something materialises its JOB record with the counts.
             if args.mark_all and result.get('marked') and outcome is not None:outcome['effect']={'marked':result['marked'],'groups':result['groups']}
+            # R166: a run that did something (not idle) writes its numbers into the JOB record for the Grafana tiles;
+            # an idle run stays lazy (heartbeat only).
+            elif not args.mark_all and not args.dry_run and outcome is not None:
+                from .group_chat_summary import run_effect
+                effect=run_effect(result)
+                if effect is not None:outcome['effect']=effect
             print(json.dumps(result))
             return 2 if result.get('failed') else 0
         if args.command=='receipt-prepare':

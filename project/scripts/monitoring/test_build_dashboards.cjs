@@ -387,7 +387,9 @@ for (const [uid, id] of [['mw-pwa', 32], ['mw-agent', 6]]) {
 }
 // READ-1: stat names 16 px and values 32 px (text tiles 20 px), several values listed as rows; bar gauges 16/22;
 // tables md rows; and the layout model finds no truncation at 1440 px (docked menu) or on a 390 px phone.
-const MODEL = {'mw-pwa:30': {names: ['Clean', 'Slip not confirmed', 'Amount unreadable', 'Reference unreadable']}};
+const MODEL = {'mw-pwa:30': {names: ['Clean', 'Slip not confirmed', 'Amount unreadable', 'Reference unreadable']},
+  // UX-CSMON-10: the longest Last error the selector can build (the longest words, +N and an age).
+  'mw-agent:28': {samples: {'Last error': ['Bad model reply +2 · 59 min', 'Group too large +2 · 23 h', 'Members unclear · 59 min', 'Other error +2 · 6 d']}}};
 // R093: ten Cloud Run services; Cost 50 ten questions and 52 three models, each with a footer row.
 const TABLE_ROWS = {'mw-now:3': 4, 'mw-now:19': 6, 'mw-infra:5': 1, 'mw-infra:6': 4, 'mw-infra:8': 1, 'mw-infra:9': 10, 'mw-infra:17': 7, 'mw-cost:7': 11,
   'mw-cost:50': 11, 'mw-cost:52': 4};
@@ -414,16 +416,62 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
   }
 }
 assert.ok(modelled > 100, 'panels modelled: ' + modelled);
-// AGENT-ROWS: the Agent page is grouped into four titled component rows (R091: the Partner conversation row is
-// retired); each tile title names its component.
+// AGENT-ROWS: the Agent page is grouped into titled component rows (R091: the Partner conversation row is retired;
+// R166: the group chat summary row after the recognizer); each tile title names its component.
 const agent = built['mw-agent'].spec.panels;
 assert.deepEqual(agent.filter(p => p.type === 'row').map(p => p.title), ['Receipt pipeline · Instagram to recorded payment',
-  'Receipt recognizer · mw-receipt-recognition on Debian', 'Agent workers and timers · Debian units', 'Connectivity and providers']);
+  'Receipt recognizer · mw-receipt-recognition on Debian', 'Group chat summary · mw-group-chat-summary on Debian', 'Agent workers and timers · Debian units', 'Connectivity and providers']);
 const rowOf = id => { let current; for (const p of agent) { if (p.type === 'row') current = p.title; if (p.id === id) return current.split(' ·')[0]; } };
 assert.deepEqual([1, 2, 14, 6, 12, 7, 8, 9, 10, 11, 13].map(rowOf), ['Receipt pipeline', 'Receipt pipeline', 'Receipt pipeline', 'Receipt recognizer',
   'Receipt recognizer', 'Receipt recognizer', 'Receipt recognizer', 'Agent workers and timers', 'Connectivity and providers', 'Connectivity and providers', 'Connectivity and providers']);
 for (const id of [3, 4, 5, 15, 22]) assert.ok(!agent.some(p => p.id === id), 'mw-agent ' + id + ' retired with the Instagram conversation (R091)');
-for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Receipts|Recognizer|Agent workers|Connectivity|Providers) /.test(p.title), 'mw-agent ' + p.id + ' title names its component: ' + p.title);
+for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Receipts|Recognizer|Group chat|Agent workers|Connectivity|Providers) /.test(p.title), 'mw-agent ' + p.id + ' title names its component: ' + p.title);
+// R166: the group chat summary row (25) and tiles 26-33, new ids after the former maximum (24); existing ids kept.
+{
+  const ids = agent.flatMap(p => [p.id, ...(p.panels || []).map(c => c.id)]);
+  assert.deepEqual([25, 26, 27, 28, 29, 30, 31, 32, 33].map(rowOf), Array(9).fill('Group chat summary'));
+  for (const id of [1, 2, 6, 7, 8, 9, 10, 11, 12, 13, 14, 20, 21, 23, 24]) assert.ok(ids.includes(id), 'mw-agent keeps panel ' + id);
+  const gp = id => agent.find(p => p.id === id).gridPos;
+  assert.deepEqual([25, 26, 27, 28, 29, 30, 31, 32, 33, 23, 9, 24].map(gp), [{x: 0, y: 28, w: 24, h: 1}, {x: 0, y: 29, w: 8, h: 7}, {x: 8, y: 29, w: 8, h: 7},
+    {x: 16, y: 29, w: 8, h: 7}, {x: 0, y: 36, w: 8, h: 10}, {x: 8, y: 36, w: 8, h: 5}, {x: 8, y: 41, w: 8, h: 5}, {x: 16, y: 36, w: 8, h: 10},
+    {x: 0, y: 46, w: 24, h: 6}, {x: 0, y: 52, w: 24, h: 1}, {x: 0, y: 53, w: 24, h: 10}, {x: 0, y: 63, w: 24, h: 1}]);
+  for (const id of [26, 27, 28, 29, 30, 31, 32, 33]) assert.ok(agent.find(p => p.id === id).title.length <= 31, 'mw-agent ' + id + ' title at most 31 characters');
+  const fieldsOf = id => agent.find(p => p.id === id).targets.flatMap(t => t.columns.map(c => c.text)).filter(n => n !== 'Time');
+  assert.deepEqual([26, 27, 28, 29, 30, 32].map(fieldsOf), [['State', 'Last run', 'Run took'], ['Waiting', 'Oldest wait'], ['In back-off', 'Last error'],
+    ['New summary', 'Unchanged', 'Cleared', 'Postponed', 'Failed'], ['Median', 'Longest'], ['Taps', 'Median wait', 'Longest wait', 'Timed out', 'Failed']]);
+  // Quiet day: the collector's 0 (counts) and -1 (durations) read None, never a healthy-looking zero; missing is No report.
+  const prop = (id, name, key) => (agent.find(p => p.id === id).fieldConfig.overrides.find(o => o.matcher.options === name) || {properties: []}).properties.find(x => x.id === key);
+  const none = (id, name) => { const m = prop(id, name, 'mappings').value; return [Object.keys(m[0].options)[0], Object.values(m[0].options)[0].text, Object.values(m[0].options)[0].color, m[1].options.result.text]; };
+  assert.deepEqual(none(26, 'Last run'), ['-1', 'None', L.COLOR.unknown, 'No report']);
+  assert.deepEqual(none(26, 'Run took'), ['-1', 'None', L.COLOR.info, 'No report']);
+  assert.deepEqual(none(27, 'Waiting'), ['0', 'None', L.COLOR.ok, 'No report']);
+  assert.deepEqual(none(27, 'Oldest wait'), ['-1', 'None', L.COLOR.ok, 'No report']);
+  for (const name of ['New summary', 'Unchanged', 'Cleared', 'Postponed']) assert.deepEqual(none(29, name), ['0', 'None', L.COLOR.info, 'No report']);
+  for (const [id, name] of [[29, 'Failed'], [32, 'Timed out'], [32, 'Failed'], [28, 'In back-off']]) assert.deepEqual(none(id, name), ['0', 'None', L.COLOR.ok, 'No report']);
+  // UX-CSMON-11: a quiet day's None is neutral (transparent); grey only for No report.
+  for (const name of ['Median', 'Longest']) assert.deepEqual(none(30, name), ['-1', 'None · 24 h', L.COLOR.info, 'No report']);
+  assert.deepEqual(none(32, 'Taps'), ['0', 'None · 24 h', L.COLOR.info, 'No report']);
+  for (const name of ['Median wait', 'Longest wait']) assert.deepEqual(none(32, name), ['-1', 'None', L.COLOR.info, 'No report']);
+  // Thresholds: Last run orange at 360 s; Run took orange 120, red 150; Oldest wait and Delay orange from 600 (no red); refresh waits from 240.
+  const stepsOf = (id, name) => prop(id, name, 'thresholds').value.steps.map(s => [s.value, s.color]);
+  assert.deepEqual(stepsOf(26, 'Last run'), [[null, L.COLOR.ok], [360, L.COLOR.degraded]]);
+  assert.deepEqual(stepsOf(26, 'Run took'), [[null, L.COLOR.ok], [120, L.COLOR.degraded], [150, L.COLOR.down]]);
+  for (const [id, name, limit] of [[27, 'Oldest wait', 600], [30, 'Median', 600], [30, 'Longest', 600], [32, 'Median wait', 240], [32, 'Longest wait', 240]])
+    assert.deepEqual(stepsOf(id, name), [[null, L.COLOR.ok], [limit, L.COLOR.degraded]], id + ' ' + name);
+  // The durations keep the collector's -1 (signed fields of ops-health.jq); the counts do not need to.
+  const fields = JSON.stringify(agent.find(p => p.id === 30).targets[0].root_selector);
+  assert.ok(fields.includes('signed') && agent.find(p => p.id === 28).targets[1].root_selector.includes('Bad model reply'));
+  const time = agent.find(p => p.id === 33);
+  assert.deepEqual([time.fieldConfig.defaults.unit, time.fieldConfig.defaults.decimals, time.fieldConfig.defaults.min, time.fieldConfig.defaults.noValue,
+    time.fieldConfig.defaults.thresholds.steps[1].value, time.fieldConfig.defaults.custom.drawStyle], ['s', 1, 0, 'No summaries in selected range', 36, 'points']);
+  assert.ok(time.targets[0].url.includes('group_chat_summary_call'));
+  // Echo (Grafana 12.2.1): series-to-rows plus organize, so an empty range shows the noValue text, not empty axes.
+  for (const [id, name] of [[33, 'Model call'], [8, 'Extraction']]) assert.deepEqual(agent.find(p => p.id === id).transformations,
+    [{id: 'seriesToRows', options: {}}, {id: 'organize', options: {excludeByName: {Metric: true}, renameByName: {Value: name}}}], 'mw-agent ' + id + ' noValue transformations');
+  assert.equal(agent.find(p => p.id === 31).type, 'stat');
+  const lanes = agent.find(p => p.id === 9).targets.map(t => t.columns[1].text);
+  assert.ok(lanes.includes('Group chat'), 'the workers timeline has the Group chat lane: ' + lanes);
+}
 // FINAL2-1: the PWA scheduler lanes carry short names that fit the label axis.
 assert.deepEqual(panelOf('mw-pwa', 20).targets.map(t => t.columns[1].text), ['Notify · 1 min', 'Charges · 00:05', 'Analytics · hourly']);
 // FINAL2-4: Infrastructure chart legends are lists below the chart with the full names.
