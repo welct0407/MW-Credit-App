@@ -11,6 +11,9 @@ const ops = (refId, component, fields) => target(refId, DS.gcp, wt(component), j
  * conversation row (22, tiles 3, 4, 5 and 15) is gone with the Instagram conversation; the rows below moved up. */
 // R166: the group chat summary row (25, tiles 26-33) after the recognizer; the workers timeline gains its lane (height 10).
 // Echo's grid with the heights the READ-1 layout model needs at 32 px values (3 values h7, 2 values h5, 5 values h10).
+// A state field (0 Down, 1 OK, 2 Degraded, 3 Paused, 4 Unknown on their colours): an override on that field alone, never the
+// panel defaults, which Grafana 13.4 also applies to the panel's numeric fields.
+const stateField = () => ({mappings: L.stateMappings(L.STATE_TEXT, 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}});
 const ROW = {pipeline: 0, recognizer: 16, groupChat: 28, workers: 52, connectivity: 63};
 
 // LIVE-12: one six-value stat built like Now 4 (same queries: group-scanning.jq and receipt-pipeline.jq per
@@ -41,8 +44,10 @@ function recognizer() {
       target('A', DS.gcp, monitoringUrl(customFilter('health', {component: 'recognizer'})), L.stateSelector(1), [col('time', 'Time', 'timestamp'), col('value', 'Service')], {format: 'timeseries'}),
       ops('B', 'recognizer', [{key: 'restart_age_seconds', label: 'Running for'}])
     ],
-    defaults: {mappings: L.stateMappings(L.STATE_TEXT, 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    overrides: [byName('Running for', {unit: AGE.unit, decimals: AGE.decimals, mappings: [L.nullMap('No report')], color: {mode: 'fixed', fixedColor: COLOR.info}})],
+    // R167 (Grafana 13.4): the state words sit on the Service field only; in the defaults they also turned a 0-4 s age into a state word.
+    defaults: {mappings: [L.nullMap('No report')], color: L.NEUTRAL},
+    overrides: [byName('Service', stateField()),
+      byName('Running for', {unit: AGE.unit, decimals: AGE.decimals, mappings: [L.nullMap('No report')], color: {mode: 'fixed', fixedColor: COLOR.info}})],
     options: {reduceOptions: {calcs: ['last'], fields: L.namedFields(['Service', 'Running for']), values: false}}});
   const model = L.modelTile({id: 12, title: 'Recognizer · model', gridPos: pos(0, y + 7, 8, 5), component: 'recognizer',
     description: 'The recognizer\'s provider and model for the PROD caller\'s route (R142 per-caller routing: the mw-credit-app-command-prod entry\'s provider, else the global default) from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Claude · claude-opus-5-5; the provider alone when the model is not readable.'});
@@ -95,8 +100,10 @@ function groupChat() {
       target('A', DS.gcp, monitoringUrl(customFilter('health', {component: GROUP_CHAT})), L.stateSelector(1), [col('time', 'Time', 'timestamp'), col('value', 'State')], {format: 'timeseries'}),
       ops('B', GROUP_CHAT, gc([['last_run_age_seconds', 'Last run', true], ['last_run_seconds', 'Run took', true]]))
     ],
-    defaults: {mappings: L.stateMappings(L.STATE_TEXT, 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    overrides: [byName('Last run', age(360, 'None', COLOR.unknown)),
+    // R167 (Grafana 13.4): the state words sit on the State field only; in the defaults they turned an idle run's
+    // Run took of 0 s into "Down" (byName mappings did not replace them).
+    defaults: {mappings: [L.nullMap('No report')], color: L.NEUTRAL},
+    overrides: [byName('State', stateField()), byName('Last run', age(360, 'None', COLOR.unknown)),
       byName('Run took', {unit: 's', decimals: 0, ...limits([120, COLOR.degraded], [150, COLOR.down]), mappings: none(-1, 'None', COLOR.info)})],
     options: {reduceOptions: {calcs: ['last'], fields: L.namedFields(['State', 'Last run', 'Run took']), values: false}}});
   const waiting = L.stat({id: 27, title: 'Group chat · waiting', gridPos: pos(8, y + 1, 8, 7),
