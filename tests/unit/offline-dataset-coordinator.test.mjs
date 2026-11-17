@@ -650,16 +650,24 @@ test('R171 a hidden phone is unchanged: the poll asks nothing and a walk does no
  }finally{h.stop()}
 });
 test('R171 the hidden path starts work without the 200 ms timer and does not spin on a held task',async()=>{
+ // The quiet-retry hold is stretched to a minute so it cannot end during the test; the check below waits for conditions
+ // and counts event-loop turns, never wall-clock time.
  const failing={domain:'notifications',status:503,code:'temporary',times:0};
- const h=harness({userAgent:WINDOWS,walks:{records:3,cash:1},failing,hold:400});try{
+ const h=harness({userAgent:WINDOWS,walks:{records:3,cash:1},failing,hold:60000});try{
   await settled(h);h.hide();
   let pumps=0;const authorized=h.repo.syncAuthorized;h.repo.syncAuthorized=async()=>{pumps++;return authorized()};
   const settles=h.timers.filter(delay=>delay===200).length;failing.times=1;
   h.poll();await until(()=>retryEvents(h).length===1);
+  // Every other domain of the cycle finishes; only the held notifications task stays queued.
+  await until(()=>h.state().activity===''&&asked(h,'records').filter(request=>request.cursor==='2').length>=1);
+  assert.equal(h.state().domainsPending,true,'the held task is still pending');assert.equal(h.state().failedDomains,'');
   assert.equal(h.timers.filter(delay=>delay===200).length,settles,'no settle timer while hidden');
-  // notifications is held for its quiet retry; nothing else is pickable: pump is not run over and over meanwhile.
-  const during=pumps;await wait(200);assert.ok(pumps-during<=3,'pump calls during the hold: '+(pumps-during));
-  await until(()=>!h.state().domainsPending&&h.state().failedDomains==='');assert.equal(asked(h,'notifications').at(-1)!==undefined,true);
+  // Nothing is pickable now: across many event-loop turns pump is not called at all (a spin would call it every turn).
+  const idle=pumps;for(let turn=0;turn<50;turn++)await tick();
+  assert.equal(pumps-idle,0,'pump calls while only a held task is queued: '+(pumps-idle));
+  // A tap releases the hold: the retry runs at once and succeeds.
+  const before=asked(h,'notifications').length;h.window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true}}));
+  await until(()=>asked(h,'notifications').length>before&&!h.state().domainsPending&&h.state().failedDomains==='');
  }finally{h.stop()}
 });
 test('R171 UX-HSYNC-02 a computer returning mid-walk joins it: no new cycle, no duplicate request, still no foreground',async()=>{
