@@ -7,7 +7,8 @@ chat that never pauses is still refreshed), re-reads their last three days throu
 (R168: its own page sizes, LIST_CONVERSATIONS conversations of LIST_MESSAGES messages, and it stops paging once every
 group of the run is found; R169: a first request for the LIST_CONVERSATIONS_FIRST most recent conversations usually finds
 them all, and a group's history read stops once MAX_MESSAGES are found; R170: that first request only when the poll's
-records make it likely to be enough), asks Claude for a headline and up to four points in Thai and English, and posts the
+records make it likely to be enough; R171: a 15-second read timeout and one immediate retry per run after a 5xx or
+transport failure), asks Claude for a headline and up to four points in Thai and English, and posts the
 result to the command service (POST /internal/agent/group-chat-summaries).
 
 R169: `group-chat-refresh-watch` (refresh_watch, every 15 seconds, outside a job) reads the open refresh requests and,
@@ -72,10 +73,15 @@ LIST_CONVERSATIONS_FIRST = 5
 # conversations (those groups included) had one since the oldest of those messages. Otherwise the R168 read comes at once.
 RECENT_SECONDS = 3600
 FIRST_PAGE_RANK_MAX = 4
-FIRST_PAGE_COUNTS = ('hit', 'miss', 'skipped')
+# R171: `failed`, the 5-conversation request itself failed.
+FIRST_PAGE_COUNTS = ('hit', 'miss', 'skipped', 'failed')
 # R169: the file refresh_watch touches; mw-group-chat-refresh-wake.path starts mw-group-chat-summary.service on it.
 REFRESH_WAKE = 'group-chat-refresh-wake'
 RUN_BUDGET_SECONDS = 150  # stop taking groups after this (the unit's TimeoutStartSec is 4 minutes)
+# R171: the cycle's Instagram reads wait at most 15 s per socket operation (the poll, --mark-all and the dry run keep the
+# poll's READ_TIMEOUT of 40 s): every failed listing seen in PROD ended at about 30.5 s and every success took 9.1 s or
+# less. A failed read is retried once per run, at once, when a 5xx or transport failure leaves room in the run budget.
+SUMMARY_READ_TIMEOUT = 15
 BACKOFF_SECONDS = 600
 BACKOFF_LIMIT = 21600
 MAX_SUBJECTS = 20
@@ -713,8 +719,20 @@ def post(config, value):
 # The cycle -------------------------------------------------------------------------------------------
 
 def error_code(exc):
+    """A fixed code for the state table, results and the JOB record, never exception text. R171: an Instagram answer is
+    INSTAGRAM_HTTP_<status> with _<Graph error code> when it has one; no answer is INSTAGRAM_TIMEOUT or
+    INSTAGRAM_UNREACHABLE (by the exception's class)."""
+    from .instagram import InstagramAPIError, InstagramUnavailable
     if isinstance(exc, SummaryFailed):
         return exc.code
+    if isinstance(exc, InstagramAPIError):
+        status, graph = exc.status, exc.code
+        code = f'INSTAGRAM_HTTP_{status}' if type(status) is int and 0 <= status <= 999 else 'INSTAGRAM_HTTP'
+        if type(graph) is int and 0 <= graph < 10 ** 12:
+            code += f'_{graph}'
+        return code
+    if isinstance(exc, InstagramUnavailable):
+        return 'INSTAGRAM_TIMEOUT' if exc.timed_out else 'INSTAGRAM_UNREACHABLE'
     if isinstance(exc, ConfigurationError) and CODE.fullmatch(str(exc)):
         return str(exc)
     return 'GROUP_SUMMARY_FAILED'
@@ -771,20 +789,30 @@ def first_page_likely(db, wanted, now):
     return sum(1 for value in latest.values() if value >= oldest) <= FIRST_PAGE_RANK_MAX
 
 
-def conversations(api, config, wanted, first_page=True):
+def conversations(api, config, wanted, first_page=True, note=None):
     """The conversation-list read that serves every group of the run (`wanted`, conversation ids; requested, due or
     both). R169: first one request for the LIST_CONVERSATIONS_FIRST most recent conversations; when every wanted id is
     there, that is the read. Otherwise the R168 read follows (listing()) and is merged over the first, the later read
-    winning. R170: `first_page` false (first_page_likely) goes straight to the R168 read."""
+    winning. R170: `first_page` false (first_page_likely) goes straight to the R168 read. R171: note(kind) is told
+    `skipped` before a read without the first request, `failed` when that request fails, and `hit` or `miss` once it
+    returns (before the R168 read a miss leads to)."""
     from .conversation_poll import pages
+    note = note or (lambda kind: None)
     if not first_page:
+        note('skipped')
         return listing(api, config, wanted)
     wanted, first = set(wanted), {}
-    for batch in pages(api, config['instagram_account_id'] + '/conversations', listing_query(LIST_CONVERSATIONS_FIRST)):
-        collect(first, batch)
-        break  # the first page only; pages() itself is unchanged
+    try:
+        for batch in pages(api, config['instagram_account_id'] + '/conversations', listing_query(LIST_CONVERSATIONS_FIRST)):
+            collect(first, batch)
+            break  # the first page only; pages() itself is unchanged
+    except Exception:
+        note('failed')
+        raise
     if wanted <= set(first):
+        note('hit')
         return first
+    note('miss')
     return {**first, **listing(api, config, wanted)}
 
 
@@ -827,13 +855,34 @@ def timed(seconds, stage, clock):
 
 
 class CountingApi:
-    """The Instagram client with its request() calls counted (the count only: no path, query or reply is kept)."""
-    def __init__(self, api):
-        self._api, self.calls = api, 0
+    """The Instagram client with its request() calls counted (the count only: no path, query or reply is kept).
+    R171: `calls` counts attempts. One failed read per run is tried again at once (`retries`) when Instagram answered
+    5xx or did not answer (a timeout or another transport failure), never after a 4xx (429 included), and only while a
+    whole further SUMMARY_READ_TIMEOUT fits in the run budget (`clock`, `started`); without them there is no retry."""
+    def __init__(self, api, clock=None, started=None):
+        self._api, self.calls, self.retries = api, 0, 0
+        self._clock, self._started = clock, started
 
     def request(self, *args, **kwargs):
         self.calls += 1
+        try:
+            return self._api.request(*args, **kwargs)
+        except Exception as exc:
+            if not self._retry(exc):
+                raise
+        self.retries += 1
+        self.calls += 1
         return self._api.request(*args, **kwargs)
+
+    def _retry(self, exc):
+        from .instagram import InstagramAPIError, InstagramUnavailable
+        if self.retries or self._clock is None:
+            return False
+        if isinstance(exc, InstagramAPIError):
+            transient = type(exc.status) is int and exc.status >= 500
+        else:
+            transient = isinstance(exc, InstagramUnavailable)
+        return transient and self._clock() - self._started + SUMMARY_READ_TIMEOUT <= RUN_BUDGET_SECONDS
 
     def __getattr__(self, name):
         return getattr(self._api, name)
@@ -985,7 +1034,7 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
     # R168: seconds per stage (listing: the conversation-list read; groups: each group's read, model call and post after
     # the listing; model and post: those calls, parts of groups) and the Instagram requests made, for the run totals.
     seconds = {stage: 0.0 for stage in STAGES}
-    counted = CountingApi(api)
+    counted = CountingApi(api, clock, started)
     model_call, post_call = model_call or summarise, post_call or post
 
     def timed_model(*args, **kwargs):
@@ -1029,6 +1078,11 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
         # R170: one read of the poll's records decides whether the 5-conversation request is tried first.
         likely = first_page_likely(db, [row[0] for row in selected], now)
         result['first_page'] = {kind: 0 for kind in FIRST_PAGE_COUNTS}
+
+        def note(kind):
+            # One count per run that lists (R171: the first listing attempt decides, also when it fails).
+            if not any(result['first_page'].values()):
+                result['first_page'][kind] += 1
         for cid, attempts, changed in selected:
             if clock() - started > RUN_BUDGET_SECONDS:
                 result['deferred'] += 1
@@ -1036,11 +1090,10 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
             requested = attempts is None
             try:
                 if listing is None:
-                    before = counted.calls
+                    # R170: hit, the first request served the run; miss, the R168 read followed; skipped, not tried;
+                    # R171: failed, the first request failed.
                     with timed(seconds, 'listing', clock):
-                        listing = conversations(counted, config, [row[0] for row in selected], likely)
-                    # R170: hit, the first request served the run; miss, the R168 read followed; skipped, not tried.
-                    result['first_page']['skipped' if not likely else 'hit' if counted.calls - before == 1 else 'miss'] += 1
+                        listing = conversations(counted, config, [row[0] for row in selected], likely, note)
                 if cid not in listing:
                     raise SummaryFailed('GROUP_NOT_FOUND')
                 with timed(seconds, 'groups', clock):
@@ -1070,6 +1123,7 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
         report_all(config, requests, wanted, ran, result['refresh'], report or report_refresh, now)
     result['seconds'] = {stage: round(value, 1) for stage, value in seconds.items()}
     result['instagram_calls'] = counted.calls
+    result['retries'] = counted.retries
     if not selected and not requests:
         return {**result, 'status': 'idle'}
     return result
@@ -1113,7 +1167,7 @@ def request_age(requested_at, now):
 def run_effect(result):
     """R166: the numbers of a non-idle run for runtime.job_runs.summary->'effect' (the Grafana collector sums them):
     counts, outcome counts, error codes with their counts, waits and the refresh numbers. R170: `first_page` {hit, miss,
-    skipped}, one count per run that listed. R168: `seconds`, the run's
+    skipped; R171: failed}, one count per run that listed. R171: `retries`, the Instagram reads tried again. R168: `seconds`, the run's
     totals per stage (listing, groups, model, post; one decimal), and `instagram_calls`, its Instagram requests. No
     conversation key, borrower id, request id or text. None for an idle, dry, backfill or already-running result."""
     if not isinstance(result, dict) or result.get('status') != 'ok' or 'outcomes' not in result:
@@ -1129,6 +1183,8 @@ def run_effect(result):
     effect['seconds'] = {stage: round(float(taken.get(stage, 0) or 0), 1) for stage in STAGES}
     calls = result.get('instagram_calls', 0)
     effect['instagram_calls'] = calls if type(calls) is int and calls >= 0 else 0
+    retries = result.get('retries', 0)
+    effect['retries'] = retries if type(retries) is int and retries >= 0 else 0  # R171
     # R170: whether the run's listing tried the 5-conversation request and whether it was enough (zeros when absent).
     first = result.get('first_page') if isinstance(result.get('first_page'), dict) else {}
     effect['first_page'] = {kind: first[kind] if type(first.get(kind)) is int and first[kind] >= 0 else 0 for kind in FIRST_PAGE_COUNTS}
@@ -1260,7 +1316,8 @@ def run(config_path, catalogue_path, dry=False, mark=False):
                 # R147: the same switches, lock and job fence as a run; it only sets markers for the next runs.
                 return mark_all(config, Instagram(config, read_timeout=READ_TIMEOUT), masters(config), journal.db)
             # R165: the PWA's refresh requests are read and reported under the same switches.
-            return cycle(config, Instagram(config, read_timeout=READ_TIMEOUT), lambda: masters(config), journal.db,
+            # R171: the cycle's own shorter read timeout; --mark-all and the dry run above keep the poll's.
+            return cycle(config, Instagram(config, read_timeout=SUMMARY_READ_TIMEOUT), lambda: masters(config), journal.db,
                          refreshes=refresh_requests, report=report_refresh)
         finally:
             journal.close()

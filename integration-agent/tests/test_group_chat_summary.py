@@ -833,7 +833,7 @@ class ListingTests(Base):
         result = self.run_cycle(api)
         self.assertEqual((result['summarised'], len(api.queries), result['instagram_calls']), (1, 1, 1))
         self.assertEqual(api.queries[0]['limit'], 5)
-        self.assertEqual(result['first_page'], {'hit': 1, 'miss': 0, 'skipped': 0})
+        self.assertEqual(result['first_page'], {'hit': 1, 'miss': 0, 'skipped': 0, 'failed': 0})
 
     def test_a_requested_and_a_due_group_on_the_first_page_need_one_request(self):
         self.mark('g4', changed=self.now - 900)
@@ -855,7 +855,7 @@ class ListingTests(Base):
         result = self.run_cycle(api)
         self.assertEqual((result['summarised'], len(api.queries), result['instagram_calls']), (2, 2, 2))
         self.assertEqual([q['limit'] for q in api.queries], [5, 25])
-        self.assertEqual(result['first_page'], {'hit': 0, 'miss': 1, 'skipped': 0})
+        self.assertEqual(result['first_page'], {'hit': 0, 'miss': 1, 'skipped': 0, 'failed': 0})
 
     def test_a_group_never_found_reads_every_page_then_fails_and_backs_off(self):
         self.mark('g1', changed=self.now - 900)
@@ -879,7 +879,8 @@ class ListingTests(Base):
         self.assertEqual(self.state('g1')['last_error'], 'POLL_INVALID_PAGE')
         self.assertIsNone(self.state('g2')['changed_at'])
         self.assertEqual([q['limit'] for q in api.queries], [5, 5])
-        self.assertEqual(result['first_page'], {'hit': 1, 'miss': 0, 'skipped': 0})  # one count per run that listed
+        # One count per run that listed; R171: the first attempt decides (here its small page failed).
+        self.assertEqual(result['first_page'], {'hit': 0, 'miss': 0, 'skipped': 0, 'failed': 1})
 
     def test_r170_first_page_likely_from_the_poll_records(self):
         self.assertEqual((summary.RECENT_SECONDS, summary.FIRST_PAGE_RANK_MAX), (3600, 4))
@@ -910,8 +911,8 @@ class ListingTests(Base):
         requested = Mock(return_value=[{'borrowerId': 'B-A', 'requestId': '0c970c97-0c97-4c97-8c97-0c970c970c97', 'requestedAt': '2026-11-12T07:59:00.000Z'}])
         result = self.run_cycle(api, refreshes=requested, report=Mock(return_value='completed'))
         self.assertEqual(api.queries, [dict(self.QUERY, limit=25)])  # exactly one request, no 5-conversation try
-        self.assertEqual((result['summarised'], result['instagram_calls'], result['first_page']), (1, 1, {'hit': 0, 'miss': 0, 'skipped': 1}))
-        self.assertEqual(summary.run_effect(result)['first_page'], {'hit': 0, 'miss': 0, 'skipped': 1})
+        self.assertEqual((result['summarised'], result['instagram_calls'], result['first_page']), (1, 1, {'hit': 0, 'miss': 0, 'skipped': 1, 'failed': 0}))
+        self.assertEqual(summary.run_effect(result)['first_page'], {'hit': 0, 'miss': 0, 'skipped': 1, 'failed': 0})
 
     def test_r170_an_idle_run_reads_no_poll_record_and_has_no_first_page(self):
         self.mark(changed=self.now - 100, text=self.now - 100)
@@ -1057,6 +1058,150 @@ class RefreshWatchTests(Base):
         self.assertTrue(self.wake.is_file())
 
 
+class InstagramRetryTests(Base):
+    """R171: a 15-second read timeout for the cycle, one immediate retry per run after a 5xx or transport failure, and
+    fixed INSTAGRAM_* codes (never exception text)."""
+
+    def failing(self, *errors, cids=('g1',)):
+        """An API whose first requests raise `errors`, then serve a one-page conversation list holding `cids`."""
+        pages = {'data': [conversation(cid, self.members, [message('m1', '20', 20, PROMISE + ' ' + SENTINEL)]) for cid in cids]}
+        return Mock(request=Mock(side_effect=[*errors, *[pages] * 10]))
+
+    @staticmethod
+    def http(status, code=None):
+        from mw_integration_agent.instagram import InstagramAPIError, InstagramRejected
+        return (InstagramRejected if 400 <= status < 500 else InstagramAPIError)(status, code)
+
+    @staticmethod
+    def transport(exc):
+        from mw_integration_agent.instagram import InstagramUnavailable
+        return InstagramUnavailable(exc)
+
+    def test_a_5xx_is_retried_once_at_once_and_the_run_succeeds(self):
+        self.mark()
+        api = self.failing(self.http(500, 2))
+        result = self.run_cycle(api)
+        self.assertEqual((result['summarised'], result['failed'], result['retries'], result['instagram_calls']), (1, 0, 1, 2))
+        effect = summary.run_effect(result)
+        self.assertEqual((effect['retries'], effect['instagram_calls']), (1, 2))
+        self.assertEqual(api.request.call_args_list[0], api.request.call_args_list[1])  # the same read again
+        self.assertIn('messages.limit(100){', api.request.call_args.args[1]['fields'])
+
+    def test_two_5xx_fail_the_group_with_its_code_and_back_off_only_a_due_group(self):
+        self.mark('g1')
+        self.mark('g2', member_borrower_ids=json.dumps(['B-A']))
+        self.db.execute("UPDATE group_chat_summary_state SET changed_at=NULL,next_attempt_at=0 WHERE conversation_id='g2'")
+        self.db.commit()
+        before = self.state('g2')
+        requested = Mock(return_value=[{'borrowerId': 'B-A', 'requestId': '0c970c97-0c97-4c97-8c97-0c970c970c97', 'requestedAt': '2026-11-12T07:59:00.000Z'}])
+        # Requested g2 runs first: its listing fails twice (one retry); g1 then lists again with no retry left.
+        api = self.failing(self.http(500, 2), self.http(502), self.http(503))
+        result = self.run_cycle(api, refreshes=requested, report=Mock(return_value='completed'))
+        self.assertEqual([e['error'] for e in result['errors']], ['INSTAGRAM_HTTP_502', 'INSTAGRAM_HTTP_503'])
+        self.assertEqual((result['retries'], result['instagram_calls'], result['failed']), (1, 3, 2))
+        self.assertEqual(self.state('g2'), before)  # a requested group is never backed off
+        state = self.state('g1')
+        self.assertEqual((state['last_error'], state['attempts'], state['next_attempt_at']), ('INSTAGRAM_HTTP_503', 1, self.now + summary.BACKOFF_SECONDS))
+        self.assertEqual(result['refresh']['outcomes']['failed'], 1)
+
+    def test_a_4xx_is_never_retried(self):
+        for status, code, expected in ((400, 100, 'INSTAGRAM_HTTP_400_100'), (429, 4, 'INSTAGRAM_HTTP_429_4'), (404, None, 'INSTAGRAM_HTTP_404')):
+            with self.subTest(status=status):
+                self.db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE + 'DELETE FROM group_chat_summary_state;')
+                self.mark()
+                api = self.failing(self.http(status, code))
+                result = self.run_cycle(api)
+                self.assertEqual((result['retries'], result['instagram_calls'], result['errors'][0]['error']), (0, 1, expected))
+                self.assertEqual(self.state()['last_error'], expected)
+
+    def test_no_retry_without_budget_and_never_a_second_retry(self):
+        self.mark()
+        clock = Clock()
+        api = self.failing(self.http(500))
+
+        def late(*args):
+            clock.advance(summary.RUN_BUDGET_SECONDS - summary.SUMMARY_READ_TIMEOUT + 1)  # a retry would not fit
+            return api.request(*args)
+        result = self.run_cycle(Mock(request=Mock(side_effect=late)), clock=clock)
+        self.assertEqual((result['retries'], result['instagram_calls'], result['errors'][0]['error']), (0, 1, 'INSTAGRAM_HTTP_500'))
+        # Exactly at the limit the retry is still taken.
+        self.db.execute('UPDATE group_chat_summary_state SET next_attempt_at=0,changed_at=?', (self.now - 900,))
+        self.db.commit()
+        clock, api = Clock(), self.failing(self.http(500))
+
+        def edge(*args):
+            if clock.value == 0:
+                clock.advance(summary.RUN_BUDGET_SECONDS - summary.SUMMARY_READ_TIMEOUT)
+            return api.request(*args)
+        self.assertEqual(self.run_cycle(Mock(request=Mock(side_effect=edge)), clock=clock)['retries'], 1)
+        # A history page failing after the one retry was used is not retried again.
+        self.db.execute('UPDATE group_chat_summary_state SET next_attempt_at=0,changed_at=?', (self.now - 900,))
+        self.db.commit()
+        listed = dict(conversation('g1', self.members, []), messages={'data': [message('m1', '20', 20, PROMISE)], 'paging': {'next': 'n', 'cursors': {'after': 'h1'}}})
+        api = Mock(request=Mock(side_effect=[self.http(500), {'data': [listed]}, self.transport(TimeoutError()), AssertionError('a second retry')]))
+        result = self.run_cycle(api)
+        self.assertEqual((result['retries'], result['instagram_calls'], result['errors'][0]['error']), (1, 3, 'INSTAGRAM_TIMEOUT'))
+
+    def test_transport_failures_are_retried_and_named_by_class(self):
+        import urllib.error
+        for exc, expected in ((TimeoutError(), 'INSTAGRAM_TIMEOUT'), (TimeoutError('The read operation timed out'), 'INSTAGRAM_TIMEOUT'),
+                              (urllib.error.URLError(TimeoutError()), 'INSTAGRAM_TIMEOUT'), (urllib.error.URLError('refused ' + SENTINEL), 'INSTAGRAM_UNREACHABLE'),
+                              (ConnectionResetError(SENTINEL), 'INSTAGRAM_UNREACHABLE'), (ValueError(SENTINEL), 'INSTAGRAM_UNREACHABLE')):
+            with self.subTest(exc=type(exc).__name__, expected=expected):
+                failure = self.transport(exc)
+                self.assertEqual(summary.error_code(failure), expected)
+                self.assertNotIn(SENTINEL, str(failure))
+                self.db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE + 'DELETE FROM group_chat_summary_state;')
+                self.mark()
+                result = self.run_cycle(self.failing(failure, self.transport(exc)))
+                self.assertEqual((result['retries'], result['instagram_calls'], result['errors'][0]['error']), (1, 2, expected))
+        # The poll's ConfigurationError for a read without an answer keeps its message (the class only).
+        self.assertEqual(str(self.transport(TimeoutError())), 'Instagram API request failed (TimeoutError)')
+        self.assertIsInstance(self.transport(TimeoutError()), ConfigurationError)
+
+    def test_the_instagram_client_raises_the_transport_class(self):
+        import urllib.request
+        from mw_integration_agent.instagram import Instagram, InstagramUnavailable
+        token = Path(self.tmp.name) / 'token'
+        token.write_text('invented-token')
+        client = Instagram({'instagram_account_id': '123', 'instagram_api_version': 'v1', 'instagram_token_file': str(token),
+                            'secrets_directory': self.tmp.name}, read_timeout=summary.SUMMARY_READ_TIMEOUT)
+        with patch.object(urllib.request.OpenerDirector, 'open', side_effect=TimeoutError()) as opened, self.assertRaises(InstagramUnavailable) as raised:
+            client._request('456', {'fields': 'id'})
+        self.assertEqual(opened.call_args.kwargs['timeout'], 15)
+        self.assertEqual(summary.error_code(raised.exception), 'INSTAGRAM_TIMEOUT')
+
+    def test_first_page_counts_a_failed_small_page_and_a_skipped_read_that_fails(self):
+        self.mark('g1')
+        self.polled(('g1', 60))
+        result = self.run_cycle(self.failing(self.http(500), self.http(500)))  # the small page fails twice
+        self.assertEqual((result['first_page'], result['errors'][0]['error']), ({'hit': 0, 'miss': 0, 'skipped': 0, 'failed': 1}, 'INSTAGRAM_HTTP_500'))
+        self.assertEqual(summary.run_effect(result)['first_page']['failed'], 1)
+        self.db.execute('DELETE FROM conversation_poll_messages')
+        self.db.execute('UPDATE group_chat_summary_state SET next_attempt_at=0')
+        self.db.commit()
+        result = self.run_cycle(self.failing(self.http(500), self.http(500)))  # no poll record: the 25 read, which fails
+        self.assertEqual(result['first_page'], {'hit': 0, 'miss': 0, 'skipped': 1, 'failed': 0})
+        self.assertEqual(summary.run_effect({k: v for k, v in result.items() if k not in ('first_page', 'retries')})['first_page'],
+                         {'hit': 0, 'miss': 0, 'skipped': 0, 'failed': 0})
+
+    def test_every_instagram_code_fits_the_code_pattern_and_carries_no_text(self):
+        for status, code in ((500, None), (500, 2), (503, 1), (400, 100), (429, 613), (999, 10 ** 11), (500, -1)):
+            with self.subTest(status=status, code=code):
+                value = summary.error_code(self.http(status, code))
+                self.assertRegex(value, summary.CODE)
+                self.assertTrue(value.startswith('INSTAGRAM_HTTP_' + str(status)))
+        self.assertEqual(summary.error_code(self.http(500, -1)), 'INSTAGRAM_HTTP_500')
+        for value in ('INSTAGRAM_TIMEOUT', 'INSTAGRAM_UNREACHABLE'):
+            self.assertRegex(value, summary.CODE)
+        self.mark('g1')
+        result = self.run_cycle(self.failing(self.http(500, 2), self.http(500, 2)))
+        text = json.dumps(summary.run_effect(result), ensure_ascii=False) + json.dumps(result, ensure_ascii=False)
+        for value in ('g1', SENTINEL, 'Instagram', 'HTTP 500', 'subcode'):
+            self.assertNotIn(value, text)
+        self.assertEqual(summary.run_effect(result)['errors'], {'INSTAGRAM_HTTP_500_2': 1})
+
+
 class OutputValidationTests(Base):
     ALLOWED = {'partner', 'borrower_1', 'referrer_1'}
 
@@ -1171,7 +1316,7 @@ class OutputValidationTests(Base):
         self.assertEqual((value['borrowerIds'], value['summary'], value['conversationKey']), ([], None, summary.conversation_key('g1')))
         self.assertNotIn(MODEL_SENTINEL, json.dumps(value, ensure_ascii=False))
         self.assertEqual((result['summarised'], result['failed'], result['outcomes']), (1, 0, {'stored': 0, 'unchanged': 0, 'superseded': 0, 'cleared': 1}))
-        self.assertEqual(set(result), {'status', 'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'seconds', 'instagram_calls', 'first_page'})  # counts only (R166: waits in seconds; R168: stage seconds, Instagram calls; R170: first-page counts)
+        self.assertEqual(set(result), {'status', 'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'seconds', 'instagram_calls', 'first_page', 'retries'})  # counts only (R166: waits in seconds; R168: stage seconds, Instagram calls; R170: first-page counts; R171: retries)
         state = self.state()
         self.assertEqual((state['changed_at'], state['summarised_source_sha256'], state['summarised_at'], state['attempts'], state['last_error']),
                          (None, value['sourceSha256'], self.now, 0, None))
@@ -1582,7 +1727,7 @@ class RunEffectTests(Base):
         self.assertEqual(sorted(result['waits']), [50, 700])
         self.assertEqual(result['refresh']['seconds'], [90])  # an unreadable requestedAt gives no sample
         effect = summary.run_effect(result)
-        self.assertEqual(set(effect), {'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'refresh', 'seconds', 'instagram_calls', 'first_page'})
+        self.assertEqual(set(effect), {'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'refresh', 'seconds', 'instagram_calls', 'first_page', 'retries'})
         self.assertEqual((effect['due'], effect['summarised'], effect['errors'], sorted(effect['waits'])), (1, 3, {}, [50, 700]))
         self.assertEqual(effect['refresh'], {'reported': 2, 'pending': 0, 'outcomes': dict(result['refresh']['outcomes']), 'seconds': [90]})
 
@@ -1598,7 +1743,7 @@ class RunEffectTests(Base):
         # R168: stage seconds and the Instagram request count only.
         # R170: no poll record for these groups, so the R168 read comes at once (one request).
         self.assertEqual((set(effect['seconds']), effect['instagram_calls']), ({'listing', 'groups', 'model', 'post'}, 1))
-        self.assertEqual(effect['first_page'], {'hit': 0, 'miss': 0, 'skipped': 1})
+        self.assertEqual((effect['first_page'], effect['retries']), ({'hit': 0, 'miss': 0, 'skipped': 1, 'failed': 0}, 0))
         self.assertTrue(all(type(value) is float for value in effect['seconds'].values()))
         text = json.dumps(effect, ensure_ascii=False)
         for value in [summary.conversation_key(cid) for cid in ('g1', 'g2', 'gone')] + ['g1', 'gone', 'B-A', SENTINEL, 'conversation']:
@@ -1665,10 +1810,10 @@ class RunEffectTests(Base):
         idle = {'status': 'idle', 'due': 0, 'summarised': 0, 'failed': 0, 'deferred': 0, 'outcomes': {}, 'errors': [], 'waits': []}
         failed = dict(busy, summarised=0, failed=1, outcomes={}, waits=[], errors=[{'conversation_key': 'a' * 32, 'error': 'MODEL_TIMEOUT'}])
         for result, code, effect in ((busy, 0, {'due': 1, 'summarised': 1, 'failed': 0, 'deferred': 0, 'outcomes': {'stored': 1}, 'errors': {}, 'waits': [600],
-                                                'seconds': timings, 'instagram_calls': 1, 'first_page': {'hit': 0, 'miss': 0, 'skipped': 0}}),
+                                                'seconds': timings, 'instagram_calls': 1, 'first_page': {'hit': 0, 'miss': 0, 'skipped': 0, 'failed': 0}, 'retries': 0}),
                                      (idle, 0, None), ({'status': 'already_running'}, 0, None),
                                      (failed, 2, {'due': 1, 'summarised': 0, 'failed': 1, 'deferred': 0, 'outcomes': {}, 'errors': {'MODEL_TIMEOUT': 1}, 'waits': [],
-                                                  'seconds': timings, 'instagram_calls': 1, 'first_page': {'hit': 0, 'miss': 0, 'skipped': 0}})):
+                                                  'seconds': timings, 'instagram_calls': 1, 'first_page': {'hit': 0, 'miss': 0, 'skipped': 0, 'failed': 0}, 'retries': 0})):
             with self.subTest(status=result['status'], failed=result.get('failed')):
                 outcome = {'exit_code': None}
                 with patch.object(summary, 'run', return_value=result), contextlib.redirect_stdout(io.StringIO()):
@@ -1766,7 +1911,7 @@ class RunAndDryRunTests(Base):
         with patch.object(summary, 'load_controls', return_value=(config, self.catalogue())), patch('mw_integration_agent.instagram.Instagram') as client, \
                 patch.object(summary, 'cycle', return_value={'status': 'idle'}) as cycle:
             self.assertEqual(summary.run('unused', 'unused'), {'status': 'idle'})
-            client.assert_called_once_with(config, read_timeout=40)
+            client.assert_called_once_with(config, read_timeout=15)  # R171: the cycle's own read timeout
             with (Path(self.tmp.name) / 'group-chat-summary.lock').open('a') as held:
                 fcntl.flock(held, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 self.assertEqual(summary.run('unused', 'unused'), {'status': 'already_running'})
@@ -2010,7 +2155,7 @@ class ConfigurationTests(unittest.TestCase):
     def test_catalogue_knows_the_service_disabled_and_implemented(self):
         catalogue = json.loads((ROOT / 'service-catalogue.json').read_text(encoding='utf-8'))
         validate_catalogue(catalogue)
-        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (43, {'enabled': False, 'implemented': True}))  # R170 (43), R169 (42), R168 (41), R166 (40) and R165 (39) change no service
+        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (44, {'enabled': False, 'implemented': True}))  # R171 (44), R170 (43), R169 (42), R168 (41), R166 (40) and R165 (39) change no service
 
 
 class UnitFileTests(unittest.TestCase):

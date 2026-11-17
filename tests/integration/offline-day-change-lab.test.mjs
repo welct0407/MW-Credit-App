@@ -21,7 +21,7 @@ const actor={issuer:'synthetic',subject:'owner',partnerId:'lab-partner'};
 const {applyDatasetPatch,canonicalDatasetValue}=shared;
 // The client's own day-change helpers (apps/pwa/src/offline-dataset.ts), loaded as the coordinator test does.
 const source=ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/offline-dataset.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-const sandbox={exports:{},require:name=>name==='./dataset-patch'?shared:name==='./client-events'?{recordClientEvent:()=>{}}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:(()=>{throw Error('Unexpected import '+name)})(),window:new EventTarget(),document:new EventTarget(),navigator:{onLine:true},URL,crypto:globalThis.crypto,TextEncoder,structuredClone,setTimeout,clearTimeout,console};
+const sandbox={exports:{},require:name=>name==='./dataset-patch'?shared:name==='./client-events'?{recordClientEvent:()=>{}}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./ig-group-url'?{chatDevice:()=>'phone'}:(()=>{throw Error('Unexpected import '+name)})(),window:new EventTarget(),document:new EventTarget(),navigator:{onLine:true},URL,crypto:globalThis.crypto,TextEncoder,structuredClone,setTimeout,clearTimeout,console};
 runInNewContext(source,sandbox);
 const {moveBusinessDate,dayKeysCovered}=sandbox.exports;
 const plain=value=>JSON.parse(JSON.stringify(value));

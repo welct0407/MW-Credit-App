@@ -57,7 +57,7 @@ function start(rows,receipt,wrap=repo=>repo){
   // A Full sync walk (no source version): the stored data again, in one chunk.
   return reply(200,encodeDeltaChunk({domain,generation:'walk-'+domain,startedAt:stamp.asOf,...stamp,sourceVersion:version(domain),patches:Object.entries(stored.data).map(([name,value])=>({key:name,mode:'replace',value})),complete:true,nextCursor:null,progress:{completed:1,total:1}},body.need??[]));
  }
- const sandbox={exports:{},require:name=>name==='./client-events'?{recordClientEvent:()=>{}}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:(()=>{throw Error('Unexpected import '+name)})(),
+ const sandbox={exports:{},require:name=>name==='./client-events'?{recordClientEvent:()=>{}}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:name==='./ig-group-url'?{chatDevice:()=>'phone'}:(()=>{throw Error('Unexpected import '+name)})(),  // R171: a phone (no hidden sync), as before
   window,document,navigator,fetch,setTimeout,clearTimeout,URL,crypto:globalThis.crypto,TextEncoder,structuredClone,Intl,CustomEvent,Event,AbortController,Blob,console,Date:Clock};
  runInNewContext(source,sandbox);
  const stop=sandbox.exports.startOfflinePreparation({origin,offline:repo,token:async()=>'synthetic',authFailure:status=>authFailures.push(status)});

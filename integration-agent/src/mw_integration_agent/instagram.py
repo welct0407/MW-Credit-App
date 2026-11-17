@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import socket
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -59,6 +60,14 @@ class InstagramRejected(InstagramAPIError):
     """The provider definitely did not accept the request (HTTP 4xx, Graph error code retained)."""
 
 
+class InstagramUnavailable(ConfigurationError):
+    """R171: the request got no HTTP answer (a timeout, a refused or dropped connection, an unreadable reply). The
+    message names the exception class only, as before; `timed_out` tells a timeout from any other transport failure."""
+    def __init__(self, exc):
+        self.timed_out = isinstance(exc, (TimeoutError, socket.timeout)) or isinstance(getattr(exc, 'reason', None), (TimeoutError, socket.timeout))
+        super().__init__(f"Instagram API request failed ({type(exc).__name__})")
+
+
 SEND_TIMEOUT = 20
 
 
@@ -94,7 +103,7 @@ class Instagram:
             raise InstagramAPIError.from_http(exc, message_send=(body is not None and path == self.config['instagram_account_id'] + '/messages')) from None
         except Exception as exc:
             # The exception class only (TimeoutError, URLError, ...): never the URL, query or token.
-            raise ConfigurationError(f"Instagram API request failed ({type(exc).__name__})") from None
+            raise InstagramUnavailable(exc) from None
 
     def probe(self) -> dict[str, Any]:
         account = self.request(self.config["instagram_account_id"], {"fields": "id,username"})

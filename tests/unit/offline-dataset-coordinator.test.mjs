@@ -10,7 +10,7 @@ const sha256=text=>createHash('sha256').update(text).digest('hex');
 // R078 item 2 (client): two data domains in flight, no settle delay inside a walk, fewer durable
 // progress writes with a correct resume, and one records check standing in for unchanged peers.
 const transpile=file=>ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-const source=transpile('offline-dataset.ts'),patchModule=await import('../../services/lib/offline-dataset-digest.mjs');
+const source=transpile('offline-dataset.ts'),deviceSource=transpile('ig-group-url.ts'),patchModule=await import('../../services/lib/offline-dataset-digest.mjs');
 const origin='https://lm.example.invalid',stamp={asOf:'2026-10-19T01:00:00.000Z',businessDate:'2026-10-19'};
 const data=['records','collection','cash','management'],all=[...data,'notifications'];
 const version=domain=>domain.length.toString(16).padStart(2,'0').repeat(32);
@@ -39,8 +39,11 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({failing=null,walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags,rowDelta=null,rejectInline=false,tamperInline=false,hold=30,needDiffers=null,tamperNeed=null}={}){
- const navigator={onLine:true};
+function harness({failing=null,walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags,rowDelta=null,rejectInline=false,tamperInline=false,hold=30,needDiffers=null,tamperNeed=null,backgroundSync,userAgent,maxTouchPoints}={}){
+ // R171: the device rule (ig-group-url.ts chatDevice) reads this navigator; without a user agent the existing tests run as
+ // a phone (backgroundSync false), so their hidden behaviour is unchanged.
+ const navigator={onLine:true,...(userAgent!==undefined?{userAgent,maxTouchPoints:maxTouchPoints??0}:{})};
+ const device={exports:{}};runInNewContext(deviceSource,{exports:device.exports,navigator});
  const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
  const repo=repository(Object.fromEntries(all.map(domain=>[domain,corrupt.includes(domain)?{...complete(domain),data:{items:[{id:'old',corrupted:true}]}}:cursors&&domain==='records'?{...complete(domain),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old'},{id:'gone'}],paymentMonths:[{borrowerId:'b1',month:'2026-10'},{borrowerId:'b2',month:'2026-10'}]}}:patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:stored[domain]??complete(domain)])));
@@ -82,19 +85,22 @@ function harness({failing=null,walks={},failOnce=null,rejectVersions=false,patch
    return reply(200,answer);
   }finally{inflight--;flights.set(domain,flights.get(domain)-1)}
  }
- const trackedTimeout=(callback,delay)=>{timers.push(delay);return setTimeout(callback,delay===3000?hold:delay)};
+ // R171: the latest 30 s timer is the poll (DATASET_POLL_MS); poll() cancels it and runs it now.
+ let pollTimer=null;
+ const trackedTimeout=(callback,delay)=>{timers.push(delay);const handle=setTimeout(callback,delay===3000?hold:delay);if(delay===30000)pollTimer={callback,handle};return handle};
  let offset=clockOffset;
  class Clock extends Date{constructor(...args){if(args.length)super(...args);else super(Date.now()+offset)}static now(){return Date.now()+offset}}
- const sandbox={Date:Clock,exports:{},require:name=>name==='./client-events'?{recordClientEvent:event=>clientEvents.push(event)}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:(()=>{throw Error('Unexpected import '+name)})(),
+ const sandbox={Date:Clock,exports:{},require:name=>name==='./client-events'?{recordClientEvent:event=>clientEvents.push(event)}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:name==='./ig-group-url'?device.exports:(()=>{throw Error('Unexpected import '+name)})(),
   window,document,navigator,fetch,setTimeout:trackedTimeout,clearTimeout,URL,crypto:globalThis.crypto,TextEncoder,structuredClone,Intl,CustomEvent,Event,AbortController,console};
  runInNewContext(source,sandbox);
  const events=[];window.addEventListener('mw-offline-dataset-ready',event=>events.push(event.detail.domain+':'+event.detail.changed));
- const stop=sandbox.exports.startOfflinePreparation({origin,offline:repo,token:async()=>'synthetic',authFailure:()=>{}});
+ const stop=sandbox.exports.startOfflinePreparation({origin,offline:repo,token:async()=>'synthetic',authFailure:()=>{}},{backgroundSync:backgroundSync??(userAgent===undefined?false:undefined)});
  const state=()=>sandbox.exports.getOfflinePreparation(repo.scopeName);
  if(reconciledAt!==undefined)repo.rows.set('meta:reconciled-at',reconciledAt);
  if(attempt!==undefined)repo.rows.set('meta:reconcile-tried-at',attempt);
  if(flags!==undefined)repo.rows.set('meta:reconcile-flags',flags);
- return {exports:sandbox.exports,navigator,advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,diagnostics:()=>sandbox.exports.datasetDiagnostics(repo.scopeName),subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
+ const visibility=value=>{document.visibilityState=value;document.dispatchEvent(new Event('visibilitychange'))};
+ return {exports:sandbox.exports,navigator,document,device:device.exports,hide:()=>visibility('hidden'),show:()=>visibility('visible'),poll:()=>{const pending=pollTimer;pollTimer=null;if(pending){clearTimeout(pending.handle);pending.callback()}},advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,diagnostics:()=>sandbox.exports.datasetDiagnostics(repo.scopeName),subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
 }
 const settled=async h=>{await until(()=>h.state().state==='ready'&&!h.state().domainsPending&&h.state().lastChecked!==null)};
 
@@ -594,4 +600,128 @@ test('R163 a tap or an own write during the hold starts the retry at once; never
    assert.equal(asked(h,'collection').length,2,'one retry only, the hold timer does not add another');assert.equal(failedEvents(h).length,0);assert.equal(h.state().failedDomains,'');
   }finally{h.stop()}
  }
+});
+
+// R171 (owner, 17 November 2026): a computer keeps syncing while the page is hidden; a phone pauses as before.
+const WINDOWS='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
+const MAC='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Safari/605.1.15';
+const IPHONE='Mozilla/5.0 (iPhone; CPU iPhone OS 26_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Mobile/15E148 Safari/604.1';
+const ANDROID='Mozilla/5.0 (Linux; Android 16; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36';
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+/** Every published state while `run` lasts. */
+async function watched(h,run){const seen=[];const stop=h.subscribe(()=>seen.push({...h.state()}));try{await run()}finally{stop()}return seen}
+test('R171 detection: Windows and Mac are computers; iPhone, Android and iPadOS with the desktop user agent are phones',()=>{
+ const h=harness();h.stop();const device=h.device;
+ for(const [agent,touch,expected] of [[WINDOWS,0,'computer'],[MAC,0,'computer'],[IPHONE,5,'phone'],[ANDROID,5,'phone'],[MAC,5,'phone'],['',0,'computer']])
+  assert.equal(device.chatDevice({userAgent:agent,maxTouchPoints:touch}),expected,agent+' '+touch);
+ assert.match(readFileSync(new URL('../../apps/pwa/src/offline-dataset.ts',import.meta.url),'utf8'),/const backgroundSync=options\.backgroundSync\?\?chatDevice\(\)==='computer';/,'decided once per coordinator');
+});
+test('R171 a hidden computer: the poll starts a cycle, a multi-chunk walk continues and new domains start without a waiting screen',async()=>{
+ const h=harness({userAgent:WINDOWS,walks:{records:6,cash:1}});try{
+  await settled(h);const firstChecked=h.state().lastChecked;h.repo.log.length=0;
+  h.hide();assert.equal(h.document.visibilityState,'hidden');
+  const before=h.requests.length,cycles=h.diagnostics().recentCycles.length;h.advance(1000);
+  const seen=await watched(h,async()=>{h.poll();await until(()=>h.state().lastChecked>firstChecked&&!h.state().domainsPending)});
+  const asked2=h.requests.slice(before);
+  assert.deepEqual(asked2.filter(request=>request.domain==='records'&&!request.need).map(request=>request.cursor??null),[null,'1','2','3','4','5'],'the walk ran to its end while hidden');
+  assert.ok(asked2.some(request=>request.domain==='notifications'),'another domain started on its own (no requested domain)');
+  assert.equal(h.diagnostics().recentCycles.at(-1).trigger,'poll');assert.ok(h.diagnostics().recentCycles.length>cycles);
+  assert.ok(seen.some(state=>state.syncActive),'syncActive while hidden');assert.ok(seen.every(state=>state.foreground===false),'never a foreground sync');
+  assert.ok(seen.every(state=>state.dataReady),'no first-download progress: the bar and "Syncing…" need !dataReady or foreground');
+  // Really hidden: the durable progress row is written after every chunk (5 of 6 chunks; the last commits).
+  assert.deepEqual(h.repo.log.filter(entry=>entry[1]==='records').map(entry=>entry[0]+':'+(entry[2]??'')),['progress:1','progress:2','progress:3','progress:4','progress:5','dataset:']);
+  assert.ok(h.state().lastChecked>firstChecked,'lastChecked advanced');
+ }finally{h.stop()}
+});
+test('R171 a hidden computer reconciles when idle; a hidden phone does not',async()=>{
+ for(const [agent,expected] of [[WINDOWS,true],[IPHONE,false]]){
+  const h=harness({userAgent:agent,maxTouchPoints:agent===IPHONE?5:0});try{
+   await settled(h);await until(()=>h.repo.rows.has('meta:reconciled-at'));
+   h.hide();h.repo.rows.set('meta:reconciled-at',0);h.poll();await wait(150);
+   assert.equal(h.reconciles.length>0,expected,agent);
+  }finally{h.stop()}
+ }
+});
+test('R171 a hidden phone is unchanged: the poll asks nothing and a walk does not continue without a waiting screen',async()=>{
+ const h=harness({userAgent:IPHONE,maxTouchPoints:5});try{
+  await settled(h);h.hide();const before=h.requests.length;
+  h.poll();await wait(150);
+  assert.equal(h.requests.length,before,'no request while hidden');assert.equal(h.state().syncActive,false);
+ }finally{h.stop()}
+});
+test('R171 the hidden path starts work without the 200 ms timer and does not spin on a held task',async()=>{
+ // The quiet-retry hold is stretched to a minute so it cannot end during the test; the check below waits for conditions
+ // and counts event-loop turns, never wall-clock time.
+ const failing={domain:'notifications',status:503,code:'temporary',times:0};
+ const h=harness({userAgent:WINDOWS,walks:{records:3,cash:1},failing,hold:60000});try{
+  await settled(h);h.hide();
+  let pumps=0;const authorized=h.repo.syncAuthorized;h.repo.syncAuthorized=async()=>{pumps++;return authorized()};
+  const settles=h.timers.filter(delay=>delay===200).length;failing.times=1;
+  h.poll();await until(()=>retryEvents(h).length===1);
+  // Every other domain of the cycle finishes; only the held notifications task stays queued.
+  await until(()=>h.state().activity===''&&asked(h,'records').filter(request=>request.cursor==='2').length>=1);
+  assert.equal(h.state().domainsPending,true,'the held task is still pending');assert.equal(h.state().failedDomains,'');
+  assert.equal(h.timers.filter(delay=>delay===200).length,settles,'no settle timer while hidden');
+  // Nothing is pickable now: across many event-loop turns pump is not called at all (a spin would call it every turn).
+  const idle=pumps;for(let turn=0;turn<50;turn++)await tick();
+  assert.equal(pumps-idle,0,'pump calls while only a held task is queued: '+(pumps-idle));
+  // A tap releases the hold: the retry runs at once and succeeds.
+  const before=asked(h,'notifications').length;h.window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true}}));
+  await until(()=>asked(h,'notifications').length>before&&!h.state().domainsPending&&h.state().failedDomains==='');
+ }finally{h.stop()}
+});
+test('R171 UX-HSYNC-02 a computer returning mid-walk joins it: no new cycle, no duplicate request, still no foreground',async()=>{
+ const h=harness({userAgent:WINDOWS,walks:{records:8}});try{
+  await settled(h);h.hide();const before=h.requests.length,cycles=h.diagnostics().recentCycles.length;h.advance(40000);
+  const seen=await watched(h,async()=>{
+   h.poll();await until(()=>h.requests.slice(before).filter(request=>request.domain==='records').length>=2);
+   h.show();h.window.dispatchEvent(new Event('focus'));
+   await until(()=>!h.state().domainsPending);
+  });
+  assert.equal(h.diagnostics().recentCycles.length,cycles+1,'one cycle (the poll), the return joined it');
+  assert.equal(h.requests.slice(before).filter(request=>request.domain==='records'&&!request.need).length,8,'each chunk asked once');
+  assert.ok(seen.every(state=>state.foreground===false));
+  // A refresh tap still shows progress: its domains are pending while the tap's sync runs.
+  const tap=await watched(h,async()=>{h.window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true}}));await until(()=>!h.state().domainsPending)});
+  assert.ok(tap.some(state=>state.domainsPending),'the tap\'s sync is pending (the header shows its progress)');
+ }finally{h.stop()}
+});
+test('R171 every focus and return checks at once on every device (the 30 s shortcut was dropped); a failed task\'s back-off is reset',async()=>{
+ for(const [agent,touch] of [[WINDOWS,0],[IPHONE,5]]){
+  const failing={domain:'notifications',status:404,code:'gone',times:0};
+  const h=harness({userAgent:agent,maxTouchPoints:touch,failing});try{
+   await settled(h);
+   // Back within seconds of the last check: still a check of every domain (records asks the versions).
+   let before=h.requests.length;h.hide();h.show();
+   await until(()=>h.requests.slice(before).some(request=>request.domain==='records'),2000);
+   await until(()=>!h.state().domainsPending);
+   before=h.requests.length;h.window.dispatchEvent(new Event('focus'));
+   await until(()=>h.requests.slice(before).some(request=>request.domain==='records'),2000);
+   await until(()=>!h.state().domainsPending);
+   // A failed domain (404: back-off, no quiet retry) is asked again on return: the back-off is reset.
+   failing.times=1;h.poll();await until(()=>h.state().failedDomains==='notifications');await wait(50);
+   before=h.requests.length;h.hide();h.show();
+   await until(()=>h.requests.slice(before).some(request=>request.domain==='notifications'),2000);
+   await until(()=>h.state().failedDomains===''&&!h.state().domainsPending);
+  }finally{h.stop()}
+ }
+});
+test('R171 UX-HSYNC-05 a quiet retry while hidden publishes no failure; an overdue hold fires on return; a second failure shows',async()=>{
+ const failing={domain:'notifications',status:503,code:'temporary',times:0};
+ const h=harness({userAgent:WINDOWS,walks:{cash:1},failing,hold:60000});try{
+  await settled(h);h.hide();failing.times=1;
+  const seen=await watched(h,async()=>{h.poll();await until(()=>retryEvents(h).length===1);await wait(50)});
+  assert.ok(seen.every(state=>state.failedDomains===''),'the hold publishes no failure');
+  // The hold (stretched to 60 s here) is overdue on return: visible re-arms it and it fires at once.
+  const before=asked(h,'notifications').length;h.advance(4000);h.show();
+  await until(()=>asked(h,'notifications').length>before,2000);
+  await until(()=>!h.state().domainsPending);assert.equal(h.state().failedDomains,'');assert.equal(failedEvents(h).length,0);
+ }finally{h.stop()}
+ // Two transient failures: one quiet retry, then the failure shows (header text) until a success.
+ const twice={domain:'notifications',status:503,code:'temporary',times:0};const g=harness({userAgent:WINDOWS,walks:{cash:1},failing:twice});try{
+  await settled(g);g.hide();twice.times=2;g.poll();
+  await until(()=>g.state().failedDomains==='notifications');assert.equal(retryEvents(g).length,1);
+  assert.equal(g.state().updateFailed,true,'the header shows the section "not updated"');
+  g.show();g.window.dispatchEvent(new Event('focus'));await until(()=>g.state().failedDomains==='');
+ }finally{g.stop()}
 });

@@ -1,6 +1,7 @@
 import {activitySnapshot,subscribeActivity} from './request-activity';
 import {applyDatasetPatch,deltaMovesRows,deltaScopeMoves,datasetDigests} from './dataset-patch';
 import {recordClientEvent} from './client-events';
+import {chatDevice} from './ig-group-url';
 import type {OwnerOfflineRepository} from './owner-offline';
 
 type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;token:()=>Promise<string>;authFailure:(status:number)=>void};
@@ -156,8 +157,17 @@ export function receiptRetainedOffline(row:any,now=Date.now()){
 }
 /** The one stored receipt for a payment; the `preferred` alias resolves to it at read time (read-cache.ts). */
 export const receiptMediaCandidates=(url:URL)=>url.searchParams.get('source')!=='preferred'?['blob:'+url.href]:['manual','agent'].map(source=>{const alias=new URL(url);alias.searchParams.set('source',source);return 'blob:'+alias.href});
-export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
+/** R171 (owner, 17 November 2026: "keep syncing as if it's focused, even when hidden completely in desktop"): on a computer
+ * (chatDevice, the R154 rule: not an iPhone, iPad or Android device) the coordinator keeps syncing while the page is hidden,
+ * so the app shows the latest data whenever it is opened. Phones keep pausing while hidden. `backgroundSync` overrides the
+ * device rule (tests). */
+export type OfflinePreparationOptions={readOrigin?:string;backgroundSync?:boolean};
+export function startOfflinePreparation(access:Access,options:OfflinePreparationOptions={}){
  const repository=access.offline;if(!repository)return()=>{};const repo=repository;
+ // R171: decided once per coordinator. hidden(): hidden for the sync rules (a computer never is); reallyHidden() keeps the
+ // real visibility where it matters regardless of the device (a progress row saved every chunk, no settle timer).
+ const backgroundSync=options.backgroundSync??chatDevice()==='computer';
+ const reallyHidden=()=>document.visibilityState==='hidden',hidden=()=>reallyHidden()&&!backgroundSync;
  let stopped=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined;
  // recheck: an own write settled during this cycle; the domains it touches are confirmed once the cycle ends.
  let lastChecked:number|null=null,recheck=false,pollTimer:ReturnType<typeof setTimeout>|undefined;
@@ -237,7 +247,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // A chunked walk between two segments (its next segment queued with a kept partial) is still in flight for
  // refresh triggers: a poll or focus landing in that gap joins the cycle like one landing during a request.
  const walking=()=>domainRunning()||queue.some(task=>!isMediaTask(task)&&partials.has(task));
- const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(active.size>0||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
+ const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&!hidden()&&(active.size>0||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
  const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path)||refusedNow(path))?'ready':paused?'incomplete':queue.length||active.size?'preparing':'incomplete',dataReady:domains.every(domain=>completed.has(domain)),completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,fullSync:forceWalk.size>0,dataCheckDomains:DATASET_RECONCILE_DOMAINS.filter(domain=>dataCheck.some(flag=>flag.domain===domain)).join(','),dataCheckAt:dataCheck.length?Math.max(...dataCheck.map(flag=>flag.checkedAt)):null,dataCheckNotice,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0),activity:[...[...active.keys()].filter(task=>!isMediaTask(task)).sort(),...([...active.keys()].some(isMediaTask)?['receipts']:[]),...(reconcileRunning?['reconcile']:[])].join(',')});
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
  const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
@@ -275,7 +285,10 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const retryLater=()=>{if(stopped||!navigator.onLine||paused||!failed.size)return;const due=Math.min(...[...failed].map(task=>backoff.get(task)?.next??0));if(retryTimer)clearTimeout(retryTimer);retryTimer=setTimeout(()=>{retryTimer=undefined;resume()},Math.max(0,due-Date.now()))};
  const enqueue=(task:string,first=false)=>{if(queue.includes(task))return;first?queue.unshift(task):queue.push(task)};
  // New work starts after a short settle delay; the next segment of a walk in progress starts at once (R078).
- const schedule=()=>{if(stopped||timer)return;timer=setTimeout(()=>{timer=undefined;void pump()},200)};
+ // R171: a computer's hidden page starts it at once (a microtask, not a timer the browser throttles while hidden); pump
+ // never schedules itself, so nothing pickable means nothing runs until the next trigger.
+ let soon=false;
+ const schedule=()=>{if(stopped||timer||soon)return;if(reallyHidden()&&backgroundSync){soon=true;void Promise.resolve().then(()=>{soon=false;void pump()});return}timer=setTimeout(()=>{timer=undefined;void pump()},200)};
  const addMedia=()=>{if(domains.every(domain=>completed.has(domain)))for(const path of media)if(!completed.has(path)&&!failed.has(path)&&!refusedNow(path))enqueue(path)};
  const forget=async(task:string)=>{partials.delete(task);await repo.discardDatasetProgress(task)};
  // The receipt window moves with time: recompute it whenever the records check completes.
@@ -321,7 +334,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // only a domain a screen is waiting on runs.
  const pick=():string|undefined=>{
   const free=(task:string)=>!active.has(task)&&!held(task)&&!(versionsPending&&versionPeer(task)&&task!==requestedDomain);
-  if(activitySnapshot()>0||document.visibilityState==='hidden'){
+  if(activitySnapshot()>0||hidden()){
    const index=requestedDomain?queue.indexOf(requestedDomain):-1;
    return index>=0&&free(requestedDomain!)&&dataFlights()<DATASET_DATA_FLIGHTS?queue.splice(index,1)[0]:undefined;
   }
@@ -334,7 +347,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(stopped)return;
   if(!initialized){await initialize();return}
   if(!navigator.onLine||access.offlineOnly){paused=true;status();return}
-  if((activitySnapshot()>0||document.visibilityState==='hidden')&&!requestedDomain){status();return;}
+  if((activitySnapshot()>0||hidden())&&!requestedDomain){status();return;}
   addMedia();if(!queue.length){status();return}
   if(!await repo.syncAuthorized()){paused=true;if(requestedDomain&&!active.has(requestedDomain)){reportFailure(requestedDomain,0,'not_authorized',null);failedEvent(requestedDomain)}status();return}if(stopped)return;paused=false;
   // Picking is synchronous: overlapping pumps never start the same task twice or exceed the limits.
@@ -489,7 +502,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     if(!value.complete){
      if(!value.nextCursor||value.nextCursor===partial?.nextCursor)throw refuse('cursor_not_advanced');
      // R078: persist the first chunk of a walk (a resume point), then every few chunks, and before a pause.
-     const unsaved=(memo?.unsaved??0)+1,save=durable===null||unsaved>=DATASET_PROGRESS_SAVE_CHUNKS||document.visibilityState==='hidden'||!navigator.onLine;
+     const unsaved=(memo?.unsaved??0)+1,save=durable===null||unsaved>=DATASET_PROGRESS_SAVE_CHUNKS||reallyHidden()||!navigator.onLine;
      if(save&&!await repo.saveDatasetProgress(task,full,revision,durable))throw refuse('progress_refused');
      partials.set(task,save?{partial:full,bundle,saved:full.nextCursor,unsaved:0,revision}:{partial:full,bundle,saved:durable,unsaved,revision});
      chunkCounts.set(task,full.chunks);if(value.progress?.total>0)fractions.set(task,Math.min(.99,value.progress.completed/value.progress.total));
@@ -572,10 +585,13 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // A failed domain still in its back-off is left out of the cycle; the other domains refresh.
  // Work queued while hidden (a due retry) is joined by the rest rather than replacing the refresh;
  // a receipt downloading or queued never delays the data domains.
- const check=(force=false,trigger:DatasetCycleTrigger='focus')=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!walking()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets,trigger);for(const domain of targets)enqueue(domain)}}}resume()};
- // A real return to the app (focus, visible again) or reconnecting resets every back-off.
+ const check=(force=false,trigger:DatasetCycleTrigger='focus')=>{if(stopped||hidden()||!navigator.onLine||access.offlineOnly)return;if(!walking()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets,trigger);for(const domain of targets)enqueue(domain)}}}resume()};
+ // A real return to the app (focus, visible again) or reconnecting resets every back-off; every focus and return checks at
+ // once on every device (R171: no shortcut for a computer that kept syncing while hidden). The R163 quiet holds and
+ // quietUsed are left as they are (resetBackoff clears the back-off only).
  const focused=()=>{resetBackoff();check(true)},online=()=>{resetBackoff();check()};
- const visible=()=>{if(document.visibilityState!=='hidden'){resetBackoff();check(true)}status()};
+ // UX-HSYNC-05 (R171): visible again also re-arms the hold timer, so a hold that fell due while hidden fires at once.
+ const visible=()=>{if(document.visibilityState!=='hidden'){resetBackoff();check(true);armHold()}status()};
  // APP-OFFLINE-03: background poll every 30 seconds while visible and online; every focus,
  // visible-again and own-write invalidation (mw-read-invalidated) also refresh. Any full cycle
  // re-arms the poll, so a focus refresh is not followed by a redundant poll moments later.
@@ -589,7 +605,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // logged ('reconcile-mismatch', key names only) and heals: the bundle loses its source version and the domain
  // takes the Full sync path. Receipts are checked locally (present, non-empty, saved at or after their receipt time).
  let reconciling=false,reconcileAgain=false,reconcileUnsupported=false;
- const reconcileIdle=()=>!stopped&&initialized&&!paused&&navigator.onLine&&!access.offlineOnly&&document.visibilityState!=='hidden'&&activitySnapshot()===0&&!active.size&&!queue.length&&!failed.size&&!forceWalk.size&&domains.every(domain=>completed.has(domain));
+ const reconcileIdle=()=>!stopped&&initialized&&!paused&&navigator.onLine&&!access.offlineOnly&&!hidden()&&activitySnapshot()===0&&!active.size&&!queue.length&&!failed.size&&!forceWalk.size&&domains.every(domain=>completed.has(domain));
  // 'failed': the server could not answer (holds the next pass back); 'skipped': a local reason (no server cost).
  // A domain healed once in a slot is not walked again in that slot when it still differs (no walk loop).
  const healedSlot=new Map<string,number>();

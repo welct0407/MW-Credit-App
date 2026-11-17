@@ -20,6 +20,9 @@ export function SyncStatus({preparation,thai,visible,activity=null}:{preparation
  const [,tick]=useState(0),[requestedAt,setRequestedAt]=useState<number|null>(null),seenPending=useRef(false);
  const [announcement,setAnnouncement]=useState(''),wasSyncing=useRef(false),fullSync=useRef(false),texts=useRef({start:'',outcome:''}),clearTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
  useEffect(()=>{const timer=setInterval(()=>tick(value=>value+1),30000);return()=>clearInterval(timer)},[]);
+ // UX-HSYNC-04 (R171): the minute tick is throttled while the page is hidden, so a return re-renders at once and
+ // "Saved data from HH:MM" (or "Updated HH:MM") is right immediately.
+ useEffect(()=>{const shown=()=>{if(document.visibilityState!=='hidden')tick(value=>value+1)};document.addEventListener('visibilitychange',shown);return()=>document.removeEventListener('visibilitychange',shown)},[]);
  useEffect(()=>{const manual=(event:Event)=>{if((event as CustomEvent).detail?.full&&navigator.onLine)fullSync.current=true;if((event as CustomEvent).detail?.all&&navigator.onLine)setRequestedAt(current=>{if(current===null)seenPending.current=false;return current??Date.now()})};window.addEventListener('mw-offline-prepare',manual);return()=>window.removeEventListener('mw-offline-prepare',manual)},[]);
  useEffect(()=>{
   if(requestedAt===null)return;
