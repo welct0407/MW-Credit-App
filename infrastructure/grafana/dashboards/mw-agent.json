@@ -741,7 +741,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "#6E7079",
+              "fixedColor": "transparent",
               "mode": "fixed"
             },
             "decimals": 0,
@@ -749,40 +749,10 @@
             "mappings": [
               {
                 "options": {
-                  "0": {
-                    "color": "dark-red",
-                    "index": 0,
-                    "text": "Down"
-                  },
-                  "1": {
-                    "color": "#2E7D32",
-                    "index": 1,
-                    "text": "OK"
-                  },
-                  "2": {
-                    "color": "#A65200",
-                    "index": 2,
-                    "text": "Degraded"
-                  },
-                  "3": {
-                    "color": "dark-blue",
-                    "index": 3,
-                    "text": "Paused"
-                  },
-                  "4": {
-                    "color": "#6E7079",
-                    "index": 4,
-                    "text": "Unknown"
-                  }
-                },
-                "type": "value"
-              },
-              {
-                "options": {
                   "match": "null",
                   "result": {
                     "color": "#6E7079",
-                    "index": 5,
+                    "index": 0,
                     "text": "No report"
                   }
                 },
@@ -802,6 +772,67 @@
             "unit": "none"
           },
           "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Service"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "0": {
+                          "color": "dark-red",
+                          "index": 0,
+                          "text": "Down"
+                        },
+                        "1": {
+                          "color": "#2E7D32",
+                          "index": 1,
+                          "text": "OK"
+                        },
+                        "2": {
+                          "color": "#A65200",
+                          "index": 2,
+                          "text": "Degraded"
+                        },
+                        "3": {
+                          "color": "dark-blue",
+                          "index": 3,
+                          "text": "Paused"
+                        },
+                        "4": {
+                          "color": "#6E7079",
+                          "index": 4,
+                          "text": "Unknown"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 5,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#6E7079",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
             {
               "matcher": {
                 "id": "byName",
@@ -1350,7 +1381,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "#6E7079",
+              "fixedColor": "transparent",
               "mode": "fixed"
             },
             "decimals": 0,
@@ -1358,40 +1389,10 @@
             "mappings": [
               {
                 "options": {
-                  "0": {
-                    "color": "dark-red",
-                    "index": 0,
-                    "text": "Down"
-                  },
-                  "1": {
-                    "color": "#2E7D32",
-                    "index": 1,
-                    "text": "OK"
-                  },
-                  "2": {
-                    "color": "#A65200",
-                    "index": 2,
-                    "text": "Degraded"
-                  },
-                  "3": {
-                    "color": "dark-blue",
-                    "index": 3,
-                    "text": "Paused"
-                  },
-                  "4": {
-                    "color": "#6E7079",
-                    "index": 4,
-                    "text": "Unknown"
-                  }
-                },
-                "type": "value"
-              },
-              {
-                "options": {
                   "match": "null",
                   "result": {
                     "color": "#6E7079",
-                    "index": 5,
+                    "index": 0,
                     "text": "No report"
                   }
                 },
@@ -1411,6 +1412,67 @@
             "unit": "none"
           },
           "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "State"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "0": {
+                          "color": "dark-red",
+                          "index": 0,
+                          "text": "Down"
+                        },
+                        "1": {
+                          "color": "#2E7D32",
+                          "index": 1,
+                          "text": "OK"
+                        },
+                        "2": {
+                          "color": "#A65200",
+                          "index": 2,
+                          "text": "Degraded"
+                        },
+                        "3": {
+                          "color": "dark-blue",
+                          "index": 3,
+                          "text": "Paused"
+                        },
+                        "4": {
+                          "color": "#6E7079",
+                          "index": 4,
+                          "text": "Unknown"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 5,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#6E7079",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
             {
               "matcher": {
                 "id": "byName",
@@ -4298,7 +4360,7 @@
     "schemaVersion": 42,
     "tags": [
       "mw-credit",
-      "release:R166"
+      "release:R167"
     ],
     "templating": {
       "list": [

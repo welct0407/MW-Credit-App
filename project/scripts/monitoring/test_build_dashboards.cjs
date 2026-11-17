@@ -530,6 +530,26 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
 }
 // R091: the retired conversation stats (Now 5, Agent 3 and 5) and the two native-API values took 15 fields.
 assert.ok(classified >= 60, 'stat fields classified: ' + classified);
+// R167 (Grafana 13.4 applies panel-default value maps to every field, byName mappings notwithstanding): a stat whose
+// defaults map the state codes 0-4 to words shows only state-class fields; a panel that mixes a state with a number
+// (an age, a duration) keeps the state words in an override on the state field.
+for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
+  if (p.type !== 'stat') continue;
+  const stateMap = (p.fieldConfig.defaults.mappings || []).some(m => m.type === 'value' && Object.keys(m.options).some(k => ['0', '1', '2', '3', '4'].includes(k)));
+  if (!stateMap) continue;
+  const filter = (p.transformations || []).filter(t => t.id === 'filterFieldsByName').pop();
+  let names = (filter ? filter.options.include.names : (p.targets || []).flatMap(t => (t.columns || []).filter(c => !/^timestamp/.test(c.type)).map(c => c.text))).filter(n => n !== 'Time' && n !== 'Category');
+  const regex = p.options.reduceOptions && p.options.reduceOptions.fields;
+  if (regex && regex.startsWith('/')) names = names.filter(n => new RegExp(regex.slice(1, -1)).test(n));
+  for (const name of names) assert.deepEqual(classOf(p, name), ['state'], uid + ' ' + p.id + ' "' + name + '" shares a panel-default state map but is not a state field');
+}
+for (const [id, name, other] of [[26, 'State', 'Run took'], [6, 'Service', 'Running for']]) {
+  const p = built['mw-agent'].spec.panels.find(x => x.id === id);
+  assert.deepEqual(p.fieldConfig.defaults.mappings, [L.nullMap('No report')], 'mw-agent ' + id + ' defaults hold only No report');
+  const props = n => Object.fromEntries(p.fieldConfig.overrides.filter(o => o.matcher.options === n).flatMap(o => o.properties.map(x => [x.id, x.value])));
+  assert.deepEqual(props(name).mappings, L.stateMappings(L.STATE_TEXT, 'No report'), 'mw-agent ' + id + ' ' + name + ' carries the state words');
+  assert.ok(!JSON.stringify(props(other).mappings || []).includes('Degraded'), 'mw-agent ' + id + ' ' + other + ' has no state words');
+}
 // R090: the per-question cost uses the page's SGD unit (Grafana has no 'currencySGD'; it printed the unit name).
 const costUnit = panelOf('mw-cost', 50).fieldConfig.overrides.find(o => o.matcher.options === 'Cost (SGD)').properties;
 assert.deepEqual([costUnit.find(x => x.id === 'unit').value, costUnit.find(x => x.id === 'decimals').value], ['prefix:S$', 2]);
