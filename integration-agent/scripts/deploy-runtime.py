@@ -40,6 +40,10 @@ shape: the candidate's services are exactly the repository revision 38 template'
 match them and the live switches are kept. The new behaviour runs under the existing group_chat_summary_enabled switch.
 R166 (group chat summary statistics): the one accepted change of a live revision 39 to the candidate revision 40, the
 same R112 shape (services unchanged since revision 38): the run's numbers go into its JOB record for the Grafana tiles.
+R168 (group chat summary latency): the one accepted change of a live revision 40 to the candidate revision 41, the same
+R112 shape (services unchanged since revision 38): a 3-minute quiet rule, its own conversation-list page sizes with an
+early stop, and the run's stage seconds and Instagram call count in its JOB record. The one-minute timer is a unit file,
+installed with the unit files, not by this helper.
 `deploy-shared-receipt-api.py` is the engine; this file supplies the preparation. The probe is the engine's
 read-only receipt-status GET (the native conversation probe left with the conversation)."""
 import copy
@@ -85,6 +89,9 @@ R165_TEMPLATE_SHA256='5f1681398e785ae675515009cb79d1717fe1ff41ba3160060a6fdf4d48
 R166_REVISIONS=(39,40)
 # The repository revision 39 catalogue's services, unchanged in revision 40 (the same template as R165's).
 R166_TEMPLATE_SHA256=R165_TEMPLATE_SHA256
+R168_REVISIONS=(40,41)
+# The repository revision 40 catalogue's services, unchanged in revision 41 (the same template as R165's).
+R168_TEMPLATE_SHA256=R165_TEMPLATE_SHA256
 # R144: the release of the commit being deployed, from --release (main); None leaves the release unknown.
 RELEASE_PATTERN=re.compile('R[0-9]{3}')
 RELEASE={'value':None}
@@ -112,6 +119,7 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff,release=Non
     r146=(catalogue.get('revision'),candidate.get('revision'))==R146_REVISIONS
     r165=(catalogue.get('revision'),candidate.get('revision'))==R165_REVISIONS
     r166=(catalogue.get('revision'),candidate.get('revision'))==R166_REVISIONS
+    r168=(catalogue.get('revision'),candidate.get('revision'))==R168_REVISIONS
     if r146:
         base.require(wanted-live==R146_SERVICES and live<=wanted,'R146 catalogue must add exactly group_chat_summary')
         base.require(all(candidate['services'][k]=={'enabled':False,'implemented':True} for k in R146_SERVICES),'R146 group_chat_summary must arrive disabled')
@@ -144,6 +152,10 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff,release=Non
         # Repository revision 40 against repository revision 39: no service definition or default switch changed.
         base.require(services_sha256(candidate['services'])==R166_TEMPLATE_SHA256,'R166 candidate must keep the revision 39 services and switches')
         base.require(live==wanted,'R166 catalogue must keep every service')
+    elif r168:
+        # Repository revision 41 against repository revision 40: no service definition or default switch changed.
+        base.require(services_sha256(candidate['services'])==R168_TEMPLATE_SHA256,'R168 candidate must keep the revision 40 services and switches')
+        base.require(live==wanted,'R168 catalogue must keep every service')
     else:
         base.require(catalogue.get('revision')==candidate.get('revision'),'Catalogue revision drift')
         base.require(live==wanted,'Service drift')
@@ -175,6 +187,9 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff,release=Non
     if r166:
         cat['revision']=candidate['revision']
         base.require(cat['services']==catalogue['services'],'R166 must keep the live switches')
+    if r168:
+        cat['revision']=candidate['revision']
+        base.require(cat['services']==catalogue['services'],'R168 must keep the live switches')
     if r102:
         cat['revision']=candidate['revision']
         for name in R102_SERVICES:cat['services'][name]=dict(candidate['services'][name])
