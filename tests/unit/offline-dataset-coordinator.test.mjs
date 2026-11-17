@@ -678,36 +678,25 @@ test('R171 UX-HSYNC-02 a computer returning mid-walk joins it: no new cycle, no 
   assert.ok(tap.some(state=>state.domainsPending),'the tap\'s sync is pending (the header shows its progress)');
  }finally{h.stop()}
 });
-test('R171 UX-HSYNC-03 a computer back within 30 s asks nothing new but re-queues failed work; later, or never checked, it checks',async()=>{
- const failing={domain:'notifications',status:404,code:'gone',times:0};
- const h=harness({userAgent:WINDOWS,walks:{cash:1},failing});try{
-  await settled(h);
-  // Back within 30 s with nothing failed: no request.
-  let before=h.requests.length;h.hide();h.show();h.window.dispatchEvent(new Event('focus'));await wait(150);
-  assert.equal(h.requests.length,before,'no request');
-  // notifications fails (404: back-off, no quiet retry); a return within 30 s resets the back-off and asks it again only.
-  failing.times=1;h.poll();
-  await until(()=>h.state().failedDomains==='notifications');await wait(50);
-  before=h.requests.length;h.hide();h.show();
-  await until(()=>h.requests.length>before);await until(()=>!h.state().domainsPending);
-  assert.deepEqual(h.requests.slice(before).map(request=>request.domain),['notifications'],'the failed task only, its back-off reset');
-  assert.equal(h.state().failedDomains,'');
-  // 30 s or more since the last check: the return checks every domain.
-  h.advance(30000);before=h.requests.length;h.hide();h.show();
-  await until(()=>h.requests.slice(before).some(request=>request.domain==='records'));
- }finally{h.stop()}
- // Never checked (the first download failed): the return checks.
- const failed={domain:'notifications',status:404,code:'gone',times:1};const g=harness({userAgent:WINDOWS,walks:{cash:1},failing:failed});try{
-  await until(()=>g.state().failedDomains==='notifications');assert.equal(g.state().lastChecked,null);
-  const before=g.requests.length;g.hide();g.show();
-  await until(()=>g.requests.slice(before).some(request=>request.domain==='records'));
- }finally{g.stop()}
-});
-test('R171 UX-HSYNC-03 a phone checks on every return',async()=>{
- const h=harness({userAgent:IPHONE,maxTouchPoints:5});try{
-  await settled(h);const before=h.requests.length;h.hide();h.show();
-  await until(()=>h.requests.slice(before).some(request=>request.domain==='records'));
- }finally{h.stop()}
+test('R171 every focus and return checks at once on every device (the 30 s shortcut was dropped); a failed task\'s back-off is reset',async()=>{
+ for(const [agent,touch] of [[WINDOWS,0],[IPHONE,5]]){
+  const failing={domain:'notifications',status:404,code:'gone',times:0};
+  const h=harness({userAgent:agent,maxTouchPoints:touch,failing});try{
+   await settled(h);
+   // Back within seconds of the last check: still a check of every domain (records asks the versions).
+   let before=h.requests.length;h.hide();h.show();
+   await until(()=>h.requests.slice(before).some(request=>request.domain==='records'),2000);
+   await until(()=>!h.state().domainsPending);
+   before=h.requests.length;h.window.dispatchEvent(new Event('focus'));
+   await until(()=>h.requests.slice(before).some(request=>request.domain==='records'),2000);
+   await until(()=>!h.state().domainsPending);
+   // A failed domain (404: back-off, no quiet retry) is asked again on return: the back-off is reset.
+   failing.times=1;h.poll();await until(()=>h.state().failedDomains==='notifications');await wait(50);
+   before=h.requests.length;h.hide();h.show();
+   await until(()=>h.requests.slice(before).some(request=>request.domain==='notifications'),2000);
+   await until(()=>h.state().failedDomains===''&&!h.state().domainsPending);
+  }finally{h.stop()}
+ }
 });
 test('R171 UX-HSYNC-05 a quiet retry while hidden publishes no failure; an overdue hold fires on return; a second failure shows',async()=>{
  const failing={domain:'notifications',status:503,code:'temporary',times:0};

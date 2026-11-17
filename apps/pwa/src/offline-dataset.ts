@@ -586,14 +586,12 @@ export function startOfflinePreparation(access:Access,options:OfflinePreparation
  // Work queued while hidden (a due retry) is joined by the rest rather than replacing the refresh;
  // a receipt downloading or queued never delays the data domains.
  const check=(force=false,trigger:DatasetCycleTrigger='focus')=>{if(stopped||hidden()||!navigator.onLine||access.offlineOnly)return;if(!walking()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets,trigger);for(const domain of targets)enqueue(domain)}}}resume()};
- // A real return to the app (focus, visible again) or reconnecting resets every back-off.
- // UX-HSYNC-03 (R171): a computer that kept syncing while hidden and checked less than DATASET_POLL_MS ago only re-queues
- // failed work on return (resume); otherwise, and always on a phone, the return checks every domain. The R163 quiet holds
- // and quietUsed are left as they are (resetBackoff clears the back-off only).
- const returned=()=>{resetBackoff();if(backgroundSync&&lastChecked!==null&&Date.now()-lastChecked<DATASET_POLL_MS)resume();else check(true)};
- const focused=()=>{returned()},online=()=>{resetBackoff();check()};
- // UX-HSYNC-05: visible again re-arms the hold timer, so a hold that fell due while the page was hidden fires at once.
- const visible=()=>{if(document.visibilityState!=='hidden'){returned();armHold()}status()};
+ // A real return to the app (focus, visible again) or reconnecting resets every back-off; every focus and return checks at
+ // once on every device (R171: no shortcut for a computer that kept syncing while hidden). The R163 quiet holds and
+ // quietUsed are left as they are (resetBackoff clears the back-off only).
+ const focused=()=>{resetBackoff();check(true)},online=()=>{resetBackoff();check()};
+ // UX-HSYNC-05 (R171): visible again also re-arms the hold timer, so a hold that fell due while hidden fires at once.
+ const visible=()=>{if(document.visibilityState!=='hidden'){resetBackoff();check(true);armHold()}status()};
  // APP-OFFLINE-03: background poll every 30 seconds while visible and online; every focus,
  // visible-again and own-write invalidation (mw-read-invalidated) also refresh. Any full cycle
  // re-arms the poll, so a focus refresh is not followed by a redundant poll moments later.

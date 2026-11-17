@@ -43,7 +43,7 @@ async function signedIn(page:Page){
  return server;
 }
 
-test('a hidden computer keeps syncing: the poll walks the changed records while hidden; the return asks nothing and shows no progress',async({page},info)=>{
+test('a hidden computer keeps syncing: the poll walks the changed records while hidden; the return checks quietly and shows no progress',async({page},info)=>{
  test.skip(info.project.name!=='desktop-chromium','computer user agent only');
  const server=await signedIn(page);
  // UX-HSYNC-01: every text the live region receives from here on (it never re-mounts); a quiet sync writes none.
@@ -54,9 +54,11 @@ test('a hidden computer keeps syncing: the poll walks the changed records while 
  await expect.poll(()=>server.asked.slice(hiddenFrom).filter(asked=>asked.domain==='records').map(asked=>asked.cursor),{timeout:15000}).toEqual([null,'1','2']);
  await expect.poll(()=>server.asked.slice(hiddenFrom).some(asked=>asked.domain==='notifications')).toBe(true);
  await expect(async()=>{const before=server.asked.length;await page.waitForTimeout(500);expect(server.asked.length).toBe(before)}).toPass({timeout:10000});
- // Back again within 30 s of that check: no new cycle, no request, no progress bar; the status reads ready.
- const returnedFrom=server.asked.length;await visibility(page,false);await page.waitForTimeout(1500);
- expect(server.asked.slice(returnedFrom)).toEqual([]);
+ // Back again: every focus checks at once (an unchanged check, nothing to walk), with no progress bar; the status reads ready.
+ const returnedFrom=server.asked.length;await visibility(page,false);
+ await expect.poll(()=>server.asked.slice(returnedFrom).some(asked=>asked.domain==='records')).toBe(true);
+ await page.waitForTimeout(1000);
+ expect(server.asked.slice(returnedFrom).filter(asked=>asked.cursor!==null)).toEqual([]);
  await expect(page.locator('.header-load-progress').filter({visible:true})).toHaveCount(0);
  await expect(status(page)).toContainText(/^Updated \d\d:\d\d$/);
  expect(await page.evaluate(()=>(window as any).said)).toEqual([]);
