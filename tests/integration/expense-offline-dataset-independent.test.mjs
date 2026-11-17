@@ -57,7 +57,7 @@ function client(){
  }
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
  window.addEventListener('mw-offline-dataset-ready',event=>events.push(event.detail.domain+':'+event.detail.changed));
- const sandbox={exports:{},require:name=>name==='./client-events'?{recordClientEvent:()=>{}}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:(()=>{throw Error('Unexpected import '+name)})(),
+ const sandbox={exports:{},require:name=>name==='./client-events'?{recordClientEvent:()=>{}}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:name==='./ig-group-url'?{chatDevice:()=>'phone'}:(()=>{throw Error('Unexpected import '+name)})(),
   window,document,navigator:{onLine:true},fetch,setTimeout,clearTimeout,URL,crypto:globalThis.crypto,TextEncoder,structuredClone,Intl,CustomEvent,Event,AbortController,Headers,console};
  runInNewContext(source,sandbox);
  const access={origin:'https://command.synthetic.invalid',offline:repo,token:async()=>'synthetic',authFailure:()=>{}};
