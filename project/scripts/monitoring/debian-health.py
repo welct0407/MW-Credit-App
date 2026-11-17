@@ -630,17 +630,82 @@ FROM ops""",
  WHERE o.service_name='receipt_image_extraction' AND o.created_at>=now()-interval '24 hours' GROUP BY o.operation_id) x
 WHERE ended_at IS NOT NULL AND seconds IS NOT NULL AND ended_at>%s ORDER BY ended_at DESC LIMIT 1""",
 }
+# R166 group chat summary (mw-group-chat-summary): counts, ages, durations and fixed error codes only. The agent writes
+# the numbers of each non-idle run into runtime.job_runs.summary->'effect' (cli.py); idle runs touch the heartbeat only.
+GROUP_CHAT_SERVICE = 'group-chat-summary'
+GROUP_CHAT_STALE_SECONDS = 600       # no run for 10 minutes (the timer runs every 2): health 0
+GROUP_CHAT_BACKLOG_SECONDS = 1200    # the oldest waiting group past 20 minutes (target 10): health 2, and the alert
+GROUP_CHAT_REFRESH_LATE_SECONDS = 360  # the PWA stops waiting for a Refresh tap after 6 minutes
+GROUP_CHAT_ERROR_CODES = 3           # at most this many last_error:<CODE> fields (the most frequent first)
+ERROR_CODE = re.compile(r'[A-Z][A-Z0-9_]{0,63}')
+
+
+def _effect_number(path):
+    """A numeric leaf of the run's effect, NULL when absent or not a number (a malformed summary never fails the read)."""
+    return f"CASE WHEN jsonb_typeof(e#>'{{{path}}}')='number' THEN (e#>>'{{{path}}}')::numeric END"
+
+
+def _effect_samples(path):
+    """The numbers of an array leaf of the run's effect, one row each."""
+    return (f"SELECT (v#>>'{{}}')::numeric AS x FROM runs, jsonb_array_elements(CASE WHEN jsonb_typeof(e#>'{{{path}}}')='array' "
+            f"THEN e#>'{{{path}}}' ELSE '[]'::jsonb END) v WHERE jsonb_typeof(v)='number'")
+
+
+AGENT_QUERIES.update({
+    'group_chat_heartbeat': f"""SELECT floor(extract(epoch FROM now()-last_finished_at))::bigint,
+ CASE WHEN last_finished_at>=last_started_at THEN round(extract(epoch FROM last_finished_at-last_started_at))::bigint END
+FROM runtime.service_heartbeats WHERE service_name='{GROUP_CHAT_SERVICE}'""",
+    'group_chat_state': """SELECT count(*) FILTER (WHERE changed_at IS NOT NULL),
+ floor(extract(epoch FROM now())-min(changed_at))::bigint,
+ count(*) FILTER (WHERE changed_at IS NOT NULL AND attempts>0)
+FROM runtime.group_chat_summary_state""",
+    'group_chat_runs': f"""WITH runs AS (SELECT summary->'effect' AS e FROM runtime.job_runs
+ WHERE service_name='{GROUP_CHAT_SERVICE}' AND started_at>=now()-interval '24 hours' AND jsonb_typeof(summary->'effect')='object'),
+waits AS ({_effect_samples('waits')}), taps AS ({_effect_samples('refresh,seconds')})
+SELECT coalesce(sum({_effect_number('outcomes,stored')}),0)::bigint,
+ coalesce(sum({_effect_number('outcomes,unchanged')}),0)::bigint+coalesce(sum({_effect_number('outcomes,superseded')}),0)::bigint,
+ coalesce(sum({_effect_number('outcomes,cleared')}),0)::bigint,
+ coalesce(sum({_effect_number('deferred')}),0)::bigint,
+ coalesce(sum({_effect_number('failed')}),0)::bigint,
+ (SELECT round(percentile_cont(0.5) WITHIN GROUP (ORDER BY x))::bigint FROM waits),
+ (SELECT round(max(x))::bigint FROM waits),
+ coalesce(sum({_effect_number('refresh,reported')}),0)::bigint,
+ (SELECT round(percentile_cont(0.5) WITHIN GROUP (ORDER BY x))::bigint FROM taps),
+ (SELECT round(max(x))::bigint FROM taps),
+ (SELECT count(*) FROM taps WHERE x>{GROUP_CHAT_REFRESH_LATE_SECONDS}),
+ coalesce(sum({_effect_number('refresh,outcomes,failed')}),0)::bigint+coalesce(sum({_effect_number('refresh,outcomes,no_group')}),0)::bigint
+FROM runs""",
+    'group_chat_error': f"""SELECT finished_at,summary#>'{{effect,errors}}' FROM runtime.job_runs
+WHERE service_name='{GROUP_CHAT_SERVICE}' AND started_at>=now()-interval '7 days' AND finished_at IS NOT NULL
+ AND jsonb_typeof(summary#>'{{effect,errors}}')='object' AND summary#>'{{effect,errors}}'<>'{{}}'::jsonb
+ORDER BY finished_at DESC LIMIT 1""",
+    # One model call: its operation's first to last event. The slowest call that ended after the saved cursor, and the
+    # newest end (the next cursor), so a call is never exported twice.
+    'group_chat_call': """WITH calls AS (SELECT max(e.occurred_at) AS ended_at,extract(epoch FROM max(e.occurred_at)-min(e.occurred_at)) AS seconds
+ FROM audit.operations o JOIN audit.events e ON e.operation_id=o.operation_id
+ WHERE o.service_name='group_chat_summary_model' AND o.created_at>=now()-interval '24 hours'
+ GROUP BY o.operation_id HAVING bool_or(e.event_kind IN ('completed','failed')))
+SELECT (array_agg(ended_at ORDER BY seconds DESC,ended_at DESC))[1],max(seconds),max(ended_at) FROM calls WHERE ended_at>%s""",
+})
+CURSOR_QUERIES = ('recognizer_call', 'group_chat_call')
 
 
 def agent_reader(config, since):
-    """Run AGENT_QUERIES in one READ ONLY worker transaction on mw_agent."""
+    """Run AGENT_QUERIES in one READ ONLY worker transaction on mw_agent, 8 s per statement.
+
+    R166: each query runs in its own savepoint; a query that fails (a missing table, a timeout) gives None for its name
+    only, so one failing source never blanks another (the recognizer's counts stay)."""
     from mw_integration_agent.state import transaction
     with transaction(config, readonly=True) as conn:
         conn.execute("SET LOCAL statement_timeout='8s'")
         out = {}
         for name, sql in AGENT_QUERIES.items():
-            params = (since.get(name) or dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc),) if name == 'recognizer_call' else None
-            out[name] = [tuple(r.values()) if isinstance(r, dict) else tuple(r) for r in conn.execute(sql, params).fetchall()]
+            params = (since.get(name) or dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc),) if name in CURSOR_QUERIES else None
+            try:
+                with conn.transaction():
+                    out[name] = [tuple(r.values()) if isinstance(r, dict) else tuple(r) for r in conn.execute(sql, params).fetchall()]
+            except Exception:
+                out[name] = None
         return out
 
 
@@ -648,26 +713,122 @@ def as_count(value):
     return value if type(value) is int and value >= 0 else None
 
 
-def agent_snapshot(config, last_points, reader=agent_reader):
-    """Recognizer counts and the newest extraction.
+GROUP_CHAT_SECTIONS = ('group_chat_heartbeat', 'group_chat_state', 'group_chat_runs', 'group_chat_error')
 
-    Returns {'recognizer': {...}, 'recognizer_call': (end, {...}) or None}; an unreadable agent database yields
-    empty sections.
+
+def empty_agent_snapshot():
+    return {'recognizer': {}, 'recognizer_call': None, 'group_chat': dict.fromkeys(GROUP_CHAT_SECTIONS), 'group_chat_call': None}
+
+
+def agent_snapshot(config, last_points, reader=agent_reader):
+    """Recognizer counts and the newest extraction; R166 the group chat summary sections and its slowest new model call.
+
+    Returns {'recognizer': {...}, 'recognizer_call': (end, {...}) or None, 'group_chat': {section: rows or None},
+    'group_chat_call': (end, {...}, cursor) or None}; an unreadable agent database or query yields that section empty
+    (None for a group chat section), and each section is parsed on its own.
     """
-    since = {'recognizer_call': parse_iso(last_points.get('recognizer_call'))}
-    out = {'recognizer': {}, 'recognizer_call': None}
+    since = {'recognizer_call': parse_iso(last_points.get('recognizer_call')),
+             'group_chat_call': parse_iso(last_points.get('group_chat_summary_call'))}
+    out = empty_agent_snapshot()
     try:
         rows = reader(config, since)
     except Exception:
         return out
-    if rows.get('recognizer'):
-        values = rows['recognizer'][0]
-        out['recognizer'] = dict(zip(('extractions_24h', 'valid_24h', 'timeouts_24h', 'unreadable_24h'), map(as_count, values)))
-    if rows.get('recognizer_call'):
-        ended, seconds = rows['recognizer_call'][0]
-        if isinstance(ended, dt.datetime) and seconds is not None and float(seconds) >= 0:
-            out['recognizer_call'] = (ended, {'seconds': int(round(float(seconds)))})
+    try:
+        if rows.get('recognizer'):
+            values = rows['recognizer'][0]
+            out['recognizer'] = dict(zip(('extractions_24h', 'valid_24h', 'timeouts_24h', 'unreadable_24h'), map(as_count, values)))
+    except Exception:
+        pass
+    try:
+        if rows.get('recognizer_call'):
+            ended, seconds = rows['recognizer_call'][0]
+            if isinstance(ended, dt.datetime) and seconds is not None and float(seconds) >= 0:
+                out['recognizer_call'] = (ended, {'seconds': int(round(float(seconds)))})
+    except Exception:
+        pass
+    for name in GROUP_CHAT_SECTIONS:
+        value = rows.get(name)
+        out['group_chat'][name] = [tuple(row) for row in value] if isinstance(value, list) else None
+    try:
+        if rows.get('group_chat_call'):
+            ended, seconds, newest = rows['group_chat_call'][0]
+            if isinstance(ended, dt.datetime) and isinstance(newest, dt.datetime) and seconds is not None and float(seconds) >= 0:
+                out['group_chat_call'] = (ended, {'seconds': int(round(float(seconds)))}, newest)
+    except Exception:
+        pass
     return out
+
+
+def _number(value):
+    """An int, float or Decimal as a float; None otherwise (bool is not a number here)."""
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        return float(value) if isinstance(value, (int, float)) or type(value).__name__ == 'Decimal' else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _count(value):
+    number = _number(value)
+    return int(number) if number is not None and number >= 0 else 0
+
+
+def _duration(value):
+    """Seconds, or -1 when there is no sample (the dashboard shows None)."""
+    number = _number(value)
+    return int(round(number)) if number is not None and number >= 0 else -1
+
+
+def group_chat_fields(config, sections, now):
+    """(health, worker_timing fields) of the group chat summary.
+
+    Health: 3 Paused (switch off), 4 unreadable, 0 no run for 10 minutes, 2 the oldest waiting group over 20 minutes,
+    1 otherwise. Fields are explicit every run from a readable source: counts 0 and durations -1 when there is nothing;
+    the fields of an unreadable source are left out (No report). last_error_at is 0 when no run of the last 7 days
+    reported an error. oldest_wait_seconds is -1 when nothing waits and while Paused (the tile reads None)."""
+    enabled = config.get('group_chat_summary_enabled') is True
+    # The summariser always calls Claude: provider 3 and the configured model, for the dashboard's model tile.
+    fields = {'provider': PROVIDER_CODES['claude'], **model_field(config, 'group_chat', {'group_chat': ('group_chat_summary_model', None)})}
+    beat, state, runs, error = (sections.get(name) for name in GROUP_CHAT_SECTIONS)
+    if beat is not None:
+        row = beat[0] if beat else (None, None)
+        fields['last_run_age_seconds'] = _duration(row[0])
+        fields['last_run_seconds'] = _duration(row[1])
+    if state is not None:
+        waiting, oldest, backoff = state[0] if state else (0, None, 0)
+        fields['waiting'] = _count(waiting)
+        fields['oldest_wait_seconds'] = _duration(oldest) if fields['waiting'] else -1
+        fields['backoff_groups'] = _count(backoff)
+    if runs is not None:
+        row = runs[0] if runs else (None,) * 12
+        names = ('stored_24h', 'unchanged_24h', 'cleared_24h', 'deferred_24h', 'failed_24h', 'wait_median_seconds',
+                 'wait_max_seconds', 'refresh_taps_24h', 'refresh_median_seconds', 'refresh_max_seconds', 'refresh_late_24h',
+                 'refresh_failed_24h')
+        for name, value in zip(names, row):
+            fields[name] = _duration(value) if name.endswith('_seconds') else _count(value)
+    if error is not None:
+        fields['last_error_at'] = 0
+        if error:
+            finished, codes = error[0]
+            if isinstance(finished, dt.datetime) and isinstance(codes, dict):
+                fields['last_error_at'] = int(finished.timestamp())
+                valid = sorted(((code, count) for code, count in codes.items()
+                                if isinstance(code, str) and ERROR_CODE.fullmatch(code) and type(count) is int and count > 0),
+                               key=lambda item: (-item[1], item[0]))
+                # The value is the code's rank: 1 the most frequent (the dashboard shows it, and "+N" for the others).
+                for rank, (code, _) in enumerate(valid[:GROUP_CHAT_ERROR_CODES], 1):
+                    fields['last_error:' + code] = rank
+    if not enabled:
+        fields['oldest_wait_seconds'] = -1
+        return 3, fields
+    if beat is None or state is None:
+        return 4, fields
+    age = fields['last_run_age_seconds']
+    if age < 0 or age > GROUP_CHAT_STALE_SECONDS:
+        return 0, fields
+    return (2 if fields['oldest_wait_seconds'] > GROUP_CHAT_BACKLOG_SECONDS else 1), fields
 
 
 def parse_iso(value):
@@ -770,7 +931,10 @@ def collect_r089(config, token, uptime, now, result, polling_timing, extras, rep
         agent = pool.submit(agent_snapshot, config, points, reader)
     health = {c: safely(f, 0) for c, f in api.items()}
     health['recognizer'] = safely(recognizer, 0)
-    agent = safely(agent, {'recognizer': {}, 'recognizer_call': None})
+    agent = safely(agent, empty_agent_snapshot())
+    # R166: the group chat summary lane (not in debian-alert.jq; its backlog alert is the Grafana rule).
+    group_status, group_fields = safely_call(lambda: group_chat_fields(config, agent['group_chat'], now), (4, {}))
+    health['group_chat_summary'] = group_status
     unit = lambda name: safely_call(lambda: props(name), None)
     timing = []
     recognizer_unit = unit('mw-receipt-recognition.service') or {}
@@ -786,6 +950,7 @@ def collect_r089(config, token, uptime, now, result, polling_timing, extras, rep
     stat, stat_state = pg_stat_fields((extras or {}).get('pg_stat'), points.get('pg_stat'), now)
     timing.append(('pg_stat', stat, None))
     timing.append(('webhook_local', {'code_version_match': code_version_match(config, reported_version)}, None))
+    timing.append(('group_chat_summary', group_fields, None))
     new_points = dict(points)
     if stat_state is not None:
         new_points['pg_stat'] = stat_state
@@ -795,6 +960,12 @@ def collect_r089(config, token, uptime, now, result, polling_timing, extras, rep
             if now - ended.timestamp() <= 86400:
                 timing.append((component, fields, ended.astimezone(dt.timezone.utc).isoformat()))
                 new_points[component] = ended.isoformat()
+    # R166: the slowest group chat model call since the last one sent; the cursor moves to the newest end seen.
+    if agent.get('group_chat_call'):
+        ended, fields, newest = agent['group_chat_call']
+        if now - ended.timestamp() <= 86400:
+            timing.append(('group_chat_summary_call', fields, ended.astimezone(dt.timezone.utc).isoformat()))
+            new_points['group_chat_summary_call'] = newest.isoformat()
     return {'metabase': safely(metabase, {}), 'health': health, 'timing': timing, 'points': new_points}
 
 

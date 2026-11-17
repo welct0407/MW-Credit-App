@@ -30,7 +30,7 @@ Five dashboards in folder MW Resource Monitoring, all tagged `mw-credit`, all wi
 | --- | --- | --- | --- |
 | [Now](https://monitor.mw-credit.com/d/mw-now) (home) | `mw-now` | Last 3 hours ending now, 1-minute refresh | PROD only: whether everything works, what is firing, headroom |
 | [PWA & APIs](https://monitor.mw-credit.com/d/mw-pwa) | `mw-pwa` | Last 24 hours ending 2 minutes ago, 2-minute refresh | Hosting, reader, command, notify, jobs and chat Cloud Run services per environment, the in-app chat's turns, schedulers, push, recognition route |
-| [Agent & Receipts](https://monitor.mw-credit.com/d/mw-agent) | `mw-agent` | Last 6 hours ending now, 1-minute refresh | Receipt pipeline, recognizer, workers and timers, connectivity |
+| [Agent & Receipts](https://monitor.mw-credit.com/d/mw-agent) | `mw-agent` | Last 6 hours ending now, 1-minute refresh | Receipt pipeline, recognizer, group chat summary (R166), workers and timers, connectivity |
 | [Infrastructure](https://monitor.mw-credit.com/d/mw-infra) | `mw-infra` | Last 24 hours ending now, 5-minute refresh | Cloud SQL, Cloud Run table (full width), Debian VM, Metabase on Railway (Azure VM-01 row removed 8 November 2026) |
 | [Cost](https://monitor.mw-credit.com/d/mw-cost) | `mw-cost` | Month to date, 1-hour refresh | GCP and Railway cost in SGD (Azure removed 8 November 2026); Claude API month against its US$200 limit in USD, outside the total |
 
@@ -95,6 +95,27 @@ Everything is Debian-backed except the webhook check and the two public status f
 | 13 | Connectivity · code version | 1 when the receiver's code version matches the deployed commit prefix | Closes the former known gap for `webhook_code_version` |
 
 Rows by component: Receipt pipeline (20: panels 1, 2, 14), Receipt recognizer (21: 6, 12, 7, 8), Agent workers and timers (23: 9), Connectivity and providers (24: 10, 11, 13).
+
+**Group chat summary (R166, row 25 "Group chat summary · mw-group-chat-summary on Debian")** shows how the integration agent's `group_chat_summary` service performs: when it last ran, what is waiting, what failed, outcomes, how long groups wait, the model and its call time, and the refresh button's taps (R165). It reads the collector's `worker_timing{component="group_chat_summary"}`, `health{group_chat_summary}` and `worker_timing{group_chat_summary_call}` series (Debian-backed; counts and timings only, no chat text, no borrower data). The collector sends a count as 0 and a duration as -1 when there is nothing to report, so a quiet day reads None and never a healthy-looking zero; a missing or stale value reads No report. Requested by the owner on 17 November 2026 (all seven candidate tiles accepted). There is no DEV Grafana, so it is checked in CI until PROD.
+
+| ID | Panel (grid x, y, w, h) | Shows | Notes |
+| --- | --- | --- | --- |
+| 25 | Group chat summary · mw-group-chat-summary on Debian (row) | Plain header | Rows below it |
+| 26 | Group chat · last run (0, 29, 8, 7) | State, time since the newest run finished, and how long it took | State: OK, Degraded (oldest waiting group over 20 minutes), Down (no run finished for 10 minutes; the timer runs every 2), Paused (blue; `group_chat_summary_enabled` off; does not page), Unknown (agent database unreadable). Last run orange from 6 minutes; Run took orange from 120 s and red from 150 s (the run budget); None until a run is recorded (shown transparent, not grey) |
+| 27 | Group chat · waiting (8, 29, 8, 7) | Groups waiting for a summary and how long the oldest has waited | Oldest wait orange from 10 minutes (the target); the backlog alert pages after 20 minutes; None (green) when nothing waits or the service is Paused (the collector sends -1; the alert does not page on -1) |
+| 28 | Group chat · failures (16, 29, 8, 7) | Groups in back-off (last run failed; retry after 10 minutes doubling to 6 hours), and the last error as the most frequent code in words, plus the number of other codes, with its age, for example "Model timeout +1 · 2 h" (text-tile size, 20 px values, including In back-off) | In back-off orange above 0; last error from the newest run with a failure in 7 days (up to three codes ranked, most frequent first; the tile shows the first and "+N" for the others), None when there was none; the words are at most 15 characters (for example "Bad model reply") and an unknown code reads "Other error"; the previous summary always stays |
+| 29 | Group chat · outcomes 24 h (0, 36, 8, 10) | New summary, Unchanged (including superseded), Cleared, Postponed (by the run budget), Failed in the last 24 hours | Failed orange above 0; the others neutral; None when nothing of that kind |
+| 30 | Group chat · delay 24 h (8, 36, 8, 5) | Median and longest wait from a group's first new message to its summary, 24 hours | Orange from 10 minutes; None · 24 h (transparent) when no waiting group was summarised |
+| 31 | Group chat · model (8, 41, 8, 5) | Provider and model (Claude, `group_chat_summary_model`) | From the `provider` and `model:<id>` fields; neutral |
+| 32 | Group chat · refresh 24 h (16, 36, 8, 10) | Refresh taps served, median and longest wait from tap to answer, Timed out (over the PWA's 6-minute wait) and Failed (failed or no group) | Waits orange from 4 minutes; Timed out and Failed orange above 0; None · 24 h (transparent) when no tap |
+| 33 | Group chat · model time (0, 46, 24, 6) | The slowest summary model call since the collector's previous run, at that call's end time (each call once) | Points; red dashed line at 36 s, the model timeout; empty range reads "No summaries in selected range" |
+| 9 | Agent workers and timers (lane "Group chat", added) | The service's state, with the other lanes | Same state mapping as panel 26; the lane has no alert component of its own (the Debian alert is unchanged) |
+
+Error codes are shown in words from the dashboard's `GROUP_CHAT_ERRORS` list (for example `MODEL_TIMEOUT` "Model timeout", `GROUP_NOT_FOUND` "Group not found"; at most 15 characters; an unknown code reads "Other error"); grey is kept for a missing value ("No report"); quiet-day None and None · 24 h are transparent. The build's `group-chat-error.jq` turns the collector's `last_error:<CODE>` fields into text. Layout after R166: row 25 at y 28, the workers row at y 52 with panel 9 at y 53 (height 10), the connectivity row at y 63. `DASHBOARD_RELEASE` R166 changes the `release:R166` tag on all five dashboard JSON files; only `mw-agent` gains panels.
+
+Backlog: the oldest unserved group (`oldest_wait_seconds`, tile 27), in seconds, is the number the new alert rule watches (fresh and above 1,200 s for 5 minutes; Paused, stale or missing evaluate as 0 and do not page). A group that fails permanently keeps the backlog above its limit until the owner clears it by hand (owner decision, 17 November 2026); the alert is meant to stay on for it. The operator's step is in the [agent operations note](../../integration-agent/docs/OPERATIONS.md#clearing-a-permanently-failing-group-summary-r166).
+
+Rows by component (R166 adds): Group chat summary (25: panels 26 to 33).
 
 The bridge tiles of the previous row 5 (121 to 127) are not carried over; the Grafana-to-Dots bridge is being decommissioned and has no panel.
 
@@ -170,6 +191,7 @@ The nine remaining Performance 2m rules keep their names, labels and conditions 
 | Cloud SQL disk high | 8 | Infrastructure 3 |
 | Cloud SQL backup overdue | 19 | Infrastructure 5 |
 | Debian snapshot overdue | 19 | Infrastructure 5 |
+| Group chat summary backlog (R166; oldest unserved group over 1,200 s, pending 5 minutes; a permanently failing group is cleared by hand, see the [operations note](../../integration-agent/docs/OPERATIONS.md#clearing-a-permanently-failing-group-summary-r166)) | none | Agent & Receipts 27 (waiting), 28 (failures), 26 |
 
 ## Retired dashboards
 

@@ -552,8 +552,8 @@ class SelectionTests(Base):
         self.mark('clear', changed=self.now - 9000, text=self.now - 9000)
         self.db.execute("UPDATE group_chat_summary_state SET changed_at=NULL WHERE conversation_id='clear'")
         self.db.commit()
-        self.assertEqual([cid for cid, _ in summary.due(self.db, self.now)], ['quiet', 'starved', 'edge', 'subjects'])
-        self.assertEqual([cid for cid, _ in summary.due(self.db, self.now + 2)][0], 'backoff')
+        self.assertEqual([cid for cid, *_ in summary.due(self.db, self.now)], ['quiet', 'starved', 'edge', 'subjects'])
+        self.assertEqual([cid for cid, *_ in summary.due(self.db, self.now + 2)][0], 'backoff')
         for index in range(8):
             self.mark(f'more{index}', changed=self.now - 8000 - index)
         self.assertEqual(len(summary.due(self.db, self.now)), summary.MAX_GROUPS)
@@ -857,7 +857,7 @@ class OutputValidationTests(Base):
         self.assertEqual((value['borrowerIds'], value['summary'], value['conversationKey']), ([], None, summary.conversation_key('g1')))
         self.assertNotIn(MODEL_SENTINEL, json.dumps(value, ensure_ascii=False))
         self.assertEqual((result['summarised'], result['failed'], result['outcomes']), (1, 0, {'stored': 0, 'unchanged': 0, 'superseded': 0, 'cleared': 1}))
-        self.assertEqual(set(result), {'status', 'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors'})  # counts only
+        self.assertEqual(set(result), {'status', 'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits'})  # counts only (R166: waits in seconds)
         state = self.state()
         self.assertEqual((state['changed_at'], state['summarised_source_sha256'], state['summarised_at'], state['attempts'], state['last_error']),
                          (None, value['sourceSha256'], self.now, 0, None))
@@ -1244,6 +1244,72 @@ class RefreshTests(Base):
         listed.assert_not_called()
 
 
+class RunEffectTests(Base):
+    """R166: the numbers of a non-idle run for the JOB record (Grafana): counts, codes, waits and refresh seconds only."""
+    REQUEST = '0c970c97-0c97-4c97-8c97-0c970c970c97'
+
+    def test_waits_are_seconds_from_the_marker_and_a_requested_group_without_one_has_none(self):
+        self.mark('g1', changed=self.now - 700, member_borrower_ids=json.dumps(['B-A']))
+        self.mark('g2', member_borrower_ids=json.dumps(['B-C']), changed=self.now - 50, text=self.now - 50)  # not due yet
+        self.mark('g3', member_borrower_ids=json.dumps(['B-X']))
+        self.db.execute("UPDATE group_chat_summary_state SET changed_at=NULL WHERE conversation_id='g3'")
+        self.db.commit()
+        chats = [conversation(cid, self.members + [member('21', 'chai_invented'), member('30', 'xena_invented')], [message('m1', '20', 20, PROMISE)])
+                 for cid in ('g1', 'g2', 'g3')]
+        requests = Mock(return_value=[{'borrowerId': 'B-C', 'requestId': self.REQUEST, 'requestedAt': '2026-11-12T07:58:30.000Z'},
+                                      {'borrowerId': 'B-X', 'requestId': self.REQUEST[:-1] + '8', 'requestedAt': 'not a time'}])
+        result = self.run_cycle(self.api(*chats), refreshes=requests, report=Mock(return_value='completed'))
+        self.assertEqual(result['summarised'], 3)
+        # g2 (requested, marker 50 s old) and g1 (due, 700 s); g3 (requested, no marker) has no wait.
+        self.assertEqual(sorted(result['waits']), [50, 700])
+        self.assertEqual(result['refresh']['seconds'], [90])  # an unreadable requestedAt gives no sample
+        effect = summary.run_effect(result)
+        self.assertEqual(set(effect), {'due', 'summarised', 'failed', 'deferred', 'outcomes', 'errors', 'waits', 'refresh'})
+        self.assertEqual((effect['due'], effect['summarised'], effect['errors'], sorted(effect['waits'])), (1, 3, {}, [50, 700]))
+        self.assertEqual(effect['refresh'], {'reported': 2, 'pending': 0, 'outcomes': dict(result['refresh']['outcomes']), 'seconds': [90]})
+
+    def test_the_effect_carries_error_codes_with_counts_and_no_key_id_or_text(self):
+        for cid in ('g1', 'g2', 'gone'):
+            self.mark(cid)
+        api = self.api(*[conversation(cid, self.members, [message('m1', '20', 20, PROMISE + ' ' + SENTINEL)]) for cid in ('g1', 'g2')])
+        result = self.run_cycle(api, model=Mock(side_effect=summary.SummaryFailed('MODEL_TIMEOUT')))
+        effect = summary.run_effect(result)
+        self.assertEqual(effect['errors'], {'MODEL_TIMEOUT': 2, 'GROUP_NOT_FOUND': 1})
+        self.assertEqual((effect['failed'], effect['waits']), (3, []))
+        self.assertNotIn('refresh', effect)
+        text = json.dumps(effect, ensure_ascii=False)
+        for value in [summary.conversation_key(cid) for cid in ('g1', 'g2', 'gone')] + ['g1', 'gone', 'B-A', SENTINEL, 'conversation']:
+            self.assertNotIn(value, text)
+        self.assertEqual(summary.run_effect({**result, 'errors': [{'error': 'not a code'}, {'error': 'OK_CODE'}, 'x']})['errors'], {'OK_CODE': 1})
+
+    def test_idle_dry_backfill_and_busy_results_have_no_effect(self):
+        for result in ({'status': 'idle', 'due': 0, 'summarised': 0, 'failed': 0, 'deferred': 0, 'outcomes': {}, 'errors': []},
+                       {'status': 'dry_run', 'conversations': 3}, {'status': 'already_running'}, {'marked': 2, 'groups': 3}, None, []):
+            with self.subTest(result=result):
+                self.assertIsNone(summary.run_effect(result))
+
+    def test_the_cli_writes_the_effect_only_for_a_run_that_did_something(self):
+        from mw_integration_agent import cli
+        args = cli.build_parser().parse_args(['group-chat-summary', '--config', 'c', '--catalogue', 'k'])
+        busy = {'status': 'ok', 'due': 1, 'summarised': 1, 'failed': 0, 'deferred': 0, 'outcomes': {'stored': 1}, 'errors': [], 'waits': [600]}
+        idle = {'status': 'idle', 'due': 0, 'summarised': 0, 'failed': 0, 'deferred': 0, 'outcomes': {}, 'errors': [], 'waits': []}
+        failed = dict(busy, summarised=0, failed=1, outcomes={}, waits=[], errors=[{'conversation_key': 'a' * 32, 'error': 'MODEL_TIMEOUT'}])
+        for result, code, effect in ((busy, 0, {'due': 1, 'summarised': 1, 'failed': 0, 'deferred': 0, 'outcomes': {'stored': 1}, 'errors': {}, 'waits': [600]}),
+                                     (idle, 0, None), ({'status': 'already_running'}, 0, None),
+                                     (failed, 2, {'due': 1, 'summarised': 0, 'failed': 1, 'deferred': 0, 'outcomes': {}, 'errors': {'MODEL_TIMEOUT': 1}, 'waits': []})):
+            with self.subTest(status=result['status'], failed=result.get('failed')):
+                outcome = {'exit_code': None}
+                with patch.object(summary, 'run', return_value=result), contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(cli.execute(args, outcome), code)
+                self.assertEqual(outcome.get('effect'), effect)
+        # The backfill keeps its own effect; the dry run is never wrapped in a job.
+        args = cli.build_parser().parse_args(['group-chat-summary', '--config', 'c', '--catalogue', 'k', '--mark-all'])
+        outcome = {'exit_code': None}
+        with patch.object(summary, 'run', return_value={'marked': 2, 'groups': 3}), contextlib.redirect_stdout(io.StringIO()):
+            cli.execute(args, outcome)
+        self.assertEqual(outcome['effect'], {'marked': 2, 'groups': 3})
+
+
 class NoTextAtRestTests(Base):
     def test_sentinel_is_absent_from_output_audit_plans_and_state(self):
         from mw_integration_agent import cli
@@ -1415,7 +1481,7 @@ class MarkAllTests(Base):
                                          'summarised_source_sha256': None, 'summarised_at': None, 'attempts': 0, 'next_attempt_at': 0, 'last_error': None,
                                          'member_borrower_ids': '[]'})   # mark_all never writes the remembered members (R152)
         # Due at once (no last_text_at), oldest marker first; the ordinary cycle takes them from here.
-        self.assertEqual(sorted(cid for cid, _ in summary.due(self.db, self.now)), ['g-plain', 'g-referred'])
+        self.assertEqual(sorted(cid for cid, *_ in summary.due(self.db, self.now)), ['g-plain', 'g-referred'])
         # A second run changes nothing: both are already waiting.
         changes = self.db.total_changes
         again = summary.mark_all(self.config, api, master, self.db, self.now + 500)
@@ -1455,7 +1521,7 @@ class MarkAllTests(Base):
                          {'changed_at': self.now, 'last_text_at': self.now - 5000, 'attempts': 2, 'next_attempt_at': self.now + 300, 'last_error': 'POST_REFUSED'})
         # Neither is taken before its own wait or backoff allows.
         self.assertEqual(summary.due(self.db, self.now), [])
-        self.assertEqual([cid for cid, _ in summary.due(self.db, self.now + 300)], ['g-referred'])
+        self.assertEqual([cid for cid, *_ in summary.due(self.db, self.now + 300)], ['g-referred'])
 
     def test_the_cycle_then_summarises_a_marked_group_and_prunes_a_routine_only_one(self):
         self.db.executescript(GROUP_CHAT_SUMMARY_STATE_SQLITE)
@@ -1572,7 +1638,7 @@ class ConfigurationTests(unittest.TestCase):
     def test_catalogue_knows_the_service_disabled_and_implemented(self):
         catalogue = json.loads((ROOT / 'service-catalogue.json').read_text(encoding='utf-8'))
         validate_catalogue(catalogue)
-        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (39, {'enabled': False, 'implemented': True}))  # R165 (39) changes no service
+        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (40, {'enabled': False, 'implemented': True}))  # R166 (40) and R165 (39) change no service
 
 
 class UnitFileTests(unittest.TestCase):

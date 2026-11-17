@@ -588,22 +588,25 @@ class AgentSnapshotTests(unittest.TestCase):
         out=health.agent_snapshot({},{},lambda config,since:self.rows())
         self.assertEqual(out['recognizer'],{'extractions_24h':11,'valid_24h':9,'timeouts_24h':1,'unreadable_24h':1})
         self.assertEqual(out['recognizer_call'][1],{'seconds':13})
-        self.assertEqual(set(out),{'recognizer','recognizer_call'})
+        self.assertEqual(set(out),{'recognizer','recognizer_call','group_chat','group_chat_call'})
+        self.assertEqual(out['group_chat'],dict.fromkeys(health.GROUP_CHAT_SECTIONS))  # not read here: no report
     def test_since_is_the_last_sent_point(self):
         reader=Mock(return_value=self.rows())
         health.agent_snapshot({},{'recognizer_call':'2026-10-22T03:00:00+00:00'},reader)
         self.assertEqual(reader.call_args.args[1]['recognizer_call'],dt.datetime(2026,10,22,3,tzinfo=dt.timezone.utc))
     def test_unreadable_agent_database_exports_nothing(self):
-        self.assertEqual(health.agent_snapshot({},{},Mock(side_effect=RuntimeError())),{'recognizer':{},'recognizer_call':None})
+        self.assertEqual(health.agent_snapshot({},{},Mock(side_effect=RuntimeError())),health.empty_agent_snapshot())
+        self.assertEqual(health.empty_agent_snapshot(),{'recognizer':{},'recognizer_call':None,'group_chat':dict.fromkeys(health.GROUP_CHAT_SECTIONS),'group_chat_call':None})
     def test_decommissioned_components_are_not_checked(self):
         # R091: no conversations health, no native-API probes (oltp/olap) and no conversation timing.
         import inspect
         source=inspect.getsource(health)
         for gone in ("'conversations'","'oltp'","'olap'",'native_api_status','conversation_loop','mw-partner-conversation','mw-conversation-wake'):
             self.assertNotIn(gone,source)
-    def test_only_recognizer_queries_remain(self):
+    def test_only_recognizer_and_group_chat_queries_remain(self):
         # R091: the Instagram conversation is decommissioned; no conversation table or event is read.
-        self.assertEqual(set(health.AGENT_QUERIES),{'recognizer','recognizer_call'})
+        # R166: the group chat summary reads counts and times only (never a conversation id, text or key).
+        self.assertEqual(set(health.AGENT_QUERIES),{'recognizer','recognizer_call','group_chat_heartbeat','group_chat_state','group_chat_runs','group_chat_error','group_chat_call'})
         self.assertNotIn('conversation',' '.join(health.AGENT_QUERIES.values()))
 
 
@@ -641,7 +644,8 @@ class CollectR089Tests(unittest.TestCase):
             {'last_completion':int(NOW)-40},extras,'abc',{},lambda:{'metabase_platform':{'status':1}},fetcher=fetcher,
             props=lambda name:units[name],origins_loader=lambda:ORIGINS,reader=lambda c,s:AgentSnapshotTests().rows())
         self.assertEqual(out['metabase'],{'metabase_platform':{'status':1}})
-        self.assertEqual(out['health'],{'pwa_api_reader_prod':1,'pwa_api_command_prod':1,'pwa_api_reader_dev':0,'pwa_api_command_dev':0,'pwa_api_chat_prod':1,'pwa_api_chat_dev':0,'recognizer':1})
+        self.assertEqual(out['health'],{'pwa_api_reader_prod':1,'pwa_api_command_prod':1,'pwa_api_reader_dev':0,'pwa_api_command_dev':0,'pwa_api_chat_prod':1,'pwa_api_chat_dev':0,'recognizer':1,
+                                        'group_chat_summary':3})  # R166: switch off in this config: Paused
         timing={c:(f,t) for c,f,t in out['timing']}
         self.assertEqual(timing['cloud_sql_backup'][0],{'status':1,'age_seconds':25200,'type':1,'log_retention_days':7})
         self.assertEqual(timing['debian_snapshot'][0],{'age_seconds':72000})
@@ -658,9 +662,110 @@ class CollectR089Tests(unittest.TestCase):
         out=health.collect_r089({},'token',1000,NOW,{},{'last_completion':0},None,None,{},Mock(side_effect=RuntimeError()),
             fetcher=Mock(side_effect=TimeoutError()),props=Mock(side_effect=RuntimeError()),origins_loader=lambda:None,reader=Mock(side_effect=RuntimeError()))
         self.assertEqual(out['metabase'],{})
-        self.assertEqual(out['health'],{'pwa_api_reader_prod':4,'pwa_api_command_prod':4,'pwa_api_reader_dev':4,'pwa_api_command_dev':4,'pwa_api_chat_prod':4,'pwa_api_chat_dev':4,'recognizer':4})
+        self.assertEqual(out['health'],{'pwa_api_reader_prod':4,'pwa_api_command_prod':4,'pwa_api_reader_dev':4,'pwa_api_command_dev':4,'pwa_api_chat_prod':4,'pwa_api_chat_dev':4,'recognizer':4,
+                                        'group_chat_summary':3})
         timing={c:f for c,f,_ in out['timing']}
         self.assertEqual((timing['pwa_jobs'],timing['pwa_notify'],timing['cloud_sql_backup'],timing['debian_snapshot']),({'status':4},{},{},{'error':'TimeoutError'}))
         self.assertNotIn('conversation_turn',timing)
+
+class GroupChatTests(unittest.TestCase):
+    """R166: the group chat summary lane, its worker_timing fields and the slowest-call point."""
+    ON={'group_chat_summary_enabled':True,'group_chat_summary_model':'claude-opus-5-5'}
+    def sections(self,**changes):
+        t=dt.datetime.fromtimestamp(NOW-3600,dt.timezone.utc)
+        value={'group_chat_heartbeat':[(70,12)],'group_chat_state':[(3,700,1)],
+               'group_chat_runs':[(5,7,1,2,1,640,1300,4,95,410,1,1)],'group_chat_error':[(t,{'MODEL_TIMEOUT':2,'GROUP_NOT_FOUND':1})]}
+        value.update(changes);return value
+    def test_a_busy_day_exports_every_field(self):
+        status,fields=health.group_chat_fields(self.ON,self.sections(),NOW)
+        self.assertEqual(status,1)
+        self.assertEqual(fields,{'provider':3,'model:claude-opus-5-5':1,'last_run_age_seconds':70,'last_run_seconds':12,'waiting':3,'oldest_wait_seconds':700,
+            'backoff_groups':1,'stored_24h':5,'unchanged_24h':7,'cleared_24h':1,'deferred_24h':2,'failed_24h':1,'wait_median_seconds':640,
+            'wait_max_seconds':1300,'refresh_taps_24h':4,'refresh_median_seconds':95,'refresh_max_seconds':410,'refresh_late_24h':1,
+            'refresh_failed_24h':1,'last_error_at':int(NOW-3600),'last_error:MODEL_TIMEOUT':1,'last_error:GROUP_NOT_FOUND':2})  # value = rank, 1 most frequent
+    def test_a_quiet_day_is_explicit_counts_zero_and_durations_minus_one(self):
+        quiet=self.sections(group_chat_state=[(0,None,0)],group_chat_runs=[(0,0,0,0,0,None,None,0,None,None,0,0)],group_chat_error=[])
+        status,fields=health.group_chat_fields(self.ON,quiet,NOW)
+        self.assertEqual(status,1)
+        self.assertEqual({k:v for k,v in fields.items() if k not in ('provider','model:claude-opus-5-5','last_run_age_seconds','last_run_seconds')},
+            {'waiting':0,'oldest_wait_seconds':-1,'backoff_groups':0,'stored_24h':0,'unchanged_24h':0,'cleared_24h':0,'deferred_24h':0,'failed_24h':0,
+             'wait_median_seconds':-1,'wait_max_seconds':-1,'refresh_taps_24h':0,'refresh_median_seconds':-1,'refresh_max_seconds':-1,
+             'refresh_late_24h':0,'refresh_failed_24h':0,'last_error_at':0})
+        # Empty result sets (no heartbeat row yet, no runs row) are explicit too; never a missing field.
+        status,fields=health.group_chat_fields(self.ON,dict.fromkeys(health.GROUP_CHAT_SECTIONS,[]),NOW)
+        self.assertEqual((status,fields['last_run_age_seconds'],fields['last_run_seconds'],fields['waiting'],fields['stored_24h'],fields['refresh_max_seconds']),(0,-1,-1,0,0,-1))
+    def test_thresholds(self):
+        at=lambda **c:health.group_chat_fields(self.ON,self.sections(**c),NOW)[0]
+        self.assertEqual(at(group_chat_heartbeat=[(600,5)]),1)
+        self.assertEqual(at(group_chat_heartbeat=[(601,5)]),0,'no run for over 10 minutes')
+        self.assertEqual(at(group_chat_heartbeat=[(None,None)]),0,'never finished')
+        self.assertEqual(at(group_chat_state=[(1,1200,0)]),1)
+        self.assertEqual(at(group_chat_state=[(1,1201,0)]),2,'backlog over 20 minutes')
+        self.assertEqual(at(group_chat_heartbeat=[(700,5)],group_chat_state=[(1,5000,0)]),0,'a stopped service outranks the backlog')
+        self.assertEqual(at(group_chat_heartbeat=None),4,'unreadable');self.assertEqual(at(group_chat_state=None),4)
+        self.assertEqual((health.GROUP_CHAT_STALE_SECONDS,health.GROUP_CHAT_BACKLOG_SECONDS,health.GROUP_CHAT_REFRESH_LATE_SECONDS),(600,1200,360))
+    def test_switch_off_is_paused_with_no_wait(self):
+        status,fields=health.group_chat_fields({'group_chat_summary_enabled':False},self.sections(),NOW)
+        self.assertEqual((status,fields['oldest_wait_seconds'],fields['waiting']),(3,-1,3))  # UX-CSMON-12: Paused reads None
+        self.assertNotIn('model:claude-opus-5-5',fields)
+        self.assertEqual(health.group_chat_fields({},dict.fromkeys(health.GROUP_CHAT_SECTIONS),NOW),(3,{'provider':3,'oldest_wait_seconds':-1}))
+    def test_an_unreadable_source_leaves_its_fields_out(self):
+        status,fields=health.group_chat_fields(self.ON,self.sections(group_chat_runs=None,group_chat_error=None),NOW)
+        self.assertEqual(status,1)
+        for name in ('stored_24h','wait_median_seconds','refresh_taps_24h','last_error_at'):self.assertNotIn(name,fields)
+    def test_error_codes_are_validated_and_capped(self):
+        t=dt.datetime.fromtimestamp(NOW-60,dt.timezone.utc)
+        codes={'MODEL_TIMEOUT':1,'POST_REFUSED':5,'GROUP_NOT_FOUND':2,'RECEIPT_API_OUTCOME_UNCERTAIN':3,'lower':9,'BAD CODE':9,'X'*70:9,'NEG':0,'TEXT':'9'}
+        _,fields=health.group_chat_fields(self.ON,self.sections(group_chat_error=[(t,codes)]),NOW)
+        self.assertEqual({k:v for k,v in fields.items() if k.startswith('last_error:')},{'last_error:POST_REFUSED':1,'last_error:RECEIPT_API_OUTCOME_UNCERTAIN':2,'last_error:GROUP_NOT_FOUND':3})
+        self.assertEqual(health.GROUP_CHAT_ERROR_CODES,3)
+        _,fields=health.group_chat_fields(self.ON,self.sections(group_chat_error=[(t,'not an object')]),NOW)
+        self.assertEqual(fields['last_error_at'],0)
+    def test_the_slowest_call_point_never_repeats(self):
+        t=lambda s:dt.datetime.fromtimestamp(NOW-s,dt.timezone.utc)
+        rows={'group_chat_call':[(t(300),31.6,t(60))]}
+        out=health.agent_snapshot(self.ON,{'group_chat_summary_call':t(900).isoformat()},lambda c,since:(self.assertEqual(since['group_chat_call'],t(900)),rows)[1])
+        self.assertEqual(out['group_chat_call'],(t(300),{'seconds':32},t(60)))
+        result=health.collect_r089(self.ON,'token',1000,NOW,{},{'last_completion':0},None,None,{},lambda:{},fetcher=Mock(side_effect=TimeoutError()),
+            props=Mock(side_effect=RuntimeError()),origins_loader=lambda:None,reader=lambda c,s:rows)
+        timing={c:(f,e) for c,f,e in result['timing']}
+        self.assertEqual(timing['group_chat_summary_call'],({'seconds':32},t(300).isoformat()))
+        self.assertEqual(result['points']['group_chat_summary_call'],t(60).isoformat(),'the cursor is the newest end seen')
+        # Nothing ended after the cursor: no point (the query's aggregate row is all NULL).
+        out=health.agent_snapshot(self.ON,{},lambda c,s:{'group_chat_call':[(None,None,None)]})
+        self.assertIsNone(out['group_chat_call'])
+        self.assertIn("ended_at>%s",health.AGENT_QUERIES['group_chat_call']);self.assertIn('group_chat_call',health.CURSOR_QUERIES)
+    def test_a_failed_query_does_not_blank_the_recognizer(self):
+        rows=dict(AgentSnapshotTests().rows(),group_chat_heartbeat=None,group_chat_state=None,group_chat_runs=None,group_chat_error=None,group_chat_call=None)
+        out=health.agent_snapshot(self.ON,{},lambda c,s:rows)
+        self.assertEqual(out['recognizer'],{'extractions_24h':11,'valid_24h':9,'timeouts_24h':1,'unreadable_24h':1})
+        self.assertEqual(health.group_chat_fields(self.ON,out['group_chat'],NOW)[0],4)
+        # And the reader isolates each query in its own savepoint: one raising query gives None for its name only.
+        class Conn:
+            def __init__(self):self.calls=[]
+            def execute(self,sql,params=None):
+                self.calls.append(sql)
+                if 'group_chat_summary_state' in sql:raise RuntimeError('relation missing')
+                return Mock(fetchall=Mock(return_value=[(1,2,3,4)] if 'receipt_recognition_api' in sql and 'count(*)' in sql else []))
+            @contextmanager
+            def transaction(self):yield
+        conn=Conn()
+        @contextmanager
+        def transaction(config,readonly=False):
+            self.assertTrue(readonly);yield conn
+        with patch.dict(sys.modules,{'mw_integration_agent.state':Mock(transaction=transaction)}):
+            out=health.agent_reader({},{})
+        self.assertIsNone(out['group_chat_state'])
+        self.assertEqual(out['recognizer'],[(1,2,3,4)])
+        self.assertEqual(conn.calls[0],"SET LOCAL statement_timeout='8s'")
+    def test_queries_read_counts_and_times_only(self):
+        text=' '.join(health.AGENT_QUERIES[n] for n in ('group_chat_heartbeat','group_chat_state','group_chat_runs','group_chat_error','group_chat_call'))
+        for gone in ('conversation_id','last_error ','headline','points','subjects_sha256','member_borrower_ids'):self.assertNotIn(gone,text)
+        self.assertIn("service_name='group-chat-summary'",health.AGENT_QUERIES['group_chat_runs'])
+        self.assertIn("service_name='group_chat_summary_model'",health.AGENT_QUERIES['group_chat_call'])
+        self.assertIn('x>360',health.AGENT_QUERIES['group_chat_runs'])
+    def test_the_lane_is_not_in_the_paging_alert(self):
+        alert=pathlib.Path(__file__).with_name('debian-alert.jq').read_text()
+        self.assertNotIn('group_chat',alert)
 
 if __name__=='__main__': unittest.main()

@@ -697,10 +697,11 @@ def error_code(exc):
 
 
 def due(db, now):
-    rows = db.execute('''SELECT conversation_id,attempts FROM group_chat_summary_state
+    """The due groups as (conversation id, attempts, changed_at); R166: changed_at gives the run's waits."""
+    rows = db.execute('''SELECT conversation_id,attempts,changed_at FROM group_chat_summary_state
         WHERE changed_at IS NOT NULL AND next_attempt_at<=? AND (last_text_at IS NULL OR last_text_at<=? OR changed_at<=?)
         ORDER BY changed_at LIMIT ?''', (now, now - QUIET_SECONDS, now - MAX_WAIT_SECONDS, MAX_GROUPS)).fetchall()
-    return [(row[0], row[1]) for row in rows]
+    return [(row[0], row[1], row[2]) for row in rows]
 
 
 def finish(db, cid, digest, subjects, now, members=None):
@@ -879,11 +880,13 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
     now = time.time() if now is None else now
     model_call, post_call = model_call or summarise, post_call or post
     started = clock()
+    # R166: waits are the seconds from a summarised group's marker (changed_at) to this run, one per such group.
     result = {'status': 'ok', 'due': 0, 'summarised': 0, 'failed': 0, 'deferred': 0,
-              'outcomes': {kind: 0 for kind in OUTCOMES}, 'errors': []}
+              'outcomes': {kind: 0 for kind in OUTCOMES}, 'errors': [], 'waits': []}
     requests, wanted = [], {}
     if refreshes is not None:
-        refresh = {'requested': 0, 'groups': 0, 'reported': 0, 'pending': 0, 'outcomes': {kind: 0 for kind in REFRESH_OUTCOMES}, 'errors': []}
+        refresh = {'requested': 0, 'groups': 0, 'reported': 0, 'pending': 0, 'outcomes': {kind: 0 for kind in REFRESH_OUTCOMES}, 'errors': [],
+                   'seconds': []}
         result['refresh'] = refresh
         try:
             requests = refreshes(config)
@@ -898,8 +901,8 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
             if cid not in forced:
                 forced.append(cid)
     taken = forced[:MAX_GROUPS]
-    selected = [(cid, None) for cid in taken]
-    due_rows = [(cid, attempts) for cid, attempts in due(db, now) if cid not in forced]
+    selected = [(cid, None, None) for cid in taken]
+    due_rows = [row for row in due(db, now) if row[0] not in forced]
     selected += due_rows[:MAX_GROUPS - len(selected)]
     result['due'] = len(selected) - len(taken)
     if refreshes is not None:
@@ -908,7 +911,7 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
     if selected:
         master = master_reader()
         listing = None
-        for cid, attempts in selected:
+        for cid, attempts, changed in selected:
             if clock() - started > RUN_BUDGET_SECONDS:
                 result['deferred'] += 1
                 continue
@@ -918,7 +921,9 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
                     listing = conversations(api, config)
                 if cid not in listing:
                     raise SummaryFailed('GROUP_NOT_FOUND')
-                stored = db.execute('SELECT member_borrower_ids,summarised_source_sha256 FROM group_chat_summary_state WHERE conversation_id=?', (cid,)).fetchone()
+                stored = db.execute('SELECT member_borrower_ids,summarised_source_sha256,changed_at FROM group_chat_summary_state WHERE conversation_id=?', (cid,)).fetchone()
+                if requested and stored:
+                    changed = stored[2]  # a requested group with a marker waited too; one without has no wait
                 kind, digest, subjects, members, posted = summarise_group(config, api, master, listing[cid], now, model_call, post_call,
                                                                           stored[0] if stored else None, stored[1] if stored and requested else None)
             except Exception as exc:  # the code only: never the exception text, which may quote the chat or the model
@@ -933,18 +938,21 @@ def cycle(config, api, master_reader, db, now=None, model_call=None, post_call=N
                 continue
             with db:
                 finish(db, cid, digest, subjects, now, members)
+            if isinstance(changed, (int, float)) and not isinstance(changed, bool):
+                result['waits'].append(max(0, int(round(now - changed))))
             ran[cid] = (kind, posted)
             result['summarised'] += 1
             result['outcomes'][kind] += 1
     if refreshes is not None:
-        report_all(config, requests, wanted, ran, result['refresh'], report or report_refresh)
+        report_all(config, requests, wanted, ran, result['refresh'], report or report_refresh, now)
     if not selected and not requests:
         return {**result, 'status': 'idle'}
     return result
 
 
-def report_all(config, requests, wanted, ran, refresh, report):
-    """Report each request whose groups all ran (or that has no group); leave the others open."""
+def report_all(config, requests, wanted, ran, refresh, report, now=None):
+    """Report each request whose groups all ran (or that has no group); leave the others open. R166: the seconds from
+    each reported request (requestedAt) to this run go to refresh['seconds']."""
     for request in requests:
         groups = wanted.get(request['borrowerId'], [])
         if any(cid not in ran for cid in groups):
@@ -959,6 +967,42 @@ def report_all(config, requests, wanted, ran, refresh, report):
             continue
         refresh['reported'] += 1
         refresh['outcomes'][outcome] += 1
+        waited = request_age(request.get('requestedAt'), now)
+        if waited is not None:
+            refresh['seconds'].append(waited)
+
+
+def request_age(requested_at, now):
+    """Whole seconds from an ISO UTC requestedAt to `now` (0 for a time ahead of this clock); None when not a time."""
+    if now is None or not isinstance(requested_at, str):
+        return None
+    try:
+        stamp = datetime.fromisoformat(requested_at.replace('Z', '+00:00'))
+    except ValueError:
+        return None
+    if stamp.tzinfo is None:
+        return None
+    return max(0, int(round(now - stamp.timestamp())))
+
+
+def run_effect(result):
+    """R166: the numbers of a non-idle run for runtime.job_runs.summary->'effect' (the Grafana collector sums them):
+    counts, outcome counts, error codes with their counts, waits and the refresh numbers. No conversation key, borrower
+    id, request id or text. None for an idle, dry, backfill or already-running result."""
+    if not isinstance(result, dict) or result.get('status') != 'ok' or 'outcomes' not in result:
+        return None
+    errors = {}
+    for item in result.get('errors', []):
+        code = item.get('error') if isinstance(item, dict) else None
+        if isinstance(code, str) and CODE.fullmatch(code):
+            errors[code] = errors.get(code, 0) + 1
+    effect = {'due': result['due'], 'summarised': result['summarised'], 'failed': result['failed'], 'deferred': result['deferred'],
+              'outcomes': dict(result['outcomes']), 'errors': errors, 'waits': list(result.get('waits', []))}
+    refresh = result.get('refresh')
+    if isinstance(refresh, dict):
+        effect['refresh'] = {'reported': refresh['reported'], 'pending': refresh['pending'], 'outcomes': dict(refresh['outcomes']),
+                             'seconds': list(refresh.get('seconds', []))}
+    return effect
 
 
 def dry_run(config, api, master):
