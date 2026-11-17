@@ -1,0 +1,11 @@
+[Unit]
+Description=Start the group chat summary when the refresh watch touches its wake file (R169)
+
+[Path]
+# mw-group-chat-refresh-watch writes and closes this file in state_directory while PWA refresh requests are open.
+# The summary's one-minute timer stays as the fallback.
+PathChanged=/var/lib/mw-integration-agent/state/group-chat-refresh-wake
+Unit=mw-group-chat-summary.service
+
+[Install]
+WantedBy=paths.target

@@ -40,8 +40,11 @@ def history_page(api,config,conversation_id,cursor):
     raise ConfigurationError('POLL_CONVERSATION_DISAPPEARED')
 
 
-def history_since(api,config,conversation,since,now):
-    """Prove the boundary or exhaustion before committing any part of a group."""
+def history_since(api,config,conversation,since,now,limit=None):
+    """Prove the boundary or exhaustion before committing any part of a group.
+    R169: `limit` (the group chat summariser's MAX_MESSAGES; the poll passes none) also ends the read after the page
+    that brings the messages found to `limit`: the caller keeps only the newest `limit`, which are then the same as an
+    unlimited read's, so no older page is fetched."""
     history=conversation.get('messages',{'data':[]});found=[];previous=float('inf');seen=set()
     for _ in range(MAX_HISTORY_PAGES):
         if not isinstance(history,dict) or not isinstance(history.get('data'),list):
@@ -59,7 +62,7 @@ def history_since(api,config,conversation,since,now):
             if ts<since:reached=True;continue
             if ts<=now:found.append((message,ts))
         paging=history.get('paging',{})
-        if reached or not paging.get('next'):return found
+        if reached or not paging.get('next') or (limit and len(found)>=limit):return found
         cursor=paging.get('cursors',{}).get('after')
         if not history['data'] or not cursor or cursor in seen:
             raise ConfigurationError('POLL_HISTORY_INCOMPLETE_PAGINATION')

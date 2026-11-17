@@ -128,7 +128,31 @@ class TriggerUnitTests(unittest.TestCase):
         for name in RETIRED:
             with self.subTest(unit=name):
                 self.assertFalse((UNITS / name).exists())
-        self.assertEqual(sorted(p.name for p in UNITS.glob('*.path')), ['mw-receipt-wake.path'])
+        # R169: the group chat refresh wake is the only other path unit.
+        self.assertEqual(sorted(p.name for p in UNITS.glob('*.path')), ['mw-group-chat-refresh-wake.path', 'mw-receipt-wake.path'])
+
+    def test_group_chat_refresh_watch_wakes_the_summary_from_the_state_directory(self):
+        # R169: a 15-second watcher, outside the database and the job record, touches a wake file the path unit watches.
+        state = json.loads((UNITS.parent / 'config.example.json').read_text(encoding='utf-8'))['state_directory']
+        path = parse(UNITS / 'mw-group-chat-refresh-wake.path')
+        self.assertEqual(path['Path'], {'PathChanged': [state + '/group-chat-refresh-wake'], 'Unit': ['mw-group-chat-summary.service']})
+        self.assertEqual(path['Install'], {'WantedBy': ['paths.target']})
+        timer = parse(UNITS / 'mw-group-chat-refresh-watch.timer')
+        self.assertEqual(timer['Timer'], {'OnBootSec': ['3min'], 'OnUnitInactiveSec': ['15s'], 'AccuracySec': ['1s'],
+                                          'Unit': ['mw-group-chat-refresh-watch.service']})
+        self.assertEqual(timer['Install'], {'WantedBy': ['timers.target']})
+        watch = parse(UNITS / 'mw-group-chat-refresh-watch.service')
+        poll = parse(UNITS / 'mw-conversation-poll.service')
+        service = watch['Service']
+        self.assertEqual(service['ExecStart'], ['/opt/mw-integration-agent/.venv/bin/mw-integration-agent group-chat-refresh-watch '
+                                                '--config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json'])
+        self.assertEqual((service['LogLevelMax'], service['TimeoutStartSec']), (['notice'], ['30s']))
+        # The poll's hardening, without its database ordering (the watcher opens no database connection).
+        for key in ('Type', 'User', 'Group', 'UMask', 'Environment', 'NoNewPrivileges', 'PrivateTmp', 'ProtectSystem', 'ProtectHome', 'ReadWritePaths'):
+            with self.subTest(key=key):
+                self.assertEqual(service[key], poll['Service'][key])
+        self.assertNotIn(PROXY, words(watch['Unit'], 'After') + words(watch['Unit'], 'Wants'))
+        self.assertTrue(any(state == p or state.startswith(p.rstrip('/') + '/') for p in words(service, 'ReadWritePaths')))
 
     def test_conversation_poll_runs_every_minute(self):
         # B2 (owner, 20 October 2026): one scan per minute, 60 requests per hour.

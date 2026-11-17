@@ -5,8 +5,12 @@ This service, every minute (R168; every two minutes before), takes the groups th
 (3 minutes, R168; 10 before) or marked for MAX_WAIT_SECONDS (10 minutes since the first new substantive message, R151: a
 chat that never pauses is still refreshed), re-reads their last three days through the poll's conversation-list route
 (R168: its own page sizes, LIST_CONVERSATIONS conversations of LIST_MESSAGES messages, and it stops paging once every
-group of the run is found), asks Claude for a headline and up to four points in Thai and English, and posts the result to
+group of the run is found; R169: a first request for the LIST_CONVERSATIONS_FIRST most recent conversations usually finds
+them all, and a group's history read stops once MAX_MESSAGES are found), asks Claude for a headline and up to four points in Thai and English, and posts the result to
 the command service (POST /internal/agent/group-chat-summaries).
+
+R169: `group-chat-refresh-watch` (refresh_watch, every 15 seconds, outside a job) reads the open refresh requests and,
+when there are any, touches the wake file that starts this service through mw-group-chat-refresh-wake.path.
 
 R165: a user's Refresh tap in the PWA queues a request in the app database (V150). Each run first reads the open
 requests (GET /internal/agent/group-chat-refreshes), finds the requested borrowers' groups through the state table's
@@ -59,6 +63,11 @@ MAX_GROUPS = 5
 # three-day window usually needs no history_page call. The poll's query (conversation_poll) is unchanged.
 LIST_CONVERSATIONS = 25
 LIST_MESSAGES = 100
+# R169: the first conversation-list request asks for only the 5 most recently active conversations (a due or requested
+# group has just been written in, so it is usually among them); a miss falls back to the R168 read above.
+LIST_CONVERSATIONS_FIRST = 5
+# R169: the file refresh_watch touches; mw-group-chat-refresh-wake.path starts mw-group-chat-summary.service on it.
+REFRESH_WAKE = 'group-chat-refresh-wake'
 RUN_BUDGET_SECONDS = 150  # stop taking groups after this (the unit's TimeoutStartSec is 4 minutes)
 BACKOFF_SECONDS = 600
 BACKOFF_LIMIT = 21600
@@ -734,17 +743,39 @@ def fail(db, cid, attempts, code, now):
 
 
 def conversations(api, config, wanted):
-    """One conversation-list read that serves every group of the run (`wanted`, conversation ids). R168: its own page
-    sizes (LIST_CONVERSATIONS, LIST_MESSAGES; the poll's message fields) and no further page once every wanted id is
-    found; an id never found still reads to the end, and the cycle then fails that group with GROUP_NOT_FOUND."""
-    from .conversation_poll import MESSAGE_FIELDS, pages
+    """The conversation-list read that serves every group of the run (`wanted`, conversation ids; requested, due or
+    both). R169: first one request for the LIST_CONVERSATIONS_FIRST most recent conversations; when every wanted id is
+    there, that is the read. Otherwise the R168 read follows (listing()) and is merged over the first, the later read
+    winning."""
+    from .conversation_poll import pages
+    wanted, first = set(wanted), {}
+    for batch in pages(api, config['instagram_account_id'] + '/conversations', listing_query(LIST_CONVERSATIONS_FIRST)):
+        collect(first, batch)
+        break  # the first page only; pages() itself is unchanged
+    if wanted <= set(first):
+        return first
+    return {**first, **listing(api, config, wanted)}
+
+
+def listing_query(limit):
+    from .conversation_poll import MESSAGE_FIELDS
+    return {'platform': 'instagram', 'fields': 'id,participants,messages.limit(' + str(LIST_MESSAGES) + '){' + MESSAGE_FIELDS + '}', 'limit': limit}
+
+
+def collect(found, batch):
+    for conversation in batch:
+        if isinstance(conversation, dict) and conversation.get('id'):
+            found[conversation['id']] = conversation
+
+
+def listing(api, config, wanted):
+    """R168: one conversation-list read with its own page sizes (LIST_CONVERSATIONS, LIST_MESSAGES; the poll's message
+    fields) and no further page once every wanted id is found; an id never found still reads to the end, and the cycle
+    then fails that group with GROUP_NOT_FOUND."""
+    from .conversation_poll import pages
     wanted, found = set(wanted), {}
-    for batch in pages(api, config['instagram_account_id'] + '/conversations',
-                       {'platform': 'instagram', 'fields': 'id,participants,messages.limit(' + str(LIST_MESSAGES) + '){' + MESSAGE_FIELDS + '}',
-                        'limit': LIST_CONVERSATIONS}):
-        for conversation in batch:
-            if isinstance(conversation, dict) and conversation.get('id'):
-                found[conversation['id']] = conversation
+    for batch in pages(api, config['instagram_account_id'] + '/conversations', listing_query(LIST_CONVERSATIONS)):
+        collect(found, batch)
         if wanted <= set(found):
             break
     return found
@@ -800,7 +831,8 @@ def _summarise_group(config, api, master, conversation, now, model_call, post_ca
     if resolve(config, master, peers.get('data'))['status'] != 'ambiguous':
         # R152: the window is read before the members are known, because its senders are members too (a borrower
         # Instagram no longer lists among the participants). An ambiguous participant list stays ambiguous: no read.
-        found = list(history_since(api, config, conversation, since, now))[:MAX_MESSAGES]
+        # R169: the read stops once MAX_MESSAGES are found; the newest MAX_MESSAGES are the same as an unlimited read's.
+        found = list(history_since(api, config, conversation, since, now, MAX_MESSAGES))[:MAX_MESSAGES]
     resolution = resolve(config, master, peers.get('data'), message_senders(found), remembered)
     subjects = resolution['subjects']
     if len(subjects) > MAX_SUBJECTS:
@@ -1064,6 +1096,32 @@ def run_effect(result):
         effect['refresh'] = {'reported': refresh['reported'], 'pending': refresh['pending'], 'outcomes': dict(refresh['outcomes']),
                              'seconds': list(refresh.get('seconds', []))}
     return effect
+
+
+def watch_enabled(config, catalogue):
+    """The switches run() requires: the summary's configuration switch and catalogue entry and its two dependencies."""
+    services = catalogue.get('services', {})
+    return (config.get('group_chat_summary_enabled') is True and bool(services.get(SERVICE, {}).get('enabled'))
+            and bool(services.get('conversation_poll', {}).get('enabled')) and bool(services.get('shared_receipt_payment_api', {}).get('enabled')))
+
+
+def refresh_watch(config_path, catalogue_path, requests=None, touch=None):
+    """R169 `group-chat-refresh-watch`: the number of open PWA refresh requests when it touched the wake file, else
+    None. One GET of the open requests (receipt_api.call: no audit row, no database, no Instagram call); with any open
+    request it touches <state_directory>/group-chat-refresh-wake, and mw-group-chat-refresh-wake.path starts
+    mw-group-chat-summary.service, which reads and reports them. Switches off, nothing open, any error or a failed
+    touch: None (the summary's own timer is the fallback)."""
+    from .receipt_wake import wake
+    try:
+        config, catalogue = load_controls(config_path, catalogue_path)
+        if not watch_enabled(config, catalogue):
+            return None
+        pending = (requests or refresh_requests)(config)
+        if not pending:
+            return None
+        return len(pending) if (touch or wake)(config, REFRESH_WAKE) else None
+    except Exception:  # silent by design: never the exception text
+        return None
 
 
 def dry_run(config, api, master):

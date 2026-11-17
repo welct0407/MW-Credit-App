@@ -10,11 +10,12 @@ from mw_integration_agent import cli
 
 class JobWrappingTests(unittest.TestCase):
     PROBES = (['instagram-probe', '--config', 'c', '--catalogue', 'k'],
-              ['messages', '--config', 'c'])
+              ['messages', '--config', 'c'],
+              ['group-chat-refresh-watch', '--config', 'c', '--catalogue', 'k'])
 
     def test_probes_and_local_commands_run_without_a_job(self):
         self.assertEqual(set(cli.UNWRAPPED_COMMANDS), {'serve-webhook', 'serve-receipt-recognition', 'serve-chat-relay', 'receiver-ready', 'status', 'check',
-                                                        'instagram-probe', 'messages'})
+                                                        'instagram-probe', 'messages', 'group-chat-refresh-watch'})
         for argv in self.PROBES:
             with self.subTest(command=argv[0]), patch('sys.argv', ['mw-integration-agent', *argv]), \
                     patch('mw_integration_agent.audit.job', side_effect=AssertionError('probe wrapped in a job')), \

@@ -609,7 +609,7 @@ class CycleTests(Base):
         # One conversation-list read serves the run; R168: its own page sizes, the poll's message fields.
         self.assertEqual(api.request.call_count, 1)
         self.assertEqual(api.request.call_args.args, (ACCOUNT + '/conversations', {
-            'platform': 'instagram', 'fields': 'id,participants,messages.limit(100){id,created_time,from,message,attachments}', 'limit': 25}))
+            'platform': 'instagram', 'fields': 'id,participants,messages.limit(100){id,created_time,from,message,attachments}', 'limit': 5}))  # R169
         text = self.model.call_args.args[1]
         lines = text.split('\n')
         self.assertEqual(len(lines), 10)  # the message older than three days is not in the window
@@ -768,49 +768,101 @@ class CycleTests(Base):
         self.assertIsNotNone(self.state('g2')['changed_at'])
 
 
-class ListingTests(Base):
-    """R168: the summariser's own conversation-list read stops once every group of the run is found, and its 100-message
-    first page usually proves the three-day boundary without a history page."""
+class Listing:
+    """A fake conversation list: `cids` most recent first, served in pages of the query's limit and continued by the
+    `after` cursor, each conversation with one substantive message from the borrower. `fail` replies to the first
+    request with an invalid page."""
+    def __init__(self, base, cids, fail=False):
+        self.items = [conversation(cid, base.members, [message('m1', '20', 20, PROMISE)]) for cid in cids]
+        self.queries, self.fail = [], fail
 
-    def page(self, cids, after=None):
-        value = {'data': [conversation(cid, self.members, [message('m1', '20', 20, PROMISE)]) for cid in cids]}
-        if after:
-            value['paging'] = {'next': 'https://example.invalid/next', 'cursors': {'after': after}}
+    def request(self, path, query):
+        self.queries.append(dict(query))
+        if self.fail:
+            self.fail = False
+            return {}
+        start, limit = int(query.get('after', 'c0')[1:]), query['limit']
+        value = {'data': self.items[start:start + limit]}
+        if start + limit < len(self.items):
+            value['paging'] = {'next': 'https://example.invalid/next', 'cursors': {'after': f'c{start + limit}'}}
         return value
 
+
+class ListingTests(Base):
+    """R168: the summariser's own conversation-list read stops once every group of the run is found, and its 100-message
+    first page usually proves the three-day boundary without a history page. R169: a first request for the 5 most
+    recent conversations; a miss falls back to the R168 read; a history read stops at MAX_MESSAGES."""
+    QUERY = {'platform': 'instagram', 'fields': 'id,participants,messages.limit(100){id,created_time,from,message,attachments}'}
+
+    def listing(self, count, fail=False):
+        return Listing(self, [f'g{i}' for i in range(count)], fail)
+
     def test_constants_and_query(self):
-        self.assertEqual((summary.LIST_CONVERSATIONS, summary.LIST_MESSAGES), (25, 100))
-        api = Mock(request=Mock(side_effect=[self.page(['g0'], 'p1'), self.page(['g1'])]))
-        found = summary.conversations(api, self.config, ['g1'])
-        self.assertEqual(sorted(found), ['g0', 'g1'])
-        first, second = (call.args[1] for call in api.request.call_args_list)
-        self.assertEqual(first, {'platform': 'instagram', 'fields': 'id,participants,messages.limit(100){id,created_time,from,message,attachments}', 'limit': 25})
-        self.assertEqual(second, dict(first, after='p1'))
-        self.assertIn('messages.limit(100){', first['fields'])
+        self.assertEqual((summary.LIST_CONVERSATIONS_FIRST, summary.LIST_CONVERSATIONS, summary.LIST_MESSAGES), (5, 25, 100))
+        api = self.listing(10)
+        self.assertEqual(sorted(summary.conversations(api, self.config, ['g3'])), ['g0', 'g1', 'g2', 'g3', 'g4'])
+        self.assertEqual(api.queries, [dict(self.QUERY, limit=5)])  # a hit: one request, nothing else
+        self.assertIn('messages.limit(100){', api.queries[0]['fields'])
+        # A miss: the R168 read follows from the start (limit 25, no cursor) and serves everything it read.
+        api = self.listing(10)
+        self.assertEqual(len(summary.conversations(api, self.config, ['g7'])), 10)
+        self.assertEqual(api.queries, [dict(self.QUERY, limit=5), dict(self.QUERY, limit=25)])
+
+    def test_after_a_miss_the_second_read_stops_early_and_wins(self):
+        api = self.listing(60)
+        found = summary.conversations(api, self.config, ['g30'])
+        self.assertEqual(api.queries, [dict(self.QUERY, limit=5), dict(self.QUERY, limit=25), dict(self.QUERY, limit=25, after='c25')])
+        self.assertEqual(len(found), 50)  # the third page (c50) is never read
+        first = {'data': [dict(conversation('g1', self.members, []), marker='first')], 'paging': {'next': 'n', 'cursors': {'after': 'x1'}}}
+        second = {'data': [dict(conversation('g1', self.members, []), marker='second'), conversation('g7', self.members, [])]}
+        found = summary.conversations(Mock(request=Mock(side_effect=[first, second])), self.config, ['g1', 'g7'])
+        self.assertEqual((found['g1']['marker'], sorted(found)), ('second', ['g1', 'g7']))
 
     def test_a_wanted_group_on_the_first_page_needs_one_request(self):
-        self.mark('g1')
-        api = Mock(request=Mock(side_effect=[self.page(['g1', 'g9'], 'p1'), self.page(['g2'])]))
+        self.mark('g3')
+        api = self.listing(60)
         result = self.run_cycle(api)
-        self.assertEqual((result['summarised'], api.request.call_count, result['instagram_calls']), (1, 1, 1))
+        self.assertEqual((result['summarised'], len(api.queries), result['instagram_calls']), (1, 1, 1))
+        self.assertEqual(api.queries[0]['limit'], 5)
 
-    def test_two_groups_across_two_pages_need_two_requests(self):
+    def test_a_requested_and_a_due_group_on_the_first_page_need_one_request(self):
+        self.mark('g4', changed=self.now - 900)
+        self.mark('g1', member_borrower_ids=json.dumps(['B-A']))
+        self.db.execute("UPDATE group_chat_summary_state SET changed_at=NULL WHERE conversation_id='g1'")
+        self.db.commit()
+        api = self.listing(60)
+        requested = Mock(return_value=[{'borrowerId': 'B-A', 'requestId': '0c970c97-0c97-4c97-8c97-0c970c970c97', 'requestedAt': '2026-11-12T07:59:00.000Z'}])
+        result = self.run_cycle(api, refreshes=requested, report=Mock(return_value='completed'))
+        self.assertEqual((result['summarised'], result['refresh']['reported'], len(api.queries)), (2, 1, 1))
+
+    def test_two_groups_one_on_the_first_page_need_two_requests(self):
         self.mark('g1', changed=self.now - 900)
-        self.mark('g2', changed=self.now - 800)
-        api = Mock(request=Mock(side_effect=[self.page(['g1'], 'p1'), self.page(['g2'], 'p2'), self.page(['g3'])]))
+        self.mark('g20', changed=self.now - 800)
+        api = self.listing(60)
         result = self.run_cycle(api)
-        self.assertEqual((result['summarised'], api.request.call_count, result['instagram_calls']), (2, 2, 2))
+        self.assertEqual((result['summarised'], len(api.queries), result['instagram_calls']), (2, 2, 2))
+        self.assertEqual([q['limit'] for q in api.queries], [5, 25])
 
     def test_a_group_never_found_reads_every_page_then_fails_and_backs_off(self):
         self.mark('g1', changed=self.now - 900)
         self.mark('gone', changed=self.now - 800)
-        api = Mock(request=Mock(side_effect=[self.page(['g1'], 'p1'), self.page(['g2'], 'p2'), self.page(['g3'])]))
+        api = self.listing(60)
         result = self.run_cycle(api)
-        self.assertEqual(api.request.call_count, 3)
+        self.assertEqual([(q['limit'], q.get('after')) for q in api.queries], [(5, None), (25, None), (25, 'c25'), (25, 'c50')])
         self.assertEqual((result['summarised'], result['failed'], result['errors'][0]['error']), (1, 1, 'GROUP_NOT_FOUND'))
         state = self.state('gone')
         self.assertEqual((state['last_error'], state['attempts'], state['next_attempt_at']), ('GROUP_NOT_FOUND', 1, self.now + summary.BACKOFF_SECONDS))
         self.assertIsNotNone(state['changed_at'])
+
+    def test_a_failed_first_request_fails_the_group_and_the_next_group_reads_again(self):
+        self.mark('g1', changed=self.now - 900)
+        self.mark('g2', changed=self.now - 800)
+        api = self.listing(10, fail=True)
+        result = self.run_cycle(api)
+        self.assertEqual((result['summarised'], result['failed'], result['errors'][0]['error']), (1, 1, 'POLL_INVALID_PAGE'))
+        self.assertEqual(self.state('g1')['last_error'], 'POLL_INVALID_PAGE')
+        self.assertIsNone(self.state('g2')['changed_at'])
+        self.assertEqual([q['limit'] for q in api.queries], [5, 5])
 
     def window_chat(self, count, older):
         """`count` substantive messages inside the window, newest first, then `older` messages before it."""
@@ -826,17 +878,122 @@ class ListingTests(Base):
         self.assertEqual((result['summarised'], api.request.call_count), (1, 1))
         self.assertEqual(len(self.model.call_args.args[1].split('\n')), 99)
 
-    def test_a_full_first_page_inside_the_window_continues_after_its_cursor(self):
+    def test_a_short_first_page_continues_after_its_cursor_and_stops_at_max_messages(self):
         self.mark()
-        chat = self.window_chat(101, 1)
-        listed = dict(conversation('g1', self.members, []), messages={'data': chat[:100], 'paging': {'next': 'n', 'cursors': {'after': 'h1'}}})
-        api = Mock(request=Mock(side_effect=[{'data': [listed]}, {'data': [{'id': 'g1', 'messages': {'data': chat[100:]}}]}]))
+        chat = self.window_chat(150, 1)
+        listed = dict(conversation('g1', self.members, []), messages={'data': chat[:60], 'paging': {'next': 'n', 'cursors': {'after': 'h1'}}})
+        more = {'data': [{'id': 'g1', 'messages': {'data': chat[60:160], 'paging': {'next': 'n', 'cursors': {'after': 'h2'}}}}]}
+        api = Mock(request=Mock(side_effect=[{'data': [listed]}, more, AssertionError('read past MAX_MESSAGES')]))
         result = self.run_cycle(api)
         self.assertEqual((result['summarised'], api.request.call_count, result['instagram_calls']), (1, 2, 2))
         self.assertEqual(api.request.call_args.args[1]['fields'], 'id,messages.limit(100).after(h1){id,created_time,from,message,attachments}')
         lines = self.model.call_args.args[1].split('\n')
-        self.assertEqual(len(lines), summary.MAX_MESSAGES)  # the newest 100 of 101 in the window
+        self.assertEqual(len(lines), summary.MAX_MESSAGES)  # the newest 100 of 150 in the window
         self.assertIn('ลำดับที่ 99 ', lines[0])
+
+    def test_the_limited_history_read_gives_the_same_rows_and_digest_with_fewer_requests(self):
+        from mw_integration_agent.conversation_poll import history_since
+        chat = self.window_chat(250, 3)
+
+        def history(cid, start):
+            value = {'data': chat[start:start + 100]}
+            if start + 100 < len(chat):
+                value['paging'] = {'next': 'n', 'cursors': {'after': f'h{start + 100}'}}
+            return value
+
+        def request(path, query):
+            start = int(re.search(r'\.after\(h([0-9]+)\)', query['fields'])[1])
+            return {'data': [{'id': 'g1', 'messages': history('g1', start)}]}
+        group = dict(conversation('g1', self.members, []), messages=history('g1', 0))
+        since = self.now - summary.WINDOW_SECONDS
+        reads = {}
+        for limit in (None, summary.MAX_MESSAGES):
+            api = Mock(request=Mock(side_effect=request))
+            found = list(history_since(api, self.config, group, since, self.now, limit))[:summary.MAX_MESSAGES]
+            resolution = summary.resolve(self.config, self.master, self.members, summary.message_senders(found))
+            rows = summary.window(self.config, resolution, found)
+            reads[limit] = (found, rows, summary.source_sha256(rows, resolution['subjects'], 'claude-opus-5-5'), api.request.call_count)
+        unlimited, limited = reads[None], reads[summary.MAX_MESSAGES]
+        self.assertEqual(limited[:3], unlimited[:3])
+        self.assertEqual((unlimited[3], limited[3]), (2, 0))  # the poll's read (no limit) still pages to the boundary
+        self.assertEqual(len(limited[1]), summary.MAX_MESSAGES)
+
+
+class RefreshWatchTests(Base):
+    """R169: group-chat-refresh-watch: one GET of the open refresh requests outside any job; a wake file when any is
+    open; silent and exit 0 otherwise."""
+    CATALOGUE = {'services': {'group_chat_summary': {'enabled': True}, 'conversation_poll': {'enabled': True},
+                              'shared_receipt_payment_api': {'enabled': True}}}
+    OPEN = [{'borrowerId': 'B-A', 'requestId': '0c970c97-0c97-4c97-8c97-0c970c970c97', 'requestedAt': '2026-11-12T07:59:00.000Z'}]
+
+    def setUp(self):
+        super().setUp()
+        self.config['state_directory'] = self.tmp.name
+        self.wake = Path(self.tmp.name) / 'group-chat-refresh-wake'
+
+    def watch(self, requests=None, config=None, catalogue=None, controls=None):
+        """Run the command through cli.main() with no job, journal, database or Instagram call allowed."""
+        from mw_integration_agent import cli
+        controls = controls or patch.object(summary, 'load_controls', return_value=(config or self.config, catalogue or self.CATALOGUE))
+        requests = requests if requests is not None else Mock(return_value=[])
+        refused = AssertionError('the watcher made a job, journal, database or Instagram call')
+        stdout = io.StringIO()
+        with patch('sys.argv', ['mw-integration-agent', 'group-chat-refresh-watch', '--config', 'c', '--catalogue', 'k']), controls, \
+                patch.object(summary, 'refresh_requests', requests), patch('mw_integration_agent.audit.job', side_effect=refused), \
+                patch('mw_integration_agent.audit.started', side_effect=refused), patch('mw_integration_agent.receipt_journal.ReceiptJournal', side_effect=refused), \
+                patch('mw_integration_agent.instagram.Instagram.request', side_effect=refused), patch.object(summary, 'cycle', side_effect=refused), \
+                contextlib.redirect_stdout(stdout):
+            code = cli.main()
+        self.requests = requests
+        return code, stdout.getvalue()
+
+    def test_nothing_open_prints_nothing_and_touches_nothing(self):
+        self.assertEqual(self.watch(), (0, ''))
+        self.requests.assert_called_once_with(self.config)
+        self.assertFalse(self.wake.exists())
+
+    def test_an_open_request_touches_the_wake_file(self):
+        code, out = self.watch(Mock(return_value=self.OPEN))
+        self.assertEqual((code, json.loads(out)), (0, {'status': 'woken', 'requests': 1}))
+        self.assertTrue(self.wake.is_file())
+        self.assertNotIn('B-A', out)
+
+    def test_switches_off_or_any_error_exit_silently(self):
+        for name, config, catalogue in (('config switch', dict(self.config, group_chat_summary_enabled=False), None),
+                                        ('catalogue entry', None, {'services': dict(self.CATALOGUE['services'], group_chat_summary={'enabled': False})}),
+                                        ('dependency', None, {'services': dict(self.CATALOGUE['services'], conversation_poll={'enabled': False})})):
+            with self.subTest(off=name):
+                self.assertEqual(self.watch(Mock(return_value=self.OPEN), config=config, catalogue=catalogue), (0, ''))
+                self.requests.assert_not_called()
+                self.assertFalse(self.wake.exists())
+        for error in (ConfigurationError('RECEIPT_API_OUTCOME_UNCERTAIN'), summary.SummaryFailed('REFRESH_LIST_INVALID'), RuntimeError(SENTINEL)):
+            with self.subTest(error=type(error).__name__):
+                self.assertEqual(self.watch(Mock(side_effect=error)), (0, ''))
+                self.assertFalse(self.wake.exists())
+        with self.subTest(error='controls'):
+            self.assertEqual(self.watch(controls=patch.object(summary, 'load_controls', side_effect=ConfigurationError(SENTINEL))), (0, ''))
+        with self.subTest(error='touch'):
+            self.config['state_directory'] = self.tmp.name + '/missing'
+            self.assertEqual(self.watch(Mock(return_value=self.OPEN)), (0, ''))
+
+    def test_the_refresh_get_writes_no_audit_row(self):
+        from mw_integration_agent import receipt_api
+        reply = json.dumps({'environment': 'prod', 'requests': self.OPEN}).encode()
+        response = Mock(read=Mock(return_value=reply))
+        response.__enter__ = Mock(return_value=response)
+        response.__exit__ = Mock(return_value=False)
+        opener = Mock(open=Mock(return_value=response))
+        config = dict(self.config, receipt_payment_api_enabled=True, receipt_payment_api_origin='https://example.invalid',
+                      receipt_payment_api_audience='https://example.invalid')
+        refused = AssertionError('audit row written')
+        with patch.object(summary, 'load_controls', return_value=(config, self.CATALOGUE)), patch.object(receipt_api, 'validate'), \
+                patch.object(receipt_api, 'identity_token', return_value='token'), patch.object(receipt_api, 'http_opener', return_value=opener), \
+                patch('mw_integration_agent.audit.begin', side_effect=refused), patch('mw_integration_agent.audit.event', side_effect=refused), \
+                patch('mw_integration_agent.audit.started', side_effect=refused), patch('mw_integration_agent.audit.job', side_effect=refused):
+            self.assertEqual(summary.refresh_watch('c', 'k'), 1)
+        request = opener.open.call_args.args[0]
+        self.assertEqual((request.get_method(), request.full_url), ('GET', 'https://example.invalid/internal/agent/group-chat-refreshes'))
+        self.assertTrue(self.wake.is_file())
 
 
 class OutputValidationTests(Base):
@@ -1378,7 +1535,8 @@ class RunEffectTests(Base):
         self.assertEqual((effect['failed'], effect['waits']), (3, []))
         self.assertNotIn('refresh', effect)
         # R168: stage seconds and the Instagram request count only.
-        self.assertEqual((set(effect['seconds']), effect['instagram_calls']), ({'listing', 'groups', 'model', 'post'}, 1))
+        # R169: the absent group makes the first 5-conversation request a miss, so the R168 read follows.
+        self.assertEqual((set(effect['seconds']), effect['instagram_calls']), ({'listing', 'groups', 'model', 'post'}, 2))
         self.assertTrue(all(type(value) is float for value in effect['seconds'].values()))
         text = json.dumps(effect, ensure_ascii=False)
         for value in [summary.conversation_key(cid) for cid in ('g1', 'g2', 'gone')] + ['g1', 'gone', 'B-A', SENTINEL, 'conversation']:
@@ -1790,7 +1948,7 @@ class ConfigurationTests(unittest.TestCase):
     def test_catalogue_knows_the_service_disabled_and_implemented(self):
         catalogue = json.loads((ROOT / 'service-catalogue.json').read_text(encoding='utf-8'))
         validate_catalogue(catalogue)
-        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (41, {'enabled': False, 'implemented': True}))  # R168 (41), R166 (40) and R165 (39) change no service
+        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (42, {'enabled': False, 'implemented': True}))  # R169 (42), R168 (41), R166 (40) and R165 (39) change no service
 
 
 class UnitFileTests(unittest.TestCase):

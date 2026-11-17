@@ -43,6 +43,9 @@ def build_parser() -> argparse.ArgumentParser:
     summary.add_argument('--catalogue',required=True)
     summary.add_argument('--dry-run',action='store_true',help='resolve groups, subjects and referrers and print counts; no model call, no post, no state write')
     summary.add_argument('--mark-all',action='store_true',help='R147 one-shot backfill: mark every eligible group so the next runs summarise its existing 3-day window; counts only, no model call, no post')
+    watch=sub.add_parser('group-chat-refresh-watch',help='R169: touch the group chat summary wake file when PWA refresh requests are open; silent otherwise')
+    watch.add_argument('--config',required=True)
+    watch.add_argument('--catalogue',required=True)
     webhook = sub.add_parser("serve-webhook", help="run receipt-only signed Instagram ingress")
     webhook.add_argument("--config", required=True)
     webhook.add_argument("--catalogue", required=True)
@@ -90,7 +93,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 # Long-running services, local checks and the monitoring/read probes run outside audit.job(): no
 # service owner to fence and nothing to record (the probes touch no journal and leave no audit tree).
-UNWRAPPED_COMMANDS = ('serve-webhook','serve-receipt-recognition','serve-chat-relay','receiver-ready','status','check','instagram-probe','messages')
+# R169: group-chat-refresh-watch (every 15 seconds) is a read probe too: one GET of the open refresh requests, no
+# database, no job, heartbeat or audit row; it only touches a wake file.
+UNWRAPPED_COMMANDS = ('serve-webhook','serve-receipt-recognition','serve-chat-relay','receiver-ready','status','check','instagram-probe','messages',
+                      'group-chat-refresh-watch')
 
 
 def main() -> int:
@@ -142,6 +148,12 @@ def execute(args, outcome=None) -> int:
                 outcome['effect']={'reclassified':result['reclassified'],'jobs':result['jobs']}
             print(json.dumps(result))
             return 0 if result.get('status')=='ok' else 2
+        if args.command=='group-chat-refresh-watch':
+            from .group_chat_summary import refresh_watch
+            woken=refresh_watch(args.config,args.catalogue)
+            # Silent unless it woke the summary (its unit logs notice and above only); always exit 0.
+            if woken:print(json.dumps({'status':'woken','requests':woken}))
+            return 0
         if args.command=='group-chat-summary':
             from .group_chat_summary import run
             result=run(args.config,args.catalogue,dry=args.dry_run,mark=args.mark_all)
