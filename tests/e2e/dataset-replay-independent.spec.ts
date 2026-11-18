@@ -336,9 +336,9 @@ test('R158 offline: the Collection header opens the group from the stored item, 
  await select(page,'prepared-collection');
  // A phone or iPad (Mac user agent with touch points, as chatDevice tells them apart) gets the invite link.
  const phone=touchDevice(info);expect(await page.evaluate(()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1)).toBe(phone);
- await expect(page.locator('.collection-compact-tile').getByRole('link',{name:'Open group chat in Instagram, '+item.displayName,exact:true})).toHaveAttribute('href',phone?invite:web);
+ await expect(page.locator('.collection-compact-tile').getByRole('link',{name:'Copy reminder and open group chat in Instagram, '+item.displayName,exact:true})).toHaveAttribute('href',phone?invite:web);
  await page.locator('.collection-tile-main[data-record-id="B-R158"]').click();
- const link=page.locator('.collection-context').getByRole('link',{name:narrow(page)?'Open group chat in Instagram':'Open chat',exact:true});
+ const link=page.locator('.collection-context').getByRole('link',{name:narrow(page)?'Copy reminder and open group chat in Instagram':'Open chat',exact:true});
  await expect(link).toHaveAttribute('href',phone?invite:web);await expect(page.locator('.collection-chat-summary')).toHaveCount(0);
  await expect(page.locator('.collection-context .collection-name-link')).toHaveText(item.displayName);
 });
@@ -354,7 +354,7 @@ test('R161 offline: the Collection DM button comes from the held records and app
  const tile=page.locator('.collection-compact-tile');await expect(tile).toHaveCount(1);await expect(tile.locator('.collection-tile-main')).toBeVisible();
  await expect(tile.locator('a')).toHaveCount(0);
  await publish(page,'records',{borrowers:[{id:'B-R161',aiCollectionEnabled:true,instagramUsername:'@invented.offline',igGroupUrl:null,igGroupInviteLink:null}]});
- const link=tile.getByRole('link',{name:'Open Instagram direct message, '+item.displayName,exact:true});
+ const link=tile.getByRole('link',{name:'Copy reminder and open Instagram direct message, '+item.displayName,exact:true});
  await expect(link).toHaveAttribute('href','https://ig.me/m/invented.offline');await expect(link).toHaveClass('collection-tile-chat chat-link-dm');
  await tile.locator('.collection-tile-main').click();
  await expect(page.locator('.collection-context a.collection-header-chat')).toHaveAttribute('href','https://ig.me/m/invented.offline');

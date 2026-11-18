@@ -227,7 +227,9 @@ const header=(page:Page)=>page.locator('.collection-context');
 const isPhone=(page:Page)=>page.evaluate(()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1));
 // UX-HDR-CHAT-02/03: wider than 480px the visible "Open chat" names the link (no aria-label); at 480px and below (the phone
 // projects) it is an icon button named by its aria-label. The title is always the full purpose.
-const purpose={en:'Open group chat in Instagram',th:'เปิดแชทกลุ่มใน Instagram'};
+const purpose={en:'Copy reminder and open group chat in Instagram',th:'คัดลอกข้อความเตือนและเปิดแชทกลุ่มใน Instagram'};
+// R176: with nothing to collect the link keeps its original name.
+const plainPurpose={en:'Open group chat in Instagram',th:'เปิดแชทกลุ่มใน Instagram'};
 const linkName=(narrow:boolean,lang:'en'|'th'='en')=>narrow?purpose[lang]:lang==='en'?'Open chat':'เปิดแชท';
 // UX-HDR-CHAT-01: the link's left edge is within 16px of the name's right edge on the name's row, or it starts the next
 // line directly after the name.
@@ -371,7 +373,7 @@ test('two panes: after a borrower is selected, long-name tiles grow with the nar
 
 // R161 (owner, 15 November 2026): AI collection enabled and no usable group link: the same button opens the borrower's
 // Instagram direct message (chatDmUrl from the read service), pink, named as a direct message; a group link wins.
-const dmPurpose={en:'Open Instagram direct message',th:'เปิดแชทส่วนตัวใน Instagram'};
+const dmPurpose={en:'Copy reminder and open Instagram direct message',th:'คัดลอกข้อความเตือนและเปิดแชทส่วนตัวใน Instagram'};
 test('R161 Collection list and header: the DM button (pink) without a group link, the group button with one, none for an invalid DM link; Thai',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');
  await open(page,{desktop,links:{'chat-c':{chatDmUrl:'https://ig.me/m/invented.c'},'chat-b':{chatInviteUrl:invite,chatDmUrl:'https://ig.me/m/invented.b'},'chat-d':{chatDmUrl:'https://ig.me/m/a b'},'chat-f':{chatDmUrl:'https://ig.me/m/invented_f'}}});
@@ -553,4 +555,66 @@ test.describe('owner testing shell',()=>{
   release();await expect(page.locator('.collection-charge')).toHaveCount(1);
   if(info.project.name.startsWith('desktop'))await expect(article.locator('button.icon-action')).toBeEnabled();
  });
+});
+
+// R176 (owner, 18 November 2026: "copy and open"): the tile and header chat links copy the partner's daily reminder as the
+// chat opens. navigator.clipboard.writeText is stubbed (WebKit has no clipboard-write permission and a real readText is
+// focus-sensitive once the popup opens), as error-recovery.spec.ts does. The link must open whatever the copy does.
+const reminder1200='📌วันนี้มีส่งยอด 1,200 นะคะ';
+async function stubClipboard(page:Page,reject=false){
+ await page.addInitScript(rejecting=>{(window as any).copies=[];Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:(text:string)=>{(window as any).copies.push(text);return rejecting?Promise.reject(new Error('denied')):Promise.resolve()}}})},reject);
+ await page.context().route(/^https:\/\/(www\.instagram\.com|ig\.me)\//,r=>r.fulfill({contentType:'text/html',body:'<title>Invented group</title>'}));
+}
+const copies=(page:Page)=>page.evaluate(()=>(window as any).copies as string[]);
+const copyToast=(page:Page)=>page.locator('.reminder-copy-toast');
+const links={'chat-c':{chatUrl:web,chatInviteUrl:invite},'chat-b':{chatUrl:web,chatInviteUrl:invite}};
+test('R176 tile chat tap copies the reminder, opens the chat and reports it; a new tap or selection clears it',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop');
+ await stubClipboard(page);await open(page,{desktop,links});const phone=await isPhone(page);
+ await expect(copyToast(page)).toHaveAttribute('role','status');await expect(copyToast(page)).toHaveText('');
+ const popup=page.context().waitForEvent('page');await page.getByRole('link',{name:tileChatName(nameOf('chat-c')),exact:true}).click();const opened=await popup;await opened.waitForLoadState();
+ expect(opened.url()).toBe(phone?invite:web);await opened.close();
+ expect(await copies(page)).toEqual([reminder1200]);
+ await expect(copyToast(page)).toHaveText('Reminder copied: 1,200');await expect(copyToast(page)).not.toHaveClass(/refused/);
+ // The tap never selects the borrower.
+ await expect(page.locator('.collection-compact-tile.selected')).toHaveCount(0);
+ // Selecting a borrower clears the line (the next tap or selection).
+ await tile(page,'chat-b').click();await expect(page.locator('.collection-charge')).toHaveCount(1);await expect(copyToast(page)).toHaveText('');
+});
+test('R176 a rejected copy still opens the chat and says the reminder was not copied',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop');
+ await stubClipboard(page,true);await open(page,{desktop,links});const phone=await isPhone(page);
+ const popup=page.context().waitForEvent('page');await page.getByRole('link',{name:tileChatName(nameOf('chat-c')),exact:true}).click();const opened=await popup;await opened.waitForLoadState();
+ expect(opened.url()).toBe(phone?invite:web);await opened.close();
+ expect(await copies(page)).toEqual([reminder1200]);
+ await expect(copyToast(page)).toHaveText('Reminder not copied. Type the amount in the chat.');await expect(copyToast(page)).toHaveClass(/refused/);
+});
+test('R176 a missing clipboard API does not stop the chat opening',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop');
+ await page.addInitScript(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:undefined}));
+ await page.context().route(/^https:\/\/(www\.instagram\.com|ig\.me)\//,r=>r.fulfill({contentType:'text/html',body:'<title>Invented group</title>'}));
+ await open(page,{desktop,links});const phone=await isPhone(page);
+ const popup=page.context().waitForEvent('page');await page.getByRole('link',{name:tileChatName(nameOf('chat-c')),exact:true}).click();const opened=await popup;await opened.waitForLoadState();
+ expect(opened.url()).toBe(phone?invite:web);await opened.close();
+ await expect(copyToast(page)).toHaveText('Reminder not copied. Type the amount in the chat.');
+});
+test('R176 a zero remaining amount copies nothing, keeps the old name and shows no line',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop');
+ await stubClipboard(page);await open(page,{desktop,links,boardRows:board.map(row=>row.id==='chat-c'?{...row,amountRemaining:'0'}:row)});const phone=await isPhone(page);
+ const link=page.getByRole('link',{name:plainPurpose.en+', '+nameOf('chat-c'),exact:true});await expect(link).toHaveAttribute('title',plainPurpose.en);
+ const popup=page.context().waitForEvent('page');await link.click();const opened=await popup;await opened.waitForLoadState();
+ expect(opened.url()).toBe(phone?invite:web);await opened.close();
+ expect(await copies(page)).toEqual([]);await expect(copyToast(page)).toHaveText('');
+ // The header keeps the old name too.
+ await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);
+ await expect(header(page).locator('a.collection-header-chat')).toHaveAttribute('title',plainPurpose.en);
+});
+test('R176 the detail header link copies the reminder once as it opens the chat',async({page},info)=>{
+ const desktop=info.project.name.startsWith('desktop');
+ await stubClipboard(page);await open(page,{desktop,links});const phone=await isPhone(page);
+ await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);
+ const link=header(page).getByRole('link',{name:linkName(narrow(page)),exact:true});await expect(link).toHaveAttribute('title',purpose.en);
+ const popup=page.context().waitForEvent('page');await link.click();const opened=await popup;await opened.waitForLoadState();
+ expect(opened.url()).toBe(phone?invite:web);await opened.close();
+ expect(await copies(page)).toEqual([reminder1200]);await expect(copyToast(page)).toHaveText('Reminder copied: 1,200');
 });

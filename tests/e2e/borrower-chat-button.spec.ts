@@ -195,10 +195,10 @@ test('R161 offline from the held records bundle (fetches aborted): DM buttons on
  // Collection: the list tile and the header.
  await go(page,'Collection','.collection-compact-tile');
  const tile=page.locator('.collection-compact-tile').filter({has:page.locator('.collection-tile-main[data-record-id="b-dm"]')});
- const listLink=tile.getByRole('link',{name:purpose.dm.en+', '+nameOf('b-dm'),exact:true});await expect(listLink).toHaveAttribute('href','https://ig.me/m/invented.dm');await expect(listLink).toHaveClass('collection-tile-chat chat-link-dm');
+ const listLink=tile.getByRole('link',{name:'Copy reminder and open Instagram direct message, '+nameOf('b-dm'),exact:true});await expect(listLink).toHaveAttribute('href','https://ig.me/m/invented.dm');await expect(listLink).toHaveClass('collection-tile-chat chat-link-dm');
  expect(await listLink.evaluate(node=>getComputedStyle(node).color)).toBe(DM);
  for(const id of ['b-off','b-bad'])await expect(page.locator('.collection-compact-tile').filter({has:page.locator(`.collection-tile-main[data-record-id="${id}"]`)}).locator('a'),id).toHaveCount(0);
  await tile.locator('.collection-tile-main').click();await expect(page.locator('.collection-charge')).toHaveCount(1);
- const header=page.locator('.collection-context a.collection-header-chat');await expect(header).toHaveAttribute('href','https://ig.me/m/invented.dm');await expect(header).toHaveAttribute('title',purpose.dm.en);
+ const header=page.locator('.collection-context a.collection-header-chat');await expect(header).toHaveAttribute('href','https://ig.me/m/invented.dm');await expect(header).toHaveAttribute('title','Copy reminder and open Instagram direct message');
  expect(await header.evaluate(node=>getComputedStyle(node).color)).toBe(DM);
 });
