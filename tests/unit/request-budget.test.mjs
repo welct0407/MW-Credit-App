@@ -33,8 +33,9 @@ test('IAM pool survives ECONNRESET on a checked-out client and discards it on re
  const {pool,close}=await createIamPool({instance:'i',dbUser:'u',database:'d',serviceRole:'reader'},realModules);
  try{
   const client=await pool.connect();assert.equal(pool.totalCount,1);
-  assert.doesNotThrow(()=>client.reset());
+  let thrown=null;try{client.reset()}catch(error){thrown=error}
   client.release();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(thrown,null,'ECONNRESET on a checked-out client reached the process');
   assert.equal(pool.totalCount,0);assert.equal(pool.idleCount,0);
   // Without the connect listener the same reset is an unhandled 'error' event.
   const bare=new (await import('pg')).default.Pool({Client:SyntheticClient});
