@@ -18,8 +18,8 @@ Owner request, 18 November 2026: "yes, go with option 1", then "push all the way
 | Orchestrator: full agent discover | One error: `test_receipt_qr` (`zxingcpp` missing locally, pre-existing) |
 | Orchestrator: `ruff check` | Pass |
 | Orchestrator: PostgreSQL lab (`tests/lab/setup.sh`, disposable cluster) | 78 OK, 13 skipped |
-| Byte: checks | PENDING |
-| Chase: review | PENDING |
+| Byte: `ruff check --no-cache .` and eight focused modules (`test_partner_review_options test_review_cycle test_receipt_health test_deploy_runtime test_config test_receipt_recognition test_group_chat_summary test_receipt_reconsider`) in `integration-agent/`, clean tree at `06fb556` | Pass: ruff clean; 388 run, OK. Review: no change needed; `REVIEW_RESERVATION_FAILED` is a cycle failure (the job stays VALIDATED and is retried), never a job waiting with no review |
+| Chase: adversarial review and recovery reproduction (scratch script on the `test_review_cycle` harness: PROD shape, then the real `receipt_reconsider.run`, then one cycle) at `06fb556` | Pass, no blocking findings. Fixed code: one new PENDING review, one `review:<new id>` request starting with the corrected-request line, `stalled_jobs` 0, no payment submitted; pre-fix code: still stuck. Supersede happens only from PENDING, STALE or EXPIRED, so a new generation never bypasses an approved or posted review; request ids derive from the new review id only when the earlier one never posted. Low, pre-existing, not in R173: `receipt_reconsider.requeue` supersedes without a state guard inside its transaction (protected today by the worker lock). After `receipt-reconsider` on the stuck job, `prior_review_superseded` reads false (expected) |
 | `npm run check:docs` | 0 failures, 0 warnings |
 | The pull request's `Development checks` and integration-agent tests runs | PENDING: cited at closure |
 
