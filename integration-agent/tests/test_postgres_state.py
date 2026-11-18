@@ -477,6 +477,19 @@ class PostgreSQLStateTests(unittest.TestCase):
                 raise RuntimeError('simulated crash before commit')
         self.assertIsNone(receipt.db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(self.key,)).fetchone())
 
+    def test_r173_the_same_plan_after_a_superseded_review_reserves_a_new_review(self):
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        try:
+            review=ReviewStore(receipt.db);proposal={'action':'Pay forward options','synthetic':True}
+            first=review.reserve(self.key,proposal);self.assertEqual(review.reserve(self.key,proposal),first)
+            with receipt.db:
+                receipt.db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id=job_id||':superseded:'||id WHERE id=?",(first,))
+            second=review.reserve(self.key,proposal)
+            self.assertNotEqual(second,first);self.assertEqual(review.reserve(self.key,proposal),second)
+            row=receipt.db.execute('SELECT job_id,state FROM partner_reviews WHERE id=?',(second,)).fetchone()
+            self.assertEqual((row['job_id'],row['state']),(self.key,'PENDING'))
+        finally:receipt.close()
+
     def test_forwarded_provenance_and_automatic_decision_are_durable(self):
         receipt=ReceiptJournal('receipt-processing.db',self.config)
         review=ReviewStore(receipt.db)
