@@ -30,7 +30,7 @@ The PROD Grafana "5xx · all services" panel was above 0 almost every day since 
 | Byte: `Run-Phase5` offline bulk | 3 pass; its database head is pinned at V85, so V151 is not covered there |
 | Byte: lab V151 check, 320 borrowers | Targeted equals whole; 1,500 dates equal `summary_v2` |
 | `python3 project/scripts/dictionary/dictionary.py validate` | 0 errors, 505 documents |
-| Chase review | pending |
+| Chase: adversarial review of 9b96b4b..2145966 on a copy of Byte's V151 lab (320 borrowers, 650 loans): `check_coverage_parity()` and `check_events_parity()`; `forecast_dates` against `summary_v2` (ranks 1–5, 1,500 rows, 500 multi-loan dates); filtered view equal to the whole view for 40 borrowers; real pg 8.23.1 and pg-pool 3.14.0 with a destroyed socket | Pass, no blocking defects. All parity checks show 0 differences. A destroyed socket still rejects the in-flight query with ECONNRESET, and the pool discards the client (total 0). The targeted read gets faster in every measured row; Chase estimates the whole targeted call at PROD scale at about 1.2–1.5 s, under the 5 s budget (an estimate, not a measurement). Notes, not blocking: a targeted read still simulates all loans once, through `forecast_coverage` and `upcoming_context` (a possible follow-up), and the phase6 walk test runs only where `PHASE6_POPULATED_SNAPSHOT` exists. |
 | Pull request `Development checks` | pending |
 
 ## Not run
