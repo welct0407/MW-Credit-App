@@ -24,7 +24,7 @@ The receipt health collector's acknowledged-notice lookup scanned the whole `aud
 | `ruff check --no-cache integration-agent` | Clean |
 | `python3 -m unittest discover -s tests` (from `integration-agent/`) | 1,055 run, 80 skipped. One error: `test_receipt_qr` cannot import `zxingcpp`, which is not installed in this sandbox (CI installs it). Unrelated to this change. |
 | CI `lab` suite run locally as `postgres` (`tests/lab/setup.sh` cluster plus a fresh PostgreSQL 18 on 15611, the eight lab modules) | 90 OK, after the retention-test fix |
-| Pull request agent tests (`test`, `lab`) | First run: `lab` failed on the two retention-test pins (fixed); rerun pending |
+| Pull request agent tests (`test`, `lab`) | First run: `lab` failed on the two retention-test pins (fixed); rerun success (run 44315634410, PR #362 merged as `a1cd6d76`) |
 
 ## Not run
 Nothing further. All eight lab modules ran locally (see Checks).
@@ -35,5 +35,8 @@ Nothing further. All eight lab modules ran locally (see Checks).
 ## Open questions
 None.
 
+## Applied
+PROD `mw_agent` V14 was applied on 18 November 2026 as part of R175 (see the [R175 PROD promotion record](../../Change%20Logs/CHANGE_NOTES_R175_PARTNER_MESSAGES_2026-11-18.md#prod-promotion-record-forge-18-november-2026-utc): backup 14:40:25Z to 14:41:46Z (record `prod-promotion-c7ca391c72764f61b000b5df05ec7855`), `agent-state-admin.py migrate` 14:42:05.74Z to 14:42:06.61Z applied only V14 (installed 14:42:06.54Z), `events_kind_idx` btree on `event_kind` owned by `mw_agent_owner`, and the acknowledged-notice lookup now reads `Index Scan using events_kind_idx`.
+
 ## Remaining work
-Apply V14 on PROD `mw_agent` in a deployment window: backup, `deploy-runtime.py freeze`, `agent-state-admin.py migrate`, `install`, `activate`. Then record it in the environment inventory's `mw_agent` row and confirm with `pg_stat_statements` that the lookup no longer scans.
+Confirm with `pg_stat_statements` over the next days that the lookup no longer scans; not yet observed.

@@ -31,7 +31,8 @@ The PROD Grafana "5xx · all services" panel was above 0 almost every day since 
 | Byte: lab V151 check, 320 borrowers | Targeted equals whole; 1,500 dates equal `summary_v2` |
 | `python3 project/scripts/dictionary/dictionary.py validate` | 0 errors, 505 documents |
 | Chase: adversarial review of 9b96b4b..2145966 on a copy of Byte's V151 lab (320 borrowers, 650 loans): `check_coverage_parity()` and `check_events_parity()`; `forecast_dates` against `summary_v2` (ranks 1–5, 1,500 rows, 500 multi-loan dates); filtered view equal to the whole view for 40 borrowers; real pg 8.23.1 and pg-pool 3.14.0 with a destroyed socket | Pass, no blocking defects. All parity checks show 0 differences. A destroyed socket still rejects the in-flight query with ECONNRESET, and the pool discards the client (total 0). The targeted read gets faster in every measured row; Chase estimates the whole targeted call at PROD scale at about 1.2–1.5 s, under the 5 s budget (an estimate, not a measurement). Notes, not blocking: a targeted read still simulates all loans once, through `forecast_coverage` and `upcoming_context` (a possible follow-up), and the phase6 walk test runs only where `PHASE6_POPULATED_SNAPSHOT` exists. |
-| Pull request `Development checks` | pending |
+| Pull request `Development checks` run 44318752891 and agent tests run 44318752881 | Success (PR #363, merged as `cbda7a99`) |
+| `Database migrations` run 44319384863 on `cbda7a99` | Success: the V151 CI proof |
 
 ## Not run
 Nothing is skipped yet. The timings above are Byte's measurements on synthetic data, not PROD measurements; the PROD effect is read from Grafana after deployment.
@@ -42,5 +43,8 @@ Revert the pull request for the code changes; the images redeploy from the previ
 ## Open questions
 None.
 
+## Applied
+V151 and the images were applied on 18 November 2026 as part of R175: PROD backup at V150 (14:07:00Z to 14:09:41Z), V151 to DEV (14:13:00Z, then a DEV owner-window reconcile, see the deviation in the record) and PROD (installed 14:28:27Z), images rebuilt and applied for read, command, chat, notify and jobs in DEV and PROD, and 0 PROD 5xx since 14:37Z. See the [R175 PROD promotion record](CHANGE_NOTES_R175_PARTNER_MESSAGES_2026-11-18.md#prod-promotion-record-forge-18-november-2026-utc).
+
 ## Remaining work
-Promotion of V151 and the images by the session named above. After deployment, check that the Grafana "5xx · all services" panel returns to 0 and refresh the two dictionary entries from a PROD capture.
+The Grafana "5xx · all services" panel over the next days (including the 00:01 Bangkok rollover); not yet observed. The dictionary entries for the two views were refreshed from the PROD capture at closure.
