@@ -2155,7 +2155,7 @@ class ConfigurationTests(unittest.TestCase):
     def test_catalogue_knows_the_service_disabled_and_implemented(self):
         catalogue = json.loads((ROOT / 'service-catalogue.json').read_text(encoding='utf-8'))
         validate_catalogue(catalogue)
-        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (46, {'enabled': False, 'implemented': True}))  # R174 (46), R173 (45), R171 (44), R170 (43), R169 (42), R168 (41), R166 (40) and R165 (39) change no service
+        self.assertEqual((catalogue['revision'], catalogue['services']['group_chat_summary']), (47, {'enabled': False, 'implemented': True}))  # R175 (47), R174 (46), R173 (45), R171 (44), R170 (43), R169 (42), R168 (41), R166 (40) and R165 (39) change no service
 
 
 class UnitFileTests(unittest.TestCase):

@@ -13,10 +13,10 @@ class LateChargeTests(unittest.TestCase):
 
     def test_the_request_names_interest_and_late_charge(self):
         options={'dueTotal':'150','duePrincipal':'0','dueInterest':'100','dueLate':'50'}
-        self.assertEqual(partner_review.due_parts(options,False),' (Interest ฿100 + Late charge ฿50)')
+        self.assertEqual(partner_review.due_parts(options,False),' (interest ฿100 + late charge ฿50)')
         self.assertEqual(partner_review.due_parts(options,True),' (ดอกเบี้ย ฿100 + ค่าปรับล่าช้า ฿50)')
         self.assertEqual(partner_review.due_parts({'dueTotal':'100'},False),'','no late charge: the request reads as before')
-        self.assertEqual(partner_review.due_parts({**options,'duePrincipal':'200'},False),' (Principal ฿200 + Interest ฿100 + Late charge ฿50)')
+        self.assertEqual(partner_review.due_parts({**options,'duePrincipal':'200'},False),' (principal ฿200 + interest ฿100 + late charge ฿50)')
 
 
 if __name__=='__main__':

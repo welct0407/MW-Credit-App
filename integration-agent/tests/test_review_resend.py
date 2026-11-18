@@ -137,10 +137,11 @@ class HoldResendTests(unittest.TestCase):
         self.assertEqual(copy['event_key'], event_key(job)+':resend:'+TOKEN)
         self.assertEqual(base_key(copy['event_key']), event_key(job))
         lines = copy['body'].split('\n')
-        self.assertEqual(lines[0], '1/1 · Still held since 5 Nov (3 days)')
-        self.assertEqual(lines[1], 'Receipt held — reviewer attention needed')
-        self.assertIn('Borrower: Synthetic borrower', copy['body'])
-        self.assertTrue(copy['body'].endswith('Then use Reply on this message and send Reject to clear it from the list.'))
+        # R175 (Echo E-HOLD-01): the reason first, how long it has been held on line 2.
+        self.assertEqual(lines[0], '1/1 · Slip held: the receipt amount could not be read.')
+        self.assertEqual(lines[1], 'Still held since 5 Nov (3 days)')
+        self.assertTrue(lines[2].startswith('Synthetic borrower · '))
+        self.assertTrue(copy['body'].endswith("Can't approve here. If genuine, record it in the app, then Reply Reject to clear it."))
         self.assertEqual(copy['body'].count('1/1'), 1)
         self.assertEqual(self.ack(), ('Review list', 'Review list: 1 held receipt. They follow now, oldest first. Use Reply on each message; '
                                      'each one says which replies it accepts. Decided or expired requests are not resent.'))
@@ -150,7 +151,7 @@ class HoldResendTests(unittest.TestCase):
         self.hold('j', self.sent - 86400)
         self.run_command()
         [copy] = self.resent()
-        self.assertTrue(copy['body'].startswith('1/1 · ยังพักไว้ตั้งแต่ 7 พ.ย. (1 วัน)\nสลิปถูกพักไว้ กรุณาตรวจสอบ\n'), copy['body'])
+        self.assertTrue(copy['body'].startswith('1/1 · สลิปถูกพัก: อ่านจำนวนเงินในสลิปไม่ได้\nยังพักไว้ตั้งแต่ 7 พ.ย. (1 วัน)\n'), copy['body'])
         self.p['language'] = 'English'
         from mw_integration_agent.receipt_hold import still_held
         self.assertEqual(still_held({'created_at':self.sent-86400}, False, self.sent), 'Still held since 7 Nov (1 day)')
@@ -164,9 +165,9 @@ class HoldResendTests(unittest.TestCase):
         self.assertEqual([n['event_key'].split(':')[0]+':'+n['body'].split(' · ')[0] for n in rows],
                          ['receipt-held:1/3', 'review:2/3', 'receipt-held:3/3'])
         self.assertIn(':old-hold:', rows[0]['event_key']); self.assertIn(':new-hold:', rows[2]['event_key'])
-        self.assertTrue(rows[1]['body'].startswith('2/3 · Payment approval requested\nBorrower: Test'))
+        self.assertTrue(rows[1]['body'].startswith('2/3 · Slip ฿100 from Test: approval needed\n'))
         self.assertEqual(rows[1]['event_key'], 'review:'+self.store.db.execute('SELECT id FROM partner_reviews').fetchone()[0]+':resend:'+TOKEN)
-        self.assertTrue(rows[2]['body'].startswith('3/3 · Still held since 8 Nov (0 days)\n'))
+        self.assertEqual(rows[2]['body'].split('\n')[1],'Still held since 8 Nov (0 days)')
         for n in rows:
             self.assertEqual(n['body'].count(' · ', 0, n['body'].index('\n')), 1)
             self.assertNotIn('/3', n['body'].split('\n', 1)[1])

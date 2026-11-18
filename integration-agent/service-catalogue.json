@@ -1,5 +1,5 @@
 {
-  "revision": 46,
+  "revision": 47,
   "default_policy": "deny",
   "services": {
     "receipt_evidence": {

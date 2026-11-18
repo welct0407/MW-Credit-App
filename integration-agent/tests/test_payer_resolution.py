@@ -352,7 +352,7 @@ class UnidentifiedSenderTests(SlipGroupBase):
         queue_holds(dict(self.config, receipt_hold_notice_cutoff=CUTOFF), self.j, notices, m, Mock())
         sent = {r['event_key'].split(':')[1]: r['body'] for r in notices.db.execute('SELECT event_key,body FROM partner_notices')}
         self.assertEqual(set(sent), {rows['r1']['id'], rows['r2']['id']})
-        self.assertIn('Possible borrowers: Synthetic mali2, Synthetic fon\nNo payment posted.', sent[rows['r1']['id']])
+        self.assertIn("Possible borrowers: Synthetic mali2, Synthetic fon\nCan't approve here.", sent[rows['r1']['id']])
         for body in sent.values():
             self.assertNotIn('nickname right after', body)
 
@@ -373,11 +373,12 @@ class ForwardedOtherBorrowerTests(SlipGroupBase):
         self.assertEqual((row['status'], row['detail']), ('REVIEW', 'PAYER_NAME_OTHER_BORROWER'))
         result = json.loads(row['result'])
         self.assertEqual(result['payer_candidates'], ['mali2', 'dara']);self.assertNotIn('receipt', result)
-        for language, expected in (('English', "Reason: The slip's payer name matches a different borrower, not this group's borrower.\n"
-                                               'Possible borrowers: Synthetic mali2, Synthetic dara\nNo payment posted.'),
-                                   ('ไทย', 'สาเหตุ: ชื่อผู้โอนในสลิปตรงกับผู้กู้คนอื่น ไม่ใช่ผู้กู้ของกลุ่มนี้\nผู้กู้ที่เป็นไปได้: ผู้กู้ mali2, ผู้กู้ dara\n')):
+        for language, reason, expected in (('English', "Slip held: the slip's payer name matches a different borrower, not this group's borrower.\n",
+                                            "\nPossible borrowers: Synthetic mali2, Synthetic dara\nCan't approve here."),
+                                           ('ไทย', 'สลิปถูกพัก: ชื่อผู้โอนในสลิปตรงกับผู้กู้คนอื่น ไม่ใช่ผู้กู้ของกลุ่มนี้\n',
+                                            '\nผู้กู้ที่เป็นไปได้: ผู้กู้ mali2, ผู้กู้ dara\nอนุมัติผ่านข้อความนี้ไม่ได้')):
             body = held_text(row, m['borrowers'][0], language, m['accounts'], m['borrowers'])[1]
-            self.assertIn(expected, body);self.assertNotIn('nickname', body);self.assertNotIn('ชื่อเล่น', body)
+            self.assertTrue(body.startswith(reason));self.assertIn(expected, body);self.assertNotIn('nickname', body);self.assertNotIn('ชื่อเล่น', body)
 
     def test_own_near_unknown_two_others_or_unreadable_proceed_unchanged(self):
         own = 'นาย นภัสสร พงษ์ดี'
@@ -441,19 +442,22 @@ class WeakHoldTextTests(unittest.TestCase):
         m = master(borrower('b1', 'borrower', None), borrower('b2', 'referee', None))
         english = held_text(self.job('PAYER_UNRESOLVED', {'extraction': slip(), 'payer_candidates': ['b1', 'b2']}), None, 'English', m['accounts'], m['borrowers'])[1]
         # R135: recording or rejecting moved to the hold's closing block; only the nickname tip stays with the candidates.
-        self.assertIn("Reason: The slip's payer name did not identify one borrower.\nPossible borrowers: Synthetic borrower, Synthetic referee\n"
-                      "Next time, send the borrower's nickname right after the slip.\nNo payment posted.", english)
+        self.assertTrue(english.startswith("Slip held: the slip's payer name did not identify one borrower.\n"))
+        self.assertIn("\nPossible borrowers: Synthetic borrower, Synthetic referee\n"
+                      "Next time, send the borrower's nickname right after the slip.\nCan't approve here.", english)
         self.assertEqual(english.count('Reject'), 1)
         thai = held_text(self.job('PAYER_UNRESOLVED', {'extraction': slip(), 'payer_candidates': []}), None, 'ไทย', m['accounts'], m['borrowers'])[1]
         self.assertIn('ผู้กู้ที่เป็นไปได้: ไม่มี\nครั้งหน้าให้ส่งชื่อเล่นผู้กู้ต่อจากสลิปทันที\n', thai)
-        self.assertEqual(thai.count('Reject'), 1)
+        self.assertEqual(thai.count('Reject'), 0);self.assertEqual(thai.count('ปฏิเสธ'), 1)  # R175 (D4): Thai names ปฏิเสธ only
         unreadable = held_text(self.job('PAYER_NAME_UNREADABLE', {'extraction': slip('')}), None, 'English', m['accounts'], m['borrowers'])[1]
-        self.assertIn("Reason: The slip's payer name could not be read and no nickname was sent.\nNext time, send the borrower's nickname", unreadable)
+        self.assertTrue(unreadable.startswith("Slip held: the slip's payer name could not be read and no nickname was sent.\n"))
+        self.assertIn("\nNext time, send the borrower's nickname", unreadable)
         self.assertNotIn('Possible borrowers', unreadable)
 
     def test_every_hold_shows_the_slip_payer_and_a_chosen_step(self):
         english = held_text(self.job('AMOUNT_UNREADABLE', {'extraction': slip('MR. SOMCHAI J***'), 'payer_step': 'hint'}), None, 'English', master()['accounts'])[1]
-        self.assertIn("Payer on slip: MR. SOMCHAI J***\nReason: The receipt amount could not be read.\nBorrower chosen by: forwarder's nickname message\n", english)
+        self.assertTrue(english.startswith('Slip held: the receipt amount could not be read.\n'))
+        self.assertIn("\nPayer on slip: MR. SOMCHAI J***\nReceived 12 Oct 08:00\nBorrower chosen by: forwarder's nickname message\n", english)
         thai = held_text(self.job('AMOUNT_UNREADABLE', {'extraction': {k: v for k, v in slip().items() if k != 'payer_name'}}), None, 'ไทย', master()['accounts'])[1]
         self.assertIn('\nผู้โอนในสลิป: ไม่ทราบ\n', thai)
 

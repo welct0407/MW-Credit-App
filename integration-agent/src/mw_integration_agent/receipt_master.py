@@ -2,6 +2,8 @@
 
 R095: "Communication Name" is the borrower's payer name (the sender name printed on their slips).
 R146: "Ref Referrer" (the referring borrower's Row ID) excludes a group's referrer from that group's chat summary.
+R175: "Partner Name" names the Reviewer on a rejected result, as its own map (partner_names); the partners rows are compared
+by equality (review notices, reply authorization), so they keep their fields. cash_statement already reads the column.
 """
 from .audit import reference
 from .cash_statement import read_query
@@ -19,7 +21,8 @@ MASTERS_SQL = '''SELECT json_build_object(
         FROM public."Partners" WHERE "AI Reviewer" IS TRUE),
       'partners',(SELECT coalesce(json_agg(t),'[]'::json) FROM (
         SELECT "Row ID" id,"Email" email,"Language Preference" language,
-        "Instagram Username" username,"IG Integration Enabled" enabled FROM public."Partners") t));'''
+        "Instagram Username" username,"IG Integration Enabled" enabled FROM public."Partners") t),
+      'partner_names',(SELECT coalesce(json_object_agg("Row ID",coalesce("Partner Name",'')),'{}'::json) FROM public."Partners"));'''
 
 
 def masters(config):

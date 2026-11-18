@@ -60,6 +60,9 @@ gets the next generation's id, so the job gets a new review and request. No unit
 R174 (reconsider supersedes only an undecided review): the one accepted change of a live revision 45 to the candidate
 revision 46, the same R112 shape (services unchanged since revision 38): requeue supersedes a review only while it is the
 job's and undecided, and moves the job only from the status that was read. No unit change.
+R175 (partner message wording and reply handling): the one accepted change of a live revision 46 to the candidate revision
+47, the same R112 shape (services unchanged since revision 38): new request, result and hold wording, a plain request
+re-asks an unclear reply, and a closed-request or bare-answer reply gets one acknowledgement. No unit or setting change.
 `deploy-shared-receipt-api.py` is the engine; this file supplies the preparation. The probe is the engine's
 read-only receipt-status GET (the native conversation probe left with the conversation)."""
 import copy
@@ -123,6 +126,9 @@ R173_TEMPLATE_SHA256=R165_TEMPLATE_SHA256
 R174_REVISIONS=(45,46)
 # The repository revision 45 catalogue's services, unchanged in revision 46 (the same template as R165's).
 R174_TEMPLATE_SHA256=R165_TEMPLATE_SHA256
+R175_REVISIONS=(46,47)
+# The repository revision 46 catalogue's services, unchanged in revision 47 (the same template as R165's).
+R175_TEMPLATE_SHA256=R165_TEMPLATE_SHA256
 # R144: the release of the commit being deployed, from --release (main); None leaves the release unknown.
 RELEASE_PATTERN=re.compile('R[0-9]{3}')
 RELEASE={'value':None}
@@ -156,6 +162,7 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff,release=Non
     r171=(catalogue.get('revision'),candidate.get('revision'))==R171_REVISIONS
     r173=(catalogue.get('revision'),candidate.get('revision'))==R173_REVISIONS
     r174=(catalogue.get('revision'),candidate.get('revision'))==R174_REVISIONS
+    r175=(catalogue.get('revision'),candidate.get('revision'))==R175_REVISIONS
     if r146:
         base.require(wanted-live==R146_SERVICES and live<=wanted,'R146 catalogue must add exactly group_chat_summary')
         base.require(all(candidate['services'][k]=={'enabled':False,'implemented':True} for k in R146_SERVICES),'R146 group_chat_summary must arrive disabled')
@@ -212,6 +219,10 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff,release=Non
         # Repository revision 46 against repository revision 45: no service definition or default switch changed.
         base.require(services_sha256(candidate['services'])==R174_TEMPLATE_SHA256,'R174 candidate must keep the revision 45 services and switches')
         base.require(live==wanted,'R174 catalogue must keep every service')
+    elif r175:
+        # Repository revision 47 against repository revision 46: no service definition or default switch changed.
+        base.require(services_sha256(candidate['services'])==R175_TEMPLATE_SHA256,'R175 candidate must keep the revision 46 services and switches')
+        base.require(live==wanted,'R175 catalogue must keep every service')
     else:
         base.require(catalogue.get('revision')==candidate.get('revision'),'Catalogue revision drift')
         base.require(live==wanted,'Service drift')
@@ -261,6 +272,9 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff,release=Non
     if r174:
         cat['revision']=candidate['revision']
         base.require(cat['services']==catalogue['services'],'R174 must keep the live switches')
+    if r175:
+        cat['revision']=candidate['revision']
+        base.require(cat['services']==catalogue['services'],'R175 must keep the live switches')
     if r102:
         cat['revision']=candidate['revision']
         for name in R102_SERVICES:cat['services'][name]=dict(candidate['services'][name])

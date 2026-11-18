@@ -14,6 +14,22 @@ from .instagram import Instagram, InstagramAPIError
 from .statement_delivery import eligible, resolve_recipient
 
 
+# R175 (Archie E-X-01): Instagram takes 1000 characters; dispatch adds the status icon and a space (at most ICON_RESERVE
+# characters, "⚠️ " is three), so every builder checks its body against BODY_LIMIT. dispatch stays the last guard.
+IG_TEXT_LIMIT=1000
+ICON_RESERVE=3
+BODY_LIMIT=IG_TEXT_LIMIT-ICON_RESERVE
+# R175 (Echo E-HRR-01): a cleared hold reads ✅; the pre-R175 subjects stay matched for notices queued before the deploy.
+HOLD_CLEARED=('Held slip cleared','นำสลิปที่พักไว้ออกแล้ว','Held receipt rejected','ปฏิเสธสลิปที่พักไว้แล้ว')
+# R175 (Archie E-X-02): the acknowledgement of a reply that decided nothing; informational, never emailed.
+ACKNOWLEDGEMENT='review-reply-result:'
+
+
+def over_limit(body,reserve=0):
+    """True when the body, with `reserve` characters a caller adds in front, would not fit beside the status icon."""
+    return len(body)+reserve>BODY_LIMIT
+
+
 def display_notice(item):
     """Status decoration at delivery; keep reserved payloads and reply keys immutable."""
     event=item['event_key']
@@ -21,10 +37,11 @@ def display_notice(item):
     if event.startswith('review:'):icon='❓'
     elif event.startswith('receipt-held:'):icon='⚠️'
     elif event.startswith('receipt-archive-pending:'):icon='⌛'
-    elif event.startswith('hold-reply-result:'):icon='❌' if item['subject'] in ('Held receipt rejected','ปฏิเสธสลิปที่พักไว้แล้ว') else 'ℹ️'
+    elif event.startswith('hold-reply-result:'):icon='✅' if item['subject'] in HOLD_CLEARED else 'ℹ️'
+    elif event.startswith(ACKNOWLEDGEMENT):icon='ℹ️'
     elif event.startswith('review-result:'):
         icon={'POSTED':'✅','REJECTED':'❌','MANUAL_REQUIRED':'📝',
-              'STALE':'⚠️','EXPIRED':'⌛','UNKNOWN':'⚠️'}.get(event.rsplit(':',1)[-1],'')
+              'STALE':'⚠️','EXPIRED':'⌛','UNKNOWN':'⚠️','RECHECK':'🔄'}.get(event.rsplit(':',1)[-1],'')
     elif event.startswith('receipt:'):icon='📩'
     prefix=icon+' ' if icon else ''
     return prefix+item['subject'],prefix+item['body']
@@ -131,6 +148,10 @@ class NoticeJournal:
                 else:
                     with self.db:self.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id=?,accepted_at=? WHERE id=?",(str(response['message_id']),self.now(),item['id']))
                     return
+        if item['event_key'].startswith(ACKNOWLEDGEMENT):
+            # R175 (Archie E-X-02): an acknowledgement is only useful in the chat it answers; no email fallback.
+            with self.db:self.db.execute("UPDATE partner_notices SET email_status='REVIEW',detail='ACKNOWLEDGEMENT_NOT_EMAILED' WHERE id=?",(item['id'],))
+            return
         if not config.get('email_fallback_enabled') or not valid_email(partner.get('email')):
             with self.db:self.db.execute("UPDATE partner_notices SET email_status='REVIEW',detail='EMAIL_FALLBACK_UNAVAILABLE' WHERE id=?",(item['id'],))
             return
@@ -164,23 +185,37 @@ def notice_amount(value):
     return f'{amount:,.2f}' if amount==amount.quantize(Decimal('0.01')) else f'{amount:,}'
 
 
-def receipt_notice(receipt,borrower,language,payment_id=None,facts_changed=False):
+def money(value):
+    """R175 (Echo cross-cutting rule): a slip amount as '฿1,234' (exact: '฿800.50' keeps its satang)."""
+    return '฿'+notice_amount(value)
+
+
+def transferred(receipt,thai):
+    """R175 (Echo D2): 'Transferred 18 Nov 18:16 · Dad TTB' / 'โอน 18 พ.ย. 18:16 · บัญชี Dad TTB' (24-hour, no zone)."""
+    from .partner_review import short_date
+    when=short_date(receipt['date'],thai)+' '+str(receipt['time'])[:5]
+    return f"โอน {when} · บัญชี {receipt['account_label']}" if thai else f"Transferred {when} · {receipt['account_label']}"
+
+
+def receipt_notice(receipt,borrower,language,payment_id=None,facts_changed=False,purpose=''):
     """payment_id may be supplied only by the verified posting/readback workflow. It selects the posted wording; the notice does
-    not print it (R164: not meaningful to the reader)."""
+    not print it (R164: not meaningful to the reader). R175 (Echo E-RES-01, E-RCV-01): the first line says what happened,
+    with `purpose` (the Reviewer's choice) after ' · '; the transfer time and account follow."""
     if language not in ('English','ไทย'):raise ConfigurationError('PARTNER_LANGUAGE_UNSUPPORTED')
     thai=language=='ไทย'
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
-    amount=notice_amount(receipt['amount'])
-    when=receipt['date']+' '+receipt['time'][:5]
+    amount=money(receipt['amount'])
+    chosen=' · '+purpose if purpose else ''
     if thai:
         subject='บันทึกการชำระเงินสำเร็จ' if payment_id else 'ได้รับสลิปการชำระเงิน'
-        body=f"{subject}\nผู้ชำระ: {name}\nจำนวน: {amount} บาท\nวันเวลาโอน: {when} (เวลาไทย)\nรับเข้าบัญชี: {receipt['account_label']}"
-        if not payment_id:body+='\nผ่านการตรวจสอบสลิปเบื้องต้น ยังไม่ได้บันทึกการชำระเงิน'
-        if payment_id and facts_changed:body+='\nหมายเหตุ: มีการแก้ไขข้อมูลสัญญาหลังอนุมัติ ระบบยังบันทึกยอดเต็มเป็น Lump Sum'
+        lines=[f'บันทึก {amount} จาก {name}{chosen}' if payment_id else f'ได้รับสลิป {amount} จาก {name}',transferred(receipt,True)]
+        if not payment_id:lines.append('ตรวจสลิปเบื้องต้นผ่านแล้ว ยังไม่ได้บันทึกรายการ')
+        if payment_id and facts_changed:lines.append('หมายเหตุ: มีการแก้ไขข้อมูลสัญญาหลังอนุมัติ ระบบยังบันทึกยอดเต็มเป็น Lump Sum')
     else:
-        subject='Payment processed' if payment_id else 'Payment receipt received'
-        body=f"{subject}\nBorrower: {name}\nAmount: {amount} baht\nTransferred: {when} (Bangkok)\nReceived into: {receipt['account_label']}"
-        if not payment_id:body+='\nBasic receipt checks passed. Payment has not been recorded.'
-        if payment_id and facts_changed:body+='\nNote: loan details were updated after approval; the full amount was still posted as Lump Sum.'
-    if len(body)>1000:raise ConfigurationError('NOTICE_TOO_LONG')
+        subject='Payment recorded' if payment_id else 'Payment slip received'
+        lines=[f'Recorded {amount} from {name}{chosen}' if payment_id else f'Slip {amount} from {name} received',transferred(receipt,False)]
+        if not payment_id:lines.append('Basic slip checks passed. Nothing recorded yet.')
+        if payment_id and facts_changed:lines.append('Note: loan details changed after approval; the full amount was still recorded as a lump sum.')
+    body='\n'.join(lines)
+    if over_limit(body):raise ConfigurationError('NOTICE_TOO_LONG')
     return subject,body

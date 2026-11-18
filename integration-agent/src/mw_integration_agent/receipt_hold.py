@@ -3,7 +3,7 @@ import hashlib
 import json
 import re
 import time
-from datetime import datetime
+from datetime import date, datetime
 from .receipt_identity import receipt_borrower
 from .payer_name import display
 from .receipt_rules import BANGKOK,match_account,ReceiptInvalid
@@ -35,12 +35,15 @@ def still_held(job,thai,now):
     return f'Still held since {day} ({days} day{"" if days==1 else "s"})'
 
 
-def clean(value,thai):return ' '.join(str(value or '').split())[:100] or ('ไม่ทราบ' if thai else 'unavailable')
+def clean(value,thai,limit=100):return ' '.join(str(value or '').split())[:limit] or ('ไม่ทราบ' if thai else 'unavailable')
 
 
-def captured_name(job,borrower,thai):
-    return (datetime.fromtimestamp(job['created_at'],BANGKOK).strftime('%Y-%m-%d %H:%M'),
-            clean((borrower or {}).get('name_th' if thai else 'name_en'),thai))
+def captured_name(job,borrower,thai,limit=100):
+    """R175 (Echo E-HOLD-02): when the slip arrived, '18 Nov 18:20' / '18 พ.ย. 18:20' (Bangkok, no zone), and the borrower."""
+    from .partner_review import short_date
+    at=datetime.fromtimestamp(job['created_at'],BANGKOK)
+    name=' '.join(str((borrower or {}).get('name_th' if thai else 'name_en') or '').split())[:limit]
+    return short_date(at.date().isoformat(),thai)+' '+at.strftime('%H:%M'),name or ('ไม่ทราบผู้กู้' if thai else 'Borrower unknown')
 
 
 def archive_key(job,reason):
@@ -48,15 +51,16 @@ def archive_key(job,reason):
 
 
 def archive_pending_text(job,borrower,language,threshold):
-    """Informational delay alert; the job keeps its source URL and keeps retrying."""
-    thai=language=='ไทย';hours=max(1,round(threshold/3600));captured,name=captured_name(job,borrower,thai)
+    """Informational delay alert; the job keeps its source URL and keeps retrying. R175 (Echo E-ARC-01): three lines; the
+    threshold (receipt_archive_alert_seconds) chooses when it is sent, not its wording."""
+    thai=language=='ไทย';captured,name=captured_name(job,borrower,thai)
     if thai:
-        return 'สลิปล่าช้า ระบบยังดำเนินการอยู่',f'สลิปล่าช้า ระบบยังดำเนินการอยู่\nผู้กู้: {name}\nรับสลิป: {captured} (เวลาไทย)\nระบบยังจัดเก็บภาพสลิปเป็นหลักฐานไม่สำเร็จเกิน {hours} ชั่วโมง และกำลังลองใหม่อัตโนมัติ\nยังไม่ได้บันทึกรายการ จะแจ้งอีกครั้งเมื่อบันทึกแล้ว ต้องขออนุมัติ หรือถูกพักไว้ ไม่ต้องตอบข้อความนี้'
-    return 'Receipt delayed — still processing',f'Receipt delayed — still processing\nBorrower: {name}\nCaptured: {captured} (Bangkok)\nThe receipt image has not been saved as evidence for over {hours} hour(s). The agent keeps trying automatically.\nNo payment posted yet. You will get another message when it is posted, needs approval or is held. No reply needed.'
+        return 'สลิปล่าช้า',f'สลิปจาก {name} ล่าช้า: ยังจัดเก็บภาพสลิปไม่สำเร็จ\nรับสลิป {captured}\nระบบกำลังลองใหม่อัตโนมัติ ยังไม่ได้บันทึกรายการ จะแจ้งอีกครั้ง ไม่ต้องตอบข้อความนี้'
+    return 'Slip delayed',f'Slip from {name} delayed: the image is not saved yet\nReceived {captured}\nRetrying automatically. Nothing recorded yet; another message follows. No reply needed.'
 
 
 REASONS={
-    'POSSIBLE_EXISTING_PAYMENT_REVIEW':('An existing payment has the same bank reference but its records need reconciliation.','พบรายการที่ใช้เลขอ้างอิงธนาคารเดียวกัน ต้องตรวจสอบความสอดคล้องของข้อมูล'),
+    'POSSIBLE_EXISTING_PAYMENT_REVIEW':('A payment with the same bank reference exists but its details differ.','พบรายการที่ใช้เลขอ้างอิงธนาคารเดียวกันแต่ข้อมูลไม่ตรงกัน'),
     'PAYMENT_ALREADY_RECORDED':('This bank reference is already recorded. Check the existing payment.','เลขอ้างอิงนี้บันทึกแล้ว กรุณาตรวจสอบรายการเดิม'),
     'AMOUNT_UNREADABLE':('The receipt amount could not be read.','อ่านจำนวนเงินในสลิปไม่ได้'),
     'DATE_UNREADABLE':('The receipt date could not be read.','อ่านวันที่ในสลิปไม่ได้'),
@@ -69,7 +73,7 @@ REASONS={
     'RECEIPT_PROCESSING_UNAVAILABLE':('Receipt extraction remained unavailable after retries.','ระบบอ่านสลิปไม่สำเร็จหลังลองซ้ำ'),
     'RECEIPT_RETRY_LIMIT':('Receipt processing could not finish after three attempts.','ระบบประมวลผลสลิปไม่สำเร็จหลังลองสามครั้ง'),
     'RECEIPT_PROPOSAL_UNAVAILABLE':('The payment proposal could not be prepared. Please check the receipt and app records.','ระบบเตรียมรายการชำระเงินไม่ได้ กรุณาตรวจสอบสลิปและรายการในแอป'),
-    'BALANCES_REQUIRE_RECONCILIATION':('The loan balances need reconciliation.','ยอดคงเหลือของสัญญาต้องตรวจสอบ'),
+    'BALANCES_REQUIRE_RECONCILIATION':('The loan balances need checking in the app.','ยอดคงเหลือของสัญญาต้องตรวจสอบ'),
     'LOAN_CLOSE_AMBIGUOUS':('The amount matches more than one possible loan payoff.','ยอดเงินตรงกับยอดปิดมากกว่าหนึ่งสัญญา'),
     # R095 revision 2: weak-context payer holds only (receipt_identity.resolve_payer); copy by Echo.
     'PAYER_UNRESOLVED':("The slip's payer name did not identify one borrower.",'ระบุผู้กู้จากชื่อผู้โอนในสลิปไม่ได้'),
@@ -89,7 +93,7 @@ REASONS={
     'BORROWER_CHANGED':('The borrower for this slip changed in the app after it was read.','ข้อมูลผู้กู้ของสลิปนี้ในแอปเปลี่ยนไปหลังอ่านสลิป'),
     'LOAN_KEY_UNAVAILABLE':('The loan details could not be read from the app.','อ่านข้อมูลสัญญาจากแอปไม่ได้'),
     'PAY_FORWARD_PLAN_UNAVAILABLE':('The pay-forward plan could not be calculated.','ระบบคำนวณการชำระล่วงหน้าไม่ได้'),
-    'WHOLE_BAHT_REQUIRED':('The amount includes satang; the agent posts whole baht only.','ยอดเงินมีเศษสตางค์ ระบบบันทึกได้เฉพาะจำนวนเต็มบาท'),
+    'WHOLE_BAHT_REQUIRED':('The amount includes satang; only whole baht can be recorded automatically.','ยอดเงินมีเศษสตางค์ ระบบบันทึกได้เฉพาะจำนวนเต็มบาท'),
     'MULTIPLE_TODAY_CHARGES':('A loan has more than one charge dated today. Check the charges in the app.','มีสัญญาที่มีรายการเรียกเก็บวันนี้มากกว่าหนึ่งรายการ กรุณาตรวจสอบในแอป'),
     'REVIEW_REQUEST_TOO_LONG':('The approval request was too long to send by Instagram.','คำขออนุมัติยาวเกินกว่าจะส่งทาง Instagram ได้'),
 }
@@ -97,8 +101,21 @@ FALLBACK=('Receipt validation could not be completed. Check the slip against the
 
 
 def held_text(job,borrower,language,accounts,borrowers=(),resent_at=None):
-    """The hold alert. resent_at (R135, the `review` command): the copy starts with how long the receipt has been held."""
-    thai=language=='ไทย'
+    """The hold alert. resent_at (R135, the `review` command): line 2 says how long the receipt has been held.
+    R175 (Echo E-HOLD-01/02): line 1 the reason, line 2 the borrower and amount, the facts, one closing instruction. Over
+    BODY_LIMIT (the icon counted) it drops the payer candidates and nickname tip, then shortens the names to 40 characters."""
+    from .partner_notice import over_limit
+    for trim in (0,1,2):
+        subject,body=held_layout(job,borrower,language,accounts,borrowers,resent_at,trim)
+        if not over_limit(body):break
+    return subject,body
+
+
+def held_layout(job,borrower,language,accounts,borrowers,resent_at,trim):
+    from decimal import Decimal,InvalidOperation
+    from .partner_notice import money
+    from .partner_review import short_date
+    thai=language=='ไทย';limit=40 if trim>=2 else 100
     try:result=json.loads(job['result'] or '{}')
     except (ValueError,TypeError):result={}
     if not isinstance(result,dict):result={}
@@ -110,20 +127,30 @@ def held_text(job,borrower,language,accounts,borrowers=(),resent_at=None):
         try:account=match_account(receipt.get('account_numbers',receipt.get('recipient_numbers')) or [],accounts)['label']
         except ReceiptInvalid:pass
     reason=REASONS.get(job['detail'],FALLBACK)[int(thai)]
-    captured,name=captured_name(job,borrower,thai)
-    payer=clean(display(receipt.get('payer_name')),thai)
-    choice=payer_choice(job['detail'],result,borrowers,thai)
+    captured,name=captured_name(job,borrower,thai,limit)
+    payer=clean(display(receipt.get('payer_name')),thai,limit)
+    try:
+        value=Decimal(str(receipt.get('amount')).replace(',',''))
+        amount=money(value) if value.is_finite() and value>0 else None
+    except (InvalidOperation,ValueError):amount=None
+    day=' '.join(str(receipt.get('date') or '').split())[:limit]
+    try:day=short_date(date.fromisoformat(day).isoformat(),thai)
+    except ValueError:pass
+    when=' '.join(part for part in (day,' '.join(str(receipt.get('time') or '').split())[:5]) if part) or clean('',thai)
+    choice='' if trim else payer_choice(job['detail'],result,borrowers,thai)
     if thai:
-        subject='สลิปถูกพักไว้ กรุณาตรวจสอบ'
-        body=f'{subject}\nผู้กู้: {name}\nรับสลิป: {captured} (เวลาไทย)\nข้อมูลที่อ่านได้ (ยังไม่ยืนยัน): {clean(receipt.get("amount"),thai)} บาท · {clean(receipt.get("date"),thai)} {clean(str(receipt.get("time") or "")[:5],thai)}\nบัญชีรับ: {clean(account,thai)}\nผู้โอนในสลิป: {payer}\nสาเหตุ: {reason}{choice}\nระบบยังไม่ได้บันทึก กรุณาตรวจสอบสลิปกับรายการในแอป'
+        subject='สลิปถูกพักไว้'
+        lines=[f'สลิปถูกพัก: {reason}',f'{name} · {amount or "ไม่ทราบยอด"} (อ่านจากสลิป ยังไม่ยืนยัน)',f'โอน {when} · บัญชี {clean(account,thai,limit)}',
+               f'ผู้โอนในสลิป: {payer}',f'รับสลิป {captured}']
+        close='อนุมัติผ่านข้อความนี้ไม่ได้ หากเป็นการชำระจริง ให้บันทึกในแอป แล้วใช้ Reply ตอบข้อความนี้ว่า ปฏิเสธ เพื่อนำออกจากรายการ'
     else:
-        subject='Receipt held — reviewer attention needed'
-        body=f'{subject}\nBorrower: {name}\nCaptured: {captured} (Bangkok)\nRead from image (unverified): {clean(receipt.get("amount"),thai)} baht · {clean(receipt.get("date"),thai)} {clean(str(receipt.get("time") or "")[:5],thai)}\nAccount: {clean(account,thai)}\nPayer on slip: {payer}\nReason: {reason}{choice}\nNo payment posted. Check the receipt against the app records.'
-    # R135 (owner): a hold is Reject-only; the one closing block says so and how to record a genuine payment.
-    body+=('\nอนุมัติผ่านข้อความนี้ไม่ได้ หากเป็นการชำระจริง กรุณาบันทึกในแอปเอง แล้วใช้ Reply ตอบข้อความนี้ว่า Reject หรือ ปฏิเสธ เพื่อนำออกจากรายการ' if thai else
-           '\nThis cannot be approved here. If the payment is genuine, record it in the app yourself. Then use Reply on this message and send Reject to clear it from the list.')
-    if resent_at is not None:body=still_held(job,thai,resent_at)+'\n'+body
-    return subject,body
+        subject='Slip held'
+        lines=[f'Slip held: {reason[:1].lower()+reason[1:]}',f'{name} · {amount or "amount unreadable"} (read from the slip, not verified)',
+               f'Transferred {when} · {clean(account,thai,limit)}',f'Payer on slip: {payer}',f'Received {captured}']
+        close="Can't approve here. If genuine, record it in the app, then Reply Reject to clear it."
+    if resent_at is not None:lines.insert(1,still_held(job,thai,resent_at))
+    # R135 (owner): a hold is Reject-only; the one closing line says so and how to record a genuine payment.
+    return subject,'\n'.join(lines)+choice+'\n'+close
 
 
 CHOICE_REASONS=('PAYER_UNRESOLVED','PAYER_NAME_UNREADABLE','PAYER_NAME_OTHER_BORROWER')

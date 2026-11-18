@@ -51,11 +51,12 @@ def queue_result(notices,event,notice,partners,outcome):
     if outcome not in OUTCOMES:return
     partner=next(p for p in partners if p['id']==notice['partner_id'])
     thai=partner['language']=='ไทย'
-    subject=('ปฏิเสธสลิปที่พักไว้แล้ว' if thai else 'Held receipt rejected') if outcome=='HOLD_REJECTED' else ('ผลการตอบสลิปที่พักไว้' if thai else 'Held receipt reply')
+    # R175 (Echo E-HRR-01): a cleared hold reads ✅ (partner_notice.HOLD_CLEARED names these subjects).
+    subject=('นำสลิปที่พักไว้ออกแล้ว' if thai else 'Held slip cleared') if outcome=='HOLD_REJECTED' else ('ผลการตอบสลิปที่พักไว้' if thai else 'Held slip reply')
     words={
-      'HOLD_REJECTED':('Removed from the review list. The agent recorded or changed no payment. Receipt history is kept.','นำออกจากรายการรอตรวจสอบแล้ว ระบบไม่ได้บันทึกหรือเปลี่ยนแปลงรายการชำระเงิน ยังเก็บประวัติสลิปไว้'),
-      'HOLD_NOT_ACTIVE':('That hold is already resolved or has changed. Nothing was changed by this reply.','สลิปที่พักไว้นี้ดำเนินการแล้วหรือมีการเปลี่ยนแปลง คำตอบนี้ไม่ได้เปลี่ยนแปลงข้อมูล'),
-      'HOLD_REJECT_REQUIRED':('Held receipts cannot be approved. Use Reply on the hold message and send Reject. If the payment is genuine, record it in the app first.','สลิปที่พักไว้อนุมัติไม่ได้ ใช้ Reply ตอบข้อความแจ้งพักสลิปว่า Reject หรือ ปฏิเสธ หากเป็นการชำระจริง กรุณาบันทึกในแอปก่อน'),
-      'HOLD_HAS_REVIEW':('This receipt has a separate payment review or posting outcome. Use its review request or reconcile the recorded outcome; this reply changed nothing.','สลิปนี้มีคำขอตรวจสอบหรือผลการบันทึกแยกต่างหาก กรุณาใช้คำขอตรวจสอบนั้นหรือตรวจสอบผลการบันทึก คำตอบนี้ไม่ได้เปลี่ยนแปลงข้อมูล'),
+      'HOLD_REJECTED':('Removed from the list. Nothing was recorded or changed; the slip history is kept.','นำออกจากรายการแล้ว ไม่ได้บันทึกหรือเปลี่ยนแปลงรายการชำระเงิน ยังเก็บประวัติสลิปไว้'),
+      'HOLD_NOT_ACTIVE':('That hold is already resolved or has changed. This reply changed nothing.','สลิปที่พักไว้นี้ดำเนินการแล้วหรือมีการเปลี่ยนแปลง คำตอบนี้ไม่ได้เปลี่ยนแปลงข้อมูล'),
+      'HOLD_REJECT_REQUIRED':("Held slips can't be approved. Use Reply on the hold message and send Reject. If the payment is genuine, record it in the app first.",'สลิปที่พักไว้อนุมัติไม่ได้ ใช้ Reply ตอบข้อความแจ้งพักสลิปว่า ปฏิเสธ หากเป็นการชำระจริง กรุณาบันทึกในแอปก่อน'),
+      'HOLD_HAS_REVIEW':('This slip has its own payment request or result; use that message. This reply changed nothing.','สลิปนี้มีคำขออนุมัติหรือผลแยกต่างหาก กรุณาใช้ข้อความนั้น คำตอบนี้ไม่ได้เปลี่ยนแปลงข้อมูล'),
     }
     notices.reserve(result_key(event['message_id']),partner,subject,subject+'\n'+words[outcome][int(thai)])

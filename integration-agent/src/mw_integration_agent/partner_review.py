@@ -4,7 +4,6 @@ import json
 import re
 import time
 from .config import ConfigurationError
-from .partner_notice import notice_amount
 from .receipt_rules import username
 
 APPROVE={'yes','approve','approved','อนุมัติ'}
@@ -24,6 +23,8 @@ RECHECKED='RECHECK_QUEUED'
 # that is stale only because the charges changed still rechecks; other stale reasons (day passed, account changed) do not.
 RECHECK_STALE=('PROPOSAL_FACTS_CHANGED','PAY_FORWARD_PLAN_CHANGED')
 OPTIONS_REQUIRED='OPTIONS_REQUIRED'
+# R175 (Archie E-APR-01): a plain request's unclear reply reuses the options re-ask outcome and notice key.
+REASK=OPTIONS_REQUIRED
 CHOICE=re.compile(r'(1)|(2)(?:\s+([1-9]))?')
 
 
@@ -138,10 +139,14 @@ class ReviewStore:
                              (outcome,p['id'],event['message_id'],detail,key)).rowcount
                     if not changed:outcome='ALREADY_DECIDED'
             else:
-                outcome='APPROVED' if event.get('text','').strip().casefold() in APPROVE else 'REJECTED'
-                changed=self.db.execute("UPDATE partner_reviews SET state=?,deciding_partner=?,decision_message=? WHERE id=? AND state='PENDING'",
-                         (outcome,p['id'],event['message_id'],key)).rowcount
-                if not changed:outcome='ALREADY_DECIDED'
+                # R175 (Archie E-APR-01): on a plain, overpayment, manual or close request only the approval words approve
+                # and only the reject words reject; any other reply is asked again (REASK) and decides nothing.
+                text=(event.get('text') or '').strip().casefold()
+                outcome='APPROVED' if text in APPROVE else 'REJECTED' if text in REJECT else REASK
+                if outcome!=REASK:
+                    changed=self.db.execute("UPDATE partner_reviews SET state=?,deciding_partner=?,decision_message=? WHERE id=? AND state='PENDING'",
+                             (outcome,p['id'],event['message_id'],key)).rowcount
+                    if not changed:outcome='ALREADY_DECIDED'
             self.db.execute('INSERT INTO partner_review_replies VALUES (?,?,?)',(event['message_id'],key,outcome))
             return outcome
 
@@ -186,12 +191,19 @@ def baht(value):
     return '฿'+format(Decimal(str(value)),',.0f')
 
 
+def slip_line(receipt,borrower,thai):
+    """R175 (Echo {slip}): 'Kathy ฿400 (18 Nov 18:16)' / 'เคที ฿400 (18 พ.ย. 18:16)', the amount exact."""
+    from .partner_notice import money
+    name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
+    return f"{name} {money(receipt['amount'])} ({short_date(receipt['date'],thai)} {str(receipt['time'])[:5]})"
+
+
 def due_parts(options,thai):
-    """R118: ' (Interest ฿100 + Late charge ฿50)' / ' (ดอกเบี้ย ฿100 + ค่าปรับล่าช้า ฿50)' when a late charge is due (principal
-    first when some is due); nothing otherwise, so a request without a late charge reads as before."""
+    """R118: ' (principal ฿100 + interest ฿300 + late charge ฿50)' / ' (เงินต้น ฿100 + ดอกเบี้ย ฿300 + ค่าปรับล่าช้า ฿50)' when a
+    late charge is due (principal first when some is due); nothing otherwise."""
     from decimal import Decimal
     if Decimal(str(options.get('dueLate') or 0))<=0:return ''
-    words=(('เงินต้น','ดอกเบี้ย','ค่าปรับล่าช้า') if thai else ('Principal','Interest','Late charge'))
+    words=(('เงินต้น','ดอกเบี้ย','ค่าปรับล่าช้า') if thai else ('principal','interest','late charge'))
     parts=[(words[0],options.get('duePrincipal')),(words[1],options.get('dueInterest')),(words[2],options.get('dueLate'))]
     return ' ('+' + '.join(f'{w} {baht(v)}' for w,v in parts if Decimal(str(v or 0))>0)+')'
 
@@ -214,51 +226,154 @@ def offered_numbers(options):
     return numbers+['3']
 
 
-def options_lines(proposal,thai):
-    """Echo AG-1/AG-4, R127 AG-7/AG-8/AG-10: the remainder and the numbered choices; a refused choice is left out with
-    its reason and the others keep their numbers. With several loans each "2 <n>" choice is on its own line."""
-    o=proposal['options'];receipt=proposal['receipt'];borrower=proposal['borrower']
+# R175 (Echo D1, Archie 4): a loan key 'เคที - Kathy-฿1,000-15/11-10%' (review_proposal.loan_display_key) reads
+# '฿1,000 (15 Nov, 10%)'. Anything else (an unavailable rate, no date, a negative principal, a loan id) keeps the key.
+LABEL_AMOUNT=re.compile(r'฿\d{1,3}(?:,\d{3})*')
+LABEL_DAY=re.compile(r'(\d{2})/(\d{2})')
+LABEL_RATE=re.compile(r'\d+(?:\.\d+)?%')
+
+
+def loan_label(key,thai):
+    """The short label of one loan key, or None when the key does not parse."""
+    if not isinstance(key,str):return None
+    parts=key.rsplit('-',3)
+    if len(parts)!=4:return None
+    borrower,amount,day,rate=parts
+    found=LABEL_DAY.fullmatch(day)
+    if (not borrower.strip() or borrower.endswith('-') or not LABEL_AMOUNT.fullmatch(amount) or not LABEL_RATE.fullmatch(rate)
+            or not found or not 1<=int(found.group(1))<=31 or not 1<=int(found.group(2))<=12):return None
+    return f'{amount} ({int(found.group(1))} {(THAI_MONTHS if thai else MONTHS)[int(found.group(2))-1]}, {rate})'
+
+
+def loan_labels(keys,thai):
+    """{key: label} for the loan keys one message names; when two would read the same, every key is printed in full."""
+    keys=[k for k in dict.fromkeys(keys) if k]
+    labels={k:loan_label(k,thai) or k for k in keys}
+    if len(set(labels.values()))<len(labels):return {k:k for k in keys}
+    return labels
+
+
+# R175 (Echo): the request lines. Index [thai] (False 0 English, True 1 Thai). Thai names only อนุมัติ, ปฏิเสธ, ตรวจใหม่.
+CORRECTED=('Updated request: use this one, not the earlier message','คำขอแก้ไข: ใช้ข้อความนี้แทนข้อความก่อนหน้า')
+UNCLEAR_OPTIONS=('Reply not understood; nothing was done. Reply with a code below.','ไม่เข้าใจคำตอบ ยังไม่ได้ดำเนินการ กรุณาตอบด้วยรหัสด้านล่าง')
+UNCLEAR_PLAIN=('Reply not understood; nothing was done. Reply Yes to approve or Reject (or No) to record nothing.',
+               'ไม่เข้าใจคำตอบ ยังไม่ได้ดำเนินการ ตอบ อนุมัติ เพื่ออนุมัติ หรือ ปฏิเสธ เพื่อไม่บันทึกรายการ')
+UNCLEAR_CLOSE=('Reply not understood; nothing was done. Reply Yes to close the loan or Reject (or No) to record nothing.',
+               'ไม่เข้าใจคำตอบ ยังไม่ได้ดำเนินการ ตอบ อนุมัติ เพื่อปิดสัญญา หรือ ปฏิเสธ เพื่อไม่บันทึกรายการ')
+CODES=(('Reply with one code:','Reply with one code (→ = daily interest after):'),
+       ('ตอบด้วยรหัสเดียว:','ตอบด้วยรหัสเดียว (→ = ดอกเบี้ยต่อวันหลังชำระ):'))
+RECHECK_LINE=('3 = recheck (edit the charges in the app first, then reply 3)','3 = ตรวจใหม่ (แก้ยอดในแอปก่อน แล้วตอบ 3)')
+REJECT_LINE=('Reject (or No) = record nothing for this slip','ปฏิเสธ = ไม่บันทึกสลิปนี้')
+LAST_LINE=('Use Reply on THIS message. Nothing recorded yet.','ใช้ Reply ตอบข้อความนี้ ยังไม่ได้บันทึกรายการ')
+# R151 (Echo UX-R151-3; R175 wording): the line for a slip whose sender is no known borrower (the payer name chose the borrower).
+SENDER_NOTE=('Sender is not a known borrower; matched by the payer name on the slip.','ผู้ส่งไม่ใช่ผู้กู้ที่รู้จัก ระบุผู้กู้จากชื่อผู้โอนในสลิป')
+
+
+def reply_block(action,thai):
+    """R175 (Echo section 2): the reply lines that end a plain or close request."""
+    if thai:return ['ตอบด้วยคำเดียว:',f'อนุมัติ = {action}','ปฏิเสธ = ไม่บันทึกรายการ','คำตอบอื่นจะถามใหม่','',LAST_LINE[1]]
+    return ['Reply with one word:',f'Yes = {action}','Reject (or No) = record nothing','Any other reply is asked again.','',LAST_LINE[0]]
+
+
+def loans_line(labels,thai):
+    """'Loan ฿1,000 (15 Nov, 10%)', 'Loans a; b' / 'สัญญา ...'; None without loans."""
+    if not labels:return None
+    return ('สัญญา ' if thai else ('Loan ' if len(labels)==1 else 'Loans '))+'; '.join(labels)
+
+
+def forward_span(forward,thai):
+    """'19 Nov', '6–7 Nov', '30 Nov – 28 Dec (fully paid through 27 Dec)': the last covered day is named only when it differs."""
+    last=forward.get('last') or forward['first']
+    span=date_range(forward['first'],last,thai)
+    through=forward.get('through')
+    if through and through!=last:span+=(' (ครบถึง ' if thai else ' (fully paid through ')+short_date(through,thai)+')'
+    return span
+
+
+def principal_phrase(options,entry,where,thai,short=False):
+    """The principal choice after '2 = ': 'pay interest ฿90 + principal ฿410 → new interest ฿53/day', with 'loan <label>: '
+    first when the request names the loan on its line; the short form drops 'pay' and 'new interest'."""
+    split=principal_split(options,entry,thai);daily=baht(entry['dailyAfter'])
+    target=((f'สัญญา {where}: ' if thai else f'loan {where}: ') if where else '')
+    if short:return f"{target}{split} → {daily}{'/วัน' if thai else '/day'}"
+    return f'{target}ชำระ{split} → ดอกเบี้ยใหม่ {daily}/วัน' if thai else f'{target}pay {split} → new interest {daily}/day'
+
+
+def options_layout(proposal,thai):
+    """The loans each line names: (labels, keys on the Loan line, {principal entry index: its loan's label or None})."""
+    o=proposal['options'];principal=o.get('principal') or []
+    offered=[p.get('loanKey') for p in principal if p.get('loanKey')]
+    settled=[b.get('loanKey') for b in o.get('blocked') or [] if b.get('reason')=='settles' and b.get('loanKey')]
+    keys=list(proposal.get('loan_keys') or offered)
+    labels=loan_labels([*keys,*offered,*settled],thai)
+    # The "2" line names its loan when it is not the only loan the request is about.
+    named=len(principal)>1 or (len(principal)==1 and len([k for k in keys if k!=principal[0].get('loanKey')])>0)
+    where={}
+    for i,p in enumerate(principal):
+        where[i]=(labels.get(p.get('loanKey')) or str(p.get('loanKey') or p['loanId'])) if named else None
+    on_lines={p.get('loanKey') for p in principal} if named else set()
+    return labels,[k for k in keys if k not in on_lines],where
+
+
+def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,short=False):
+    """R175 (Echo A): line 1 the slip and what to decide; the facts; one code per line; the Reject line; notes; the reply
+    instruction last. short (only when the full text does not fit) drops 'pay' and 'new interest' (Echo worst case)."""
     from decimal import Decimal
+    from .partner_notice import money,transferred
     from .review_proposal import forward_offered
+    o=proposal['options'];receipt=proposal['receipt'];borrower=proposal['borrower']
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
-    keys=proposal.get('loan_keys') or [p['loanKey'] for p in o['principal'] if p.get('loanKey')]
-    several=len(o['principal'])>1
-    if several:
-        # R127: each "2 <n>" line names its loan, so the head names only the other loans (keeps five loans within 1000).
-        keys=[k for k in keys if k not in {p.get('loanKey') for p in o['principal']}]
-    keys=', '.join(keys)
-    f=o.get('forward');choices=[]   # (text, on its own line)
-    if forward_offered(o):
-        span=date_range(f['first'],f.get('last') or f['first'],thai)+(((' ชำระถึง ' if thai else ', paid through ')+short_date(f['through'],thai)) if f.get('through') else '')
-        choices.append((('1 ชำระล่วงหน้า (' if thai else '1 pay forward (')+span+')',False))
-    for n,p in enumerate(o['principal'],1):
-        daily=' ('+('ดอกเบี้ยใหม่ ' if thai else 'new interest ')+baht(p['dailyAfter'])+('/วัน' if thai else '/day')+')'
-        label='2 '+str(n)+' '+((p.get('loanKey') or p['loanId'])+': ') if several else '2 '
-        choices.append((label+principal_split(o,p,thai)+daily,several))
-    choices.append(('3 ตรวจใหม่หลังแก้ยอดในแอป' if thai else '3 recheck after editing charges in the app',False))
-    due=due_parts(o,thai);paid_first=Decimal(str(o['dueTotal'] or 0))>0
-    if thai:
-        # R127 (Echo AG-7): the due part is paid first; the choices are for the remainder.
-        stated=f"หักยอดครบกำหนดวันนี้ {baht(o['dueTotal'])}{due} ก่อน" if paid_first else f"ครบกำหนดวันนี้ {baht(o['dueTotal'])}{due}"
-        head=f"สลิป {baht(receipt['amount'])} จาก {name}"+(f", {keys}" if keys else '')+f" {stated} ยอดคงเหลือ {baht(o['remainder'])} ตอบ: "
-        tail=' · ปฏิเสธ เพื่อยกเลิก'
-    else:
-        head=f"Slip {baht(receipt['amount'])} from {name}"+(f", {keys}" if keys else '')+f". Due today {baht(o['dueTotal'])}{due}"+(' is paid first' if paid_first else '')+f". Remainder {baht(o['remainder'])}, reply: "
-        tail='. Reject to drop.'
-    listed=''
-    for i,(text,own) in enumerate(choices):
-        if i:listed+='\n' if own or choices[i-1][1] else ' · '
-        elif own:head=head.rstrip()+'\n'
-        listed+=text
-    notes=[]
-    settled=[b.get('loanKey') or b['loanId'] for b in o.get('blocked') or [] if b.get('reason')=='settles']
+    labels,listed,where=options_layout(proposal,thai)
+    lines=[CORRECTED[thai]] if corrected else []
+    if unclear:lines.append(UNCLEAR_OPTIONS[thai])
+    lines.append(f"สลิป {money(receipt['amount'])} จาก {name}: เลือกวิธีใช้ยอด {baht(o['remainder'])}" if thai else
+                 f"Slip {money(receipt['amount'])} from {name}: choose how to use {baht(o['remainder'])}")
+    lines.append(transferred(receipt,thai))
+    loans=loans_line([labels.get(k,k) for k in listed],thai)
+    if loans:lines.append(loans)
+    if unidentified:lines.append(SENDER_NOTE[thai])
+    if Decimal(str(o.get('dueTotal') or 0))>0:
+        due=due_parts(o,thai)
+        lines.append(f"หักยอดครบกำหนดวันนี้ {baht(o['dueTotal'])}{due} ก่อน" if thai else f"Due today {baht(o['dueTotal'])}{due} is paid first.")
+    lines+=['',CODES[thai][short]]
+    if forward_offered(o):lines.append(('1 = ชำระล่วงหน้า: ' if thai else '1 = pay forward: ')+forward_span(o['forward'],thai))
+    principal=o.get('principal') or []
+    for i,p in enumerate(principal):
+        code='2 '+str(i+1) if len(principal)>1 else '2'
+        lines.append(f'{code} = '+principal_phrase(o,p,where[i],thai,short))
+    lines+=[RECHECK_LINE[thai],REJECT_LINE[thai]]
+    settled=[labels.get(b.get('loanKey'),b.get('loanKey')) or str(b['loanId']) for b in o.get('blocked') or [] if b.get('reason')=='settles']
     if settled:
         # R113: the remainder closes a loan; closing happens in the app (Receive payment), not by this reply.
-        keys=', '.join(settled)
-        notes.append(f'ยอดคงเหลือปิด {keys} ได้: กรุณาบันทึกในแอป' if thai else f'Remainder settles {keys}: record in the app.')
+        keys='; '.join(settled)
+        lines.append(f'ยอดคงเหลือปิด {keys} ได้: กรุณาบันทึกในแอป' if thai else f'Remainder settles {keys}: record in the app.')
+    f=o.get('forward')
     if f and f.get('uncovered') not in (None,'0'):
-        notes.append(f"ยอด {baht(f['uncovered'])} เกินช่วง 93 วันข้างหน้า ไม่สามารถจัดสรรได้" if thai else f"{baht(f['uncovered'])} is beyond the next 93 days and cannot be allocated.")
-    return head+listed+tail+''.join('\n'+n for n in notes)
+        lines.append(f"ยอด {baht(f['uncovered'])} เกินช่วง 93 วันข้างหน้า ไม่สามารถจัดสรรได้" if thai else f"{baht(f['uncovered'])} is beyond the next 93 days and cannot be allocated.")
+    lines+=['',LAST_LINE[thai]]
+    return '\n'.join(lines)
+
+
+def chosen_purpose_line(proposal,detail,thai):
+    """R175 (Echo E-RES-01, E-RES-04): the use of the remainder the Reviewer chose, worded as its request line ('pay forward:
+    19 Nov', 'pay interest ฿90 + principal ฿410 → new interest ฿53/day'); '' when the detail no longer holds the choice."""
+    try:purpose=json.loads(detail)['purpose']
+    except (ValueError,TypeError,KeyError):return ''
+    if not isinstance(purpose,dict):return ''
+    o=proposal.get('options') or {}
+    try:
+        if purpose.get('forward') and not purpose.get('principal'):
+            forward=o.get('forward') or {}
+            return ('ชำระล่วงหน้า' if thai else 'pay forward')+((': '+forward_span(forward,thai)) if forward.get('first') else '')
+        chosen=purpose['principal'][0];part=baht(chosen['amount'])
+        if purpose.get('forward'):
+            # Legacy R112 split ("3 <amount>", withdrawn in R127): a split approved before the R127 deploy may still post.
+            return f'เงินต้น {part} ส่วนที่เหลือชำระล่วงหน้า' if thai else f'principal {part}, the rest pays forward'
+        principal=o.get('principal') or []
+        offered=next((i for i,p in enumerate(principal) if p.get('loanId')==chosen['loanId'] and p.get('amount')==chosen['amount']),None)
+        if offered is not None:return principal_phrase(o,principal[offered],options_layout(proposal,thai)[2][offered],thai)
+        return f'ชำระเงินต้น {part}' if thai else f'pay principal {part}'
+    except (KeyError,TypeError,IndexError,ValueError,ArithmeticError):return ''
 
 
 def close_amount_line(close,thai):
@@ -289,10 +404,6 @@ def rebate_lines(offset,payable,referrer,thai):
     return lines
 
 
-# R151 (Echo UX-R151-3): the request line for a slip whose sender is no known borrower (the payer name chose the borrower).
-SENDER_NOTE=('Sender is not a known borrower; borrower matched by the payer name on the slip.','ผู้ส่งไม่ใช่ผู้กู้ที่รู้จัก ระบบระบุผู้กู้จากชื่อผู้โอนในสลิป')
-
-
 def unidentified_review(db,job_id):
     """True when the review's receipt job carries the R151 unidentified-sender provenance."""
     import sqlite3
@@ -304,49 +415,54 @@ def unidentified_review(db,job_id):
     return bool(row) and provenance(row).get('unidentified_sender') is True
 
 
-def close_request_text(proposal,thai,unidentified=False):
-    """R128 (Echo AG-13..AG-17): the close approval request; the approval words are the usual ones (AG-16)."""
+def request_head(proposal,thai,unclear_line,corrected,unidentified,title):
+    """The first lines of a plain or close request: corrected and unclear lines, the title, the transfer and the loans."""
+    from .partner_notice import transferred
+    lines=[CORRECTED[thai]] if corrected else []
+    if unclear_line:lines.append(unclear_line)
+    lines+=[title,transferred(proposal['receipt'],thai)]
+    labels=loan_labels(proposal.get('loan_keys') or [],thai)
+    loans=loans_line([labels[k] for k in labels],thai)
+    if loans:lines.append(loans)
+    if unidentified:lines.append(SENDER_NOTE[thai])
+    return lines
+
+
+def close_request_text(proposal,thai,unidentified=False,unclear=False,corrected=False):
+    """R128 (Echo AG-13..AG-17), R175 (Echo E-CLS-01): the close approval request; the approval words are the usual ones."""
     from decimal import Decimal
+    from .partner_notice import money
     receipt=proposal['receipt'];close=proposal['close'];borrower=proposal['borrower']
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
-    keys='; '.join(proposal.get('loan_keys') or [])
     rebate=[]
     if close.get('rebatePath') and close.get('rebateAmount'):
         total=Decimal(str(close['rebateAmount']))
         covered=min(total,Decimal(str(close.get('rebateCovered') or total))) if close['rebatePath']=='offset' else Decimal(0)
         rebate=rebate_lines(covered,total-covered,close.get('referrer'),thai)
-    if thai:
-        subject='ขออนุมัติปิดสัญญา'
-        lines=[subject,f'ผู้กู้: {name}',*([SENDER_NOTE[1]] if unidentified else []),f"ยอด: {notice_amount(receipt['amount'])} บาท",f"เวลาโอน: {receipt['date']} {receipt['time'][:5]}",f"บัญชีรับ: {receipt['account_label']}"]
-        lines+=[f'สัญญา: {keys}'] if keys else []
-        lines+=[close_amount_line(close,True)]+rebate+['รายการที่เสนอ: ปิดสัญญา ระบบจะบันทึกการปิดให้',
-               'กรุณาใช้ Reply ตอบข้อความนี้ว่า อนุมัติ เพื่อปิดสัญญา คำตอบอื่นถือว่าปฏิเสธ ยังไม่ได้บันทึกรายการ']
-    else:
-        subject='Loan close approval requested'
-        lines=[subject,f'Borrower: {name}',*([SENDER_NOTE[0]] if unidentified else []),f"Amount: {notice_amount(receipt['amount'])} baht",f"Transferred: {receipt['date']} {receipt['time'][:5]} (Bangkok)",f"Account: {receipt['account_label']}"]
-        lines+=[f'Loan: {keys}'] if keys else []
-        lines+=[close_amount_line(close,False)]+rebate+['Proposed: Close the loan; agent records the Loan Close',
-               'Use Reply on THIS message: Yes / Approve / Approved (any case) to close the loan. Other direct replies reject. Nothing has been posted.']
-    body='\n'.join(lines)
-    if len(body)>1000:raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
-    return subject,body
+    subject='ขออนุมัติปิดสัญญา' if thai else 'Loan close approval requested'
+    title=(f"สลิป {money(receipt['amount'])} จาก {name}: รออนุมัติปิดสัญญา" if thai else
+           f"Slip {money(receipt['amount'])} from {name}: loan close needs approval")
+    lines=request_head(proposal,thai,UNCLEAR_CLOSE[thai] if unclear else None,corrected,unidentified,title)
+    lines+=[close_amount_line(close,thai)]+rebate+['']+reply_block(approval_action(proposal,thai),thai)
+    return subject,'\n'.join(lines)
 
 
 def close_notice(proposal,language,payment_id,detail):
-    """R128 (Echo AG-19): the posted close: the payment notice's lines under 'Loan closed', the loan and the rebate as the
-    server recorded it (the review detail closeRebate)."""
-    from .partner_notice import receipt_notice
+    """R128 (Echo AG-19), R175 (Echo E-CLS-01): the recorded close names the loan once, then the rebate as the server
+    recorded it (the review detail closeRebate)."""
+    from .partner_notice import receipt_notice,over_limit
     thai=language=='ไทย'
-    subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],language,payment_id)
-    title='ปิดสัญญาสำเร็จ' if thai else 'Loan closed'
     key=(proposal.get('loan_keys') or [proposal.get('loan_id')])[0]
-    lines=[title+body[len(subject):],('ปิดสัญญาแล้ว: ' if thai else 'Loan closed: ')+str(key)]
+    label=loan_labels([key],thai).get(key,str(key)) if isinstance(key,str) else str(key)
+    _,body=receipt_notice(proposal['receipt'],proposal['borrower'],language,payment_id,purpose=('ปิดสัญญา ' if thai else 'loan closed: ')+label)
+    title='ปิดสัญญาสำเร็จ' if thai else 'Loan closed'
+    lines=[body]
     try:rebate=json.loads(detail or '{}').get('closeRebate')
     except (ValueError,AttributeError):rebate=None
     if isinstance(rebate,dict):
         lines+=rebate_lines(rebate.get('offsetAmount'),rebate.get('payable'),proposal['close'].get('referrer'),thai)
     body='\n'.join(lines)
-    if len(body)>1000:raise ConfigurationError('NOTICE_TOO_LONG')
+    if over_limit(body):raise ConfigurationError('NOTICE_TOO_LONG')
     return title,body
 
 
@@ -363,67 +479,58 @@ def close_failure_line(state,detail,proposal,thai):
     if state=='STALE' and detail.startswith('LOAN_CLOSE_QUOTE_CHANGED:'):
         now,slip=baht(detail.split(':',1)[1]),baht(proposal['receipt']['amount'])
         return (f'ยอดปิดตอนนี้ {now} สลิป {slip} ยังไม่ได้ปิดสัญญาและยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else
-                f'Closing amount is now {now}; slip {slip}. Loan not closed; nothing posted. Close it in the app.')
+                f'Closing amount is now {now}; slip {slip}. Loan not closed; nothing recorded. Close it in the app.')
     if state in ('STALE','MANUAL_REQUIRED') and detail.split(':',1)[0] in CLOSE_NEUTRAL_DETAILS:
-        return 'ยังไม่ได้ปิดสัญญา ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else 'Loan not closed. Nothing posted. Close it in the app.'
+        return 'ยังไม่ได้ปิดสัญญา ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else 'Loan not closed. Nothing recorded. Close it in the app.'
     if state in ('STALE','MANUAL_REQUIRED') and ('CHANGED' in detail or detail.split(':',1)[0] in CLOSE_CHANGE_DETAILS):
         return ('ยังไม่ได้ปิดสัญญา: ข้อมูลการปิดเปลี่ยน ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else
-                'Loan not closed: closing details changed. Nothing posted. Close it in the app.')
+                'Loan not closed: closing details changed. Nothing recorded. Close it in the app.')
     if state=='UNKNOWN':
         return 'ตรวจสอบสัญญาในแอปก่อนปิดอีกครั้ง' if thai else 'Check the loan in the app before closing it again.'
     return ''
 
 
-def request_text(proposal,language,unclear=False,unidentified=False,reserve=0):
-    """unidentified (R151): the receipt's sender is no known borrower; the request says the payer name chose the borrower,
-    unless the note (with `reserve` characters the caller adds in front) would push it past one Instagram message: the
-    note never costs the request, which then goes out exactly as without it."""
-    if unidentified:
-        try:
-            subject,body=compose_request(proposal,language,unclear,True)
-            if len(body)+reserve<=1000:return subject,body
-        except ConfigurationError as exc:
-            if str(exc)!='REVIEW_REQUEST_TOO_LONG':raise
-    return compose_request(proposal,language,unclear,False)
+def request_text(proposal,language,unclear=False,unidentified=False,corrected=False):
+    """The request one Reviewer receives, within BODY_LIMIT (R175, Archie E-X-01: the icon dispatch adds is counted, and the
+    corrected line is the builder's). Fit ladder: full with the R151 sender note, short with it, full, short; the note
+    never costs the request, and only an options request has a short form. Otherwise REVIEW_REQUEST_TOO_LONG."""
+    from .partner_notice import over_limit
+    if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
+    for note,short in (((True,False),(True,True)) if unidentified else ())+((False,False),(False,True)):
+        subject,body=compose_request(proposal,language,unclear,note,corrected,short)
+        if not over_limit(body):return subject,body
+    raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
 
 
-def compose_request(proposal,language,unclear=False,unidentified=False):
+def approval_action(proposal,thai,recorded_only=False):
+    """R175 (Echo section 2): what the approval words do on a plain or close request. recorded_only: '' for a manual item (the
+    Reviewer records it), as the manual-required result repeats only a choice the agent would have recorded."""
+    from .partner_notice import money
     from .review_proposal import review_posts_close,review_posts_overpayment
+    receipt=proposal['receipt']
+    if review_posts_close(proposal):return 'ปิดสัญญาทันที' if thai else 'close the loan now'
+    if review_posts_overpayment(proposal):
+        return f"บันทึกยอดเต็ม {money(receipt['amount'])} เป็น Lump Sum" if thai else f"record the full {money(receipt['amount'])} as Lump Sum"
+    if proposal.get('action')=='Lump Sum':return 'บันทึกการชำระเงินนี้' if thai else 'record this payment'
+    if recorded_only:return ''
+    if proposal.get('action')=='Loan Close':return 'คุณปิดสัญญาในแอปเอง' if thai else 'you close the loan in the app yourself'
+    return 'คุณบันทึกในแอปเอง' if thai else 'you record it in the app yourself'
+
+
+def compose_request(proposal,language,unclear=False,unidentified=False,corrected=False,short=False):
+    """One wording of the request, unchecked for length (request_text chooses the one that fits)."""
+    from .partner_notice import money
+    from .review_proposal import review_posts_close
     thai=language=='ไทย'
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
-    note=('\n'+SENDER_NOTE[int(thai)]) if unidentified else ''
-    if review_posts_close(proposal):return close_request_text(proposal,thai,unidentified)
+    if review_posts_close(proposal):return close_request_text(proposal,thai,unidentified,unclear,corrected)
     if proposal.get('action')=='Pay forward options':
-        # R112 (Echo AG-1, AG-2): reply with a number; an unclear reply gets the prompt, then the options again.
-        # R127 (Echo AG-6): the prompt names the replies this request offers.
-        receipt=proposal['receipt']
-        subject='สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'
-        numbers=offered_numbers(proposal['options'])
-        listed=', '.join(numbers[:-1])+(' หรือ ' if thai else ' or ')+numbers[-1] if len(numbers)>1 else numbers[0]
-        # R151: the options name the borrower in their first part; the sender note follows the options block.
-        body=((f'ตอบ {listed}\n' if thai else f'Reply {listed}.\n') if unclear else '')+options_lines(proposal,thai)+note
-        body+=(f"\nเวลาโอน: {receipt['date']} {receipt['time'][:5]} · บัญชีรับ: {receipt['account_label']}\nใช้ Reply ตอบข้อความนี้ ยังไม่ได้บันทึกรายการ" if thai else
-               f"\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok) · Account: {receipt['account_label']}\nUse Reply on THIS message. Nothing has been posted.")
-        if len(body)>1000:raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
-        return subject,body
+        # R112, R127, R175 (Echo A): reply with one code; an unclear reply gets the request again under the unclear line.
+        return ('สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'),options_text(proposal,thai,unclear,unidentified,corrected,short)
     receipt=proposal['receipt'];borrower=proposal['borrower']
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
-    close=proposal.get('action')=='Loan Close'
-    overpayment=review_posts_overpayment(proposal)
-    manual=proposal.get('action')!='Lump Sum' and not overpayment
-    if thai:
-        subject='ขออนุมัติรายการชำระเงิน'
-        action='ตรวจสอบการปิดสัญญาและบันทึกเอง' if close else ('ตรวจสอบยอดเกินและบันทึกเอง' if manual else 'บันทึกการชำระเงิน')
-        if overpayment:action='ยอดเกิน — อนุมัติแล้วระบบจะบันทึกยอดเต็มเป็น Lump Sum'
-        body=f"{subject}\nผู้กู้: {name}{note}\nยอด: {notice_amount(receipt['amount'])} บาท\nเวลาโอน: {receipt['date']} {receipt['time'][:5]}\nบัญชีรับ: {receipt['account_label']}\nรายการที่เสนอ: {action}\nกรุณาใช้ Reply ตอบข้อความนี้ว่า อนุมัติ เพื่อดำเนินการ คำตอบอื่นถือว่าปฏิเสธ ยังไม่ได้บันทึกรายการ"
-    else:
-        subject='Payment approval requested'
-        action='Review loan closure; partner records manually' if close else ('Review overpayment; partner records manually' if manual else 'Record payment')
-        if overpayment:action='Approve overpayment; agent records the full amount as Lump Sum'
-        body=f"{subject}\nBorrower: {name}{note}\nAmount: {notice_amount(receipt['amount'])} baht\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok)\nAccount: {receipt['account_label']}\nProposed: {action}\nUse Reply on THIS message: Yes / Approve / Approved (any case). Other direct replies reject. Nothing has been posted."
-    if proposal.get('loan_keys'):body+=('\nสัญญา: ' if thai else '\nLoan: ')+'; '.join(proposal['loan_keys'])
-    if manual:
-        body+=('\nหากอนุมัติ กรุณาบันทึกรายการในแอปด้วยตนเอง' if thai else
-               '\nIf you approve, please record this in the app yourself.')
-    if len(body)>1000:raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
-    return subject,body
+    action=approval_action(proposal,thai)
+    subject='ขออนุมัติรายการชำระเงิน' if thai else 'Payment approval requested'
+    title=f"สลิป {money(receipt['amount'])} จาก {name}: รออนุมัติ" if thai else f"Slip {money(receipt['amount'])} from {name}: approval needed"
+    lines=request_head(proposal,thai,UNCLEAR_PLAIN[thai] if unclear else None,corrected,unidentified,title)
+    return subject,'\n'.join(lines+['']+reply_block(action,thai))

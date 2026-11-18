@@ -20,8 +20,10 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(self.decide(dict(self.event,reply_to='')),'NOT_CORRELATED')
         self.assertEqual(self.decide(dict(self.event,sender_id='other')),'NOT_CORRELATED')
         self.assertEqual(self.decide(notice=dict(self.notice,ig_status='UNKNOWN')),'NOT_CORRELATED')
-    def test_any_other_direct_reply_rejects(self):
-        self.assertEqual(self.decide(dict(self.event,text='maybe approve later')),'REJECTED')
+    def test_any_other_direct_reply_is_asked_again(self):
+        # R175 (Archie E-APR-01): only the approval and reject words decide a plain request; anything else re-asks.
+        self.assertEqual(self.decide(dict(self.event,text='maybe approve later')),'OPTIONS_REQUIRED')
+        self.assertEqual(self.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'PENDING')
     def test_held_receipt_alert_cannot_authorize_posting(self):
         self.assertEqual(self.decide(notice=dict(self.notice,event_key='receipt-held:job:reason')),'NOT_CORRELATED')
         self.assertEqual(self.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'PENDING')
@@ -113,10 +115,14 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(p['action'],'Overpayment review');self.assertEqual(p['approved_allocation_method'],'Lump Sum')
         for language in ('English','ไทย'):
             body=request_text(p,language)[1]
-            self.assertIn('Lump Sum',body);self.assertIn(': 450 ',body);self.assertNotIn('450.00',body)
-            self.assertNotIn('record this in the app yourself',body);self.assertNotIn('ด้วยตนเอง',body)
+            self.assertIn('Lump Sum',body);self.assertIn('฿450 ',body);self.assertNotIn('450.00',body)
+            self.assertNotIn('in the app yourself',body);self.assertNotIn('ในแอปเอง',body)
+        # R175 (Echo section 2): the approval line says what Yes does; a manual overpayment is recorded by the Reviewer.
+        self.assertIn('\nYes = record the full ฿450 as Lump Sum\n',request_text(p,'English')[1])
+        self.assertIn('\nอนุมัติ = บันทึกยอดเต็ม ฿450 เป็น Lump Sum\n',request_text(p,'ไทย')[1])
         p.pop('approved_allocation_method')
-        self.assertIn('record this in the app yourself',request_text(p,'English')[1])
+        self.assertIn('\nYes = you record it in the app yourself\n',request_text(p,'English')[1])
+        self.assertIn('\nอนุมัติ = คุณบันทึกในแอปเอง\n',request_text(p,'ไทย')[1])
     def test_same_day_charges_are_combined(self):
         r={'amount':'300.00','date':'2026-09-21','time':'12:10','account_label':'Test'}
         f={'loans':[{'id':'l','loan_key':'Readable loan','status':'ยังไม่ปิดยอด','type':'other','auto':False,'principal':'5000'}],
@@ -132,5 +138,5 @@ class PlanTests(unittest.TestCase):
         f={'loans':[{'id':'l','status':'ยังไม่ปิดยอด','type':'ดอกเบี้ยรายวัน','auto':True,'principal':'1000','daily':'100','date':'2026-09-18'}],
            'charges':[{'id':'c','loan':'l','date':'2026-09-21','principal':'0','interest':'300'}]}
         p=plan(r,b,f,'2026-09-21');self.assertEqual(p['action'],'Loan Close')
-        self.assertIn('loan closure',request_text(p,'English')[1])
+        self.assertIn('\nYes = you close the loan in the app yourself\n',request_text(p,'English')[1])
         r['amount']='200';self.assertEqual(plan(r,b,f,'2026-09-21')['action'],'Lump Sum')
