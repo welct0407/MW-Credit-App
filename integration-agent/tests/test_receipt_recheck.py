@@ -4,6 +4,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from mw_integration_agent.partner_review import ReviewStore
 from mw_integration_agent.receipt_journal import ReceiptJournal
@@ -82,6 +83,44 @@ class RecheckHeldTests(unittest.TestCase):
         self.assertEqual(self.recheck(grew=True), {'held_requeued': 0, 'held_skipped': 1, 'held_skipped_no_archive': 0})
         # A later change (a snapshot written after that requeue) rechecks it once more.
         self.assertEqual(self.recheck(grew=True, written_at=time.time() + 1)['held_requeued'], 1)
+
+    def test_r174_a_review_decided_after_the_read_is_skipped_and_the_pass_continues(self):
+        # requeue's guard rolls back the first job (its review was approved between the read and the transaction); the
+        # held pass counts it as held_skipped and still requeues the next job.
+        from mw_integration_agent import receipt_reconsider
+        self.job('decided', 'PAYER_UNRESOLVED', created=self.now - 700); self.job('next', 'PAYER_UNRESOLVED')
+        review = ReviewStore(self.db).reserve('decided', {'action': 'Lump Sum'})
+        real = receipt_reconsider.requeue
+
+        def approve_then_requeue(db, job, detail, held_review, **kwargs):
+            if job['id'] == 'decided':
+                db.execute("UPDATE partner_reviews SET state='APPROVED' WHERE id=?", (review,)); db.commit()
+            return real(db, job, detail, held_review, **kwargs)
+        with patch('mw_integration_agent.receipt_recheck.requeue', side_effect=approve_then_requeue):
+            self.assertEqual(self.recheck(grew=True), {'held_requeued': 1, 'held_skipped': 1, 'held_skipped_no_archive': 0})
+        self.assertEqual((self.row('decided')['status'], self.row('decided')['detail']), ('REVIEW', 'PAYER_UNRESOLVED'))
+        self.assertEqual(tuple(self.db.execute('SELECT state,job_id FROM partner_reviews WHERE id=?', (review,)).fetchone()), ('APPROVED', 'decided'))
+        self.assertEqual(self.row('next')['status'], 'PENDING')
+        self.assertEqual([r[0] for r in self.db.execute('SELECT job_id FROM receipt_reconsiderations')], ['next'])
+
+    def test_r174_a_job_moved_after_the_read_is_skipped_and_another_error_still_raises(self):
+        self.job('moved', 'PAYER_UNRESOLVED', created=self.now - 700); self.job('next', 'PAYER_UNRESOLVED')
+        from mw_integration_agent import receipt_reconsider
+        real = receipt_reconsider.requeue
+
+        def move_then_requeue(db, job, detail, held_review, **kwargs):
+            if job['id'] == 'moved':
+                db.execute("UPDATE receipt_jobs SET status='POSTED' WHERE id='moved'"); db.commit()
+            return real(db, job, detail, held_review, **kwargs)
+        with patch('mw_integration_agent.receipt_recheck.requeue', side_effect=move_then_requeue):
+            self.assertEqual(self.recheck(grew=True), {'held_requeued': 1, 'held_skipped': 1, 'held_skipped_no_archive': 0})
+        self.assertEqual(self.row('moved')['status'], 'POSTED')
+        self.assertEqual([r[0] for r in self.db.execute('SELECT job_id FROM receipt_reconsiderations')], ['next'])
+        from mw_integration_agent.config import ConfigurationError
+        self.job('other', 'PAYER_UNRESOLVED')
+        with patch('mw_integration_agent.receipt_recheck.requeue', side_effect=ConfigurationError('STATE_READONLY_JOURNAL')), \
+                self.assertRaisesRegex(ConfigurationError, 'STATE_READONLY_JOURNAL'):
+            self.recheck(grew=True, written_at=time.time() + 1)
 
 
 if __name__ == '__main__':

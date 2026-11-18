@@ -77,6 +77,21 @@ class OptionsReplyTests(unittest.TestCase):
     def test_reject_still_drops_the_slip(self):
         self.assertEqual(self.decide('Reject'),'REJECTED');self.assertEqual(self.row()['state'],'REJECTED')
 
+    def test_r174_no_is_reject(self):
+        # R174 (owner, 18 November 2026): "No" on the options request drops the slip like "Reject"; nothing is paid.
+        for index,text in enumerate(('No','no',' NO ')):
+            with self.subTest(text=text):
+                if index:self.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL,decision_message=NULL,detail=''")
+                self.assertEqual(self.decide(text,message_id=f'no{index}'),'REJECTED')
+                row=self.row();self.assertEqual((row['state'],row['detail'],row['payment_id']),('REJECTED','',None))
+                self.assertEqual(row['decision_message'],f'no{index}')
+        self.assertEqual(self.db.execute("SELECT status FROM receipt_jobs").fetchone()[0],'REVIEW_REQUESTED')
+        # "Not" or "No thanks" is not a reject word: it asks again.
+        self.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL,decision_message=NULL,detail=''")
+        for index,text in enumerate(('Not','No thanks')):
+            with self.subTest(text=text):
+                self.assertEqual(self.decide(text,message_id=f'nx{index}'),'OPTIONS_REQUIRED');self.assertEqual(self.row()['state'],'PENDING')
+
     def test_three_rechecks_the_slip_from_current_charges(self):
         # Owner request, 3 November 2026: edit the charges in the app (a late fee), then reply 3 (R127; 4 before) to plan
         # the slip again. The legacy 4 still rechecks a request sent before the R127 deploy.

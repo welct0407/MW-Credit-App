@@ -11,7 +11,8 @@ APPROVE={'yes','approve','approved','อนุมัติ'}
 # R112, R127 (owner decision 5 November 2026: three options): the options reply. 1 pay forward; 2 (or "2 <n>" with
 # several loans) repay principal; 3 recheck (below). The R112 split ("3 <amount>") is withdrawn: it now asks again.
 # Reject words drop the slip; anything else asks again (OPTIONS_REQUIRED) and decides nothing (D7: no default).
-REJECT={'reject','rejected','ปฏิเสธ'}
+# R174 (owner, 18 November 2026): "No" is equivalent to "Reject" (as hold_reply.REJECT already has it).
+REJECT={'reject','rejected','no','ปฏิเสธ'}
 # Owner request, 3 November 2026 (option 3 since R127): recheck the slip. The Reviewer edits the charges in the app first
 # (for example a late fee), then replies 3; this review is superseded and the receipt is planned again from the current
 # charges. Within what is due it is then an ordinary payment (posted under the automatic-payment policy); otherwise a new
