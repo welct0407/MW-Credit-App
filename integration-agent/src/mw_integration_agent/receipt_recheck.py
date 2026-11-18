@@ -11,10 +11,12 @@ could not read again, is counted as held_skipped_no_archive and left without a r
 """
 import json
 
+from .config import ConfigurationError
 from .partner_review import ReviewStore
 from .receipt_reconsider import requeue
 
 DETAIL='AUTO_RECHECK_MASTER_CHANGED'
+GUARDS=('DECIDED_REVIEW_CANNOT_BE_REOPENED','RECONSIDERATION_NOT_ELIGIBLE')
 PAYER='PAYER_UNRESOLVED'
 RECIPIENT='RECIPIENT_UNKNOWN_OR_AMBIGUOUS'
 
@@ -57,6 +59,11 @@ def recheck_held(config,journal,enabled_grew,accounts_changed,written_at,now=Non
         if not image_available(config,journal,job):
             # Counted on its own and nothing written: the once-per-change guard is not used, so a later change retries it.
             counts['held_skipped_no_archive']+=1;continue
-        requeue(db,job,DETAIL,review,fresh_extraction=False)
+        # R174: requeue guards its writes again; a review decided or a job moved since the reads above rolls back and is
+        # skipped like a decided review, and the pass continues with the other jobs.
+        try:requeue(db,job,DETAIL,review,fresh_extraction=False)
+        except ConfigurationError as exc:
+            if str(exc) not in GUARDS:raise
+            counts['held_skipped']+=1;continue
         counts['held_requeued']+=1
     return counts

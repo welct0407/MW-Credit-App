@@ -115,6 +115,81 @@ class ReconsiderTests(unittest.TestCase):
         journal = ReceiptJournal(self.root / 'receipt-processing.db'); self.addCleanup(journal.close)
         self.assertEqual(journal.db.execute('SELECT status FROM receipt_jobs').fetchone()[0], 'PREPARED')
 
+    # R174: requeue guards its own writes. A review decided, or a job moved, after the caller's checks rolls the whole
+    # transaction back: no reconsideration row, the review keeps its state and job_id, the job is unchanged.
+    def snapshot(self, db):
+        return ([tuple(r) for r in db.execute('SELECT id,job_id,state FROM partner_reviews ORDER BY id')],
+                [tuple(r) for r in db.execute('SELECT id,status,detail,attempts,url,result FROM receipt_jobs ORDER BY id')],
+                db.execute('SELECT count(*) FROM receipt_reconsiderations').fetchone()[0])
+
+    def reset(self, journal):
+        for table in ('partner_reviews', 'receipt_jobs', 'receipt_reconsiderations'):journal.db.execute('DELETE FROM ' + table)
+        journal.db.commit(); journal.close()
+
+    def checked(self, status='REVIEW_REQUESTED', result=None):
+        """The job and its PENDING review as the caller read them before the transaction."""
+        journal = self.journal()
+        self.job(journal, status, {'receipt': RECEIPT} if result is None else result)
+        key = ReviewStore(journal.db).reserve('job-1', {'action': 'Lump Sum'})
+        job = journal.db.execute("SELECT * FROM receipt_jobs WHERE id='job-1'").fetchone()
+        review = journal.db.execute('SELECT * FROM partner_reviews WHERE id=?', (key,)).fetchone()
+        journal.db.execute('CREATE TABLE IF NOT EXISTS receipt_reconsiderations (id INTEGER PRIMARY KEY,job_id TEXT NOT NULL,created_at REAL NOT NULL,previous TEXT NOT NULL)')
+        journal.db.commit()
+        return journal, job, review
+
+    def test_r174_a_review_decided_after_the_check_is_not_superseded(self):
+        for state in ('APPROVED', 'POSTING', 'POSTED', 'REJECTED', 'SUPERSEDED'):
+            with self.subTest(state=state):
+                journal, job, review = self.checked()
+                journal.db.execute('UPDATE partner_reviews SET state=? WHERE id=?', (state, review['id'])); journal.db.commit()
+                before = self.snapshot(journal.db)
+                with self.assertRaisesRegex(ConfigurationError, 'DECIDED_REVIEW_CANNOT_BE_REOPENED'):
+                    receipt_reconsider.requeue(journal.db, job, 'OWNER_REQUESTED_RECONSIDERATION', review)
+                self.assertEqual(self.snapshot(journal.db), before)
+                self.assertEqual(before[0], [(review['id'], 'job-1', state)])
+                # A later reserve finds the job's decided review: no new generation (no new payment request id).
+                self.assertEqual(ReviewStore(journal.db).reserve('job-1', {'action': 'Lump Sum'}), review['id'])
+                self.reset(journal)
+
+    def test_r174_a_review_no_longer_the_jobs_is_not_superseded(self):
+        journal, job, review = self.checked()
+        journal.db.execute("UPDATE partner_reviews SET job_id='job-1:superseded:'||id WHERE id=?", (review['id'],)); journal.db.commit()
+        before = self.snapshot(journal.db)
+        with self.assertRaisesRegex(ConfigurationError, 'DECIDED_REVIEW_CANNOT_BE_REOPENED'):
+            receipt_reconsider.requeue(journal.db, job, 'OWNER_REQUESTED_RECONSIDERATION', review)
+        self.assertEqual(self.snapshot(journal.db), before)
+
+    def test_r174_a_job_moved_after_the_check_is_left(self):
+        for moved in ('POSTED', 'PENDING', 'REVIEW'):
+            with self.subTest(moved=moved):
+                journal, job, review = self.checked(result={'extraction': {'raw': True}})
+                journal.db.execute('UPDATE receipt_jobs SET status=?', (moved,)); journal.db.commit()
+                before = self.snapshot(journal.db)
+                with self.assertRaisesRegex(ConfigurationError, 'RECONSIDERATION_NOT_ELIGIBLE'):
+                    receipt_reconsider.requeue(journal.db, job, 'OWNER_REQUESTED_RECONSIDERATION', review)
+                self.assertEqual(self.snapshot(journal.db), before)  # the review stays PENDING, the extraction stays
+                self.assertEqual(before[0][0][2], 'PENDING')
+                self.reset(journal)
+
+    def test_r174_an_ineligible_status_read_by_the_caller_is_refused(self):
+        journal, job, review = self.checked(status='POSTED')
+        before = self.snapshot(journal.db)
+        with self.assertRaisesRegex(ConfigurationError, 'RECONSIDERATION_NOT_ELIGIBLE'):
+            receipt_reconsider.requeue(journal.db, job, 'OWNER_REQUESTED_RECONSIDERATION', review)
+        self.assertEqual(self.snapshot(journal.db), before)
+
+    def test_r174_an_undecided_review_is_still_superseded(self):
+        for state in ('PENDING', 'STALE', 'EXPIRED'):
+            with self.subTest(state=state):
+                journal, job, review = self.checked()
+                journal.db.execute('UPDATE partner_reviews SET state=? WHERE id=?', (state, review['id'])); journal.db.commit()
+                self.assertEqual(receipt_reconsider.requeue(journal.db, job, 'OWNER_REQUESTED_RECONSIDERATION', review), 'VALIDATED')
+                reviews, jobs, count = self.snapshot(journal.db)
+                self.assertEqual(reviews, [(review['id'], 'job-1:superseded:' + review['id'], 'SUPERSEDED')])
+                self.assertEqual(jobs[0][1:4], ('VALIDATED', 'OWNER_REQUESTED_RECONSIDERATION', 0))
+                self.assertEqual(count, 1)
+                self.reset(journal)
+
 
 if __name__ == '__main__':
     unittest.main()

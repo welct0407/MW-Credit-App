@@ -17,23 +17,39 @@ def requeue(db,job,detail,review,url='',fresh_extraction=True):
     Lock-free body: the caller holds receipt-worker.lock. One transaction keeps the prior status, detail and result in
     receipt_reconsiderations, supersedes a pending review (it keeps its decision under a renamed job_id) and requeues
     the job: VALIDATED with a saved receipt, else PENDING. fresh_extraction drops a saved extraction without a receipt
-    so the worker reads the image again (the operator's reconsider); the master recheck keeps it (no new OCR)."""
+    so the worker reads the image again (the operator's reconsider); the master recheck keeps it (no new OCR).
+
+    R174: the caller's eligibility checks ran before this transaction, so the writes are guarded again here. The review is
+    superseded only while it is still the job's and undecided (PENDING, STALE or EXPIRED), and the job moves only from
+    the status that was read, when that status is one a reconsideration accepts. Otherwise ConfigurationError
+    (DECIDED_REVIEW_CANNOT_BE_REOPENED or RECONSIDERATION_NOT_ELIGIBLE) rolls the whole transaction back: no
+    receipt_reconsiderations row, review or job change. An approved or posting review is never superseded, so a later
+    reserve cannot open a new review generation (and payment request id) beside it."""
     from .state import is_postgres
     if not is_postgres(db):
         db.execute('''CREATE TABLE IF NOT EXISTS receipt_reconsiderations
            (id INTEGER PRIMARY KEY,job_id TEXT NOT NULL,created_at REAL NOT NULL,previous TEXT NOT NULL)''')
     result=json.loads(job['result']) if job['result'] else {}
     with db:
+        if not eligible(job):raise ConfigurationError('RECONSIDERATION_NOT_ELIGIBLE')
         previous={k:job[k] for k in ('status','detail','result')}
         db.execute('INSERT INTO receipt_reconsiderations(job_id,created_at,previous) VALUES (?,?,?)',(job['id'],time.time(),json.dumps(previous)))
         if review:
-            db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id=? WHERE id=?",(job['id']+':superseded:'+review['id'],review['id']))
+            changed=db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id=? WHERE id=? AND job_id=? AND state IN ('PENDING','STALE','EXPIRED')",
+                               (job['id']+':superseded:'+review['id'],review['id'],job['id'])).rowcount
+            if changed!=1:raise ConfigurationError('DECIDED_REVIEW_CANNOT_BE_REOPENED')
+        changed=db.execute('''UPDATE receipt_jobs SET status=?,url=?,attempts=0,retry_after=0,
+            detail=? WHERE id=? AND status=?''',('VALIDATED' if 'receipt' in result else 'PENDING',url or '',detail,job['id'],job['status'])).rowcount
+        if changed!=1:raise ConfigurationError('RECONSIDERATION_NOT_ELIGIBLE')
         if 'receipt' not in result and fresh_extraction:
             result.pop('extraction',None)
             db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps(result),job['id']))
-        db.execute('''UPDATE receipt_jobs SET status=?,url=?,attempts=0,retry_after=0,
-            detail=? WHERE id=?''',('VALIDATED' if 'receipt' in result else 'PENDING',url or '',detail,job['id']))
     return 'VALIDATED' if 'receipt' in result else 'PENDING'
+
+
+def eligible(job):
+    """The job statuses a reconsideration or the master recheck may requeue (the recheck takes REVIEW only)."""
+    return job['status'] in ('REVIEW','REVIEW_REQUESTED','VALIDATED') or job['status']=='PREPARED' and operator_selected(job)
 
 
 def operator_selected(job):
@@ -51,7 +67,7 @@ def run(config_path,catalogue_path,job_id):
         try:
             ReviewStore(db)
             job=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(job_id,)).fetchone()
-            if not job or not (job['status'] in ('REVIEW','REVIEW_REQUESTED','VALIDATED') or job['status']=='PREPARED' and operator_selected(job)):
+            if not job or not eligible(job):
                 raise ConfigurationError('RECONSIDERATION_NOT_ELIGIBLE')
             review=db.execute('SELECT * FROM partner_reviews WHERE job_id=?',(job_id,)).fetchone()
             if review and review['state'] not in ('PENDING','STALE','EXPIRED'):

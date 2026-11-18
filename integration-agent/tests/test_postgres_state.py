@@ -490,6 +490,33 @@ class PostgreSQLStateTests(unittest.TestCase):
             self.assertEqual((row['job_id'],row['state']),(self.key,'PENDING'))
         finally:receipt.close()
 
+    def test_r174_requeue_never_supersedes_a_review_decided_after_the_check(self):
+        from mw_integration_agent.receipt_reconsider import requeue
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        try:
+            review=ReviewStore(receipt.db);proposal={'action':'Pay forward options','synthetic':True}
+            with receipt.db:
+                receipt.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,attempts,detail,result,created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+                                   (self.key,self.key,'synthetic','','REVIEW_REQUESTED',1,'SOMETHING',json.dumps({'receipt':{'amount':'1'}}),time.time()))
+            key=review.reserve(self.key,proposal)
+            job=receipt.db.execute('SELECT * FROM receipt_jobs WHERE id=?',(self.key,)).fetchone()
+            pending=receipt.db.execute('SELECT * FROM partner_reviews WHERE id=?',(key,)).fetchone()
+            with receipt.db:receipt.db.execute("UPDATE partner_reviews SET state='APPROVED' WHERE id=?",(key,))
+            count=lambda:receipt.db.execute('SELECT count(*) FROM receipt_reconsiderations WHERE job_id=?',(self.key,)).fetchone()[0]
+            with self.assertRaisesRegex(ConfigurationError,'DECIDED_REVIEW_CANNOT_BE_REOPENED'):
+                requeue(receipt.db,job,'OWNER_REQUESTED_RECONSIDERATION',pending)
+            row=receipt.db.execute('SELECT job_id,state FROM partner_reviews WHERE id=?',(key,)).fetchone()
+            self.assertEqual((row['job_id'],row['state']),(self.key,'APPROVED'))
+            self.assertEqual(receipt.db.execute('SELECT status FROM receipt_jobs WHERE id=?',(self.key,)).fetchone()['status'],'REVIEW_REQUESTED')
+            self.assertEqual(count(),0)
+            # Undecided again: the same call supersedes it and requeues the job in one transaction.
+            with receipt.db:receipt.db.execute("UPDATE partner_reviews SET state='PENDING' WHERE id=?",(key,))
+            self.assertEqual(requeue(receipt.db,job,'OWNER_REQUESTED_RECONSIDERATION',pending),'VALIDATED')
+            row=receipt.db.execute('SELECT job_id,state FROM partner_reviews WHERE id=?',(key,)).fetchone()
+            self.assertEqual((row['job_id'],row['state']),(self.key+':superseded:'+key,'SUPERSEDED'))
+            self.assertEqual(count(),1)
+        finally:receipt.close()
+
     def test_forwarded_provenance_and_automatic_decision_are_durable(self):
         receipt=ReceiptJournal('receipt-processing.db',self.config)
         review=ReviewStore(receipt.db)
