@@ -85,9 +85,12 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   useEffect(() => { if (selectedId !== undefined) copyTap.current++; setCopied(null); }, [selectedId]);
   const copyReminder = (amount: string | null) => {
     const text = reminderMessage(amount), shown = reminderAmount(amount);
-    if (text === null || shown === null) return;
-    const tap = ++copyTap.current, done = (ok: boolean) => { if (tap === copyTap.current) setCopied({ ok, amount: shown }); };
+    // Every chat tap clears the last outcome and drops a pending write, so an earlier line never returns after a tap
+    // that copied nothing.
+    const tap = ++copyTap.current;
     setCopied(null);
+    if (text === null || shown === null) return;
+    const done = (ok: boolean) => { if (tap === copyTap.current) setCopied({ ok, amount: shown }); };
     try { navigator.clipboard.writeText(text).then(() => done(true), () => done(false)); } catch { done(false); }
   };
   const chatName = (kind: 'group' | 'dm', copy: boolean) => !copy ? chatPurpose(kind, thai) : kind === 'dm'
