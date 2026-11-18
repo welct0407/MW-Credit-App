@@ -6,8 +6,8 @@ export type DraftDomain='borrower'|'loan'|'charge'|'expense'|'preference'|'payme
 /** Five drafts are enforced once by the owner repository, across every domain. */
 export function useDomainDraft({repository,id,domain,label,value,enabled,restore,recoverNew=false,updateBlocked}:{repository?:OwnerOfflineRepository;id:string;domain:DraftDomain;label:string;value:any;enabled:boolean;updateBlocked?:boolean;recoverNew?:boolean;restore:(value:any)=>void}){
  useAppUpdateBlock(updateBlocked??true);
- const [ready,setReady]=useState(false),[error,setError]=useState<DraftFailure|null>(null),serial=useRef(Promise.resolve()),timer=useRef<ReturnType<typeof setTimeout>|null>(null),epoch=useRef(0),suspended=useRef(false),latest=useRef(value),initial=useRef(JSON.stringify(value)),enabledRef=useRef(enabled),restoreRef=useRef(restore);
- latest.current=value;enabledRef.current=enabled;restoreRef.current=restore;
+ const [ready,setReady]=useState(false),[error,setError]=useState<DraftFailure|null>(null),serial=useRef(Promise.resolve()),timer=useRef<ReturnType<typeof setTimeout>|null>(null),epoch=useRef(0),suspended=useRef(false),latest=useRef(value),initial=useRef(JSON.stringify(value)),enabledRef=useRef(enabled),restoreRef=useRef(restore),readyRef=useRef(false),committed=useRef({value,label});
+ latest.current=value;enabledRef.current=enabled;restoreRef.current=restore;readyRef.current=ready;
  const key=domain+':'+id,storageKey=useRef(key),restoredDraft=useRef(false);
  // biome-ignore lint/correctness/useExhaustiveDependencies: restores the draft once per repository and key; domain, recoverNew, id and value are read at that moment on purpose, and re-running would discard the restored draft
  useEffect(()=>{const generation=++epoch.current;setReady(false);setError(null);suspended.current=false;storageKey.current=key;restoredDraft.current=false;void(async()=>{try{if(!repository||!await repository.authorized())return;let row=await repository.draft<any>(key),recoveredNew=false;
@@ -16,7 +16,20 @@ export function useDomainDraft({repository,id,domain,label,value,enabled,restore
   const pending=await repository.list('pending'),rows=await repository.list('draft');
   row=rows.filter(candidate=>candidate.value?.domain===domain&&candidate.value?.draft&&!candidate.value.draft.source&&!candidate.value.draft.record&&JSON.stringify(context(candidate.value.draft))===JSON.stringify(context(value))&&!pending.some(item=>(item.value?.command??item.value)?.targetId===candidate.value.draft.id)).sort((a,b)=>b.savedAt-a.savedAt)[0]??null;recoveredNew=!!row;
  }
- if(generation!==epoch.current)return;if(row&&row.value.domain===domain&&JSON.stringify(latest.current)===initial.current){restoredDraft.current=true;storageKey.current=row.key.slice('draft:'.length);const restored={...row.value.draft,...(recoveredNew?{id}:{})};initial.current=JSON.stringify(restored);restoreRef.current(restored)}}catch(error){if(generation===epoch.current)setError(draftFailure(error))}finally{if(generation===epoch.current)setReady(true)}})();return()=>{epoch.current++;if(timer.current)clearTimeout(timer.current)}},[repository,key]);
+ if(generation!==epoch.current)return;if(row&&row.value.domain===domain&&JSON.stringify(latest.current)===initial.current){restoredDraft.current=true;storageKey.current=row.key.slice('draft:'.length);const restored={...row.value.draft,...(recoveredNew?{id}:{})};initial.current=JSON.stringify(restored);restoreRef.current(restored)}}catch(error){if(generation===epoch.current)setError(draftFailure(error))}finally{if(generation===epoch.current)setReady(true)}})();return()=>{
+  // R172: closing the form (or switching key) within the 400 ms autosave delay used to drop the last edit (the timer was
+  // cleared and a queued save was skipped by the epoch check). An unsaved change is now saved once more, to the key the
+  // form was editing; a frozen or discarded form (submitted or thrown away) never writes a draft again. Chase (R172): on a
+  // key change latest already holds the new render's value, so the flush reads the last committed value of the old key.
+  const last=committed.current.value;
+  const flush=!!repository&&readyRef.current&&enabledRef.current&&!suspended.current&&JSON.stringify(last)!==initial.current;
+  const target=storageKey.current,snapshot=flush?structuredClone(last):null,draftLabel=committed.current.label;
+  epoch.current++;if(timer.current)clearTimeout(timer.current);
+  if(flush&&repository)serial.current=serial.current.catch(()=>{}).then(async()=>{try{if(!await repository.authorized())return;await repository.saveDraft(target,{domain,label:draftLabel,draft:snapshot});window.dispatchEvent(new Event('mw-offline-saved'))}catch{/* The form is gone: nothing to report the failure to. */}});
+ }},[repository,key]);
+ // R172: the value and label of the last commit, for the flush above. It runs after the key effect, and every cleanup of a
+ // commit runs before any effect body, so on a key change the flush still sees the previous commit (the old key's value).
+ useEffect(()=>{committed.current={value,label}});
  function enqueue(){if(!repository||!enabledRef.current||suspended.current)return;const generation=epoch.current,snapshot=structuredClone(latest.current);serial.current=serial.current.catch(()=>{}).then(async()=>{if(generation!==epoch.current||suspended.current||!enabledRef.current)return;try{if(!await repository.authorized())throw Error('Offline owner lease expired');if(generation!==epoch.current||suspended.current)return;await repository.saveDraft(storageKey.current,{domain,label,draft:snapshot});if(generation===epoch.current){initial.current=JSON.stringify(snapshot);setError(null);window.dispatchEvent(new Event('mw-offline-saved'))}}catch(error){if(generation===epoch.current){setError(draftFailure(error));window.dispatchEvent(new Event('mw-offline-save-failed'))}}});}
  // biome-ignore lint/correctness/useExhaustiveDependencies: debounces autosave on value changes; enqueue is recreated every render and reads the latest value through refs
  useEffect(()=>{if(!ready||!enabled||suspended.current||JSON.stringify(value)===initial.current)return;if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(enqueue,400);return()=>{if(timer.current)clearTimeout(timer.current)}},[value,enabled,ready]);

@@ -74,7 +74,7 @@ test('R136 rollover: record action, prefilled form, live statement, confirm and 
  expect(previews.some(q=>q.includes('penalty=2500'))).toBe(true);
  // The device draft (design 5.3): leaving and reopening keeps the edited penalty and principal, and the statement is quoted again.
  await page.getByRole('button',{name:'Increase penalty by one day',exact:true}).click();await page.getByRole('textbox',{name:'Principal Amount',exact:true}).fill('11000');await expect(amount('cash')).toHaveText('฿3,350');
- const quotes=previews.length;await page.waitForTimeout(700);
+ const quotes=previews.length;
  await page.getByRole('button',{name:'Back to loan details',exact:true}).click();await page.getByRole('button',{name:'Rollover',exact:true}).click();
  await expect(page.getByRole('textbox',{name:'Principal Amount',exact:true})).toHaveValue('11000');await expect(page.getByText('฿2,500 = 5 days of ฿500',{exact:true})).toBeVisible();
  await expect(page.getByRole('textbox',{name:'Documentation Fee',exact:true})).toHaveValue('1100');await expect(amount('cash')).toHaveText('฿3,350');expect(previews.length).toBeGreaterThan(quotes);expect(previews.at(-1)).toContain('penalty=2500');

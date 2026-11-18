@@ -4,8 +4,11 @@ import {EventEmitter} from 'node:events';
 import {createECDH} from 'node:crypto';
 import {createWebPushTransport} from '../../services/notifications/web-push.mjs';
 import {createNotificationIdentityLookup} from '../../services/notifications/identity.mjs';
-const curve=createECDH('prime256v1');curve.generateKeys();
-const vapid={subject:'mailto:synthetic@example.invalid',publicKey:curve.getPublicKey().toString('base64url'),privateKey:curve.getPrivateKey().toString('base64url')};
+// R172: a random P-256 private key has a leading zero byte about once in 256 runs; Node then returns 31 bytes, web-push
+// refuses it ("should be 32 bytes long") and the transport reports network. The test keys are generated until 32 bytes.
+function vapidKeys(){for(;;){const curve=createECDH('prime256v1');curve.generateKeys();const privateKey=curve.getPrivateKey();if(privateKey.length===32)return {curve,privateKey}}}
+const {curve,privateKey}=vapidKeys();
+const vapid={subject:'mailto:synthetic@example.invalid',publicKey:curve.getPublicKey().toString('base64url'),privateKey:privateKey.toString('base64url')};
 const subscription={endpoint:'https://fcm.googleapis.com/synthetic',expirationTime:null,keys:{p256dh:vapid.publicKey,auth:Buffer.alloc(16,1).toString('base64url')}};
 test('abortable push preserves maintained encryption and maps provider results without redirects',async()=>{
  for(const [status,kind] of [[201,'accepted'],[404,'expired'],[410,'expired'],[429,'throttled'],[503,'unavailable'],[400,'rejected'],[302,'network']]){
@@ -36,4 +39,9 @@ test('R080 transport sends v2 rendered text and falls back to generic text for m
    assert.equal(options.TTL,3600);assert.equal(options.urgency,'normal');assert.match(options.topic,/^[a-f0-9]{32}$/);assert.doesNotMatch(JSON.stringify(payload),/update/i);
   }
  }finally{webpush.generateRequestDetails=original;}
+});
+test('R172 the test VAPID keys are always 32-byte private keys web-push accepts (300 keys)',async()=>{
+ const {default:webpush}=await import('web-push');
+ for(let run=0;run<300;run++){const keys=vapidKeys();assert.equal(keys.privateKey.length,32);
+  webpush.generateRequestDetails(subscription,'{}',{vapidDetails:{subject:vapid.subject,publicKey:keys.curve.getPublicKey().toString('base64url'),privateKey:keys.privateKey.toString('base64url')},contentEncoding:'aes128gcm'})}
 });

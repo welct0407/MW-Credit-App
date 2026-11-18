@@ -235,6 +235,20 @@ class GroupChatSelectors(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.error(data)
 
+    def test_r172_instagram_and_poll_codes_read_in_words_with_the_dashboard_map(self):
+        source = (ROOT / 'dashboards/agent.cjs').read_text().split('const GROUP_CHAT_ERRORS = ')[1].split('};')[0]
+        words = {(quoted or bare): text for quoted, bare, text in __import__('re').findall(r"(?:'([^']+)'|([A-Z][A-Z0-9_]*)): '([^']+)'", source)}
+        at = int(time.time()) - 600
+        # UX-GRAF-01: the same pattern as the model words (Model timeout / offline / error).
+        for code, expected in (('INSTAGRAM_HTTP_500_2', 'IG error'), ('INSTAGRAM_HTTP_429_4', 'IG error'), ('INSTAGRAM_HTTP_503', 'IG error'),
+                               ('INSTAGRAM_TIMEOUT', 'IG timeout'), ('INSTAGRAM_UNREACHABLE', 'IG offline'),
+                               ('POLL_INVALID_PAGE', 'Chat read error'), ('POLL_HISTORY_PAGE_LIMIT', 'Chat read error'), ('MODEL_TIMEOUT', 'Model timeout'),
+                               ('INSTAGRAM_SOMETHING_NEW', 'Other error'), ('UNKNOWN_CODE', 'Other error')):
+            with self.subTest(code=code):
+                text = query('group-chat-error.jq', self.snapshot(0, last_error_at=at, **{'last_error:' + code: 1}), WORDS=words)[0]['Last error']
+                self.assertEqual(text, expected + ' · 10 min')
+                self.assertLessEqual(len(expected), 15)
+
     def rule(self):
         owned = json.loads((ROOT.parents[2] / 'infrastructure/grafana/owned-services.tf.json').read_text())['resource']['grafana_rule_group']
         rules = [r for r in owned['performance']['rule'] if r['uid'] == 'mw-group-chat-backlog']
