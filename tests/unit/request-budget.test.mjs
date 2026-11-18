@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';
+import test from 'node:test';import assert from 'node:assert/strict';import {EventEmitter} from 'node:events';
 import {BUDGET} from '../../services/lib/budget.mjs';
 import {createIamPool} from '../../services/lib/pool.mjs';
 import {createEnvironmentCommandStore} from '../../services/payment-command/store.mjs';
@@ -13,11 +13,33 @@ test('IAM pool factory applies connect, statement and query budgets per service 
   const record={};const {pool,close}=await createIamPool({instance:'synthetic:region:instance',dbUser:'synthetic@example.iam',database:'synthetic_db',serviceRole},modules(record));
   assert.ok(pool);assert.deepEqual(record.options,{instanceConnectionName:'synthetic:region:instance',ipType:'PUBLIC',authType:'IAM'});
   assert.deepEqual(record.pool,{stream:'synthetic',user:'synthetic@example.iam',database:'synthetic_db',max,connectionTimeoutMillis:3000,idleTimeoutMillis:idle,keepAlive:true,keepAliveInitialDelayMillis:60000,statement_timeout:statement,query_timeout:query});
-  assert.deepEqual(record.listeners,['error']);close();assert.equal(record.closed,true);
+  assert.deepEqual(record.listeners,['error','connect']);close();assert.equal(record.closed,true);
  }
  const record={};await createIamPool({instance:'i',dbUser:'u',database:'d',connectMs:5000,statementMs:100000,queryMs:105000},modules(record));
  assert.equal(record.pool.statement_timeout,100000);assert.equal(record.pool.connectionTimeoutMillis,5000);
  await assert.rejects(createIamPool({instance:'i',dbUser:'u',database:'d',serviceRole:'unknown'},modules({})),/Invalid database budget/);
+});
+// R175: a socket error on a checked-out client (pg-pool detaches its idle listener on checkout) must not reach the process
+// as an unhandled 'error' event; the client is discarded on release because pg marks it unqueryable.
+class SyntheticClient extends EventEmitter{
+ constructor(){super();this._queryable=false;this._ending=false}
+ connect(callback){this._queryable=true;setImmediate(callback)}
+ query(){return Promise.resolve({rows:[]})}
+ reset(){const error=Object.assign(new Error('read ECONNRESET'),{code:'ECONNRESET'});this._queryable=false;this.emit('error',error)}
+ end(callback){this._ending=true;this._queryable=false;setImmediate(()=>{this.emit('end');callback?.()})}
+}
+const realModules=async()=>({connector:{AuthTypes:{IAM:'IAM'},IpAddressTypes:{PUBLIC:'PUBLIC'},Connector:class{async getOptions(){return {Client:SyntheticClient}}close(){}}},pg:(await import('pg')).default});
+test('IAM pool survives ECONNRESET on a checked-out client and discards it on release',async()=>{
+ const {pool,close}=await createIamPool({instance:'i',dbUser:'u',database:'d',serviceRole:'reader'},realModules);
+ try{
+  const client=await pool.connect();assert.equal(pool.totalCount,1);
+  assert.doesNotThrow(()=>client.reset());
+  client.release();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(pool.totalCount,0);assert.equal(pool.idleCount,0);
+  // Without the connect listener the same reset is an unhandled 'error' event.
+  const bare=new (await import('pg')).default.Pool({Client:SyntheticClient});
+  const exposed=await bare.connect();assert.throws(()=>exposed.reset(),/ECONNRESET/);exposed.release();await bare.end();
+ }finally{await pool.end();close()}
 });
 test('command transaction sets an 8 s statement and 3 s lock timeout',async()=>{
  const sql=[];const client={async query(text){sql.push(text);if(text.startsWith('SELECT public.pwa_command_status_v1'))return {rows:[{result:{ok:true}}]};return {rows:[]};},release(){}};

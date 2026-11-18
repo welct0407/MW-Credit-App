@@ -33,7 +33,6 @@ export async function createIamPool({instance,dbUser,database,serviceRole,max=se
     const options=await connector.getOptions({instanceConnectionName:instance,ipType:IpAddressTypes.PUBLIC,authType:AuthTypes.IAM});
     const pool=new pg.Pool({...options,user:dbUser,database,max,connectionTimeoutMillis:connectMs,idleTimeoutMillis:serviceRole==='command'?IDLE_COMMAND_MS:IDLE_DEFAULT_MS,keepAlive:true,keepAliveInitialDelayMillis:60000,statement_timeout:statementMs,query_timeout:queryMs});
     pool.on?.('error',()=>{});
-    pool.on?.('connect',client=>client.on('error',()=>{}));
     return {pool,close:()=>connector.close()};
   }catch(error){connector.close();throw error;}
 }
