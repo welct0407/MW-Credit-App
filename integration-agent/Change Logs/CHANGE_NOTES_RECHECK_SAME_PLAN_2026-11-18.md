@@ -21,17 +21,21 @@ Owner request, 18 November 2026: "yes, go with option 1", then "push all the way
 | Byte: `ruff check --no-cache .` and eight focused modules (`test_partner_review_options test_review_cycle test_receipt_health test_deploy_runtime test_config test_receipt_recognition test_group_chat_summary test_receipt_reconsider`) in `integration-agent/`, clean tree at `06fb556` | Pass: ruff clean; 388 run, OK. Review: no change needed; `REVIEW_RESERVATION_FAILED` is a cycle failure (the job stays VALIDATED and is retried), never a job waiting with no review |
 | Chase: adversarial review and recovery reproduction (scratch script on the `test_review_cycle` harness: PROD shape, then the real `receipt_reconsider.run`, then one cycle) at `06fb556` | Pass, no blocking findings. Fixed code: one new PENDING review, one `review:<new id>` request starting with the corrected-request line, `stalled_jobs` 0, no payment submitted; pre-fix code: still stuck. Supersede happens only from PENDING, STALE or EXPIRED, so a new generation never bypasses an approved or posted review; request ids derive from the new review id only when the earlier one never posted. Low, pre-existing, not in R173: `receipt_reconsider.requeue` supersedes without a state guard inside its transaction (protected today by the worker lock). After `receipt-reconsider` on the stuck job, `prior_review_superseded` reads false (expected) |
 | `npm run check:docs` | 0 failures, 0 warnings |
-| The pull request's `Development checks` and integration-agent tests runs | PENDING: cited at closure |
+| `Development checks` run 44277161545 and integration-agent tests run 44277161507 on the tested head `b22813f` (PR #358) | Success; merged as `9b111eb9`, tree identical |
+| PROD promotion and read-back | Pass: see the PROD promotion record |
+| Release tag | `R173` on `9b111eb9` (Release tag run 44278709425) |
 
 ## Not run
 - The full Playwright and `mw-db-ci` suites: the pull request's CI is the one broad run.
-- No DEV agent exists, so the agent fix is verified only in PROD after promotion.
+- No DEV agent exists, so the agent fix was verified only in PROD after promotion.
 
 ## Recovery
-Agent: `deploy-runtime.py rollback` to the R172 package (the commit is recorded in the Environment Inventory at promotion); no unit changed, so nothing is reinstalled. No SQL or data change to undo; the new review row and corrected request, if created, stay as ordinary records.
+Agent: `deploy-runtime.py rollback --commit 89bb33d8a8e789157490ba47f7a4bc548e9236ab` (the R171 package; R172 did not change the agent), then restart `mw-chat-relay`; no unit changed, so nothing is reinstalled. No SQL or data change to undo; the new review and corrected request stay as ordinary records.
 
 ## Open questions
 None. The owner approved promotion on 18 November 2026: "yes, go with option 1", then "push all the way to to prod, and requeue the request" and "and engage the team to work on it".
 
 ## Remaining work
-Byte checks, Chase review, pull request CI, merge; PROD promotion (agent deploy at revision 45) and read-back; `receipt-reconsider` for the stuck job and confirmation that the reviewers received the corrected request and `stalled_jobs` returned to 0; tag; closure.
+Owner acceptance; the reviewer's decision on the new review. Everything else (pull request CI, merge, promotion, read-back, requeue, tag, closure) is done. Low follow-up (Chase, not in R173): `receipt_reconsider.requeue` supersedes without a state guard inside its transaction.
+
+The full PROD promotion, tag and prune record is in the [root note](../../Change%20Logs/CHANGE_NOTES_R173_RECHECK_SAME_PLAN_2026-11-18.md#prod-promotion-record-forge-18-november-2026-utc).
