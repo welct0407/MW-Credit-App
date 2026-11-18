@@ -246,11 +246,60 @@ def loan_label(key,thai):
 
 
 def loan_labels(keys,thai):
-    """{key: label} for the loan keys one message names; when two would read the same, every key is printed in full."""
-    keys=[k for k in dict.fromkeys(keys) if k]
-    labels={k:loan_label(k,thai) or k for k in keys}
-    if len(set(labels.values()))<len(labels):return {k:k for k in keys}
-    return labels
+    """{key: label} for loan keys alone (a key that does not parse is printed in full)."""
+    return {k:loan_label(k,thai) or k for k in dict.fromkeys(keys) if k}
+
+
+def outstanding_now(facts_loans,loan_id,entry=None):
+    """R175 (Echo E-R2-01): a loan's outstanding principal before this slip: the planned facts' "Outstanding Principal",
+    else the offered entry's outstandingAfter + amount; None when neither is known."""
+    from decimal import Decimal,InvalidOperation
+    for loan in facts_loans:
+        if loan_id is not None and str(loan.get('id'))==str(loan_id) and loan.get('principal') not in (None,''):return str(loan['principal'])
+    try:return str(Decimal(str(entry['outstandingAfter']))+Decimal(str(entry['amount']))) if entry else None
+    except (KeyError,TypeError,ValueError,InvalidOperation):return None
+
+
+def proposal_loans(proposal):
+    """R175 (Echo E-R2-01): the loans a request names, per loan (equal keys are different loans): the offered principal
+    choices, the loan keys (matched in order to the planned facts' loans) and the loans the remainder settles.
+    Each is {'id', 'key', 'owing'}."""
+    o=proposal.get('options') or {}
+    facts=[l for l in ((proposal.get('facts') or {}).get('loans') or []) if isinstance(l,dict)]
+    offered=[{'id':p.get('loanId'),'key':p.get('loanKey'),'owing':outstanding_now(facts,p.get('loanId'),p)} for p in o.get('principal') or []]
+    settled=[{'id':b.get('loanId'),'key':b.get('loanKey'),'owing':outstanding_now(facts,b.get('loanId'))}
+             for b in o.get('blocked') or [] if b.get('reason')=='settles']
+    pool=list(facts);known=[*offered,*settled];listed=[]
+    for key in proposal.get('loan_keys') or [p['key'] for p in offered if p['key']]:
+        match=next((l for l in pool if l.get('loan_key')==key),None)
+        if match:
+            pool.remove(match);listed.append({'id':match.get('id'),'key':key,'owing':match.get('principal')})
+            continue
+        # Without the facts, a key names the offered or settled loan that carries it (each one once).
+        same=next((x for x in known if x['key']==key and x['id'] is not None),None)
+        if same:known.remove(same)
+        listed.append(dict(same) if same else {'id':None,'key':key,'owing':None})
+    return offered,listed,settled
+
+
+def name_loans(loans,thai):
+    """{identity: (label, owing)} for one message's loans. Loans whose labels read the same (same principal, date and rate)
+    name the principal and what is owing now instead: '฿100,000 owing ฿87,590' / '฿100,000 คงเหลือ ฿87,590'."""
+    from .partner_notice import money
+    units={}
+    for loan in loans:units.setdefault(loan_identity(loan),loan)
+    normal={k:loan_label(u['key'],thai) or str(u['key'] or u['id']) for k,u in units.items()}
+    named={}
+    for k,u in units.items():
+        twins=[j for j in units if normal[j]==normal[k]]
+        if len(twins)>1 and loan_label(u['key'],thai) and u['owing'] is not None:
+            named[k]=(u['key'].rsplit('-',3)[1]+(' คงเหลือ ' if thai else ' owing ')+money(u['owing']),True)
+        else:named[k]=(normal[k],False)
+    return named
+
+
+def loan_identity(loan):
+    return ('id',str(loan['id'])) if loan.get('id') is not None else ('key',loan.get('key'))
 
 
 # R175 (Echo): the request lines. Index [thai] (False 0 English, True 1 Thai). Thai names only อนุมัติ, ปฏิเสธ, ตรวจใหม่.
@@ -275,9 +324,11 @@ def reply_block(action,thai):
     return ['Reply with one word:',f'Yes = {action}','Reject (or No) = record nothing','Any other reply is asked again.','',LAST_LINE[0]]
 
 
-def loans_line(labels,thai):
-    """'Loan ฿1,000 (15 Nov, 10%)', 'Loans a; b' / 'สัญญา ...'; None without loans."""
+def loans_line(labels,thai,other=False):
+    """'Loan ฿1,000 (15 Nov, 10%)', 'Loans a; b' / 'สัญญา ...'; with other (a "2" line names its own loan, Echo E-R2-03)
+    'Other loan ...' / 'สัญญาอื่น ...'. None without loans."""
     if not labels:return None
+    if other:return ('สัญญาอื่น ' if thai else ('Other loan ' if len(labels)==1 else 'Other loans '))+'; '.join(labels)
     return ('สัญญา ' if thai else ('Loan ' if len(labels)==1 else 'Loans '))+'; '.join(labels)
 
 
@@ -292,27 +343,48 @@ def forward_span(forward,thai):
 
 def principal_phrase(options,entry,where,thai,short=False):
     """The principal choice after '2 = ': 'pay interest ฿90 + principal ฿410 → new interest ฿53/day', with 'loan <label>: '
-    first when the request names the loan on its line; the short form drops 'pay' and 'new interest'."""
+    first when the request names the loan on its line (where = (label, owing)); the short form drops 'pay' and 'new
+    interest', and the word 'loan' before an owing label (Echo E-R2-01)."""
     split=principal_split(options,entry,thai);daily=baht(entry['dailyAfter'])
-    target=((f'สัญญา {where}: ' if thai else f'loan {where}: ') if where else '')
+    target=''
+    if where:
+        label,owing=where
+        target=(f'{label}: ' if short and owing else (f'สัญญา {label}: ' if thai else f'loan {label}: '))
     if short:return f"{target}{split} → {daily}{'/วัน' if thai else '/day'}"
     return f'{target}ชำระ{split} → ดอกเบี้ยใหม่ {daily}/วัน' if thai else f'{target}pay {split} → new interest {daily}/day'
 
 
 def options_layout(proposal,thai):
-    """The loans each line names: (labels, keys on the Loan line, {principal entry index: its loan's label or None})."""
-    o=proposal['options'];principal=o.get('principal') or []
-    offered=[p.get('loanKey') for p in principal if p.get('loanKey')]
-    settled=[b.get('loanKey') for b in o.get('blocked') or [] if b.get('reason')=='settles' and b.get('loanKey')]
-    keys=list(proposal.get('loan_keys') or offered)
-    labels=loan_labels([*keys,*offered,*settled],thai)
-    # The "2" line names its loan when it is not the only loan the request is about.
-    named=len(principal)>1 or (len(principal)==1 and len([k for k in keys if k!=principal[0].get('loanKey')])>0)
-    where={}
-    for i,p in enumerate(principal):
-        where[i]=(labels.get(p.get('loanKey')) or str(p.get('loanKey') or p['loanId'])) if named else None
-    on_lines={p.get('loanKey') for p in principal} if named else set()
-    return labels,[k for k in keys if k not in on_lines],where
+    """The loans each line names: (labels by identity, loans on the facts line, {principal entry index: (label, owing) or
+    None}, settled loans). The "2" line names its loan when it is not the only loan the request is about; the facts line
+    then lists the other loans, leaving out one the settles note names (Echo E-R2-03)."""
+    offered,listed,settled=proposal_loans(proposal)
+    labels=name_loans([*offered,*listed,*settled],thai)
+    named=len(offered)>1 or (len(offered)==1 and any(not same_loan(l,offered[0]) for l in listed))
+    where={i:(labels[loan_identity(p)] if named else None) for i,p in enumerate(offered)}
+    others=[l for l in listed if not any(same_loan(l,x) for x in (offered if named else [])+settled)]
+    return labels,others,where,settled,named
+
+
+def same_loan(a,b):
+    """The same loan: by id when both ids are known, else by key."""
+    if a.get('id') is not None and b.get('id') is not None:return str(a['id'])==str(b['id'])
+    return a.get('key')==b.get('key')
+
+
+SAME_TERMS=('{codes} have the same terms; either gives the same result.','{codes} มีเงื่อนไขเหมือนกัน เลือกข้อใดก็ได้ผลเท่ากัน')
+
+
+def same_terms_notes(codes_lines,thai):
+    """R175 (Echo E-R2-01 rule 3): one line per group of "2 n" choices that read exactly the same."""
+    groups={}
+    for code,text in codes_lines:groups.setdefault(text,[]).append(code)
+    notes=[]
+    for codes in groups.values():
+        if len(codes)>1:
+            joined=', '.join(codes[:-1])+(' และ ' if thai else ' and ')+codes[-1]
+            notes.append(SAME_TERMS[thai].replace('{codes}',joined))
+    return notes
 
 
 def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,short=False):
@@ -323,13 +395,13 @@ def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,
     from .review_proposal import forward_offered
     o=proposal['options'];receipt=proposal['receipt'];borrower=proposal['borrower']
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
-    labels,listed,where=options_layout(proposal,thai)
+    labels,listed,where,settled,named=options_layout(proposal,thai)
     lines=[CORRECTED[thai]] if corrected else []
     if unclear:lines.append(UNCLEAR_OPTIONS[thai])
     lines.append(f"สลิป {money(receipt['amount'])} จาก {name}: เลือกวิธีใช้ยอด {baht(o['remainder'])}" if thai else
                  f"Slip {money(receipt['amount'])} from {name}: choose how to use {baht(o['remainder'])}")
     lines.append(transferred(receipt,thai))
-    loans=loans_line([labels.get(k,k) for k in listed],thai)
+    loans=loans_line([labels[loan_identity(l)][0] for l in listed],thai,other=named)
     if loans:lines.append(loans)
     if unidentified:lines.append(SENDER_NOTE[thai])
     if Decimal(str(o.get('dueTotal') or 0))>0:
@@ -337,12 +409,13 @@ def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,
         lines.append(f"หักยอดครบกำหนดวันนี้ {baht(o['dueTotal'])}{due} ก่อน" if thai else f"Due today {baht(o['dueTotal'])}{due} is paid first.")
     lines+=['',CODES[thai][short]]
     if forward_offered(o):lines.append(('1 = ชำระล่วงหน้า: ' if thai else '1 = pay forward: ')+forward_span(o['forward'],thai))
-    principal=o.get('principal') or []
+    principal=o.get('principal') or [];choices=[]
     for i,p in enumerate(principal):
         code='2 '+str(i+1) if len(principal)>1 else '2'
-        lines.append(f'{code} = '+principal_phrase(o,p,where[i],thai,short))
-    lines+=[RECHECK_LINE[thai],REJECT_LINE[thai]]
-    settled=[labels.get(b.get('loanKey'),b.get('loanKey')) or str(b['loanId']) for b in o.get('blocked') or [] if b.get('reason')=='settles']
+        choices.append((code,principal_phrase(o,p,where[i],thai,short)))
+        lines.append(f'{code} = '+choices[-1][1])
+    lines+=[RECHECK_LINE[thai],REJECT_LINE[thai]]+same_terms_notes(choices,thai)
+    settled=[labels[loan_identity(l)][0] for l in settled]
     if settled:
         # R113: the remainder closes a loan; closing happens in the app (Receive payment), not by this reply.
         keys='; '.join(settled)
@@ -380,14 +453,16 @@ def close_amount_line(close,thai):
     """R128 (Echo AG-15): the closing amount and its parts in R118 order (principal, interest, then a late charge above 0),
     or the amount alone when the parts are unavailable."""
     from decimal import Decimal, InvalidOperation
+    from .partner_notice import money
     words=('เงินต้น','ดอกเบี้ย','ค่าปรับล่าช้า') if thai else ('principal','interest','late charge')
     try:
         principal,interest=Decimal(str(close['principal'])),Decimal(str(close['interest']))
         late=Decimal(str(close.get('late') or 0))
         if not (principal.is_finite() and interest.is_finite() and late.is_finite()) or close['principal'] is None or close['interest'] is None:raise ValueError()
-        listed=f'{words[0]} {baht(principal)} + {words[1]} {baht(interest)}'+(f' + {words[2]} {baht(late)}' if late>0 else '')
+        listed=f'{words[0]} {money(principal)} + {words[1]} {money(interest)}'+(f' + {words[2]} {money(late)}' if late>0 else '')
     except (KeyError,ValueError,InvalidOperation,TypeError):listed=''
-    amount=baht(close['amount'])
+    # R175 (Echo E-R2-06): exact, as the slip amount is (a ฿800.50 close does not read ฿800).
+    amount=money(close['amount'])
     if thai:return f'ยอดปิด {amount}'+(f' ({listed})' if listed else '')+' ตรงกับสลิป'
     return f'Closing amount {amount}'+(f' ({listed})' if listed else '')+' matches this slip.'
 
@@ -421,8 +496,8 @@ def request_head(proposal,thai,unclear_line,corrected,unidentified,title):
     lines=[CORRECTED[thai]] if corrected else []
     if unclear_line:lines.append(unclear_line)
     lines+=[title,transferred(proposal['receipt'],thai)]
-    labels=loan_labels(proposal.get('loan_keys') or [],thai)
-    loans=loans_line([labels[k] for k in labels],thai)
+    listed=proposal_loans(proposal)[1];labels=name_loans(listed,thai)
+    loans=loans_line(list(dict.fromkeys(labels[loan_identity(l)][0] for l in listed)),thai)
     if loans:lines.append(loans)
     if unidentified:lines.append(SENDER_NOTE[thai])
     return lines
@@ -453,7 +528,7 @@ def close_notice(proposal,language,payment_id,detail):
     from .partner_notice import receipt_notice,over_limit
     thai=language=='ไทย'
     key=(proposal.get('loan_keys') or [proposal.get('loan_id')])[0]
-    label=loan_labels([key],thai).get(key,str(key)) if isinstance(key,str) else str(key)
+    label=(loan_label(key,thai) or key) if isinstance(key,str) else str(key)
     _,body=receipt_notice(proposal['receipt'],proposal['borrower'],language,payment_id,purpose=('ปิดสัญญา ' if thai else 'loan closed: ')+label)
     title='ปิดสัญญาสำเร็จ' if thai else 'Loan closed'
     lines=[body]
@@ -477,7 +552,8 @@ def close_failure_line(state,detail,proposal,thai):
     MANUAL_REQUIRED reason (for example the payment already recorded) keeps only its own line; '' for a rejection or an expiry."""
     detail=detail or ''
     if state=='STALE' and detail.startswith('LOAN_CLOSE_QUOTE_CHANGED:'):
-        now,slip=baht(detail.split(':',1)[1]),baht(proposal['receipt']['amount'])
+        from .partner_notice import money
+        now,slip=money(detail.split(':',1)[1]),money(proposal['receipt']['amount'])
         return (f'ยอดปิดตอนนี้ {now} สลิป {slip} ยังไม่ได้ปิดสัญญาและยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if thai else
                 f'Closing amount is now {now}; slip {slip}. Loan not closed; nothing recorded. Close it in the app.')
     if state in ('STALE','MANUAL_REQUIRED') and detail.split(':',1)[0] in CLOSE_NEUTRAL_DETAILS:

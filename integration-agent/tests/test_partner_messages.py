@@ -176,12 +176,64 @@ class LoanLabelTests(unittest.TestCase):
             with self.subTest(key=key):self.assertIsNone(loan_label(key, False))
         self.assertEqual(loan_labels(['L-0398', K1], False), {'L-0398': 'L-0398', K1: '฿1,000 (15 Nov, 10%)'})
 
-    def test_equal_labels_print_every_key_in_full(self):
-        twin = 'เคที - Kathy (shop)-฿1,000-15/11-10%'
-        self.assertEqual(loan_labels([K1, twin, K2], False), {K1: K1, twin: twin, K2: K2})
-        two = copy.deepcopy(SCREENSHOT);two['loan_keys'] = [K1, twin];two['options']['principal'][1]['loanKey'] = twin
-        body = request_text(two, 'English')[1]
-        self.assertIn(f'2 1 = loan {K1}: ', body);self.assertIn(f'2 2 = loan {twin}: ', body)
+    def test_same_terms_loans_name_what_is_owing(self):
+        # Echo E-R2-01: one borrower's loans share the borrower part of the key, so two loans with the same principal, date
+        # and rate have the same key. They are told apart by the outstanding principal now (the facts, else the offered
+        # entry's outstandingAfter + amount); loans that do not collide keep their label.
+        twins = copy.deepcopy(SCREENSHOT)
+        twins['loan_keys'] = [K1, K1];twins['options']['principal'][1]['loanKey'] = K1
+        english = request_text(twins, 'English')[1].split('\n')
+        self.assertIn('2 1 = loan ฿1,000 owing ฿1,000: pay principal ฿100 → new interest ฿90/day', english)
+        self.assertIn('2 2 = loan ฿1,000 owing ฿2,000: pay principal ฿100 → new interest ฿190/day', english)
+        self.assertNotIn('Loan', '\n'.join(english[:4]))
+        twins['facts'] = {'loans': [{'id': 'L1', 'principal': '900.00', 'loan_key': K1}, {'id': 'L2', 'principal': '1000.50', 'loan_key': K1}]}
+        thai = request_text(twins, 'ไทย')[1].split('\n')
+        self.assertIn('2 1 = สัญญา ฿1,000 คงเหลือ ฿900: ชำระเงินต้น ฿100 → ดอกเบี้ยใหม่ ฿90/วัน', thai)
+        self.assertIn('2 2 = สัญญา ฿1,000 คงเหลือ ฿1,000.50: ชำระเงินต้น ฿100 → ดอกเบี้ยใหม่ ฿190/วัน', thai)
+        self.assertEqual(loan_labels([K1, 'L-0398'], False), {K1: '฿1,000 (15 Nov, 10%)', 'L-0398': 'L-0398'})
+
+    def test_identical_choices_get_one_same_terms_line(self):
+        same = copy.deepcopy(SCREENSHOT)
+        same['loan_keys'] = [K1, K1];same['options']['principal'][1].update(loanKey=K1, dailyAfter='90', outstandingAfter='900')
+        lines = request_text(same, 'English')[1].split('\n')
+        at = lines.index('Reject (or No) = record nothing for this slip')
+        self.assertEqual(lines[at + 1], '2 1 and 2 2 have the same terms; either gives the same result.')
+        self.assertEqual(lines[at - 3][len('2 1'):], lines[at - 2][len('2 2'):])  # the two choices read the same
+        thai = request_text(same, 'ไทย')[1].split('\n')
+        self.assertEqual(thai[thai.index('ปฏิเสธ = ไม่บันทึกสลิปนี้') + 1], '2 1 และ 2 2 มีเงื่อนไขเหมือนกัน เลือกข้อใดก็ได้ผลเท่ากัน')
+        self.assertNotIn('same terms', request_text(SCREENSHOT, 'English')[1])
+
+    def test_one_offered_loan_lists_the_others_as_other_loans(self):
+        # Echo E-R2-03: the "2" line names its own loan; the facts line says "Other loan"; a loan the settles note names is
+        # not repeated there.
+        one = copy.deepcopy(SCREENSHOT);one['options']['principal'] = one['options']['principal'][:1]
+        lines = request_text(one, 'English')[1].split('\n')
+        self.assertIn('Other loan ฿2,000 (9 Nov, 10%)', lines);self.assertIn('2 = loan ฿1,000 (15 Nov, 10%): pay principal ฿100 → new interest ฿90/day', lines)
+        self.assertIn('สัญญาอื่น ฿2,000 (9 พ.ย., 10%)', request_text(one, 'ไทย')[1].split('\n'))
+        one['options']['blocked'] = [{'loanId': 'L2', 'reason': 'settles', 'loanKey': K2}]
+        body = request_text(one, 'English')[1]
+        self.assertNotIn('Other loan', body);self.assertIn('\nRemainder settles ฿2,000 (9 Nov, 10%): record in the app.\n', body)
+
+    def test_five_same_terms_loans_at_the_worst_case(self):
+        # Echo E-R2-01 measured 980 English (short form) and 989 Thai (full form) with five equal loans, decorated.
+        w = worst();key = w['loan_keys'][0]
+        w['loan_keys'] = [key] * 5
+        for entry in w['options']['principal']:entry['loanKey'] = key
+        w['facts'] = {'loans': [{'id': f'L{n}', 'principal': str(100000 - 10 * n), 'loan_key': key} for n in range(1, 6)]}
+        counts = {}
+        for language in ('English', 'ไทย'):
+            body = request_text(w, language, unidentified=True, corrected=True)[1]
+            counts[language] = len(decorated('s', body))
+            self.assertLessEqual(counts[language], IG_TEXT_LIMIT);self.assertEqual(body.count('owing ฿99,9' if language == 'English' else 'คงเหลือ ฿99,9'), 5)
+        english = request_text(w, 'English', unidentified=True, corrected=True)[1]
+        self.assertIn('\n2 1 = ฿100,000 owing ฿99,990: interest ฿90 + principal ฿12,410 → ฿1,234/day\n', english)  # short form, no "loan"
+        # Each outstanding here is one digit shorter than Echo's ฿100,000 (5 loans x 1 character): 980 - 5 and 989 - 5.
+        self.assertEqual(counts, {'English': 975, 'ไทย': 984})
+        # An exact five-way tie adds the same-terms line; the ladder still sends it (the sender note gives way first).
+        for loan in w['facts']['loans']:loan['principal'] = '100000'
+        for language in ('English', 'ไทย'):
+            body = request_text(w, language, unidentified=True, corrected=True)[1]
+            self.assertLessEqual(len(body), BODY_LIMIT);self.assertIn('2 1, 2 2, 2 3, 2 4 ' + ('and' if language == 'English' else 'และ') + ' 2 5', body)
 
 
 class PlainRequestTests(unittest.TestCase):
@@ -200,6 +252,13 @@ class PlainRequestTests(unittest.TestCase):
         for language, thai in (('English', False), ('ไทย', True)):
             self.assertEqual(request_text(self.STANDARD, language, unclear=True)[1], UNCLEAR_PLAIN[thai] + '\n' + request_text(self.STANDARD, language)[1])
         self.assertEqual(UNCLEAR_CLOSE[0], 'Reply not understood; nothing was done. Reply Yes to close the loan or Reject (or No) to record nothing.')
+
+    def test_the_closing_amount_is_exact(self):
+        # Echo E-R2-06: a ฿800.50 slip closing a loan does not read "Closing amount ฿800".
+        from mw_integration_agent.partner_review import close_amount_line
+        close = {'amount': '800.50', 'principal': '700.00', 'interest': '100.50', 'late': '0'}
+        self.assertEqual(close_amount_line(close, False), 'Closing amount ฿800.50 (principal ฿700 + interest ฿100.50) matches this slip.')
+        self.assertEqual(close_amount_line(close, True), 'ยอดปิด ฿800.50 (เงินต้น ฿700 + ดอกเบี้ย ฿100.50) ตรงกับสลิป')
 
 
 class ReplyWordTests(unittest.TestCase):
@@ -266,9 +325,9 @@ class OptionsReplyGrammarTests(unittest.TestCase):
 class ResultTests(unittest.TestCase):
     PARTNER = {'id': 'p', 'username': 'reviewer_one', 'enabled': True, 'language': 'English', 'email': 'x@example.invalid'}
 
-    def result(self, state, detail='', proposal=None, language='English', live=None, now=None, deciding='p', expires=1e12):
+    def result(self, state, detail='', proposal=None, language='English', live=None, now=None, deciding='p', expires=1e12, decision=None):
         from mw_integration_agent.review_cycle import result_text
-        review = {'state': state, 'detail': detail, 'deciding_partner': deciding, 'expires_at': expires}
+        review = {'state': state, 'detail': detail, 'deciding_partner': deciding, 'expires_at': expires, 'decision_message': decision}
         partner = dict(self.PARTNER, language=language)
         live = live if live is not None else {'partners': [partner], 'partner_names': {}}
         return result_text(review, proposal or PlainRequestTests.STANDARD, partner, live, now if now is not None else 1e11)[1]
@@ -280,6 +339,13 @@ class ResultTests(unittest.TestCase):
         self.assertEqual(self.result('REJECTED', live={'partners': [], 'partner_names': {}}),
                          'Kathy ฿800.50 (18 Nov 18:16) rejected by a Reviewer. Nothing recorded.')
         self.assertEqual(self.result('REJECTED', language='ไทย', live={'partners': []}), 'เคที ฿800.50 (18 พ.ย. 18:16) ผู้ตรวจสอบ ปฏิเสธแล้ว ยังไม่ได้บันทึกรายการ')
+
+    def test_result_subjects(self):
+        # Echo E-R2-06: email and history subjects.
+        from mw_integration_agent.review_cycle import result_text
+        review = {'state': 'EXPIRED', 'detail': '', 'deciding_partner': None, 'expires_at': 0, 'decision_message': None}
+        self.assertEqual(result_text(review, PlainRequestTests.STANDARD, self.PARTNER, {'partners': []})[0], 'Slip result')
+        self.assertEqual(result_text(review, PlainRequestTests.STANDARD, dict(self.PARTNER, language='ไทย'), {'partners': []})[0], 'ผลสลิป')
 
     def test_stale_sentences(self):
         head = 'Kathy ฿800.50 (18 Nov 18:16) not recorded\n'
@@ -303,11 +369,16 @@ class ResultTests(unittest.TestCase):
 
     def test_manual_unknown_and_expired(self):
         detail = json.dumps({'purpose': {'forward': True, 'principal': [], 'loans': None}})
-        self.assertEqual(self.result('MANUAL_REQUIRED', detail, SCREENSHOT).split('\n'),
-                         ['Kathy ฿400 (18 Nov 18:16) not recorded', 'Record it in the app.', 'Your choice: pay forward: 19 Nov'])
-        self.assertEqual(self.result('MANUAL_REQUIRED', 'RECEIPT_API_REJECTED', SCREENSHOT).split('\n'),
+        self.assertEqual(self.result('MANUAL_REQUIRED', detail, SCREENSHOT, decision='m').split('\n'),
+                         ['Kathy ฿400 (18 Nov 18:16) not recorded', 'Record it in the app.', 'Approved by @reviewer_one: pay forward: 19 Nov'])
+        self.assertEqual(self.result('MANUAL_REQUIRED', detail, SCREENSHOT, 'ไทย', {'partners': [], 'partner_names': {}}, decision='m').split('\n')[2],
+                         'ผู้ตรวจสอบ อนุมัติ: ชำระล่วงหน้า: 19 พ.ย.')
+        # An automatic payment has no Reviewer (no decision message): no approver line.
+        self.assertEqual(len(self.result('MANUAL_REQUIRED', detail, SCREENSHOT).split('\n')), 2)
+        self.assertEqual(self.result('MANUAL_REQUIRED', 'RECEIPT_API_REJECTED', SCREENSHOT, decision='m').split('\n'),
                          ['Kathy ฿400 (18 Nov 18:16) not recorded', 'Record it in the app.'])
-        self.assertEqual(self.result('MANUAL_REQUIRED').split('\n')[2], 'Your choice: record this payment')
+        self.assertEqual(self.result('MANUAL_REQUIRED', live={'partners': [], 'partner_names': {'p': 'Nok'}}, decision='m').split('\n')[2],
+                         'Approved by Nok: record this payment')
         self.assertEqual(self.result('UNKNOWN'), "Kathy ฿800.50 (18 Nov 18:16)\nNot sure it was recorded. Check the app first; don't record it twice.")
         self.assertEqual(self.result('EXPIRED', language='ไทย'), 'เคที ฿800.50 (18 พ.ย. 18:16) คำขอหมดอายุ ยังไม่ได้บันทึกรายการ')
 
@@ -319,7 +390,7 @@ class ResultTests(unittest.TestCase):
         for language in ('English', 'ไทย'):
             for state, detail in [('REJECTED', ''), ('EXPIRED', ''), ('UNKNOWN', ''), ('MANUAL_REQUIRED', '')] + [('STALE', d) for d in STALE_SENTENCES]:
                 with self.subTest(language=language, state=state, detail=detail):
-                    self.assertFalse(over_limit(self.result(state, detail, long, language, live)))
+                    self.assertFalse(over_limit(self.result(state, detail, long, language, live, decision='m')))
 
 
 class AcknowledgementTextTests(unittest.TestCase):
@@ -379,7 +450,7 @@ class HoldAndArchiveTests(unittest.TestCase):
         self.assertEqual(subject, 'Slip held')
         self.assertEqual(body.split('\n'), ['Slip held: this bank reference is already recorded. Check the existing payment.',
                                             'Kathy · ฿400 (read from the slip, not verified)', 'Transferred 18 Nov 18:16 · Dad TTB',
-                                            'Payer on slip: KATHY S', 'Received 18 Nov 18:16',
+                                            'Payer on slip: KATHY S', 'Slip arrived 18 Nov 18:16',
                                             "Can't approve here. If genuine, record it in the app, then Reply Reject to clear it."])
         thai = held_text(self.job('PAYMENT_ALREADY_RECORDED'), {'name_en': 'Kathy', 'name_th': 'เคที'}, 'ไทย', [])[1]
         self.assertEqual(thai.split('\n')[:3], ['สลิปถูกพัก: เลขอ้างอิงนี้บันทึกแล้ว กรุณาตรวจสอบรายการเดิม', 'เคที · ฿400 (อ่านจากสลิป ยังไม่ยืนยัน)',

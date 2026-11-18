@@ -425,11 +425,12 @@ class CloseCycleTests(unittest.TestCase):
         row = self.review();self.assertEqual((row['state'], row['detail']), ('STALE', 'LOAN_CLOSE_DAY_PASSED'));self.submit_close.assert_not_called()
 
     def test_switch_off_at_execution_is_manual_with_the_close_note(self):
-        self.config['loan_close_execution_enabled'] = False;self.run_cycle()
+        self.config['loan_close_execution_enabled'] = False
+        self.j.db.execute("UPDATE partner_reviews SET decision_message='approval'");self.j.db.commit();self.run_cycle()
         row = self.review();self.assertEqual((row['state'], row['detail']), ('MANUAL_REQUIRED', 'LOAN_CLOSE_EXECUTION_OFF'))
         self.submit_close.assert_not_called()
-        # R175 (Archie 4, Echo E-RES-04): the close's own line, then the Reviewer's choice.
-        self.assertEqual(self.result_body().split('\n')[1:],['Loan not closed. Nothing recorded. Close it in the app.','Your choice: close the loan now'])
+        # R175 (Archie 4, Echo E-RES-04, E-R2-02): the close's own line, then who approved what.
+        self.assertEqual(self.result_body().split('\n')[1:],['Loan not closed. Nothing recorded. Close it in the app.','Approved by @partner: close the loan now'])
 
     def test_no_quote_at_execution_is_stale_with_the_neutral_line(self):
         self.current = ReceiptInvalid('LOAN_CLOSE_QUOTE_UNAVAILABLE');self.run_cycle()
@@ -474,10 +475,9 @@ class CloseCycleTests(unittest.TestCase):
 
     def test_a_refused_close_is_manual_with_its_code(self):
         self.submit_close.side_effect = lambda config, body: {'kind': 'recorded', 'originalOutcome': {'status': 'rejected', 'code': 'plan_changed', 'result': None}}
-        self.run_cycle()
+        self.run_cycle()  # no decision message: approved without a Reviewer reply, so no approver line
         row = self.review();self.assertEqual((row['state'], row['detail']), ('MANUAL_REQUIRED', 'LOAN_CLOSE_REJECTED:plan_changed'))
-        self.assertEqual(self.result_body().split('\n')[1:], ['Loan not closed: closing details changed. Nothing recorded. Close it in the app.',
-                                                              'Your choice: close the loan now'])
+        self.assertEqual(self.result_body().split('\n')[1:], ['Loan not closed: closing details changed. Nothing recorded. Close it in the app.'])
 
     def test_a_close_that_does_not_read_back_stays_unknown(self):
         self.readback.return_value = False;self.run_cycle()

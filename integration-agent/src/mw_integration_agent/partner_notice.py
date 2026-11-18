@@ -215,7 +215,7 @@ def receipt_notice(receipt,borrower,language,payment_id=None,facts_changed=False
         subject='Payment recorded' if payment_id else 'Payment slip received'
         lines=[f'Recorded {amount} from {name}{chosen}' if payment_id else f'Slip {amount} from {name} received',transferred(receipt,False)]
         if not payment_id:lines.append('Basic slip checks passed. Nothing recorded yet.')
-        if payment_id and facts_changed:lines.append('Note: loan details changed after approval; the full amount was still recorded as a lump sum.')
+        if payment_id and facts_changed:lines.append('Note: loan details changed after approval; the full amount was still recorded as Lump Sum.')
     body='\n'.join(lines)
     if over_limit(body):raise ConfigurationError('NOTICE_TOO_LONG')
     return subject,body

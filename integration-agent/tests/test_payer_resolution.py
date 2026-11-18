@@ -456,8 +456,8 @@ class WeakHoldTextTests(unittest.TestCase):
 
     def test_every_hold_shows_the_slip_payer_and_a_chosen_step(self):
         english = held_text(self.job('AMOUNT_UNREADABLE', {'extraction': slip('MR. SOMCHAI J***'), 'payer_step': 'hint'}), None, 'English', master()['accounts'])[1]
-        self.assertTrue(english.startswith('Slip held: the receipt amount could not be read.\n'))
-        self.assertIn("\nPayer on slip: MR. SOMCHAI J***\nReceived 12 Oct 08:00\nBorrower chosen by: forwarder's nickname message\n", english)
+        self.assertTrue(english.startswith('Slip held: the amount on the slip could not be read.\n'))
+        self.assertIn("\nPayer on slip: MR. SOMCHAI J***\nSlip arrived 12 Oct 08:00\nBorrower chosen by: forwarder's nickname message\n", english)
         thai = held_text(self.job('AMOUNT_UNREADABLE', {'extraction': {k: v for k, v in slip().items() if k != 'payer_name'}}), None, 'ไทย', master()['accounts'])[1]
         self.assertIn('\nผู้โอนในสลิป: ไม่ทราบ\n', thai)
 

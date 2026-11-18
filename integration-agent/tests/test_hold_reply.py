@@ -102,7 +102,7 @@ class HoldReplyTests(unittest.TestCase):
         notice=dict(self.n.db.execute('SELECT * FROM partner_notices WHERE id=?',(notice_id,)).fetchone())
         self.assertEqual(self.decide(event=dict(self.event,reply_to='out2'),notice=notice),'HOLD_REJECTED')
         english=held_text(self.job(),None,'English',[])[1];thai=held_text(self.job(),None,'ไทย',[])[1]
-        self.assertIn('could not be kept as evidence',english);self.assertIn('Borrower unknown · amount unreadable (read from the slip, not verified)\n',english)
+        self.assertIn('could not be saved as evidence',english);self.assertIn('Borrower unknown · amount unreadable (read from the slip, not verified)\n',english)
         self.assertIn('ระบบจัดเก็บภาพสลิปเป็นหลักฐานไม่ได้',thai);self.assertIn('ไม่ทราบผู้กู้ · ไม่ทราบยอด (อ่านจากสลิป ยังไม่ยืนยัน)\n',thai)
         self.assertIn('\nTransferred unavailable · unavailable\n',english);self.assertIn('Reply Reject to clear it',english)
 
@@ -172,9 +172,9 @@ class HoldReplyTests(unittest.TestCase):
         with self.j.db:self.j.db.execute("UPDATE receipt_jobs SET detail='SOMETHING_NEW'")
         english=held_text(self.job(),None,'English',[])[1];thai=held_text(self.job(),None,'ไทย',[])[1]
         # R175 (Echo E-HOLD-01): line 1 the reason, one closing instruction.
-        self.assertTrue(english.startswith('Slip held: receipt validation could not be completed. Check the slip against the app.\n'))
+        self.assertTrue(english.startswith('Slip held: the slip could not be checked.\n'))
         self.assertTrue(thai.startswith('สลิปถูกพัก: ตรวจสอบสลิปไม่สำเร็จ กรุณาตรวจสอบสลิปกับรายการในแอป\n'))
-        self.assertEqual(FALLBACK[0],'Receipt validation could not be completed. Check the slip against the app.')
+        self.assertEqual(FALLBACK[0],'The slip could not be checked.')
         self.assertTrue(english.endswith("\nCan't approve here. If genuine, record it in the app, then Reply Reject to clear it."))
         self.assertTrue(thai.endswith('\nอนุมัติผ่านข้อความนี้ไม่ได้ หากเป็นการชำระจริง ให้บันทึกในแอป แล้วใช้ Reply ตอบข้อความนี้ว่า ปฏิเสธ เพื่อนำออกจากรายการ'))
         self.assertNotIn('Replying approve',english);self.assertNotIn('queue',english);self.assertEqual(english.count('Reject'),1)

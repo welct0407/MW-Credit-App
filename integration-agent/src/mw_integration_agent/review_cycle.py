@@ -487,9 +487,9 @@ def reviewer_name(partner_id,live,thai):
 def result_text(review,proposal,partner,live,now=None):
     """R175 (Echo E-RES-02..05, sections 3 and 5): a result that recorded nothing, first line the slip."""
     now=time.time() if now is None else now
-    thai=partner['language']=='ไทย';state=review['state'];detail=review['detail'] or ''
+    review=dict(review);thai=partner['language']=='ไทย';state=review['state'];detail=review['detail'] or ''
     slip=slip_line(proposal['receipt'],proposal['borrower'],thai)
-    subject='ผลการตรวจสอบ' if thai else 'Receipt review result'
+    subject='ผลสลิป' if thai else 'Slip result'
     if state=='REJECTED':
         name=reviewer_name(review['deciding_partner'],live,thai)
         lines=[f'{slip} {name} ปฏิเสธแล้ว ยังไม่ได้บันทึกรายการ' if thai else f'{slip} rejected by {name}. Nothing recorded.']
@@ -501,9 +501,12 @@ def result_text(review,proposal,partner,live,now=None):
         lines=[f'{slip} ยังไม่ได้บันทึก' if thai else f'{slip} not recorded',stale_sentence(review,proposal,thai,now)]
     else:
         lines=[f'{slip} ยังไม่ได้บันทึก' if thai else f'{slip} not recorded','กรุณาบันทึกในแอป' if thai else 'Record it in the app.']
-        # R175 (Echo E-RES-04): the Reviewer's choice again; gone when the execution's reason replaced the decision detail.
+        # R175 (Echo E-RES-04, E-R2-02): who approved what, for every partner the result goes to; gone when the execution's
+        # reason replaced the decision detail, and for an automatic payment (no Reviewer reply: no decision message).
         choice=chosen_purpose_line(proposal,detail,thai) if proposal.get('action')==OPTIONS else approval_action(proposal,thai,recorded_only=True)
-        if choice:lines.append(('ตัวเลือกของคุณ: ' if thai else 'Your choice: ')+choice)
+        if choice and review.get('decision_message'):
+            name=reviewer_name(review['deciding_partner'],live,thai)
+            lines.append(f'{name} อนุมัติ: {choice}' if thai else f'Approved by {name}: {choice}')
         if detail.endswith(LOAN_CLOSE):
             # R128 (Echo AG-21): the manual close is done in the app.
             lines.append('ข้อมูลสัญญาเปลี่ยนหลังอนุมัติ: รายการนี้เป็นการปิดสัญญา กรุณาปิดในแอป' if thai else 'Loan details changed after approval: this payment now closes the loan. Close it in the app.')

@@ -62,17 +62,17 @@ def archive_pending_text(job,borrower,language,threshold):
 REASONS={
     'POSSIBLE_EXISTING_PAYMENT_REVIEW':('A payment with the same bank reference exists but its details differ.','พบรายการที่ใช้เลขอ้างอิงธนาคารเดียวกันแต่ข้อมูลไม่ตรงกัน'),
     'PAYMENT_ALREADY_RECORDED':('This bank reference is already recorded. Check the existing payment.','เลขอ้างอิงนี้บันทึกแล้ว กรุณาตรวจสอบรายการเดิม'),
-    'AMOUNT_UNREADABLE':('The receipt amount could not be read.','อ่านจำนวนเงินในสลิปไม่ได้'),
-    'DATE_UNREADABLE':('The receipt date could not be read.','อ่านวันที่ในสลิปไม่ได้'),
-    'DATE_OUTSIDE_TODAY_YESTERDAY':('The receipt is outside the allowed today/yesterday dates.','วันที่ในสลิปไม่ใช่วันนี้หรือเมื่อวาน'),
+    'AMOUNT_UNREADABLE':('The amount on the slip could not be read.','อ่านจำนวนเงินในสลิปไม่ได้'),
+    'DATE_UNREADABLE':('The date on the slip could not be read.','อ่านวันที่ในสลิปไม่ได้'),
+    'DATE_OUTSIDE_TODAY_YESTERDAY':('The slip is not from today or yesterday.','วันที่ในสลิปไม่ใช่วันนี้หรือเมื่อวาน'),
     'RECEIPT_TIME_UNREADABLE':('The transfer time could not be read.','อ่านเวลาโอนไม่ได้'),
     'REFERENCE_UNREADABLE':('The bank reference could not be read.','อ่านเลขอ้างอิงธนาคารไม่ได้'),
     'RECIPIENT_UNKNOWN_OR_AMBIGUOUS':('The receiving account could not be uniquely matched.','ไม่สามารถระบุบัญชีรับเงินได้แน่ชัด'),
     'RECIPIENT_UNREADABLE':('The receiving account could not be read.','อ่านบัญชีรับเงินไม่ได้'),
     'TRANSFER_NOT_CONFIRMED':('The image does not confirm a successful transfer.','ภาพไม่ยืนยันว่าโอนเงินสำเร็จ'),
-    'RECEIPT_PROCESSING_UNAVAILABLE':('Receipt extraction remained unavailable after retries.','ระบบอ่านสลิปไม่สำเร็จหลังลองซ้ำ'),
-    'RECEIPT_RETRY_LIMIT':('Receipt processing could not finish after three attempts.','ระบบประมวลผลสลิปไม่สำเร็จหลังลองสามครั้ง'),
-    'RECEIPT_PROPOSAL_UNAVAILABLE':('The payment proposal could not be prepared. Please check the receipt and app records.','ระบบเตรียมรายการชำระเงินไม่ได้ กรุณาตรวจสอบสลิปและรายการในแอป'),
+    'RECEIPT_PROCESSING_UNAVAILABLE':('The slip could not be read after several tries.','ระบบอ่านสลิปไม่สำเร็จหลังลองซ้ำ'),
+    'RECEIPT_RETRY_LIMIT':('The slip could not be processed after three tries.','ระบบประมวลผลสลิปไม่สำเร็จหลังลองสามครั้ง'),
+    'RECEIPT_PROPOSAL_UNAVAILABLE':("The payment could not be prepared from the app's loan records.",'ระบบเตรียมรายการชำระเงินไม่ได้ กรุณาตรวจสอบสลิปและรายการในแอป'),
     'BALANCES_REQUIRE_RECONCILIATION':('The loan balances need checking in the app.','ยอดคงเหลือของสัญญาต้องตรวจสอบ'),
     'LOAN_CLOSE_AMBIGUOUS':('The amount matches more than one possible loan payoff.','ยอดเงินตรงกับยอดปิดมากกว่าหนึ่งสัญญา'),
     # R095 revision 2: weak-context payer holds only (receipt_identity.resolve_payer); copy by Echo.
@@ -80,7 +80,7 @@ REASONS={
     'PAYER_NAME_UNREADABLE':("The slip's payer name could not be read and no nickname was sent.",'อ่านชื่อผู้โอนในสลิปไม่ได้ และไม่ได้ส่งชื่อเล่นผู้กู้มา'),
     # R151 (Echo UX-R151-1): a forwarded slip (C3) whose payer name is another borrower's (receipt_identity.other_borrower).
     'PAYER_NAME_OTHER_BORROWER':("The slip's payer name matches a different borrower, not this group's borrower.",'ชื่อผู้โอนในสลิปตรงกับผู้กู้คนอื่น ไม่ใช่ผู้กู้ของกลุ่มนี้'),
-    'RECEIPT_ARCHIVE_UNAVAILABLE':('The receipt image could not be kept as evidence (no longer available or failed an integrity check). Ask the borrower to resend it if needed.','ระบบจัดเก็บภาพสลิปเป็นหลักฐานไม่ได้ (ภาพไม่มีแล้วหรือข้อมูลไม่ตรงกัน) หากจำเป็นให้ขอสลิปจากผู้กู้ใหม่'),
+    'RECEIPT_ARCHIVE_UNAVAILABLE':('The slip image could not be saved as evidence (no longer available or damaged). Ask the borrower to resend it if needed.','ระบบจัดเก็บภาพสลิปเป็นหลักฐานไม่ได้ (ภาพไม่มีแล้วหรือข้อมูลไม่ตรงกัน) หากจำเป็นให้ขอสลิปจากผู้กู้ใหม่'),
     # R135 (Echo): every other code that can hold a receipt (receipt_run images, review_cycle proposals).
     'IG_CONVERSATION_IDENTITY_AMBIGUOUS':('Could not confirm which Instagram account sent this slip, so the borrower is unknown. Check the slip and the chat.','ยืนยันบัญชี Instagram ของผู้ส่งสลิปไม่ได้ จึงระบุผู้กู้ไม่ได้ กรุณาตรวจสอบสลิปและแชท'),
     'IG_SENDER_INVALID':("The sender's Instagram account is not valid for a borrower slip.",'บัญชี Instagram ของผู้ส่งไม่ถูกต้องสำหรับสลิปผู้กู้'),
@@ -97,7 +97,7 @@ REASONS={
     'MULTIPLE_TODAY_CHARGES':('A loan has more than one charge dated today. Check the charges in the app.','มีสัญญาที่มีรายการเรียกเก็บวันนี้มากกว่าหนึ่งรายการ กรุณาตรวจสอบในแอป'),
     'REVIEW_REQUEST_TOO_LONG':('The approval request was too long to send by Instagram.','คำขออนุมัติยาวเกินกว่าจะส่งทาง Instagram ได้'),
 }
-FALLBACK=('Receipt validation could not be completed. Check the slip against the app.','ตรวจสอบสลิปไม่สำเร็จ กรุณาตรวจสอบสลิปกับรายการในแอป')
+FALLBACK=('The slip could not be checked.','ตรวจสอบสลิปไม่สำเร็จ กรุณาตรวจสอบสลิปกับรายการในแอป')
 
 
 def held_text(job,borrower,language,accounts,borrowers=(),resent_at=None):
@@ -146,7 +146,7 @@ def held_layout(job,borrower,language,accounts,borrowers,resent_at,trim):
     else:
         subject='Slip held'
         lines=[f'Slip held: {reason[:1].lower()+reason[1:]}',f'{name} · {amount or "amount unreadable"} (read from the slip, not verified)',
-               f'Transferred {when} · {clean(account,thai,limit)}',f'Payer on slip: {payer}',f'Received {captured}']
+               f'Transferred {when} · {clean(account,thai,limit)}',f'Payer on slip: {payer}',f'Slip arrived {captured}']
         close="Can't approve here. If genuine, record it in the app, then Reply Reject to clear it."
     if resent_at is not None:lines.insert(1,still_held(job,thai,resent_at))
     # R135 (owner): a hold is Reject-only; the one closing line says so and how to record a genuine payment.

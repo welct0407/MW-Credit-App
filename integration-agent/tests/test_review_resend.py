@@ -138,7 +138,7 @@ class HoldResendTests(unittest.TestCase):
         self.assertEqual(base_key(copy['event_key']), event_key(job))
         lines = copy['body'].split('\n')
         # R175 (Echo E-HOLD-01): the reason first, how long it has been held on line 2.
-        self.assertEqual(lines[0], '1/1 · Slip held: the receipt amount could not be read.')
+        self.assertEqual(lines[0], '1/1 · Slip held: the amount on the slip could not be read.')
         self.assertEqual(lines[1], 'Still held since 5 Nov (3 days)')
         self.assertTrue(lines[2].startswith('Synthetic borrower · '))
         self.assertTrue(copy['body'].endswith("Can't approve here. If genuine, record it in the app, then Reply Reject to clear it."))
