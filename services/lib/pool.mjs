@@ -17,6 +17,11 @@ const defaultModules=()=>Promise.all([import('@google-cloud/cloud-sql-connector'
  * keepalive (60 s) keeps an idle connection from being dropped silently on the egress path.
  * An idle connection that still fails is removed by pg and reported to the pool 'error'
  * listener instead of crashing the process; the next checkout opens a fresh connection.
+ * R175: a checked-out client has no pool listener (pg-pool detaches its idle listener on checkout), so a
+ * socket error there (for example ECONNRESET between queries) would be an unhandled 'error' event and stop
+ * the process. Every client therefore gets a no-op 'error' listener on connect: the in-flight query still
+ * rejects to its caller, and release() discards the client because it is no longer queryable (_queryable
+ * false), so it never returns to the idle set.
  * @param {{instance:string,dbUser:string,database:string,serviceRole?:string,max?:number,connectMs?:number,statementMs?:number,queryMs?:number}} options
  * @param {() => Promise<{connector:any,pg:any}>} [loadModules]
  */
@@ -28,6 +33,7 @@ export async function createIamPool({instance,dbUser,database,serviceRole,max=se
     const options=await connector.getOptions({instanceConnectionName:instance,ipType:IpAddressTypes.PUBLIC,authType:AuthTypes.IAM});
     const pool=new pg.Pool({...options,user:dbUser,database,max,connectionTimeoutMillis:connectMs,idleTimeoutMillis:serviceRole==='command'?IDLE_COMMAND_MS:IDLE_DEFAULT_MS,keepAlive:true,keepAliveInitialDelayMillis:60000,statement_timeout:statementMs,query_timeout:queryMs});
     pool.on?.('error',()=>{});
+    pool.on?.('connect',client=>client.on('error',()=>{}));
     return {pool,close:()=>connector.close()};
   }catch(error){connector.close();throw error;}
 }
