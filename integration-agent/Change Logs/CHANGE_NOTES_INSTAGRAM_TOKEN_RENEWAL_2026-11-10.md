@@ -35,7 +35,7 @@ Owner request of 10 November 2026 ("Check what's wrong either polling in Debian 
 | `ruff check --no-cache` on the new files | Clean; the 7 findings in `debian-health.py` predate this change |
 
 ## Not run
-- A real Meta renewal: Meta renews only tokens at least 24 hours old. The first scheduled renewal is due on the run of 17 November 2026 (file 7 days old); `--force` after 11 November 01:33Z exercises it sooner.
+- A real Meta renewal on 10 November: Meta renews only tokens at least 24 hours old. It was proven by the first scheduled renewal on 18 November (below), not on 17 November as first estimated: the file was installed at 08:33 Bangkok and the daily run is at about 04:25, so the 17 November run saw 6.83 days and correctly did nothing.
 
 ## Recovery
 `systemctl disable --now mw-instagram-token-refresh.timer` stops renewals; the file keeps working until its token expires. Restore `/opt/mw-resource-monitoring/debian-health.before-igtoken-20261110.py` for the collector and revert the rule change through the Grafana runner. The two IAM bindings can be removed by reverting `instagram-token.tf` and applying a reviewed plan. Manual rotation: add a secret version in the console and start the service.
@@ -43,5 +43,15 @@ Owner request of 10 November 2026 ("Check what's wrong either polling in Debian 
 ## Open questions
 None.
 
+## First automatic renewal (read back 17 November 2026, 22:08Z)
+| Check | Result |
+| --- | --- |
+| Daily runs 10 to 17 November (Bangkok) | `action` `none`, version 1, file age 0.0 to 6.83 days, every run success |
+| Run of 18 November, 04:25:57 to 04:26:02 Bangkok (21:26Z on 17 November) | `{"status": "ok", "action": "refreshed", "version": 2, "file_age_days": 0.0, "expires_in_days": 60.0, "destroyed_versions": []}`; unit `Result=success` |
+| Secret Manager `mw-instagram-access-token` (metadata only) | Version 2 enabled, created 21:26:01Z; version 1 still enabled (pruning starts after the fourth version) |
+| Token file | root:mwagent 0640, modified 04:26:01 Bangkok on 18 November |
+| Conversation poll, 30 minutes after the renewal | 24 successful runs, 0 failed: the renewed token works |
+| Health metric | `ig_token` 1, `polling` 1 |
+
 ## Remaining work
-- Confirm the first automatic renewal on 17 November 2026 (`action` `refreshed`, secret version 2, `ig_token` stays Healthy).
+None. The next renewal is due on the run of 25 November 2026.
