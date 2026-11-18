@@ -4,6 +4,7 @@ authorized Reviewer replying to the exact options message counts. """
 import json
 import sqlite3
 import unittest
+from unittest.mock import patch
 from mw_integration_agent.partner_review import ReviewStore,request_text
 
 PROPOSAL={'action':'Pay forward options','receipt':{'amount':'1500','date':'2026-11-03','time':'12:10','reference':'T','account_id':'a','account_label':'Test'},
@@ -90,6 +91,30 @@ class OptionsReplyTests(unittest.TestCase):
                 self.assertEqual(tuple(job),('VALIDATED','REVIEWER_REQUESTED_RECHECK',0))
                 prior=json.loads(self.db.execute('SELECT previous FROM receipt_reconsiderations').fetchone()[0])
                 self.assertEqual(prior['status'],'REVIEW_REQUESTED')
+
+    def test_r173_the_same_plan_after_a_recheck_gets_a_new_review(self):
+        # R173: replanning an unchanged slip must not derive the superseded review's id (the insert was silently ignored).
+        import hashlib
+        same=json.dumps(PROPOSAL,sort_keys=True,ensure_ascii=False)
+        self.assertEqual(self.key,hashlib.sha256(('review:job:'+same).encode()).hexdigest(),'a first review keeps its id')
+        self.assertEqual(self.store.reserve('job',PROPOSAL,101),self.key,'reserving again is idempotent')
+        keys=[self.key]
+        for n in (1,2):
+            self.assertEqual(self.decide('3',message_id=f'r{n}',notice=dict(self.notice,event_key='review:'+keys[-1])),'RECHECK_QUEUED')
+            self.db.execute("UPDATE receipt_jobs SET status='REVIEW_REQUESTED'")
+            key=self.store.reserve('job',PROPOSAL,100+2*n)
+            self.assertNotIn(key,keys);self.assertEqual(self.store.reserve('job',PROPOSAL,101+2*n),key)
+            row=self.db.execute('SELECT job_id,state FROM partner_reviews WHERE id=?',(key,)).fetchone()
+            self.assertEqual(tuple(row),('job','PENDING'))
+            self.key=key;keys.append(key)
+        self.assertEqual(self.db.execute("SELECT count(*) FROM partner_reviews WHERE state='SUPERSEDED'").fetchone()[0],2)
+
+    def test_r173_a_reservation_that_is_not_the_jobs_review_raises(self):
+        # Defence in depth: never hand back a key whose row belongs to another job (the caller then marks a visible hold).
+        from mw_integration_agent.config import ConfigurationError
+        self.db.execute("UPDATE partner_reviews SET job_id='other'")
+        with patch('mw_integration_agent.partner_review.ReviewStore.next_key',side_effect=lambda job_id,value,key,n:key):
+            with self.assertRaisesRegex(ConfigurationError,'REVIEW_RESERVATION_FAILED'):self.store.reserve('job',PROPOSAL,130)
 
     def test_a_recheck_is_final_and_a_later_reply_decides_nothing(self):
         self.assertEqual(self.decide('3'),'RECHECK_QUEUED')

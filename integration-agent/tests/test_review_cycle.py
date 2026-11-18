@@ -573,6 +573,33 @@ class CycleTests(unittest.TestCase):
         self.assertEqual(keys,['receipt-held:p','receipt-held:q','review:p','review:q'])
         self.assertEqual([kind for kind,_ in items],['review'])
 
+    def test_r173_a_recheck_that_plans_the_same_proposal_asks_again(self):
+        # R173 (PROD, 18 November 2026): the Reviewer replied 3 without editing the charges, so the new plan equalled the
+        # superseded one. Its review id was the superseded row's, the insert was ignored and the job sat in
+        # REVIEW_REQUESTED with no review (stalled_jobs 1) and no corrected request.
+        import time
+        from mw_integration_agent.receipt_health import assess
+        self.validated_job();self.run_cycle()
+        first=self.review('new-job');self.assertEqual(first['state'],'PENDING')
+        for attempt in (1,2):
+            with self.j.db:
+                outcome=self.store._recheck(self.review('new-job'),self.p,{'message_id':f'recheck-{attempt}'},time.time())
+            self.assertEqual(outcome,'RECHECK_QUEUED')
+            self.run_cycle()
+            job=self.j.db.execute("SELECT status,detail FROM receipt_jobs WHERE id='new-job'").fetchone()
+            self.assertEqual(tuple(job),('REVIEW_REQUESTED','REVIEWER_REQUESTED_RECHECK'))
+            row=self.review('new-job');self.assertEqual(row['state'],'PENDING')
+            ids=[r[0] for r in self.j.db.execute("SELECT id FROM partner_reviews WHERE job_id LIKE 'new-job%'")]
+            self.assertEqual(len(ids),attempt+1);self.assertEqual(len(set(ids)),attempt+1)
+            self.assertEqual(json.loads(row['proposal']),json.loads(first['proposal']))
+            request=self.notice_rows('review:'+row['id'])
+            self.assertEqual(len(request),1);self.assertTrue(request[0]['body'].startswith('Corrected request — replaces the earlier request\n'))
+            jobs=[dict(r) for r in self.j.db.execute('SELECT id,status,detail,created_at FROM receipt_jobs')]
+            reviews=[dict(r) for r in self.j.db.execute("SELECT id,job_id,state,created_at FROM partner_reviews WHERE state<>'SUPERSEDED'")]
+            sent=[{'event_key':'review:'+row['id'],'ig_status':'ACCEPTED','email_status':'PENDING'}]
+            self.assertEqual(assess(jobs,reviews,sent,time.time()+400)['stalled_jobs'],0)
+        self.submit.assert_not_called()
+
     def test_auto_cutoff_keeps_earlier_validated_receipt_in_review(self):
         self.validated_job();self.enable_auto();self.config['receipt_auto_payment_cutoff']='2099-01-01T00:00:00+00:00'
         self.run_cycle();self.submit.assert_not_called()

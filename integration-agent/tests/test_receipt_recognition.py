@@ -439,7 +439,7 @@ class ConfigTests(unittest.TestCase):
                          'agent_database_relay_password_file': '/etc/mw-integration-agent/secrets/relay.txt'})
         catalogue = load_json(ROOT / 'service-catalogue.json')
         validate_catalogue(catalogue)
-        self.assertEqual(catalogue['revision'], 44)  # R171 (44), R170 (43), R169 (42), R168 (41) and R166 (40): no service change; R102: chat_messages_relay (33); R112 (34), R119 (35), R128 (36) and R142 (37): no service change; R146: group_chat_summary (38); R165 (39): no service change
+        self.assertEqual(catalogue['revision'], 45)  # R173 (45), R171 (44), R170 (43), R169 (42), R168 (41) and R166 (40): no service change; R102: chat_messages_relay (33); R112 (34), R119 (35), R128 (36) and R142 (37): no service change; R146: group_chat_summary (38); R165 (39): no service change
         self.assertEqual(catalogue['services']['receipt_recognition_api'], {'enabled': False, 'implemented': True})
         self.validator_knows_the_name(catalogue)
 

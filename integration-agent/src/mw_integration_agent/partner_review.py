@@ -75,6 +75,11 @@ class ReviewStore:
           CREATE TABLE IF NOT EXISTS partner_review_replies (
           message_id TEXT PRIMARY KEY,review_id TEXT NOT NULL,outcome TEXT NOT NULL);''')
 
+    @staticmethod
+    def next_key(job_id,value,key,n):
+        """The id of the job's n-th review generation for one proposal (n>=1)."""
+        return hashlib.sha256(f'review:{job_id}:{n}:{value}'.encode()).hexdigest()
+
     def reserve(self,job_id,proposal,now=None):
         now=time.time() if now is None else now
         value=json.dumps(proposal,sort_keys=True,ensure_ascii=False)
@@ -82,8 +87,19 @@ class ReviewStore:
         with self.db:
             old=self.db.execute('SELECT proposal FROM partner_reviews WHERE job_id=?',(job_id,)).fetchone()
             if old and old[0]!=value:raise ConfigurationError('REVIEW_PROPOSAL_CHANGED')
+            # R173: a recheck or reconsideration that plans the same proposal again derives the id of the review it
+            # superseded (renamed to <job>:superseded:<id>). Take the next generation's id instead, so the job gets a new
+            # PENDING review and request; a first review keeps its id and reserving again stays idempotent.
+            n=0
+            while True:
+                row=self.db.execute('SELECT job_id FROM partner_reviews WHERE id=?',(key,)).fetchone()
+                if not row or row[0]==job_id or n>=100:break
+                n+=1;key=self.next_key(job_id,value,key,n)
             self.db.execute('INSERT OR IGNORE INTO partner_reviews(id,job_id,proposal,created_at,expires_at) VALUES (?,?,?,?,?)',
                             (key,job_id,value,now,now+86400))
+            row=self.db.execute('SELECT job_id FROM partner_reviews WHERE id=?',(key,)).fetchone()
+            # Never hand back a review that is not this job's: the job would wait in REVIEW_REQUESTED with no review.
+            if not row or row[0]!=job_id:raise ConfigurationError('REVIEW_RESERVATION_FAILED')
         return key
 
     def decide(self,event,notice,partners,identity,now=None,*,reviewer_ids=()):
