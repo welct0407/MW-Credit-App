@@ -17,8 +17,8 @@ Owner request, 18 November 2026: a screenshot of an unclear pay-forward options 
 | Byte (`3072688c`): `ruff check` | Pass |
 | Byte: unit tests | `3072688c`: 1,091 run, 1 error: `test_receipt_qr` (`zxingcpp` missing locally, pre-existing). `f25eb727`: 227 tests (design cases 20 to 24) OK. `f3f8ecb1`: 1,100 run, only `test_receipt_qr` errors |
 | Byte: PostgreSQL lab | 80 OK, 13 skipped |
-| Echo: rendered check of the messages | First pass done, findings E-R2-01 to E-R2-06 applied in `f3f8ecb1`; confirmation PENDING |
-| Chase: review | `3072688c`: no medium or high findings, lab 80 OK with 13 skipped, Low test gaps closed by `f25eb727`; `f3f8ecb1`: PENDING |
+| Echo: rendered check of the messages | First pass done, findings E-R2-01 to E-R2-06 applied in `f3f8ecb1`. Confirmation pass on `f3f8ecb1`: no must-fix; all renders confirmed (five same-terms cases English and Thai at 957 to 987 characters, the approver line with all three name fallbacks, a close at ฿800.50) |
+| Chase: review | `3072688c`: no medium or high findings, lab 80 OK with 13 skipped, Low test gaps closed by `f25eb727`. `f3f8ecb1`: no findings above Low; the code-to-loan mapping is unchanged (`review_proposal.chosen_purpose` untouched, labels keyed by loanId in offer order); the approver line is correct (the automatic policy sets no `decision_message`, every manual approval stores it); close amounts are display only; a stress of five same-terms loans returned texts of at most 997 characters, and extreme balances fall back to the `REVIEW_REQUEST_TOO_LONG` hold; lab 80 OK with 13 skipped. Lows, not fixed: the `same_loan` key fallback may omit a same-key twin from "Other loan" on fact-less proposals (display only), and legacy reviews without `decision_message` lose the approver line |
 | `npm run check:docs` | 0 failures, 0 warnings |
 | The pull request's `Development checks` and integration-agent tests runs | PENDING: cited at closure |
 
@@ -33,4 +33,4 @@ Agent: `deploy-runtime.py rollback --commit a2d436049bd0e1989f63437e47211d65c788
 None. Thai reply words stay as they are; a later owner decision would add any.
 
 ## Remaining work
-Echo's confirmation, Chase's review of `f3f8ecb1`, pull request CI, merge, drain of the notice queue, PROD promotion (agent deploy at revision 47) and read-back; tag; closure.
+Pull request CI, merge, drain of the notice queue, PROD promotion (agent deploy at revision 47) and read-back; tag; closure.
