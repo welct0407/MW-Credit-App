@@ -332,7 +332,7 @@ class CycleTests(unittest.TestCase):
         self.run_cycle();self.run_cycle()
         rows=self.hold_notices();self.assertEqual(len(rows),1)
         self.assertEqual(rows[0]['partner_id'],'p');self.assertIn('bank reference',rows[0]['body'])
-        self.assertIn('This cannot be approved here.',rows[0]['body']);self.submit.assert_not_called()
+        self.assertIn("Can't approve here.",rows[0]['body']);self.submit.assert_not_called()
         self.assertIsNone(self.j.db.execute("SELECT 1 FROM partner_reviews WHERE job_id='new-job'").fetchone())
         from mw_integration_agent.partner_notice import display_notice
         self.assertTrue(display_notice(rows[0])[0].startswith('⚠️'))
@@ -445,7 +445,9 @@ class CycleTests(unittest.TestCase):
         notices=NoticeJournal(self.root/'partner-notices.db')
         try:
             [copy]=notices.db.execute("SELECT * FROM partner_notices WHERE event_key LIKE 'receipt-held:%:resend:%'").fetchall()
-            self.assertTrue(copy['body'].startswith('1/1 · Still held since '));self.assertIn('Borrower: Test',copy['body'])
+            # R175 (Echo E-HOLD-01): the counter, then the reason; how long it has been held is line 2.
+            self.assertTrue(copy['body'].startswith('1/1 · Slip held: '));self.assertIn('\nStill held since ',copy['body'])
+            self.assertIn('\nTest · ฿100 (read from the slip, not verified)\n',copy['body'])
             ack=notices.db.execute("SELECT body FROM partner_notices WHERE event_key LIKE 'review-command-result:%'").fetchone()[0]
             self.assertTrue(ack.startswith('Review list: 1 held receipt.'))
             notices.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id='copy',recipient_id='456' WHERE id=?",(copy['id'],));notices.db.commit()
@@ -507,7 +509,7 @@ class CycleTests(unittest.TestCase):
         notices=NoticeJournal(self.root/'partner-notices.db')
         try:body=notices.db.execute('SELECT body FROM partner_notices WHERE event_key=?',('review:'+row['id'],)).fetchone()[0]
         finally:notices.close()
-        self.assertIn('Borrower: Test\nSender is not a known borrower; borrower matched by the payer name on the slip.\nAmount:',body)
+        self.assertIn('\nSender is not a known borrower; matched by the payer name on the slip.\n\nReply with one word:\n',body)
 
     def test_r151_reserved_automatic_review_of_an_unidentified_sender_never_posts(self):
         from mw_integration_agent.review_cycle import AUTO_POLICY
@@ -537,11 +539,14 @@ class CycleTests(unittest.TestCase):
                 self.validated_job()
                 self.j.db.execute("DELETE FROM partner_reviews WHERE job_id<>'old'")
                 if case=='corrected':
+                    # R175 (Archie E-X-01): the request fits BODY_LIMIT exactly; its corrected line (and the unclear
+                    # re-ask, which is longer) does not, so nothing is reserved.
+                    from mw_integration_agent.partner_notice import BODY_LIMIT
                     from mw_integration_agent.partner_review import request_text
                     self.j.db.execute("UPDATE receipt_jobs SET detail='REVIEWER_REQUESTED_RECHECK'")
                     self.b['name_en']='x'
-                    self.b['name_en']='x'*(1000-len(request_text(self.proposal,'English')[1])+1)
-                    self.assertEqual(len(request_text(self.proposal,'English')[1]),1000)
+                    self.b['name_en']='x'*(BODY_LIMIT-len(request_text(self.proposal,'English')[1])+1)
+                    self.assertEqual(len(request_text(self.proposal,'English')[1]),BODY_LIMIT)
                 else:
                     self.b['name_en']='x'*1000
                 self.j.db.commit()
@@ -553,7 +558,7 @@ class CycleTests(unittest.TestCase):
                 self.assertEqual(rows,[]);self.assertEqual(job,('REVIEW','REVIEW_REQUEST_TOO_LONG'))
                 self.assertEqual(keys,['receipt-held:p']);self.assertEqual(items,[('hold','new-job')])
                 self.submit.assert_not_called()
-        self.assertIn('The approval request was too long to send by Instagram.',self.hold_notices()[0]['body'])
+        self.assertIn('Slip held: the approval request was too long to send by Instagram.\n',self.hold_notices()[0]['body'])
 
     def test_r152_a_second_recipient_that_fails_reserves_nothing_for_either(self):
         self.config['receipt_hold_notice_cutoff']='2026-01-01T00:00:00+00:00'
@@ -593,7 +598,8 @@ class CycleTests(unittest.TestCase):
             self.assertEqual(len(ids),attempt+1);self.assertEqual(len(set(ids)),attempt+1)
             self.assertEqual(json.loads(row['proposal']),json.loads(first['proposal']))
             request=self.notice_rows('review:'+row['id'])
-            self.assertEqual(len(request),1);self.assertTrue(request[0]['body'].startswith('Corrected request — replaces the earlier request\n'))
+            self.assertEqual(len(request),1);self.assertTrue(request[0]['body'].startswith('Updated request: use this one, not the earlier message\n'))
+            self.assertEqual(request[0]['body'].count('Updated request'),1)
             jobs=[dict(r) for r in self.j.db.execute('SELECT id,status,detail,created_at FROM receipt_jobs')]
             reviews=[dict(r) for r in self.j.db.execute("SELECT id,job_id,state,created_at FROM partner_reviews WHERE state<>'SUPERSEDED'")]
             sent=[{'event_key':'review:'+row['id'],'ig_status':'ACCEPTED','email_status':'PENDING'}]
@@ -785,7 +791,7 @@ class CycleTests(unittest.TestCase):
         self.assertEqual((row['state'],row['detail']),('POSTED','FACTS_CHANGED_SAME_OUTCOME'))
         self.assertEqual(self.payload.call_args.args[2],self.proposal)
         self.assertEqual(self.submit.call_args.args[0]['_receipt_facts_outcome'],'FACTS_CHANGED_SAME_OUTCOME')
-        self.assertIn('Note: loan details were updated after approval',self.notice_rows('review-result:')[0]['body'])
+        self.assertIn('Note: loan details changed after approval',self.notice_rows('review-result:')[0]['body'])
 
     def test_unchanged_facts_post_without_note(self):
         self.run_cycle()
@@ -870,7 +876,9 @@ class CycleTests(unittest.TestCase):
         self.run_cycle();self.run_cycle()
         rows=self.notice_rows('receipt-archive-pending:')
         self.assertEqual([r['event_key'] for r in rows],['receipt-archive-pending:slow:RECEIPT_DOWNLOAD_FAILED'])
-        self.assertIn('for over 1 hour(s)',rows[0]['body']);self.assertIn('Borrower: Test',rows[0]['body'])
+        # R175 (Echo E-ARC-01): three lines, no "hour(s)".
+        self.assertEqual(rows[0]['body'].count('\n'),2);self.assertTrue(rows[0]['body'].startswith('Slip from Test delayed: '))
+        self.assertNotIn('hour',rows[0]['body'])
         from mw_integration_agent.partner_notice import display_notice
         self.assertTrue(display_notice(rows[0])[0].startswith('⌛'))
         job=self.j.db.execute("SELECT status,url FROM receipt_jobs WHERE id='slow'").fetchone()
@@ -900,9 +908,136 @@ class CycleTests(unittest.TestCase):
         self.assertGreater(first['retry_after'],0)
 
 
+    # R175 (Archie E-APR-01, E-X-02): the plain request's re-ask and the two acknowledgements, through the cycle.
+    REVIEWER=staticmethod(lambda config,sender:{'id':sender,'username':{'456':'partner','123':'borrower','789':'someone'}[sender]})
+
+    def reviewer_cycle(self):return cycle(self.config,self.j,self.REVIEWER)
+
+    def ack_rows(self):return self.notice_rows('review-reply-result:')
+
+    def test_r175_a_plain_request_re_asks_an_unclear_reply_then_yes_posts_once(self):
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL");self.j.db.commit()
+        self.message('unclear','ok',reply_to='sent')
+        self.assertEqual(self.reviewer_cycle()['failures'],[]);self.reviewer_cycle()
+        self.assertEqual(self.review()['state'],'PENDING');self.submit.assert_not_called()
+        asks=self.notice_rows('review:'+self.key+':options:')
+        self.assertEqual(len(asks),1)
+        self.assertTrue(asks[0]['body'].startswith('Reply not understood; nothing was done. Reply Yes to approve or Reject (or No) to record nothing.\n'))
+        self.assertEqual(self.ack_rows(),[])
+        self.message('yes','Yes',reply_to='sent');self.reviewer_cycle();self.reviewer_cycle()
+        self.assertEqual(self.review()['state'],'POSTED');self.assertEqual(self.submit.call_count,1)
+
+    def test_r175_a_reply_to_a_closed_request_is_acknowledged_once(self):
+        for state,subject,line in (('REJECTED','Request already closed','That request is already closed (decided or expired); nothing was done.'),
+                                   ('SUPERSEDED','Request replaced','That request was replaced by an updated request; nothing was done. Reply on the updated request.')):
+            with self.subTest(state=state):
+                self.j.db.execute("UPDATE partner_reviews SET state=?",(state,));self.j.db.commit()
+                self.message('late-'+state,'yes',reply_to='sent')
+                self.reviewer_cycle();self.reviewer_cycle()
+                rows=[r for r in self.ack_rows() if r['subject']==subject]
+                self.assertEqual(len(rows),1);self.assertEqual(rows[0]['partner_id'],'p')
+                self.assertEqual(rows[0]['body'].split('\n')[1],line);self.assertTrue(rows[0]['body'].startswith('Test ฿100 ('))
+                self.assertEqual(self.review()['state'],state)
+        self.submit.assert_not_called()
+
+    def test_r175_no_acknowledgement_for_others_old_replies_or_a_reply_to_an_acknowledgement(self):
+        import time
+        self.j.db.execute("UPDATE partner_reviews SET state='REJECTED'");self.j.db.commit()
+        ingress=IngressJournal(self.root/'instagram-ingress.db')
+        for message_id,sender,stamp in (('stranger','789',time.time()),('old','456',time.time()-90000)):
+            ingress.db.execute("INSERT INTO messages(message_id,sender_id,event_timestamp,text,captured_at,status,reply_to) VALUES (?,?,?,?,?,?,?)",
+                (message_id,sender,stamp,'yes',time.time(),'CAPTURED_NO_PROCESSING','sent'))
+        ingress.db.commit();ingress.close()
+        self.reviewer_cycle();self.reviewer_cycle()
+        self.assertEqual(self.ack_rows(),[])
+        # A reply to an acknowledgement is not a reply to a request.
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:
+            key=notices.reserve('review-reply-result:'+'a'*64,self.p,'Use Reply','x')
+            with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id='ack-out' WHERE id=?",(key,))
+        finally:notices.close()
+        self.message('to-ack','yes',reply_to='ack-out');self.reviewer_cycle()
+        self.assertEqual(len(self.ack_rows()),1)
+        # A partner who is not (or no longer) an AI Reviewer gets nothing.
+        self.masters.return_value['reviewer_ids']=[]
+        self.message('not-reviewer','yes',reply_to='sent');self.reviewer_cycle()
+        self.assertEqual(len(self.ack_rows()),1)
+
+    def test_r175_a_bare_answer_gets_one_use_reply_acknowledgement(self):
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL");self.j.db.commit()
+        self.message('bare','1');self.reviewer_cycle();self.reviewer_cycle()
+        [row]=self.ack_rows()
+        self.assertEqual(row['subject'],'Use Reply')
+        self.assertEqual(row['body'].split('\n')[0],'Nothing was done: answers count only as a Reply on the request message. '
+                         'Swipe right on the request (or press and hold, then Reply) and send your answer again.')
+        self.assertTrue(row['body'].split('\n')[1].startswith('Waiting: Test ฿100 ('))
+        self.assertEqual(self.j.db.execute("SELECT outcome FROM partner_review_replies WHERE message_id='bare'").fetchone()[0],'REPLY_REQUIRED')
+        self.assertEqual(self.review()['state'],'PENDING');self.submit.assert_not_called()
+        for message_id,text in (('chat','hello there'),('attachment-only','')):
+            self.message(message_id,text)
+        self.reviewer_cycle();self.assertEqual(len(self.ack_rows()),1)
+        # Nothing waiting: silent.
+        self.j.db.execute("UPDATE partner_reviews SET state='REJECTED'");self.j.db.commit()
+        self.message('bare-2','no');self.reviewer_cycle()
+        self.assertEqual(len(self.ack_rows()),1)
+
+    def test_r175_an_expired_request_is_acknowledged_with_the_closed_text(self):
+        # Case 21: a reply after expires_at expires the review (EXPIRED) and gets the generic closed-request line.
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL,expires_at=?",(__import__('time').time()-60,));self.j.db.commit()
+        self.message('after-expiry','yes',reply_to='sent');self.reviewer_cycle();self.reviewer_cycle()
+        self.assertEqual(self.review()['state'],'EXPIRED');self.submit.assert_not_called()
+        [row]=self.ack_rows()
+        self.assertEqual((row['subject'],row['partner_id']),('Request already closed','p'))
+        self.assertEqual(row['body'].split('\n')[1],'That request is already closed (decided or expired); nothing was done.')
+        self.assertEqual(self.notice_rows('review:'+self.key+':options:'),[])
+
+    def test_r175_a_non_reviewer_or_a_changed_partner_snapshot_gets_no_acknowledgement(self):
+        # Case 22: NOT_REVIEWER and PARTNER_CHANGED stay silent, for a closed request and for an open one.
+        for state in ('REJECTED','PENDING'):
+            with self.subTest(state=state):
+                self.j.db.execute("UPDATE partner_reviews SET state=?",(state,));self.j.db.commit()
+                self.masters.return_value['reviewer_ids']=[]
+                self.message('not-reviewer-'+state,'maybe',reply_to='sent');self.reviewer_cycle()
+                self.masters.return_value['reviewer_ids']=['p']
+                self.masters.return_value['partners']=[dict(self.p,email='changed@example.invalid')]
+                self.message('changed-'+state,'maybe',reply_to='sent');self.reviewer_cycle()
+                self.masters.return_value['partners']=[self.p]
+                self.assertEqual(self.ack_rows(),[]);self.assertEqual(self.notice_rows('review:'+self.key+':options:'),[])
+                self.assertEqual(self.review()['state'],state)
+        outcomes=dict(self.j.db.execute("SELECT message_id,outcome FROM partner_review_replies").fetchall())
+        self.assertEqual(outcomes,{},'denied replies leave no decision record')
+        self.submit.assert_not_called()
+
+    def test_r175_a_review_command_or_an_attachment_gets_no_bare_answer_acknowledgement(self):
+        # Case 23: the `review` command keeps its own result, and an image-only message is receipt intake.
+        import time
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL");self.j.db.commit()
+        self.config['review_resend_cutoff']='2026-01-01T00:00:00+00:00'
+        self.message('command','review')
+        ingress=IngressJournal(self.root/'instagram-ingress.db')
+        ingress.db.execute("INSERT INTO messages(message_id,sender_id,event_timestamp,text,captured_at,status,reply_to,attachments) VALUES (?,?,?,?,?,?,?,?)",
+            ('image','456',time.time(),'',time.time(),'CAPTURED_NO_PROCESSING','',json.dumps([{'type':'image'}])))
+        ingress.db.commit();ingress.close()
+        self.reviewer_cycle();self.reviewer_cycle()
+        self.assertEqual(self.ack_rows(),[])
+        self.assertEqual(len(self.notice_rows('review-command-result:')),1)
+        self.assertIsNone(self.j.db.execute("SELECT 1 FROM partner_review_replies WHERE message_id='image'").fetchone())
+
+    def test_r175_a_bare_answer_from_a_non_reviewer_is_silent(self):
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL");self.j.db.commit()
+        ingress=IngressJournal(self.root/'instagram-ingress.db')
+        ingress.db.execute("INSERT INTO messages(message_id,sender_id,event_timestamp,text,captured_at,status,reply_to) VALUES ('stranger','789',?,'yes',?,'CAPTURED_NO_PROCESSING','')",
+                           (__import__('time').time(),__import__('time').time()))
+        ingress.db.commit();ingress.close()
+        self.reviewer_cycle()
+        self.masters.return_value['reviewer_ids']=[]
+        self.message('bare','yes');self.reviewer_cycle()
+        self.assertEqual(self.ack_rows(),[])
+
+
 class SenderNoteTests(unittest.TestCase):
     """R151 (Echo UX-R151-3): every approval request of an unidentified sender says the payer name chose the borrower."""
-    NOTE=('Sender is not a known borrower; borrower matched by the payer name on the slip.','ผู้ส่งไม่ใช่ผู้กู้ที่รู้จัก ระบบระบุผู้กู้จากชื่อผู้โอนในสลิป')
+    NOTE=('Sender is not a known borrower; matched by the payer name on the slip.','ผู้ส่งไม่ใช่ผู้กู้ที่รู้จัก ระบุผู้กู้จากชื่อผู้โอนในสลิป')
 
     def test_standard_options_and_close_requests_carry_the_note_only_when_set(self):
         from mw_integration_agent.partner_review import request_text
@@ -910,47 +1045,52 @@ class SenderNoteTests(unittest.TestCase):
         from test_review_close import BORROWER,RECEIPT,close
         standard={'action':'Lump Sum','borrower':BORROWER,'receipt':RECEIPT,'facts':{},'loan_id':None}
         closing={'action':'Loan Close','borrower':BORROWER,'receipt':RECEIPT,'close':close(),'loan_keys':['K-1'],'loan_id':'L1','facts':{}}
-        for language,note,head in (('English',self.NOTE[0],'Borrower: Cha\n'),('ไทย',self.NOTE[1],'ผู้กู้: ชา\n')):
+        from mw_integration_agent.partner_notice import BODY_LIMIT
+        for language,note in (('English',self.NOTE[0]),('ไทย',self.NOTE[1])):
             for name,proposal in (('standard',standard),('close',closing),('options',PROPOSAL)):
                 with self.subTest(language=language,request=name):
                     plain=request_text(proposal,language)[1]
                     self.assertNotIn(note,plain)
                     for unclear in ((False,True) if name=='options' else (False,)):
                         body=request_text(proposal,language,unclear=unclear,unidentified=True)[1]
-                        self.assertEqual(body.count(note),1);self.assertLessEqual(len(body),1000)
-                        if name!='options':self.assertIn(head+note+'\n',body)
-                        else:self.assertIn(note+'\n'+('Transferred' if language=='English' else 'เวลาโอน'),body)
+                        self.assertEqual(body.count(note),1);self.assertLessEqual(len(body),BODY_LIMIT)
+                        # R175: after the transfer and loan lines, before the rest.
+                        lines=body.split('\n');at=lines.index(note)
+                        self.assertTrue(lines[at-1].startswith(('Loan','Transferred','สัญญา','โอน')),lines[at-1])
         self.assertTrue(request_text(closing,'English',unidentified=True)[0].startswith('Loan close'))
 
     def test_the_note_never_pushes_the_worst_case_request_past_one_message(self):
-        # Chase (R151): five principal loans and the unclear prompt leave no room for the note; the request goes out as
-        # without it, and the note stays wherever it fits. A caller's prefix (the corrected request) is reserved too.
-        from mw_integration_agent.partner_review import request_text
+        # Chase (R151), R175 (Archie E-X-01 fit ladder): full with the note, short with it, full, short. The note stays
+        # whenever some form fits with it and is dropped (never a hold) otherwise; the corrected line is counted.
+        from mw_integration_agent.partner_notice import BODY_LIMIT
+        from mw_integration_agent.partner_review import compose_request,request_text
         from mw_integration_agent.review_proposal import loan_display_key
         from test_partner_review_options import OWNER
         for language,name,descriptions,note in (('English','Wilaiwan Phongphanit',('Fruit','Curry','Online','Repair','Capital'),self.NOTE[0]),
                                                 ('ไทย','วิไลวรรณ พงษ์พานิช',('ร้านผลไม้','ร้านข้าวแกง','ขายของออนไลน์','ซ่อมรถ','ทุนหมุนเวียน'),self.NOTE[1])):
-            keys=[loan_display_key(name,d,'150000','2026-03-12','1.5') for d in descriptions]
+            keys=[loan_display_key(name,d,'150000',f'2026-03-1{n}','1.5') for n,d in enumerate(descriptions)]
             five=json.loads(json.dumps(OWNER));five['loan_keys']=keys;five['borrower']=dict(five['borrower'],name_en=name,name_th=name)
             five['receipt'].update(amount='25000',account_label='KBank 123-4-56789-0')
             five['options'].update(dueTotal='1450',dueInterest='1200',dueLate='250',duePrincipal='0',remainder='23550')
             five['options']['forward'].update(last='2026-12-31',through='2026-12-31')
             five['options']['principal']=[{'loanId':f'L{n}','loanKey':k,'amount':str(23550-300*n),'dailyAfter':'1875','outstandingAfter':'1'} for n,k in enumerate(keys,1)]
             for unclear in (False,True):
-                with self.subTest(language=language,unclear=unclear):
-                    plain=request_text(five,language,unclear=unclear)
-                    noted=request_text(five,language,unclear=unclear,unidentified=True)
-                    self.assertLessEqual(len(noted[1]),1000)
-                    if len(plain[1])+len(note)+1>1000:self.assertEqual(noted,plain)
-                    else:self.assertEqual(noted[1].count(note),1)
-            # The worst case (unclear prompt) has no room for the note in either language.
-            self.assertEqual(request_text(five,language,unclear=True,unidentified=True),request_text(five,language,unclear=True))
+                for corrected in ((False,True) if not unclear else (False,)):
+                    with self.subTest(language=language,unclear=unclear,corrected=corrected):
+                        noted=request_text(five,language,unclear=unclear,unidentified=True,corrected=corrected)[1]
+                        self.assertLessEqual(len(noted),BODY_LIMIT)
+                        fits=[len(compose_request(five,language,unclear,True,corrected,short)[1])<=BODY_LIMIT for short in (False,True)]
+                        self.assertEqual(noted.count(note),1 if any(fits) else 0)
+                        if not fits[0]:self.assertIn('(→ = ',noted)  # the short form, not a hold
         standard={'action':'Lump Sum','borrower':{'id':'b','name_en':'Cha'},'facts':{},'loan_id':None,
                   'receipt':{'amount':'1','date':'2026-11-13','time':'20:36','account_label':'A'}}
         body=request_text(standard,'English',unidentified=True)[1]
         self.assertIn(self.NOTE[0],body)
-        self.assertNotIn(self.NOTE[0],request_text(standard,'English',unidentified=True,reserve=1000-len(body)+1)[1])
-        self.assertIn(self.NOTE[0],request_text(standard,'English',unidentified=True,reserve=1000-len(body))[1])
+        standard['borrower']['name_en']='C'*(BODY_LIMIT-len(body)+4)
+        self.assertGreater(len(compose_request(standard,'English',False,True)[1]),BODY_LIMIT)
+        self.assertNotIn(self.NOTE[0],request_text(standard,'English',unidentified=True)[1])
+        standard['borrower']['name_en']='C'*(BODY_LIMIT-len(body)+3)
+        self.assertIn(self.NOTE[0],request_text(standard,'English',unidentified=True)[1])
 
     def test_the_review_command_resend_and_the_unclear_prompt_read_the_job(self):
         from mw_integration_agent.partner_review import unidentified_review

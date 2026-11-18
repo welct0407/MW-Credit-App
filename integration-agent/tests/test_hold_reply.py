@@ -102,9 +102,9 @@ class HoldReplyTests(unittest.TestCase):
         notice=dict(self.n.db.execute('SELECT * FROM partner_notices WHERE id=?',(notice_id,)).fetchone())
         self.assertEqual(self.decide(event=dict(self.event,reply_to='out2'),notice=notice),'HOLD_REJECTED')
         english=held_text(self.job(),None,'English',[])[1];thai=held_text(self.job(),None,'ไทย',[])[1]
-        self.assertIn('could not be kept as evidence',english);self.assertIn('unavailable baht',english)
-        self.assertIn('ระบบจัดเก็บภาพสลิปเป็นหลักฐานไม่ได้',thai);self.assertIn('ไม่ทราบ บาท',thai)
-        self.assertIn('send Reject',english)
+        self.assertIn('could not be saved as evidence',english);self.assertIn('Borrower unknown · amount unreadable (read from the slip, not verified)\n',english)
+        self.assertIn('ระบบจัดเก็บภาพสลิปเป็นหลักฐานไม่ได้',thai);self.assertIn('ไม่ทราบผู้กู้ · ไม่ทราบยอด (อ่านจากสลิป ยังไม่ยืนยัน)\n',thai)
+        self.assertIn('\nTransferred unavailable · unavailable\n',english);self.assertIn('Reply Reject to clear it',english)
 
     def test_reply_to_archive_pending_alert_is_ignored(self):
         from mw_integration_agent.review_cycle import cycle
@@ -158,10 +158,10 @@ class HoldReplyTests(unittest.TestCase):
         self.assertEqual(self.job()['status'],'REVIEW')
     def test_result_copy(self):
         for outcome,english,thai in (
-          ('HOLD_REJECTED','Removed from the review list. The agent recorded or changed no payment. Receipt history is kept.',
-           'นำออกจากรายการรอตรวจสอบแล้ว ระบบไม่ได้บันทึกหรือเปลี่ยนแปลงรายการชำระเงิน ยังเก็บประวัติสลิปไว้'),
-          ('HOLD_REJECT_REQUIRED','Held receipts cannot be approved. Use Reply on the hold message and send Reject. If the payment is genuine, record it in the app first.',
-           'สลิปที่พักไว้อนุมัติไม่ได้ ใช้ Reply ตอบข้อความแจ้งพักสลิปว่า Reject หรือ ปฏิเสธ หากเป็นการชำระจริง กรุณาบันทึกในแอปก่อน')):
+          ('HOLD_REJECTED','Removed from the list. Nothing was recorded or changed; the slip history is kept.',
+           'นำออกจากรายการแล้ว ไม่ได้บันทึกหรือเปลี่ยนแปลงรายการชำระเงิน ยังเก็บประวัติสลิปไว้'),
+          ('HOLD_REJECT_REQUIRED',"Held slips can't be approved. Use Reply on the hold message and send Reject. If the payment is genuine, record it in the app first.",
+           'สลิปที่พักไว้อนุมัติไม่ได้ ใช้ Reply ตอบข้อความแจ้งพักสลิปว่า ปฏิเสธ หากเป็นการชำระจริง กรุณาบันทึกในแอปก่อน')):
             for language,words in (('English',english),('ไทย',thai)):
                 partner=dict(self.p,language=language);event=dict(self.event,message_id=outcome+language)
                 queue_result(self.n,event,self.notice,[partner],outcome)
@@ -171,13 +171,14 @@ class HoldReplyTests(unittest.TestCase):
         from mw_integration_agent.receipt_hold import FALLBACK,held_text
         with self.j.db:self.j.db.execute("UPDATE receipt_jobs SET detail='SOMETHING_NEW'")
         english=held_text(self.job(),None,'English',[])[1];thai=held_text(self.job(),None,'ไทย',[])[1]
-        self.assertIn('Reason: Receipt validation could not be completed. Check the slip against the app.\n',english)
-        self.assertIn('สาเหตุ: ตรวจสอบสลิปไม่สำเร็จ กรุณาตรวจสอบสลิปกับรายการในแอป\n',thai)
-        self.assertEqual(FALLBACK[0],'Receipt validation could not be completed. Check the slip against the app.')
-        self.assertTrue(english.endswith('\nNo payment posted. Check the receipt against the app records.\nThis cannot be approved here. If the payment is genuine, '
-                                         'record it in the app yourself. Then use Reply on this message and send Reject to clear it from the list.'))
-        self.assertTrue(thai.endswith('\nอนุมัติผ่านข้อความนี้ไม่ได้ หากเป็นการชำระจริง กรุณาบันทึกในแอปเอง แล้วใช้ Reply ตอบข้อความนี้ว่า Reject หรือ ปฏิเสธ เพื่อนำออกจากรายการ'))
+        # R175 (Echo E-HOLD-01): line 1 the reason, one closing instruction.
+        self.assertTrue(english.startswith('Slip held: the slip could not be checked.\n'))
+        self.assertTrue(thai.startswith('สลิปถูกพัก: ตรวจสอบสลิปไม่สำเร็จ กรุณาตรวจสอบสลิปกับรายการในแอป\n'))
+        self.assertEqual(FALLBACK[0],'The slip could not be checked.')
+        self.assertTrue(english.endswith("\nCan't approve here. If genuine, record it in the app, then Reply Reject to clear it."))
+        self.assertTrue(thai.endswith('\nอนุมัติผ่านข้อความนี้ไม่ได้ หากเป็นการชำระจริง ให้บันทึกในแอป แล้วใช้ Reply ตอบข้อความนี้ว่า ปฏิเสธ เพื่อนำออกจากรายการ'))
         self.assertNotIn('Replying approve',english);self.assertNotIn('queue',english);self.assertEqual(english.count('Reject'),1)
+        self.assertNotIn('Reject',thai)
         self.assertNotIn('การตอบอนุมัติ',thai);self.assertNotIn('คิว',thai)
 
 

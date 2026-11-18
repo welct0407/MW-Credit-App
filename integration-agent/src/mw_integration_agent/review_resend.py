@@ -4,11 +4,11 @@ import json
 import time
 from datetime import datetime
 from .receipt_rules import username
+from .partner_notice import over_limit
 from .partner_review import request_text, unidentified_review
 from .receipt_hold import held_text, resend_key
 
 COMMANDS = {'review', 'reviews', 'resend review'}
-LIMIT = 1000  # Instagram text limit (partner_notice.dispatch)
 MORE = 6  # one notify pass sends at most review_cycle.NOTICE_CAP notices
 
 
@@ -27,13 +27,8 @@ def queue(db, notices, config, event, live, identity, now=None, borrower=None):
         return
     if db.execute('SELECT 1 FROM partner_review_replies WHERE message_id=?', (event['message_id'],)).fetchone():
         return
-    name = username(identity.get('username'))
-    matches = [p for p in live['partners'] if name and username(p['username']) == name]
-    if identity.get('id') != event['sender_id'] or len(matches) != 1:
-        return
-    partner = matches[0]
-    if (partner['id'] not in live.get('reviewer_ids', []) or partner['enabled'] is not True or
-            partner['language'] not in ('English', 'ไทย')):
+    partner = reviewer_sender(event, live, identity)
+    if not partner:
         return
     token = hashlib.sha256(event['message_id'].encode()).hexdigest()
     result_key = 'review-command-result:' + token
@@ -56,13 +51,26 @@ def queue(db, notices, config, event, live, identity, now=None, borrower=None):
                 subject, body = held_text(row, borrower(row) if borrower else None, partner['language'],
                                           live.get('accounts', []), live.get('borrowers', ()), resent_at=now)
             counted = f'{position}/{len(items)} · ' + body
-            # The counter is on the first line only; a body already at the Instagram limit goes without it.
-            notices.reserve(key, partner, subject, counted if len(counted) <= LIMIT else body)
+            # The counter is on the first line only; a body already at the limit (R175: with its icon) goes without it.
+            notices.reserve(key, partner, subject, body if over_limit(counted) else counted)
         notices.reserve(result_key, partner, *acknowledgement(sum(k == 'review' for _, k, _ in items),
                                                               sum(k == 'hold' for _, k, _ in items), thai))
     with db:
         db.execute('INSERT OR IGNORE INTO partner_review_replies VALUES (?,?,?)',
                    (event['message_id'], 'review-command:' + token, 'RESEND_QUEUED'))
+
+
+def reviewer_sender(event, live, identity):
+    """The enabled AI Reviewer who sent this message (R175: shared with the bare-answer acknowledgement), else None."""
+    name = username(identity.get('username'))
+    matches = [p for p in live['partners'] if name and username(p['username']) == name]
+    if identity.get('id') != event['sender_id'] or len(matches) != 1:
+        return None
+    partner = matches[0]
+    if (partner['id'] not in live.get('reviewer_ids', []) or partner['enabled'] is not True or
+            partner['language'] not in ('English', 'ไทย')):
+        return None
+    return partner
 
 
 def pending_items(db, config, event, now):

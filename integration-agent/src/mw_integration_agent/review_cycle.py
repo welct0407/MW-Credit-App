@@ -10,9 +10,10 @@ from contextlib import contextmanager
 from .receipt_rules import ReceiptInvalid
 from .receipt_master import masters
 from .payment_match import check
-from .partner_notice import NoticeJournal,notice_amount,receipt_notice
+from .partner_notice import ACKNOWLEDGEMENT,NoticeJournal,receipt_notice
 from .statement_delivery import resolve_recipient
-from .partner_review import OPTIONS_REQUIRED,RECHECKED,ReviewStore,close_failure_line,close_notice,request_text,review_id,unidentified_review
+from .partner_review import (OPTIONS_REQUIRED,RECHECKED,ReviewStore,approval_action,chosen_purpose_line,close_failure_line,close_notice,
+                             request_text,review_id,slip_line,unidentified_review)
 from .review_proposal import (LOAN_CLOSE_CHANGED,OPTIONS,chosen_plan,close_enabled,facts,options_enabled,plan,review_posts_close,
                               review_posts_overpayment,same_posting_outcome,unlabelled)
 from .review_execution import readback
@@ -130,18 +131,19 @@ class Run:
                         continue
                     # R152: every recipient's request is built (prefix and length check included) before the review is
                     # reserved, so a request that cannot be built leaves no PENDING review and the job is a plain hold.
+                    # R175 (Archie E-X-01): the corrected line is the builder's, counted with the icon; the unclear re-ask
+                    # is built here too, so a re-ask that could not be sent later never leaves a request behind.
                     texts=[]
+                    corrected=job['detail'] in ('OWNER_REQUESTED_RECONSIDERATION','REVIEWER_REQUESTED_RECHECK')
+                    unidentified=provenance(job).get('unidentified_sender') is True
                     for p in recipients:
-                        corrected=('คำขอแก้ไข — ใช้แทนคำขอเดิม\n' if p['language']=='ไทย' else 'Corrected request — replaces the earlier request\n') if job['detail'] in (
-                            'OWNER_REQUESTED_RECONSIDERATION','REVIEWER_REQUESTED_RECHECK') else ''
-                        try:subject,body=request_text(proposal,p['language'],unidentified=provenance(job).get('unidentified_sender') is True,reserve=len(corrected))
+                        try:
+                            subject,body=request_text(proposal,p['language'],unidentified=unidentified,corrected=corrected)
+                            request_text(proposal,p['language'],unclear=True,unidentified=unidentified)
                         except ConfigurationError as exc:
                             # The hold names the reason (receipt_hold REASONS) instead of RECEIPT_PROPOSAL_UNAVAILABLE.
-                            if str(exc)=='REVIEW_REQUEST_TOO_LONG':raise ReceiptInvalid(str(exc)) from None
+                            if str(exc)=='REVIEW_REQUEST_TOO_LONG':raise ReceiptInvalid('REVIEW_REQUEST_TOO_LONG') from None
                             raise
-                        if corrected:
-                            body=corrected+body
-                            if len(body)>1000:raise ReceiptInvalid('REVIEW_REQUEST_TOO_LONG')
                         texts.append((p,subject,body))
                     key=reviews.reserve(job['id'],proposal)
                     for p,subject,body in texts:
@@ -178,7 +180,10 @@ class Run:
                         except Exception:return None
                     queue(db,notices,config,event,live,identity_reader(config,event['sender_id']),borrower=borrower)
                     continue
-                if not event.get('reply_to'):continue
+                if not event.get('reply_to'):
+                    # R175 (Archie E-X-02b): a reviewer's bare answer without Reply gets one "Use Reply" acknowledgement.
+                    bare_answer(db,notices,config,event,identity_reader)
+                    continue
                 notice=notices.db.execute("SELECT * FROM partner_notices WHERE message_id=? AND (event_key LIKE 'review:%' OR event_key LIKE 'receipt-held:%')",(event['reply_to'],)).fetchone()
                 if not notice:continue
                 if notice['event_key'].startswith('receipt-held:'):
@@ -199,6 +204,9 @@ class Run:
                 try:identity=identity_reader(config,event['sender_id'])
                 except ConfigurationError:continue
                 outcome=self.reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
+                if outcome in ('ALREADY_DECIDED','EXPIRED'):
+                    # R175 (Archie E-X-02a): a reply to a closed request says so once, to that Reviewer.
+                    closed_answer(db,notices,event,dict(notice),live)
                 if outcome==RECHECKED:
                     # Owner request, 3 November 2026: acknowledge the recheck ("3" since R127; legacy "4"); the new plan follows as its own message
                     # (or the automatic-payment result) once the receipt is planned again from the current charges.
@@ -206,14 +214,16 @@ class Run:
                     partner=next((p for p in live['partners'] if p['id']==notice['partner_id']),None)
                     if row and partner:
                         proposal=json.loads(row['proposal']);thai=partner['language']=='ไทย'
-                        name=proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id']
+                        slip=slip_line(proposal['receipt'],proposal['borrower'],thai)
                         subject='ตรวจสลิปใหม่' if thai else 'Rechecking slip'
-                        body=(f"{subject}\n{name} ฿{notice_amount(proposal['receipt']['amount'])}\nกำลังคำนวณใหม่จากยอดปัจจุบันในแอป ข้อความถัดไปจะแจ้งผล ยังไม่ได้บันทึกรายการ" if thai
-                              else f"{subject}\n{name} ฿{notice_amount(proposal['receipt']['amount'])}\nPlanning again from the current charges in the app; the result follows in the next message. Nothing has been posted yet.")
+                        # R175 (Echo E-RCK-01): shown with 🔄.
+                        body=(f"กำลังตรวจใหม่ {slip}\nกำลังคำนวณใหม่จากยอดปัจจุบันในแอป ข้อความถัดไปจะแจ้งผล ยังไม่ได้บันทึกรายการ" if thai
+                              else f"Rechecking {slip}\nPlanning again from the current charges in the app; the next message has the result. Nothing recorded yet.")
                         notices.reserve('review-result:'+review_id(notice['event_key'])+':RECHECK',partner,subject,body)
                 if outcome==OPTIONS_REQUIRED:
                     # R112 (Echo AG-2): an unclear reply to the options gets the prompt and the options again, to the
-                    # same Reviewer, as its own notice (one per unclear reply); nothing was decided.
+                    # same Reviewer, as its own notice (one per unclear reply); nothing was decided. R175 (Archie E-APR-01):
+                    # the same for a plain or close request (REASK), under its own unclear line.
                     import hashlib
                     row=db.execute('SELECT proposal,job_id FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
                     partner=next((p for p in live['partners'] if p['id']==notice['partner_id']),None)
@@ -426,26 +436,149 @@ def close_changed(config,proposal):
     return LOAN_CLOSE_CHANGED+(':'+amount if Decimal(amount)!=Decimal(proposal['receipt']['amount']) else '')
 
 
-def posted_purpose(proposal,detail,thai):
-    """Echo AG-5: the use of the remainder the Reviewer chose, on the posted result."""
-    from .partner_review import baht,short_date,principal_split
-    try:purpose=json.loads(detail)['purpose']
-    except (ValueError,TypeError,KeyError):return ''
-    amount=baht(proposal['receipt']['amount']);o=proposal['options'];through=(o.get('forward') or {}).get('through')
-    if purpose['forward'] and not purpose['principal']:
-        return f"บันทึก {amount} · ชำระล่วงหน้า"+(f" ชำระถึง {short_date(through,True)}" if through else '') if thai else \
-            f"Recorded {amount} · pay forward"+(f", paid through {short_date(through,False)}" if through else '')
-    chosen=purpose['principal'][0];part=baht(chosen['amount'])
-    if purpose['forward']:
-        # Legacy R112 split ("3 <amount>", withdrawn in R127): a split approved before the R127 deploy may still post.
-        return f"บันทึก {amount} · เงินต้น {part} ส่วนที่เหลือชำระล่วงหน้า" if thai else f"Recorded {amount} · principal {part}, the rest pays forward"
-    # R127 (Echo AG-12): the interest and principal split and the new daily interest, from the saved options.
-    offered=next((p for p in o.get('principal') or [] if p.get('loanId')==chosen['loanId'] and p.get('amount')==chosen['amount']),None)
-    if offered:
-        daily=baht(offered['dailyAfter'])
-        return f"บันทึก {amount} · {principal_split(o,offered,True)} ดอกเบี้ยใหม่ {daily}/วัน" if thai else \
-            f"Recorded {amount} · {principal_split(o,offered,False)}, new interest {daily}/day"
-    return f"บันทึก {amount} · ชำระเงินต้น {part}" if thai else f"Recorded {amount} · repay principal {part}"
+# R175 (Echo section 3): the stale result's sentence, keyed on the detail's code; the recheck variant only when a "3" on the
+# request would still recheck it (partner_review.decide: options request, a RECHECK_STALE reason, not expired).
+STALE_SENTENCES={
+    'PAY_FORWARD_DAY_PASSED':("The choice arrived after the slip's day ended, so the plan no longer applies. Record it in the app.",
+                              'ได้รับคำตอบหลังสิ้นวันของสลิป แผนเดิมใช้ไม่ได้แล้ว กรุณาบันทึกในแอป'),
+    'PLAN_CHANGED':('The charges changed after the request was sent. Check them and record it in the app.',
+                    'ยอดในแอปเปลี่ยนหลังส่งคำขอ กรุณาตรวจสอบแล้วบันทึกในแอป'),
+    'PLAN_CHANGED_RECHECK':('The charges changed after the request was sent. Reply 3 on the request to recheck, or record it in the app.',
+                            'ยอดในแอปเปลี่ยนหลังส่งคำขอ ตอบ 3 ที่ข้อความคำขอเพื่อตรวจใหม่ หรือบันทึกในแอป'),
+    'RECEIVING_ACCOUNT_CHANGED':('The receiving account {account} is no longer active in the app. Check the account, then record it in the app.',
+                                 'บัญชีรับ {account} ไม่ได้ใช้งานในแอปแล้ว กรุณาตรวจสอบบัญชีแล้วบันทึกในแอป'),
+    'APPROVING_PARTNER_CHANGED':("The approver's details changed in the app after approving, so it was not recorded automatically. Record it in the app.",
+                                 'ข้อมูลผู้อนุมัติในแอปเปลี่ยนหลังอนุมัติ ระบบจึงไม่ได้บันทึกให้ กรุณาบันทึกในแอป'),
+    'BORROWER_CHANGED':('The borrower for this slip changed in the app after the request. Check the borrower, then record it in the app.',
+                        'ข้อมูลผู้กู้ของสลิปนี้ในแอปเปลี่ยนหลังส่งคำขอ กรุณาตรวจสอบผู้กู้แล้วบันทึกในแอป'),
+    'PAYMENT_ALREADY_RECORDED':("A payment with this bank reference is already recorded. Don't record it again.",
+                                'มีรายการชำระที่ใช้เลขอ้างอิงนี้บันทึกแล้ว ห้ามบันทึกซ้ำ'),
+    'POSSIBLE_EXISTING_PAYMENT_REVIEW':('A payment with the same bank reference exists but its details differ. Check it in the app before recording anything.',
+                                        'พบรายการที่ใช้เลขอ้างอิงเดียวกันแต่ข้อมูลไม่ตรงกัน กรุณาตรวจสอบในแอปก่อนบันทึก'),
+    'REFERENCE_UNREADABLE':('The bank reference could not be checked for duplicates. Check the slip, then record it in the app.',
+                            'ตรวจเลขอ้างอิงธนาคารเพื่อกันรายการซ้ำไม่ได้ กรุณาตรวจสอบสลิปแล้วบันทึกในแอป'),
+    'RECEIPT_DATE_TOO_OLD':("The slip is no longer from today or yesterday, so it can't be recorded automatically. Record it in the app.",
+                            'สลิปไม่ใช่ของวันนี้หรือเมื่อวานแล้ว ระบบจึงบันทึกให้ไม่ได้ กรุณาบันทึกในแอป'),
+}
+STALE_FALLBACK=('Something changed after the request, so it was not recorded automatically. Check and record it in the app.',
+                'ข้อมูลเปลี่ยนหลังส่งคำขอ ระบบจึงไม่ได้บันทึกให้ กรุณาตรวจสอบแล้วบันทึกในแอป')
+PLAN_CODES=('PAY_FORWARD_PLAN_CHANGED','PROPOSAL_FACTS_CHANGED')
+
+
+def stale_sentence(review,proposal,thai,now):
+    from .partner_review import RECHECK_STALE
+    code=(review['detail'] or '').split(':',1)[0]
+    if code in PLAN_CODES:
+        recheck=proposal.get('action')==OPTIONS and review['state']=='STALE' and code in RECHECK_STALE and now<=review['expires_at']
+        code='PLAN_CHANGED_RECHECK' if recheck else 'PLAN_CHANGED'
+    return STALE_SENTENCES.get(code,STALE_FALLBACK)[int(thai)].replace('{account}',str(proposal['receipt'].get('account_label') or ''))
+
+
+def reviewer_name(partner_id,live,thai):
+    """R175 (Echo section 5, Archie ruling): the Partner Name (partner_names), else @username, else a generic phrase."""
+    name=' '.join(str((live.get('partner_names') or {}).get(partner_id) or '').split())
+    if name:return name
+    partner=next((p for p in live.get('partners',[]) if p['id']==partner_id),None)
+    handle=str((partner or {}).get('username') or '').strip().lstrip('@')
+    if handle:return '@'+handle
+    return 'ผู้ตรวจสอบ' if thai else 'a Reviewer'
+
+
+def result_text(review,proposal,partner,live,now=None):
+    """R175 (Echo E-RES-02..05, sections 3 and 5): a result that recorded nothing, first line the slip."""
+    now=time.time() if now is None else now
+    review=dict(review);thai=partner['language']=='ไทย';state=review['state'];detail=review['detail'] or ''
+    slip=slip_line(proposal['receipt'],proposal['borrower'],thai)
+    subject='ผลสลิป' if thai else 'Slip result'
+    if state=='REJECTED':
+        name=reviewer_name(review['deciding_partner'],live,thai)
+        lines=[f'{slip} {name} ปฏิเสธแล้ว ยังไม่ได้บันทึกรายการ' if thai else f'{slip} rejected by {name}. Nothing recorded.']
+    elif state=='EXPIRED':
+        lines=[f'{slip} คำขอหมดอายุ ยังไม่ได้บันทึกรายการ' if thai else f'{slip} expired. Nothing recorded.']
+    elif state=='UNKNOWN':
+        lines=[slip,'ไม่แน่ใจว่าบันทึกแล้วหรือไม่ กรุณาตรวจสอบในแอปก่อน ห้ามบันทึกซ้ำ' if thai else "Not sure it was recorded. Check the app first; don't record it twice."]
+    elif state=='STALE':
+        lines=[f'{slip} ยังไม่ได้บันทึก' if thai else f'{slip} not recorded',stale_sentence(review,proposal,thai,now)]
+    else:
+        lines=[f'{slip} ยังไม่ได้บันทึก' if thai else f'{slip} not recorded','กรุณาบันทึกในแอป' if thai else 'Record it in the app.']
+        # R175 (Echo E-RES-04, E-R2-02): who approved what, for every partner the result goes to; gone when the execution's
+        # reason replaced the decision detail, and for an automatic payment (no Reviewer reply: no decision message).
+        choice=chosen_purpose_line(proposal,detail,thai) if proposal.get('action')==OPTIONS else approval_action(proposal,thai,recorded_only=True)
+        if choice and review.get('decision_message'):
+            name=reviewer_name(review['deciding_partner'],live,thai)
+            lines.append(f'{name} อนุมัติ: {choice}' if thai else f'Approved by {name}: {choice}')
+        if detail.endswith(LOAN_CLOSE):
+            # R128 (Echo AG-21): the manual close is done in the app.
+            lines.append('ข้อมูลสัญญาเปลี่ยนหลังอนุมัติ: รายการนี้เป็นการปิดสัญญา กรุณาปิดในแอป' if thai else 'Loan details changed after approval: this payment now closes the loan. Close it in the app.')
+    if review_posts_close(proposal):
+        line=close_failure_line(state,detail,proposal,thai)
+        # R175 (Archie 4): a close's own line replaces the generic stale or manual sentence.
+        if line and state in ('STALE','MANUAL_REQUIRED'):lines[1]=line
+        elif line:lines.append(line)
+    return subject,'\n'.join(lines)
+
+
+ACK_WINDOW=86340  # replies older than this get no acknowledgement (the Instagram reply window)
+
+
+def acknowledgement_key(message_id):
+    import hashlib
+    return ACKNOWLEDGEMENT+hashlib.sha256(message_id.encode()).hexdigest()
+
+
+def closed_answer(db,notices,event,notice,live,now=None):
+    """R175 (Archie E-X-02a, Echo 4a/4b): the Reviewer's reply to a request that is already decided, replaced or expired."""
+    now=time.time() if now is None else now
+    if not 0<=now-event['event_timestamp']<ACK_WINDOW:return
+    partner=next((p for p in live['partners'] if p['id']==notice['partner_id']),None)
+    row=db.execute('SELECT state,proposal FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
+    if not partner or not row:return
+    thai=partner['language']=='ไทย';proposal=json.loads(row['proposal'])
+    slip=slip_line(proposal['receipt'],proposal['borrower'],thai)
+    if row['state']=='SUPERSEDED':
+        subject,text=(('คำขอถูกแทนแล้ว','คำขอนี้ถูกแทนด้วยคำขอแก้ไขแล้ว ยังไม่ได้ดำเนินการ กรุณาตอบที่คำขอแก้ไข') if thai else
+                      ('Request replaced','That request was replaced by an updated request; nothing was done. Reply on the updated request.'))
+    else:
+        subject,text=(('คำขอปิดแล้ว','คำขอนี้ปิดแล้ว (ตัดสินแล้วหรือหมดอายุ) ยังไม่ได้ดำเนินการใดๆ') if thai else
+                      ('Request already closed','That request is already closed (decided or expired); nothing was done.'))
+    notices.reserve(acknowledgement_key(event['message_id']),partner,subject,slip+'\n'+text)
+
+
+def bare_answer(db,notices,config,event,identity_reader,now=None):
+    """R175 (Archie E-X-02b, Echo 4c): an answer word or code sent without Reply by a Reviewer who has a delivered request
+    still waiting gets one "Use Reply" acknowledgement; anything else stays silent."""
+    from .partner_review import APPROVE,REJECT,RECHECK,options_choice
+    from .review_resend import reviewer_sender
+    now=time.time() if now is None else now
+    text=(event.get('text') or '').strip().casefold()
+    if not (text in APPROVE|REJECT|RECHECK or options_choice(text)):return
+    if not 0<=now-event['event_timestamp']<ACK_WINDOW:return
+    if db.execute('SELECT 1 FROM partner_review_replies WHERE message_id=?',(event['message_id'],)).fetchone():return
+    # Only a sender a waiting request was delivered to is looked up, so a borrower's "yes" or "1" costs no identity read.
+    waiting={}
+    for row in db.execute("SELECT id,proposal FROM partner_reviews WHERE state='PENDING' AND expires_at>? ORDER BY created_at,id",(now,)).fetchall():
+        for sent in notices.db.execute("SELECT partner_id FROM partner_notices WHERE recipient_id=? AND ig_status='ACCEPTED' AND (event_key=? OR event_key LIKE ?)",
+                                       (event['sender_id'],'review:'+row['id'],'review:'+row['id']+':%')).fetchall():
+            waiting.setdefault(sent['partner_id'],{})[row['id']]=json.loads(row['proposal'])
+    if not waiting:return
+    live=masters(config)
+    try:identity=identity_reader(config,event['sender_id'])
+    except ConfigurationError:return
+    partner=reviewer_sender(event,live,identity)
+    if not partner or partner['id'] not in waiting:return
+    waiting=list(waiting[partner['id']].values())
+    key=acknowledgement_key(event['message_id'])
+    if not notices.db.execute('SELECT 1 FROM partner_notices WHERE event_key=?',(key,)).fetchone():
+        thai=partner['language']=='ไทย'
+        if thai:
+            subject,lines='กรุณาใช้ Reply',['ยังไม่ได้ดำเนินการ: คำตอบต้องใช้ Reply ที่ข้อความคำขอ ปัดขวาที่ข้อความคำขอ (หรือกดค้างแล้วเลือก Reply) แล้วส่งคำตอบอีกครั้ง']
+        else:
+            subject,lines='Use Reply',['Nothing was done: answers count only as a Reply on the request message. Swipe right on the request (or press and hold, then Reply) and send your answer again.']
+        if len(waiting)==1:
+            lines.append(('รอคำตอบ: ' if thai else 'Waiting: ')+slip_line(waiting[0]['receipt'],waiting[0]['borrower'],thai))
+        notices.reserve(key,partner,subject,'\n'.join(lines))
+    with db:
+        db.execute('INSERT OR IGNORE INTO partner_review_replies VALUES (?,?,?)',(event['message_id'],'reply-ack:'+key[len(ACKNOWLEDGEMENT):],'REPLY_REQUIRED'))
 
 
 def notice_rank(notice,changed=()):
@@ -454,7 +587,7 @@ def notice_rank(notice,changed=()):
     event=notice['event_key']
     if event.startswith('review-result:'):return 0 if event.split(':')[1] in changed else 1
     if event.startswith('receipt-held:') and ':resend:' in event:return 3
-    for rank,prefix in enumerate((('hold-reply-result:','review-command-result:'),'review:','receipt-held:','receipt-archive-pending:'),2):
+    for rank,prefix in enumerate((('hold-reply-result:','review-command-result:',ACKNOWLEDGEMENT),'review:','receipt-held:','receipt-archive-pending:'),2):
         if event.startswith(prefix):return rank
     return 6
 
@@ -489,36 +622,25 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                         # R128 (Echo AG-19): the close's own notice, with the loan and the rebate as recorded.
                         subject,body=close_notice(proposal,p['language'],review['payment_id'],review['detail'])
                     elif review['state']=='POSTED':
-                        subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],review['detail'].endswith(SAME_OUTCOME))
-                        if proposal.get('action')==OPTIONS:body+='\n'+posted_purpose(proposal,review['detail'],p['language']=='ไทย')
+                        # R175 (Echo E-RES-01): '✅ Recorded ฿400 from Kathy · pay forward: 19 Nov', then the transfer.
+                        purpose=chosen_purpose_line(proposal,review['detail'],p['language']=='ไทย') if proposal.get('action')==OPTIONS else ''
+                        subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],
+                                                    review['detail'].endswith(SAME_OUTCOME),purpose)
                     else:
-                        thai=p['language']=='ไทย'
-                        words={'REJECTED':('Rejected; no payment recorded.','ปฏิเสธแล้ว ยังไม่ได้บันทึกรายการ'),
-                          'MANUAL_REQUIRED':('Partner must record this manually. Agent has not posted it.','หุ้นส่วนต้องบันทึกรายการเอง ระบบยังไม่ได้บันทึก'),
-                          'STALE':('Facts changed or payment already exists. Check manually; no agent posting.','ข้อมูลเปลี่ยนหรือมีรายการแล้ว กรุณาตรวจสอบ ระบบยังไม่ได้บันทึก'),
-                          'EXPIRED':('Review expired; no payment recorded.','คำขอหมดอายุ ยังไม่ได้บันทึกรายการ'),
-                          'UNKNOWN':('Posting outcome unconfirmed. Reconciliation only; do not submit again.','ยังยืนยันผลการบันทึกไม่ได้ กรุณาตรวจสอบ ห้ามบันทึกซ้ำ')}
-                        subject='ผลการตรวจสอบ' if thai else 'Receipt review result'
-                        body=subject+'\n'+(proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id'])+'\n'+proposal['receipt']['amount']+' THB\n'+words[review['state']][int(thai)]
-                        if review['state']=='MANUAL_REQUIRED' and review['detail'].endswith(LOAN_CLOSE):
-                            # R128 (Echo AG-21): the manual close is done in the app.
-                            body+='\n'+('ข้อมูลสัญญาเปลี่ยนหลังอนุมัติ: รายการนี้เป็นการปิดสัญญา กรุณาปิดในแอป' if thai else 'Loan details changed after approval: this payment now closes the loan. Close it in the app.')
-                        if review_posts_close(proposal):
-                            line=close_failure_line(review['state'],review['detail'],proposal,thai)
-                            if line:body+='\n'+line
+                        subject,body=result_text(review,proposal,p,live)
                     notices.reserve(event,p,subject,body)
     from .receipt_hold import base_key,queue_holds,event_key
     if config.get('receipt_hold_notice_cutoff'):
         queue_holds(config,journal,notices,masters(config),identity_reader,failures)
     eligible=sorted((n for n in notices.due() if n['event_key'].startswith(
-        ('review:','review-result:','receipt-held:','receipt-archive-pending:','hold-reply-result:','review-command-result:'))),
+        ('review:','review-result:','receipt-held:','receipt-archive-pending:','hold-reply-result:','review-command-result:',ACKNOWLEDGEMENT))),
         key=lambda n:(notice_rank(n,changed),resend_position(n)))
     # Bound optional transport work so a backlog cannot monopolize the receipt lock.
     # Retry timestamps also let untouched notices progress after a provider outage.
     for notice in eligible[:NOTICE_CAP]:
         with isolated(failures,'delivery',lambda notice=notice: notices.defer(notice['id'])):
             live=masters(config)
-            if notice['event_key'].startswith(('hold-reply-result:','review-command-result:')) and not any(
+            if notice['event_key'].startswith(('hold-reply-result:','review-command-result:',ACKNOWLEDGEMENT)) and not any(
                 p['id']==notice['partner_id'] and p['enabled'] is True and p['id'] in live.get('reviewer_ids',[]) for p in live['partners']):
                 with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))
                 continue

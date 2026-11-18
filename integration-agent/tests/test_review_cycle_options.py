@@ -100,7 +100,8 @@ class OptionsCycleTests(unittest.TestCase):
         self.assertEqual(self.option_notices(),1)
         self.assertEqual(self.j.db.execute("SELECT status FROM receipt_jobs WHERE id='job'").fetchone()[0],'REVIEW_REQUESTED')
         notices=NoticeJournal(self.root/'partner-notices.db')
-        try:self.assertTrue(notices.db.execute("SELECT body FROM partner_notices WHERE event_key LIKE 'review:%:options:%'").fetchone()[0].startswith('Reply 1, 2 or 3.\n'))
+        try:self.assertTrue(notices.db.execute("SELECT body FROM partner_notices WHERE event_key LIKE 'review:%:options:%'").fetchone()[0].startswith(
+                'Reply not understood; nothing was done. Reply with a code below.\n'))
         finally:notices.close()
 
     def posted_notice(self):
@@ -117,25 +118,28 @@ class OptionsCycleTests(unittest.TestCase):
         self.reply('2');self.run_cycle();self.run_cycle()
         self.assertEqual(self.state(),'POSTED');self.assertEqual(self.submit.call_count,1)
         self.assertEqual(self.submit.call_args[0][1]['command']['plan']['purpose'],{'forward':False,'loans':None,'principal':[{'loanId':'L1','amount':'410'}]})
-        self.assertTrue(self.posted_notice().endswith('\nRecorded ฿950 · interest ฿90 + principal ฿410, new interest ฿53/day'))
+        self.assertTrue(self.posted_notice().startswith('Recorded ฿950 from Test · pay interest ฿90 + principal ฿410 → new interest ฿53/day\n'))
 
     def test_posted_notice_wording(self):
-        from mw_integration_agent.review_cycle import posted_purpose
+        # R175 (Echo E-RES-01): the choice is worded as its request line (partner_review.chosen_purpose_line).
+        from mw_integration_agent.partner_review import chosen_purpose_line
         o=dict(options(),remainder='500',principal=[{'loanId':'L1','loanKey':'L-0398','amount':'410','dailyAfter':'53','outstandingAfter':'9590'}])
         proposal=dict(self.proposal,options=o,receipt=dict(self.proposal['receipt'],amount='950'))
         def detail(forward,principal):return json.dumps({'purpose':{'forward':forward,'principal':principal,'loans':None}})
         principal=detail(False,[{'loanId':'L1','amount':'410'}])
-        self.assertEqual(posted_purpose(proposal,principal,False),'Recorded ฿950 · interest ฿90 + principal ฿410, new interest ฿53/day')
-        self.assertEqual(posted_purpose(proposal,principal,True),'บันทึก ฿950 · ดอกเบี้ย ฿90 + เงินต้น ฿410 ดอกเบี้ยใหม่ ฿53/วัน')
+        self.assertEqual(chosen_purpose_line(proposal,principal,False),'pay interest ฿90 + principal ฿410 → new interest ฿53/day')
+        self.assertEqual(chosen_purpose_line(proposal,principal,True),'ชำระดอกเบี้ย ฿90 + เงินต้น ฿410 → ดอกเบี้ยใหม่ ฿53/วัน')
         # No accrued interest (AG-9): the principal only.
         whole=dict(proposal,options=dict(o,principal=[dict(o['principal'][0],amount='500')]))
-        self.assertEqual(posted_purpose(whole,detail(False,[{'loanId':'L1','amount':'500'}]),False),'Recorded ฿950 · principal ฿500, new interest ฿53/day')
-        self.assertEqual(posted_purpose(whole,detail(False,[{'loanId':'L1','amount':'500'}]),True),'บันทึก ฿950 · เงินต้น ฿500 ดอกเบี้ยใหม่ ฿53/วัน')
+        self.assertEqual(chosen_purpose_line(whole,detail(False,[{'loanId':'L1','amount':'500'}]),False),'pay principal ฿500 → new interest ฿53/day')
+        self.assertEqual(chosen_purpose_line(whole,detail(False,[{'loanId':'L1','amount':'500'}]),True),'ชำระเงินต้น ฿500 → ดอกเบี้ยใหม่ ฿53/วัน')
         # A split approved before the R127 deploy may still post: its saved detail keeps the R112 wording.
         split=detail(True,[{'loanId':'L1','amount':'200'}])
-        self.assertEqual(posted_purpose(proposal,split,False),'Recorded ฿950 · principal ฿200, the rest pays forward')
-        self.assertEqual(posted_purpose(proposal,split,True),'บันทึก ฿950 · เงินต้น ฿200 ส่วนที่เหลือชำระล่วงหน้า')
-        self.assertEqual(posted_purpose(proposal,detail(True,[]),False),'Recorded ฿950 · pay forward, paid through 5 Nov')
+        self.assertEqual(chosen_purpose_line(proposal,split,False),'principal ฿200, the rest pays forward')
+        self.assertEqual(chosen_purpose_line(proposal,split,True),'เงินต้น ฿200 ส่วนที่เหลือชำระล่วงหน้า')
+        forward=o['forward']
+        self.assertEqual(chosen_purpose_line(proposal,detail(True,[]),False),'pay forward: '+__import__('mw_integration_agent.partner_review',fromlist=['x']).forward_span(forward,False))
+        self.assertEqual(chosen_purpose_line(proposal,'RECEIPT_API_REJECTED',False),'')
 
     def test_a_split_approved_before_the_deploy_still_posts_and_reports(self):
         # The R112 "3 800" reply was decided before the deploy (as the old ReviewStore.decide recorded it); it posts now.
@@ -146,7 +150,7 @@ class OptionsCycleTests(unittest.TestCase):
         self.run_cycle();self.assertEqual(self.option_notices(),0)
         self.assertEqual(self.state(),'POSTED');self.assertEqual(self.submit.call_count,1)
         self.assertEqual(self.submit.call_args[0][1]['command']['plan']['purpose']['principal'],[{'loanId':'L1','amount':'800'}])
-        self.assertTrue(self.posted_notice().endswith('\nRecorded ฿1,500 · principal ฿800, the rest pays forward'))
+        self.assertTrue(self.posted_notice().startswith('Recorded ฿1,500 from Test · principal ฿800, the rest pays forward\n'))
 
     def test_a_changed_purpose_plan_means_no_post(self):
         from mw_integration_agent.receipt_rules import ReceiptInvalid
@@ -210,9 +214,9 @@ class OptionsCycleTests(unittest.TestCase):
         notices=NoticeJournal(self.root/'partner-notices.db')
         try:
             ack=notices.db.execute("SELECT body FROM partner_notices WHERE event_key=?",('review-result:'+self.key+':RECHECK',)).fetchone()
-            self.assertIsNotNone(ack);self.assertIn('Nothing has been posted yet',ack[0]);self.assertIn(' ฿1,500\n',ack[0])
+            self.assertIsNotNone(ack);self.assertIn('Nothing recorded yet',ack[0]);self.assertTrue(ack[0].startswith('Rechecking Test ฿1,500 ('))
             request=notices.db.execute("SELECT body FROM partner_notices WHERE event_key=?",('review:'+new['id'],)).fetchone()
-            self.assertTrue(request[0].startswith('Corrected request'),'the new request says it replaces the earlier one')
+            self.assertTrue(request[0].startswith('Updated request: use this one, not the earlier message\n'),'the new request says it replaces the earlier one')
         finally:notices.close()
         self.reply('1',message='reply2');self.run_cycle()
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews WHERE id=?',(self.key,)).fetchone()[0],'SUPERSEDED','a reply to the old message decides nothing')
@@ -239,12 +243,18 @@ class OptionsCycleTests(unittest.TestCase):
         self.submit.assert_not_called()
 
     def test_switch_off_keeps_the_overpayment_hold_and_a_reply_number_means_nothing(self):
-        # Off: today's hold. The proposal is the old action; any non-approval reply rejects, and no options are ever queued.
+        # Off: today's hold. The proposal is the old action; R175 (Archie E-APR-01): a number on it is asked again (the
+        # plain request's re-ask, under the same key), decides nothing and posts nothing.
         self.config.pop('pay_forward_options_enabled')
         self.j.db.execute("UPDATE partner_reviews SET proposal=?",(json.dumps(dict(self.proposal,action='Overpayment review',approved_allocation_method='Lump Sum',options=None),sort_keys=True,ensure_ascii=False),));self.j.db.commit()
         self.current=dict(self.proposal,action='Overpayment review',approved_allocation_method='Lump Sum')
-        self.reply('1');self.run_cycle();self.submit.assert_not_called();self.assertEqual(self.option_notices(),0)
-        self.assertEqual(self.state(),'REJECTED')
+        self.reply('1');self.run_cycle();self.submit.assert_not_called();self.assertEqual(self.option_notices(),1)
+        self.assertEqual(self.state(),'PENDING')
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:body=notices.db.execute("SELECT body FROM partner_notices WHERE event_key LIKE 'review:%:options:%'").fetchone()[0]
+        finally:notices.close()
+        self.assertTrue(body.startswith('Reply not understood; nothing was done. Reply Yes to approve or Reject (or No) to record nothing.\n'))
+        self.assertNotIn('\n1 = ',body)
 
 
 if __name__=='__main__':unittest.main()

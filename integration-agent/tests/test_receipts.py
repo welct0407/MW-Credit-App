@@ -111,9 +111,9 @@ class ReceiptRuleTests(unittest.TestCase):
         self.assertEqual(validate_receipt(r,master()['accounts'])['account_id'],'a')
         job={'id':'j','detail':'AMOUNT_UNREADABLE','created_at':1760000000,
              'result':json.dumps({'extraction':{**r,'amount':''}})}
-        self.assertIn('Account: TTB test',held_text(job,None,'English',master()['accounts'])[1])
+        self.assertIn(' · TTB test\n',held_text(job,None,'English',master()['accounts'])[1])
         job['result']=json.dumps({'extraction':{**receipt(),'amount':''}})
-        self.assertIn('Account: TTB test',held_text(job,None,'English',master()['accounts'])[1])
+        self.assertIn(' · TTB test\n',held_text(job,None,'English',master()['accounts'])[1])
 
     def test_date_amount_reference_and_nonreceipt_negative_paths(self):
         today=datetime.now(BANGKOK).date()

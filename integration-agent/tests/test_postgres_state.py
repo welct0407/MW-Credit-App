@@ -490,6 +490,37 @@ class PostgreSQLStateTests(unittest.TestCase):
             self.assertEqual((row['job_id'],row['state']),(self.key,'PENDING'))
         finally:receipt.close()
 
+    def test_r175_plain_re_ask_and_acknowledgements_are_idempotent(self):
+        # R175 (Archie E-APR-01, E-X-02): an unclear reply to a plain request decides nothing and replays the same outcome;
+        # a closed-request acknowledgement and a bare-answer marker are written once.
+        from mw_integration_agent.review_cycle import acknowledgement_key,closed_answer
+        receipt=ReceiptJournal('receipt-processing.db',self.config);notices=NoticeJournal('partner-notices.db',self.config)
+        try:
+            review=ReviewStore(receipt.db)
+            proposal={'action':'Lump Sum','borrower':{'id':'b','name_en':'Synthetic'},'facts':{},'loan_id':None,
+                      'receipt':{'amount':'800.50','date':'2026-11-18','time':'18:16','account_label':'Synthetic account'}}
+            key=review.reserve(self.key,proposal)
+            partner={'id':'p-'+self.key,'username':'synthetic_reviewer','enabled':True,'language':'English','email':'synthetic@example.invalid'}
+            notice={'ig_status':'ACCEPTED','event_key':'review:'+key,'message_id':'out-'+self.key,'recipient_id':'1','partner_id':partner['id'],
+                    'partner':json.dumps(partner)}
+            now=time.time()
+            event={'reply_to':notice['message_id'],'sender_id':'1','message_id':'m-'+self.key,'event_timestamp':now,'text':'ok'}
+            decide=lambda e:review.decide(e,notice,[partner],{'id':'1','username':'synthetic_reviewer'},now+1,reviewer_ids=[partner['id']])
+            self.assertEqual(decide(event),'OPTIONS_REQUIRED');self.assertEqual(decide(event),'OPTIONS_REQUIRED')
+            self.assertEqual(receipt.db.execute('SELECT state FROM partner_reviews WHERE id=?',(key,)).fetchone()['state'],'PENDING')
+            self.assertEqual(decide(dict(event,message_id='y-'+self.key,text='Yes')),'APPROVED')
+            late=dict(event,message_id='late-'+self.key,text='yes')
+            self.assertEqual(decide(late),'ALREADY_DECIDED')
+            for _ in range(2):closed_answer(receipt.db,notices,late,notice,{'partners':[partner]})
+            rows=notices.db.execute('SELECT subject,body FROM partner_notices WHERE event_key=?',(acknowledgement_key(late['message_id']),)).fetchall()
+            self.assertEqual([r['subject'] for r in rows],['Request already closed'])
+            self.assertTrue(rows[0]['body'].startswith('Synthetic ฿800.50 (18 Nov 18:16)\n'))
+            for _ in range(2):
+                with receipt.db:
+                    receipt.db.execute('INSERT OR IGNORE INTO partner_review_replies VALUES (?,?,?)',('bare-'+self.key,'reply-ack:'+self.key,'REPLY_REQUIRED'))
+            self.assertEqual(receipt.db.execute('SELECT count(*) AS n FROM partner_review_replies WHERE message_id=?',('bare-'+self.key,)).fetchone()['n'],1)
+        finally:notices.close();receipt.close()
+
     def test_r174_requeue_never_supersedes_a_review_decided_after_the_check(self):
         from mw_integration_agent.receipt_reconsider import requeue
         receipt=ReceiptJournal('receipt-processing.db',self.config)

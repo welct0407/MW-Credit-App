@@ -199,24 +199,26 @@ class NoticeTests(unittest.TestCase):
         borrower={'id':'b','name_en':'Test Borrower','name_th':'ผู้กู้ทดสอบ'}
         for language in ('English','ไทย'):
             subject,body=receipt_notice(receipt,borrower,language,'payment-test')
-            self.assertIn('1,300 ',body);self.assertNotIn('1,300.00',body);self.assertIn('12:10',body);self.assertNotIn('12:10:59',body)
+            self.assertIn('฿1,300 ',body);self.assertNotIn('1,300.00',body);self.assertIn('12:10',body);self.assertNotIn('12:10:59',body)
             # R164: the payment ID is not meaningful to the reader and is not printed.
             self.assertNotIn('payment-test',body);self.assertNotIn('Payment ID',body);self.assertNotIn('รายการชำระเงิน:',body)
         subject,body=receipt_notice(receipt,borrower,'English')
-        self.assertIn('has not been recorded',body);self.assertNotIn('processed',subject)
+        self.assertIn('Nothing recorded yet',body);self.assertNotIn('recorded',subject)
 
     def test_notice_amount_whole_baht_and_satang_exact(self):
         borrower={'id':'b','name_en':'Test Borrower','name_th':'ผู้กู้ทดสอบ'}
         receipt={'amount':'1100.00','date':'2026-09-21','time':'12:10:59','account_label':'Test TTB'}
-        self.assertEqual(receipt_notice(receipt,borrower,'English','pwa:x'),('Payment processed','\n'.join([
-            'Payment processed','Borrower: Test Borrower','Amount: 1,100 baht','Transferred: 2026-09-21 12:10 (Bangkok)','Received into: Test TTB'])))
+        # R175 (Echo E-RES-01, E-RCV-01): what happened first, then the transfer; '฿' with exact satang; no "(Bangkok)".
+        self.assertEqual(receipt_notice(receipt,borrower,'English','pwa:x'),('Payment recorded','\n'.join([
+            'Recorded ฿1,100 from Test Borrower','Transferred 21 Sep 12:10 · Test TTB'])))
         self.assertEqual(receipt_notice(receipt,borrower,'ไทย','pwa:x'),('บันทึกการชำระเงินสำเร็จ','\n'.join([
-            'บันทึกการชำระเงินสำเร็จ','ผู้ชำระ: ผู้กู้ทดสอบ','จำนวน: 1,100 บาท','วันเวลาโอน: 2026-09-21 12:10 (เวลาไทย)','รับเข้าบัญชี: Test TTB'])))
+            'บันทึก ฿1,100 จาก ผู้กู้ทดสอบ','โอน 21 ก.ย. 12:10 · บัญชี Test TTB'])))
+        self.assertEqual(receipt_notice(receipt,borrower,'English','pwa:x',purpose='pay forward: 22 Sep')[1].split('\n')[0],
+                         'Recorded ฿1,100 from Test Borrower · pay forward: 22 Sep')
         satang=dict(receipt,amount='800.50')
         self.assertEqual(receipt_notice(satang,borrower,'English')[1],'\n'.join([
-            'Payment receipt received','Borrower: Test Borrower','Amount: 800.50 baht','Transferred: 2026-09-21 12:10 (Bangkok)','Received into: Test TTB',
-            'Basic receipt checks passed. Payment has not been recorded.']))
+            'Slip ฿800.50 from Test Borrower received','Transferred 21 Sep 12:10 · Test TTB','Basic slip checks passed. Nothing recorded yet.']))
         self.assertEqual(receipt_notice(satang,borrower,'ไทย')[1],'\n'.join([
-            'ได้รับสลิปการชำระเงิน','ผู้ชำระ: ผู้กู้ทดสอบ','จำนวน: 800.50 บาท','วันเวลาโอน: 2026-09-21 12:10 (เวลาไทย)','รับเข้าบัญชี: Test TTB',
-            'ผ่านการตรวจสอบสลิปเบื้องต้น ยังไม่ได้บันทึกการชำระเงิน']))
+            'ได้รับสลิป ฿800.50 จาก ผู้กู้ทดสอบ','โอน 21 ก.ย. 12:10 · บัญชี Test TTB','ตรวจสลิปเบื้องต้นผ่านแล้ว ยังไม่ได้บันทึกรายการ']))
+        self.assertEqual(receipt_notice(satang,borrower,'English','pwa:x')[1].split('\n')[0],'Recorded ฿800.50 from Test Borrower')
         self.assertEqual([notice_amount(v) for v in ('800','800.00','1234.5','1612345.00','800.505')],['800','800','1,234.50','1,612,345','800.505'])

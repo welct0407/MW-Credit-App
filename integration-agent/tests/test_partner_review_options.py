@@ -170,10 +170,10 @@ class OptionsReplyTests(unittest.TestCase):
 
     def test_the_request_offers_the_recheck_as_three(self):
         english,thai=request_text(PROPOSAL,'English')[1],request_text(PROPOSAL,'ไทย')[1]
-        self.assertIn(' · 3 recheck after editing charges in the app. Reject to drop.',english)
-        self.assertIn(' · 3 ตรวจใหม่หลังแก้ยอดในแอป · ปฏิเสธ เพื่อยกเลิก',thai)
+        self.assertIn('\n3 = recheck (edit the charges in the app first, then reply 3)\nReject (or No) = record nothing for this slip\n',english)
+        self.assertIn('\n3 = ตรวจใหม่ (แก้ยอดในแอปก่อน แล้วตอบ 3)\nปฏิเสธ = ไม่บันทึกสลิปนี้\n',thai)
         for body in (english,thai):
-            for withdrawn in ('3 + amount','3 + จำนวน','4 ','split','แบ่งชำระ'):self.assertNotIn(withdrawn,body)
+            for withdrawn in ('3 + amount','3 + จำนวน','\n4 ','split','แบ่งชำระ'):self.assertNotIn(withdrawn,body)
 
     def test_a_decision_is_final(self):
         self.assertEqual(self.decide('1'),'APPROVED')
@@ -194,61 +194,63 @@ class OptionsReplyTests(unittest.TestCase):
         self.assertEqual(self.store.decide(dict(self.event,reply_to='out2'),resent,[self.p],self.identity,120,reviewer_ids=['p']),'APPROVED')
 
     def test_request_text_states_the_plan_and_fits_the_message_limit(self):
+        from mw_integration_agent.partner_notice import BODY_LIMIT
         for language in ('English','ไทย'):
             subject,body=request_text(PROPOSAL,language);plain=body.replace('฿','').replace(',','')
             for expected in ('1500','300','1200','L-0398','5'):self.assertIn(expected,plain)
-            self.assertLessEqual(len(body),1000)
+            self.assertLessEqual(len(body),BODY_LIMIT)
             self.assertIn('Reject' if language=='English' else 'ปฏิเสธ',body)
 
     def test_an_unclear_reply_gets_the_prompt_and_the_options_again(self):
-        # R127 (Echo AG-6): the prompt names the replies the request offers.
-        for language,prompt in (('English','Reply 1, 2 or 3.\n'),('ไทย','ตอบ 1, 2 หรือ 3\n')):
+        # R175 (Echo A): one prompt line above the request as sent, whatever codes it offers.
+        for language,prompt in (('English','Reply not understood; nothing was done. Reply with a code below.\n'),
+                                ('ไทย','ไม่เข้าใจคำตอบ ยังไม่ได้ดำเนินการ กรุณาตอบด้วยรหัสด้านล่าง\n')):
             body=request_text(PROPOSAL,language,unclear=True)[1]
-            self.assertTrue(body.startswith(prompt));self.assertIn('1,500',body);self.assertLessEqual(len(body),1000)
-        several=json.loads(json.dumps(OWNER));several['options']['principal'].append(dict(LOAN_B))
-        for language,prompt in (('English','Reply 1, 2 1, 2 2 or 3.\n'),('ไทย','ตอบ 1, 2 1, 2 2 หรือ 3\n')):
-            self.assertTrue(request_text(several,language,unclear=True)[1].startswith(prompt))
-        no_forward=json.loads(json.dumps(OWNER));no_forward['options']['forward']=None
-        for language,prompt in (('English','Reply 2 or 3.\n'),('ไทย','ตอบ 2 หรือ 3\n')):
+            self.assertEqual(body,prompt+request_text(PROPOSAL,language)[1]);self.assertIn('1,500',body)
+            several=json.loads(json.dumps(OWNER));several['options']['principal'].append(dict(LOAN_B))
+            self.assertEqual(request_text(several,language,unclear=True)[1],prompt+request_text(several,language)[1])
+            no_forward=json.loads(json.dumps(OWNER));no_forward['options']['forward']=None
             body=request_text(no_forward,language,unclear=True)[1]
-            self.assertTrue(body.startswith(prompt));self.assertNotIn(' 1 ',body.split('\n')[1])
+            self.assertTrue(body.startswith(prompt));self.assertNotIn('\n1 = ',body)
 
     def test_option_two_shows_the_interest_and_principal_split(self):
         # R127 (Echo AG-7, AG-8), the owner's example: remainder 500, principal 410, so the loan's interest is 90.
-        self.assertEqual(request_text(OWNER,'English')[1].split('\n')[0],
-            'Slip ฿950 from Manee, L-0398. Due today ฿450 is paid first. Remainder ฿500, reply: 1 pay forward (6–7 Nov, paid through 7 Nov)'
-            ' · 2 interest ฿90 + principal ฿410 (new interest ฿53/day) · 3 recheck after editing charges in the app. Reject to drop.')
-        self.assertEqual(request_text(OWNER,'ไทย')[1].split('\n')[0],
-            'สลิป ฿950 จาก มาณี, L-0398 หักยอดครบกำหนดวันนี้ ฿450 ก่อน ยอดคงเหลือ ฿500 ตอบ: 1 ชำระล่วงหน้า (6–7 พ.ย. ชำระถึง 7 พ.ย.)'
-            ' · 2 ดอกเบี้ย ฿90 + เงินต้น ฿410 (ดอกเบี้ยใหม่ ฿53/วัน) · 3 ตรวจใหม่หลังแก้ยอดในแอป · ปฏิเสธ เพื่อยกเลิก')
+        self.assertIn('\n2 = pay interest ฿90 + principal ฿410 → new interest ฿53/day\n',request_text(OWNER,'English')[1])
+        self.assertIn('\n2 = ชำระดอกเบี้ย ฿90 + เงินต้น ฿410 → ดอกเบี้ยใหม่ ฿53/วัน\n',request_text(OWNER,'ไทย')[1])
 
     def test_the_due_part_with_a_late_charge_is_paid_first(self):
         late=json.loads(json.dumps(OWNER));late['options'].update(dueInterest='400',dueLate='50',duePrincipal='0')
-        self.assertIn('Due today ฿450 (Interest ฿400 + Late charge ฿50) is paid first. Remainder ฿500',request_text(late,'English')[1])
-        self.assertIn('หักยอดครบกำหนดวันนี้ ฿450 (ดอกเบี้ย ฿400 + ค่าปรับล่าช้า ฿50) ก่อน ยอดคงเหลือ ฿500',request_text(late,'ไทย')[1])
+        self.assertIn('\nDue today ฿450 (interest ฿400 + late charge ฿50) is paid first.\n',request_text(late,'English')[1])
+        self.assertIn('\nหักยอดครบกำหนดวันนี้ ฿450 (ดอกเบี้ย ฿400 + ค่าปรับล่าช้า ฿50) ก่อน\n',request_text(late,'ไทย')[1])
 
-    def test_nothing_due_is_not_said_to_be_paid_first(self):
+    def test_nothing_due_has_no_due_line(self):
+        # R175 (Echo A rules): the "Due today" line is left out when nothing is due.
         nothing=json.loads(json.dumps(OWNER));nothing['options']['dueTotal']='0'
-        self.assertIn('Due today ฿0. Remainder ฿500',request_text(nothing,'English')[1])
-        self.assertIn(' ครบกำหนดวันนี้ ฿0 ยอดคงเหลือ ฿500',request_text(nothing,'ไทย')[1])
+        self.assertNotIn('Due today',request_text(nothing,'English')[1])
+        self.assertNotIn('ครบกำหนดวันนี้',request_text(nothing,'ไทย')[1])
 
     def test_no_accrued_interest_shows_the_principal_only(self):
         # R127 (Echo AG-9): the existing fixture's whole remainder (1,200) goes to principal.
-        self.assertIn(' · 2 principal ฿1,200 (new interest ฿66/day) · ',request_text(PROPOSAL,'English')[1])
-        self.assertIn(' · 2 เงินต้น ฿1,200 (ดอกเบี้ยใหม่ ฿66/วัน) · ',request_text(PROPOSAL,'ไทย')[1])
+        self.assertIn('\n2 = pay principal ฿1,200 → new interest ฿66/day\n',request_text(PROPOSAL,'English')[1])
+        self.assertIn('\n2 = ชำระเงินต้น ฿1,200 → ดอกเบี้ยใหม่ ฿66/วัน\n',request_text(PROPOSAL,'ไทย')[1])
 
     def test_several_loans_put_each_principal_choice_on_its_own_line(self):
-        # R127 (Echo AG-10): "2 <n> <loan key>: interest + principal" per line; numbers stay fixed when one is refused.
+        # R127 (Echo AG-10), R175: "2 <n> = loan <label>: ..." per line; numbers stay fixed when one is refused. Keys that
+        # do not parse (L-0398) are printed in full.
         several=json.loads(json.dumps(OWNER));several['options']['principal'].append(dict(LOAN_B))
         lines=request_text(several,'English')[1].split('\n')
-        self.assertTrue(lines[0].endswith('Remainder ฿500, reply: 1 pay forward (6–7 Nov, paid through 7 Nov)'))
-        self.assertEqual(lines[1:4],['2 1 L-0398: interest ฿90 + principal ฿410 (new interest ฿53/day)',
-            '2 2 L-0400: interest ฿200 + principal ฿300 (new interest ฿20/day)','3 recheck after editing charges in the app. Reject to drop.'])
-        self.assertEqual(request_text(several,'ไทย')[1].split('\n')[1:4],['2 1 L-0398: ดอกเบี้ย ฿90 + เงินต้น ฿410 (ดอกเบี้ยใหม่ ฿53/วัน)',
-            '2 2 L-0400: ดอกเบี้ย ฿200 + เงินต้น ฿300 (ดอกเบี้ยใหม่ ฿20/วัน)','3 ตรวจใหม่หลังแก้ยอดในแอป · ปฏิเสธ เพื่อยกเลิก'])
+        self.assertEqual(lines[lines.index('Reply with one code:')+1:][:5],['1 = pay forward: 6–7 Nov',
+            '2 1 = loan L-0398: pay interest ฿90 + principal ฿410 → new interest ฿53/day',
+            '2 2 = loan L-0400: pay interest ฿200 + principal ฿300 → new interest ฿20/day',
+            '3 = recheck (edit the charges in the app first, then reply 3)','Reject (or No) = record nothing for this slip'])
+        self.assertNotIn('Loan L-0398',request_text(several,'English')[1])  # named on its own line, not again
+        lines=request_text(several,'ไทย')[1].split('\n')
+        self.assertEqual(lines[lines.index('ตอบด้วยรหัสเดียว:')+1:][:3],['1 = ชำระล่วงหน้า: 6–7 พ.ย.',
+            '2 1 = สัญญา L-0398: ชำระดอกเบี้ย ฿90 + เงินต้น ฿410 → ดอกเบี้ยใหม่ ฿53/วัน',
+            '2 2 = สัญญา L-0400: ชำระดอกเบี้ย ฿200 + เงินต้น ฿300 → ดอกเบี้ยใหม่ ฿20/วัน'])
         several['options']['forward']=None
         lines=request_text(several,'English')[1].split('\n')
-        self.assertTrue(lines[0].endswith('Remainder ฿500, reply:'));self.assertTrue(lines[1].startswith('2 1 L-0398: '))
+        self.assertTrue(lines[lines.index('Reply with one code:')+1].startswith('2 1 = loan L-0398: '))
 
     def test_several_loans_two_with_a_number_chooses_that_loan(self):
         several=json.loads(json.dumps(PROPOSAL));several['options']['principal'].append(dict(LOAN_B))
@@ -260,11 +262,13 @@ class OptionsReplyTests(unittest.TestCase):
 
     def test_five_loans_with_realistic_keys_fit_the_message_limit(self):
         # Five principal choices (MAX_PRINCIPAL_OPTIONS) with display keys of one borrower about 50 characters long, the
-        # late charge breakdown and the unclear prompt. Each key is named once: on its own "2 <n>" line, not in the head.
+        # late charge breakdown and the unclear prompt. R175: each loan is named once, by its short label on its own
+        # "2 <n>" line (distinct dates, so the labels differ); the request falls back to the short form when needed.
+        from mw_integration_agent.partner_notice import BODY_LIMIT
         from mw_integration_agent.review_proposal import loan_display_key
         for language,name,descriptions in (('English','Wilaiwan Phongphanit',('Fruit','Curry','Online','Repair','Capital')),
                                            ('ไทย','วิไลวรรณ พงษ์พานิช',('ร้านผลไม้','ร้านข้าวแกง','ขายของออนไลน์','ซ่อมรถ','ทุนหมุนเวียน'))):
-            keys=[loan_display_key(name,d,'150000','2026-03-12','1.5') for d in descriptions]
+            keys=[loan_display_key(name,d,'150000',f'2026-03-1{n}','1.5') for n,d in enumerate(descriptions)]
             five=json.loads(json.dumps(OWNER));five['loan_keys']=keys;five['borrower']=dict(five['borrower'],name_en=name,name_th=name)
             five['receipt'].update(amount='25000',account_label='KBank 123-4-56789-0')
             five['options'].update(dueTotal='1450',dueInterest='1200',dueLate='250',duePrincipal='0',remainder='23550')
@@ -273,8 +277,9 @@ class OptionsReplyTests(unittest.TestCase):
             for unclear in (False,True):
                 with self.subTest(language=language,unclear=unclear):
                     body=request_text(five,language,unclear=unclear)[1]
-                    self.assertLessEqual(len(body),1000);self.assertEqual(body.count('\n2 '),5)
-                    for key in keys:self.assertEqual(body.count(key),1)
+                    self.assertLessEqual(len(body),BODY_LIMIT);self.assertEqual(body.count('\n2 '),5)
+                    for n in range(5):self.assertEqual(body.count(f'(1{n} '),1)
+                    for key in keys:self.assertNotIn(key,body)
 
     def test_request_text_omits_a_refused_option_and_says_to_record_the_settle_in_the_app(self):
         # R113: a remainder that settles a loan is recorded in the app (Receive payment), never by this reply.
