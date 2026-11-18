@@ -9,23 +9,29 @@ Owner, 18 November 2026: "now the feature i want to add the most is to automate 
 - `apps/pwa/src/reminder-message.ts` (Byte, `acce8ec`, new): `reminderAmount` and `reminderMessage` build `📌วันนี้มีส่งยอด 3,600 นะคะ` (Thai only) from `amountRemaining`; null for a missing, zero or negative amount.
 - `apps/pwa/src/CollectionRecords.tsx`: the Collection tile and header chat links copy the reminder as they open the chat. Names: "Copy reminder and open group chat in Instagram" and a direct-message variant, English and Thai. One `role="status"` line on return: "Reminder copied: 3,600", or in red "Reminder not copied. Type the amount in the chat." Group and direct-message links both copy (the agent sends borrowers no automatic reminder). The Borrower page chat buttons and `chatPurpose` are unchanged.
 - `apps/pwa/src/live-style.css`: one selector. `tests/unit/reminder-message.test.mjs`: new unit test.
-- `tests/e2e/collection-chat-summary.spec.ts` (Chase): spec updates in progress.
+- `tests/e2e/collection-chat-summary.spec.ts` and the replay spec chat tests (Chase, `5b0856f`, `dcffce4`): chat button names updated and five new R176 tests (tile copy and open, with the clear on a new selection; rejected copy; missing clipboard API; zero amount, with no stale line after an earlier copy; header link).
+- `7801458` (Byte, fix for Chase's Low 1): a tap on a chat link with nothing to collect returned before the status was cleared, so an earlier "Reminder copied" line could show again on return. Every chat tap now clears the status and invalidates a pending write.
+- Chase's review of `acce8ec`: no defect above Low. Low 1 fixed in `7801458`. Low 2 accepted, not fixed: the copy status and the late-charge toast share a position and would overlap if both showed. Checked with no defect: no unhandled rejection, the link always opens, a late write cannot show on a newly selected borrower, the idle status element has no layout or focus effect, read-only and offline users copy the same way.
 - Docs: `project/Documents/Release_Tracker.md` (R176 row), `project/Documents/Development_Changes.md` (R176 outstanding row), `project/Documents/Solution_Design.md` (R176 paragraph beside the Collection chat button entries).
 - Unaffected: the integration agent (unchanged, no agent change note), `PWA_Data_Model_Overview.md` and the dictionary (no data, SQL or offline shape change), `docs/`, Environment Inventory (no deployment).
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| `npm run lint` | Pass, exit 0 (Byte, `acce8ec`) |
-| `npm run typecheck` | Pass, exit 0 (Byte, `acce8ec`) |
-| `node --test tests/unit/reminder-message.test.mjs tests/unit/group-chat-refresh.test.mjs` | Pass, 15 of 15 (Byte, `acce8ec`) |
-| Chase review and e2e spec run | PENDING |
+| `npm run lint` | Pass, exit 0 (Byte, `7801458`) |
+| `npm run typecheck` | Pass, exit 0 (Byte, `7801458`) |
+| `node --test tests/unit/reminder-message.test.mjs tests/unit/group-chat-refresh.test.mjs` | Pass, 15 of 15 (Byte, `7801458`) |
+| `tests/e2e/collection-chat-summary.spec.ts` on `desktop-chromium` and `mobile-chromium` | Pass, 39 passed, 3 skipped (phone-width only); Chase, code `7801458`, spec `dcffce4` |
+| `tests/e2e/dataset-replay-independent.spec.ts` (whole file) on both projects | Pass, 32 passed; Chase, code `7801458`, spec `dcffce4` |
+| `borrower-chat-button.spec.ts` and the replay spec filtered to chat tests | Pass, 10 passed; Chase, `acce8ec` with `5b0856f` |
+| Chase's review of `acce8ec` | No defect above Low (see Changes) |
 
 ## Not run
 - No pull request, so no `Development checks` run yet; the owner has not asked for one.
 - Not deployed to DEV or PROD.
 - The clipboard copy before the Instagram hand-off on a real iPhone cannot be shown in Playwright; it needs one owner tap in DEV.
-- Chase's review and e2e results: PENDING.
+- `mobile-webkit` and the iPad WebKit projects: WebKit is not installed in this cloud container; left to the pull request's CI, and no pull request exists yet.
+- The wide e2e suite.
 
 ## Recovery
 Revert the R176 commits. PWA Hosting only: no SQL, service, agent or data change, so nothing else to restore.
@@ -34,6 +40,6 @@ Revert the R176 commits. PWA Hosting only: no SQL, service, agent or data change
 - The reminder wording and format are under owner review (`📌วันนี้มีส่งยอด <amount> นะคะ`).
 
 ## Remaining work
-- Chase's review and e2e rows (PENDING).
+- Low 2 (copy status and late-charge toast overlap) is accepted; revisit only if the owner sees it.
 - Owner review of the wording, then a DEV deploy and one iPhone tap to confirm the copy.
 - Possible follow-ups, not started: a "sent" tick driven by the agent's poll; a breakdown of arrears plus today in the text.
