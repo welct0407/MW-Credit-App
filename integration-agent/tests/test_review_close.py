@@ -379,6 +379,29 @@ class CloseCycleTests(unittest.TestCase):
         body = self.result_body()
         self.assertTrue(body.startswith('Recorded ฿1,100 from Cha · loan closed: ฿1,000 (26 Oct, 1.5%)\n'));self.assertTrue(body.endswith("\nReferral rebate ฿30: offset to Ann's loan"))
 
+    def test_r175_an_unclear_reply_re_asks_then_yes_to_the_re_ask_closes_once(self):
+        # Case 20 (Archie E-APR-01): the close request re-asks, decides nothing, then "yes" on the re-ask closes the loan once.
+        identity = lambda config, sender: {'id': sender, 'username': {'456': 'partner', '123': 'borrower'}[sender]}
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL");self.j.db.commit()
+        def reply(message_id, text, reply_to):
+            ingress = IngressJournal(self.root / 'instagram-ingress.db')
+            ingress.db.execute("INSERT INTO messages(message_id,sender_id,event_timestamp,text,captured_at,status,reply_to) VALUES (?,?,?,?,?,?,?)",
+                               (message_id, '456', time.time(), text, time.time(), 'CAPTURED_NO_PROCESSING', reply_to))
+            ingress.db.commit();ingress.close()
+        reply('unclear', 'close it', 'sent')
+        self.assertEqual(cycle(self.config, self.j, identity)['failures'], []);cycle(self.config, self.j, identity)
+        self.assertEqual(self.review()['state'], 'PENDING');self.submit_close.assert_not_called()
+        notices = NoticeJournal(self.root / 'partner-notices.db')
+        try:
+            asks = notices.db.execute("SELECT id,body FROM partner_notices WHERE event_key LIKE ?", ('review:' + self.key + ':options:%',)).fetchall()
+            self.assertEqual(len(asks), 1)
+            self.assertTrue(asks[0]['body'].startswith('Reply not understood; nothing was done. Reply Yes to close the loan or Reject (or No) to record nothing.\n'))
+            with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id='re-ask',recipient_id='456' WHERE id=?", (asks[0]['id'],))
+        finally:notices.close()
+        reply('yes', 'YES', 're-ask')
+        cycle(self.config, self.j, identity);cycle(self.config, self.j, identity)
+        self.assertEqual(self.review()['state'], 'POSTED');self.assertEqual(self.submit_close.call_count, 1);self.submit.assert_not_called()
+
     def test_a_changed_plan_hash_version_or_rebate_is_stale_and_says_so(self):
         for fresh in (close(planHash='c' * 64), close(sourceVersion='c' * 64), close(rebatePath='expense', rebateAmount='30', referrer='Ann')):
             with self.subTest(fresh=fresh):

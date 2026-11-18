@@ -981,6 +981,48 @@ class CycleTests(unittest.TestCase):
         self.message('bare-2','no');self.reviewer_cycle()
         self.assertEqual(len(self.ack_rows()),1)
 
+    def test_r175_an_expired_request_is_acknowledged_with_the_closed_text(self):
+        # Case 21: a reply after expires_at expires the review (EXPIRED) and gets the generic closed-request line.
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL,expires_at=?",(__import__('time').time()-60,));self.j.db.commit()
+        self.message('after-expiry','yes',reply_to='sent');self.reviewer_cycle();self.reviewer_cycle()
+        self.assertEqual(self.review()['state'],'EXPIRED');self.submit.assert_not_called()
+        [row]=self.ack_rows()
+        self.assertEqual((row['subject'],row['partner_id']),('Request already closed','p'))
+        self.assertEqual(row['body'].split('\n')[1],'That request is already closed (decided or expired); nothing was done.')
+        self.assertEqual(self.notice_rows('review:'+self.key+':options:'),[])
+
+    def test_r175_a_non_reviewer_or_a_changed_partner_snapshot_gets_no_acknowledgement(self):
+        # Case 22: NOT_REVIEWER and PARTNER_CHANGED stay silent, for a closed request and for an open one.
+        for state in ('REJECTED','PENDING'):
+            with self.subTest(state=state):
+                self.j.db.execute("UPDATE partner_reviews SET state=?",(state,));self.j.db.commit()
+                self.masters.return_value['reviewer_ids']=[]
+                self.message('not-reviewer-'+state,'maybe',reply_to='sent');self.reviewer_cycle()
+                self.masters.return_value['reviewer_ids']=['p']
+                self.masters.return_value['partners']=[dict(self.p,email='changed@example.invalid')]
+                self.message('changed-'+state,'maybe',reply_to='sent');self.reviewer_cycle()
+                self.masters.return_value['partners']=[self.p]
+                self.assertEqual(self.ack_rows(),[]);self.assertEqual(self.notice_rows('review:'+self.key+':options:'),[])
+                self.assertEqual(self.review()['state'],state)
+        outcomes=dict(self.j.db.execute("SELECT message_id,outcome FROM partner_review_replies").fetchall())
+        self.assertEqual(outcomes,{},'denied replies leave no decision record')
+        self.submit.assert_not_called()
+
+    def test_r175_a_review_command_or_an_attachment_gets_no_bare_answer_acknowledgement(self):
+        # Case 23: the `review` command keeps its own result, and an image-only message is receipt intake.
+        import time
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL");self.j.db.commit()
+        self.config['review_resend_cutoff']='2026-01-01T00:00:00+00:00'
+        self.message('command','review')
+        ingress=IngressJournal(self.root/'instagram-ingress.db')
+        ingress.db.execute("INSERT INTO messages(message_id,sender_id,event_timestamp,text,captured_at,status,reply_to,attachments) VALUES (?,?,?,?,?,?,?,?)",
+            ('image','456',time.time(),'',time.time(),'CAPTURED_NO_PROCESSING','',json.dumps([{'type':'image'}])))
+        ingress.db.commit();ingress.close()
+        self.reviewer_cycle();self.reviewer_cycle()
+        self.assertEqual(self.ack_rows(),[])
+        self.assertEqual(len(self.notice_rows('review-command-result:')),1)
+        self.assertIsNone(self.j.db.execute("SELECT 1 FROM partner_review_replies WHERE message_id='image'").fetchone())
+
     def test_r175_a_bare_answer_from_a_non_reviewer_is_silent(self):
         self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL");self.j.db.commit()
         ingress=IngressJournal(self.root/'instagram-ingress.db')

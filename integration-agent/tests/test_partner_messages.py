@@ -461,6 +461,20 @@ class DispatchBudgetTests(unittest.TestCase):
         self.mailer.send.assert_not_called()
         self.assertEqual(self.j.due(), [])
 
+    def test_an_acknowledgement_is_not_emailed_after_any_instagram_failure(self):
+        # Case 24: a definite rejection or an unknown outcome never falls back to email (as for every notice), and a
+        # window expiry is the one case that would: the acknowledgement stops there too.
+        from mw_integration_agent.instagram import InstagramAPIError
+        failures = {'rejected': InstagramAPIError(400, 100, 0), 'unknown': TimeoutError(), 'window': InstagramAPIError(400, 10, 2534022, window_expired=True)}
+        for name, error in failures.items():
+            with self.subTest(failure=name):
+                self.api.request.side_effect = error
+                row = self.dispatch(self.j.reserve('review-reply-result:' + name.ljust(64, 'x'), self.rows[0], 'Request already closed', 'Nothing was done.'))
+                self.assertNotEqual(row['email_status'], 'SENT');self.assertNotEqual(row['ig_status'], 'ACCEPTED')
+                self.dispatch(row['id'])
+        self.mailer.send.assert_not_called()
+        self.assertEqual(self.j.due(), [])
+
 
 class NoticeLimitTests(unittest.TestCase):
     def test_the_received_and_recorded_notices_count_the_icon(self):
