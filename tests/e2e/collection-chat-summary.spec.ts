@@ -601,10 +601,13 @@ test('R176 a missing clipboard API does not stop the chat opening',async({page},
 test('R176 a zero remaining amount copies nothing, keeps the old name and shows no line',async({page},info)=>{
  const desktop=info.project.name.startsWith('desktop');
  await stubClipboard(page);await open(page,{desktop,links,boardRows:board.map(row=>row.id==='chat-c'?{...row,amountRemaining:'0'}:row)});const phone=await isPhone(page);
+ // A successful copy on another tile first: the zero-amount tap must clear its line.
+ {const first=page.context().waitForEvent('page');await page.getByRole('link',{name:tileChatName(nameOf('chat-b')),exact:true}).click();await (await first).close();
+ await expect(copyToast(page)).toHaveText('Reminder copied: 1,200');}
  const link=page.getByRole('link',{name:plainPurpose.en+', '+nameOf('chat-c'),exact:true});await expect(link).toHaveAttribute('title',plainPurpose.en);
  const popup=page.context().waitForEvent('page');await link.click();const opened=await popup;await opened.waitForLoadState();
  expect(opened.url()).toBe(phone?invite:web);await opened.close();
- expect(await copies(page)).toEqual([]);await expect(copyToast(page)).toHaveText('');
+ expect(await copies(page)).toEqual([reminder1200]);await expect(copyToast(page)).toHaveText('');
  // The header keeps the old name too.
  await tile(page,'chat-c').click();await expect(page.locator('.collection-charge')).toHaveCount(1);
  await expect(header(page).locator('a.collection-header-chat')).toHaveAttribute('title',plainPurpose.en);
