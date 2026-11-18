@@ -5776,6 +5776,10 @@
         {
           "subject": "Borrower Due Date Rank",
           "pointer": "/content/columns/Borrower Due Date Rank"
+        },
+        {
+          "subject": "Late Charge Remaining",
+          "pointer": "/content/columns/Late Charge Remaining"
         }
       ]
     },

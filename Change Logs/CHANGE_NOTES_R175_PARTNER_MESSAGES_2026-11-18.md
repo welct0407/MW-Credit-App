@@ -1,7 +1,7 @@
 # Change notes — R175 Partner message wording and reply handling, and PROD 503 fixes, 18 November 2026
 
 ## Purpose
-Owner requests, 18 November 2026: (1) "the wording and text layout is not very clear in this scenario (screenshot)" and "also review other ig messages' wording, layout, and user experience", then "go with your recommendations, just don't accept thai response yet"; (2) the PROD 503 fixes and the audit index, which the owner confirmed in this session to include in R175 (batches 2 and 3, below). Agent detail is in the [agent change note](../integration-agent/Change%20Logs/CHANGE_NOTES_PARTNER_MESSAGES_2026-11-18.md). PROD promotion is requested for the release; the promotion record is written at closure.
+Owner requests, 18 November 2026: (1) "the wording and text layout is not very clear in this scenario (screenshot)" and "also review other ig messages' wording, layout, and user experience", then "go with your recommendations, just don't accept thai response yet"; (2) the PROD 503 fixes and the audit index, which the owner confirmed in this session to include in R175 (batches 2 and 3, below). Agent detail is in the [agent change note](../integration-agent/Change%20Logs/CHANGE_NOTES_PARTNER_MESSAGES_2026-11-18.md). The owner approved PROD promotion ("push to prod") for all three parts; the promotion record is below.
 
 ## Changes
 ### Batch 1: Partner Instagram messages (agent)
@@ -41,15 +41,17 @@ Owner confirmed (18 November 2026) that it is part of R175. Detail is in the [ba
 | Echo: rendered check of the messages | First pass done, findings E-R2-01 to E-R2-06 applied in `f3f8ecb1`. Confirmation pass on `f3f8ecb1`: no must-fix; all renders confirmed (five same-terms cases English and Thai at 957 to 987 characters, the approver line with all three name fallbacks, a close at ฿800.50) |
 | Chase: review | `3072688c`: no medium or high findings, lab 80 OK with 13 skipped, Low test gaps closed by `f25eb727`. `f3f8ecb1`: no findings above Low; the code-to-loan mapping is unchanged (`review_proposal.chosen_purpose` untouched, labels keyed by loanId in offer order); the approver line is correct (the automatic policy sets no `decision_message`, every manual approval stores it); close amounts are display only; a stress of five same-terms loans returned texts of at most 997 characters, and extreme balances fall back to the `REVIEW_REQUEST_TOO_LONG` hold; lab 80 OK with 13 skipped. Lows, not fixed: the `same_loan` key fallback may omit a same-key twin from "Other loan" on fact-less proposals (display only), and legacy reviews without `decision_message` lose the approver line |
 | `npm run check:docs` | 0 failures, 0 warnings |
-| The pull request's `Development checks` and integration-agent tests runs | PENDING: cited at closure |
+| `Development checks` run 44319668978 and integration-agent tests run 44319669858 (`test`, `lab`) on the tested head `555b731e` (PR #364) | Success; merged as `5c5002f0`, tree `5d2da380` identical |
 | Batch 2 (PR #363): see its section; PR `Development checks` 44318752891, agent tests 44318752881 | Success |
 | Batch 3 (PR #362): agent tests 44315634410, `Development checks` 44315634031 | Success |
-| `Database migrations` workflow on the branch push (V151 CI proof) | PENDING |
+| `Database migrations` run 44319384863 on `cbda7a99` (guards, rebuild migrations, phase5, phase8, receiving) | Success: the V151 proof; only records differ between `cbda7a99` and `5c5002f0` |
+| PROD promotion and read-back | Pass: see the PROD promotion record |
+| Release tag | `R175` on `5c5002f0` (Release tag run 44327801625) |
 | `python3 project/scripts/dictionary/dictionary.py validate` | 0 errors, 505 documents (batch 2) |
 
 ## Not run
 - The full Playwright and `mw-db-ci` suites: the pull request's CI is the one broad run.
-- No DEV agent exists, so batch 1 is verified in PROD only after promotion.
+- No DEV agent exists, so batch 1 was verified in PROD only after promotion; the new wording and reply handling have not yet met a real reviewer.
 
 ## Recovery
 Batch 1: Agent: `deploy-runtime.py rollback --commit a2d436049bd0e1989f63437e47211d65c7880d00` (the R174 package), then restart `mw-chat-relay`; no unit changed. No SQL or data change to undo; acknowledgement and re-ask notices already sent stay as ordinary records.
@@ -59,4 +61,53 @@ Batch 3 (V14): `DROP INDEX audit.events_kind_idx` (an index only; no data change
 None. Batch 2's database tier stays `db-g1-small`; a larger tier is an owner decision, deferred. A possible follow-up: a targeted upcoming read still simulates all loans once.
 
 ## Remaining work
-The `Database migrations` run on the branch; drain of the notice queue; PROD promotion in dependency order (verified backups of `loan_manager_prod` at V150 and `mw_agent`; V151 DEV then PROD; agent freeze, V14 migrate, install, activate at revision 47; rebuild of read, command, chat, jobs and notify; dictionary capture; Grafana 5xx check) and read-back; tag; closure.
+Owner acceptance. Observe the partner wording and reply handling with real reviewer activity, the Grafana 5xx panel over the next days, and `pg_stat_statements` for the lookup. Everything else (pull request CI, merge, promotion, read-back, tag, closure) is done. A possible follow-up: a targeted upcoming read still simulates all loans once.
+
+## PROD promotion record (Forge, 18 November 2026 UTC)
+Authority: owner, 18 November 2026, "push to prod", all three parts confirmed by the owner in session. DEV owner window = standard temporary maintenance permission within it (approved by the orchestrator after Forge stopped on the deviation).
+
+Package: `main` 5c5002f00c21b3e7687b9b16be5f70c1fd780b2b (PR #364), tree 5d2da380 identical to head 555b731e. CI: Development checks 44319668978; agent tests 44319669858 (test, lab); Database migrations 44319384863 on cbda7a99 (guards, rebuild migrations/phase5/phase8/receiving) — the V151 proof; only records differ between cbda7a99 and 5c5002f0. Built from a clean git archive (sha256 006244ad…2c) in a detached worktree. Baseline: R174 a2d43604; schema 150 DEV and PROD; PROD services R165 (read, command, chat; e64810b2…) and R159 (notify, jobs; 56f17745…).
+Target: project clever-oasis-508610-n7, instance mw-credit-pg-20261017, loan_manager_dev / loan_manager_prod, services mw-credit-app-*-{dev,prod}, VM vm-mw-credit-agent with mw_agent.
+
+| Step | Result |
+| --- | --- |
+| PROD backup (V150) | 14:07:00Z–14:09:41Z; dump sha256 d490271575380f8e1a10325d1f03be6533a20193217806ad063e5111a803f2ea; listing, isolated restore, 42 table fingerprints ok; recovery record prod-promotion-bda64aa8f1e848b1a0b1a2ebccc50f86 |
+| DEV backup (V150) | 14:09:47Z–14:12:24Z; dump sha256 fabeeab498a9053f46c40efaf42cec6f55a38b4f494d6eecfe4cfe4d9da9ff68; restore and 42 fingerprints ok; record dev-refresh-bec9c92a515b4450a91ee1718ab4471d |
+| DEV V151 | Invoke-Flyway.ps1 -Environment development migrate: installed 14:13:00.75Z (3.3 s, checksum 337133938). Deviation: post-migrate application-role reconcile failed 42501 (permission denied for table pwa_notification_deliveries; no DEV owner window open). Forge stopped and reported. Cause: a DEV migrate through this runner needs the six-owner DEV window (as R165, R140); "no special owner window" applies to PROD only. |
+| DEV owner window (fix) | prepare 14:17:22Z–14:17:34Z (six DEV owners; state owner-authority-dev-prepare-2e56943d…); no-op migrate 14:17:41Z–14:25:24Z: migrationsExecuted 0, reconcile applied, 0 violations (snapshot application-role-979d17f2…); restore 14:25:35Z–14:25:45Z; read-back: six owners inherit/set false, no CREATE on public |
+| PROD V151 | Invoke-CloudFlyway.py prepare 14:26:07Z–14:26:36Z (151 migrations; V151 sha256 d9c8d346…e777); CONNECT preflight 14:27:07Z sha256 93298ae1c8d5cc4e08741bd41a6a8847763c7e0a0b025a8ea611f4605b30c1de (18 retained roles, 0 DEV sessions); check 14:27:12Z pending ["151"], 0 writes; apply 14:27:45Z–14:29:04Z, V151 installed 14:28:27.10Z (3.2 s, checksum 337133938) |
+| PROD V151 read-back | 151 successful rows, 0 failed; both views owned by postgres, ACLs unchanged, no MATERIALIZED; verify passes on both databases at 151 |
+| Images | DEV Cloud Build b32a7b78-1dcb-4b62-b663-26a043e760ae (cloudbuild-command.yaml, R175) digest sha256:06c6ba44d6617670b1e69f17f43819bae581bf868b0d07e50e602d6d579d8661; PROD Cloud Build a737a75e-acac-4514-8971-bfc6bbbb97f8 (cloudbuild-business.yaml, _MW_RELEASE=R175, build-prod identity) digest sha256:237a3d22d457d477e8204478252a41c832dc4632b9600aa48a93982c7e2cfefa; both 14:30:41Z–14:31:26Z |
+| DEV services | before-r175 settings planned no change; R175 plan 0 add / 5 change / 0 destroy, image only (plan sha256 a1f1d000…af6a); applied 14:33:45Z–14:34:18Z: read 00100-rs5, command 00117-n6k, chat 00069-qbj, notify 00034-744, jobs 00034-txx; settings generation 1795012465050746 (was 1794848302236700); re-plan clean |
+| DEV smoke | /health R175 5c5002f0 on read, command, chat, notify; unauthenticated 401; no ERROR logs |
+| PROD services | before-r175 settings (generation 1794849158807698) planned no change; R175 plan 0/5/0 image only (plan sha256 db27a259d8c97dda9301b21e1eaa1730b877a953d4350af5c6f74579da9cb472, JSON ea4421ba…1062); applied 14:37:25Z–14:38:02Z: read 00066-6vh, command 00071-tjq, chat 00050-rvb, notify 00032-khj, jobs 00032-9nr, 100% on 237a3d22…; state generation 1795012681626463; settings generation 1795012688102721; re-plan clean |
+| PROD smoke | /health 200 R175 5c5002f0 on read, command, chat, notify; unauthenticated read/command 401; Hosting unchanged (R172 baca5670…); no ERROR logs since 14:27Z |
+| Agent dry-run | 14:39:56Z; notice queue drained (0); changed modules exactly hold_reply, partner_notice, partner_review, receipt_hold, receipt_master, review_cycle, review_resend; no unit change; ancestry ancestor; schema through V14; nine triggers paused |
+| Agent freeze --release R175 | 14:40:07.93Z–14:40:21.15Z; rollback dir runtime-20261118T144008124582Z, metadata sha256 2eecd27cb0896e7c2562be54ee61a529396443e2fecc3729ef681578f87f7835 |
+| mw_agent backup | writers paused, 14:40:25Z–14:41:46Z; dump sha256 85b74ca4fd64065c414e5d18811259cbaa8f1118b542f041639b881cff1403bc; listing, restore, 28 table fingerprints ok; record prod-promotion-c7ca391c72764f61b000b5df05ec7855 |
+| Agent V14 | queue re-checked 0; temporary operator file /root/r175-op 14:42:01Z; agent-state-admin.py migrate 14:42:05.74Z–14:42:06.61Z applied only V14 (installed 14:42:06.54Z, sha256 c45e2721…); events_kind_idx btree on event_kind, owner mw_agent_owner; acknowledged-notice lookup = Index Scan using events_kind_idx |
+| Install, activate | install done 14:42:28.42Z (no unit changed); activate done 14:42:32.40Z, probe 8aefd324-6105-42d8-b8fd-cfba59ce65d7, nine triggers resumed; mw-chat-relay restarted 14:42:32.52Z; operator file shredded 14:42:32.61Z |
+| Agent read-back | /ready true at R175 5c5002f0 (started 14:42:30.13Z); catalogue 46 → 47; recognizer/relay healthz R175; 15 units active; only COMPLETED job runs since freeze; no warning journal lines |
+| Collector 14:42:59Z | code_version_match 1, all health 1; receipt_pipeline status 1, stalled_jobs 0, undelivered_reviews 0, failed_notifications 0, approved 0, unconfirmed 0 |
+| 5xx read | 0 PROD 5xx since 14:37Z; the only one in the prior 24 h was 2026-11-17 16:18:51Z command-prod (the crash R175 fixes); since 14:37Z command 113×200 + 55×204, read 5×200, chat 4×200, notify 8×200; four notify 403s at 14:37:53Z were outside raw-URL hits refused by IAM |
+| Dictionary | PROD capture production-r175-20261118T1444Z.json (read-only, private) 14:43:15Z–14:43:27Z |
+
+Rollback: images — private production.activation.before-r175.tfvars (R165 e64810b2… read/command/chat; R159 56f17745… notify/jobs), 5-change image-only plan; DEV dev.activation.tfvars.before-r175 (cf5b3845…, 94768995…). SQL — V151 views only, forward-only; recreate both views from V150 definitions; restore points the V150 backups. Agent — deploy-runtime.py rollback --commit a2d436049bd0e1989f63437e47211d65c7880d00 with a fresh operator file, restart mw-chat-relay; V14 may stay or DROP INDEX audit.events_kind_idx as mw_agent_owner; mw_agent dump is the restore point.
+
+Private evidence: gs://mw-credit-operator-private-737787224638/promotion-packages/r175/ (23 objects); backups under prod-backups/ and dev-backups/ (180-day lifecycle); local private copies in ~/.mw-private/r175/ (capture there too); detached worktree ~/.mw-private/MW-Credit-App/r175-src.
+
+Dictionary: the reconcile of the two views from the PROD capture was run at closure (below). Not yet observed: new partner wording/reply handling with real reviewer activity; Grafana 5xx panel over the next days (00:01 Bangkok rollover); pg_stat_statements for the lookup. 
+
+Deviation (DEV owner window): the DEV V151 migrate through the runner stopped on a post-migrate application-role reconcile (42501, permission denied on a table, because no DEV owner window was open). A DEV migrate through this runner needs the six-owner DEV window (as R165 and R140); the "no special owner window" statement for V151 applies to PROD only. Forge stopped and reported; the orchestrator approved the standard temporary maintenance permission within the owner's "push to prod". The fix: prepare the six DEV owners (14:17:22Z to 14:17:34Z), a no-op migrate that applied the reconcile with 0 violations, restore (14:25:35Z to 14:25:45Z) and a read-back (six owners inherit and set false, no CREATE on public). V151 itself was already installed; nothing was re-applied. The `database/README.md` wording is corrected.
+
+Tag record: `R175` on `5c5002f00c21b3e7687b9b16be5f70c1fd780b2b` (PR #364), created by Release tag run 44327801625 (success, about 14:46Z), which publishes the GitHub Release. First live step of the release: the PROD backup at 14:07Z; agent freeze at 14:40:07Z (the freeze pin).
+
+Component versions at this release (`component-versions.mjs render --write`): changed in R175: the API read, command and chat services, the notification and jobs workers (one image), the database schema (V151) and the integration agent (revision 47, `mw_agent` V14); unchanged: PWA frontend and Grafana dashboards R172, Metabase reports R144.
+
+Drift after the tag (public facts only, `node scripts/promotion/component-versions.mjs drift --env all`): drift 0, unverified 11 (every credentialed fact, as no observed file was supplied; the public PWA, read, command and chat builds match). Forge's collector read at 14:42:59Z matched the agent at `5c5002f0` and `/health` answered R175 `5c5002f0` on read, command, chat and notify in DEV and PROD.
+
+Dictionary reconcile (Dewey, closure): from the private PROD capture of 14:43Z, `reconcile_captures.py plan ... --postgres-only --only relation:public.oltp_upcoming_charge_events_v1 --only relation:public.oltp_upcoming_charge_coverage_v1` then `apply` rewrote the two records (`public-oltp-upcoming-charge-events-v1` and `...-coverage-v1`) from catalog facts, replacing the two `development_definition` blocks; authored keys were preserved; sanitized observations are in `project/outputs/dictionary-r175-20261118/`; the validator reports 0 errors across 505 documents.
+
+Not yet observed: partner wording and reply handling with real reviewer activity; the Grafana 5xx panel over the next days (including the 00:01 Bangkok rollover); `pg_stat_statements` for the acknowledged-notice lookup. Owner acceptance is pending.
+
+Closure: the tag exists; the freeze pin, this record, the tag record and the prune are published in the R175 closure pull request. Pruned (outside the window of Open plus the three newest Released releases, R175, R174 and R173): the R172 change note `Change Logs/CHANGE_NOTES_R172_FOLLOW_UPS_2026-11-18.md` (its links now point to commit `5c5002f0`).

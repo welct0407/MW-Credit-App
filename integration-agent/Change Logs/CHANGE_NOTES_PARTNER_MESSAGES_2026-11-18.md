@@ -20,11 +20,13 @@ Owner request, 18 November 2026: a screenshot of an unclear pay-forward options 
 | Echo: rendered check of the messages | First pass done, findings E-R2-01 to E-R2-06 applied in `f3f8ecb1`. Confirmation pass on `f3f8ecb1`: no must-fix; all renders confirmed (five same-terms cases English and Thai at 957 to 987 characters, the approver line with all three name fallbacks, a close at ฿800.50) |
 | Chase: review | `3072688c`: no medium or high findings, lab 80 OK with 13 skipped, Low test gaps closed by `f25eb727`. `f3f8ecb1`: no findings above Low; the code-to-loan mapping is unchanged (`review_proposal.chosen_purpose` untouched, labels keyed by loanId in offer order); the approver line is correct (the automatic policy sets no `decision_message`, every manual approval stores it); close amounts are display only; a stress of five same-terms loans returned texts of at most 997 characters, and extreme balances fall back to the `REVIEW_REQUEST_TOO_LONG` hold; lab 80 OK with 13 skipped. Lows, not fixed: the `same_loan` key fallback may omit a same-key twin from "Other loan" on fact-less proposals (display only), and legacy reviews without `decision_message` lose the approver line |
 | `npm run check:docs` | 0 failures, 0 warnings |
-| The pull request's `Development checks` and integration-agent tests runs | PENDING: cited at closure |
+| `Development checks` run 44319668978 and integration-agent tests run 44319669858 (PR #364) | Success; merged as `5c5002f0` |
+| PROD promotion and read-back | Pass: see the PROD promotion record in the root note |
+| Release tag | `R175` on `5c5002f0` (Release tag run 44327801625) |
 
 ## Not run
 - The full Playwright and `mw-db-ci` suites: the pull request's CI is the one broad run.
-- No DEV agent exists, so the message layouts and the re-ask are verified in PROD only after promotion, on the first real reviewer message.
+- No DEV agent exists, so the message layouts and the re-ask are verified in PROD only after promotion (revision 47 live, notice queue drained at the deploy), on the first real reviewer message.
 
 ## Recovery
 Agent: `deploy-runtime.py rollback --commit a2d436049bd0e1989f63437e47211d65c7880d00` (the R174 package), then restart `mw-chat-relay`; no unit changed. No SQL or data change to undo; acknowledgement and re-ask notices already sent stay as ordinary records.
@@ -33,4 +35,4 @@ Agent: `deploy-runtime.py rollback --commit a2d436049bd0e1989f63437e47211d65c788
 None. Thai reply words stay as they are; a later owner decision would add any.
 
 ## Remaining work
-Pull request CI, merge, drain of the notice queue, PROD promotion (agent deploy at revision 47) and read-back; tag; closure.
+Owner acceptance; the wording and reply handling are not yet observed with real reviewer activity. Everything else is done; the full record is in the [root note](../../Change%20Logs/CHANGE_NOTES_R175_PARTNER_MESSAGES_2026-11-18.md#prod-promotion-record-forge-18-november-2026-utc).
