@@ -9,6 +9,7 @@ import {LoanRecord} from './LoanRecord';
 import {displayValue,displayTimestamp,displayDateWithYear} from './display-date';
 import {useViewedSnapshot} from './useViewedSnapshot';
 import {useDomainDraft} from './domain-draft';
+import {DraftRestored} from './DraftRestored';
 import React,{Suspense,useEffect,useRef,useState} from 'react';
 // R129: a paid rebate's settlement opens in place and Back returns to this expense (Echo NAV-1); loaded on first use.
 const ReferrerRecords=React.lazy(()=>import('./ReferrerRecords').then(module=>({default:module.ReferrerRecords})));
@@ -124,7 +125,7 @@ export function ExpenseForm({access,source,thai,readOrigin,savedDraft,markPaid,o
  const restored=draft.restored||!!savedDraft;
  const clearButton=(label:string,onClick:()=>void)=><button type="button" className="icon-action expense-clear" disabled={busy} aria-label={label} onClick={onClick}><span aria-hidden="true">×</span></button>;
  return <section className="borrower-record expense-form" aria-busy={busy||lookupBusy}><div className="related-loans-heading expense-form-heading"><HeaderBack navigationKey="expense-form" className="icon-action" aria-label={t('Back to expenses','กลับค่าใช้จ่าย')} onClick={onBack}><Icon name="back"/></HeaderBack><h2>{markPaid&&source?t('Mark as paid','บันทึกการจ่าย'):source?t('Edit expense','แก้ไขค่าใช้จ่าย'):t('New expense','เพิ่มค่าใช้จ่าย')}</h2></div>
-  {restored&&<p className="expense-draft-restored">{t('Restored unsaved draft','กู้คืนร่างที่ยังไม่บันทึก')} · <button type="button" className="text-action" disabled={busy} onClick={()=>void draft.discard().then(onBack).catch(()=>setError(t('Draft could not be cleared.','ล้างร่างไม่ได้')))}>{t('Clear draft','ล้างร่าง')}</button></p>}
+  {restored&&<DraftRestored thai={thai} busy={busy} discard={draft.discard} onBack={onBack} onError={setError}/>}
   {draft.error&&<p role="alert">{t('Draft could not be saved. Device storage is unavailable or full.','บันทึกร่างไม่ได้ พื้นที่จัดเก็บใช้ไม่ได้หรือเต็ม')}</p>}{error&&<p role="alert">{error}</p>}
   <form ref={formRef} noValidate onSubmit={e=>{e.preventDefault();void review()}}>
    <section className="expense-form-group expense-form-main"><h3>{t('Expense','รายการ')}</h3>

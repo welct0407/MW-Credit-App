@@ -80,7 +80,11 @@ const GROUP_CHAT_ERRORS = {MODEL_TIMEOUT: 'Model timeout', MODEL_UNREACHABLE: 'M
   MODEL_FEDERATION_CONFIG: 'Model setup', MODEL_ENV_CREDENTIAL: 'Model setup', GROUP_NOT_FOUND: 'Group not found',
   GROUP_PARTICIPANTS_INCOMPLETE: 'Members unclear', GROUP_TOO_MANY_SUBJECTS: 'Group too large', POST_REFUSED: 'Post refused',
   POST_UNKNOWN_BORROWER: 'Borrower gone', RECEIPT_API_OUTCOME_UNCERTAIN: 'Post uncertain', 'RECEIPT_API_NOT_SENT_*': 'Post not sent',
-  GROUP_SUMMARY_FAILED: 'Internal error'};
+  GROUP_SUMMARY_FAILED: 'Internal error',
+  // R172: the R171 Instagram codes (INSTAGRAM_HTTP_<status>[_<graph code>], INSTAGRAM_TIMEOUT, INSTAGRAM_UNREACHABLE) and the
+  // conversation-list codes of the poll (POLL_*), which the summariser shares.
+  'INSTAGRAM_HTTP_*': 'IG error', INSTAGRAM_TIMEOUT: 'IG timeout', INSTAGRAM_UNREACHABLE: 'IG offline',
+  'POLL_*': 'Chat read error'};
 // Echo (real Grafana 12.2.1): an empty Infinity frame draws empty axes; series-to-rows plus organize makes the time
 // series show its noValue text on zero rows, and leaves a busy chart unchanged.
 const noValueRows = name => [{id: 'seriesToRows', options: {}}, {id: 'organize', options: {excludeByName: {Metric: true}, renameByName: {Value: name}}}];
@@ -95,7 +99,7 @@ const failures = () => ({...L.problemColor('orange'), mappings: none(0, 'None', 
 function groupChat() {
   const y = ROW.groupChat;
   const lastRun = L.stat({id: 26, title: 'Group chat · last run', gridPos: pos(0, y + 1, 8, 7),
-    description: 'Debian collector health{group_chat_summary}: OK, Degraded when the oldest waiting group has waited over 20 minutes, Down when no run finished for 10 minutes (the timer runs every 2), Paused when group_chat_summary_enabled is off (blue, does not page), Unknown when the agent database is unreadable. Last run is the time since the newest run finished (orange from 6 minutes); Run took its duration (orange from 120 s, red from 150 s, the run budget). None: no run recorded yet.',
+    description: 'Debian collector health{group_chat_summary}: OK, Degraded when the oldest waiting group has waited over 20 minutes, Down when no run finished for 10 minutes (the timer runs every minute), Paused when group_chat_summary_enabled is off (blue, does not page), Unknown when the agent database is unreadable. Last run is the time since the newest run finished (orange from 6 minutes); Run took its duration (orange from 120 s, red from 150 s, the run budget). None: no run recorded yet.',
     targets: [
       target('A', DS.gcp, monitoringUrl(customFilter('health', {component: GROUP_CHAT})), L.stateSelector(1), [col('time', 'Time', 'timestamp'), col('value', 'State')], {format: 'timeseries'}),
       ops('B', GROUP_CHAT, gc([['last_run_age_seconds', 'Last run', true], ['last_run_seconds', 'Run took', true]]))
