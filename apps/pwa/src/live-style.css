@@ -668,7 +668,7 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .loan-step-buttons.saving .collection-spinner,.charge-late-line .secondary-button .collection-spinner{vertical-align:middle}
 .charge-late-line .secondary-button .collection-spinner{margin-right:6px}
 .sync-toast.late-charge-toast { bottom: calc(16px + env(safe-area-inset-bottom)); }
-.sync-toast.late-charge-toast.refused { background: #fdecea; color: #8b1a1a; }
+.sync-toast.late-charge-toast.refused, .sync-toast.reminder-copy-toast.refused { background: #fdecea; color: #8b1a1a; }
 .sync-toast.data-check-toast { bottom: 64px; background: #fdecea; color: #8b1a1a; }
 .sync-toast { position: fixed; z-index: 46; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); margin: 0; padding: 8px 12px; border-radius: 6px; background: #e6f4ea; color: #1e4620; font-size: 14px; box-shadow: 0 2px 8px rgb(0 0 0 / 25%); transition: opacity 150ms; }
 .sync-toast.idle { opacity: 0; pointer-events: none; }
