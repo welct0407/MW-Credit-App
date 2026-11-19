@@ -822,7 +822,7 @@
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'ชำระแล้ว'::text) AS collection_paid,
                           COALESCE(sum(c."Amount Due") FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" <= ctx.d), 0::numeric) AS collection_due,
                           COALESCE(sum(c."Amount Remaining") FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" <= ctx.d), 0::numeric) AS collection_remaining,
-                          COALESCE(sum(c."Interest Remaining") FILTER (WHERE c."Charge Date" >= date_trunc('month'::text, ctx.d::timestamp with time zone)::date AND c."Charge Date" <= ctx.d), 0::numeric) AS interest_remaining
+                          COALESCE(sum(c."Interest Remaining") FILTER (WHERE c."Charge Date" >= ctx.ms AND c."Charge Date" <= ctx.d), 0::numeric) AS interest_remaining
                          FROM olap_charges_analytics c
                            JOIN "Loans" l ON l."Row ID" = c."Ref Loans"
                            CROSS JOIN ctx
