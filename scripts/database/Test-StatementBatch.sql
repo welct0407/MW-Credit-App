@@ -209,6 +209,8 @@ END $$;
 \ir Test-GroupChatSeen.sql
 -- V150 (R165): the group chat summary refresh request and completion under the DEV command login (accepted, pending, recent, stale, completion, replay, unknown id, refusals, checks, cascades, change log), rolled back.
 \ir Test-GroupChatRefresh.sql
+-- V152 (R176): the projected monthly goal counts this month's charges only (portfolio delta, today's outstanding interest and pending unchanged, borrower contributions add up, last month's charge paid today), rolled back.
+\ir Test-ProjectedMonthGoal.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).
