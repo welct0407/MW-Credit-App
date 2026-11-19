@@ -20,10 +20,12 @@ The "Projected Monthly Profit" goal counted every unpaid charge dated on or befo
 | Chase: adversarial review of `8e978bf..f0dadeb` | No blocking findings. PROD read-only (Metabase db 2, 19 November): each replaced fragment occurs exactly once in the live PROD view text and the preflight markers hold; current goal 318,309 (114,691 + 121,724 + 81,894); this-month unpaid interest 50,613; new goal would be 247,198 (71,111 drops out); Today's Outstanding Interest 121,724 and Pending Payment Amount 156,265 unaffected |
 | `python3 project/scripts/dictionary/dictionary.py validate` | 0 errors |
 | `npm run check:docs` | 0 failures (1 unrelated warning) |
-| Pull request `Development checks` | pending |
+| Pull request #366 `Development checks` run 44563748711 | Success |
+| `Database migrations` run 44564448787 on `2636231b` | Success: all six jobs; the V152 CI proof |
+| Release tag run 44568297629 | Success: `R176` on `2636231b` |
 
 ## Not run
-Playwright and e2e locally: no UI change, and CI covers them. The "after" figures are estimates until V152 is applied.
+Playwright and e2e locally: no UI change, and CI covers them. The "after" figures were estimates until V152 was applied; the verified PROD values are in the promotion record.
 
 ## Recovery
 V152 is views only: re-create `olap_portfolio_summary` and `olap_borrowers_analytics` from their V151 definitions after a verified PROD backup, with no data change.
@@ -32,10 +34,15 @@ V152 is views only: re-create `olap_portfolio_summary` and `olap_borrowers_analy
 None.
 
 ## Applied
-Pending: V152 to DEV and PROD.
+V152 was applied on 19 November 2026 as an SQL-only release: PROD backup at V151 (16:18:36Z to 16:21:18Z), DEV V152 at 16:24:39Z (six-owner DEV window, restored) and PROD V152 at 16:35:15Z, both read back at head 152. PROD after: Realized 115,031, Forecast 79,134, Projected 244,778 (= Realized + 50,613 this-month unpaid + Forecast; Chase's estimate 247,198 was made before the day's later payments), Today's Outstanding Interest 121,724 and Pending Payment Amount 156,265 unchanged, borrower contribution sum 234,278 (the 10,500 gap is write-off pairs, unchanged); Metabase question 380 reads 115,031 of 244,778 (about 47%). Tag `R176` on `2636231b` (Release tag run 44568297629). See the promotion record below.
+
+## Closure records (Dewey)
+- Dictionary: both relations reconciled from the private PROD capture of 16:38Z with `reconcile_captures.py plan ... --postgres-only --only relation:public.olap_portfolio_summary --only relation:public.olap_borrowers_analytics`, then `apply`; the `development_definition` blocks are gone and the PROD definitions carry `month_interest` and the month rule; sanitized observations are in `project/outputs/dictionary-r176-20261119/`; the validator reports 0 errors across 505 documents.
+- Environment inventory: V152 rows for DEV and PROD; component versions regenerated (`render --write`, `render --check` ok, R176).
+- Pruned at closure (Open R177 plus the three newest Released: R176, R175, R174): `Change Logs/CHANGE_NOTES_R173_RECHECK_SAME_PLAN_2026-11-18.md` and `integration-agent/Change Logs/CHANGE_NOTES_RECHECK_SAME_PLAN_2026-11-18.md`, with their links repointed to permalinks at `2636231b`; the R173 follow-up row of the open development changes is removed. R176 has no section in the open development changes.
 
 ## Remaining work
-Apply V152 to DEV and PROD after verified backups, verify the PROD projection (about 247,198 on Chase's read, realization about 46%), refresh the two dictionary entries from the PROD capture at closure, and record owner acceptance.
+Owner acceptance. The chat service image was not rebuilt: it still bundles the schema digest at 151 and the earlier business-rules text, so the V152 rule reaches the chat assistant (and the digest moves to 152, a new chat history epoch) with the next chat image build. Metabase question 380 and the PWA need no change.
 
 ## PROD promotion record (Forge, 19 November 2026 UTC)
 Authority: owner, 19 November 2026 (Asia/Bangkok), in session: "limit the goal to this month's charges only. move to prod"; it covers V152, the backups, the standard DEV six-owner window and these records. SQL-only release: no image, Hosting, Terraform, agent, Metabase, notification, job or financial write.
