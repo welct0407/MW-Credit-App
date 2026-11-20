@@ -36,7 +36,7 @@ Nothing further. All eight lab modules ran locally (see Checks).
 None.
 
 ## Applied
-PROD `mw_agent` V14 was applied on 18 November 2026 as part of R175 (see the [R175 PROD promotion record](../../Change%20Logs/CHANGE_NOTES_R175_PARTNER_MESSAGES_2026-11-18.md#prod-promotion-record-forge-18-november-2026-utc): backup 14:40:25Z to 14:41:46Z (record `prod-promotion-c7ca391c72764f61b000b5df05ec7855`), `agent-state-admin.py migrate` 14:42:05.74Z to 14:42:06.61Z applied only V14 (installed 14:42:06.54Z), `events_kind_idx` btree on `event_kind` owned by `mw_agent_owner`, and the acknowledged-notice lookup now reads `Index Scan using events_kind_idx`.
+PROD `mw_agent` V14 was applied on 18 November 2026 as part of R175 (see the [R175 PROD promotion record](https://github.com/welct0407/MW-Credit-App/blob/a9a6b77/Change%20Logs/CHANGE_NOTES_R175_PARTNER_MESSAGES_2026-11-18.md#prod-promotion-record-forge-18-november-2026-utc): backup 14:40:25Z to 14:41:46Z (record `prod-promotion-c7ca391c72764f61b000b5df05ec7855`), `agent-state-admin.py migrate` 14:42:05.74Z to 14:42:06.61Z applied only V14 (installed 14:42:06.54Z), `events_kind_idx` btree on `event_kind` owned by `mw_agent_owner`, and the acknowledged-notice lookup now reads `Index Scan using events_kind_idx`.
 
 ## Remaining work
 Confirm with `pg_stat_statements` over the next days that the lookup no longer scans; not yet observed.
