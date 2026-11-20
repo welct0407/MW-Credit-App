@@ -34,7 +34,7 @@ const LOG_METRIC = 'logging.googleapis.com/user/';
 const STALE_SECONDS = 360;
 const ALIGNED_STALE_SECONDS = 720;
 // R144: the release that last changed the dashboard definitions; bump it whenever a release changes any of them.
-const DASHBOARD_RELEASE = 'R172';
+const DASHBOARD_RELEASE = 'R177';
 const DASHBOARD_UIDS = ['mw-now', 'mw-pwa', 'mw-agent', 'mw-infra', 'mw-cost'];
 const DASHBOARD_TITLES = {
   'mw-now': 'Now', 'mw-pwa': 'PWA & APIs', 'mw-agent': 'Agent & Receipts',
@@ -52,6 +52,9 @@ const DS = {
   // R093 V108: pwa_chat_recent_turns_v1 and pwa_chat_usage_v1). The uid is the one the R090 datasource was created
   // with, so the live datasource and its password are kept.
   chatQuestions: {type: 'grafana-postgresql-datasource', uid: 'mw-agent-questions'},
+  // R177: mw_agent through the same Grafana PDC and login (mw_grafana_reader, member of mw_agent_dashboard), limited to
+  // the agent's monitoring.receipt_ftr_daily_v1 (agent migration V15).
+  agentReceipts: {type: 'grafana-postgresql-datasource', uid: 'mw-agent-receipts'},
   // Anthropic Admin API cost report; the Admin key (x-api-key) is the datasource's encrypted field, outside Terraform.
   anthropic: {type: INFINITY, uid: 'mw-anthropic-cost'},
   dashboard: {type: 'datasource', uid: '-- Dashboard --'},
@@ -63,7 +66,7 @@ const RETIRED_DATASOURCE_UIDS = ['mw-azure-monitoring', 'cfz1i3v9ruk1sb'];
 const RETIRED_URL_HOSTS = ['management.azure.com'];
 const ALLOWED_DATASOURCE_UIDS = [
   'mw-gcp-monitoring', 'mw-railway-monitoring', 'cfz10a9eaokjkd',
-  'efz19dcu6cwzka', 'mw-public-gcp-status', 'mw-agent-questions', 'mw-anthropic-cost', '-- Dashboard --', '-- Mixed --', '-- Grafana --'
+  'efz19dcu6cwzka', 'mw-public-gcp-status', 'mw-agent-questions', 'mw-agent-receipts', 'mw-anthropic-cost', '-- Dashboard --', '-- Mixed --', '-- Grafana --'
 ];
 const ALLOWED_URL_HOSTS = [
   'monitoring.googleapis.com', 'bigquery.googleapis.com',
@@ -142,7 +145,9 @@ const POLICY = {
     '503 · body timeout', '5xx · all services', '3 · Validate · holds', 'Validation holds', '4 · Review · overdue', '5 · Post · unconfirmed',
     'Posting unconfirmed', '6 · Notify · failed', 'Notify failures', 'In back-off'],
   work: ['Sent · 24 h', 'Turns', 'Turns · 24 h', 'Extractions', 'Valid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting',
-    'Waiting', 'New summary', 'Unchanged', 'Cleared', 'Postponed', 'Taps'],
+    'Waiting', 'New summary', 'Unchanged', 'Cleared', 'Postponed', 'Taps',
+    // R177: the receipt first-time-right tile (Agent 35); no owner target for the %, so it is informational (Echo UX-R177-10).
+    'Genuine slips'],
   limit: ['Pending', '401 · session invalid', 'Median turn', 'Median rounds', 'Limit used', 'Run took'],
   age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Last notification',
     'Group chat · last run › Last run', 'Oldest wait', 'Group chat · delay 24 h › Median', 'Group chat · delay 24 h › Longest', 'Median wait', 'Longest wait'],
@@ -150,7 +155,7 @@ const POLICY = {
   // Owner, 8 November 2026: Azure left the Cost page; To yesterday (UTC) is the Claude API tile's USD figure.
   money: ['This month', 'GCP', 'Railway', 'UsageUSD', 'GCP · before credits (SGD)',
     'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn', 'Claude API USD', 'To yesterday (UTC)'],
-  info: ['Provider', 'Running for', 'Uptime', 'GCP budget', 'Last turn', 'Last error']
+  info: ['Provider', 'Running for', 'Uptime', 'GCP budget', 'Last turn', 'Last error', 'First-time right']
 };
 /* R090 owner decision: limits for tiles without an alert value (recommended by the team, set on 22 October
  * 2026). A push goes out on most days, so two days without one is unusual; a sign-out (401) is normal, ten in

@@ -11,7 +11,7 @@ from .receipt_journal import ReceiptJournal
 from .receipt_master import masters
 from .receipt_identity import PayerHeld,provenance as job_provenance,receipt_context,resolve_payer
 from .payment_match import check as check_existing_payment
-from .receipt_rules import ReceiptInvalid,SenderUnbound,borrower_for,recipients,summary,validate_receipt,username
+from .receipt_rules import ReceiptInvalid,SenderUnbound,borrower_for,outgoing_transfer,recipients,summary,validate_receipt,username
 from .statement_delivery import resolve_recipient
 
 # Extraction-class failure ladder per attempt: next run, then 60 s; attempt 3 ends REVIEW.
@@ -127,6 +127,21 @@ def images(journal,config_path,catalogue_path,directory,budget,clock=None):
         process(job,journal,config,master,identity_reader=directory.identity)
 
 
+OUTGOING='OUTGOING_TRANSFER'
+
+
+def outgoing(config,value,master,context):
+    """R177: with receipt_outgoing_ignore_enabled on, True when the slip is certainly a transfer sent from one of our cash
+    accounts by its holder (receipt_rules.outgoing_transfer) and the payer name fits none of the borrowers the slip could be
+    from (the context borrower and its candidates). Any doubt or fault is False: the slip is processed as today."""
+    try:
+        if config.get('receipt_outgoing_ignore_enabled') is not True:return False
+        people=([context['borrower']] if context.get('borrower') else [])+[b for b in context.get('candidates') or [] if b.get('enabled') is True]
+        return outgoing_transfer(value,master['accounts'],config.get('receipt_outgoing_senders'),[b.get('payer') for b in people])
+    except Exception:
+        return False
+
+
 def process(job,journal,config,master,fetch=download,extractor=extract,identity_reader=conversation_identity):
     from .receipt_archive import Archive,required
     archive=None
@@ -169,6 +184,9 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
             with journal.db:
                 journal.db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps({'extraction':value,'borrower':borrower,**provenance,**extra}),job['id']))
         save()
+        # R177: our own outgoing transfer is no incoming payment: IGNORED before validation, so no hold, request or reply.
+        if outgoing(config,value,master,context):
+            journal.mark(job['id'],'IGNORED',OUTGOING);return
         receipt=validate_receipt(value,master['accounts'])
         try:
             from .review_proposal import facts as proposal_facts

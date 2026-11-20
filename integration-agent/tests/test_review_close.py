@@ -350,7 +350,7 @@ class CloseCycleTests(unittest.TestCase):
         n = notices.reserve('review:' + self.key, self.p, 'subject', 'body')
         notices.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id='sent',recipient_id='456' WHERE id=?", (n,));notices.db.commit();notices.close()
 
-    def planned(self, receipt, borrower, current, config=None, strict=False):
+    def planned(self, receipt, borrower, current, config=None, strict=False, arrears=False):  # R177: plan() takes arrears
         self.plan_calls = getattr(self, 'plan_calls', []) + [(config is not None, strict)]
         if isinstance(self.current, Exception):raise self.current
         return self.current

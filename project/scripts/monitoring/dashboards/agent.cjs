@@ -14,7 +14,8 @@ const ops = (refId, component, fields) => target(refId, DS.gcp, wt(component), j
 // A state field (0 Down, 1 OK, 2 Degraded, 3 Paused, 4 Unknown on their colours): an override on that field alone, never the
 // panel defaults, which Grafana 13.4 also applies to the panel's numeric fields.
 const stateField = () => ({mappings: L.stateMappings(L.STATE_TEXT, 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}});
-const ROW = {pipeline: 0, recognizer: 16, groupChat: 28, workers: 52, connectivity: 63};
+// R177: the receipt first-time-right chart and tile (34, 35) below the pipeline tiles; the later rows move down by 9.
+const ROW = {pipeline: 0, recognizer: 25, groupChat: 37, workers: 61, connectivity: 72};
 
 // LIVE-12: one six-value stat built like Now 4 (same queries: group-scanning.jq and receipt-pipeline.jq per
 // stage field), stage names per AGENT-2 shortened for the larger text; today's panel 108 beside it as panel 2.
@@ -33,7 +34,54 @@ function pipeline() {
         ['failed_notifications', 'Notify failures', 'red']],
       description: 'Instagram to recorded payment, Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling): group scan last run, receipts waiting for extraction, validation holds, reviewer decisions waiting, unconfirmed payment postings and notification failures. Every stage is coloured by its health: group scan by the IG polling state (green OK, orange Degraded, red Down, blue Paused) with the last completion time (ICT); extraction waiting green unless the oldest waiting image is older than 10 minutes (orange, stalled); reviews waiting green unless a review is overdue (orange), waiting itself is normal work; holds, unconfirmed postings and notification failures green at 0, red above. Paused does not page. Unconfirmed postings need reconciliation, never a repeated Add.'}),
     L.lift(L.PERF, 108, {id: 2, gridPos: pos(8, y + 1, 16, 15), title: 'Receipts · queue over time'}),
-    reviews];
+    reviews, ...firstTimeRight(y + 16)];
+}
+
+/* R177 item D (owner, 20 November 2026; Echo UX-R177-08..13): the daily first-time-right % with the counts behind it, read
+ * live from the agent database (monitoring.receipt_ftr_daily_v1, agent migration V15) through the datasource
+ * mw-agent-receipts. One row per Bangkok day of slip arrival; the function always returns the whole history (receipt
+ * jobs start 21 September 2026) and the panels keep their own 180-day range, so the dashboard's 6 hours do not apply. */
+const FTR_SOURCE = 'monitoring.receipt_ftr_daily_v1()';
+const FTR_SERIES = [['auto_first_pass', 'Recorded automatically', COLOR.ok], ['after_review', 'Recorded after review', '#7FB77E'],
+  ['manual_in_app', 'Recorded by hand in the app', COLOR.degraded], ['rejected_or_held', 'Rejected or still held', COLOR.unknown]];
+const FTR_PERCENT = 'First-time right %';
+const FTR_RULE = 'First-time right = slips recorded automatically on the first pass with no human action ÷ genuine incoming slips. Not counted: non-receipts, repeats of a slip already handled, our own outgoing transfers (also before R177).';
+const ftrTarget = rawSql => ({refId: 'A', datasource: DS.agentReceipts, editorMode: 'code', format: 'table', rawQuery: true, rawSql});
+function ftrDailySql() {
+  return ["SELECT (day::timestamp AT TIME ZONE 'Asia/Bangkok') AS \"time\",",
+    ...FTR_SERIES.map(([column, name]) => '  ' + column + ' AS "' + name + '",'),
+    '  ftr_percent AS "' + FTR_PERCENT + '"',
+    'FROM ' + FTR_SOURCE,
+    'ORDER BY 1'].join('\n');
+}
+function ftrMonthSql() {
+  return ['SELECT round(100.0 * sum(auto_first_pass) / nullif(sum(genuine), 0), 1) AS "First-time right",',
+    '  sum(genuine) AS "Genuine slips"',
+    'FROM ' + FTR_SOURCE,
+    "WHERE day > (now() AT TIME ZONE 'Asia/Bangkok')::date - 30"].join('\n');
+}
+function firstTimeRight(y) {
+  const chart = L.timeseries({id: 34, title: 'Receipts · daily first-time right', gridPos: pos(0, y, 16, 9),
+    description: FTR_RULE + ' Bangkok days since 21 Sep 2026 (the last 180 days); ignores the dashboard time range. Bars per day of slip arrival: recorded automatically, recorded after review (a Reviewer approval or choice, a loan close, or automatic only after a recheck), recorded by hand in the app (the agent handed it over: manual, stale or expired) and rejected or still held; a slip still in progress counts once it settles. Line: the first-time right % on the right axis, a gap on a day without a genuine slip. Read live from ' + FTR_SOURCE + ' in the agent database through Grafana PDC.',
+    targets: [ftrTarget(ftrDailySql())],
+    defaults: {unit: 'short', decimals: 0, min: 0, noValue: 'No slips in range', custom: {drawStyle: 'bars', fillOpacity: 100, lineWidth: 1,
+      stacking: {group: 'A', mode: 'normal'}, axisLabel: 'Slips', axisPlacement: 'left'}},
+    overrides: [...FTR_SERIES.map(([, name, color]) => byName(name, {color: {mode: 'fixed', fixedColor: color}})),
+      // UX-R177-09: the % is a line on its own 0-100 axis; it carries no legend total (a sum of daily % misleads).
+      byName(FTR_PERCENT, {unit: 'percent', decimals: 0, min: 0, max: 100, color: {mode: 'fixed', fixedColor: COLOR.text},
+        'custom.drawStyle': 'line', 'custom.stacking': {group: 'A', mode: 'none'}, 'custom.axisPlacement': 'right', 'custom.axisLabel': FTR_PERCENT,
+        'custom.fillOpacity': 0, 'custom.lineWidth': 2, 'custom.showPoints': 'always', 'custom.pointSize': 5, 'custom.spanNulls': false,
+        'custom.hideFrom': {legend: true, tooltip: false, viz: false}})],
+    options: {legend: {calcs: ['sum'], displayMode: 'table', placement: 'bottom', showLegend: true}, tooltip: {hideZeros: false, mode: 'multi', sort: 'none'}},
+    extra: {timeFrom: '180d', hideTimeOverride: false}});
+  const month = L.stat({id: 35, title: 'Receipts · last 30 days', gridPos: pos(16, y, 8, 9),
+    description: 'The last 30 Bangkok days, today included, pooled: slips recorded automatically on the first pass ÷ genuine incoming slips (not a mean of the daily %), and how many genuine slips that is. ' + FTR_RULE + ' No owner target, so no colour. Read live from ' + FTR_SOURCE + '.',
+    targets: [ftrTarget(ftrMonthSql())],
+    transformations: [{id: 'filterFieldsByName', options: {include: {names: ['First-time right', 'Genuine slips']}}}],
+    defaults: {color: L.NEUTRAL, mappings: [L.nullMap('No slips')]},
+    overrides: [byName('First-time right', {unit: 'percent', decimals: 1}), byName('Genuine slips', {decimals: 0})],
+    options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}}});
+  return [chart, month];
 }
 
 function recognizer() {

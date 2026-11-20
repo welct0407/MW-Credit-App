@@ -9,7 +9,13 @@ it shows, so a changed plan is detected before anything posts. With the switch o
 R128 (owner, 5 November 2026: close the loan through IG): with `loan_close_execution_enabled` (default off, fail closed) a
 slip that is a loan payoff asks the Reviewer to approve the Loan Close. The proposal keeps the server's quote
 (proposal['close']: planHash, sourceVersion, amount, parts, rebate path) and only when the quote equals the slip amount and
-is for the slip's date (today); otherwise, or with the switch off, it is today's manual Loan Close proposal."""
+is for the slip's date (today); otherwise, or with the switch off, it is today's manual Loan Close proposal.
+
+R177 (owner, 20 November 2026: auto-post arrears, exact total and partial): with `receipt_arrears_auto_enabled` (default
+off, fail closed) a slip above the latest charge day's total but not above every unpaid charge dated on or before the slip
+date is 'Lump Sum' (the database allocates newest charge first) instead of 'Overpayment review', unless it is an exact loan
+payoff (Loan Close, LOAN_CLOSE_AMBIGUOUS and MULTIPLE_TODAY_CHARGES unchanged). Every plan() caller that may post passes
+`arrears=arrears_enabled(config)`; the proposal shape is unchanged."""
 import hashlib
 import json
 from datetime import date,datetime
@@ -115,6 +121,31 @@ LOAN_CLOSE_UNAVAILABLE='LOAN_CLOSE_QUOTE_UNAVAILABLE'
 # One read-only call of the server's plan; every value goes in as a psql variable.
 PLAN_SQL="SELECT public.pwa_pay_forward_plan_v1(:'borrower',:'amount'::numeric,:'day'::date,:'purpose'::jsonb);"
 MAX_PRINCIPAL_OPTIONS=5
+
+
+def arrears_enabled(config):
+    """R177: the arrears tier of plan() (receipt_arrears_auto_enabled, default off)."""
+    return isinstance(config,dict) and config.get('receipt_arrears_auto_enabled') is True
+
+
+def arrears_left(proposal):
+    """R177 (Echo UX-R177-07): what stays unpaid of the charges dated on or before the slip date after a Lump Sum of the
+    slip amount, allocated newest charge day first as the database does: {'amount', 'first', 'last'} (the oldest and newest
+    day left with something owed), or None when nothing is left or the facts cannot be read. Never raises."""
+    try:
+        if proposal.get('action')!='Lump Sum':return None
+        receipt=proposal['receipt'];rest=Decimal(receipt['amount'])
+        days={}
+        for c in proposal['facts']['charges']:
+            if c['date']<=receipt['date'] and owed(c)>0:days[c['date']]=days.get(c['date'],Decimal(0))+owed(c)
+        left={}
+        for day in sorted(days,reverse=True):
+            paid=min(rest,days[day]);rest-=paid
+            if days[day]-paid>0:left[day]=days[day]-paid
+        if not left:return None
+        return {'amount':str(sum(left.values(),Decimal(0))),'first':min(left),'last':max(left)}
+    except (KeyError,TypeError,AttributeError,InvalidOperation,ValueError):
+        return None
 
 
 def options_enabled(config):
@@ -244,10 +275,11 @@ def close_terms(config,receipt,loan_id):
             'referrer':referrer.get('displayName') if isinstance(referrer,dict) else None},quote
 
 
-def plan(receipt,borrower,current,today=None,config=None,strict=False):
+def plan(receipt,borrower,current,today=None,config=None,strict=False,arrears=False):
     """strict (R128, execution and the pending-request check of a close): the quote's faults propagate and a quote that no
     longer equals the slip is ReceiptInvalid('LOAN_CLOSE_QUOTE_CHANGED[:<quote amount>]'); otherwise a close without a
-    usable quote stays the manual Loan Close proposal."""
+    usable quote stays the manual Loan Close proposal. arrears (R177, arrears_enabled): an amount above the latest charge
+    day's total but not above every unpaid charge dated on or before the slip date is Lump Sum when it is no payoff."""
     today=today or datetime.now(BANGKOK).date().isoformat()
     amount=Decimal(receipt['amount'])
     if amount!=amount.to_integral_value():raise ReceiptInvalid('WHOLE_BAHT_REQUIRED')
@@ -277,6 +309,8 @@ def plan(receipt,borrower,current,today=None,config=None,strict=False):
             if total==amount and receipt['date']==today and Decimal(loan['principal'])>0:closures.append(loan['id'])
         if len(closures)>1:raise ReceiptInvalid('LOAN_CLOSE_AMBIGUOUS')
         if closures:action='Loan Close';loan_id=closures[0]
+        # R177: an exact payoff (above) wins; otherwise arrears up to the total due post as Lump Sum, newest charge first.
+        elif arrears and amount<=due:action='Lump Sum';loan_id=None
         else:action='Overpayment review';loan_id=None
     relevant={c['loan'] for c in dated}
     loan_keys=[l['loan_key'] for l in current['loans'] if l.get('loan_key') and (l['id']==loan_id if loan_id else l['id'] in relevant)]

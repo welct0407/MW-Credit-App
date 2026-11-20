@@ -736,6 +736,19 @@ class GeneratedSelectors(unittest.TestCase):
         for uid in ('mw-now', 'mw-agent', 'mw-pwa', 'mw-infra', 'mw-cost'):
             self.assertNotIn('openai', (DASHBOARDS / (uid + '.json')).read_text().lower(), uid)
 
+    def test_receipt_first_time_right_reads_only_the_agent_function(self):
+        # R177: Agent 34 and 35 read mw_agent through mw-agent-receipts, and only monitoring.receipt_ftr_daily_v1().
+        import re
+        for pid in (34, 35):
+            targets = self.panel('mw-agent', pid)['targets']
+            self.assertEqual([(t['datasource']['uid'], t['format'], t['rawQuery']) for t in targets], [('mw-agent-receipts', 'table', True)])
+            sql = targets[0]['rawSql']
+            self.assertEqual(re.findall(r'[a-z_]+\.[a-z_0-9]+\(', sql), ['monitoring.receipt_ftr_daily_v1('], pid)
+            self.assertNotRegex(sql, r'(?i)\b(insert|update|delete|runtime\.|audit\.)', pid)
+        chart = self.panel('mw-agent', 34)
+        self.assertIn("(day::timestamp AT TIME ZONE 'Asia/Bangkok') AS \"time\"", chart['targets'][0]['rawSql'])
+        self.assertEqual(chart['timeFrom'], '180d')
+
     def test_metabase_charts_send_one_railway_call(self):
         # R090: one call per chart (both services aliased, usage and limit together), one row per timestamp.
         data = {'data': {

@@ -220,9 +220,78 @@ class FreshCentralMigrationTests(unittest.TestCase):
             self.assertIn(('mw_agent_worker', 'INSERT,SELECT'), grants)
             self.assertEqual(conn.execute("SELECT count(*) FROM pg_trigger WHERE tgrelid='audit.events'::regclass AND tgname='events_append_only'").fetchone()[0], 1)
 
+    def test_v15_receipt_ftr_daily(self):
+        # R177 D: daily first-time-right counts per Bangkok day; the dashboard role may call only the function.
+        self.assertEqual([p.name for p in self.files][14], 'V15__receipt_ftr_daily.sql')
+        check_receipt_ftr_daily(self, self.agent, self.server)
+
+
+def check_receipt_ftr_daily(case, agent, server):
+    """V15: one outcome per job (first rule wins), excluded jobs and in-progress ones outside the %, NULL % on a day of
+    excluded jobs only, Bangkok day boundaries, SECURITY DEFINER with EXECUTE and CONNECT for mw_agent_dashboard only."""
+    from datetime import UTC, datetime
+    day1 = datetime(2026, 11, 9, 17, tzinfo=UTC).timestamp()  # 10 Nov 2026 00:00 Bangkok
+    auto, frozen = 'OWNER_AUTHORIZED_AUTO_PAYMENT', '781769e1c5e43ce6aadcc3e7010407c3d8835da5b4b80386104b40db53e76bcd'
+    # (job id, job status, seconds after day 1 00:00 Bangkok, review state or None, review detail)
+    jobs = [('ftr-auto1', 'REVIEW_REQUESTED', 600, 'POSTED', auto), ('ftr-auto2', 'REVIEW_REQUESTED', 700, 'POSTED', auto + ':FACTS_CHANGED_SAME_OUTCOME'),
+            ('ftr-late', 'REVIEW_REQUESTED', 86340, 'POSTED', auto),                                    # 23:59 day 1
+            ('ftr-super', 'REVIEW_REQUESTED', 800, 'POSTED', auto), ('ftr-recon', 'REVIEW_REQUESTED', 900, 'POSTED', auto),
+            ('ftr-rev', 'REVIEW_REQUESTED', 1000, 'POSTED', ''),
+            ('ftr-man', 'REVIEW_REQUESTED', 1100, 'MANUAL_REQUIRED', ''), ('ftr-stale', 'REVIEW_REQUESTED', 1200, 'STALE', 'PROPOSAL_FACTS_CHANGED'),
+            ('ftr-exp', 'REVIEW_REQUESTED', 1300, 'EXPIRED', ''),
+            ('ftr-rej', 'REVIEW_REQUESTED', 1400, 'REJECTED', ''), ('ftr-pend', 'REVIEW_REQUESTED', 1500, 'PENDING', ''),
+            ('ftr-hold', 'REVIEW', 1600, None, ''), ('ftr-dismissed', 'REJECTED', 1650, None, ''),
+            ('ftr-appr', 'REVIEW_REQUESTED', 1700, 'APPROVED', auto), ('ftr-new', 'PENDING', 1800, None, ''),
+            ('ftr-unknown', 'REVIEW_REQUESTED', 1850, 'UNKNOWN', ''),
+            ('ftr-ign', 'IGNORED', 1900, None, ''), ('ftr-dup', 'DUPLICATE', 2000, None, ''), ('ftr-out', 'IGNORED', 2050, None, ''),
+            (frozen, 'REVIEW_REQUESTED', 2100, 'REJECTED', ''),                                          # a frozen outgoing slip
+            ('ftr-early', 'REVIEW_REQUESTED', 86460, 'POSTED', auto),                                    # 00:01 day 2
+            ('ftr-only-excluded', 'IGNORED', 2 * 86400 + 60, None, '')]                                  # day 3
+    login = 'mw_dashboard_ftr_lab_login'
+    with psycopg.connect(**agent) as conn:
+        def cleanup():
+            with psycopg.connect(**agent) as c:
+                ids = [j[0] for j in jobs]
+                c.execute('DELETE FROM runtime.partner_reviews WHERE job_id = ANY(%s) OR job_id = %s', (ids, 'ftr-super:superseded:r0'))
+                c.execute('DELETE FROM runtime.receipt_reconsiderations WHERE job_id = ANY(%s)', (ids,))
+                c.execute('DELETE FROM runtime.receipt_jobs WHERE id = ANY(%s)', (ids,))
+            with psycopg.connect(**server, autocommit=True) as c:
+                c.execute('DROP ROLE IF EXISTS ' + login)
+        case.addCleanup(cleanup)
+        for job_id, status, offset, state, detail in jobs:
+            conn.execute("INSERT INTO runtime.receipt_jobs(id,message_id,sender_id,url,status,detail,created_at) VALUES (%s,%s,'s','',%s,'',%s)",
+                         (job_id, 'm-' + job_id, status, day1 + offset))
+            if state:
+                conn.execute("INSERT INTO runtime.partner_reviews(id,job_id,proposal,state,created_at,expires_at,detail) VALUES (%s,%s,'{}',%s,0,0,%s)",
+                             ('r-' + job_id, job_id, state, detail))
+        conn.execute("UPDATE runtime.receipt_jobs SET detail='OUTGOING_TRANSFER' WHERE id='ftr-out'")
+        conn.execute("INSERT INTO runtime.partner_reviews(id,job_id,proposal,state,created_at,expires_at) VALUES ('r0','ftr-super:superseded:r0','{}','SUPERSEDED',0,0)")
+        conn.execute("INSERT INTO runtime.receipt_reconsiderations(job_id,created_at,previous) VALUES ('ftr-recon',0,'{}')")
+        conn.execute('CREATE ROLE ' + login + ' LOGIN')
+        conn.execute('GRANT mw_agent_dashboard TO ' + login)
+        definition = conn.execute("""SELECT p.prosecdef, p.provolatile, pg_get_userbyid(p.proowner), p.proconfig FROM pg_proc p
+            WHERE p.oid = 'monitoring.receipt_ftr_daily_v1()'::regprocedure""").fetchone()
+        case.assertEqual(tuple(definition), (True, 's', 'mw_agent_owner', ['search_path=pg_catalog, pg_temp']))
+        case.assertFalse(conn.execute("SELECT has_function_privilege('public', 'monitoring.receipt_ftr_daily_v1()', 'EXECUTE')").fetchone()[0])
+        case.assertFalse(conn.execute("SELECT has_schema_privilege('public', 'monitoring', 'USAGE')").fetchone()[0])
+    with psycopg.connect(**{**agent, 'user': login}) as conn:
+        rows = [tuple(r) for r in conn.execute('SELECT day::text, auto_first_pass, after_review, manual_in_app, rejected_or_held, in_progress, '
+                                               'genuine, ftr_percent FROM monitoring.receipt_ftr_daily_v1()')]
+        from decimal import Decimal
+        case.assertEqual(rows, [('2026-11-10', 3, 3, 3, 4, 3, 13, Decimal('23.1')), ('2026-11-11', 1, 0, 0, 0, 0, 1, Decimal('100.0')),
+                                ('2026-11-12', 0, 0, 0, 0, 0, 0, None)])
+        # The role's own mw_agent settings (bootstrap.sql); the live Grafana login gets the same two.
+        settings = conn.execute("""SELECT s.setconfig FROM pg_db_role_setting s JOIN pg_roles r ON r.oid=s.setrole
+            JOIN pg_database d ON d.oid=s.setdatabase WHERE r.rolname='mw_agent_dashboard' AND d.datname='mw_agent'""").fetchone()[0]
+        case.assertEqual(sorted(settings), ['default_transaction_read_only=on', 'statement_timeout=10s'])
+        for table in ('runtime.receipt_jobs', 'runtime.partner_reviews', 'runtime.receipt_reconsiderations'):
+            with case.subTest(table=table), case.assertRaises(psycopg.errors.InsufficientPrivilege):
+                conn.execute('SELECT 1 FROM ' + table + ' LIMIT 1')
+
+
 @unittest.skipUnless(os.environ.get('MW_AGENT_FRESH_PG_DSN'), 'empty disposable PostgreSQL server required')
 class IncrementalV13Tests(unittest.TestCase):
-    """V13 on a server already at V12 (the production path): V13 (then V14) applies, existing rows get '[]', nothing else moves."""
+    """V13 on a server already at V12 (the production path): V13 (then V14, V15) applies, existing rows get '[]', nothing else moves."""
 
     def test_v13_applies_on_top_of_v12_and_existing_rows_get_an_empty_list(self):
         server = {**conninfo_to_dict(os.environ['MW_AGENT_FRESH_PG_DSN']), 'dbname': 'postgres'}
@@ -253,7 +322,7 @@ class IncrementalV13Tests(unittest.TestCase):
                          "VALUES ('group-waiting',100,90,%s,2,700,'MODEL_TIMEOUT'),('group-idle',NULL,50,%s,0,0,NULL)", (digest, digest))
             before = conn.execute('SELECT conversation_id,changed_at,last_text_at,subjects_sha256,summarised_source_sha256,summarised_at,attempts,next_attempt_at,last_error '
                                   'FROM runtime.group_chat_summary_state ORDER BY conversation_id').fetchall()
-            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql'])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql', 'V15__receipt_ftr_daily.sql'])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
             self.assertEqual(conn.execute('SELECT conversation_id,member_borrower_ids FROM runtime.group_chat_summary_state ORDER BY conversation_id').fetchall(),
                              [('group-idle', '[]'), ('group-waiting', '[]')])
@@ -302,12 +371,12 @@ class IncrementalV6Tests(unittest.TestCase):
             self.assertIsNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql',
                                                                                   'V8__conversation_messages.sql', 'V9__recent_question_usage.sql', 'V10__recent_question_usage_match.sql',
-                                                                                  'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql'])
+                                                                                  'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql', 'V15__receipt_ftr_daily.sql'])
             self.assertIsNotNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
-            self.assertEqual([row[1] for row in history(conn)][-10:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
+            self.assertEqual([row[1] for row in history(conn)][-11:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
                                                                        'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql', 'V9__recent_question_usage.sql',
-                                                                       'V10__recent_question_usage_match.sql', 'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql'])
+                                                                       'V10__recent_question_usage_match.sql', 'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql', 'V15__receipt_ftr_daily.sql'])
 
 
 def check_recent_questions(case, agent, server):
@@ -445,21 +514,25 @@ class IncrementalV8Tests(unittest.TestCase):
             self.assertEqual(state_migration.migrate(conn, directory)['applied'], ['V8__conversation_messages.sql'])
             assert_conversation_messages(self, conn)  # V8 as it was, before V11 dropped the table
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V9__recent_question_usage.sql', 'V10__recent_question_usage_match.sql',
-                                                                                  'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql'])
+                                                                                  'V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql', 'V15__receipt_ftr_daily.sql'])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
             assert_conversation_journal_dropped(self, conn)
 
 
 def assert_conversation_journal_dropped(case, conn):
-    """V11: the conversation-only tables, the monitoring schema and the dashboard's CONNECT are gone; the group poll,
-    receipt notices and every receipt table stay; the notice stream accepts only receipts."""
+    """V11: the conversation-only tables and monitoring.recent_questions_v1 are gone; the group poll, receipt notices and
+    every receipt table stay; the notice stream accepts only receipts. Checked at the head, where V15 (R177) has created
+    the monitoring schema again with receipt_ftr_daily_v1 only and given the dashboard back its CONNECT."""
     gone = ('conversations', 'conversation_turns', 'conversation_tool_calls', 'conversation_operations', 'conversation_dml',
             'conversation_dml_inserts', 'conversation_messages')
     for name in gone:
         with case.subTest(table=name):
             case.assertIsNone(conn.execute('SELECT to_regclass(%s)', ('runtime.' + name,)).fetchone()[0])
-    case.assertIsNone(conn.execute("SELECT to_regnamespace('monitoring')").fetchone()[0])
-    case.assertFalse(conn.execute("SELECT has_database_privilege('mw_agent_dashboard','mw_agent','CONNECT')").fetchone()[0])
+    case.assertEqual([r[0] for r in conn.execute("""SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+        WHERE n.nspname='monitoring' ORDER BY 1""")], ['receipt_ftr_daily_v1'])
+    case.assertEqual(conn.execute("""SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+        WHERE n.nspname='monitoring'""").fetchone()[0], 0)
+    case.assertTrue(conn.execute("SELECT has_database_privilege('mw_agent_dashboard','mw_agent','CONNECT')").fetchone()[0])
     for name in ('conversation_poll_state', 'conversation_poll_messages', 'partner_notices', 'ingress_messages', 'receipt_jobs',
                  'partner_reviews', 'cash_statement_sends', 'service_heartbeats'):
         with case.subTest(kept=name):
@@ -511,7 +584,7 @@ class IncrementalV11Tests(unittest.TestCase):
                     conn.execute("INSERT INTO runtime.partner_notices(stream,id,event_key,partner_id,partner,subject,body) "
                                  "VALUES (%s,'n1','e','p','{}','s','b')", (stream,))
                 events = conn.execute('SELECT count(*) FROM audit.events').fetchone()[0]
-                self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql'])
+                self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V11__drop_conversation_journal.sql', 'V12__group_chat_summary_state.sql', 'V13__group_chat_summary_members.sql', 'V14__audit_event_kind_index.sql', 'V15__receipt_ftr_daily.sql'])
                 self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
                 assert_conversation_journal_dropped(self, conn)
                 self.assertEqual([tuple(r) for r in conn.execute('SELECT stream,id FROM runtime.partner_notices')], [('receipt', 'n1')])
