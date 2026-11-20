@@ -40,7 +40,8 @@ function pipeline() {
 /* R177 item D (owner, 20 November 2026; Echo UX-R177-08..13): the daily first-time-right % with the counts behind it, read
  * live from the agent database (monitoring.receipt_ftr_daily_v1, agent migration V15) through the datasource
  * mw-agent-receipts. One row per Bangkok day of slip arrival; the function always returns the whole history (receipt
- * jobs start 21 September 2026) and the panels keep their own 180-day range, so the dashboard's 6 hours do not apply. */
+ * jobs start 21 September 2026). R178 (owner, 20 November 2026): the chart keeps its own range of the last 30 days, like
+ * tile 35, so the dashboard's 6 hours do not apply; the whole history stays in the function. */
 const FTR_SOURCE = 'monitoring.receipt_ftr_daily_v1()';
 const FTR_SERIES = [['auto_first_pass', 'Recorded automatically', COLOR.ok], ['after_review', 'Recorded after review', '#7FB77E'],
   ['manual_in_app', 'Recorded by hand in the app', COLOR.degraded], ['rejected_or_held', 'Rejected or still held', COLOR.unknown]];
@@ -62,7 +63,7 @@ function ftrMonthSql() {
 }
 function firstTimeRight(y) {
   const chart = L.timeseries({id: 34, title: 'Receipts · daily first-time right', gridPos: pos(0, y, 16, 9),
-    description: FTR_RULE + ' Bangkok days since 21 Sep 2026 (the last 180 days); ignores the dashboard time range. Bars per day of slip arrival: recorded automatically, recorded after review (a Reviewer approval or choice, a loan close, or automatic only after a recheck), recorded by hand in the app (the agent handed it over: manual, stale or expired) and rejected or still held; a slip still in progress counts once it settles. Line: the first-time right % on the right axis, a gap on a day without a genuine slip. Read live from ' + FTR_SOURCE + ' in the agent database through Grafana PDC.',
+    description: FTR_RULE + ' The last 30 Bangkok days, as the tile beside it; ignores the dashboard time range (history from 21 Sep 2026 stays in the function). Bars per day of slip arrival: recorded automatically, recorded after review (a Reviewer approval or choice, a loan close, or automatic only after a recheck), recorded by hand in the app (the agent handed it over: manual, stale or expired) and rejected or still held; a slip still in progress counts once it settles. Line: the first-time right % on the right axis, a gap on a day without a genuine slip. Read live from ' + FTR_SOURCE + ' in the agent database through Grafana PDC.',
     targets: [ftrTarget(ftrDailySql())],
     defaults: {unit: 'short', decimals: 0, min: 0, noValue: 'No slips in range', custom: {drawStyle: 'bars', fillOpacity: 100, lineWidth: 1,
       stacking: {group: 'A', mode: 'normal'}, axisLabel: 'Slips', axisPlacement: 'left'}},
@@ -73,7 +74,7 @@ function firstTimeRight(y) {
         'custom.fillOpacity': 0, 'custom.lineWidth': 2, 'custom.showPoints': 'always', 'custom.pointSize': 5, 'custom.spanNulls': false,
         'custom.hideFrom': {legend: true, tooltip: false, viz: false}})],
     options: {legend: {calcs: ['sum'], displayMode: 'table', placement: 'bottom', showLegend: true}, tooltip: {hideZeros: false, mode: 'multi', sort: 'none'}},
-    extra: {timeFrom: '180d', hideTimeOverride: false}});
+    extra: {timeFrom: '30d', hideTimeOverride: false}});
   const month = L.stat({id: 35, title: 'Receipts · last 30 days', gridPos: pos(16, y, 8, 9),
     description: 'The last 30 Bangkok days, today included, pooled: slips recorded automatically on the first pass ÷ genuine incoming slips (not a mean of the daily %), and how many genuine slips that is. ' + FTR_RULE + ' No owner target, so no colour. Read live from ' + FTR_SOURCE + '.',
     targets: [ftrTarget(ftrMonthSql())],

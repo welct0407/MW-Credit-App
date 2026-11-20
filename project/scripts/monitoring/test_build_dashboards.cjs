@@ -475,14 +475,15 @@ for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Recei
 }
 // R177 item D (Echo UX-R177-08..13): the receipt first-time-right chart (34) and its 30-day tile (35) in the Receipt pipeline
 // row, below the pipeline tiles; both read only monitoring.receipt_ftr_daily_v1() through mw-agent-receipts, the only
-// panels that use that datasource; the chart keeps its own 180-day range.
+// panels that use that datasource; the chart keeps its own range, the last 30 days (R178), as the tile.
 {
   assert.deepEqual([34, 35].map(rowOf), ['Receipt pipeline', 'Receipt pipeline']);
   assert.deepEqual([20, 21].map(id => agent.find(p => p.id === id).gridPos), [{x: 0, y: 0, w: 24, h: 1}, {x: 0, y: 25, w: 24, h: 1}]);
   const chart = agent.find(p => p.id === 34), tile = agent.find(p => p.id === 35);
   assert.deepEqual([chart.gridPos, tile.gridPos], [{x: 0, y: 16, w: 16, h: 9}, {x: 16, y: 16, w: 8, h: 9}]);
   assert.deepEqual([chart.type, chart.title, tile.type, tile.title], ['timeseries', 'Receipts · daily first-time right', 'stat', 'Receipts · last 30 days']);
-  assert.deepEqual([chart.timeFrom, chart.hideTimeOverride], ['180d', false]);
+  assert.deepEqual([chart.timeFrom, chart.hideTimeOverride], ['30d', false]);
+  assert.ok(!(built['mw-agent'].spec.templating.list || []).some(v => /ftr/.test(v.name)), 'R178: a plain 30-day override, no dashboard variable');
   const receipts = [];
   for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
     if (JSON.stringify(p.datasource || {}).includes('mw-agent-receipts') || (p.targets || []).some(t => (t.datasource || {}).uid === 'mw-agent-receipts')) receipts.push(uid + ':' + p.id);

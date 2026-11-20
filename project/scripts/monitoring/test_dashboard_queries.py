@@ -747,7 +747,7 @@ class GeneratedSelectors(unittest.TestCase):
             self.assertNotRegex(sql, r'(?i)\b(insert|update|delete|runtime\.|audit\.)', pid)
         chart = self.panel('mw-agent', 34)
         self.assertIn("(day::timestamp AT TIME ZONE 'Asia/Bangkok') AS \"time\"", chart['targets'][0]['rawSql'])
-        self.assertEqual(chart['timeFrom'], '180d')
+        self.assertEqual(chart['timeFrom'], '30d')  # R178: last 30 days by default
 
     def test_metabase_charts_send_one_railway_call(self):
         # R090: one call per chart (both services aliased, usage and limit together), one row per timestamp.

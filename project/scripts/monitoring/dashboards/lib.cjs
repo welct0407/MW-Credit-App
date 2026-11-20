@@ -34,7 +34,7 @@ const LOG_METRIC = 'logging.googleapis.com/user/';
 const STALE_SECONDS = 360;
 const ALIGNED_STALE_SECONDS = 720;
 // R144: the release that last changed the dashboard definitions; bump it whenever a release changes any of them.
-const DASHBOARD_RELEASE = 'R177';
+const DASHBOARD_RELEASE = 'R178';
 const DASHBOARD_UIDS = ['mw-now', 'mw-pwa', 'mw-agent', 'mw-infra', 'mw-cost'];
 const DASHBOARD_TITLES = {
   'mw-now': 'Now', 'mw-pwa': 'PWA & APIs', 'mw-agent': 'Agent & Receipts',
