@@ -720,12 +720,376 @@
         "type": "stat"
       },
       {
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "mw-agent-receipts"
+        },
+        "description": "First-time right = slips recorded automatically on the first pass with no human action ÷ genuine incoming slips. Not counted: non-receipts, repeats of a slip already handled, our own outgoing transfers (also before R177). Bangkok days since 21 Sep 2026 (the last 180 days); ignores the dashboard time range. Bars per day of slip arrival: recorded automatically, recorded after review (a Reviewer approval or choice, a loan close, or automatic only after a recheck), recorded by hand in the app (the agent handed it over: manual, stale or expired) and rejected or still held; a slip still in progress counts once it settles. Line: the first-time right % on the right axis, a gap on a day without a genuine slip. Read live from monitoring.receipt_ftr_daily_v1() in the agent database through Grafana PDC.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisLabel": "Slips",
+              "axisPlacement": "left",
+              "barAlignment": 0,
+              "drawStyle": "bars",
+              "fillOpacity": 100,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 4,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "normal"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "min": 0,
+            "noValue": "No slips in range",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Recorded automatically"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#2E7D32",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Recorded after review"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#7FB77E",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Recorded by hand in the app"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#A65200",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Rejected or still held"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#6E7079",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "First-time right %"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "decimals",
+                  "value": 0
+                },
+                {
+                  "id": "min",
+                  "value": 0
+                },
+                {
+                  "id": "max",
+                  "value": 100
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  }
+                },
+                {
+                  "id": "custom.drawStyle",
+                  "value": "line"
+                },
+                {
+                  "id": "custom.stacking",
+                  "value": {
+                    "group": "A",
+                    "mode": "none"
+                  }
+                },
+                {
+                  "id": "custom.axisPlacement",
+                  "value": "right"
+                },
+                {
+                  "id": "custom.axisLabel",
+                  "value": "First-time right %"
+                },
+                {
+                  "id": "custom.fillOpacity",
+                  "value": 0
+                },
+                {
+                  "id": "custom.lineWidth",
+                  "value": 2
+                },
+                {
+                  "id": "custom.showPoints",
+                  "value": "always"
+                },
+                {
+                  "id": "custom.pointSize",
+                  "value": 5
+                },
+                {
+                  "id": "custom.spanNulls",
+                  "value": false
+                },
+                {
+                  "id": "custom.hideFrom",
+                  "value": {
+                    "legend": true,
+                    "tooltip": false,
+                    "viz": false
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 9,
+          "w": 16,
+          "x": 0,
+          "y": 16
+        },
+        "hideTimeOverride": false,
+        "id": 34,
+        "options": {
+          "legend": {
+            "calcs": [
+              "sum"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "grafana-postgresql-datasource",
+              "uid": "mw-agent-receipts"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT (day::timestamp AT TIME ZONE 'Asia/Bangkok') AS \"time\",\n  auto_first_pass AS \"Recorded automatically\",\n  after_review AS \"Recorded after review\",\n  manual_in_app AS \"Recorded by hand in the app\",\n  rejected_or_held AS \"Rejected or still held\",\n  ftr_percent AS \"First-time right %\"\nFROM monitoring.receipt_ftr_daily_v1()\nORDER BY 1",
+            "refId": "A"
+          }
+        ],
+        "timeFrom": "180d",
+        "title": "Receipts · daily first-time right",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "mw-agent-receipts"
+        },
+        "description": "The last 30 Bangkok days, today included, pooled: slips recorded automatically on the first pass ÷ genuine incoming slips (not a mean of the daily %), and how many genuine slips that is. First-time right = slips recorded automatically on the first pass with no human action ÷ genuine incoming slips. Not counted: non-receipts, repeats of a slip already handled, our own outgoing transfers (also before R177). No owner target, so no colour. Read live from monitoring.receipt_ftr_daily_v1().",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "transparent",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 0,
+                    "text": "No slips"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "First-time right"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Genuine slips"
+              },
+              "properties": [
+                {
+                  "id": "decimals",
+                  "value": 0
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 9,
+          "w": 8,
+          "x": 16,
+          "y": 16
+        },
+        "id": 35,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 16,
+            "valueSize": 32
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "grafana-postgresql-datasource",
+              "uid": "mw-agent-receipts"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT round(100.0 * sum(auto_first_pass) / nullif(sum(genuine), 0), 1) AS \"First-time right\",\n  sum(genuine) AS \"Genuine slips\"\nFROM monitoring.receipt_ftr_daily_v1()\nWHERE day > (now() AT TIME ZONE 'Asia/Bangkok')::date - 30",
+            "refId": "A"
+          }
+        ],
+        "title": "Receipts · last 30 days",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {
+                "names": [
+                  "First-time right",
+                  "Genuine slips"
+                ]
+              }
+            }
+          }
+        ],
+        "type": "stat"
+      },
+      {
         "collapsed": false,
         "gridPos": {
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 16
+          "y": 25
         },
         "id": 21,
         "panels": [],
@@ -878,7 +1242,7 @@
           "h": 6,
           "w": 8,
           "x": 0,
-          "y": 17
+          "y": 26
         },
         "id": 6,
         "options": {
@@ -1003,7 +1367,7 @@
           "h": 5,
           "w": 8,
           "x": 0,
-          "y": 23
+          "y": 32
         },
         "id": 12,
         "options": {
@@ -1161,7 +1525,7 @@
           "h": 8,
           "w": 8,
           "x": 8,
-          "y": 17
+          "y": 26
         },
         "id": 7,
         "options": {
@@ -1293,7 +1657,7 @@
           "h": 11,
           "w": 8,
           "x": 16,
-          "y": 17
+          "y": 26
         },
         "id": 8,
         "options": {
@@ -1365,7 +1729,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 28
+          "y": 37
         },
         "id": 25,
         "panels": [],
@@ -1611,7 +1975,7 @@
           "h": 7,
           "w": 8,
           "x": 0,
-          "y": 29
+          "y": 38
         },
         "id": 26,
         "options": {
@@ -1847,7 +2211,7 @@
           "h": 7,
           "w": 8,
           "x": 8,
-          "y": 29
+          "y": 38
         },
         "id": 27,
         "options": {
@@ -2047,7 +2411,7 @@
           "h": 7,
           "w": 8,
           "x": 16,
-          "y": 29
+          "y": 38
         },
         "id": 28,
         "options": {
@@ -2388,7 +2752,7 @@
           "h": 10,
           "w": 8,
           "x": 0,
-          "y": 36
+          "y": 45
         },
         "id": 29,
         "options": {
@@ -2634,7 +2998,7 @@
           "h": 5,
           "w": 8,
           "x": 8,
-          "y": 36
+          "y": 45
         },
         "id": 30,
         "options": {
@@ -2736,7 +3100,7 @@
           "h": 5,
           "w": 8,
           "x": 8,
-          "y": 41
+          "y": 50
         },
         "id": 31,
         "options": {
@@ -3115,7 +3479,7 @@
           "h": 10,
           "w": 8,
           "x": 16,
-          "y": 36
+          "y": 45
         },
         "id": 32,
         "options": {
@@ -3252,7 +3616,7 @@
           "h": 6,
           "w": 24,
           "x": 0,
-          "y": 46
+          "y": 55
         },
         "id": 33,
         "options": {
@@ -3324,7 +3688,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 52
+          "y": 61
         },
         "id": 23,
         "panels": [],
@@ -3478,7 +3842,7 @@
           "h": 10,
           "w": 24,
           "x": 0,
-          "y": 53
+          "y": 62
         },
         "id": 9,
         "options": {
@@ -3676,7 +4040,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 63
+          "y": 72
         },
         "id": 24,
         "panels": [],
@@ -3830,7 +4194,7 @@
           "h": 15,
           "w": 16,
           "x": 0,
-          "y": 64
+          "y": 73
         },
         "id": 10,
         "options": {
@@ -4134,7 +4498,7 @@
           "h": 12,
           "w": 8,
           "x": 16,
-          "y": 64
+          "y": 73
         },
         "id": 11,
         "options": {
@@ -4297,7 +4661,7 @@
           "h": 3,
           "w": 8,
           "x": 16,
-          "y": 76
+          "y": 85
         },
         "id": 13,
         "options": {
@@ -4360,7 +4724,7 @@
     "schemaVersion": 42,
     "tags": [
       "mw-credit",
-      "release:R172"
+      "release:R177"
     ],
     "templating": {
       "list": [

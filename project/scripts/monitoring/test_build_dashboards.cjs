@@ -432,9 +432,10 @@ for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Recei
   assert.deepEqual([25, 26, 27, 28, 29, 30, 31, 32, 33].map(rowOf), Array(9).fill('Group chat summary'));
   for (const id of [1, 2, 6, 7, 8, 9, 10, 11, 12, 13, 14, 20, 21, 23, 24]) assert.ok(ids.includes(id), 'mw-agent keeps panel ' + id);
   const gp = id => agent.find(p => p.id === id).gridPos;
-  assert.deepEqual([25, 26, 27, 28, 29, 30, 31, 32, 33, 23, 9, 24].map(gp), [{x: 0, y: 28, w: 24, h: 1}, {x: 0, y: 29, w: 8, h: 7}, {x: 8, y: 29, w: 8, h: 7},
-    {x: 16, y: 29, w: 8, h: 7}, {x: 0, y: 36, w: 8, h: 10}, {x: 8, y: 36, w: 8, h: 5}, {x: 8, y: 41, w: 8, h: 5}, {x: 16, y: 36, w: 8, h: 10},
-    {x: 0, y: 46, w: 24, h: 6}, {x: 0, y: 52, w: 24, h: 1}, {x: 0, y: 53, w: 24, h: 10}, {x: 0, y: 63, w: 24, h: 1}]);
+  // R177: every row below the receipt pipeline moved down by 9 for the first-time-right chart and tile (34, 35).
+  assert.deepEqual([25, 26, 27, 28, 29, 30, 31, 32, 33, 23, 9, 24].map(gp), [{x: 0, y: 37, w: 24, h: 1}, {x: 0, y: 38, w: 8, h: 7}, {x: 8, y: 38, w: 8, h: 7},
+    {x: 16, y: 38, w: 8, h: 7}, {x: 0, y: 45, w: 8, h: 10}, {x: 8, y: 45, w: 8, h: 5}, {x: 8, y: 50, w: 8, h: 5}, {x: 16, y: 45, w: 8, h: 10},
+    {x: 0, y: 55, w: 24, h: 6}, {x: 0, y: 61, w: 24, h: 1}, {x: 0, y: 62, w: 24, h: 10}, {x: 0, y: 72, w: 24, h: 1}]);
   for (const id of [26, 27, 28, 29, 30, 31, 32, 33]) assert.ok(agent.find(p => p.id === id).title.length <= 31, 'mw-agent ' + id + ' title at most 31 characters');
   const fieldsOf = id => agent.find(p => p.id === id).targets.flatMap(t => t.columns.map(c => c.text)).filter(n => n !== 'Time');
   assert.deepEqual([26, 27, 28, 29, 30, 32].map(fieldsOf), [['State', 'Last run', 'Run took'], ['Waiting', 'Oldest wait'], ['In back-off', 'Last error'],
@@ -471,6 +472,46 @@ for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Recei
   assert.equal(agent.find(p => p.id === 31).type, 'stat');
   const lanes = agent.find(p => p.id === 9).targets.map(t => t.columns[1].text);
   assert.ok(lanes.includes('Group chat'), 'the workers timeline has the Group chat lane: ' + lanes);
+}
+// R177 item D (Echo UX-R177-08..13): the receipt first-time-right chart (34) and its 30-day tile (35) in the Receipt pipeline
+// row, below the pipeline tiles; both read only monitoring.receipt_ftr_daily_v1() through mw-agent-receipts, the only
+// panels that use that datasource; the chart keeps its own 180-day range.
+{
+  assert.deepEqual([34, 35].map(rowOf), ['Receipt pipeline', 'Receipt pipeline']);
+  assert.deepEqual([20, 21].map(id => agent.find(p => p.id === id).gridPos), [{x: 0, y: 0, w: 24, h: 1}, {x: 0, y: 25, w: 24, h: 1}]);
+  const chart = agent.find(p => p.id === 34), tile = agent.find(p => p.id === 35);
+  assert.deepEqual([chart.gridPos, tile.gridPos], [{x: 0, y: 16, w: 16, h: 9}, {x: 16, y: 16, w: 8, h: 9}]);
+  assert.deepEqual([chart.type, chart.title, tile.type, tile.title], ['timeseries', 'Receipts · daily first-time right', 'stat', 'Receipts · last 30 days']);
+  assert.deepEqual([chart.timeFrom, chart.hideTimeOverride], ['180d', false]);
+  const receipts = [];
+  for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
+    if (JSON.stringify(p.datasource || {}).includes('mw-agent-receipts') || (p.targets || []).some(t => (t.datasource || {}).uid === 'mw-agent-receipts')) receipts.push(uid + ':' + p.id);
+  }
+  assert.deepEqual(receipts, ['mw-agent:34', 'mw-agent:35'], 'only the first-time-right panels read mw-agent-receipts');
+  assert.ok(L.ALLOWED_DATASOURCE_UIDS.includes('mw-agent-receipts') && L.DS.agentReceipts.type === 'grafana-postgresql-datasource');
+  for (const p of [chart, tile]) {
+    assert.equal(p.targets.length, 1);
+    assert.equal(p.targets[0].datasource.uid, 'mw-agent-receipts');
+    const calls = p.targets[0].rawSql.match(/[a-z_]+\.[a-z_0-9]+\(/g);
+    assert.deepEqual(calls, ['monitoring.receipt_ftr_daily_v1('], 'mw-agent ' + p.id + ' calls only the V15 function');
+    assert.ok(!/runtime\./.test(p.targets[0].rawSql), 'mw-agent ' + p.id + ' reads no table');
+  }
+  // UX-R177-09: the four counts stacked as bars in their order and colours, the % a line on its own 0-100 axis without a legend total.
+  const sql = chart.targets[0].rawSql;
+  const names = ['Recorded automatically', 'Recorded after review', 'Recorded by hand in the app', 'Rejected or still held', 'First-time right %'];
+  assert.deepEqual(names.map(n => sql.indexOf('"' + n + '"') > 0), Array(5).fill(true));
+  assert.ok(names.map(n => sql.indexOf('"' + n + '"')).every((v, i, a) => i === 0 || v > a[i - 1]), 'series in order');
+  const props = name => Object.fromEntries(chart.fieldConfig.overrides.find(o => o.matcher.options === name).properties.map(x => [x.id, x.value]));
+  assert.deepEqual(names.slice(0, 4).map(n => props(n).color.fixedColor), [L.COLOR.ok, '#7FB77E', L.COLOR.degraded, L.COLOR.unknown]);
+  assert.deepEqual([chart.fieldConfig.defaults.custom.drawStyle, chart.fieldConfig.defaults.custom.stacking.mode], ['bars', 'normal']);
+  const pct = props('First-time right %');
+  assert.deepEqual([pct.unit, pct.min, pct.max, pct['custom.drawStyle'], pct['custom.stacking'].mode, pct['custom.axisPlacement'], pct['custom.hideFrom'].legend, pct['custom.spanNulls']],
+    ['percent', 0, 100, 'line', 'none', 'right', true, false]);
+  assert.deepEqual(chart.options.legend, {calcs: ['sum'], displayMode: 'table', placement: 'bottom', showLegend: true});
+  assert.equal(chart.options.tooltip.mode, 'multi');
+  assert.ok(!chart.fieldConfig.defaults.thresholds.steps.some(s => s.value !== null), 'UX-R177-10: no threshold line without an owner target');
+  assert.ok(chart.description.includes('ignores the dashboard time range') && chart.description.includes('÷ genuine incoming slips'));
+  assert.ok(tile.targets[0].rawSql.includes('sum(auto_first_pass) / nullif(sum(genuine), 0)'), 'the 30-day % is pooled, not a mean of daily %');
 }
 // FINAL2-1: the PWA scheduler lanes carry short names that fit the label axis.
 assert.deepEqual(panelOf('mw-pwa', 20).targets.map(t => t.columns[1].text), ['Notify · 1 min', 'Charges · 00:05', 'Analytics · hourly']);

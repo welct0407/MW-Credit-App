@@ -26,9 +26,23 @@ The provider's new dashboard resources may stamp management metadata on first ch
 
 Primary schema references: [v1beta1](https://github.com/grafana/terraform-provider-grafana/blob/v4.45.2/docs/resources/apps_dashboard_dashboard_v1beta1.md), [v2](https://github.com/grafana/terraform-provider-grafana/blob/v4.45.2/docs/resources/apps_dashboard_dashboard_v2.md), [service-account API](https://grafana.com/docs/grafana/latest/developer-resources/api-reference/http-api/api-legacy/serviceaccount/). GrafanaCloud token bootstrap requires existing authenticated authority; no CLI bypass/browser scraping is provided.
 
+## R177 receipt first-time-right datasource (prepared 20 November 2026, not applied)
+
+`mw-agent-receipts` (PostgreSQL, database `mw_agent`, login `mw_grafana_reader`, the same PDC agent and Cloud SQL proxy listener as `mw-agent-questions`) feeds the `mw-agent` daily first-time-right panels through `monitoring.receipt_ftr_daily_v1()` (agent V15, `EXECUTE` and `CONNECT` on `mw_agent` for `mw_agent_dashboard`, of which `mw_grafana_reader` is a member). `maxOpenConns` 1 keeps the two datasources within the login's connection limit of 3. The password is `mw-grafana-agent-reader-password`, set by `set_datasource_secret.py`, which keeps the datasource's user and database on the update. Prepared read-only plan: 1 to add (the datasource), 0 to change, 0 to destroy.
+
+Promotion order, in the owner-authorized window:
+
+1. Verified `mw_agent` backup with `scripts/backup-agent-database.py` (dump, local-lab restore and fingerprint).
+2. On the Debian host, `agent-state-admin.py migrate` applies V15; read back the schema, the function (`SECURITY DEFINER`, `STABLE`, owner `mw_agent_owner`), `EXECUTE` and `CONNECT` for `mw_agent_dashboard`, no `PUBLIC` execute, and `deployment.schema_history` at V15.
+3. `node project/scripts/monitoring/build-dashboards.cjs --check` on the release commit, then `manage.py terraform ... plan` to a private saved plan; review it (expected: create `mw-agent-receipts`, update `mw-agent` only), then `apply` with `--plan-sha256`; re-plan must report no changes.
+4. `set_datasource_secret.py --datasource mw-agent-receipts --provisioning-version 1 --secret-version 1 --check` (version 1 is the only enabled version on 20 November 2026), then the same without `--check`; the panels show an authentication error only between steps 3 and 4.
+5. Readback: datasource health check OK, `mw-agent` version increased, the two first-time-right panels return rows back to 21 September 2026 (Bangkok days), and `mw-agent-questions` panels on `mw-cost` still return rows. Record the result in the Environment Inventory.
+
+Rollback: remove the panels and the datasource in source and apply a reviewed plan (lift `prevent_destroy` for that one resource, as for retired dashboards); revoke `CONNECT` on `mw_agent` from `mw_agent_dashboard`. V15 stays (migrations are immutable).
+
 ## Checks and recovery
 
-`python tests/grafana/test_manage.py`; Terraform fmt/validate (backend=false provider initialization is sufficient for validation). No broad CI. Existing private definitions/state and original credentials are recovery sources; no credential rotation, global routing rewrite, financial traffic or forced delivery tests. Initial authenticated import and no-change baseline passed; see `project/outputs/r055-grafana/adoption-evidence.json`. Six custom datasources, ten alert rules/routing and monitoring deployment remain in scope.
+`python tests/grafana/test_manage.py` and `tests/grafana/test_set_datasource_secret.py`; Terraform fmt/validate (backend=false provider initialization is sufficient for validation). No broad CI. Existing private definitions/state and original credentials are recovery sources; no credential rotation, global routing rewrite, financial traffic or forced delivery tests. Initial authenticated import and no-change baseline passed; see `project/outputs/r055-grafana/adoption-evidence.json`. Six custom datasources, ten alert rules/routing and monitoring deployment remain in scope.
 
 ## Current ownership and operation (13 October 2026)
 

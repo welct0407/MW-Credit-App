@@ -9,10 +9,10 @@ from decimal import Decimal, InvalidOperation
 from .business_time import BANGKOK
 from .config import ConfigurationError
 from .graph_email import valid_email
-from .payer_name import display
+from .payer_name import best, display, lines
 
 __all__ = ['BANGKOK', 'ReceiptInvalid', 'username', 'borrower_for', 'account_pattern', 'match_account',
-           'validate_receipt', 'recipients', 'summary']
+           'validate_receipt', 'outgoing_transfer', 'recipients', 'summary']
 
 
 class ReceiptInvalid(ConfigurationError):
@@ -48,21 +48,26 @@ def account_pattern(value):
     return value if re.fullmatch(r'[0-9x]{8,15}', value) else ''
 
 
+def account_fits(number, account):
+    """True when a printed number (masks kept) fits the account's number or alternative number."""
+    pattern = account_pattern(number)
+    if not pattern or sum(c.isdigit() for c in pattern) < 4:
+        return False
+    for field in ('number', 'alternative'):
+        candidate = account_pattern(account.get(field))
+        if candidate and 'x' not in candidate and len(candidate) == len(pattern) and all(
+            a == 'x' or a == b for a,b in zip(pattern,candidate)
+        ):
+            return True
+    return False
+
+
 def match_account(numbers, accounts):
     matches = set()
     for number in numbers:
-        pattern = account_pattern(number)
-        if not pattern or sum(c.isdigit() for c in pattern) < 4:
-            continue
         for account in accounts:
-            if account['active'] is not True:
-                continue
-            for field in ('number', 'alternative'):
-                candidate = account_pattern(account.get(field))
-                if candidate and 'x' not in candidate and len(candidate) == len(pattern) and all(
-                    a == 'x' or a == b for a,b in zip(pattern,candidate)
-                ):
-                    matches.add(account['id'])
+            if account['active'] is True and account_fits(number, account):
+                matches.add(account['id'])
     if len(matches) != 1:
         raise ReceiptInvalid('RECIPIENT_UNKNOWN_OR_AMBIGUOUS')
     return next(a for a in accounts if a['id'] in matches)
@@ -118,6 +123,34 @@ def validate_receipt(value, accounts, today=None):
             'reference':reference,'account_id':account['id'],'account_label':account['label'],
             # R095: the slip payer name as printed ('' when absent); a proposal fact, never a financial one.
             'payer_name':display(value.get('payer_name'))}
+
+
+def outgoing_transfer(value, accounts, senders, others=()):
+    """R177: True only when a slip is certainly our own outgoing transfer (sent FROM one of our cash accounts), so it is no
+    incoming payment. Every condition must hold; anything else, an exception included, is False (today's behaviour):
+    1. a confirmed payment receipt;
+    2. 2 to 5 printed numbers, exactly one of our active accounts fits them, the number that fits it is printed first (the
+       sender), and no later number fits any of our accounts, active or not;
+    3. `senders` ({cash account id: payer lines of its holder}) has lines for that account and the slip's payer name is an
+       exact 'match' of one (near or unknown is not);
+    4. the slip's payer name neither matches nor nears any of `others` (payer lines texts of the borrowers the slip could
+       be from: the context borrower, or every candidate of a weak context)."""
+    try:
+        if value.get('is_payment_receipt') is not True or value.get('transfer_successful') is not True:
+            return False
+        numbers = value.get('account_numbers')
+        if not isinstance(numbers, list) or not 2 <= len(numbers) <= 5 or any(not isinstance(n, str) for n in numbers):
+            return False
+        account = match_account(numbers, accounts)
+        if not account_fits(numbers[0], account) or any(account_fits(n, a) for n in numbers[1:] for a in accounts):
+            return False
+        holder = lines(senders.get(account['id'])) if isinstance(senders, dict) else []
+        slip = value.get('payer_name')
+        if not holder or not isinstance(slip, str) or best(holder, slip) != 'match':
+            return False
+        return all(best(lines(text), slip) is None for text in others)
+    except Exception:
+        return False
 
 
 def recipients(partners):

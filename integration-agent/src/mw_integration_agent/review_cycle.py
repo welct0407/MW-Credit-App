@@ -14,8 +14,8 @@ from .partner_notice import ACKNOWLEDGEMENT,NoticeJournal,receipt_notice
 from .statement_delivery import resolve_recipient
 from .partner_review import (OPTIONS_REQUIRED,RECHECKED,ReviewStore,approval_action,chosen_purpose_line,close_failure_line,close_notice,
                              request_text,review_id,slip_line,unidentified_review)
-from .review_proposal import (LOAN_CLOSE_CHANGED,OPTIONS,chosen_plan,close_enabled,facts,options_enabled,plan,review_posts_close,
-                              review_posts_overpayment,same_posting_outcome,unlabelled)
+from .review_proposal import (LOAN_CLOSE_CHANGED,OPTIONS,arrears_enabled,arrears_left,chosen_plan,close_enabled,facts,options_enabled,plan,
+                              review_posts_close,review_posts_overpayment,same_posting_outcome,unlabelled)
 from .review_execution import readback
 from . import receipt_api
 from .cash_statement import read_query
@@ -111,7 +111,7 @@ class Run:
                     b=receipt_borrower(config,job,journal,live,self.identity_reader)
                     if b['id']!=result['borrower']['id']:raise ReceiptInvalid('BORROWER_CHANGED')
                     check(config,result['receipt'],b)
-                    proposal=plan(result['receipt'],b,facts(config,b['id']),config=config)
+                    proposal=plan(result['receipt'],b,facts(config,b['id']),config=config,arrears=arrears_enabled(config))
                     prior=db.execute('SELECT id,proposal FROM partner_reviews WHERE job_id=?',(job['id'],)).fetchone()
                     if prior and json.loads(prior['proposal'])!=proposal:
                         with db:
@@ -320,7 +320,9 @@ class Run:
                     # R128: a close posts on the slip's day only (the server's Loan Close is today's).
                     if close_review and proposal['receipt']['date']!=day.isoformat():raise ReceiptInvalid(CLOSE_DAY_PASSED)
                     check(config,proposal['receipt'],b)
-                    fresh=plan(proposal['receipt'],b,facts(config,b['id']),config=config if options_review or close_review else None,strict=close_review)
+                    # R177: the arrears switch reaches the re-plan too (config=None here only keeps the options and close reads off).
+                    fresh=plan(proposal['receipt'],b,facts(config,b['id']),config=config if options_review or close_review else None,strict=close_review,
+                               arrears=arrears_enabled(config))
                     # Owner rule (20 Oct 2026): a charge edit keeps the approval while the
                     # consequence is still "post the full amount as Lump Sum".
                     marker=(AUTO_POLICY+':' if automatic else '')
@@ -624,8 +626,12 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                     elif review['state']=='POSTED':
                         # R175 (Echo E-RES-01): '✅ Recorded ฿400 from Kathy · pay forward: 19 Nov', then the transfer.
                         purpose=chosen_purpose_line(proposal,review['detail'],p['language']=='ไทย') if proposal.get('action')==OPTIONS else ''
+                        changed_facts=review['detail'].endswith(SAME_OUTCOME)
+                        # R177 (Echo UX-R177-07): with the arrears switch on, a Lump Sum that leaves older charges unpaid says
+                        # so, from the proposal's facts; not after a facts change (those facts are no longer the posted ones).
+                        unpaid=arrears_left(proposal) if arrears_enabled(config) and not changed_facts else None
                         subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],
-                                                    review['detail'].endswith(SAME_OUTCOME),purpose)
+                                                    changed_facts,purpose,unpaid=unpaid)
                     else:
                         subject,body=result_text(review,proposal,p,live)
                     notices.reserve(event,p,subject,body)
@@ -675,7 +681,8 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                     if current!=proposal['facts']:
                         # A request still goes out after a charge edit when approving it would post the same way.
                         close=review_posts_close(proposal)
-                        fresh=plan(proposal['receipt'],proposal['borrower'],current,config=config if proposal.get('action')==OPTIONS or close else None,strict=close)
+                        fresh=plan(proposal['receipt'],proposal['borrower'],current,config=config if proposal.get('action')==OPTIONS or close else None,strict=close,
+                                   arrears=arrears_enabled(config))
                         # R128: a close request still goes out while the server's close plan is the one it shows.
                         if (fresh['action']=='Loan Close' and not close) or not same_posting_outcome(proposal,fresh,False):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
                 except ReceiptInvalid as exc:

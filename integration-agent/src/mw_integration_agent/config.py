@@ -212,6 +212,24 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigurationError('pay_forward_options_enabled must be boolean')
     if config.get('pay_forward_options_enabled') and not (config.get('partner_review_execution_enabled') and config.get('database_enabled')):
         raise ConfigurationError('pay forward options require review execution and the database')
+    # R177: auto-post arrears (default off). A slip up to every unpaid charge dated on or before its date is an ordinary
+    # Lump Sum, so the switch needs the automatic payment it feeds; anything but true or false is refused.
+    if type(config.get('receipt_arrears_auto_enabled',False)) is not bool:
+        raise ConfigurationError('receipt_arrears_auto_enabled must be boolean')
+    if config.get('receipt_arrears_auto_enabled') and config.get('receipt_auto_payment_enabled') is not True:
+        raise ConfigurationError('receipt_arrears_auto_enabled requires receipt_auto_payment_enabled')
+    # R177: our own outgoing transfers are IGNORED (default off). The payer lines of each cash account's holder (as printed
+    # on the slip; private configuration, never in Git) are required when on; malformed lines are refused either way.
+    if type(config.get('receipt_outgoing_ignore_enabled',False)) is not bool:
+        raise ConfigurationError('receipt_outgoing_ignore_enabled must be boolean')
+    senders=config.get('receipt_outgoing_senders',{})
+    from .payer_name import lines as payer_lines, valid_lines
+    if not isinstance(senders,dict) or any(not isinstance(k,str) or not k.strip() or not isinstance(v,str) or not valid_lines(payer_lines(v))
+                                           or len(payer_lines(v))!=len([line for line in v.split('\n') if line.strip()])
+                                           for k,v in senders.items()):
+        raise ConfigurationError('receipt_outgoing_senders must map cash account ids to payer lines')
+    if config.get('receipt_outgoing_ignore_enabled') and not senders:
+        raise ConfigurationError('receipt_outgoing_ignore_enabled requires receipt_outgoing_senders')
     # R128: the Instagram-approved Loan Close (default off). On, it needs the review execution and the shared receipt
     # payment API, whose agent route serves the close quote and the close command; anything but true or false is refused.
     if type(config.get('loan_close_execution_enabled',False)) is not bool:

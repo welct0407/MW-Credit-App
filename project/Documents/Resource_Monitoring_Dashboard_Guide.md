@@ -94,7 +94,14 @@ Everything is Debian-backed except the webhook check and the two public status f
 | 11 | Providers · status | Railway, Google Cloud and (R143) Anthropic status; 12 rows on Agent (Now 17 keeps its nine). The Anthropic row reads the public status page through the `mw-public-status` datasource and watches only the "Claude API (api.anthropic.com)" component: Outage, Incident open, Maintenance, No incident, or Feed unreadable (also on a fetch failure, and until the host is allowed on the datasource) | Feeds have no history, so a stat |
 | 13 | Connectivity · code version | 1 when the receiver's code version matches the deployed commit prefix | Closes the former known gap for `webhook_code_version` |
 
-Rows by component: Receipt pipeline (20: panels 1, 2, 14), Receipt recognizer (21: 6, 12, 7, 8), Agent workers and timers (23: 9), Connectivity and providers (24: 10, 11, 13).
+R177 adds two panels to the Receipt pipeline row of Agent & Receipts, reading `mw_agent` through the datasource `mw-agent-receipts`:
+
+| # | Panel | Shows |
+| --- | --- | --- |
+| 34 | Receipts · daily first-time right | Stacked bars per Bangkok day (auto-posted, after review, manual in the PWA, rejected or held) and the first-time-right % line, with history from the start of the data (21 September 2026); 180-day time-range override. Non-receipts, duplicates and known outgoing slips are excluded; outgoing slips from 20 November until the agent's outgoing switch is live count as rejected or held. |
+| 35 | Receipts · last 30 days | The same counts and the percentage for the last 30 days. |
+
+Rows by component: Receipt pipeline (20: panels 1, 2, 14, 34, 35), Receipt recognizer (21: 6, 12, 7, 8), Agent workers and timers (23: 9), Connectivity and providers (24: 10, 11, 13).
 
 **Group chat summary (R166, row 25 "Group chat summary · mw-group-chat-summary on Debian")** shows how the integration agent's `group_chat_summary` service performs: when it last ran, what is waiting, what failed, outcomes, how long groups wait, the model and its call time, and the refresh button's taps (R165). It reads the collector's `worker_timing{component="group_chat_summary"}`, `health{group_chat_summary}` and `worker_timing{group_chat_summary_call}` series (Debian-backed; counts and timings only, no chat text, no borrower data). The collector sends a count as 0 and a duration as -1 when there is nothing to report, so a quiet day reads None and never a healthy-looking zero; a missing or stale value reads No report. Requested by the owner on 17 November 2026 (all seven candidate tiles accepted). There is no DEV Grafana, so it is checked in CI until PROD.
 

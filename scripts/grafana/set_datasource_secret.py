@@ -13,7 +13,27 @@ import manage
 PAIRS = {
     'mw-anthropic-cost': ('apiKeyValue', 'mw-anthropic-admin-cost-key', r'sk-ant-(?:admin01|api\d\d|usr)-[A-Za-z0-9_-]{20,}'),
     'mw-railway-monitoring': ('bearerToken', 'mw-railway-grafana-monitoring-token', r'[A-Za-z0-9_-]{20,}'),
+    # R177: login mw_grafana_reader to mw_agent through PDC (the same password as mw-agent-questions).
+    'mw-agent-receipts': ('password', 'mw-grafana-agent-reader-password', r'[!-~]{16,}'),
 }
+# Nonsecret fields carried unchanged on the PUT; user and database keep a PostgreSQL datasource's login.
+KEPT = ('name', 'type', 'access', 'url', 'user', 'database', 'basicAuth', 'isDefault', 'jsonData')
+
+def check_value(value, pattern):
+    if '\n' in value or not re.fullmatch(pattern, value): raise ValueError('Secret value has an unexpected format')
+
+def update_body(ds, uid, field, value):
+    if ds.get('uid') != uid: raise ValueError('Datasource uid mismatch')
+    body = {k: ds[k] for k in KEPT if k in ds}
+    body['uid'] = uid
+    body['version'] = ds.get('version')
+    body['secureJsonData'] = {field: value}
+    return body
+
+def check_after(before, after, field):
+    if not after.get('secureJsonFields', {}).get(field): raise ValueError('Field not reported as set after update')
+    for k in KEPT:
+        if after.get(k) != before.get(k): raise ValueError(f'{k} changed unexpectedly')
 
 def secret_value(secret, version):
     url = f'https://secretmanager.googleapis.com/v1/projects/{manage.PROJECT}/secrets/{secret}/versions/{version}:access'
@@ -38,20 +58,15 @@ def main():
         if not re.fullmatch(r'[1-9][0-9]*', v): raise ValueError('Numeric Secret Manager versions required')
     field, secret, pattern = PAIRS[a.datasource]
     value = secret_value(secret, a.secret_version)
-    if '\n' in value or not re.fullmatch(pattern, value): raise ValueError('Secret value has an unexpected format')
+    check_value(value, pattern)
     token = manage.load_token(argparse.Namespace(token_file=None, secret_version=a.provisioning_version))
     ds = grafana('GET', '/api/datasources/uid/' + a.datasource, token)
     if a.check:
         print(json.dumps({'datasource': a.datasource, 'field': field, 'secret': secret, 'version': a.secret_version,
                           'formatValid': True, 'fieldSet': bool(ds.get('secureJsonFields', {}).get(field))})); return 0
-    body = {k: ds[k] for k in ('name', 'type', 'access', 'url', 'basicAuth', 'isDefault', 'jsonData') if k in ds}
-    body['uid'] = a.datasource
-    body['version'] = ds.get('version')
-    body['secureJsonData'] = {field: value}
-    grafana('PUT', '/api/datasources/uid/' + a.datasource, token, body)
+    grafana('PUT', '/api/datasources/uid/' + a.datasource, token, update_body(ds, a.datasource, field, value))
     after = grafana('GET', '/api/datasources/uid/' + a.datasource, token)
-    if not after.get('secureJsonFields', {}).get(field): raise ValueError('Field not reported as set after update')
-    if after.get('jsonData') != ds.get('jsonData'): raise ValueError('jsonData changed unexpectedly')
+    check_after(ds, after, field)
     print(json.dumps({'datasource': a.datasource, 'field': field, 'secret': secret, 'version': a.secret_version,
                       'fieldSet': True, 'datasourceVersion': after.get('version')}))
     return 0
