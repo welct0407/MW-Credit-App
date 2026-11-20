@@ -42,7 +42,7 @@ V152 and the read, command and chat images were applied on 19 November 2026 (not
 - Pruned at closure (Open R177 plus the three newest Released: R176, R175, R174): `Change Logs/CHANGE_NOTES_R173_RECHECK_SAME_PLAN_2026-11-18.md` and `integration-agent/Change Logs/CHANGE_NOTES_RECHECK_SAME_PLAN_2026-11-18.md`, with their links repointed to permalinks at `2636231b`; the R173 follow-up row of the open development changes is removed. R176 has no section in the open development changes.
 
 ## Remaining work
-Owner acceptance. The chat schema digest is now 152, which starts a new chat history epoch (as R128 recorded for its digest change); the chat assistant now describes the new goal rule. Metabase question 380 and the PWA need no change.
+None. Owner-accepted in PROD on 20 November 2026 ("Looks fine", after viewing the Metabase card and the PWA dashboard); published in its own records-only pull request at the owner's request ("open a PR and merge the acceptance"), an explicit exception to carrying acceptance in the next product or closure pull request. The chat schema digest is now 152, which starts a new chat history epoch (as R128 recorded for its digest change); the chat assistant now describes the new goal rule. Metabase question 380 and the PWA need no change.
 
 ## PROD promotion record (Forge, 19 November 2026 UTC)
 Authority: owner, 19 November 2026 (Asia/Bangkok), in session: "limit the goal to this month's charges only. move to prod"; it covers V152, the backups, the standard DEV six-owner window and these records. SQL-only release: no image, Hosting, Terraform, agent, Metabase, notification, job or financial write.
