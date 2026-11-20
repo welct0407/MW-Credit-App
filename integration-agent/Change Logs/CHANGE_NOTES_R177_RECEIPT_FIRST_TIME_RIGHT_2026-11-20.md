@@ -9,8 +9,8 @@ Evidence (read-only, PROD, 6 to 20 November 2026, aggregates only): 202 incoming
 - One Review thread showed unclear wording and count mismatches (item C); the owner dropped item C and the twin-record guard.
 
 ## Changes
-- A (auto-post arrears): `receipt_arrears_auto_enabled` in `integration-agent/src/mw_integration_agent/review_proposal.py` and `receipt_rules.py`; the ✅ notice adds "Still unpaid" when older charges remain.
-- B (outgoing transfers ignored): `receipt_outgoing_ignore_enabled` and `receipt_outgoing_senders`; IGNORED / `OUTGOING_TRANSFER` before validation, no notice.
+- A (auto-post arrears): `receipt_arrears_auto_enabled` in `integration-agent/src/mw_integration_agent/review_proposal.py` and `review_cycle.py`; `partner_notice.py` adds the "Still unpaid: ฿X from <date>" line to the ✅ notice when older charges remain (with arrears on it also appears on a plain partial Lump Sum within the latest day; truthful and switch-gated).
+- B (outgoing transfers ignored): `receipt_outgoing_ignore_enabled` and `receipt_outgoing_senders` (`receipt_rules.py` carries the `match_account` refactor); IGNORED / `OUTGOING_TRANSFER` before validation, no notice.
 - C and the twin-record guard: dropped by the owner; not built.
 - D (first-time-right on Grafana `mw-agent`): agent migration V15 `monitoring.receipt_ftr_daily_v1()`; datasource `mw-agent-receipts`; panels 34 and 35; `DASHBOARD_RELEASE` R177 (`project/scripts/monitoring/dashboards/`, `infrastructure/grafana/`).
 - Config: `integration-agent/config.example.json` template, all keys default off; no catalogue revision.
@@ -26,10 +26,19 @@ Evidence (read-only, PROD, 6 to 20 November 2026, aggregates only): 202 incoming
 | `test_dashboard_queries.py` | 88 OK (Byte, `9fed88c`) |
 | Grafana tests; `terraform fmt` and `validate` | Pass (Forge, `af77eb7`) |
 | Grafana read-only plan | 1 add, 0 change, 0 destroy (Forge, `af77eb7`) |
+| Chase adversarial review of `ee653fa..9fed88c` | Pass, no defects |
+| Argument-removal mutation at `review_cycle.py:324` | Caught by 3 tests (Chase) |
+| First-time-right function body, read only on live `mw_agent` | 6 to 20 November 137/190 = 72.1%; full history 292/463 = 63.1% (Chase) |
 | `npm run check:docs` | 0 failures, 1 pre-existing warning (an old note, Dewey) |
 
 ## Not run
-To be filled. Any live financial write is not authorized. PROD promotion is authorized but not yet performed.
+| Check | Why |
+| --- | --- |
+| Real extraction order on historic accepted outgoing slips | The extraction is not kept |
+| Live Grafana datasource connectivity | After Forge's apply |
+| V15 on PROD | At promotion, after the verified `mw_agent` backup |
+
+Any live financial write is not authorized. PROD promotion is authorized but not yet performed. A skipped check is not a pass.
 
 ## Recovery
 Git baseline `main` `ee653fa` (R176 owner acceptance). No deployment has happened yet; the PROD record will name the `mw_agent` backup; DEV or Grafana changes, once applied, are recorded here with their prior state.
