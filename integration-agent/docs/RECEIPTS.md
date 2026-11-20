@@ -72,6 +72,10 @@ A master-read failure before processing one image now records a five-minute back
 
 The command accepts only POSTED-result notices whose review still proves a payment ID, IG is UNAVAILABLE without an accepted message ID, and email is REJECTED after exactly three attempts. At most ten unique exact IDs; stale observations or changed state reject the whole transaction. Repeating the same reviewed acknowledgement is idempotent. Required review requests, UNKNOWN delivery/posting and successful notices are refused. Original notice fields, payment/review state and earlier failed audit operations remain unchanged. Acknowledgement is `ACKNOWLEDGED_UNDELIVERED`, never successful delivery, and schedules no resend. Since 22 October 2026 (owner decision) an acknowledged notice no longer counts in `failed_notifications`; the collector reads the `optional_notification_acknowledged` events read-only and keeps counting if it cannot read them. If commit acknowledgement is lost, inspect the deterministic acknowledgement operation/event before doing anything further.
 
+## Arrears auto-post and outgoing transfers (R177)
+
+With `receipt_arrears_auto_enabled` an incoming slip within the total unpaid charges through its date posts automatically as Lump Sum; with `receipt_outgoing_ignore_enabled` and `receipt_outgoing_senders` a slip our own cash account sent is recorded IGNORED / `OUTGOING_TRANSFER` with no notice. Both default off; rules and guards are in [Partner review](PARTNER_REVIEW.md#arrears-auto-post-and-our-own-outgoing-transfers-r177-20-november-2026). The first-time-right share of genuine incoming slips is on the Grafana `mw-agent` dashboard (panels 34 and 35) from `monitoring.receipt_ftr_daily_v1()`.
+
 ## Receipt run order, image budget and retries — 20 October 2026
 
 Owner plan of 20 October 2026 (batch A, agent code only; no SQL, no new service, no catalogue revision, no change to the Cloud Run instance count, the receiving page, the Gemini model, the validation rules or the shared receipt API). One run of `mw-receipt-summary` (the `receipt-cycle` command, still one worker at a time under `receipt-worker.lock`) now runs in this order:

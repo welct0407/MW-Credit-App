@@ -1,35 +1,41 @@
 # Change notes — R177 receipt first-time-right, 20 November 2026
 
 ## Purpose
-Raise the share of genuine incoming slips that post on the first pass without a human, and make that share visible. Owner request of 20 November 2026; PROD promotion is not yet authorized.
+Raise the share of genuine incoming slips that post on the first pass without a human, and make that share visible. Owner request of 20 November 2026. The owner also approved the `mw_agent` V15 database change and authorized PROD promotion of A, B and D ("Push to prod"): enabling `receipt_arrears_auto_enabled` and the outgoing-transfer switch in the PROD agent config, V15 after a verified `mw_agent` backup, and the Grafana apply. Promotion is not yet done.
 
 Evidence (read-only, PROD, 6 to 20 November 2026, aggregates only): 202 incoming slip jobs, 137 auto-posted first pass (68%, median 24 s). Gaps found:
 - 14 slips went to "Overpayment review" although the amount was at or below the total unpaid charges through the slip date (5 exactly equal, 9 partial; 8 of the 9 were booked as newest-first Lump Sum would book them). Cause: the plan auto-posts only when the amount is within the latest charge day's total.
 - 8 slips were the partner's own outgoing transfers, shown in borrower groups; each needed a manual Reject, and one whose amount fitted a due would have auto-posted as incoming.
-- One Review thread showed a stale existing-payment result with unclear wording, an unacknowledged reviewer reply and a Review count that differed from what was sent (item C).
+- One Review thread showed unclear wording and count mismatches (item C); the owner dropped item C and the twin-record guard.
 
 ## Changes
-- A (auto-post arrears): `integration-agent/src/mw_integration_agent/review_proposal.py` plan and tests. To be filled.
-- B (outgoing transfers ignored): sender detection against our active cash accounts, a distinct ignored detail code. To be filled.
-- C (design only, pending owner confirmation): acknowledge a reviewer's reply to a result notice; name what differs in `POSSIBLE_EXISTING_PAYMENT_REVIEW`; align the Review list count. Not built.
-- D (first-time-right on Grafana `mw-agent`): dashboard source under `project/scripts/monitoring/` and the data source it reads. To be filled.
-- Documents updated: `project/Documents/Release_Tracker.md`; the rest to be filled.
+- A (auto-post arrears): `receipt_arrears_auto_enabled` in `integration-agent/src/mw_integration_agent/review_proposal.py` and `receipt_rules.py`; the ✅ notice adds "Still unpaid" when older charges remain.
+- B (outgoing transfers ignored): `receipt_outgoing_ignore_enabled` and `receipt_outgoing_senders`; IGNORED / `OUTGOING_TRANSFER` before validation, no notice.
+- C and the twin-record guard: dropped by the owner; not built.
+- D (first-time-right on Grafana `mw-agent`): agent migration V15 `monitoring.receipt_ftr_daily_v1()`; datasource `mw-agent-receipts`; panels 34 and 35; `DASHBOARD_RELEASE` R177 (`project/scripts/monitoring/dashboards/`, `infrastructure/grafana/`).
+- Config: `integration-agent/config.example.json` template, all keys default off; no catalogue revision.
+- Documents updated: `project/Documents/Release_Tracker.md`, `project/Documents/Development_Changes.md`, `project/Documents/Resource_Monitoring_Dashboard_Guide.md`, `project/scripts/monitoring/README.md`, `integration-agent/README.md`, `integration-agent/docs/PARTNER_REVIEW.md`, `integration-agent/docs/RECEIPTS.md`, `integration-agent/docs/POSTGRESQL_OPERATIONS.md`.
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| To be filled by Byte, Echo and Chase | |
-| `npm run check:docs` | To be run by Dewey after the implementation lands |
+| ruff | Pass (Byte, `9fed88c`) |
+| Agent unit tests | 1,139 OK, 82 skipped (Byte, `9fed88c`) |
+| Agent PostgreSQL lab, V1 to V15 | 92 OK (Byte, `9fed88c`) |
+| `node project/scripts/monitoring/test_build_dashboards.cjs` | OK (Byte, `9fed88c`) |
+| `test_dashboard_queries.py` | 88 OK (Byte, `9fed88c`) |
+| Grafana tests; `terraform fmt` and `validate` | Pass (Forge, `af77eb7`) |
+| Grafana read-only plan | 1 add, 0 change, 0 destroy (Forge, `af77eb7`) |
+| `npm run check:docs` | 0 failures, 1 pre-existing warning (an old note, Dewey) |
 
 ## Not run
-To be filled. PROD deployment, any live financial write and the agent promotion are not authorized.
+To be filled. Any live financial write is not authorized. PROD promotion is authorized but not yet performed.
 
 ## Recovery
-Git baseline `main` `ee653fa` (R176 owner acceptance). No deployment has happened; DEV or Grafana changes, once applied, are recorded here with their prior state.
+Git baseline `main` `ee653fa` (R176 owner acceptance). No deployment has happened yet; the PROD record will name the `mw_agent` backup; DEV or Grafana changes, once applied, are recorded here with their prior state.
 
 ## Open questions
-- Item C: does the owner want the reply acknowledgement, the clearer result wording and the Review count fix?
-- PROD promotion of the agent (A, B) and, if built, C awaits the owner's "move to production".
+None.
 
 ## Remaining work
 Implementation (Byte), tests (Echo), review (Chase), Grafana change (Forge or Byte as assigned), then documentation and this note's Checks.
