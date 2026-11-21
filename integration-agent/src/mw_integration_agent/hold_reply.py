@@ -183,18 +183,28 @@ def designation_facts(db,job_id):
 def audit_designation(config,db,event,notice):
     """R179: one audit event `hold_borrower_designated` (job, Partner, borrower, the reply's message id as SHA-256 and the
     prior hold code; never the slip reference, payer name or typed text). Idempotent per inbound message."""
-    from .audit import activity,event as audit_event
-    from .state import enabled,transaction
+    from .state import enabled
     if not enabled(config):return
     job_id=notice['event_key'].split(':')[1]
     facts=designation_facts(db,job_id)
     if not facts:return
     digest=hashlib.sha256(event['message_id'].encode()).hexdigest()
     payload={'job_id':job_id,'partner_id':notice['partner_id'],'borrower_id':facts[0],'message_sha256':digest,'prior_code':facts[2]}
-    with activity(config,'hold_borrower_designation','PROCESS','internal',payload,key='hold-borrower-designated:'+digest) as op:
-        if op:
-            with transaction(config) as conn:
-                audit_event(conn,op,'hold_borrower_designated',payload,'internal',key='hold_borrower_designated')
+    audit_once(config,'hold-borrower-designated:'+digest,'hold_borrower_designated',payload)
+
+
+AUDIT_SERVICE='hold_borrower_designation'
+
+
+def audit_once(config,key,kind,payload):
+    """One completed audit operation with one keyed event, in one transaction. A replay (the same inbound message decided
+    again, a designated job processed again) finds both and writes nothing (begin and event are idempotent per key);
+    activity() is not used because it writes an unkeyed 'requested' event over the completed operation."""
+    from .audit import begin,event
+    from .state import transaction
+    with transaction(config) as conn:
+        op=begin(conn,config,AUDIT_SERVICE,key,'PROCESS',payload)
+        event(conn,op,kind,payload,'internal',state='COMPLETED',key=kind)
 
 
 def borrower_label(borrower,thai):
@@ -323,11 +333,7 @@ def audit_not_learned(config,job_id,borrower_id,reason):
     """R179 learning (receipt_hold_designation_learn_enabled): a designated slip whose payer name was not learned is
     recorded with the reason code (PAYER_NAME_UNREADABLE, PAYER_NAME_OTHER_BORROWER, PAYER_LINES_FULL, PAYER_NAME_KNOWN),
     never the name. A learned change travels in the posting command (payerLines) instead. Idempotent per job and reason."""
-    from .audit import activity,event
-    from .state import enabled,transaction
+    from .state import enabled
     if not reason or not enabled(config):return
     payload={'job_id':job_id,'borrower_id':borrower_id,'reason':reason}
-    with activity(config,'hold_borrower_designation','PROCESS','internal',payload,key='payer-name-not-learned:'+job_id+':'+reason) as op:
-        if op:
-            with transaction(config) as conn:
-                event(conn,op,'designated_payer_name_not_learned',payload,'internal',key='designated_payer_name_not_learned')
+    audit_once(config,'payer-name-not-learned:'+job_id+':'+reason,'designated_payer_name_not_learned',payload)

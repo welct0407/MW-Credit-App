@@ -176,7 +176,8 @@ def receipt_context(config, job, journal, master, identity_reader, api=None):
     active = payer_active(config, job)
     evidence = provenance(job)
     if evidence.get('designated_borrower_id'):
-        return designated_context(master, evidence['designated_borrower_id'], learn_enabled(config))
+        # Learning also needs the job to be after payer_name_cutoff (Chase R179 Low), as every R095 payer-name step.
+        return designated_context(master, evidence['designated_borrower_id'], learn_enabled(config) and active)
     row = poll_row(journal, job['message_id'])
     # Forwarding is allowed only for the message captured by our group poller.
     # Re-read the exact group's membership before validation and before posting.

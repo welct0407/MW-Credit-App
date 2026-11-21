@@ -368,6 +368,11 @@ class RerunTests(payer_fixture.PayerBase):
         context = receipt_context(dict(self.config, receipt_hold_designation_enabled=True), {'result': json.dumps({'designated_borrower_id': 'b1'}),
                                   'created_at': 0, 'message_id': 'x'}, self.j, m, None)
         self.assertEqual((context['kind'], context['fill']), ('designated', False))
+        # Learning on: only for a job after payer_name_cutoff (as every R095 payer-name step).
+        learn = dict(self.config, receipt_hold_designation_enabled=True, receipt_hold_designation_learn_enabled=True)
+        for created, fill in ((0, False), (time.time(), True)):
+            job = {'result': json.dumps({'designated_borrower_id': 'b1'}), 'created_at': created, 'message_id': 'x'}
+            self.assertEqual(receipt_context(learn, job, self.j, m, None)['fill'], fill)
         self.assertEqual(resolve_payer(context, {'payer_name': 'นาย ญาติ คนอื่น'}, {}, m), (ken, None, 'designated'))
 
 
@@ -428,16 +433,18 @@ class AuditAndConfigTests(DesignationBase):
         seen = []
 
         @contextmanager
-        def activity(config, service, action, route, plan, key=None):
-            seen.append(('op', service, key, plan));yield 'op'
-
-        @contextmanager
         def transaction(config):yield 'conn'
-        with patch('mw_integration_agent.state.enabled', return_value=True), patch('mw_integration_agent.audit.activity', activity), \
+
+        def begin(conn, config, service, key, action, plan):
+            seen.append(('op', service, key, plan));return 'op'
+        # One transaction: begin and a keyed, completed event (idempotent on replay; the PostgreSQL lab proves the replay).
+        with patch('mw_integration_agent.state.enabled', return_value=True), patch('mw_integration_agent.audit.begin', begin), \
                 patch('mw_integration_agent.state.transaction', transaction), \
-                patch('mw_integration_agent.audit.event', side_effect=lambda conn, op, kind, payload, route, key=None: seen.append((kind, payload))):
+                patch('mw_integration_agent.audit.event', side_effect=lambda conn, op, kind, payload, route, state=None, key=None: seen.append((kind, payload, state, key))):
             audit_designation(self.config, self.j.db, self.event, self.notice)
-        kind, payload = seen[-1]
+        self.assertEqual(seen[-1][2:], ('COMPLETED', 'hold_borrower_designated'))
+        self.assertEqual(seen[0][1:3], ('hold_borrower_designation', 'hold-borrower-designated:' + hashlib.sha256(b'in').hexdigest()))
+        kind, payload = seen[-1][:2]
         self.assertEqual(kind, 'hold_borrower_designated')
         self.assertEqual(payload, {'job_id': 'j', 'partner_id': 'p', 'borrower_id': 'ken', 'message_sha256': hashlib.sha256(b'in').hexdigest(),
                                    'prior_code': 'PAYER_UNRESOLVED'})
