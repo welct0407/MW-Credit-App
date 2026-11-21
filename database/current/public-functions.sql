@@ -2988,13 +2988,13 @@ DECLARE r public.pwa_payment_commands%ROWTYPE; c jsonb; matched boolean; environ
 BEGIN
  environment:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;
  IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR session_user<>('mw-credit-app-command-'||environment||'@clever-oasis-508610-n7.iam') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Command session required'; END IF;
- SELECT * INTO r FROM public.pwa_payment_commands p WHERE p.request_id=$1 AND p.actor_issuer=$2 AND p.actor_subject=$3 AND p.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('7','8','9','10') AND p.canonical_json::jsonb->'command' ? 'reviewId'; -- R118: agent v10
+ SELECT * INTO r FROM public.pwa_payment_commands p WHERE p.request_id=$1 AND p.actor_issuer=$2 AND p.actor_subject=$3 AND p.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('7','8','9','10','11') AND p.canonical_json::jsonb->'command' ? 'reviewId'; -- R118: agent v10; R181: agent v11
  IF NOT FOUND THEN RETURN jsonb_build_object('kind','unresolved'); END IF;
  c:=r.canonical_json::jsonb->'command';
  SELECT EXISTS(SELECT 1 FROM public."Payments" p WHERE p."Row ID"=r.payment_id AND p."Status"='Posted'
   AND p."Ref Borrower"=(c->>'borrowerId') AND p."Ref Received By Cash Account"=(c->>'cashAccountId')
   AND p."Amount Received"::numeric=((c->>'amountReceived'))::numeric AND p."Payment Date"=((c->>'paymentDate'))::date
-  AND p."Created By"=r.actor_login_email AND p."Payment Method"='Bank Transfer' AND p."Allocation Method"=CASE WHEN c->>'schemaVersion' IN ('9','10') THEN 'Selected Charges' ELSE 'Lump Sum' END
+  AND p."Created By"=r.actor_login_email AND p."Payment Method"='Bank Transfer' AND p."Allocation Method"=CASE WHEN c->>'schemaVersion' IN ('9','10','11') THEN 'Selected Charges' ELSE 'Lump Sum' END
   AND p."Bank Reference"=(c->>'bankReference') AND to_char(p."Created At",'YYYY-MM-DD HH24:MI')=(c->>'paymentDate')||' '||(c->>'transferTime')
   AND (SELECT coalesce(sum(x."Principal Paid"::numeric+x."Interest Paid"::numeric+x."Late Charge Paid"::numeric),0) FROM public."Repayments" x WHERE x."Ref Payment"=p."Row ID")=((c->>'amountReceived'))::numeric) INTO matched;
  RETURN jsonb_build_object('kind','recorded','reviewId',(c->>'reviewId'),'financialMatch',CASE WHEN r.outcome='posted' THEN matched ELSE NULL END,
@@ -6834,18 +6834,18 @@ BEGIN
   -- R095: schemaVersion 8 = 7 plus payerLines after bankReference (an object or null); 7 stays accepted.
   IF c->'schemaVersion'='8'::jsonb THEN command_keys:=ARRAY['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','payerLines','proposalSha256','archiveEvidence']; END IF;
   -- R112: schemaVersion 9 = 8 plus purpose, allocations, materialize and principal after payerLines.
-  IF c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb) THEN command_keys:=ARRAY['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','payerLines','purpose','allocations','materialize','principal','proposalSha256','archiveEvidence']; END IF;
-  IF octet_length($1)>16384 AND c->'schemaVersion' NOT IN ('9'::jsonb,'10'::jsonb) THEN RAISE EXCEPTION 'size'; END IF;
+  IF c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb,'11'::jsonb) THEN command_keys:=ARRAY['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','payerLines','purpose','allocations','materialize','principal','proposalSha256','archiveEvidence']; END IF;
+  IF octet_length($1)>16384 AND c->'schemaVersion' NOT IN ('9'::jsonb,'10'::jsonb,'11'::jsonb) THEN RAISE EXCEPTION 'size'; END IF;
   IF jsonb_typeof(e)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(e) key)<>ARRAY['actor','command','contractVersion','receipt'] OR e->'contractVersion'<>'1'::jsonb OR e->'receipt'<>'null'::jsonb
    OR jsonb_typeof(c)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c) key)<>(SELECT array_agg(key ORDER BY key) FROM unnest(command_keys) key)
    OR jsonb_typeof(a)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(a) key)<>(SELECT array_agg(key ORDER BY key) FROM unnest(actor_keys) key)
    OR jsonb_typeof(x)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(x) key)<>(SELECT array_agg(key ORDER BY key) FROM unnest(evidence_keys) key)
-   OR c->'schemaVersion' NOT IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) OR (c->>'environment')<>environment OR (c->>'mode') NOT IN ('automatic','reviewed') THEN RAISE EXCEPTION 'shape'; END IF;
+   OR c->'schemaVersion' NOT IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb,'11'::jsonb) OR (c->>'environment')<>environment OR (c->>'mode') NOT IN ('automatic','reviewed') THEN RAISE EXCEPTION 'shape'; END IF;
   FOREACH k IN ARRAY text_keys LOOP
    IF jsonb_typeof(c->k)<>'string' THEN RAISE EXCEPTION 'type'; END IF;
    v:=(c->>k);IF octet_length(v) NOT BETWEEN 1 AND 256 OR btrim(v)='' OR v~E'[\\r\\n]' OR (k<>'bankReference' AND v<>btrim(v)) THEN RAISE EXCEPTION 'text'; END IF;
   END LOOP;
-  IF c->'schemaVersion' IN ('8'::jsonb,'9'::jsonb,'10'::jsonb) AND c->'payerLines'<>'null'::jsonb THEN
+  IF c->'schemaVersion' IN ('8'::jsonb,'9'::jsonb,'10'::jsonb,'11'::jsonb) AND c->'payerLines'<>'null'::jsonb THEN
    IF jsonb_typeof(c->'payerLines')<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c->'payerLines') key)<>ARRAY['after','before']
     OR jsonb_typeof(c->'payerLines'->'after')<>'string' OR jsonb_typeof(c->'payerLines'->'before') NOT IN ('string','null') THEN RAISE EXCEPTION 'payer lines';END IF;
    payer_before:=c->'payerLines'->>'before';payer_after:=c->'payerLines'->>'after';
@@ -6860,7 +6860,7 @@ BEGIN
   -- R112 v9: a partner's numbered reply (reviewed mode only). purpose {forward, principal (0 to 20 {loanId, amount},
   -- ordered by loanId), loans null}, forward or at least one principal entry; allocations (1 to 10000 lines ordered by
   -- chargeId, totalling the amount), materialize (0 to 200) and principal (0 to 20) as the manual v10 command.
-  IF c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb) THEN
+  IF c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb,'11'::jsonb) THEN
    IF (c->>'mode')<>'reviewed' OR jsonb_typeof(c->'purpose') IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c->'purpose') key) IS DISTINCT FROM ARRAY['forward','loans','principal']
     OR jsonb_typeof(c->'purpose'->'forward') IS DISTINCT FROM 'boolean' OR c->'purpose'->'loans' IS DISTINCT FROM 'null'::jsonb OR jsonb_typeof(c->'purpose'->'principal') IS DISTINCT FROM 'array'
     OR jsonb_array_length(c->'purpose'->'principal')>20 OR (c->'purpose'->'forward'='false'::jsonb AND jsonb_array_length(c->'purpose'->'principal')=0) THEN RAISE EXCEPTION 'purpose'; END IF;
@@ -6877,8 +6877,8 @@ BEGIN
    purpose_text:='{"forward":'||(c->'purpose'->>'forward')||',"principal":['||purpose_text||'],"loans":null}';
    IF jsonb_typeof(c->'allocations') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'allocations') NOT BETWEEN 1 AND 10000 THEN RAISE EXCEPTION 'plan'; END IF;
    FOR line IN SELECT value FROM jsonb_array_elements(c->'allocations') LOOP
-    IF jsonb_typeof(line) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(line) key) IS DISTINCT FROM (CASE WHEN c->'schemaVersion'='10'::jsonb
-     -- R118 agent v10: the 8-key line with the late charge and its expected remaining.
+    IF jsonb_typeof(line) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(line) key) IS DISTINCT FROM (CASE WHEN c->'schemaVersion' IN ('10'::jsonb,'11'::jsonb)
+     -- R118 agent v10 (R181 v11 too): the 8-key line with the late charge and its expected remaining.
      THEN ARRAY['chargeDate','chargeId','expectedInterestRemaining','expectedLateChargeRemaining','expectedPrincipalRemaining','interest','lateCharge','principal']
      ELSE ARRAY['chargeDate','chargeId','expectedInterestRemaining','expectedPrincipalRemaining','interest','principal'] END) THEN RAISE EXCEPTION 'line'; END IF;
     FOREACH k IN ARRAY ARRAY(SELECT jsonb_object_keys(line)) LOOP
@@ -6923,8 +6923,11 @@ BEGIN
    IF jsonb_typeof(c->'principal') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'principal')>20 THEN RAISE EXCEPTION 'principal'; END IF;
    loans:=ARRAY[]::text[];
    FOR entry IN SELECT value FROM jsonb_array_elements(c->'principal') LOOP
-    IF jsonb_typeof(entry) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(entry) key) IS DISTINCT FROM ARRAY['accruedInterest','amount','chargeDate','chargeId','kind','loanId','principalDue'] THEN RAISE EXCEPTION 'principal entry'; END IF;
-    FOREACH k IN ARRAY ARRAY['loanId','kind','chargeId','chargeDate','amount','accruedInterest','principalDue'] LOOP
+    IF jsonb_typeof(entry) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(entry) key) IS DISTINCT FROM (CASE WHEN c->'schemaVersion'='11'::jsonb AND entry->>'kind'='settle'
+     -- R181 v11: the settle entry of a Reviewer's close choice, with the Loan Close quote's planHash.
+     THEN ARRAY['accruedInterest','amount','chargeDate','chargeId','kind','loanId','planHash','principalDue']
+     ELSE ARRAY['accruedInterest','amount','chargeDate','chargeId','kind','loanId','principalDue'] END) THEN RAISE EXCEPTION 'principal entry'; END IF;
+    FOREACH k IN ARRAY ARRAY['loanId','kind','chargeId','chargeDate','amount','accruedInterest','principalDue']||(CASE WHEN entry ? 'planHash' THEN ARRAY['planHash'] ELSE ARRAY[]::text[] END) LOOP
      IF jsonb_typeof(entry->k) IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'principal type'; END IF;
     END LOOP;
     v:=entry->>'loanId';IF octet_length(v) NOT BETWEEN 1 AND 256 OR v<>btrim(v,ws) OR v~E'[\\r\\n]' THEN RAISE EXCEPTION 'principal loan'; END IF;
@@ -6933,14 +6936,17 @@ BEGIN
     FOREACH k IN ARRAY ARRAY['amount','accruedInterest','principalDue'] LOOP
      IF entry->>k !~ '^(0|[1-9][0-9]{0,16})$' OR (entry->>k)::numeric>92233720368547758 THEN RAISE EXCEPTION 'principal component'; END IF;
     END LOOP;
-    IF entry->>'kind' NOT IN ('raise','book') THEN RAISE EXCEPTION 'principal kind'; END IF;
+    IF entry->>'kind' NOT IN ('raise','book') AND NOT (c->'schemaVersion'='11'::jsonb AND entry->>'kind'='settle' AND entry->>'planHash'~'^[a-f0-9]{64}$') THEN RAISE EXCEPTION 'principal kind'; END IF;
     loans:=array_append(loans,entry->>'loanId');
     principal_text:=principal_text||CASE WHEN principal_text='' THEN '' ELSE ',' END||'{"loanId":'||to_json(entry->>'loanId')::text||',"kind":'||to_json(entry->>'kind')::text
      ||',"chargeId":'||to_json(entry->>'chargeId')::text||',"chargeDate":'||to_json(entry->>'chargeDate')::text||',"amount":'||to_json(entry->>'amount')::text
-     ||',"accruedInterest":'||to_json(entry->>'accruedInterest')::text||',"principalDue":'||to_json(entry->>'principalDue')::text||'}';
+     ||',"accruedInterest":'||to_json(entry->>'accruedInterest')::text||',"principalDue":'||to_json(entry->>'principalDue')::text
+     ||CASE WHEN entry ? 'planHash' THEN ',"planHash":'||to_json(entry->>'planHash')::text ELSE '' END||'}';
    END LOOP;
    SELECT array_agg(y ORDER BY y COLLATE "C") INTO sorted_ids FROM (SELECT DISTINCT unnest(loans) y) q;
    IF loans IS DISTINCT FROM coalesce(sorted_ids,ARRAY[]::text[]) THEN RAISE EXCEPTION 'principal order'; END IF;
+   -- R181 v11: at least one settle entry (a v11 command is a close choice; anything else is v10).
+   IF c->'schemaVersion'='11'::jsonb AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(c->'principal') s WHERE s.value->>'kind'='settle') THEN RAISE EXCEPTION 'settle'; END IF;
   END IF;
   derived:=substring(sha256(convert_to('["mw-credit-agent-receipt-v1",'||to_json(environment)::text||','||to_json((c->>'reviewId'))::text||']','UTF8')) FROM 1 FOR 16);
   derived:=set_byte(derived,6,(get_byte(derived,6)&15)|64);derived:=set_byte(derived,8,(get_byte(derived,8)&63)|128);
@@ -6988,7 +6994,7 @@ BEGIN
   -- command's lines, booked charges and principal entries to equal it, with nothing uncovered, no loan settled and every
   -- requested principal applied; then the shared writer books it and the explicit plan is journalled before the payment
   -- is inserted (the posting guard reads it). Drift is selection_unavailable (P4C05) and this sub-block rolls back.
-  IF c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb) THEN
+  IF c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb,'11'::jsonb) THEN
    today:=(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date;
    IF day<>today THEN RAISE EXCEPTION USING ERRCODE='P4C01';END IF;
    PERFORM 1 FROM public."Loans" WHERE "Ref Borrowers"=(c->>'borrowerId') ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
@@ -6999,11 +7005,19 @@ BEGIN
    END;
    IF (CASE WHEN c->'schemaVersion'='9'::jsonb THEN (SELECT coalesce(jsonb_agg(pl.v-ARRAY['lateCharge','expectedLateChargeRemaining'] ORDER BY pl.o),'[]'::jsonb) FROM jsonb_array_elements(plan->'allocations') WITH ORDINALITY pl(v,o)) ELSE plan->'allocations' END) IS DISTINCT FROM c->'allocations'
     OR (c->'schemaVersion'='9'::jsonb AND EXISTS(SELECT 1 FROM jsonb_array_elements(plan->'allocations') pl(v) WHERE pl.v->>'lateCharge'<>'0'))
-    OR plan->'materialize' IS DISTINCT FROM c->'materialize' OR plan->>'uncovered' IS DISTINCT FROM '0' OR plan->'settles' IS DISTINCT FROM '[]'::jsonb
+    OR plan->'materialize' IS DISTINCT FROM c->'materialize' OR plan->>'uncovered' IS DISTINCT FROM '0'
+    OR plan->'settles' IS DISTINCT FROM (CASE WHEN c->'schemaVersion'='11'::jsonb THEN (SELECT coalesce(jsonb_agg(s.value->'loanId' ORDER BY s.value->>'loanId' COLLATE "C"),'[]'::jsonb)
+     FROM jsonb_array_elements(c->'principal') s WHERE s.value->>'kind'='settle') ELSE '[]'::jsonb END) -- R181 v11
     OR jsonb_array_length(plan->'principal') IS DISTINCT FROM jsonb_array_length(c->'purpose'->'principal')
-    OR (SELECT coalesce(jsonb_agg(jsonb_build_object('loanId',y->'loanId','kind',y->'kind','chargeId',y->'chargeId','chargeDate',y->'chargeDate','amount',y->'amount','accruedInterest',y->'accruedInterest','principalDue',y->'principalDue') ORDER BY y->>'loanId' COLLATE "C"),'[]'::jsonb)
+    OR (SELECT coalesce(jsonb_agg(jsonb_build_object('loanId',y->'loanId','kind',y->'kind','chargeId',y->'chargeId','chargeDate',y->'chargeDate','amount',y->'amount','accruedInterest',y->'accruedInterest','principalDue',y->'principalDue')||CASE WHEN c->'schemaVersion'='11'::jsonb AND y->>'kind'='settle' THEN jsonb_build_object('planHash',y->'planHash') ELSE '{}'::jsonb END ORDER BY y->>'loanId' COLLATE "C"),'[]'::jsonb)
      FROM jsonb_array_elements(plan->'principal') y) IS DISTINCT FROM c->'principal' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-   PERFORM public.pwa_apply_pay_forward_v1(c->'principal',c->'materialize',today);
+   IF c->'schemaVersion'='11'::jsonb THEN
+    PERFORM set_config('pwa.pay_forward_settle','on',true); -- R181 v11
+    PERFORM public.pwa_apply_pay_forward_v1(plan->'principal',c->'materialize',today);
+    PERFORM set_config('pwa.pay_forward_settle','',true);
+   ELSE
+    PERFORM public.pwa_apply_pay_forward_v1(c->'principal',c->'materialize',today);
+   END IF;
    IF EXISTS(
     SELECT 1 FROM jsonb_array_elements(c->'allocations') AS entries(item)
     LEFT JOIN public."Charges" ch ON ch."Row ID"=entries.item->>'chargeId'
@@ -7021,20 +7035,23 @@ BEGIN
   SET CONSTRAINTS public.referral_loan_closed DEFERRED; -- R111 V124: fired below, once the payment is Posted.
   INSERT INTO public."Payments"("Row ID","Ref Borrower","Ref Received By Cash Account","Status","Amount Received","Payment Date","Created At","Payment Method","Allocation Method","Selected Charge IDs","Bank Reference","Created By","Notes")
   VALUES('pwa:'||request::text,(c->>'borrowerId'),(c->>'cashAccountId'),'Processing',((c->>'amountReceived'))::numeric::money,day,((c->>'paymentDate')||' '||(c->>'transferTime')||':00')::timestamp,'Bank Transfer',
-   CASE WHEN c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb) THEN 'Selected Charges' ELSE 'Lump Sum' END,CASE WHEN c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb) THEN array_to_string(ids,' , ') END,(c->>'bankReference'),(a->>'loginEmail'),
+   CASE WHEN c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb,'11'::jsonb) THEN 'Selected Charges' ELSE 'Lump Sum' END,CASE WHEN c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb,'11'::jsonb) THEN array_to_string(ids,' , ') END,(c->>'bankReference'),(a->>'loginEmail'),
    CASE (c->>'mode') WHEN 'automatic' THEN 'Automatic Instagram receipt payment ' ELSE 'Approved Instagram receipt review ' END||'igr:'||left((c->>'reviewId'),48));
   -- R111 V124: a referred loan this receipt closed gets its rebate (and default offset) now, inside this command.
   SET CONSTRAINTS public.referral_loan_closed IMMEDIATE;
   SET CONSTRAINTS public.referral_loan_closed DEFERRED;
   -- R112 v9 (as R110 v10): the loan refresh recomputes Current Daily Interest from the frozen rate now; it must equal the
   -- plan's new daily amount that priced the booked forward charges.
-  IF c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb) THEN
+  IF c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb,'11'::jsonb) THEN
    SELECT "Status","Amount Received"::numeric INTO posted_status,posted_amount FROM public."Payments" WHERE "Row ID"='pwa:'||request::text;
    IF posted_status IS DISTINCT FROM 'Posted' OR posted_amount IS DISTINCT FROM ((c->>'amountReceived'))::numeric THEN RAISE EXCEPTION USING ERRCODE='XX000',MESSAGE='Unexpected receipt posting result';END IF;
-   FOR entry IN SELECT value FROM jsonb_array_elements(plan->'principal') LOOP
+   FOR entry IN SELECT value FROM jsonb_array_elements(plan->'principal') WHERE value->>'kind' IS DISTINCT FROM 'settle' LOOP -- R181: a settled loan has no new daily amount
     PERFORM public.vc_refresh_loan(entry->>'loanId');
     IF (SELECT "Current Daily Interest"::numeric FROM public."Loans" WHERE "Row ID"=entry->>'loanId') IS DISTINCT FROM (entry->>'dailyAfter')::numeric THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
    END LOOP;
+   -- R181 v11: the payment closed every loan it settles (close_payment_loans, unchanged), else nothing posts.
+   IF c->'schemaVersion'='11'::jsonb AND EXISTS(SELECT 1 FROM jsonb_array_elements(plan->'principal') e JOIN public."Loans" x ON x."Row ID"=e.value->>'loanId'
+     WHERE e.value->>'kind'='settle' AND x."Loan Status" IS DISTINCT FROM 'ปิดยอดแล้ว') THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
   END IF;
   -- R095: learn the payer lines (row locked above) only while the column still equals what the agent read; drift skips it
   -- (the payment still posts). A rejected outcome rolls this sub-block back; a replay returns before reaching it.

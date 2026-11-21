@@ -12,10 +12,10 @@ from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import ACKNOWLEDGEMENT,NoticeJournal,receipt_notice
 from .statement_delivery import resolve_recipient
-from .partner_review import (OPTIONS_REQUIRED,RECHECKED,ReviewStore,approval_action,chosen_purpose_line,close_failure_line,close_notice,
+from .partner_review import (OPTIONS_REQUIRED,RECHECKED,ReviewStore,approval_action,chosen_purpose_line,close_choice_rebates,close_failure_line,close_notice,
                              designated_by,named_by,request_text,review_id,slip_line,unidentified_review)
-from .review_proposal import (LOAN_CLOSE_CHANGED,OPTIONS,arrears_enabled,arrears_left,chosen_plan,close_enabled,facts,options_enabled,plan,
-                              review_posts_close,review_posts_overpayment,same_posting_outcome,unlabelled)
+from .review_proposal import (LOAN_CLOSE_CHANGED,OPTIONS,arrears_enabled,arrears_left,chosen_close,chosen_plan,close_enabled,facts,
+                              options_enabled,plan,review_posts_close,review_posts_overpayment,same_posting_outcome,settle_enabled,unlabelled)
 from .review_execution import readback
 from . import receipt_api
 from .cash_statement import read_query
@@ -291,9 +291,14 @@ class Run:
                     else:
                         with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED' WHERE id=?",(review['id'],))
                     continue
+                # R181: an approved close choice posts only while loan_settle_options_enabled is on (off: manual, as R112).
+                if options_review and not settle_enabled(config) and chosen_close(proposal.get('options'),approved_purpose(review)) is not None:
+                    with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED' WHERE id=?",(review['id'],))
+                    continue
                 if config.get('partner_review_execution_enabled') is not True:continue
                 if config.get('receipt_payment_api_enabled') is not True:continue
                 live=masters(config)
+                closing=chosen_close(proposal.get('options'),approved_purpose(review)) if options_review else None
                 try:
                     job=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(review['job_id'],)).fetchone()
                     # A review whose last submit was NotSent waits out the linked job's retry_after
@@ -361,7 +366,9 @@ class Run:
                                       {'pid':review['deciding_partner']})
                     if len(actors)!=1 or not actors[0]:raise ReceiptInvalid('PARTNER_LOGIN_UNMAPPED')
                 except ReceiptInvalid as exc:
-                    with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),review['id']))
+                    # R181: a close choice that no longer holds keeps that fact (and how many loans) for its result's wording.
+                    code=str(exc)+(f":CLOSE:{len(closing['loans'])}" if closing and str(exc) in CLOSE_STALE else '')
+                    with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(code,review['id']))
                     continue
                 # Only never-attempted approved reviews reach this branch. All current
                 # authorization, duplicate, archive and immutable facts checks ran above.
@@ -474,13 +481,34 @@ STALE_FALLBACK=('Something changed after the request, so it was not recorded aut
 PLAN_CODES=('PAY_FORWARD_PLAN_CHANGED','PROPOSAL_FACTS_CHANGED')
 
 
+# R181: the stale reasons of an approved close choice whose result says no loan was closed (Echo UX-R181-09).
+CLOSE_STALE=('PAY_FORWARD_PLAN_CHANGED','PAY_FORWARD_DAY_PASSED')
+
+
+def close_not_done(loans,thai,changed):
+    """R181 (Echo UX-R181-09): no loan of a close choice was closed (one payment: all or nothing)."""
+    if thai:return 'ยังไม่ได้ปิดสัญญา: ข้อมูลการปิดเปลี่ยน ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป' if changed else 'ยังไม่ได้ปิดสัญญา ยังไม่ได้บันทึกรายการ กรุณาปิดในแอป'
+    if loans>1:return ('Loans not closed: closing details changed. Nothing recorded. Close them in the app.' if changed
+                       else 'Loans not closed. Nothing recorded. Close them in the app.')
+    return 'Loan not closed: closing details changed. Nothing recorded. Close it in the app.' if changed else 'Loan not closed. Nothing recorded. Close it in the app.'
+
+
 def stale_sentence(review,proposal,thai,now):
     from .partner_review import RECHECK_STALE
+    parts=(review['detail'] or '').split(':')
+    if len(parts)==3 and parts[1]=='CLOSE' and parts[0] in CLOSE_STALE and parts[2].isdigit():return close_not_done(int(parts[2]),thai,True)
     code=(review['detail'] or '').split(':',1)[0]
     if code in PLAN_CODES:
         recheck=proposal.get('action')==OPTIONS and review['state']=='STALE' and code in RECHECK_STALE and now<=review['expires_at']
         code='PLAN_CHANGED_RECHECK' if recheck else 'PLAN_CHANGED'
     return STALE_SENTENCES.get(code,STALE_FALLBACK)[int(thai)].replace('{account}',str(proposal['receipt'].get('account_label') or ''))
+
+
+def approved_purpose(review):
+    """R181: the purpose an options review was approved with (its detail), or None."""
+    try:value=json.loads(review['detail'] or '{}')
+    except (ValueError,TypeError):return None
+    return value.get('purpose') if isinstance(value,dict) else None
 
 
 def reviewer_name(partner_id,live,thai):
@@ -512,7 +540,14 @@ def result_text(review,proposal,partner,live,now=None):
         lines=[f'{slip} ยังไม่ได้บันทึก' if thai else f'{slip} not recorded','กรุณาบันทึกในแอป' if thai else 'Record it in the app.']
         # R175 (Echo E-RES-04, E-R2-02): who approved what, for every partner the result goes to; gone when the execution's
         # reason replaced the decision detail, and for an automatic payment (no Reviewer reply: no decision message).
-        choice=chosen_purpose_line(proposal,detail,thai) if proposal.get('action')==OPTIONS else approval_action(proposal,thai,recorded_only=True)
+        closed=chosen_close(proposal.get('options'),approved_purpose(review)) if proposal.get('action')==OPTIONS else None
+        if closed:
+            # R181 (Echo UX-R181-09): an approved close choice that did not post (the switch was turned off) names the choice.
+            from .partner_review import close_labels,close_line
+            lines[1]=close_not_done(len(closed['loans']),thai,False)
+            choice=close_line(closed,close_labels(proposal.get('options') or {},thai),thai)
+        else:
+            choice=chosen_purpose_line(proposal,detail,thai) if proposal.get('action')==OPTIONS else approval_action(proposal,thai,recorded_only=True)
         if choice and review.get('decision_message'):
             name=reviewer_name(review['deciding_partner'],live,thai)
             lines.append(f'{name} อนุมัติ: {choice}' if thai else f'Approved by {name}: {choice}')
@@ -633,6 +668,7 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                     elif review['state']=='POSTED':
                         # R175 (Echo E-RES-01): '✅ Recorded ฿400 from Kathy · pay forward: 19 Nov', then the transfer.
                         purpose=chosen_purpose_line(proposal,review['detail'],p['language']=='ไทย') if proposal.get('action')==OPTIONS else ''
+                        closed=chosen_close(proposal.get('options'),approved_purpose(review)) if proposal.get('action')==OPTIONS else None
                         changed_facts=review['detail'].endswith(SAME_OUTCOME)
                         # R177 (Echo UX-R177-07): with the arrears switch on, a Lump Sum that leaves older charges unpaid says
                         # so, from the proposal's facts; not after a facts change (those facts are no longer the posted ones).
@@ -641,6 +677,11 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                         named=named_by(designated_by(db,review['job_id']),live,p['language']=='ไทย')
                         subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],
                                                     changed_facts,purpose,unpaid=unpaid,named=named)
+                        if closed:
+                            # R181 (Echo UX-R181-07): the closed loans' own subject and each referral rebate with its loan.
+                            thai=p['language']=='ไทย'
+                            subject=('ปิดสัญญาสำเร็จ' if thai else ('Loans closed' if len(closed['loans'])>1 else 'Loan closed'))
+                            body='\n'.join([body]+close_choice_rebates(closed,proposal.get('options') or {},thai))
                     else:
                         subject,body=result_text(review,proposal,p,live)
                     notices.reserve(event,p,subject,body)

@@ -20,7 +20,7 @@ Owner request of 21 November 2026: "In next release, replace this card in Grafan
 | `npm run check:docs` | 0 failures (Dewey) |
 
 ## Not run
-Nothing is skipped. Not checked: owner acceptance of R177 to R180 is pending.
+Nothing is skipped. Owner acceptance followed on 21 November 2026.
 
 ## Recovery
 Git baseline `main` `f361c4e4` (R179 closure); revert the commit and apply the Grafana plan again. No agent, database or datasource change.
@@ -37,4 +37,4 @@ Grafana apply on 21 November 2026 06:11:09Z to 06:11:23Z (plan `4fa2e015…3792`
 - Drift (`drift --env prod`): 0 drift, 7 unverified (credentialed facts were not observed in this session). The Grafana facts are in the applied section above.
 
 ## Remaining work
-Owner acceptance of R177 to R180, written into the next release's closure pull request.
+Owner-accepted on 21 November 2026 ("Yes accept all 4 releases", R177 to R180); recorded in a records-only pull request.

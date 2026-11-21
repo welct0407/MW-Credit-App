@@ -88,8 +88,13 @@ def payload(config, review, proposal, asset, automatic, plan=None):
                    'purpose': {'forward': purpose['forward'], 'principal': [{'loanId': p['loanId'], 'amount': p['amount']} for p in purpose['principal']], 'loans': None},
                    'allocations': [{k: line.get(k, '0') if k in ('lateCharge', 'expectedLateChargeRemaining') else line[k] for k in LINE_KEYS} for line in plan['allocations']],
                    'materialize': [{k: entry[k] for k in MATERIALIZE_KEYS} for entry in plan['materialize']],
-                   'principal': [{k: entry[k] for k in PRINCIPAL_KEYS} for entry in plan['principal']],
+                   'principal': [{**{k: entry[k] for k in PRINCIPAL_KEYS}, **({'planHash': entry['planHash']} if entry.get('kind') == 'settle' else {})}
+                                 for entry in plan['principal']],
                    'proposalSha256': command['proposalSha256'], 'archiveEvidence': command['archiveEvidence']}
+        # R181 schemaVersion 11 = 10 plus settle entries with the Loan Close quote's planHash (a Reviewer's close choice);
+        # any other choice stays 10. The server (V153) books the settle through its own plan entries.
+        if any(entry.get('kind') == 'settle' for entry in plan['principal']):
+            command['schemaVersion'] = 11
     elif plan is not None:
         raise ConfigurationError('PAY_FORWARD_PLAN_UNEXPECTED')
     elif lines is not None:

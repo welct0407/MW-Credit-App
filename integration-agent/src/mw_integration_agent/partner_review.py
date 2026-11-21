@@ -15,8 +15,8 @@ REJECT={'reject','rejected','no','ปฏิเสธ'}
 # Owner request, 3 November 2026 (option 3 since R127): recheck the slip. The Reviewer edits the charges in the app first
 # (for example a late fee), then replies 3; this review is superseded and the receipt is planned again from the current
 # charges. Within what is due it is then an ordinary payment (posted under the automatic-payment policy); otherwise a new
-# options request. '4' is the pre-R127 number, kept for requests sent before the deploy; remove it in a later release.
-RECHECK={'3','4','recheck','ตรวจใหม่'}
+# options request. R181: the pre-R127 '4' (recheck) is withdrawn; 4 is now the close choice.
+RECHECK={'3','recheck','ตรวจใหม่'}
 RECHECKED='RECHECK_QUEUED'
 # 3 November 2026: editing the charges can make the open review STALE before the recheck arrives (a pending notice for it
 # is checked against the current charges before it is sent, for example after a "Review" resend). A recheck on a review
@@ -25,15 +25,16 @@ RECHECK_STALE=('PROPOSAL_FACTS_CHANGED','PAY_FORWARD_PLAN_CHANGED')
 OPTIONS_REQUIRED='OPTIONS_REQUIRED'
 # R175 (Archie E-APR-01): a plain request's unclear reply reuses the options re-ask outcome and notice key.
 REASK=OPTIONS_REQUIRED
-CHOICE=re.compile(r'(1)|(2)(?:\s+([1-9]))?')
+CHOICE=re.compile(r'(1)|([24])(?:\s+([1-9]))?')
 
 
 def options_choice(text):
-    """The numbered reply as {'kind', 'loan'}, or None when it is not 1, 2 or "2 <n>" (the recheck is matched first)."""
+    """The numbered reply as {'kind', 'loan'}, or None when it is not 1, 2, "2 <n>", 4 or "4 <n>" (the recheck is matched
+    first). R181: 4 is a close choice; with the close switch off no close is offered, so 4 asks again."""
     match=CHOICE.fullmatch((text or '').strip())
     if not match:return None
     if match.group(1):return {'kind':'forward'}
-    return {'kind':'principal','loan':int(match.group(3)) if match.group(3) else None}
+    return {'kind':'principal' if match.group(2)=='2' else 'close','loan':int(match.group(3)) if match.group(3) else None}
 
 
 def authorize_reply(event,notice,partners,identity,reviewer_ids):
@@ -119,7 +120,7 @@ class ReviewStore:
             if event['event_timestamp']<row['created_at'] or event['event_timestamp']>now:return 'INVALID_TIME'
             rechecking=(json.loads(row['proposal']).get('action')=='Pay forward options'
                         and (event.get('text') or '').strip().casefold() in RECHECK and now<=row['expires_at']
-                        and (row['state']=='PENDING' or (row['state']=='STALE' and row['detail'] in RECHECK_STALE)))
+                        and (row['state']=='PENDING' or (row['state']=='STALE' and (row['detail'] or '').split(':')[0] in RECHECK_STALE)))
             if rechecking:outcome=self._recheck(row,p,event,now)
             elif row['state']!='PENDING':outcome='ALREADY_DECIDED'
             elif now>row['expires_at']:
@@ -223,7 +224,8 @@ def offered_numbers(options):
     principal=options.get('principal') or []
     numbers=['1'] if forward_offered(options) else []
     numbers+=['2 '+str(n) for n in range(1,len(principal)+1)] if len(principal)>1 else (['2'] if principal else [])
-    return numbers+['3']
+    close=options.get('close') or []
+    return numbers+['3']+(['4 '+str(n) for n in range(1,len(close)+1)] if len(close)>1 else (['4'] if close else []))
 
 
 # R175 (Echo D1, Archie 4): a loan key 'เคที - Kathy-฿1,000-15/11-10%' (review_proposal.loan_display_key) reads
@@ -398,9 +400,61 @@ def same_terms_notes(codes_lines,thai):
     return notes
 
 
-def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,short=False,reviewer=None):
+def close_codes(options):
+    """R181: the code of each close choice: '4' with one, '4 1', '4 2', ... with several."""
+    close=options.get('close') or []
+    return ['4'] if len(close)==1 else ['4 '+str(n) for n in range(1,len(close)+1)]
+
+
+def close_rest(choice,thai):
+    """R181 (Echo UX-R181-04): where the rest of a close choice goes: '; rest ฿500: pay forward 22–24 Nov', '' for none."""
+    from decimal import Decimal
+    if not choice.get('forward') or Decimal(str(choice.get('rest') or 0))<=0:return ''
+    span=choice.get('restSpan') or {}
+    days=(' '+date_range(span['first'],span.get('last') or span['first'],thai)) if span.get('first') else ''
+    return (f" ส่วนที่เหลือ {baht(choice['rest'])}: ชำระล่วงหน้า{days}" if thai else f"; rest {baht(choice['rest'])}: pay forward{days}")
+
+
+def close_line(choice,labels,thai):
+    """R181 (Echo UX-R181-03): 'close loan ฿1,000 (15 Nov, 10%)' or 'close both loans: A + B' / 'close all 3 loans: ...'."""
+    names=[labels.get(str(l['loanId'])) or str(l.get('loanKey') or l['loanId']) for l in choice['loans']]
+    if len(names)==1:text=(f'ปิดสัญญา {names[0]}' if thai else f'close loan {names[0]}')
+    else:
+        joined=' + '.join(names);n=len(names)
+        text=(f'ปิดทั้ง {n} สัญญา: {joined}' if thai else (f'close both loans: {joined}' if n==2 else f'close all {n} loans: {joined}'))
+    return text+close_rest(choice,thai)
+
+
+def close_rebate_note(code,choice,thai):
+    """R181 (Echo UX-R181-05): 'If 4 1: referral rebate ฿50 offset to Lisa's loan' (or 'pending to Lisa'), or None."""
+    from decimal import Decimal
+    parts=[]
+    for path in ('offset','expense'):
+        rebates=[r for r in choice.get('rebates') or [] if r.get('path')==path]
+        if not rebates:continue
+        total=sum((Decimal(str(r.get('amount') or 0)) for r in rebates),Decimal(0))
+        name=next((r.get('referrer') for r in rebates if r.get('referrer')),None) or ('ผู้แนะนำ' if thai else 'the referrer')
+        if path=='offset':parts.append(f'ค่าแนะนำ {baht(total)} หักกับสินเชื่อของ {name}' if thai else f"referral rebate {baht(total)} offset to {name}'s loan")
+        else:parts.append(f'ค่าแนะนำ {baht(total)} ค้างจ่ายให้ {name}' if thai else f'referral rebate {baht(total)} pending to {name}')
+    if not parts:return None
+    return (f'หากเลือก {code}: ' if thai else f'If {code}: ')+'; '.join(parts)
+
+
+def close_labels(options,thai):
+    """{loan id: label} for the loans the close choices name."""
+    loans={}
+    for choice in options.get('close') or []:
+        for l in choice['loans']:loans.setdefault(str(l['loanId']),{'id':l['loanId'],'key':l.get('loanKey'),'owing':None})
+    named=name_loans(list(loans.values()),thai)
+    return {i:named[loan_identity(l)][0] for i,l in loans.items()}
+
+
+def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,short=False,reviewer=None,squeeze=0):
     """R175 (Echo A): line 1 the slip and what to decide; the facts; one code per line; the Reject line; notes; the reply
-    instruction last. short (only when the full text does not fit) drops 'pay' and 'new interest' (Echo worst case)."""
+    instruction last. short (only when the full text does not fit) drops 'pay' and 'new interest' (Echo worst case).
+    R181 (Echo UX-R181-03..06): the close choices (code 4) after the 2 lines, before 3; a loan they offer leaves the
+    "record in the app" line; squeeze (only when it does not fit): 1 one generic rebate line, 2 only the last close
+    choice (the one closing the most loans), 3 no "record in the app" line."""
     from decimal import Decimal
     from .partner_notice import money,transferred
     from .review_proposal import forward_offered
@@ -425,8 +479,18 @@ def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,
         code='2 '+str(i+1) if len(principal)>1 else '2'
         choices.append((code,principal_phrase(o,p,where[i],thai,short)))
         lines.append(f'{code} = '+choices[-1][1])
-    lines+=[RECHECK_LINE[thai],REJECT_LINE[thai]]+same_terms_notes(choices,thai)
-    settled=[labels[loan_identity(l)][0] for l in settled]
+    close=o.get('close') or [];codes=close_codes(o);notes=[]
+    offered_close={str(l['loanId']) for c in close for l in c['loans']}
+    if close:
+        shown=list(zip(codes,close))[-1:] if squeeze>=2 else list(zip(codes,close))
+        close_named=close_labels(o,thai)
+        for code,choice in shown:
+            lines.append(f'{code} = '+close_line(choice,close_named,thai))
+            note=close_rebate_note(code,choice,thai)
+            if note:notes.append(note)
+        if squeeze>=1 and notes:notes=['มีค่าแนะนำ ดูในผลการบันทึก' if thai else 'Referral rebates apply; see the result.']
+    lines+=[RECHECK_LINE[thai],REJECT_LINE[thai]]+same_terms_notes(choices,thai)+notes
+    settled=[] if squeeze>=3 else [labels[loan_identity(l)][0] for l in settled if str(l.get('id')) not in offered_close]
     if settled:
         # R113: the remainder closes a loan; closing happens in the app (Receive payment), not by this reply.
         keys='; '.join(settled)
@@ -446,6 +510,9 @@ def chosen_purpose_line(proposal,detail,thai):
     if not isinstance(purpose,dict):return ''
     o=proposal.get('options') or {}
     try:
+        from .review_proposal import chosen_close
+        close=chosen_close(o,purpose)
+        if close:return close_result_phrase(close,o,thai)
         if purpose.get('forward') and not purpose.get('principal'):
             forward=o.get('forward') or {}
             return ('ชำระล่วงหน้า' if thai else 'pay forward')+((': '+forward_span(forward,thai)) if forward.get('first') else '')
@@ -458,6 +525,30 @@ def chosen_purpose_line(proposal,detail,thai):
         if offered is not None:return principal_phrase(o,principal[offered],options_layout(proposal,thai)[2][offered],thai)
         return f'ชำระเงินต้น {part}' if thai else f'pay principal {part}'
     except (KeyError,TypeError,IndexError,ValueError,ArithmeticError):return ''
+
+
+def close_result_phrase(choice,options,thai):
+    """R181 (Echo UX-R181-07): 'loan closed: ฿1,000 (15 Nov, 10%)' (with the rest when there is one) or '2 loans closed: A; B'."""
+    labels=close_labels(options,thai)
+    names=[labels.get(str(l['loanId'])) or str(l.get('loanKey') or l['loanId']) for l in choice['loans']]
+    if len(names)==1:text=(f'ปิดสัญญา {names[0]}' if thai else f'loan closed: {names[0]}')
+    else:text=(f"ปิด {len(names)} สัญญา: {'; '.join(names)}" if thai else f"{len(names)} loans closed: {'; '.join(names)}")
+    return text+close_rest(choice,thai)
+
+
+def close_choice_rebates(choice,options,thai):
+    """R181 (Echo UX-R181-07): each referral rebate of the closed loans with its loan, as the server's default records it
+    ('Referral rebate ฿50 (loan ฿1,000, 15 Nov): offset to Lisa's loan')."""
+    labels=close_labels(options,thai);lines=[]
+    for r in choice.get('rebates') or []:
+        label=labels.get(str(r['loanId'])) or str(r['loanId'])
+        found=re.fullmatch(r'(฿[\d,]+) \((\d+ [^,]+), [\d.]+%\)',label)
+        short=f'{found.group(1)}, {found.group(2)}' if found else label
+        loan=(f'สัญญา {short}' if thai else f'loan {short}')
+        name=r.get('referrer') or ('ผู้แนะนำ' if thai else 'the referrer')
+        if r.get('path')=='offset':lines.append(f"ค่าแนะนำ {baht(r['amount'])} ({loan}): หักกับสินเชื่อของ {name}" if thai else f"Referral rebate {baht(r['amount'])} ({loan}): offset to {name}'s loan")
+        else:lines.append(f"ค่าแนะนำ {baht(r['amount'])} ({loan}): ค้างจ่ายให้ {name}" if thai else f"Referral rebate {baht(r['amount'])} ({loan}): pending to {name}")
+    return lines
 
 
 def close_amount_line(close,thai):
@@ -602,9 +693,12 @@ def request_text(proposal,language,unclear=False,unidentified=False,corrected=Fa
     R179: `named` (the Reviewer who named the borrower) replaces the sender note, in the same ladder."""
     from .partner_notice import over_limit
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
+    # R181 (Echo UX-R181-06): a request with close choices squeezes them after the short form, before dropping the note.
+    squeezes=(0,1,2,3) if (proposal.get('options') or {}).get('close') else (0,)
     for note,short in (((True,False),(True,True)) if unidentified or named else ())+((False,False),(False,True)):
-        subject,body=compose_request(proposal,language,unclear,note and unidentified,corrected,short,named=named if note else None)
-        if not over_limit(body):return subject,body
+        for squeeze in (squeezes if short else (0,)):
+            subject,body=compose_request(proposal,language,unclear,note and unidentified,corrected,short,named=named if note else None,squeeze=squeeze)
+            if not over_limit(body):return subject,body
     raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
 
 
@@ -623,7 +717,7 @@ def approval_action(proposal,thai,recorded_only=False):
     return 'คุณบันทึกในแอปเอง' if thai else 'you record it in the app yourself'
 
 
-def compose_request(proposal,language,unclear=False,unidentified=False,corrected=False,short=False,named=None):
+def compose_request(proposal,language,unclear=False,unidentified=False,corrected=False,short=False,named=None,squeeze=0):
     """One wording of the request, unchecked for length (request_text chooses the one that fits)."""
     from .partner_notice import money
     from .review_proposal import review_posts_close
@@ -632,7 +726,7 @@ def compose_request(proposal,language,unclear=False,unidentified=False,corrected
     if review_posts_close(proposal):return close_request_text(proposal,thai,unidentified,unclear,corrected,named)
     if proposal.get('action')=='Pay forward options':
         # R112, R127, R175 (Echo A): reply with one code; an unclear reply gets the request again under the unclear line.
-        return ('สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'),options_text(proposal,thai,unclear,unidentified,corrected,short,named)
+        return ('สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'),options_text(proposal,thai,unclear,unidentified,corrected,short,named,squeeze)
     receipt=proposal['receipt'];borrower=proposal['borrower']
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
     action=approval_action(proposal,thai)

@@ -187,6 +187,8 @@ END $$;
 \ir Test-AgentReceiptPayForward.sql
 -- V126 (R113): settle and close from Receive payment (Ying's two loans in one payment, gap interest, lowered future charge, V124 offset, planHash drift, blocks, delete reopens), rolled back.
 \ir Test-PayForwardSettle.sql
+-- V153 (R181): the agent receipt command v11 (a Reviewer's close choice: two loans in one payment, close and pay forward, rebate offsets, planHash and settles drift, refusals, replay), rolled back.
+\ir Test-AgentReceiptSettle.sql
 -- V127 (R115): Daily cash withdrawal (guard time setting, two-line apply, replay, conflict, overdraw, Dad-only, window, invalid commands), rolled back.
 \ir Test-DailyCashWithdrawal.sql
 -- V128 (R116): principal write-offs apart from profit in the six income relations (gross, write-offs, net = gross - expenses - write-offs; partial default, full write-off, undo, cash identity, column positions), rolled back.

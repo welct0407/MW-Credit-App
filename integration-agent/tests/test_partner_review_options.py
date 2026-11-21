@@ -94,8 +94,8 @@ class OptionsReplyTests(unittest.TestCase):
 
     def test_three_rechecks_the_slip_from_current_charges(self):
         # Owner request, 3 November 2026: edit the charges in the app (a late fee), then reply 3 (R127; 4 before) to plan
-        # the slip again. The legacy 4 still rechecks a request sent before the R127 deploy.
-        for text in ('3',' 3 ','Recheck','ตรวจใหม่','4'):
+        # the slip again. R181: the legacy 4 is withdrawn (4 is the close choice; without one it asks again).
+        for text in ('3',' 3 ','Recheck','ตรวจใหม่'):
             with self.subTest(text=text):
                 self.setUp()   # a fresh pending review per word
                 self.assertEqual(self.decide(text),'RECHECK_QUEUED')
@@ -162,6 +162,19 @@ class OptionsReplyTests(unittest.TestCase):
                 self.assertEqual(self.db.execute("SELECT status FROM receipt_jobs").fetchone()[0],'REVIEW_REQUESTED')
         self.setUp();self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PROPOSAL_FACTS_CHANGED'")
         self.assertEqual(self.decide('1'),'ALREADY_DECIDED');self.assertEqual(self.row()['state'],'STALE')
+
+    def test_r181_a_stale_close_choice_keeps_its_recheck_and_a_legacy_four_changes_nothing(self):
+        # R181: a close choice that went STALE records `<code>:CLOSE:<n>` (for its result's wording); the recheck still reads the
+        # code before the colon. The withdrawn legacy 4 on a request without close choices decides nothing and queues nothing.
+        self.setUp();self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PAY_FORWARD_PLAN_CHANGED:CLOSE:2'")
+        self.assertEqual(self.decide('3'),'RECHECK_QUEUED');self.assertEqual(self.row()['state'],'SUPERSEDED')
+        self.setUp();self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PAY_FORWARD_DAY_PASSED:CLOSE:1'")
+        self.assertEqual(self.decide('3'),'ALREADY_DECIDED');self.assertEqual(self.row()['state'],'STALE')
+        for text in ('4','4 1','4 2'):
+            with self.subTest(text=text):
+                self.setUp()
+                self.assertEqual(self.decide(text),'OPTIONS_REQUIRED');self.assertEqual(self.row()['state'],'PENDING')
+                self.assertEqual(self.db.execute("SELECT status FROM receipt_jobs").fetchone()[0],'REVIEW_REQUESTED')
 
     def test_a_recheck_on_an_expired_stale_review_changes_nothing(self):
         self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PROPOSAL_FACTS_CHANGED'")

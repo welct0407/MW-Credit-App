@@ -268,7 +268,7 @@ class ReplyWordTests(unittest.TestCase):
         from mw_integration_agent import hold_reply
         self.assertEqual(APPROVE, {'yes', 'approve', 'approved', 'อนุมัติ'})
         self.assertEqual(REJECT, {'reject', 'rejected', 'no', 'ปฏิเสธ'})
-        self.assertEqual(RECHECK, {'3', '4', 'recheck', 'ตรวจใหม่'})
+        self.assertEqual(RECHECK, {'3', 'recheck', 'ตรวจใหม่'})  # R181: the legacy 4 is now the close choice
         self.assertEqual(hold_reply.REJECT, {'reject', 'rejected', 'no', 'ignore', 'drop', 'ปฏิเสธ', 'ไม่อนุมัติ'})
 
     def test_every_thai_word_a_request_names_is_accepted(self):
@@ -303,7 +303,7 @@ class OptionsReplyGrammarTests(unittest.TestCase):
         return self.store.decide(event, notice, [self.p], {'id': '1', 'username': 'partner'}, 120, reviewer_ids=['p'])
 
     def test_options_replies(self):
-        cases = [('1', 'APPROVED'), (' 2 1 ', 'APPROVED'), ('2  2', 'APPROVED'), ('3', 'RECHECK_QUEUED'), ('4', 'RECHECK_QUEUED'),
+        cases = [('1', 'APPROVED'), (' 2 1 ', 'APPROVED'), ('2  2', 'APPROVED'), ('3', 'RECHECK_QUEUED'), ('4', 'OPTIONS_REQUIRED'),
                  ('ReCheck', 'RECHECK_QUEUED'), ('ตรวจใหม่', 'RECHECK_QUEUED'), ('REJECT', 'REJECTED'), (' Rejected', 'REJECTED'),
                  ('No', 'REJECTED'), ('ปฏิเสธ', 'REJECTED'), ('yes', 'OPTIONS_REQUIRED'), ('2', 'OPTIONS_REQUIRED'), ('ไม่', 'OPTIONS_REQUIRED')]
         for n, (text, outcome) in enumerate(cases):

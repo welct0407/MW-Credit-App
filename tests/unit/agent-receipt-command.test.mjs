@@ -51,6 +51,28 @@ test('R112 schemaVersion 9 adds purpose and the plan lists (v10 shapes) after pa
  const {materialize:_,...missing}=v9;assert.throws(()=>canonicalAgentCommand(missing));
  assert.throws(()=>canonicalAgentCommand({...command,schemaVersion:8,payerLines:null,purpose}),'v8 refuses purpose');
 });
+test('R181 schemaVersion 11: v10 plus settle entries carrying the quote planHash; at least one settle; reviewed only; v10 refuses settle',()=>{
+ const hash='e'.repeat(64);
+ const late=line=>({chargeId:line.chargeId,principal:line.principal,interest:line.interest,lateCharge:'0',expectedPrincipalRemaining:line.expectedPrincipalRemaining,expectedInterestRemaining:line.expectedInterestRemaining,expectedLateChargeRemaining:'0',chargeDate:line.chargeDate});
+ const allocations=[{chargeId:'KA-today',principal:'1000',interest:'100',expectedPrincipalRemaining:'1000',expectedInterestRemaining:'100',chargeDate:'2026-10-12'},
+  {chargeId:'KB-today',principal:'2000',interest:'200',expectedPrincipalRemaining:'2000',expectedInterestRemaining:'200',chargeDate:'2026-10-12'}].map(late);
+ const settle=(loanId,amount)=>({loanId,kind:'settle',chargeId:loanId+'-today',chargeDate:'2026-10-12',amount,accruedInterest:'0',principalDue:amount,planHash:hash});
+ const v11={...command,schemaVersion:11,amountReceived:'3300',payerLines:null,purpose:{forward:false,principal:[{loanId:'KA',amount:'1000'},{loanId:'KB',amount:'2000'}],loans:null},
+  allocations,materialize:[],principal:[settle('KA','1000'),settle('KB','2000')]};
+ const canonical=canonicalAgentCommand(v11);
+ assert.equal(canonical.schemaVersion,11);
+ assert.deepEqual(Object.keys(canonical.principal[0]),['loanId','kind','chargeId','chargeDate','amount','accruedInterest','principalDue','planHash']);
+ assert.match(JSON.stringify(canonical),/"principal":\[\{"loanId":"KA","kind":"settle","chargeId":"KA-today","chargeDate":"2026-10-12","amount":"1000","accruedInterest":"0","principalDue":"1000","planHash":"e{64}"\}/);
+ for(const patch of [{mode:'automatic'},{principal:[{...settle('KA','1000'),planHash:'E'.repeat(64)},settle('KB','2000')]},{principal:[(({planHash:_,...rest})=>rest)(settle('KA','1000')),settle('KB','2000')]},
+  {principal:[]},{purpose:{forward:true,principal:[],loans:null},principal:[]},{principal:[settle('KB','2000'),settle('KA','1000')]}])
+  assert.throws(()=>canonicalAgentCommand({...v11,...patch}),JSON.stringify(patch));
+ // v10 never carries a settle entry; v11 keeps raise and book entries without planHash beside its settle entry.
+ assert.throws(()=>canonicalAgentCommand({...v11,schemaVersion:10}));
+ assert.throws(()=>canonicalAgentCommand({...v11,schemaVersion:10,principal:[(({planHash:_,...rest})=>rest)(settle('KA','1000')),(({planHash:_,...rest})=>rest)(settle('KB','2000'))]}));
+ const raise={loanId:'KC',kind:'raise',chargeId:'KC-today',chargeDate:'2026-10-12',amount:'60',accruedInterest:'0',principalDue:'60'};
+ assert.equal(canonicalAgentCommand({...v11,principal:[settle('KA','1000'),settle('KB','2000'),raise]}).principal[2].planHash,undefined);
+ assert.throws(()=>canonicalAgentCommand({...v11,principal:[settle('KA','1000'),settle('KB','2000'),{...raise,planHash:hash}]}));
+});
 test('machine receipt policy stays off by default and pins environment/audience/private numeric version',()=>{
  assert.equal(loadAgentReceiptPolicy({},'dev'),null);
  assert.throws(()=>loadAgentReceiptPolicy({AGENT_RECEIPT_API_ENABLED:'true'},'dev'));
