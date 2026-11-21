@@ -241,6 +241,12 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigurationError('receipt_hold_designation_learn_enabled must be boolean')
     if config.get('receipt_hold_designation_learn_enabled') and config.get('receipt_hold_designation_enabled') is not True:
         raise ConfigurationError('receipt_hold_designation_learn_enabled requires receipt_hold_designation_enabled')
+    # R181: close choices (code 4) in the pay-forward options request (default off). On, it needs the options switch and the
+    # shared receipt payment API (the Loan Close quote of each loan, the schemaVersion 11 command); strict boolean.
+    if type(config.get('loan_settle_options_enabled',False)) is not bool:
+        raise ConfigurationError('loan_settle_options_enabled must be boolean')
+    if config.get('loan_settle_options_enabled') and not (config.get('pay_forward_options_enabled') is True and config.get('receipt_payment_api_enabled') is True):
+        raise ConfigurationError('loan_settle_options_enabled requires pay_forward_options_enabled and receipt_payment_api_enabled')
     # R128: the Instagram-approved Loan Close (default off). On, it needs the review execution and the shared receipt
     # payment API, whose agent route serves the close quote and the close command; anything but true or false is refused.
     if type(config.get('loan_close_execution_enabled',False)) is not bool:

@@ -203,6 +203,7 @@ def execute(args, outcome=None) -> int:
                 "group_chat_summary": config.get('group_chat_summary_enabled',False),
                 "pay_forward_options": config.get('pay_forward_options_enabled',False),
                 "loan_close_execution": config.get('loan_close_execution_enabled',False),
+                "loan_settle_options": config.get('loan_settle_options_enabled',False),
                 "receipt_arrears_auto": config.get('receipt_arrears_auto_enabled',False),
                 "receipt_outgoing_ignore": config.get('receipt_outgoing_ignore_enabled',False),
                 "receipt_hold_designation": config.get('receipt_hold_designation_enabled',False),

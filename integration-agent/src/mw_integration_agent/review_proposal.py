@@ -11,6 +11,11 @@ slip that is a loan payoff asks the Reviewer to approve the Loan Close. The prop
 (proposal['close']: planHash, sourceVersion, amount, parts, rebate path) and only when the quote equals the slip amount and
 is for the slip's date (today); otherwise, or with the switch off, it is today's manual Loan Close proposal.
 
+R181 (owner, 21 November 2026: "loan closure option should be given"): with `loan_settle_options_enabled` (default off;
+needs the pay-forward switch) the options request also offers numbered close choices (code 4): one or several of the
+borrower's loans closed by the slip, from the server plan's settle entries (one payment, agent command schemaVersion 11),
+each confirmed by its own plan read and the loan's Loan Close quote; never automatic. plan() is unchanged.
+
 R177 (owner, 20 November 2026: auto-post arrears, exact total and partial): with `receipt_arrears_auto_enabled` (default
 off, fail closed) a slip above the latest charge day's total but not above every unpaid charge dated on or before the slip
 date is 'Lump Sum' (the database allocates newest charge first) instead of 'Overpayment review', unless it is an exact loan
@@ -152,6 +157,69 @@ def options_enabled(config):
     return isinstance(config,dict) and config.get('pay_forward_options_enabled') is True
 
 
+def settle_enabled(config):
+    """R181: close choices in the options request (loan_settle_options_enabled; it needs the pay-forward switch)."""
+    return options_enabled(config) and config.get('loan_settle_options_enabled') is True
+
+
+MAX_CLOSE_CHOICES=3
+
+
+def close_choices(config,borrower_id,amount,today,forward,remainder,keys,plans):
+    """R181: the close choices a slip above what is due offers, at most MAX_CLOSE_CHOICES: every set of settle-able loans
+    whose payoff remainders add up to the remainder exactly (nothing left), and each single loan below it with the rest paid
+    forward. A loan is settle-able when the plan quotes it (payoffRemainder and settlesWith; a defaulted loan, one with
+    several charges today or not daily-interest has none). Each choice is offered only when its own plan read covers
+    everything and settles exactly its loans with the quoted plan hashes, and every loan's Loan Close quote is readable
+    (its rebate is shown). The reads join `plans`, so planSha256 covers them. Never raises for one choice: it is left out."""
+    from itertools import combinations
+    from . import receipt_api
+    loans=[]
+    for option in sorted(forward.get('options') or [],key=lambda o:str(o.get('loanId')).encode())[:MAX_PRINCIPAL_OPTIONS]:
+        settles=option.get('settlesWith')
+        if option.get('payoffRemainder') in (None,'') or not isinstance(settles,dict) or not settles.get('planHash'):continue
+        try:payoff=Decimal(str(option['payoffRemainder']))
+        except (InvalidOperation,ValueError):continue
+        if payoff>0 and payoff<=remainder:loans.append((str(option['loanId']),payoff,settles))
+    exact=[group for size in range(len(loans),0,-1) for group in combinations(loans,size) if sum((l[1] for l in group),Decimal(0))==remainder]
+    rest=[(loan,) for loan in loans if loan[1]<remainder]
+    candidates=(exact+rest)[:MAX_CLOSE_CHOICES]
+    quotes={};choices=[]
+    for group in candidates:
+        ids=[l[0] for l in group];left=remainder-sum((l[1] for l in group),Decimal(0))
+        purpose={'forward':left>0,'principal':[{'loanId':l[0],'amount':str(int(l[1]))} for l in group],'loans':None}
+        try:
+            read=pay_forward_plan(config,borrower_id,amount,today,purpose)
+            entries={str(e.get('loanId')):e for e in read.get('principal') or [] if isinstance(e,dict) and e.get('kind')=='settle'}
+            if (read.get('uncovered')!='0' or sorted(str(i) for i in read.get('settles') or [])!=sorted(ids) or set(entries)!=set(ids)
+                    or any(b.get('loanId') in ids for b in read.get('blocked') or [])
+                    or any(entries[l[0]].get('planHash')!=l[2]['planHash'] for l in group)):continue
+            rebates=[]
+            for loan_id in ids:
+                if loan_id not in quotes:quotes[loan_id]=receipt_api.close_quote(config,loan_id)
+                quote=quotes[loan_id]
+                if quote.get('planHash')!=entries[loan_id].get('planHash'):raise ValueError('quote changed')
+                rebate=quote.get('rebate') if isinstance(quote.get('rebate'),dict) else None
+                path=close_rebate_path(rebate)
+                if path:
+                    offset=rebate.get('offset') if isinstance(rebate.get('offset'),dict) else {}
+                    referrer=rebate.get('referrer')
+                    rebates.append({'loanId':loan_id,'path':path,'amount':str(rebate['amount']),
+                                    'covered':str(offset.get('covered')) if path=='offset' and offset.get('covered') is not None else None,
+                                    'referrer':referrer.get('displayName') if isinstance(referrer,dict) else None})
+        except Exception:
+            continue
+        plans['close:'+','.join(ids)]=read
+        rows=[r for r in read.get('forward') or [] if isinstance(r,dict)]
+        choices.append({'loans':[{'loanId':l[0],'loanKey':keys.get(l[0]),'payoffRemainder':str(int(l[1])),'payoff':str(l[2].get('payoff')),
+                                  'planHash':l[2]['planHash']} for l in group],
+                        'forward':left>0,'rest':str(int(left)),
+                        'restSpan':{'first':rows[0].get('chargeDate'),'last':rows[-1].get('chargeDate')} if left>0 and rows else None,
+                        'rebates':rebates})
+    # UX-R181-03: one line per single loan first, the line that closes several loans last.
+    return sorted(choices,key=lambda c:(len(c['loans']),[str(l['loanId']).encode() for l in c['loans']]))
+
+
 def pay_forward_plan(config,borrower_id,amount,day,purpose):
     """The server's plan for one purpose {forward, principal:[{loanId, amount}], loans: None}."""
     value=read_query(config,PLAN_SQL,{'borrower':str(borrower_id),'amount':str(amount),'day':day,
@@ -201,7 +269,9 @@ def pay_forward_options(config,receipt,borrower_id,current,today):
     through=max((d for d in (forward.get('paidThrough') or {}).values() if isinstance(d,str)),default=None)
     uncovered=str(forward.get('uncovered','0'))
     offered=uncovered=='0' and bool(rows) and not forward.get('settles')
-    if not offered and not principal:return None
+    # R181: close choices only with the switch on (the key is absent otherwise, so today's proposals stay byte for byte).
+    close=close_choices(config,borrower_id,amount,today,forward,remainder,keys,plans) if settle_enabled(config) else []
+    if not offered and not principal and not close:return None
     # R118: the due part's late charge (step 1 pays every due charge in full when there is a remainder), named in the
     # request as "Interest X + Late charge Y"; the key is present only when a late charge is due.
     due_ids=set(forward.get('due') or []);due_lines=[l for l in forward.get('allocations') or [] if isinstance(l,dict) and l.get('chargeId') in due_ids]
@@ -211,7 +281,7 @@ def pay_forward_options(config,receipt,borrower_id,current,today):
     return {'planSha256':plan_digest(plans),'dueTotal':str(forward.get('dueTotal')),**late_parts,'remainder':str(int(remainder)),
             'forward':{'first':rows[0].get('chargeDate') if rows else None,'last':rows[-1].get('chargeDate') if rows else None,
                        'through':through,'uncovered':uncovered} if rows or uncovered!='0' else None,
-            'principal':principal,'blocked':blocked}
+            'principal':principal,'blocked':blocked,**({'close':close} if close else {})}
 
 
 def forward_offered(options):
@@ -219,8 +289,28 @@ def forward_offered(options):
     return bool(forward) and forward.get('uncovered')=='0' and bool(forward.get('first'))
 
 
+def close_purpose(choice):
+    """R181: the plan purpose of one close choice."""
+    return {'forward':bool(choice.get('forward')),'principal':[{'loanId':l['loanId'],'amount':l['payoffRemainder']} for l in choice['loans']],'loans':None}
+
+
+def chosen_close(options,purpose):
+    """R181: the offered close choice whose purpose this is, or None (any other purpose)."""
+    if not isinstance(purpose,dict):return None
+    return next((c for c in (options or {}).get('close') or [] if close_purpose(c)==purpose),None)
+
+
 def chosen_purpose(options,choice):
-    """{'kind':'forward'|'principal','loan':n} -> the plan purpose, or None when not offered. R127: no split choice."""
+    """{'kind':'forward'|'principal'|'close','loan':n} -> the plan purpose, or None when not offered. R127: no split choice.
+    R181: 'close' is code 4 ('4' with one close choice, '4 n' with several)."""
+    if choice['kind']=='close':
+        close=options.get('close') or []
+        index=choice.get('loan')
+        if index is None:
+            if len(close)!=1:return None
+            index=1
+        if not 1<=index<=len(close):return None
+        return close_purpose(close[index-1])
     principal=options.get('principal') or []
     if choice['kind']=='forward':
         return {'forward':True,'principal':[],'loans':None} if forward_offered(options) else None
@@ -239,6 +329,16 @@ def chosen_plan(config,proposal,purpose):
     uncovered, settles a loan or drops a requested principal."""
     receipt=proposal['receipt']
     read=pay_forward_plan(config,proposal['borrower']['id'],str(int(Decimal(receipt['amount']))),receipt['date'],purpose)
+    close=chosen_close(proposal.get('options'),purpose)
+    if close is not None:
+        # R181: a close choice: the plan settles exactly the approved loans with the approved quote hashes (every loan's
+        # quote is checked again now), covers everything, else the review is stale (recheck with 3).
+        entries={str(e.get('loanId')):e for e in read.get('principal') or [] if isinstance(e,dict) and e.get('kind')=='settle'}
+        hashes={str(l['loanId']):l['planHash'] for l in close['loans']}
+        if (read.get('uncovered')!='0' or sorted(str(i) for i in read.get('settles') or [])!=sorted(hashes) or set(entries)!=set(hashes)
+                or any(entries[i].get('planHash')!=h for i,h in hashes.items()) or len(read.get('principal') or [])!=len(purpose['principal'])
+                or not read.get('allocations')):raise ReceiptInvalid('PAY_FORWARD_PLAN_CHANGED')
+        return read
     if read.get('uncovered')!='0' or read.get('settles') or len(read.get('principal') or [])!=len(purpose['principal']) \
             or not read.get('allocations'):raise ReceiptInvalid('PAY_FORWARD_PLAN_CHANGED')
     return read

@@ -94,8 +94,8 @@ class OptionsReplyTests(unittest.TestCase):
 
     def test_three_rechecks_the_slip_from_current_charges(self):
         # Owner request, 3 November 2026: edit the charges in the app (a late fee), then reply 3 (R127; 4 before) to plan
-        # the slip again. The legacy 4 still rechecks a request sent before the R127 deploy.
-        for text in ('3',' 3 ','Recheck','ตรวจใหม่','4'):
+        # the slip again. R181: the legacy 4 is withdrawn (4 is the close choice; without one it asks again).
+        for text in ('3',' 3 ','Recheck','ตรวจใหม่'):
             with self.subTest(text=text):
                 self.setUp()   # a fresh pending review per word
                 self.assertEqual(self.decide(text),'RECHECK_QUEUED')
