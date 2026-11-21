@@ -16,7 +16,7 @@ Owner request of 20 November 2026: "Make the chart show last 30 days by default,
 | `npm run check:docs` | 0 failures (Dewey) |
 
 ## Not run
-Nothing is skipped. Not checked: owner acceptance of R177 and R178 is pending.
+Nothing is skipped. Owner acceptance followed on 21 November 2026.
 
 ## Recovery
 Git baseline `main` `b130a1d1`; revert the commit and apply the Grafana plan again. No database, agent or image change.
@@ -33,4 +33,4 @@ Grafana apply on 20 November 2026 07:46:06Z to 07:46:18Z with `--plan-sha256 65c
 - Drift (`drift --env prod`): 0 drift, 7 unverified (credentialed facts such as the agent, schema, Grafana tags and notify and jobs were not observed in this session; the public facts match). The Grafana facts are recorded in the applied section above.
 
 ## Remaining work
-Owner acceptance of R177 and R178, written into the next release's closure pull request.
+Owner-accepted on 21 November 2026 ("Yes accept all 4 releases", R177 to R180); recorded in a records-only pull request.

@@ -47,7 +47,7 @@ Promoted to PROD on 21 November 2026 (agent freeze 05:51:27Z, activate 05:51:50Z
 - Drift (`drift --env prod`): 0 drift, 7 unverified (credentialed facts such as the agent `/ready`, schema, Grafana tags and notify and jobs were not observed in this session). The agent facts are in the promotion record below.
 
 ## Remaining work
-Owner acceptance of R177, R178 and R179, written into the next release's closure pull request. Watch for the first natural name reply and learned name in PROD.
+Owner-accepted on 21 November 2026 ("Yes accept all 4 releases", R177 to R180). Watch for the first natural name reply and learned name in PROD.
 
 ## PROD promotion record (Forge, 21 November 2026 UTC)
 Authority: owner, 21 November 2026, in session: "Move to prod". Scope: agent code only; no migration (`mw_agent` V15), catalogue change (47), unit change, Grafana change, Cloud Run image, Hosting, Metabase or financial write.
