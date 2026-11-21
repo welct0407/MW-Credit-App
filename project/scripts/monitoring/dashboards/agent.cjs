@@ -55,11 +55,23 @@ function ftrDailySql() {
     'FROM ' + FTR_SOURCE,
     'ORDER BY 1'].join('\n');
 }
-function ftrMonthSql() {
-  return ['SELECT round(100.0 * sum(auto_first_pass) / nullif(sum(genuine), 0), 1) AS "First-time right",',
-    '  sum(genuine) AS "Genuine slips"',
-    'FROM ' + FTR_SOURCE,
-    "WHERE day > (now() AT TIME ZONE 'Asia/Bangkok')::date - 30"].join('\n');
+/* R180 (owner, 21 November 2026: "replace this card ... with previous day statistics, percentage and count for each
+ * category"; Echo UX-R180-01..09): the previous Bangkok day as one bar per category, panel 34's order and colours, the
+ * count in the bar's name and the share of genuine slips as the bar (0-100 %), then the genuine total at 100 % with the
+ * date. One wide row of the function, unpivoted into named rows in a fixed order (the order column is not selected);
+ * rowsToFields keeps that order as the field order. No row (no genuine slip yesterday) shows the noValue text. */
+const YESTERDAY = [['First-time right', 'auto_first_pass', COLOR.ok], ['After review', 'after_review', '#7FB77E'],
+  ['By hand in the app', 'manual_in_app', COLOR.degraded], ['Rejected or held', 'rejected_or_held', COLOR.unknown]];
+const YESTERDAY_TOTAL = 'Genuine slips';
+function ftrYesterdaySql() {
+  return ["WITH y AS (SELECT f.* FROM " + FTR_SOURCE + " f",
+    "  WHERE f.day = (now() AT TIME ZONE 'Asia/Bangkok')::date - 1 AND f.genuine > 0)",
+    'SELECT v.name AS "Category", v.share AS "Share"',
+    'FROM y CROSS JOIN LATERAL (VALUES',
+    ...YESTERDAY.map(([name, column], i) => "  (" + (i + 1) + ", '" + name + " · ' || y." + column + ', 100.0 * y.' + column + ' / y.genuine),'),
+    "  (" + (YESTERDAY.length + 1) + ", '" + YESTERDAY_TOTAL + ", ' || to_char(y.day, 'FMDD Mon') || ' · ' || y.genuine, 100.0)",
+    ') AS v(ord, name, share)',
+    'ORDER BY v.ord'].join('\n');
 }
 function firstTimeRight(y) {
   const chart = L.timeseries({id: 34, title: 'Receipts · daily first-time right', gridPos: pos(0, y, 16, 9),
@@ -75,14 +87,19 @@ function firstTimeRight(y) {
         'custom.hideFrom': {legend: true, tooltip: false, viz: false}})],
     options: {legend: {calcs: ['sum'], displayMode: 'table', placement: 'bottom', showLegend: true}, tooltip: {hideZeros: false, mode: 'multi', sort: 'none'}},
     extra: {timeFrom: '30d', hideTimeOverride: false}});
-  const month = L.stat({id: 35, title: 'Receipts · last 30 days', gridPos: pos(16, y, 8, 9),
-    description: 'The last 30 Bangkok days, today included, pooled: slips recorded automatically on the first pass ÷ genuine incoming slips (not a mean of the daily %), and how many genuine slips that is. ' + FTR_RULE + ' No owner target, so no colour. Read live from ' + FTR_SOURCE + '.',
-    targets: [ftrTarget(ftrMonthSql())],
-    transformations: [{id: 'filterFieldsByName', options: {include: {names: ['First-time right', 'Genuine slips']}}}],
-    defaults: {color: L.NEUTRAL, mappings: [L.nullMap('No slips')]},
-    overrides: [byName('First-time right', {unit: 'percent', decimals: 1}), byName('Genuine slips', {decimals: 0})],
-    options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}}});
-  return [chart, month];
+  const yesterday = {id: 35, type: 'bargauge', title: 'Receipts · yesterday', gridPos: pos(16, y, 8, 9),
+    description: "The previous Bangkok day (the date is in the last bar's name): each category's count (in the name) and share of genuine slips (the bar). " + FTR_RULE + ' Shares are rounded and may add to 99–101 %. Read live from ' + FTR_SOURCE + '.',
+    datasource: DS.agentReceipts, targets: [ftrTarget(ftrYesterdaySql())],
+    transformations: [{id: 'rowsToFields', options: {mappings: [{fieldName: 'Category', handlerKey: 'field.name'}, {fieldName: 'Share', handlerKey: 'field.value'}]}}],
+    fieldConfig: {defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, decimals: 0, min: 0, max: 100, unit: 'percent',
+      noValue: 'No genuine slips yesterday', thresholds: steps([null, COLOR.ok])},
+    overrides: [byRef('A', {max: 100}),
+      ...YESTERDAY.map(([name, , color]) => ({matcher: {id: 'byRegexp', options: '^' + name + ' · '}, properties: [{id: 'color', value: {mode: 'fixed', fixedColor: color}}]})),
+      {matcher: {id: 'byRegexp', options: '^' + YESTERDAY_TOTAL + ', '}, properties: [{id: 'color', value: {mode: 'fixed', fixedColor: COLOR.info}}]}]},
+    options: {displayMode: 'lcd', legend: {showLegend: false}, maxVizHeight: 300, minVizHeight: 16, minVizWidth: 8, namePlacement: 'top',
+      orientation: 'horizontal', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, showUnfilled: true, sizing: 'auto',
+      text: {titleSize: 16, valueSize: 22}, valueMode: 'text'}};
+  return [chart, yesterday];
 }
 
 function recognizer() {
