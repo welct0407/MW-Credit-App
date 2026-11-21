@@ -272,8 +272,8 @@ def designation_words(db,config,event,notice,partner,outcome,master,notices):
         return subject,body(f'ไม่พบผู้กู้ชื่อ "{text}" ยังไม่ได้เปลี่ยนแปลงอะไร ใช้ Reply ที่ข้อความแจ้งพักสลิป ตอบชื่อตามที่อยู่ในแอป หรือตอบ ปฏิเสธ' if thai else
                             f'No borrower matches "{text}". Nothing was changed. Use Reply on the hold message with the name as it appears in the app, or Reject.',line)
     if outcome==TOO_OLD:
-        return info,body('สลิปนี้เก่ากว่าเมื่อวาน ตรวจใหม่ผ่านข้อความไม่ได้ ยังไม่ได้เปลี่ยนแปลงอะไร กรุณาบันทึกในแอป แล้วตอบ ปฏิเสธ' if thai else
-                         "This slip is older than yesterday, so it can't be rechecked here. Nothing was changed. Record it in the app, then Reply Reject.")
+        return info,body('สลิปนี้ไม่ใช่ของวันนี้หรือเมื่อวาน ตรวจใหม่ผ่านข้อความไม่ได้ ยังไม่ได้เปลี่ยนแปลงอะไร กรุณาบันทึกในแอป แล้วตอบ ปฏิเสธ' if thai else
+                         "This slip isn't from today or yesterday, so it can't be rechecked here. Nothing was changed. Record it in the app, then Reply Reject.")
     if outcome==NO_IMAGE:
         return info,body('ไม่มีภาพสลิปที่จัดเก็บไว้ ตรวจใหม่ผ่านข้อความไม่ได้ ยังไม่ได้เปลี่ยนแปลงอะไร กรุณาบันทึกในแอป แล้วตอบ ปฏิเสธ' if thai else
                          "The slip image isn't saved, so it can't be rechecked here. Nothing was changed. Record it in the app, then Reply Reject.")

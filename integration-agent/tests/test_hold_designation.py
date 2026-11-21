@@ -239,7 +239,10 @@ class AcknowledgementTests(DesignationBase):
         self.assertIn('ใช้ Reply ที่ข้อความแจ้งพักสลิป', thai['body'])
 
     def test_other_outcomes(self):
-        self.assertIn("This slip is older than yesterday", self.ack(TOO_OLD, 'o1')['body'])
+        self.assertEqual(self.ack(TOO_OLD, 'o1')['body'].split('\n')[-1],
+                         "This slip isn't from today or yesterday, so it can't be rechecked here. Nothing was changed. Record it in the app, then Reply Reject.")
+        self.assertEqual(self.ack(TOO_OLD, 'o1-th', 'ไทย')['body'].split('\n')[-1],
+                         'สลิปนี้ไม่ใช่ของวันนี้หรือเมื่อวาน ตรวจใหม่ผ่านข้อความไม่ได้ ยังไม่ได้เปลี่ยนแปลงอะไร กรุณาบันทึกในแอป แล้วตอบ ปฏิเสธ')
         self.assertIn("The slip image isn't saved", self.ack(NO_IMAGE, 'o2')['body'])
         self.assertEqual(self.ack('HOLD_REJECT_REQUIRED', 'o3')['body'].split('\n')[-1], "Held slips can't be approved. Reply with the borrower's name, or Reject.")
         # Already rechecked (UX-R179-12) and already cleared by a named Reviewer.
