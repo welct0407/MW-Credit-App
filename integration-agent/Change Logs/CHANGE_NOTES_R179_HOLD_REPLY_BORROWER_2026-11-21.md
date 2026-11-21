@@ -20,6 +20,13 @@ Evidence (read-only, PROD, 6 to 20 November 2026, aggregates only): borrower-ide
 | --- | --- |
 | ruff | Pass (Byte, `1dc2271f`) |
 | Agent unit tests | 1,165 OK, 82 skipped (Byte, `1dc2271f`) |
+| Chase review (`R179_verify.md`): PostgreSQL lab proof, `test_r179_hold_designation_transaction_and_guards_on_postgres` | Pass: REVIEW to PENDING, one reconsideration and one reply row, HOLD_NOT_ACTIVE and HOLD_HAS_REVIEW refusals, stale-read UPDATE guard, a real two-connection race with Reject |
+| Chase adversarial review; learning checks; HOLD_IMAGE_UNAVAILABLE fail-safe | Pass |
+| Defect found by Chase (Medium): designation and learning audit raised AUDIT_TERMINAL_TRANSITION on replay on PostgreSQL | Fixed in `12b06bba` (one keyed COMPLETED event per key in one transaction); proven by `test_r179_designation_audit_is_idempotent_and_private_on_postgres` |
+| Chase (Low): learning gated on `payer_name_cutoff` | Fixed in `12b06bba` |
+| Disposable PostgreSQL lab `tests.test_postgres_state` | 49 OK (Byte, `12b06bba`) |
+| Unit `test_hold_designation`, `test_hold_reply`, `test_payer_resolution`, `test_review_cycle`, `test_receipt_identity`; ruff | OK, ruff clean (Byte, `12b06bba`) |
+| HOLD_TOO_OLD wording (Echo) | Applied in `34aa8328` |
 | `npm run check:docs` | 0 failures (Dewey) |
 
 ## Not run
