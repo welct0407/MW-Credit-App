@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r181-20261121/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "2a158a68b274e4ba7f661b9d77c06f6565bb5500"
+    "commit": "5042366bb80eb07a2c42638ba218b99bdd55f4a9"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-agent-receipt-status-v1-request-id-uuid-actor-issuer-text-actor-subject-text-f1658485.yaml"
     "identity":
       "system": "postgresql"
@@ -37,15 +37,15 @@
       BEGIN
        environment:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;
        IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR session_user<>('mw-credit-app-command-'||environment||'@clever-oasis-508610-n7.iam') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Command session required'; END IF;
-       SELECT * INTO r FROM public.pwa_payment_commands p WHERE p.request_id=$1 AND p.actor_issuer=$2 AND p.actor_subject=$3 AND p.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('7','8','9') AND p.canonical_json::jsonb->'command' ? 'reviewId';
+       SELECT * INTO r FROM public.pwa_payment_commands p WHERE p.request_id=$1 AND p.actor_issuer=$2 AND p.actor_subject=$3 AND p.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('7','8','9','10','11') AND p.canonical_json::jsonb->'command' ? 'reviewId'; -- R118: agent v10; R181: agent v11
        IF NOT FOUND THEN RETURN jsonb_build_object('kind','unresolved'); END IF;
        c:=r.canonical_json::jsonb->'command';
        SELECT EXISTS(SELECT 1 FROM public."Payments" p WHERE p."Row ID"=r.payment_id AND p."Status"='Posted'
         AND p."Ref Borrower"=(c->>'borrowerId') AND p."Ref Received By Cash Account"=(c->>'cashAccountId')
         AND p."Amount Received"::numeric=((c->>'amountReceived'))::numeric AND p."Payment Date"=((c->>'paymentDate'))::date
-        AND p."Created By"=r.actor_login_email AND p."Payment Method"='Bank Transfer' AND p."Allocation Method"=CASE WHEN c->>'schemaVersion'='9' THEN 'Selected Charges' ELSE 'Lump Sum' END
+        AND p."Created By"=r.actor_login_email AND p."Payment Method"='Bank Transfer' AND p."Allocation Method"=CASE WHEN c->>'schemaVersion' IN ('9','10','11') THEN 'Selected Charges' ELSE 'Lump Sum' END
         AND p."Bank Reference"=(c->>'bankReference') AND to_char(p."Created At",'YYYY-MM-DD HH24:MI')=(c->>'paymentDate')||' '||(c->>'transferTime')
-        AND (SELECT coalesce(sum(x."Principal Paid"::numeric+x."Interest Paid"::numeric),0) FROM public."Repayments" x WHERE x."Ref Payment"=p."Row ID")=((c->>'amountReceived'))::numeric) INTO matched;
+        AND (SELECT coalesce(sum(x."Principal Paid"::numeric+x."Interest Paid"::numeric+x."Late Charge Paid"::numeric),0) FROM public."Repayments" x WHERE x."Ref Payment"=p."Row ID")=((c->>'amountReceived'))::numeric) INTO matched;
        RETURN jsonb_build_object('kind','recorded','reviewId',(c->>'reviewId'),'financialMatch',CASE WHEN r.outcome='posted' THEN matched ELSE NULL END,
         'originalOutcome',jsonb_build_object('status',r.outcome,'paymentId',r.payment_id,'code',r.rejection_code,'recordedAt',to_char(r.recorded_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')));
       END $function$
