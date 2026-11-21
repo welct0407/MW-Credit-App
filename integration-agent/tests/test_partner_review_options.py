@@ -163,6 +163,19 @@ class OptionsReplyTests(unittest.TestCase):
         self.setUp();self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PROPOSAL_FACTS_CHANGED'")
         self.assertEqual(self.decide('1'),'ALREADY_DECIDED');self.assertEqual(self.row()['state'],'STALE')
 
+    def test_r181_a_stale_close_choice_keeps_its_recheck_and_a_legacy_four_changes_nothing(self):
+        # R181: a close choice that went STALE records `<code>:CLOSE:<n>` (for its result's wording); the recheck still reads the
+        # code before the colon. The withdrawn legacy 4 on a request without close choices decides nothing and queues nothing.
+        self.setUp();self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PAY_FORWARD_PLAN_CHANGED:CLOSE:2'")
+        self.assertEqual(self.decide('3'),'RECHECK_QUEUED');self.assertEqual(self.row()['state'],'SUPERSEDED')
+        self.setUp();self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PAY_FORWARD_DAY_PASSED:CLOSE:1'")
+        self.assertEqual(self.decide('3'),'ALREADY_DECIDED');self.assertEqual(self.row()['state'],'STALE')
+        for text in ('4','4 1','4 2'):
+            with self.subTest(text=text):
+                self.setUp()
+                self.assertEqual(self.decide(text),'OPTIONS_REQUIRED');self.assertEqual(self.row()['state'],'PENDING')
+                self.assertEqual(self.db.execute("SELECT status FROM receipt_jobs").fetchone()[0],'REVIEW_REQUESTED')
+
     def test_a_recheck_on_an_expired_stale_review_changes_nothing(self):
         self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PROPOSAL_FACTS_CHANGED'")
         self.assertEqual(self.store.decide(dict(self.event,text='3'),self.notice,[self.p],self.identity,100000,reviewer_ids=['p']),'ALREADY_DECIDED')
