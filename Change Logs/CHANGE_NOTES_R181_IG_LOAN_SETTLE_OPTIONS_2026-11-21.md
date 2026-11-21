@@ -19,9 +19,12 @@ Evidence (read-only, PROD, 21 November 2026): a 3,300 slip equal to both princip
 | Agent unit tests | 1,184 OK, 84 skipped (Byte, `9c7f62dc`) |
 | Biome; `tsc` for services; receipt-command and late-charge unit tests | Pass; 20/20 (Byte, `9c7f62dc`) |
 | `mw-db-ci` migrations and phase8, including `Test-AgentReceiptSettle.sql` | Exit 0 (Byte, `9c7f62dc`) |
+| Chase adversarial review of `fbe0a848..9c7f62dc` | Pass, no defect above Low. V153 only adds the v11 branches (7 to 10 unchanged); v11 is reviewed-only and today-only; all-or-nothing through the P4C05 rollback; owner and ACL kept; no table or column. Agent close choices and the STALE and manual paths pass; a legacy "4" on a request without close choices gives OPTIONS_REQUIRED and nothing posts; the rebate is recorded by the same server rule as the PWA |
+| `test_r181_a_stale_close_choice_keeps_its_recheck_and_a_legacy_four_changes_nothing` (added in `4f89628b`) | File 33 OK, ruff clean (Chase) |
 | `npm run check:docs` | 0 failures (Dewey) |
 
 ## Not run
+- Low findings, recorded and not fixed: `Test-AgentReceiptSettle.sql` covers only the offset rebate path, not the expense path or two loans of one referrer in one payment (it needs the DEV command-IAM harness); a quote failure at execution goes STALE instead of retrying (fail-closed).
 To be filled. PROD promotion and any live financial write are not authorized.
 
 ## Recovery
