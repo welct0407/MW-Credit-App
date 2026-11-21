@@ -59,18 +59,23 @@ function ftrDailySql() {
  * category"; Echo UX-R180-01..09): the previous Bangkok day as one bar per category, panel 34's order and colours, the
  * count in the bar's name and the share of genuine slips as the bar (0-100 %), then the genuine total at 100 % with the
  * date. One wide row of the function, unpivoted into named rows in a fixed order (the order column is not selected);
- * rowsToFields keeps that order as the field order. No row (no genuine slip yesterday) shows the noValue text. */
+ * rowsToFields keeps that order as the field order. No row (no genuine slip yesterday) shows the noValue text.
+ * R180 correction (live 21 November 2026: every bar drew in the transparent default, the name-prefix overrides did not take):
+ * each row also carries its colour, which rowsToFields maps to the field's own fixed colour (handler 'color', config from
+ * the query results); the byRegexp overrides stay as a second path with the same colours, and no panel default colour is
+ * set. The total is the theme text colour (neutral, visible). */
 const YESTERDAY = [['First-time right', 'auto_first_pass', COLOR.ok], ['After review', 'after_review', '#7FB77E'],
   ['By hand in the app', 'manual_in_app', COLOR.degraded], ['Rejected or held', 'rejected_or_held', COLOR.unknown]];
 const YESTERDAY_TOTAL = 'Genuine slips';
+const YESTERDAY_TOTAL_COLOR = COLOR.text;
 function ftrYesterdaySql() {
   return ["WITH y AS (SELECT f.* FROM " + FTR_SOURCE + " f",
     "  WHERE f.day = (now() AT TIME ZONE 'Asia/Bangkok')::date - 1 AND f.genuine > 0)",
-    'SELECT v.name AS "Category", v.share AS "Share"',
+    'SELECT v.name AS "Category", v.share AS "Share", v.color AS "Color"',
     'FROM y CROSS JOIN LATERAL (VALUES',
-    ...YESTERDAY.map(([name, column], i) => "  (" + (i + 1) + ", '" + name + " · ' || y." + column + ', 100.0 * y.' + column + ' / y.genuine),'),
-    "  (" + (YESTERDAY.length + 1) + ", '" + YESTERDAY_TOTAL + ", ' || to_char(y.day, 'FMDD Mon') || ' · ' || y.genuine, 100.0)",
-    ') AS v(ord, name, share)',
+    ...YESTERDAY.map(([name, column, color], i) => "  (" + (i + 1) + ", '" + name + " · ' || y." + column + ', 100.0 * y.' + column + " / y.genuine, '" + color + "'),"),
+    "  (" + (YESTERDAY.length + 1) + ", '" + YESTERDAY_TOTAL + ", ' || to_char(y.day, 'FMDD Mon') || ' · ' || y.genuine, 100.0, '" + YESTERDAY_TOTAL_COLOR + "')",
+    ') AS v(ord, name, share, color)',
     'ORDER BY v.ord'].join('\n');
 }
 function firstTimeRight(y) {
@@ -90,12 +95,13 @@ function firstTimeRight(y) {
   const yesterday = {id: 35, type: 'bargauge', title: 'Receipts · yesterday', gridPos: pos(16, y, 8, 9),
     description: "The previous Bangkok day (the date is in the last bar's name): each category's count (in the name) and share of genuine slips (the bar). " + FTR_RULE + ' Shares are rounded and may add to 99–101 %. Read live from ' + FTR_SOURCE + '.',
     datasource: DS.agentReceipts, targets: [ftrTarget(ftrYesterdaySql())],
-    transformations: [{id: 'rowsToFields', options: {mappings: [{fieldName: 'Category', handlerKey: 'field.name'}, {fieldName: 'Share', handlerKey: 'field.value'}]}}],
-    fieldConfig: {defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, decimals: 0, min: 0, max: 100, unit: 'percent',
+    transformations: [{id: 'rowsToFields', options: {mappings: [{fieldName: 'Category', handlerKey: 'field.name'}, {fieldName: 'Share', handlerKey: 'field.value'},
+      {fieldName: 'Color', handlerKey: 'color'}]}}],
+    fieldConfig: {defaults: {decimals: 0, min: 0, max: 100, unit: 'percent',
       noValue: 'No genuine slips yesterday', thresholds: steps([null, COLOR.ok])},
     overrides: [byRef('A', {max: 100}),
-      ...YESTERDAY.map(([name, , color]) => ({matcher: {id: 'byRegexp', options: '^' + name + ' · '}, properties: [{id: 'color', value: {mode: 'fixed', fixedColor: color}}]})),
-      {matcher: {id: 'byRegexp', options: '^' + YESTERDAY_TOTAL + ', '}, properties: [{id: 'color', value: {mode: 'fixed', fixedColor: COLOR.info}}]}]},
+      ...YESTERDAY.map(([name, , color]) => ({matcher: {id: 'byRegexp', options: '^' + name}, properties: [{id: 'color', value: {mode: 'fixed', fixedColor: color}}]})),
+      {matcher: {id: 'byRegexp', options: '^' + YESTERDAY_TOTAL}, properties: [{id: 'color', value: {mode: 'fixed', fixedColor: YESTERDAY_TOTAL_COLOR}}]}]},
     options: {displayMode: 'lcd', legend: {showLegend: false}, maxVizHeight: 300, minVizHeight: 16, minVizWidth: 8, namePlacement: 'top',
       orientation: 'horizontal', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, showUnfilled: true, sizing: 'auto',
       text: {titleSize: 16, valueSize: 22}, valueMode: 'text'}};

@@ -523,12 +523,21 @@ for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Recei
   const names = ['First-time right', 'After review', 'By hand in the app', 'Rejected or held', 'Genuine slips'];
   const at = names.map(n => sql.indexOf("'" + n));
   assert.ok(at.every((v, i) => v > 0 && (i === 0 || v > at[i - 1])), 'rows in panel 34 order, total last');
-  assert.ok(/ORDER BY v\.ord$/.test(sql) && /^SELECT v\.name AS "Category", v\.share AS "Share"$/m.test(sql), 'a fixed order the reader does not see');
-  assert.deepEqual(tile.transformations, [{id: 'rowsToFields', options: {mappings: [{fieldName: 'Category', handlerKey: 'field.name'}, {fieldName: 'Share', handlerKey: 'field.value'}]}}]);
-  const colorOf = prefix => tile.fieldConfig.overrides.find(o => o.matcher.id === 'byRegexp' && o.matcher.options.startsWith('^' + prefix)).properties[0].value.fixedColor;
+  assert.ok(/ORDER BY v\.ord$/.test(sql) && /^SELECT v\.name AS "Category", v\.share AS "Share", v\.color AS "Color"$/m.test(sql), 'a fixed order the reader does not see');
+  // R180 correction: each row becomes its own field (rowsToFields) and carries its colour (handler 'color', fixed); the
+  // name-prefix overrides set the same colours; no panel default colour can paint every bar.
+  assert.deepEqual(tile.transformations, [{id: 'rowsToFields', options: {mappings: [{fieldName: 'Category', handlerKey: 'field.name'},
+    {fieldName: 'Share', handlerKey: 'field.value'}, {fieldName: 'Color', handlerKey: 'color'}]}}]);
+  assert.ok(!('color' in tile.fieldConfig.defaults), 'no default colour');
   const chartColor = name => chart.fieldConfig.overrides.find(o => o.matcher.options === name).properties.find(x => x.id === 'color').value.fixedColor;
-  assert.deepEqual(names.slice(0, 4).map(colorOf), ['Recorded automatically', 'Recorded after review', 'Recorded by hand in the app', 'Rejected or still held'].map(chartColor), 'panel 34 colours');
-  assert.equal(colorOf('Genuine slips'), L.COLOR.info, 'the total is neutral');
+  const expected = [...['Recorded automatically', 'Recorded after review', 'Recorded by hand in the app', 'Rejected or still held'].map(chartColor), L.COLOR.text];
+  assert.deepEqual(expected.slice(0, 4), [L.COLOR.ok, '#7FB77E', L.COLOR.degraded, L.COLOR.unknown], 'panel 34 colours');
+  const regexps = tile.fieldConfig.overrides.filter(o => o.matcher.id === 'byRegexp');
+  assert.deepEqual(regexps.map(o => o.matcher.options), names.map(n => '^' + n));
+  assert.deepEqual(regexps.map(o => o.properties), expected.map(c => [{id: 'color', value: {mode: 'fixed', fixedColor: c}}]), 'each override fixes its colour');
+  const colours = names.map(n => (sql.split('\n').find(line => line.includes("'" + n)) || '').match(/'([^']+)'\),?$/));
+  assert.deepEqual(colours.map(m => m && m[1]), expected, 'each row carries its colour');
+  for (const n of names) assert.ok(new RegExp('^' + n).test(n + ' · 12') && new RegExp('^' + n).test(n + ', 20 Nov · 16'), n + ' matcher matches its bar');
   const d = tile.fieldConfig.defaults;
   assert.deepEqual([d.unit, d.decimals, d.min, d.max, d.noValue], ['percent', 0, 0, 100, 'No genuine slips yesterday']);
   const o = tile.options;
