@@ -964,10 +964,6 @@
         "description": "The previous Bangkok day (the date is in the last bar's name): each category's count (in the name) and share of genuine slips (the bar). First-time right = slips recorded automatically on the first pass with no human action ÷ genuine incoming slips. Not counted: non-receipts, repeats of a slip already handled, our own outgoing transfers (also before R177). Shares are rounded and may add to 99–101 %. Read live from monitoring.receipt_ftr_daily_v1().",
         "fieldConfig": {
           "defaults": {
-            "color": {
-              "fixedColor": "transparent",
-              "mode": "fixed"
-            },
             "decimals": 0,
             "max": 100,
             "min": 0,
@@ -999,7 +995,7 @@
             {
               "matcher": {
                 "id": "byRegexp",
-                "options": "^First-time right · "
+                "options": "^First-time right"
               },
               "properties": [
                 {
@@ -1014,7 +1010,7 @@
             {
               "matcher": {
                 "id": "byRegexp",
-                "options": "^After review · "
+                "options": "^After review"
               },
               "properties": [
                 {
@@ -1029,7 +1025,7 @@
             {
               "matcher": {
                 "id": "byRegexp",
-                "options": "^By hand in the app · "
+                "options": "^By hand in the app"
               },
               "properties": [
                 {
@@ -1044,7 +1040,7 @@
             {
               "matcher": {
                 "id": "byRegexp",
-                "options": "^Rejected or held · "
+                "options": "^Rejected or held"
               },
               "properties": [
                 {
@@ -1059,13 +1055,13 @@
             {
               "matcher": {
                 "id": "byRegexp",
-                "options": "^Genuine slips, "
+                "options": "^Genuine slips"
               },
               "properties": [
                 {
                   "id": "color",
                   "value": {
-                    "fixedColor": "transparent",
+                    "fixedColor": "text",
                     "mode": "fixed"
                   }
                 }
@@ -1114,7 +1110,7 @@
             "editorMode": "code",
             "format": "table",
             "rawQuery": true,
-            "rawSql": "WITH y AS (SELECT f.* FROM monitoring.receipt_ftr_daily_v1() f\n  WHERE f.day = (now() AT TIME ZONE 'Asia/Bangkok')::date - 1 AND f.genuine > 0)\nSELECT v.name AS \"Category\", v.share AS \"Share\"\nFROM y CROSS JOIN LATERAL (VALUES\n  (1, 'First-time right · ' || y.auto_first_pass, 100.0 * y.auto_first_pass / y.genuine),\n  (2, 'After review · ' || y.after_review, 100.0 * y.after_review / y.genuine),\n  (3, 'By hand in the app · ' || y.manual_in_app, 100.0 * y.manual_in_app / y.genuine),\n  (4, 'Rejected or held · ' || y.rejected_or_held, 100.0 * y.rejected_or_held / y.genuine),\n  (5, 'Genuine slips, ' || to_char(y.day, 'FMDD Mon') || ' · ' || y.genuine, 100.0)\n) AS v(ord, name, share)\nORDER BY v.ord",
+            "rawSql": "WITH y AS (SELECT f.* FROM monitoring.receipt_ftr_daily_v1() f\n  WHERE f.day = (now() AT TIME ZONE 'Asia/Bangkok')::date - 1 AND f.genuine > 0)\nSELECT v.name AS \"Category\", v.share AS \"Share\", v.color AS \"Color\"\nFROM y CROSS JOIN LATERAL (VALUES\n  (1, 'First-time right · ' || y.auto_first_pass, 100.0 * y.auto_first_pass / y.genuine, '#2E7D32'),\n  (2, 'After review · ' || y.after_review, 100.0 * y.after_review / y.genuine, '#7FB77E'),\n  (3, 'By hand in the app · ' || y.manual_in_app, 100.0 * y.manual_in_app / y.genuine, '#A65200'),\n  (4, 'Rejected or held · ' || y.rejected_or_held, 100.0 * y.rejected_or_held / y.genuine, '#6E7079'),\n  (5, 'Genuine slips, ' || to_char(y.day, 'FMDD Mon') || ' · ' || y.genuine, 100.0, 'text')\n) AS v(ord, name, share, color)\nORDER BY v.ord",
             "refId": "A"
           }
         ],
@@ -1131,6 +1127,10 @@
                 {
                   "fieldName": "Share",
                   "handlerKey": "field.value"
+                },
+                {
+                  "fieldName": "Color",
+                  "handlerKey": "color"
                 }
               ]
             }

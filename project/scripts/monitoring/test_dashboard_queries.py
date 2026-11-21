@@ -755,6 +755,8 @@ class GeneratedSelectors(unittest.TestCase):
         self.assertIn("f.day = (now() AT TIME ZONE 'Asia/Bangkok')::date - 1 AND f.genuine > 0", sql)
         self.assertTrue(sql.endswith('ORDER BY v.ord'))
         self.assertEqual(tile['transformations'][0]['id'], 'rowsToFields')
+        self.assertIn({'fieldName': 'Color', 'handlerKey': 'color'}, tile['transformations'][0]['options']['mappings'])
+        self.assertNotIn('color', tile['fieldConfig']['defaults'])
         self.assertEqual(tile['fieldConfig']['defaults']['noValue'], 'No genuine slips yesterday')
 
     def test_metabase_charts_send_one_railway_call(self):
