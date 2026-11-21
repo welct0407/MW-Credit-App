@@ -25,8 +25,7 @@ Evidence (read-only, PROD, 21 November 2026): a 3,300 slip equal to both princip
 
 ## Not run
 - Low findings, recorded and not fixed: `Test-AgentReceiptSettle.sql` covers only the offset rebate path, not the expense path or two loans of one referrer in one payment (it needs the DEV command-IAM harness); a quote failure at execution goes STALE instead of retrying (fail-closed).
-- The pull request's Development checks run (the one broad run) is pending.
-- PROD promotion (V153, command-service deploy, agent deploy, switch) and any live financial write are not authorized yet.
+- No real close through code 4 has run in PROD yet (needs a natural slip); no financial write was forced.
 
 ## Recovery
 Git baseline `main` `5825b2d6` (R180) plus the acceptance records. See the PROD promotion record below for the SQL, image and agent rollback. At promotion: `loan_settle_options_enabled` off stops new close choices at the next run; V153 only adds the v11 branch, so versions 7–10 keep working if the agent is rolled back.
