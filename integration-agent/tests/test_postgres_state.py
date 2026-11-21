@@ -548,6 +548,152 @@ class PostgreSQLStateTests(unittest.TestCase):
             self.assertEqual(count(),1)
         finally:receipt.close()
 
+    def test_r179_hold_designation_transaction_and_guards_on_postgres(self):
+        # R179: hold_reply.decide's designation (REVIEW -> PENDING + receipt_reconsiderations + reply row, one transaction),
+        # its R174-style guards, idempotency and a real concurrent Reject, on PostgreSQL (the unit suite runs SQLite).
+        import hashlib
+        from datetime import datetime
+        from mw_integration_agent.business_time import BANGKOK
+        from mw_integration_agent.hold_reply import DESIGNATED,decide,designate
+        from mw_integration_agent.receipt_hold import event_key
+        def seed(job_id,detail='PAYER_UNRESOLVED',archived=True):
+            day=datetime.fromtimestamp(time.time(),BANGKOK).date().isoformat()
+            result={'extraction':{'is_payment_receipt':True,'date':day,'time':'09:14','amount':'1000.00','reference':'SYN'+job_id[-6:]},'payer_candidates':['b1']}
+            with receipt.db:
+                receipt.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,attempts,detail,result,created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+                                   (job_id,job_id,'synthetic','','REVIEW',1,detail,json.dumps(result),time.time()-600))
+            if archived:
+                with psycopg.connect(**self.admin) as c:
+                    c.execute("INSERT INTO runtime.receipt_assets(receipt_id,job_id,source,archive_state,object_key,raw_sha256,generation) VALUES (%s,%s,'{}','ARCHIVED','o','r','1')",
+                              (hashlib.sha256(job_id.encode()).hexdigest(),job_id))
+            job=dict(receipt.db.execute('SELECT * FROM receipt_jobs WHERE id=?',(job_id,)).fetchone())
+            notice={'ig_status':'ACCEPTED','event_key':event_key(job),'message_id':'out-'+job_id,'recipient_id':'1','partner_id':partner['id'],'partner':json.dumps(partner)}
+            return job,notice
+        def reply(job_id,notice,text,mid,db=None,now=None):
+            event={'reply_to':notice['message_id'],'sender_id':'1','message_id':mid,'event_timestamp':time.time()-5,'captured_at':time.time()-4,'text':text}
+            return decide(db or receipt.db,config,event,notice,[partner],{'id':'1','username':'synthetic_reviewer'},[partner['id']],now=now or time.time(),master=master)
+        def state_of(job_id):
+            row=receipt.db.execute('SELECT status,detail,result FROM receipt_jobs WHERE id=?',(job_id,)).fetchone()
+            return row['status'],row['detail'],json.loads(row['result'])
+        def counts(job_id,notice):
+            return (receipt.db.execute('SELECT count(*) AS n FROM receipt_reconsiderations WHERE job_id=?',(job_id,)).fetchone()['n'],
+                    receipt.db.execute('SELECT count(*) AS n FROM partner_review_replies WHERE review_id=?',(notice['event_key'],)).fetchone()['n'])
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        partner={'id':'p-'+self.key,'username':'synthetic_reviewer','enabled':True,'language':'English','email':'synthetic@example.invalid'}
+        master={'borrowers':[{'id':'b1','username':'syn_b','enabled':True,'name_th':'ทดสอบ','name_en':'Synthetic One','payer':None},
+                             {'id':'b2','username':'syn_c','enabled':True,'name_th':'ทดลอง','name_en':'Synthetic Two','payer':None}]}
+        config=dict(self.config,receipt_hold_reply_cutoff='1970-01-01T00:01:40+00:00',receipt_hold_designation_enabled=True,
+                    receipt_archive_enabled=True,receipt_archive_cutoff='1970-01-01T00:00:00+00:00')
+        try:
+            # 1. A name designates: one transaction, prior state kept, extraction kept, three provenance keys.
+            job1,notice1=seed(self.key+'-1')
+            self.assertEqual(reply(job1['id'],notice1,'Synthetic One','m1-'+self.key),DESIGNATED)
+            status,detail,result=state_of(job1['id'])
+            self.assertEqual((status,detail),('PENDING','REVIEWER_DESIGNATED_BORROWER'))
+            self.assertEqual((result['designated_borrower_id'],result['designated_by'],result['designated_message']),('b1',partner['id'],'m1-'+self.key))
+            self.assertEqual(result['extraction']['amount'],'1000.00')
+            self.assertEqual(counts(job1['id'],notice1),(1,1))
+            previous=json.loads(receipt.db.execute('SELECT previous FROM receipt_reconsiderations WHERE job_id=?',(job1['id'],)).fetchone()['previous'])
+            self.assertEqual((previous['status'],previous['detail']),('REVIEW','PAYER_UNRESOLVED'))
+            # 2. A later message (another name, a Reject) finds the hold no longer open: HOLD_NOT_ACTIVE, nothing more written.
+            self.assertEqual(reply(job1['id'],notice1,'Synthetic Two','m2-'+self.key),'HOLD_NOT_ACTIVE')
+            self.assertEqual(reply(job1['id'],notice1,'Reject','m3-'+self.key),'HOLD_NOT_ACTIVE')
+            self.assertEqual(state_of(job1['id'])[:2],('PENDING','REVIEWER_DESIGNATED_BORROWER'))
+            self.assertEqual(counts(job1["id"],notice1),(1,3))
+            # 3. A live review blocks both the name and the Reject (R174): nothing changes, no reconsideration row.
+            job3,notice3=seed(self.key+'-3')
+            with receipt.db:
+                receipt.db.execute("INSERT INTO partner_reviews(id,job_id,proposal,state,created_at,expires_at) VALUES (?,?,?,?,?,?)",
+                                   ('r-'+job3['id'],job3['id'],'{}','PENDING',time.time(),time.time()+3600))
+            self.assertEqual(reply(job3['id'],notice3,'Synthetic One','m4-'+self.key),'HOLD_HAS_REVIEW')
+            self.assertEqual(reply(job3['id'],notice3,'Reject','m5-'+self.key),'HOLD_HAS_REVIEW')
+            self.assertEqual(state_of(job3['id'])[:2],('REVIEW','PAYER_UNRESOLVED'));self.assertEqual(counts(job3['id'],notice3),(0,2))
+            # 4. The write guard itself: a job changed after it was read (a live review, another status, another result) is
+            #    refused by the UPDATE, and no reconsideration row survives.
+            job4,notice4=seed(self.key+'-4')
+            for label,change in (('review',lambda:receipt.db.execute("INSERT INTO partner_reviews(id,job_id,proposal,state,created_at,expires_at) VALUES (?,?,?,?,?,?)",
+                                                                      ('r-'+job4['id'],job4['id'],'{}','APPROVED',time.time(),time.time()+3600))),
+                                 ('status',lambda:receipt.db.execute("UPDATE receipt_jobs SET status='REJECTED' WHERE id=?",(job4['id'],)))):
+                with self.subTest(label):
+                    with receipt.db:change()
+                    with receipt.db:
+                        outcome=designate(receipt.db,job4,{'message_id':'g-'+label+self.key},notice4,master,'Synthetic One')
+                    self.assertEqual(outcome,'HOLD_NOT_ACTIVE')
+                    self.assertEqual(receipt.db.execute('SELECT count(*) AS n FROM receipt_reconsiderations WHERE job_id=?',(job4['id'],)).fetchone()['n'],0)
+                    self.assertNotIn('designated_borrower_id',state_of(job4['id'])[2])
+            stale,stale_notice=seed(self.key+'-4b')
+            with receipt.db:receipt.db.execute("UPDATE receipt_jobs SET result=? WHERE id=?",(json.dumps({'changed':True}),stale['id']))
+            with receipt.db:
+                self.assertEqual(designate(receipt.db,stale,{'message_id':'g-result'+self.key},stale_notice,master,'Synthetic One'),'HOLD_NOT_ACTIVE')
+            self.assertEqual(state_of(stale['id'])[:2],('REVIEW','PAYER_UNRESOLVED'))
+            # 5. Not-cured cases decide nothing: unknown name, too old, no archived image, a non-identity code.
+            job5,notice5=seed(self.key+'-5')
+            self.assertEqual(reply(job5['id'],notice5,'Nobody Known','m6-'+self.key),'HOLD_BORROWER_UNCLEAR')
+            job6,notice6=seed(self.key+'-6',archived=False)
+            self.assertEqual(reply(job6['id'],notice6,'Synthetic One','m7-'+self.key),'HOLD_IMAGE_UNAVAILABLE')
+            job7,notice7=seed(self.key+'-7',detail='DATE_OUTSIDE_TODAY_YESTERDAY')
+            self.assertEqual(reply(job7['id'],notice7,'Synthetic One','m8-'+self.key),'HOLD_REJECT_REQUIRED')
+            job8,notice8=seed(self.key+'-8')
+            self.assertEqual(reply(job8['id'],notice8,'Synthetic One','m9-'+self.key,now=time.time()+3*86400),'HOLD_TOO_OLD')
+            for job,notice,code in ((job5,notice5,'PAYER_UNRESOLVED'),(job6,notice6,'PAYER_UNRESOLVED'),(job7,notice7,'DATE_OUTSIDE_TODAY_YESTERDAY'),(job8,notice8,'PAYER_UNRESOLVED')):
+                self.assertEqual(state_of(job['id'])[:2],('REVIEW',code));self.assertEqual(counts(job['id'],notice)[0],0)
+            # 6. A real race on two connections: the designation holds the row lock, a concurrent Reject then waits, and
+            #    after the commit finds the job no longer REVIEW (HOLD_NOT_ACTIVE). One winner, one reconsideration row.
+            job9,notice9=seed(self.key+'-9')
+            other=ReceiptJournal('receipt-processing.db',self.config);outcomes={}
+            try:
+                started=threading.Event()
+                def reject():
+                    started.set()
+                    outcomes['reject']=reply(job9['id'],notice9,'Reject','m10-'+self.key,db=other.db)
+                with receipt.db:
+                    outcomes['name']=designate(receipt.db,job9,{'message_id':'m11-'+self.key},notice9,master,'Synthetic One')
+                    thread=threading.Thread(target=reject);thread.start();started.wait(5);time.sleep(0.5)
+                    self.assertTrue(thread.is_alive())          # blocked on the uncommitted row
+                thread.join(10);self.assertFalse(thread.is_alive())
+            finally:other.close()
+            self.assertEqual((outcomes['name'],outcomes['reject']),(DESIGNATED,'HOLD_NOT_ACTIVE'))
+            self.assertEqual(state_of(job9['id'])[:2],('PENDING','REVIEWER_DESIGNATED_BORROWER'))
+            self.assertEqual(receipt.db.execute('SELECT count(*) AS n FROM receipt_reconsiderations WHERE job_id=?',(job9['id'],)).fetchone()['n'],1)
+            # 7. The requeued job is what the worker's queue reads, and a Reject first leaves REJECTED (a later name decides nothing).
+            self.assertIn(job1['id'],[r['id'] for r in receipt.db.execute("SELECT id FROM receipt_jobs WHERE status='PENDING' AND retry_after<=?",(time.time(),)).fetchall()])
+            job10,notice10=seed(self.key+'-10')
+            self.assertEqual(reply(job10['id'],notice10,'Reject','m12-'+self.key),'HOLD_REJECTED')
+            self.assertEqual(reply(job10['id'],notice10,'Synthetic One','m13-'+self.key),'HOLD_NOT_ACTIVE')
+            self.assertEqual(state_of(job10['id'])[0],'REJECTED');self.assertEqual(counts(job10['id'],notice10)[0],0)
+        finally:receipt.close()
+
+    def test_r179_designation_audit_is_idempotent_and_private_on_postgres(self):
+        # R179: the cycle calls decide again for an inbound message whose acknowledgement was not queued yet (the stored
+        # outcome is returned), and the worker can process a designated job again; the audit event must be written once,
+        # never raise, and carry no slip reference, payer name or typed text.
+        import hashlib
+        from mw_integration_agent.hold_reply import audit_designation,audit_not_learned
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        try:
+            job_id=self.key+'-aud';message='m-'+self.key
+            result={'extraction':{'reference':'SYNSECRETREF','payer_name':'Synthetic Payer'},'designated_borrower_id':'b1','designated_by':'p1','designated_message':message}
+            with receipt.db:
+                receipt.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,attempts,detail,result,created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+                                   (job_id,job_id,'synthetic','','PENDING',0,'REVIEWER_DESIGNATED_BORROWER',json.dumps(result),time.time()))
+                receipt.db.execute('INSERT INTO receipt_reconsiderations(job_id,created_at,previous) VALUES (?,?,?)',
+                                   (job_id,time.time(),json.dumps({'status':'REVIEW','detail':'PAYER_UNRESOLVED','result':'{}'})))
+            event={'message_id':message,'text':'Synthetic Typed Name'};notice={'event_key':'receipt-held:'+job_id+':0123456789abcdef','partner_id':'p1'}
+            config=dict(self.config,receipt_hold_designation_enabled=True)
+            for _ in range(3):audit_designation(config,receipt.db,event,notice)
+            for _ in range(3):audit_not_learned(config,job_id,'b1','PAYER_NAME_KNOWN')
+            digest=hashlib.sha256(message.encode()).hexdigest()
+            with psycopg.connect(**self.admin) as c:
+                rows=c.execute("""SELECT e.event_kind,e.payload::text FROM audit.events e JOIN audit.operations o ON o.operation_id=e.operation_id
+                    WHERE o.service_name='hold_borrower_designation' AND o.idempotency_key IN (%s,%s)""",
+                    ('hold-borrower-designated:'+digest,'payer-name-not-learned:'+job_id+':PAYER_NAME_KNOWN')).fetchall()
+            kinds=sorted(r[0] for r in rows)
+            self.assertEqual(kinds.count('hold_borrower_designated'),1);self.assertEqual(kinds.count('designated_payer_name_not_learned'),1)
+            text=' '.join(r[1] for r in rows)
+            for secret in ('SYNSECRETREF','Synthetic Payer','Synthetic Typed Name',message):self.assertNotIn(secret,text)
+            self.assertIn('PAYER_UNRESOLVED',text)
+        finally:receipt.close()
+
     def test_forwarded_provenance_and_automatic_decision_are_durable(self):
         receipt=ReceiptJournal('receipt-processing.db',self.config)
         review=ReviewStore(receipt.db)

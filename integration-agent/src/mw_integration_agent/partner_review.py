@@ -316,6 +316,17 @@ REJECT_LINE=('Reject (or No) = record nothing for this slip','ปฏิเสธ
 LAST_LINE=('Use Reply on THIS message. Nothing recorded yet.','ใช้ Reply ตอบข้อความนี้ ยังไม่ได้บันทึกรายการ')
 # R151 (Echo UX-R151-3; R175 wording): the line for a slip whose sender is no known borrower (the payer name chose the borrower).
 SENDER_NOTE=('Sender is not a known borrower; matched by the payer name on the slip.','ผู้ส่งไม่ใช่ผู้กู้ที่รู้จัก ระบุผู้กู้จากชื่อผู้โอนในสลิป')
+# R179 (Echo UX-R179-05): the borrower was named by a Reviewer's Reply to the hold; replaces the sender note.
+NAMED_NOTE=('Borrower named by {reviewer}','ผู้กู้ระบุโดย {reviewer}')
+
+
+def named_note(named,thai):
+    return NAMED_NOTE[thai].replace('{reviewer}',named)
+
+
+def sender_lines(unidentified,named,thai):
+    if named:return [named_note(named,thai)]
+    return [SENDER_NOTE[thai]] if unidentified else []
 
 
 def reply_block(action,thai):
@@ -387,7 +398,7 @@ def same_terms_notes(codes_lines,thai):
     return notes
 
 
-def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,short=False):
+def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,short=False,reviewer=None):
     """R175 (Echo A): line 1 the slip and what to decide; the facts; one code per line; the Reject line; notes; the reply
     instruction last. short (only when the full text does not fit) drops 'pay' and 'new interest' (Echo worst case)."""
     from decimal import Decimal
@@ -403,7 +414,7 @@ def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,
     lines.append(transferred(receipt,thai))
     loans=loans_line([labels[loan_identity(l)][0] for l in listed],thai,other=named)
     if loans:lines.append(loans)
-    if unidentified:lines.append(SENDER_NOTE[thai])
+    lines+=sender_lines(unidentified,reviewer,thai)  # R179: reviewer, as `named` is the layout's own
     if Decimal(str(o.get('dueTotal') or 0))>0:
         due=due_parts(o,thai)
         lines.append(f"หักยอดครบกำหนดวันนี้ {baht(o['dueTotal'])}{due} ก่อน" if thai else f"Due today {baht(o['dueTotal'])}{due} is paid first.")
@@ -490,7 +501,26 @@ def unidentified_review(db,job_id):
     return bool(row) and provenance(row).get('unidentified_sender') is True
 
 
-def request_head(proposal,thai,unclear_line,corrected,unidentified,title):
+def designated_by(db,job_id):
+    """R179: the Partner id that named this job's borrower by replying to its hold, or None."""
+    import sqlite3
+    from .receipt_identity import provenance
+    try:row=db.execute('SELECT result FROM receipt_jobs WHERE id=?',(job_id,)).fetchone()
+    except sqlite3.OperationalError as exc:
+        if 'no such table' in str(exc):return None
+        raise
+    evidence=provenance(row) if row else {}
+    return evidence.get('designated_by') if evidence.get('designated_borrower_id') else None
+
+
+def named_by(partner_id,live,thai):
+    """R179: the Reviewer who named the borrower, as the result notices name a Reviewer (review_cycle.reviewer_name)."""
+    if not partner_id:return None
+    from .review_cycle import reviewer_name
+    return reviewer_name(partner_id,live or {},thai)
+
+
+def request_head(proposal,thai,unclear_line,corrected,unidentified,title,named=None):
     """The first lines of a plain or close request: corrected and unclear lines, the title, the transfer and the loans."""
     from .partner_notice import transferred
     lines=[CORRECTED[thai]] if corrected else []
@@ -499,11 +529,10 @@ def request_head(proposal,thai,unclear_line,corrected,unidentified,title):
     listed=proposal_loans(proposal)[1];labels=name_loans(listed,thai)
     loans=loans_line(list(dict.fromkeys(labels[loan_identity(l)][0] for l in listed)),thai)
     if loans:lines.append(loans)
-    if unidentified:lines.append(SENDER_NOTE[thai])
-    return lines
+    return lines+sender_lines(unidentified,named,thai)
 
 
-def close_request_text(proposal,thai,unidentified=False,unclear=False,corrected=False):
+def close_request_text(proposal,thai,unidentified=False,unclear=False,corrected=False,named=None):
     """R128 (Echo AG-13..AG-17), R175 (Echo E-CLS-01): the close approval request; the approval words are the usual ones."""
     from decimal import Decimal
     from .partner_notice import money
@@ -517,7 +546,7 @@ def close_request_text(proposal,thai,unidentified=False,unclear=False,corrected=
     subject='ขออนุมัติปิดสัญญา' if thai else 'Loan close approval requested'
     title=(f"สลิป {money(receipt['amount'])} จาก {name}: รออนุมัติปิดสัญญา" if thai else
            f"Slip {money(receipt['amount'])} from {name}: loan close needs approval")
-    lines=request_head(proposal,thai,UNCLEAR_CLOSE[thai] if unclear else None,corrected,unidentified,title)
+    lines=request_head(proposal,thai,UNCLEAR_CLOSE[thai] if unclear else None,corrected,unidentified,title,named)
     lines+=[close_amount_line(close,thai)]+rebate+['']+reply_block(approval_action(proposal,thai),thai)
     return subject,'\n'.join(lines)
 
@@ -566,14 +595,15 @@ def close_failure_line(state,detail,proposal,thai):
     return ''
 
 
-def request_text(proposal,language,unclear=False,unidentified=False,corrected=False):
+def request_text(proposal,language,unclear=False,unidentified=False,corrected=False,named=None):
     """The request one Reviewer receives, within BODY_LIMIT (R175, Archie E-X-01: the icon dispatch adds is counted, and the
     corrected line is the builder's). Fit ladder: full with the R151 sender note, short with it, full, short; the note
-    never costs the request, and only an options request has a short form. Otherwise REVIEW_REQUEST_TOO_LONG."""
+    never costs the request, and only an options request has a short form. Otherwise REVIEW_REQUEST_TOO_LONG.
+    R179: `named` (the Reviewer who named the borrower) replaces the sender note, in the same ladder."""
     from .partner_notice import over_limit
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
-    for note,short in (((True,False),(True,True)) if unidentified else ())+((False,False),(False,True)):
-        subject,body=compose_request(proposal,language,unclear,note,corrected,short)
+    for note,short in (((True,False),(True,True)) if unidentified or named else ())+((False,False),(False,True)):
+        subject,body=compose_request(proposal,language,unclear,note and unidentified,corrected,short,named=named if note else None)
         if not over_limit(body):return subject,body
     raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
 
@@ -593,20 +623,20 @@ def approval_action(proposal,thai,recorded_only=False):
     return 'คุณบันทึกในแอปเอง' if thai else 'you record it in the app yourself'
 
 
-def compose_request(proposal,language,unclear=False,unidentified=False,corrected=False,short=False):
+def compose_request(proposal,language,unclear=False,unidentified=False,corrected=False,short=False,named=None):
     """One wording of the request, unchecked for length (request_text chooses the one that fits)."""
     from .partner_notice import money
     from .review_proposal import review_posts_close
     thai=language=='ไทย'
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
-    if review_posts_close(proposal):return close_request_text(proposal,thai,unidentified,unclear,corrected)
+    if review_posts_close(proposal):return close_request_text(proposal,thai,unidentified,unclear,corrected,named)
     if proposal.get('action')=='Pay forward options':
         # R112, R127, R175 (Echo A): reply with one code; an unclear reply gets the request again under the unclear line.
-        return ('สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'),options_text(proposal,thai,unclear,unidentified,corrected,short)
+        return ('สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'),options_text(proposal,thai,unclear,unidentified,corrected,short,named)
     receipt=proposal['receipt'];borrower=proposal['borrower']
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
     action=approval_action(proposal,thai)
     subject='ขออนุมัติรายการชำระเงิน' if thai else 'Payment approval requested'
     title=f"สลิป {money(receipt['amount'])} จาก {name}: รออนุมัติ" if thai else f"Slip {money(receipt['amount'])} from {name}: approval needed"
-    lines=request_head(proposal,thai,UNCLEAR_PLAIN[thai] if unclear else None,corrected,unidentified,title)
+    lines=request_head(proposal,thai,UNCLEAR_PLAIN[thai] if unclear else None,corrected,unidentified,title,named)
     return subject,'\n'.join(lines+['']+reply_block(action,thai))

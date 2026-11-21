@@ -13,7 +13,7 @@ from .payment_match import check
 from .partner_notice import ACKNOWLEDGEMENT,NoticeJournal,receipt_notice
 from .statement_delivery import resolve_recipient
 from .partner_review import (OPTIONS_REQUIRED,RECHECKED,ReviewStore,approval_action,chosen_purpose_line,close_failure_line,close_notice,
-                             request_text,review_id,slip_line,unidentified_review)
+                             designated_by,named_by,request_text,review_id,slip_line,unidentified_review)
 from .review_proposal import (LOAN_CLOSE_CHANGED,OPTIONS,arrears_enabled,arrears_left,chosen_plan,close_enabled,facts,options_enabled,plan,
                               review_posts_close,review_posts_overpayment,same_posting_outcome,unlabelled)
 from .review_execution import readback
@@ -56,9 +56,12 @@ def has_attachment(event):
 
 def automatic_payment(config,job,proposal):
     # R151: a slip whose sender is no known borrower (the payer name chose the borrower) always needs a Reviewer.
+    # R179: a borrower a Reviewer named by replying to the hold is an identified sender (the owner: "can be processed will
+    # be processed automatically"); the configured automatic actor posts it, as any automatic payment.
+    evidence=provenance(job)
     return (config.get('receipt_auto_payment_enabled') is True and proposal['action']=='Lump Sum'
             and job['created_at']>=cutoff_ts(config,'receipt_auto_payment_cutoff')
-            and provenance(job).get('unidentified_sender') is not True)
+            and (evidence.get('unidentified_sender') is not True or bool(evidence.get('designated_borrower_id'))))
 
 
 def reviewer_partners(live):
@@ -136,10 +139,13 @@ class Run:
                     texts=[]
                     corrected=job['detail'] in ('OWNER_REQUESTED_RECONSIDERATION','REVIEWER_REQUESTED_RECHECK')
                     unidentified=provenance(job).get('unidentified_sender') is True
+                    # R179 (Echo UX-R179-05): a borrower a Reviewer named by replying to the hold says so in the request.
+                    namer=provenance(job).get('designated_by') if provenance(job).get('designated_borrower_id') else None
                     for p in recipients:
                         try:
-                            subject,body=request_text(proposal,p['language'],unidentified=unidentified,corrected=corrected)
-                            request_text(proposal,p['language'],unclear=True,unidentified=unidentified)
+                            named=named_by(namer,live,p['language']=='ไทย')
+                            subject,body=request_text(proposal,p['language'],unidentified=unidentified,corrected=corrected,named=named)
+                            request_text(proposal,p['language'],unclear=True,unidentified=unidentified,named=named)
                         except ConfigurationError as exc:
                             # The hold names the reason (receipt_hold REASONS) instead of RECEIPT_PROPOSAL_UNAVAILABLE.
                             if str(exc)=='REVIEW_REQUEST_TOO_LONG':raise ReceiptInvalid('REVIEW_REQUEST_TOO_LONG') from None
@@ -196,8 +202,8 @@ class Run:
                     if notices.db.execute('SELECT 1 FROM partner_notices WHERE event_key=?',(result_key(event['message_id']),)).fetchone():continue
                     live=masters(config)
                     identity=identity_reader(config,event['sender_id'])
-                    outcome=decide(db,config,event,dict(notice),live['partners'],identity,live.get('reviewer_ids',[]))
-                    queue_result(notices,event,dict(notice),live['partners'],outcome)
+                    outcome=decide(db,config,event,dict(notice),live['partners'],identity,live.get('reviewer_ids',[]),master=live)
+                    queue_result(notices,event,dict(notice),live['partners'],outcome,db=db,config=config,master=live)
                     continue
                 if db.execute('SELECT 1 FROM partner_review_replies WHERE message_id=?',(event['message_id'],)).fetchone():continue
                 live=masters(config)
@@ -230,7 +236,8 @@ class Run:
                     if row and partner:
                         key='review:'+review_id(notice['event_key'])+':options:'+hashlib.sha256(event['message_id'].encode()).hexdigest()
                         subject,body=request_text(json.loads(row['proposal']),partner['language'],unclear=True,
-                                                  unidentified=unidentified_review(db,row['job_id']))
+                                                  unidentified=unidentified_review(db,row['job_id']),
+                                                  named=named_by(designated_by(db,row['job_id']),live,partner['language']=='ไทย'))
                         notices.reserve(key,partner,subject,body)
 
     def execute_approved(self):
@@ -630,8 +637,10 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                         # R177 (Echo UX-R177-07): with the arrears switch on, a Lump Sum that leaves older charges unpaid says
                         # so, from the proposal's facts; not after a facts change (those facts are no longer the posted ones).
                         unpaid=arrears_left(proposal) if arrears_enabled(config) and not changed_facts else None
+                        # R179 (Echo UX-R179-05): the borrower a Reviewer named stays visible in the recorded notice.
+                        named=named_by(designated_by(db,review['job_id']),live,p['language']=='ไทย')
                         subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],
-                                                    changed_facts,purpose,unpaid=unpaid)
+                                                    changed_facts,purpose,unpaid=unpaid,named=named)
                     else:
                         subject,body=result_text(review,proposal,p,live)
                     notices.reserve(event,p,subject,body)

@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from .receipt_rules import username
 from .partner_notice import over_limit
-from .partner_review import request_text, unidentified_review
+from .partner_review import designated_by, named_by, request_text, unidentified_review
 from .receipt_hold import held_text, resend_key
 
 COMMANDS = {'review', 'reviews', 'resend review'}
@@ -46,10 +46,13 @@ def queue(db, notices, config, event, live, identity, now=None, borrower=None):
                 continue
             if kind == 'review':
                 subject, body = request_text(json.loads(row['proposal']), partner['language'],
-                                             unidentified=unidentified_review(db, row['job_id']))
+                                             unidentified=unidentified_review(db, row['job_id']),
+                                             named=named_by(designated_by(db, row['job_id']), live, thai))
             else:
+                from .hold_reply import designation_open
                 subject, body = held_text(row, borrower(row) if borrower else None, partner['language'],
-                                          live.get('accounts', []), live.get('borrowers', ()), resent_at=now)
+                                          live.get('accounts', []), live.get('borrowers', ()), resent_at=now,
+                                          designation=designation_open(config, row), live=live)
             counted = f'{position}/{len(items)} · ' + body
             # The counter is on the first line only; a body already at the limit (R175: with its icon) goes without it.
             notices.reserve(key, partner, subject, body if over_limit(counted) else counted)

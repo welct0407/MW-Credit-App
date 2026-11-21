@@ -77,6 +77,8 @@ Owner decision, 20 October 2026, replacing the 21 September rule that changed lo
 
 ## Sender fallback holds and review (R151)
 
+R179: a reviewer can name the borrower on these holds; the R151 rule that an unidentified sender never auto-posts is unchanged for undesignated slips (see [Naming the borrower on a hold](#naming-the-borrower-on-a-hold-r179-21-november-2026)).
+
 A receipt job from poll outcome `UNIDENTIFIED` (an image from a sender the poll could not tie to an enabled borrower) always needs Reviewer approval and is never posted automatically, even when the payer name resolves to one borrower; an unresolved or unreadable payer name keeps the `PAYER_UNRESOLVED` or `PAYER_NAME_UNREADABLE` hold and its notice. New hold `PAYER_NAME_OTHER_BORROWER` (context C3, the forwarder in a 3-member group): the slip payer name matches exactly one other enabled borrower and not the group's borrower, so the job is held for review instead of posting; this amends R095's rule that the name never holds in a strong context. The `PAYER_NAME_OTHER_BORROWER` hold lists the group's borrower first, then the borrower the slip names, and carries no nickname tip; `PAYER_UNRESOLVED` and `PAYER_NAME_UNREADABLE` holds for an unknown sender omit the nickname tip. For an `UNIDENTIFIED` job the review request adds the line "Sender is not a known borrower; borrower matched by the payer name on the slip.": after the Borrower line in the standard request, after the options block and before "Transferred" in the options request, and in the loan-close request; the note is omitted when the request would then exceed one message (1000 characters), the Corrected-request prefix being reserved. `UNIDENTIFIED` jobs are created only from `payer_name_cutoff` onward. A job from outcome `SENDER` is an ordinary borrower slip and follows the automatic-payment policy. See [Conversation poll](CONVERSATION_POLL.md#sender-fallback-and-unidentified-senders-r151-no-switch) and the [change note](https://github.com/welct0407/MW-Credit-App/blob/ff4de0d5/integration-agent/Change%20Logs/CHANGE_NOTES_R151_RECEIPT_SENDER_FALLBACK_2026-11-13.md).
 
 ## Review request built before the review row (R152)
@@ -112,7 +114,20 @@ Persist extraction attempts before external work, allow three attempts, reuse su
 Read-only `receipt_health.inspect` exposes queue, review, posting and notification health. See [monitoring handover](MONITORING_IMPLEMENTATION_HANDOVER.md); Grafana implementation is live; the handover links its verified completion.
 
 
+## Naming the borrower on a hold (R179, 21 November 2026)
+
+A reviewer can reply to a borrower-identity hold alert with the borrower's name, and the slip is processed the normal way. Owner request and decisions of 21 November 2026.
+
+- **Switches** (strict booleans, default off, reported by `check`, no catalogue revision): `receipt_hold_designation_enabled` (needs `receipt_hold_reply_cutoff` and `payer_name_cutoff`) and `receipt_hold_designation_learn_enabled` (needs the first).
+- **Eligible holds:** PAYER_UNRESOLVED, PAYER_NAME_UNREADABLE, PAYER_NAME_OTHER_BORROWER and IG_CONVERSATION_IDENTITY_AMBIGUOUS. An archived slip image is required (else HOLD_IMAGE_UNAVAILABLE) and the slip must be dated today or yesterday (else HOLD_TOO_OLD). The reply follows the usual signed-reply rules.
+- **Resolution:** Reject words are read first and approval words are never looked up as names. The name must resolve (`receipt_identity.named_borrower`, preferring the hold's candidates) to exactly one AI-enabled borrower; otherwise nothing is decided and the reviewer gets a re-ask with candidates.
+- **Accepted:** the reviewer sees 🔄 "Rechecking as {name} (named by {reviewer})"; the job is requeued in one guarded transaction. The designated context skips only sender and payer resolution; every other guard (duplicate, account, date, amount, R151 approval rules, arrears) stays. An ordinary payment posts automatically with the configured automatic actor; anything else gets the normal review request. Result notices add "Borrower named by {reviewer}".
+- **Audit:** `hold_borrower_designated`. `receipt_health` counts the new acknowledgements.
+- **Name learning** (`receipt_hold_designation_learn_enabled`, owner: "Yes remember the name"): the payer name is stored through the R095 payer lines, only on posted receipts, never evicting at five lines, and skipped when the name matches another enabled borrower or is unreadable; a skip is audited as `designated_payer_name_not_learned` (reason code only).
+
 ## Rejecting held receipts — revision 22
+
+From R179, with `receipt_hold_designation_enabled`, a reply naming the borrower is also accepted on a borrower-identity hold ([Naming the borrower on a hold](#naming-the-borrower-on-a-hold-r179-21-november-2026)); Reject keeps working.
 
 Owner instruction, 25 September: direct replies are review actions, never general conversation. A new signed reply to an accepted `receipt-held:` notification is bound to that exact message, recipient and unchanged job/reason. Fresh unique Partner identity, enabled integration and AI Reviewer role are mandatory, using the same authorization checks as proposals.
 

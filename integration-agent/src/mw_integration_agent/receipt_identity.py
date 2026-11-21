@@ -14,17 +14,28 @@ R151 (group slips whose sender left the participants list):
   borrowers when that leaves one; never an automatic payment (review_cycle.automatic_payment).
 - C3 hold: a forwarded slip naming exactly one other borrower and not the group's borrower is held
   (PAYER_NAME_OTHER_BORROWER).
+
+R179 (owner, 21 November 2026: name the borrower by replying to the hold): a job whose result carries
+`designated_borrower_id` (hold_reply.decide, a Reviewer's Reply with the borrower's name) has the context kind
+'designated': that borrower, live and AI-enabled, decides; no poll row, forwarder or sender identity is read. It is an
+identified sender for the automatic-payment policy (review_cycle.automatic_payment). With
+`receipt_hold_designation_learn_enabled` (owner, 21 November 2026: "Yes remember the name") the slip's payer name is
+learned as a payer line of that borrower through the R095 path (command payerLines, applied only when the payment posts
+and only while the column still equals `before`), unless it is unreadable, the record already has 5 lines, or the name
+already matches another enabled borrower's line (designated_learning).
 """
 import json
 import sqlite3
 from .config import cutoff_ts
-from .payer_name import best, hint_key, joined, learn, lines, readable
+from .payer_name import MAX_LINES, best, hint_key, joined, learn, lines, readable
 from .receipt_rules import borrower_for, username, ReceiptInvalid, SenderUnbound
 from .instagram import Instagram
 
 # Job result keys kept from capture through every later pass (the job result is rewritten on each pass).
 PROVENANCE = ('forwarded_borrower_id', 'candidate_borrower_ids', 'payer_borrower_id', 'payer_step', 'hint_texts',
-              'sender_borrower_id', 'sender_username', 'unidentified_sender', 'group_borrower_ids')
+              'sender_borrower_id', 'sender_username', 'unidentified_sender', 'group_borrower_ids',
+              # R179: the Reviewer's designation (borrower, the Partner and the inbound message that named it).
+              'designated_borrower_id', 'designated_by', 'designated_message')
 HINT_LIMIT = 3
 HINT_WINDOW = 60  # seconds from the slip to the nickname (owner: one minute)
 
@@ -164,6 +175,9 @@ def receipt_context(config, job, journal, master, identity_reader, api=None):
     """
     active = payer_active(config, job)
     evidence = provenance(job)
+    if evidence.get('designated_borrower_id'):
+        # Learning also needs the job to be after payer_name_cutoff (Chase R179 Low), as every R095 payer-name step.
+        return designated_context(master, evidence['designated_borrower_id'], learn_enabled(config) and active)
     row = poll_row(journal, job['message_id'])
     # Forwarding is allowed only for the message captured by our group poller.
     # Re-read the exact group's membership before validation and before posting.
@@ -212,6 +226,63 @@ def receipt_context(config, job, journal, master, identity_reader, api=None):
         members = [b for b in master['borrowers'] if b['id'] in group]
         return {'kind': 'group_sender', 'borrower': borrower, 'candidates': members, 'active': True, 'fill': True}
     return {'kind': 'sender', 'borrower': borrower, 'candidates': [], 'active': active, 'fill': active}
+
+
+def learn_enabled(config):
+    return (isinstance(config, dict) and config.get('receipt_hold_designation_enabled') is True
+            and config.get('receipt_hold_designation_learn_enabled') is True)
+
+
+def designated_context(master, borrower_id, fill=False):
+    """R179: the borrower a Reviewer named for this job, still in the app and AI-enabled, else BORROWER_CHANGED. fill: the
+    slip's payer name may be learned (receipt_hold_designation_learn_enabled)."""
+    matches = [b for b in master['borrowers'] if b['id'] == borrower_id and b['enabled'] is True]
+    if len(matches) != 1:
+        raise ReceiptInvalid('BORROWER_CHANGED')
+    return {'kind': 'designated', 'borrower': matches[0], 'candidates': [], 'active': True, 'fill': fill is True}
+
+
+def designated_learning(borrower, slip, master):
+    """R179: (payer-lines change or None, reason or None) for a designated slip. Never an unreadable or empty name; never a
+    sixth line (nothing is evicted); never a name that already matches a line of another enabled borrower (future slips
+    would be ambiguous). A name already known (or near a line) changes nothing."""
+    if not readable(slip):
+        return None, 'PAYER_NAME_UNREADABLE'
+    if any(b['enabled'] is True and b['id'] != borrower['id'] and best(lines(b.get('payer')), slip) == 'match'
+           for b in master['borrowers']):
+        return None, 'PAYER_NAME_OTHER_BORROWER'
+    change = learned(borrower, slip)
+    if change:
+        return change, None
+    current = lines(borrower.get('payer'))
+    if best(current, slip) is None and len(current) >= MAX_LINES:
+        return None, 'PAYER_LINES_FULL'
+    return None, 'PAYER_NAME_KNOWN'
+
+
+def named_borrower(text, master, preferred_ids=()):
+    """R179: the AI-enabled borrower a Reviewer's typed name names: (borrower, []) or (None, candidates).
+
+    A borrower matches when the hint key of the text equals that of its Thai name, English name (Description) or
+    Instagram username (hint_key drops one leading พี่ / p' / "pi " and an @), or when the text is an exact 'match' of one
+    of its payer lines (near never counts). Exactly one match among `preferred_ids` (the hold's candidates) wins, else
+    exactly one in the whole pool. Otherwise the candidates are the several matches, else the preferred borrowers."""
+    pool = [b for b in master['borrowers'] if b['enabled'] is True]
+    found = [b for b in pool if names_borrower(b, text)]
+    preferred = [b for b in found if b['id'] in set(preferred_ids or ())]
+    if len(preferred) == 1:
+        return preferred[0], []
+    if len(found) == 1:
+        return found[0], []
+    return None, found or [b for b in pool if b['id'] in set(preferred_ids or ())]
+
+
+def names_borrower(borrower, text):
+    """True when the typed text names this borrower (named_borrower's rule, whatever the borrower's AI switch)."""
+    key = hint_key(text)
+    if key and key in {hint_key(borrower.get('name_th')), hint_key(borrower.get('name_en')), hint_key(borrower.get('username'))} - {''}:
+        return True
+    return readable(text) and best(lines(borrower.get('payer')), text) == 'match'
 
 
 class PayerHeld(ReceiptInvalid):
@@ -292,6 +363,11 @@ def resolve_payer(context, extraction, receipt, master, facts=None, hints=()):
     kind = context['kind']
     if not context['active']:
         return context['borrower'], None, None
+    if kind == 'designated':
+        # R179: the Reviewer's choice stands (no other-borrower hold); the name is learned only with the learning switch.
+        borrower = context['borrower']
+        change = designated_learning(borrower, slip, master)[0] if context.get('fill') is True else None
+        return borrower, change, 'designated'
     if kind in ('sender', 'forwarded', 'group_sender'):
         borrower = context['borrower']
         if kind == 'forwarded':

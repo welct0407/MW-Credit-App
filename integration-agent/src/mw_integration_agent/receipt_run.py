@@ -197,6 +197,11 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
             save(payer_candidates=held.candidates);raise
         if context['borrower'] is None:
             provenance.update(payer_borrower_id=borrower['id'],payer_step=step);save()
+        if context['kind']=='designated' and context.get('fill') is True and payer_lines is None:
+            # R179: a designated slip's name that is not learned says why in the audit (never the name itself).
+            from .hold_reply import audit_not_learned
+            from .receipt_identity import designated_learning
+            audit_not_learned(config,job['id'],borrower['id'],designated_learning(borrower,value.get('payer_name') or '',master)[1])
         # The payer-lines change the posting command carries (guarded by the value read here), or None.
         receipt['payer_lines']=payer_lines
         # The fresh reference check distinguishes posted matches from conflicting/error rows.

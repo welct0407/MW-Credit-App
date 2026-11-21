@@ -21,6 +21,8 @@ ICON_RESERVE=3
 BODY_LIMIT=IG_TEXT_LIMIT-ICON_RESERVE
 # R175 (Echo E-HRR-01): a cleared hold reads ✅; the pre-R175 subjects stay matched for notices queued before the deploy.
 HOLD_CLEARED=('Held slip cleared','นำสลิปที่พักไว้ออกแล้ว','Held receipt rejected','ปฏิเสธสลิปที่พักไว้แล้ว')
+# R179 (Echo UX-R179-04): a hold named by a Reviewer's Reply is being rechecked.
+HOLD_RECHECKING=('Rechecking','กำลังตรวจใหม่')
 # R175 (Archie E-X-02): the acknowledgement of a reply that decided nothing; informational, never emailed.
 ACKNOWLEDGEMENT='review-reply-result:'
 
@@ -37,7 +39,7 @@ def display_notice(item):
     if event.startswith('review:'):icon='❓'
     elif event.startswith('receipt-held:'):icon='⚠️'
     elif event.startswith('receipt-archive-pending:'):icon='⌛'
-    elif event.startswith('hold-reply-result:'):icon='✅' if item['subject'] in HOLD_CLEARED else 'ℹ️'
+    elif event.startswith('hold-reply-result:'):icon='✅' if item['subject'] in HOLD_CLEARED else '🔄' if item['subject'] in HOLD_RECHECKING else 'ℹ️'
     elif event.startswith(ACKNOWLEDGEMENT):icon='ℹ️'
     elif event.startswith('review-result:'):
         icon={'POSTED':'✅','REJECTED':'❌','MANUAL_REQUIRED':'📝',
@@ -197,7 +199,7 @@ def transferred(receipt,thai):
     return f"โอน {when} · บัญชี {receipt['account_label']}" if thai else f"Transferred {when} · {receipt['account_label']}"
 
 
-def receipt_notice(receipt,borrower,language,payment_id=None,facts_changed=False,purpose='',unpaid=None):
+def receipt_notice(receipt,borrower,language,payment_id=None,facts_changed=False,purpose='',unpaid=None,named=None):
     """payment_id may be supplied only by the verified posting/readback workflow. It selects the posted wording; the notice does
     not print it (R164: not meaningful to the reader). R175 (Echo E-RES-01, E-RCV-01): the first line says what happened,
     with `purpose` (the Reviewer's choice) after ' · '; the transfer time and account follow. R177 (Echo UX-R177-07): `unpaid`
@@ -212,12 +214,14 @@ def receipt_notice(receipt,borrower,language,payment_id=None,facts_changed=False
         subject='บันทึกการชำระเงินสำเร็จ' if payment_id else 'ได้รับสลิปการชำระเงิน'
         lines=[f'บันทึก {amount} จาก {name}{chosen}' if payment_id else f'ได้รับสลิป {amount} จาก {name}',transferred(receipt,True)]
         if payment_id and unpaid:lines.append(f"ยังค้าง {money(unpaid['amount'])} ของ {date_range(unpaid['first'],unpaid['last'],True)}")
+        if payment_id and named:lines.append(f'ผู้กู้ระบุโดย {named}')
         if not payment_id:lines.append('ตรวจสลิปเบื้องต้นผ่านแล้ว ยังไม่ได้บันทึกรายการ')
         if payment_id and facts_changed:lines.append('หมายเหตุ: มีการแก้ไขข้อมูลสัญญาหลังอนุมัติ ระบบยังบันทึกยอดเต็มเป็น Lump Sum')
     else:
         subject='Payment recorded' if payment_id else 'Payment slip received'
         lines=[f'Recorded {amount} from {name}{chosen}' if payment_id else f'Slip {amount} from {name} received',transferred(receipt,False)]
         if payment_id and unpaid:lines.append(f"Still unpaid: {money(unpaid['amount'])} from {date_range(unpaid['first'],unpaid['last'],False)}")
+        if payment_id and named:lines.append(f'Borrower named by {named}')
         if not payment_id:lines.append('Basic slip checks passed. Nothing recorded yet.')
         if payment_id and facts_changed:lines.append('Note: loan details changed after approval; the full amount was still recorded as Lump Sum.')
     body='\n'.join(lines)
