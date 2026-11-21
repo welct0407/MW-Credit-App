@@ -56,9 +56,12 @@ def has_attachment(event):
 
 def automatic_payment(config,job,proposal):
     # R151: a slip whose sender is no known borrower (the payer name chose the borrower) always needs a Reviewer.
+    # R179: a borrower a Reviewer named by replying to the hold is an identified sender (the owner: "can be processed will
+    # be processed automatically"); the configured automatic actor posts it, as any automatic payment.
+    evidence=provenance(job)
     return (config.get('receipt_auto_payment_enabled') is True and proposal['action']=='Lump Sum'
             and job['created_at']>=cutoff_ts(config,'receipt_auto_payment_cutoff')
-            and provenance(job).get('unidentified_sender') is not True)
+            and (evidence.get('unidentified_sender') is not True or bool(evidence.get('designated_borrower_id'))))
 
 
 def reviewer_partners(live):
@@ -196,8 +199,8 @@ class Run:
                     if notices.db.execute('SELECT 1 FROM partner_notices WHERE event_key=?',(result_key(event['message_id']),)).fetchone():continue
                     live=masters(config)
                     identity=identity_reader(config,event['sender_id'])
-                    outcome=decide(db,config,event,dict(notice),live['partners'],identity,live.get('reviewer_ids',[]))
-                    queue_result(notices,event,dict(notice),live['partners'],outcome)
+                    outcome=decide(db,config,event,dict(notice),live['partners'],identity,live.get('reviewer_ids',[]),master=live)
+                    queue_result(notices,event,dict(notice),live['partners'],outcome,db=db,config=config,master=live)
                     continue
                 if db.execute('SELECT 1 FROM partner_review_replies WHERE message_id=?',(event['message_id'],)).fetchone():continue
                 live=masters(config)

@@ -60,6 +60,7 @@
   "receipt_arrears_auto_enabled": false,
   "receipt_outgoing_ignore_enabled": false,
   "receipt_outgoing_senders": {},
+  "receipt_hold_designation_enabled": false,
   "receipt_payment_api_origin": null,
   "receipt_payment_api_audience": null,
   "receipt_payment_api_cutoff": null,

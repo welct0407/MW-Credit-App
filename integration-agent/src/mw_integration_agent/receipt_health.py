@@ -122,7 +122,8 @@ def inspect(config,now=None):
         review_open=ingress_review_open(ingress,config)
         jobs=[dict(r) for r in db.execute("SELECT id,status,detail,created_at FROM receipt_jobs WHERE status IN ('PENDING','VALIDATED','REVIEW','REVIEW_REQUESTED','REJECTED')")]
         reviews=[dict(r) for r in db.execute("SELECT id,job_id,state,created_at FROM partner_reviews WHERE state<>'SUPERSEDED'")]
-        replies=[dict(r) for r in db.execute("SELECT message_id,review_id,outcome FROM partner_review_replies WHERE review_id LIKE 'receipt-held:%' AND outcome IN ('HOLD_REJECTED','HOLD_NOT_ACTIVE','HOLD_REJECT_REQUIRED','HOLD_HAS_REVIEW')")]
+        replies=[dict(r) for r in db.execute("SELECT message_id,review_id,outcome FROM partner_review_replies WHERE review_id LIKE 'receipt-held:%' AND outcome IN ('HOLD_REJECTED','HOLD_NOT_ACTIVE','HOLD_REJECT_REQUIRED','HOLD_HAS_REVIEW',"
+                                                  "'HOLD_BORROWER_DESIGNATED','HOLD_BORROWER_UNCLEAR','HOLD_TOO_OLD','HOLD_IMAGE_UNAVAILABLE')")]
         sent=[dict(r) for r in notices.execute("SELECT id,event_key,ig_status,email_status,detail,partner FROM partner_notices WHERE (event_key LIKE 'review:%' OR event_key LIKE 'review-result:%' OR event_key LIKE 'receipt-held:%' OR event_key LIKE 'hold-reply-result:%')")]
         acked=acknowledged(config)
         for n in sent:n['acknowledged']=n['id'] in acked

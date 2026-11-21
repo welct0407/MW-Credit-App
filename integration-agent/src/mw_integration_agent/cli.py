@@ -205,6 +205,7 @@ def execute(args, outcome=None) -> int:
                 "loan_close_execution": config.get('loan_close_execution_enabled',False),
                 "receipt_arrears_auto": config.get('receipt_arrears_auto_enabled',False),
                 "receipt_outgoing_ignore": config.get('receipt_outgoing_ignore_enabled',False),
+                "receipt_hold_designation": config.get('receipt_hold_designation_enabled',False),
                 "generic_sending": config["sending_enabled"],
                 "processing": config["processing_enabled"], "writes": config["writes_enabled"]}}))
             return 0

@@ -21,6 +21,8 @@ ICON_RESERVE=3
 BODY_LIMIT=IG_TEXT_LIMIT-ICON_RESERVE
 # R175 (Echo E-HRR-01): a cleared hold reads ✅; the pre-R175 subjects stay matched for notices queued before the deploy.
 HOLD_CLEARED=('Held slip cleared','นำสลิปที่พักไว้ออกแล้ว','Held receipt rejected','ปฏิเสธสลิปที่พักไว้แล้ว')
+# R179 (Echo UX-R179-04): a hold named by a Reviewer's Reply is being rechecked.
+HOLD_RECHECKING=('Rechecking','กำลังตรวจใหม่')
 # R175 (Archie E-X-02): the acknowledgement of a reply that decided nothing; informational, never emailed.
 ACKNOWLEDGEMENT='review-reply-result:'
 
@@ -37,7 +39,7 @@ def display_notice(item):
     if event.startswith('review:'):icon='❓'
     elif event.startswith('receipt-held:'):icon='⚠️'
     elif event.startswith('receipt-archive-pending:'):icon='⌛'
-    elif event.startswith('hold-reply-result:'):icon='✅' if item['subject'] in HOLD_CLEARED else 'ℹ️'
+    elif event.startswith('hold-reply-result:'):icon='✅' if item['subject'] in HOLD_CLEARED else '🔄' if item['subject'] in HOLD_RECHECKING else 'ℹ️'
     elif event.startswith(ACKNOWLEDGEMENT):icon='ℹ️'
     elif event.startswith('review-result:'):
         icon={'POSTED':'✅','REJECTED':'❌','MANUAL_REQUIRED':'📝',
