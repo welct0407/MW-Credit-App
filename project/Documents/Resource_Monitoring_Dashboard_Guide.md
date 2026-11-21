@@ -99,7 +99,7 @@ R177 adds two panels to the Receipt pipeline row of Agent & Receipts, reading `m
 | # | Panel | Shows |
 | --- | --- | --- |
 | 34 | Receipts · daily first-time right | Stacked bars per Bangkok day (auto-posted, after review, manual in the PWA, rejected or held) and the first-time-right % line, from the last 30 days by default (a 30-day time-range override on the panel, since R178; before, 180 days); the history from 21 September 2026 stays in `monitoring.receipt_ftr_daily_v1()`. Non-receipts, duplicates and known outgoing slips are excluded; outgoing slips from 20 November until the agent's outgoing switch is live count as rejected or held. |
-| 35 | Receipts · last 30 days | The same counts and the percentage for the last 30 days. |
+| 35 | Receipts · yesterday | (R180; before, the last 30 days) Horizontal LCD bars for the previous Bangkok day, from the same function: First-time right, After review, By hand in the app and Rejected or held, each as a % of genuine slips with its count in the label and in panel 34's order and colours, plus a neutral 100 % bar "Genuine slips, <date>" with the total and the date. An empty day shows "No genuine slips yesterday". |
 
 Rows by component: Receipt pipeline (20: panels 1, 2, 14, 34, 35), Receipt recognizer (21: 6, 12, 7, 8), Agent workers and timers (23: 9), Connectivity and providers (24: 10, 11, 13).
 

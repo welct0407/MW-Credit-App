@@ -961,7 +961,7 @@
           "type": "grafana-postgresql-datasource",
           "uid": "mw-agent-receipts"
         },
-        "description": "The last 30 Bangkok days, today included, pooled: slips recorded automatically on the first pass ÷ genuine incoming slips (not a mean of the daily %), and how many genuine slips that is. First-time right = slips recorded automatically on the first pass with no human action ÷ genuine incoming slips. Not counted: non-receipts, repeats of a slip already handled, our own outgoing transfers (also before R177). No owner target, so no colour. Read live from monitoring.receipt_ftr_daily_v1().",
+        "description": "The previous Bangkok day (the date is in the last bar's name): each category's count (in the name) and share of genuine slips (the bar). First-time right = slips recorded automatically on the first pass with no human action ÷ genuine incoming slips. Not counted: non-receipts, repeats of a slip already handled, our own outgoing transfers (also before R177). Shares are rounded and may add to 99–101 %. Read live from monitoring.receipt_ftr_daily_v1().",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -969,21 +969,9 @@
               "mode": "fixed"
             },
             "decimals": 0,
-            "displayName": "${__field.name}",
-            "mappings": [
-              {
-                "options": {
-                  "match": "null",
-                  "result": {
-                    "color": "#6E7079",
-                    "index": 0,
-                    "text": "No slips"
-                  }
-                },
-                "type": "special"
-              }
-            ],
-            "noValue": "No report",
+            "max": 100,
+            "min": 0,
+            "noValue": "No genuine slips yesterday",
             "thresholds": {
               "mode": "absolute",
               "steps": [
@@ -993,34 +981,93 @@
                 }
               ]
             },
-            "unit": "none"
+            "unit": "percent"
           },
           "overrides": [
             {
               "matcher": {
-                "id": "byName",
-                "options": "First-time right"
+                "id": "byFrameRefID",
+                "options": "A"
               },
               "properties": [
                 {
-                  "id": "unit",
-                  "value": "percent"
-                },
-                {
-                  "id": "decimals",
-                  "value": 1
+                  "id": "max",
+                  "value": 100
                 }
               ]
             },
             {
               "matcher": {
-                "id": "byName",
-                "options": "Genuine slips"
+                "id": "byRegexp",
+                "options": "^First-time right · "
               },
               "properties": [
                 {
-                  "id": "decimals",
-                  "value": 0
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#2E7D32",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "^After review · "
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#7FB77E",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "^By hand in the app · "
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#A65200",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "^Rejected or held · "
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#6E7079",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "^Genuine slips, "
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "transparent",
+                    "mode": "fixed"
+                  }
                 }
               ]
             }
@@ -1034,11 +1081,15 @@
         },
         "id": 35,
         "options": {
-          "colorMode": "background",
-          "graphMode": "none",
-          "justifyMode": "auto",
+          "displayMode": "lcd",
+          "legend": {
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "top",
           "orientation": "horizontal",
-          "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
               "lastNotNull"
@@ -1046,13 +1097,13 @@
             "fields": "",
             "values": false
           },
-          "showPercentChange": false,
+          "showUnfilled": true,
+          "sizing": "auto",
           "text": {
             "titleSize": 16,
-            "valueSize": 32
+            "valueSize": 22
           },
-          "textMode": "value_and_name",
-          "wideLayout": true
+          "valueMode": "text"
         },
         "targets": [
           {
@@ -1063,25 +1114,29 @@
             "editorMode": "code",
             "format": "table",
             "rawQuery": true,
-            "rawSql": "SELECT round(100.0 * sum(auto_first_pass) / nullif(sum(genuine), 0), 1) AS \"First-time right\",\n  sum(genuine) AS \"Genuine slips\"\nFROM monitoring.receipt_ftr_daily_v1()\nWHERE day > (now() AT TIME ZONE 'Asia/Bangkok')::date - 30",
+            "rawSql": "WITH y AS (SELECT f.* FROM monitoring.receipt_ftr_daily_v1() f\n  WHERE f.day = (now() AT TIME ZONE 'Asia/Bangkok')::date - 1 AND f.genuine > 0)\nSELECT v.name AS \"Category\", v.share AS \"Share\"\nFROM y CROSS JOIN LATERAL (VALUES\n  (1, 'First-time right · ' || y.auto_first_pass, 100.0 * y.auto_first_pass / y.genuine),\n  (2, 'After review · ' || y.after_review, 100.0 * y.after_review / y.genuine),\n  (3, 'By hand in the app · ' || y.manual_in_app, 100.0 * y.manual_in_app / y.genuine),\n  (4, 'Rejected or held · ' || y.rejected_or_held, 100.0 * y.rejected_or_held / y.genuine),\n  (5, 'Genuine slips, ' || to_char(y.day, 'FMDD Mon') || ' · ' || y.genuine, 100.0)\n) AS v(ord, name, share)\nORDER BY v.ord",
             "refId": "A"
           }
         ],
-        "title": "Receipts · last 30 days",
+        "title": "Receipts · yesterday",
         "transformations": [
           {
-            "id": "filterFieldsByName",
+            "id": "rowsToFields",
             "options": {
-              "include": {
-                "names": [
-                  "First-time right",
-                  "Genuine slips"
-                ]
-              }
+              "mappings": [
+                {
+                  "fieldName": "Category",
+                  "handlerKey": "field.name"
+                },
+                {
+                  "fieldName": "Share",
+                  "handlerKey": "field.value"
+                }
+              ]
             }
           }
         ],
-        "type": "stat"
+        "type": "bargauge"
       },
       {
         "collapsed": false,
@@ -4724,7 +4779,7 @@
     "schemaVersion": 42,
     "tags": [
       "mw-credit",
-      "release:R178"
+      "release:R180"
     ],
     "templating": {
       "list": [

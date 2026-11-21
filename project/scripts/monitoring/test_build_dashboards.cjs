@@ -481,9 +481,9 @@ for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Recei
   assert.deepEqual([20, 21].map(id => agent.find(p => p.id === id).gridPos), [{x: 0, y: 0, w: 24, h: 1}, {x: 0, y: 25, w: 24, h: 1}]);
   const chart = agent.find(p => p.id === 34), tile = agent.find(p => p.id === 35);
   assert.deepEqual([chart.gridPos, tile.gridPos], [{x: 0, y: 16, w: 16, h: 9}, {x: 16, y: 16, w: 8, h: 9}]);
-  assert.deepEqual([chart.type, chart.title, tile.type, tile.title], ['timeseries', 'Receipts · daily first-time right', 'stat', 'Receipts · last 30 days']);
+  assert.deepEqual([chart.type, chart.title, tile.type, tile.title], ['timeseries', 'Receipts · daily first-time right', 'bargauge', 'Receipts · yesterday']);
   assert.deepEqual([chart.timeFrom, chart.hideTimeOverride], ['30d', false]);
-  assert.ok(!(built['mw-agent'].spec.templating.list || []).some(v => /ftr/.test(v.name)), 'R178: a plain 30-day override, no dashboard variable');
+  assert.ok(!(built['mw-agent'].spec.templating.list || []).some(v => /ftr/.test(v.name)), 'R178/R180: no dashboard variable (R180: the date is in the total bar\'s name)');
   const receipts = [];
   for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
     if (JSON.stringify(p.datasource || {}).includes('mw-agent-receipts') || (p.targets || []).some(t => (t.datasource || {}).uid === 'mw-agent-receipts')) receipts.push(uid + ':' + p.id);
@@ -512,7 +512,36 @@ for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Recei
   assert.equal(chart.options.tooltip.mode, 'multi');
   assert.ok(!chart.fieldConfig.defaults.thresholds.steps.some(s => s.value !== null), 'UX-R177-10: no threshold line without an owner target');
   assert.ok(chart.description.includes('ignores the dashboard time range') && chart.description.includes('÷ genuine incoming slips'));
-  assert.ok(tile.targets[0].rawSql.includes('sum(auto_first_pass) / nullif(sum(genuine), 0)'), 'the 30-day % is pooled, not a mean of daily %');
+}
+// R180 (Echo UX-R180-01..09): tile 35 is the previous Bangkok day as a horizontal bar gauge: one bar per category in panel 34's
+// order and colours, the count in the name and the share of genuine slips as the bar (0-100 %), the genuine total last at 100 %
+// with the date; no row on a day without genuine slips (noValue), never four 0 % bars.
+{
+  const tile = agent.find(p => p.id === 35), chart = agent.find(p => p.id === 34);
+  const sql = tile.targets[0].rawSql;
+  assert.ok(sql.includes("f.day = (now() AT TIME ZONE 'Asia/Bangkok')::date - 1 AND f.genuine > 0"), 'yesterday (Bangkok), genuine slips only');
+  const names = ['First-time right', 'After review', 'By hand in the app', 'Rejected or held', 'Genuine slips'];
+  const at = names.map(n => sql.indexOf("'" + n));
+  assert.ok(at.every((v, i) => v > 0 && (i === 0 || v > at[i - 1])), 'rows in panel 34 order, total last');
+  assert.ok(/ORDER BY v\.ord$/.test(sql) && /^SELECT v\.name AS "Category", v\.share AS "Share"$/m.test(sql), 'a fixed order the reader does not see');
+  assert.deepEqual(tile.transformations, [{id: 'rowsToFields', options: {mappings: [{fieldName: 'Category', handlerKey: 'field.name'}, {fieldName: 'Share', handlerKey: 'field.value'}]}}]);
+  const colorOf = prefix => tile.fieldConfig.overrides.find(o => o.matcher.id === 'byRegexp' && o.matcher.options.startsWith('^' + prefix)).properties[0].value.fixedColor;
+  const chartColor = name => chart.fieldConfig.overrides.find(o => o.matcher.options === name).properties.find(x => x.id === 'color').value.fixedColor;
+  assert.deepEqual(names.slice(0, 4).map(colorOf), ['Recorded automatically', 'Recorded after review', 'Recorded by hand in the app', 'Rejected or still held'].map(chartColor), 'panel 34 colours');
+  assert.equal(colorOf('Genuine slips'), L.COLOR.info, 'the total is neutral');
+  const d = tile.fieldConfig.defaults;
+  assert.deepEqual([d.unit, d.decimals, d.min, d.max, d.noValue], ['percent', 0, 0, 100, 'No genuine slips yesterday']);
+  const o = tile.options;
+  assert.deepEqual([o.displayMode, o.orientation, o.namePlacement, o.valueMode, o.showUnfilled, o.reduceOptions.calcs, o.text],
+    ['lcd', 'horizontal', 'top', 'text', true, ['lastNotNull'], {titleSize: 16, valueSize: 22}]);
+  // UX-R180-09: five rows with the name above the bar fit the tile at 1440 px and on a 390 px phone; the longest name fits one line.
+  const longest = 'Genuine slips, 30 Sep · 999';
+  for (const screen of ['desktop', 'phone']) {
+    const box = M.contentBox(tile.gridPos, screen);
+    assert.ok(M.textWidth(longest, 16, 'title') + M.textWidth('100%', 22, 'value') <= box.width, '35 names fit at ' + screen);
+    assert.ok(5 * (16 * 1.2 + o.minVizHeight) + 4 * 8 <= box.height, '35 rows fit at ' + screen + ' (' + box.height + ' px)');
+  }
+  assert.ok(tile.description.includes('may add to 99–101 %') && tile.description.includes('÷ genuine incoming slips'));
 }
 // FINAL2-1: the PWA scheduler lanes carry short names that fit the label axis.
 assert.deepEqual(panelOf('mw-pwa', 20).targets.map(t => t.columns[1].text), ['Notify · 1 min', 'Charges · 00:05', 'Analytics · hourly']);
