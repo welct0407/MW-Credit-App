@@ -398,7 +398,7 @@ def same_terms_notes(codes_lines,thai):
     return notes
 
 
-def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,short=False,named=None):
+def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,short=False,reviewer=None):
     """R175 (Echo A): line 1 the slip and what to decide; the facts; one code per line; the Reject line; notes; the reply
     instruction last. short (only when the full text does not fit) drops 'pay' and 'new interest' (Echo worst case)."""
     from decimal import Decimal
@@ -414,7 +414,7 @@ def options_text(proposal,thai,unclear=False,unidentified=False,corrected=False,
     lines.append(transferred(receipt,thai))
     loans=loans_line([labels[loan_identity(l)][0] for l in listed],thai,other=named)
     if loans:lines.append(loans)
-    lines+=sender_lines(unidentified,named,thai)
+    lines+=sender_lines(unidentified,reviewer,thai)  # R179: reviewer, as `named` is the layout's own
     if Decimal(str(o.get('dueTotal') or 0))>0:
         due=due_parts(o,thai)
         lines.append(f"หักยอดครบกำหนดวันนี้ {baht(o['dueTotal'])}{due} ก่อน" if thai else f"Due today {baht(o['dueTotal'])}{due} is paid first.")

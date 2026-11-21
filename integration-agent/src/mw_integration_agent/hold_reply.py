@@ -317,3 +317,17 @@ def queue_result(notices,event,notice,partners,outcome,db=None,config=None,maste
       'HOLD_HAS_REVIEW':('This slip has its own payment request or result; use that message. This reply changed nothing.','สลิปนี้มีคำขออนุมัติหรือผลแยกต่างหาก กรุณาใช้ข้อความนั้น คำตอบนี้ไม่ได้เปลี่ยนแปลงข้อมูล'),
     }
     notices.reserve(result_key(event['message_id']),partner,subject,subject+'\n'+words[outcome][int(thai)])
+
+
+def audit_not_learned(config,job_id,borrower_id,reason):
+    """R179 learning (receipt_hold_designation_learn_enabled): a designated slip whose payer name was not learned is
+    recorded with the reason code (PAYER_NAME_UNREADABLE, PAYER_NAME_OTHER_BORROWER, PAYER_LINES_FULL, PAYER_NAME_KNOWN),
+    never the name. A learned change travels in the posting command (payerLines) instead. Idempotent per job and reason."""
+    from .audit import activity,event
+    from .state import enabled,transaction
+    if not reason or not enabled(config):return
+    payload={'job_id':job_id,'borrower_id':borrower_id,'reason':reason}
+    with activity(config,'hold_borrower_designation','PROCESS','internal',payload,key='payer-name-not-learned:'+job_id+':'+reason) as op:
+        if op:
+            with transaction(config) as conn:
+                event(conn,op,'designated_payer_name_not_learned',payload,'internal',key='designated_payer_name_not_learned')

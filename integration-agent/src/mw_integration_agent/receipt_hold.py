@@ -100,18 +100,21 @@ REASONS={
 FALLBACK=('The slip could not be checked.','ตรวจสอบสลิปไม่สำเร็จ กรุณาตรวจสอบสลิปกับรายการในแอป')
 
 
-def held_text(job,borrower,language,accounts,borrowers=(),resent_at=None):
+def held_text(job,borrower,language,accounts,borrowers=(),resent_at=None,designation=False,live=None):
     """The hold alert. resent_at (R135, the `review` command): line 2 says how long the receipt has been held.
     R175 (Echo E-HOLD-01/02): line 1 the reason, line 2 the borrower and amount, the facts, one closing instruction. Over
-    BODY_LIMIT (the icon counted) it drops the payer candidates and nickname tip, then shortens the names to 40 characters."""
+    BODY_LIMIT (the icon counted) it drops the payer candidates and nickname tip, then shortens the names to 40 characters.
+    R179: designation (hold_reply.designation_open) invites a Reply with the borrower's name (Echo UX-R179-01/02: the
+    candidates sit right above that closing line; the tip goes first, then the names shorten, the candidates go last);
+    live (the masters) names the Reviewer of a designated job (UX-R179-05/06)."""
     from .partner_notice import over_limit
-    for trim in (0,1,2):
-        subject,body=held_layout(job,borrower,language,accounts,borrowers,resent_at,trim)
+    for trim in (0,1,2,3) if designation else (0,1,2):
+        subject,body=held_layout(job,borrower,language,accounts,borrowers,resent_at,trim,designation,live)
         if not over_limit(body):break
     return subject,body
 
 
-def held_layout(job,borrower,language,accounts,borrowers,resent_at,trim):
+def held_layout(job,borrower,language,accounts,borrowers,resent_at,trim,designation=False,live=None):
     from decimal import Decimal,InvalidOperation
     from .partner_notice import money
     from .partner_review import short_date
@@ -137,31 +140,62 @@ def held_layout(job,borrower,language,accounts,borrowers,resent_at,trim):
     try:day=short_date(date.fromisoformat(day).isoformat(),thai)
     except ValueError:pass
     when=' '.join(part for part in (day,' '.join(str(receipt.get('time') or '').split())[:5]) if part) or clean('',thai)
-    choice='' if trim else payer_choice(job['detail'],result,borrowers,thai)
+    if designation:choice=payer_choice(job['detail'],result,borrowers,thai,tip=trim<1,candidates=trim<3,first=True)
+    else:choice='' if trim else payer_choice(job['detail'],result,borrowers,thai)
+    choice+=named_line(result,live,thai)
     if thai:
         subject='สลิปถูกพักไว้'
         lines=[f'สลิปถูกพัก: {reason}',f'{name} · {amount or "ไม่ทราบยอด"} (อ่านจากสลิป ยังไม่ยืนยัน)',f'โอน {when} · บัญชี {clean(account,thai,limit)}',
                f'ผู้โอนในสลิป: {payer}',f'รับสลิป {captured}']
         close='อนุมัติผ่านข้อความนี้ไม่ได้ หากเป็นการชำระจริง ให้บันทึกในแอป แล้วใช้ Reply ตอบข้อความนี้ว่า ปฏิเสธ เพื่อนำออกจากรายการ'
+        if designation:close=NAME_CLOSE[1]
     else:
         subject='Slip held'
         lines=[f'Slip held: {reason[:1].lower()+reason[1:]}',f'{name} · {amount or "amount unreadable"} (read from the slip, not verified)',
                f'Transferred {when} · {clean(account,thai,limit)}',f'Payer on slip: {payer}',f'Slip arrived {captured}']
         close="Can't approve here. If genuine, record it in the app, then Reply Reject to clear it."
+        if designation:close=NAME_CLOSE[0]
     if resent_at is not None:lines.insert(1,still_held(job,thai,resent_at))
     # R135 (owner): a hold is Reject-only; the one closing line says so and how to record a genuine payment.
     return subject,'\n'.join(lines)+choice+'\n'+close
 
 
 CHOICE_REASONS=('PAYER_UNRESOLVED','PAYER_NAME_UNREADABLE','PAYER_NAME_OTHER_BORROWER')
+# R179 (Echo UX-R179-01): the closing line of a hold a Reply with the borrower's name can decide.
+NAME_CLOSE=("Reply with the borrower's name to check it again for them, or Reply Reject to clear it (for example if you already recorded it in the app).",
+            'ใช้ Reply ตอบชื่อผู้กู้เพื่อตรวจสลิปใหม่สำหรับผู้กู้รายนั้น หรือตอบ ปฏิเสธ เพื่อนำออกจากรายการ (เช่น เมื่อบันทึกในแอปแล้ว)')
+
+
+def named_line(result,live,thai):
+    """R179 (Echo UX-R179-05/06): a hold after a Reviewer named the borrower says who did; '' otherwise."""
+    if not live or not result.get('designated_borrower_id') or not result.get('designated_by'):return ''
+    from .partner_review import named_by,named_note
+    return '\n'+named_note(named_by(result['designated_by'],live,thai),thai)
+
+
+def candidate_names(ids,borrowers,thai,limit=40):
+    """The candidates as the name resolver accepts them; twin display names are shown as @username (UX-R179-02)."""
+    known={b['id']:b for b in borrowers}
+    rows=[known[i] for i in ids if i in known][:5]
+    shown=[clean(b.get('name_th' if thai else 'name_en') or b['id'],thai)[:limit] for b in rows]
+    return [('@'+str(b['username']).strip().lstrip('@') if shown.count(name)>1 and b.get('username') else name) for b,name in zip(rows,shown)]
 STEPS={'name':('payer name','ชื่อผู้โอน'),'participants':('payer name among the group members','ชื่อผู้โอนในสมาชิกกลุ่ม'),
        'hint':("forwarder's nickname message",'ชื่อเล่นที่ผู้ส่งต่อแจ้ง'),'due':('the only candidate with a payment due','ผู้กู้รายเดียวที่มียอดครบกำหนด'),
        'amount':('the amount fits only this borrower','ยอดเงินตรงกับผู้กู้รายนี้เท่านั้น')}
 
 
-def payer_choice(detail,result,borrowers,thai):
+def payer_choice(detail,result,borrowers,thai,tip=True,candidates=True,first=False):
     """Payer holds: candidates (PAYER_UNRESOLVED; R151 PAYER_NAME_OTHER_BORROWER, the group's borrower first) and the
-    nickname tip. A hold on a receipt whose borrower the payer name chose names that step. '' for every other hold."""
+    nickname tip. A hold on a receipt whose borrower the payer name chose names that step. '' for every other hold.
+    R179 (first): the tip comes first and the candidates last, right above the closing line; tip and candidates can be
+    left out (held_text's trim), and twin names show as @username."""
+    if first and detail in CHOICE_REASONS:
+        action=('\nครั้งหน้าให้ส่งชื่อเล่นผู้กู้ต่อจากสลิปทันที' if thai else "\nNext time, send the borrower's nickname right after the slip.")
+        if result.get('unidentified_sender') is True or detail=='PAYER_NAME_OTHER_BORROWER' or not tip:action=''
+        ids=result.get('payer_candidates') if isinstance(result.get('payer_candidates'),list) else []
+        names=candidate_names(ids,borrowers,thai,40) if candidates and detail!='PAYER_NAME_UNREADABLE' else []
+        listed=(f'\nผู้กู้ที่เป็นไปได้: {", ".join(names)}' if thai else f'\nPossible borrowers: {", ".join(names)}') if names else ''
+        return action+listed
     if detail not in CHOICE_REASONS:
         step=STEPS.get(result.get('payer_step'))
         if not step:return ''
@@ -196,7 +230,9 @@ def queue_holds(config,journal,notices,live,identity_reader,failures=None):
             except Exception:borrower=None
             for partner in pending:
                 with isolated(failures,'hold-recipient'):
-                    subject,body=held_text(job,borrower,partner['language'],live['accounts'],live.get('borrowers',()))
+                    from .hold_reply import designation_open
+                    subject,body=held_text(job,borrower,partner['language'],live['accounts'],live.get('borrowers',()),
+                                           designation=designation_open(config,job),live=live)
                     notices.reserve(event,partner,subject,body)
     threshold=config.get('receipt_archive_alert_seconds',3600)
     for job in journal.db.execute("SELECT * FROM receipt_jobs WHERE status='PENDING' AND detail='RECEIPT_ARCHIVE_PENDING' AND created_at<?",

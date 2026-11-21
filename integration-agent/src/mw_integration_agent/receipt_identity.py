@@ -18,12 +18,16 @@ R151 (group slips whose sender left the participants list):
 R179 (owner, 21 November 2026: name the borrower by replying to the hold): a job whose result carries
 `designated_borrower_id` (hold_reply.decide, a Reviewer's Reply with the borrower's name) has the context kind
 'designated': that borrower, live and AI-enabled, decides; no poll row, forwarder or sender identity is read. It is an
-identified sender for the automatic-payment policy (review_cycle.automatic_payment).
+identified sender for the automatic-payment policy (review_cycle.automatic_payment). With
+`receipt_hold_designation_learn_enabled` (owner, 21 November 2026: "Yes remember the name") the slip's payer name is
+learned as a payer line of that borrower through the R095 path (command payerLines, applied only when the payment posts
+and only while the column still equals `before`), unless it is unreadable, the record already has 5 lines, or the name
+already matches another enabled borrower's line (designated_learning).
 """
 import json
 import sqlite3
 from .config import cutoff_ts
-from .payer_name import best, hint_key, joined, learn, lines, readable
+from .payer_name import MAX_LINES, best, hint_key, joined, learn, lines, readable
 from .receipt_rules import borrower_for, username, ReceiptInvalid, SenderUnbound
 from .instagram import Instagram
 
@@ -172,7 +176,7 @@ def receipt_context(config, job, journal, master, identity_reader, api=None):
     active = payer_active(config, job)
     evidence = provenance(job)
     if evidence.get('designated_borrower_id'):
-        return designated_context(master, evidence['designated_borrower_id'])
+        return designated_context(master, evidence['designated_borrower_id'], learn_enabled(config))
     row = poll_row(journal, job['message_id'])
     # Forwarding is allowed only for the message captured by our group poller.
     # Re-read the exact group's membership before validation and before posting.
@@ -223,14 +227,36 @@ def receipt_context(config, job, journal, master, identity_reader, api=None):
     return {'kind': 'sender', 'borrower': borrower, 'candidates': [], 'active': active, 'fill': active}
 
 
-def designated_context(master, borrower_id):
-    """R179: the borrower a Reviewer named for this job, still in the app and AI-enabled, else BORROWER_CHANGED."""
+def learn_enabled(config):
+    return (isinstance(config, dict) and config.get('receipt_hold_designation_enabled') is True
+            and config.get('receipt_hold_designation_learn_enabled') is True)
+
+
+def designated_context(master, borrower_id, fill=False):
+    """R179: the borrower a Reviewer named for this job, still in the app and AI-enabled, else BORROWER_CHANGED. fill: the
+    slip's payer name may be learned (receipt_hold_designation_learn_enabled)."""
     matches = [b for b in master['borrowers'] if b['id'] == borrower_id and b['enabled'] is True]
     if len(matches) != 1:
         raise ReceiptInvalid('BORROWER_CHANGED')
-    # fill False: a designated slip's payer name is not learned (receipt_hold_designation_learn_enabled is not built;
-    # owner decision open, R179 design section 5). The seam is resolve_payer's 'designated' branch.
-    return {'kind': 'designated', 'borrower': matches[0], 'candidates': [], 'active': True, 'fill': False}
+    return {'kind': 'designated', 'borrower': matches[0], 'candidates': [], 'active': True, 'fill': fill is True}
+
+
+def designated_learning(borrower, slip, master):
+    """R179: (payer-lines change or None, reason or None) for a designated slip. Never an unreadable or empty name; never a
+    sixth line (nothing is evicted); never a name that already matches a line of another enabled borrower (future slips
+    would be ambiguous). A name already known (or near a line) changes nothing."""
+    if not readable(slip):
+        return None, 'PAYER_NAME_UNREADABLE'
+    if any(b['enabled'] is True and b['id'] != borrower['id'] and best(lines(b.get('payer')), slip) == 'match'
+           for b in master['borrowers']):
+        return None, 'PAYER_NAME_OTHER_BORROWER'
+    change = learned(borrower, slip)
+    if change:
+        return change, None
+    current = lines(borrower.get('payer'))
+    if best(current, slip) is None and len(current) >= MAX_LINES:
+        return None, 'PAYER_LINES_FULL'
+    return None, 'PAYER_NAME_KNOWN'
 
 
 def named_borrower(text, master, preferred_ids=()):
@@ -337,9 +363,10 @@ def resolve_payer(context, extraction, receipt, master, facts=None, hints=()):
     if not context['active']:
         return context['borrower'], None, None
     if kind == 'designated':
-        # R179: the Reviewer's choice stands (no other-borrower hold). Learning the slip name would return
-        # learned(borrower, slip) here behind its own switch; not built (owner decision open).
-        return context['borrower'], None, 'designated'
+        # R179: the Reviewer's choice stands (no other-borrower hold); the name is learned only with the learning switch.
+        borrower = context['borrower']
+        change = designated_learning(borrower, slip, master)[0] if context.get('fill') is True else None
+        return borrower, change, 'designated'
     if kind in ('sender', 'forwarded', 'group_sender'):
         borrower = context['borrower']
         if kind == 'forwarded':

@@ -236,6 +236,11 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigurationError('receipt_hold_designation_enabled must be boolean')
     if config.get('receipt_hold_designation_enabled') and not (config.get('receipt_hold_reply_cutoff') and config.get('payer_name_cutoff')):
         raise ConfigurationError('receipt_hold_designation_enabled requires receipt_hold_reply_cutoff and payer_name_cutoff')
+    # R179 (owner, 21 November 2026: "Yes remember the name"): learn a designated slip's payer name (default off).
+    if type(config.get('receipt_hold_designation_learn_enabled',False)) is not bool:
+        raise ConfigurationError('receipt_hold_designation_learn_enabled must be boolean')
+    if config.get('receipt_hold_designation_learn_enabled') and config.get('receipt_hold_designation_enabled') is not True:
+        raise ConfigurationError('receipt_hold_designation_learn_enabled requires receipt_hold_designation_enabled')
     # R128: the Instagram-approved Loan Close (default off). On, it needs the review execution and the shared receipt
     # payment API, whose agent route serves the close quote and the close command; anything but true or false is refused.
     if type(config.get('loan_close_execution_enabled',False)) is not bool:
