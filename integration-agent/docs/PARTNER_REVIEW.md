@@ -91,6 +91,14 @@ With `conversation_poll_recheck_enabled` on, the conversation poll requeues a `R
 
 `receipt-reconsider` also accepts a `PREPARED` job created by `receipt-prepare` (source kind `operator-selected`), the supported route for posting a slip the owner selected by hand instead of editing the database. A decided review is still refused. The refusal is `DECIDED_REVIEW_CANNOT_BE_REOPENED`, raised inside the transaction since R174.
 
+## Closing loans from the options request (R181, 21 November 2026)
+
+Owner request of 21 November 2026, after a slip equal to the combined payoff of two loans was offered only pay forward and recheck. Everything here needs the Reviewer's approval; nothing closes automatically.
+
+- **Switch.** `loan_settle_options_enabled` (strict boolean, default off; needs `pay_forward_options_enabled` and `receipt_payment_api_enabled`; no catalogue revision). With it off, or switched off after an approval, the slip is left for manual handling and nothing closes.
+- **Request.** Under code 4 of the options request, up to three close choices: one loan closed with the rest paid forward, or several loans closed together. Each choice is confirmed by a plan read and by every loan's server quote, the rebate is shown per loan from the quote, and the request text no longer says "record in the app" for a remainder that settles a loan. The old reply "4 = recheck" (a pre-R127 alias) is withdrawn.
+- **Execution.** One atomic payment through the agent receipt command schemaVersion 11 (`settle`: the loans to settle, each pinned to its Loan Close quote; reviewed mode only, slip dated today; the server re-checks the loans and quotes). Execution needs the identical settled set and plan hashes, else the result is STALE "Loans not closed". Uncertain outcomes are reconciled by status only and never re-sent; referral rebate handling stays per loan as in [R128](#loan-close-through-instagram--revision-36-r128-on-in-prod).
+
 ## Loan close through Instagram — revision 36 (R128, on in PROD)
 
 `loan_close_execution_enabled` (default false; anything but a boolean is refused) lets a slip that exactly matches today's loan payoff be closed from the reviewer DM instead of by hand. On in PROD since 5 November 2026, 08:17:19Z (backup `/root/config.json.pre-r128-loan-close`); off by default in the template. Off, nothing changes and the slip stays a manual Loan Close (`LOAN_CLOSE_REQUIRED`). The switch needs `partner_review_execution_enabled` and `receipt_payment_api_enabled`; `mw-integration-agent check` reports it as `loan_close_execution`. It was turned on only after V136, the command service and Hosting were live, because a server without V136 refuses the new keys.

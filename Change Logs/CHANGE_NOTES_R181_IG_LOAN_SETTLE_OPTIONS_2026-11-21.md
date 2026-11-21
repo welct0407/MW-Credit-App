@@ -6,13 +6,20 @@ Owner request of 21 November 2026: a borrower's slip equalled the combined payof
 Evidence (read-only, PROD, 21 November 2026): a 3,300 slip equal to both principals plus the day's interest; the review was "Pay forward options" with an empty principal list and both loans blocked with reason `settles`; only pay forward and recheck were offered.
 
 ## Changes
-To be filled: agent (`review_proposal.py` combined-payoff detection and the close-loans choice, request text, `loan_settle_options_enabled` default off), the agent receipt command `settle` (schemaVersion 11), the shared SQL migration (no table or column), the command service, tests and documents.
+- Migration `database/migrations/V153__agent_receipt_settle.sql`: patches `pwa_submit_agent_receipt_v1` and its status function in place (owner and grants kept); command schemaVersion 11 adds the loans to settle, each pinned to its Loan Close quote; reviewed mode only, slip dated today; the server re-checks the loans and quotes; one atomic payment; versions 7 to 10 unchanged; no table or column.
+- Command service: `services/agent-receipts/contract.mjs` accepts version 11.
+- Agent: switch `loan_settle_options_enabled` (strict boolean, default off; needs `pay_forward_options_enabled` and `receipt_payment_api_enabled`; no catalogue revision). Up to three close choices under code 4 of the options request (one loan with the rest paid forward, or several loans), each confirmed by a plan read and every loan's quote; execution needs the identical settled set and plan hashes, else STALE "Loans not closed"; switch off after approval means manual. The legacy reply "4 = recheck" is withdrawn. The rebate is shown per loan from the quote.
+- Data Dictionary: the entries for these routines are PROD captures; refresh them after promotion.
+- Documents updated: `project/Documents/Release_Tracker.md`, `project/Documents/Development_Changes.md`, `integration-agent/README.md`, `integration-agent/docs/PARTNER_REVIEW.md`, `RECEIPTS.md`, `SHARED_RECEIPT_PAYMENT_API.md`, `database/README.md`.
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| To be filled by Byte, Echo and Chase | |
-| `npm run check:docs` | To be run by Dewey after the implementation lands |
+| ruff | Pass (Byte, `9c7f62dc`) |
+| Agent unit tests | 1,184 OK, 84 skipped (Byte, `9c7f62dc`) |
+| Biome; `tsc` for services; receipt-command and late-charge unit tests | Pass; 20/20 (Byte, `9c7f62dc`) |
+| `mw-db-ci` migrations and phase8, including `Test-AgentReceiptSettle.sql` | Exit 0 (Byte, `9c7f62dc`) |
+| `npm run check:docs` | 0 failures (Dewey) |
 
 ## Not run
 To be filled. PROD promotion and any live financial write are not authorized.
