@@ -8,19 +8,25 @@ Owner decisions of 21 November 2026: a designated slip that can be processed pos
 Evidence (read-only, PROD, 6 to 20 November 2026, aggregates only): borrower-identity holds were mostly PAYER_UNRESOLVED (9) and PAYER_NAME_UNREADABLE (1). To be filled.
 
 ## Changes
-To be filled (switches `receipt_hold_designation_enabled` and `receipt_hold_designation_learn_enabled`, payer-name learning, hold reply handling, name resolution to one AI-enabled borrower, re-run through the normal path, re-ask for an unknown or ambiguous name, audit of the reviewer's choice, config switch if any).
+- Hold reply naming the borrower: `hold_reply.py`, `partner_review.py`, `receipt_identity.py`, `receipt_health.py` and related modules, tests and `config.example.json` (Byte, `1dc2271f`). Part of this code was swept into the records commit `a8305afa` (a staging slip; history is left as is).
+- Switches `receipt_hold_designation_enabled` (needs `receipt_hold_reply_cutoff` and `payer_name_cutoff`) and `receipt_hold_designation_learn_enabled` (needs the first); strict booleans, default off, reported by `check`; no catalogue revision.
+- Eligible holds: PAYER_UNRESOLVED, PAYER_NAME_UNREADABLE, PAYER_NAME_OTHER_BORROWER, IG_CONVERSATION_IDENTITY_AMBIGUOUS; an archived image is required (else HOLD_IMAGE_UNAVAILABLE); today or yesterday (else HOLD_TOO_OLD).
+- The name must resolve to exactly one AI-enabled borrower, else a re-ask with candidates; Reject words first, approval words never looked up. Accepted: 🔄 notice, one guarded requeue, sender and payer resolution skipped only, every other guard kept; automatic post for an ordinary payment (configured automatic actor), else the normal request; result notices add "Borrower named by {reviewer}".
+- Audit `hold_borrower_designated`; name learning on posted receipts only, never evicting at five lines, skipping a name that matches another enabled borrower or is unreadable (`designated_payer_name_not_learned`, reason code only); `receipt_health` counts the new acknowledgements.
+- Documents updated: `Release_Tracker.md`, `Development_Changes.md`, `integration-agent/README.md`, `integration-agent/docs/PARTNER_REVIEW.md`, `CONVERSATION_POLL.md`, `OPERATIONS.md`, `RECEIPTS.md`.
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| To be filled by Byte, Echo and Chase | |
-| `npm run check:docs` | To be run by Dewey after the implementation lands |
+| ruff | Pass (Byte, `1dc2271f`) |
+| Agent unit tests | 1,165 OK, 82 skipped (Byte, `1dc2271f`) |
+| `npm run check:docs` | 0 failures (Dewey) |
 
 ## Not run
-To be filled. PROD promotion and any live financial write are not authorized.
+PROD promotion is not authorized and no live financial write was made. A skipped check is not a pass.
 
 ## Recovery
-Git baseline `main` `5a418ab4` (R178 closure). No deployment has happened.
+Git baseline `main` `5a418ab4` (R178 closure). No deployment has happened; the code lives in `1dc2271f` and, in part, `a8305afa`.
 
 ## Open questions
 To be filled.

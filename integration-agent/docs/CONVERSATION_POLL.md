@@ -30,6 +30,8 @@ The poll decides each group message once, so a slip from a sender who was not ye
 
 ## Sender fallback and unidentified senders (R151, no switch)
 
+R179: a reviewer's reply to a borrower-identity hold that names one AI-enabled borrower is handled by the hold reply path, not by sender fallback; see [Partner review](PARTNER_REVIEW.md#naming-the-borrower-on-a-hold-r179-21-november-2026).
+
 Owner request of 13 November 2026 after a borrower's slip was recorded `IGNORED` because Instagram dropped the borrower from the group's `participants` list seconds after the post (no job, no notice). Catalogue revision 38 is unchanged. See the [change note](https://github.com/welct0407/MW-Credit-App/blob/ff4de0d5/integration-agent/Change%20Logs/CHANGE_NOTES_R151_RECEIPT_SENDER_FALLBACK_2026-11-13.md).
 
 - **`SENDER`.** The sender is not among the participants but the message `from.username` is exactly one enabled borrower: the poll queues a job (row outcome `SENDER`). A group is also scanned when any sender on the first page is an enabled borrower even though no participant is. The receipt cycle then checks the identity binding (`SenderUnbound`, `taken`) and the strong context, and posts automatically as C1/C2 under the usual guards.
