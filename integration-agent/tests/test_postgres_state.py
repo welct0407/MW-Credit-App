@@ -668,7 +668,7 @@ class PostgreSQLStateTests(unittest.TestCase):
         # outcome is returned), and the worker can process a designated job again; the audit event must be written once,
         # never raise, and carry no slip reference, payer name or typed text.
         import hashlib
-        from mw_integration_agent.hold_reply import DESIGNATED,audit_designation,audit_not_learned
+        from mw_integration_agent.hold_reply import audit_designation,audit_not_learned
         receipt=ReceiptJournal('receipt-processing.db',self.config)
         try:
             job_id=self.key+'-aud';message='m-'+self.key
