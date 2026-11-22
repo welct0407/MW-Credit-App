@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {createReadHandler} from '../../services/api/read-handler.mjs';
 import {createBorrowerReadStore} from '../../services/api/borrower-read-store.mjs';
-import {encodeCollectionCursor,decodeCollectionCursor,projectCollection} from '../../services/api/collection-read-contract.mjs';
+import {encodeCollectionCursor,decodeCollectionCursor,projectCollection,collectionCte} from '../../services/api/collection-read-contract.mjs';
 const config={ownerEmail:'owner@example.test',origins:['https://client.example.test']};
 const board={kind:'collection',businessDate:'2026-10-07',rank:0,days:0,name:'Name',id:'a'};const child={kind:'collection-charges',businessDate:'2026-10-07',parentId:'p',chargeDate:'2026-10-07',id:'c'};
 test('Collection canonical cursor rejects kind parent date rank extra-field and obsolete substitution',()=>{const b=encodeCollectionCursor(board),c=encodeCollectionCursor(child);assert.equal(decodeCollectionCursor(b,'collection').id,'a');assert.equal(decodeCollectionCursor(c,'collection-charges','p').id,'c');for(const [cursor,kind,parent] of [[b,'collection-charges','p'],[c,'collection'],[c,'collection-charges','other'],[b+'=','collection'],[Buffer.from(JSON.stringify({...board,v:2})).toString('base64url'),'collection'],[Buffer.from(JSON.stringify({...board,v:4,days:undefined,queryHash:JSON.parse(Buffer.from(b,'base64url').toString()).queryHash})).toString('base64url'),'collection'],[Buffer.from(JSON.stringify({...board,v:3,queryHash:JSON.parse(Buffer.from(b,'base64url').toString()).queryHash})).toString('base64url'),'collection'],[Buffer.from(JSON.stringify({...board,v:1,extra:true})).toString('base64url'),'collection']])assert.throws(()=>decodeCollectionCursor(cursor,kind,parent));for(const value of [{...board,businessDate:'0000-01-01'},{...child,chargeDate:'0000-01-01'},{...board,rank:5},{...board,days:undefined},{...board,days:3},{...board,rank:3,days:0},{...board,rank:3,days:-8},{...board,rank:3,days:8.5},{...board,businessDate:'2026-02-30'},{...child,chargeDate:null}])assert.throws(()=>encodeCollectionCursor(value))});
@@ -24,6 +24,22 @@ test('R137 projection: sinceLastPaymentDays and neverPaid on long overdue rows o
  assert.equal('sinceLastPaymentDays' in projectCollection({...base,rank:2,overdue_days:3}),false);
  for(const bad of [{rank:3,overdue_days:20,since_last_payment_days:7,never_paid:false},{rank:3,overdue_days:20,since_last_payment_days:null,never_paid:null},{rank:3,overdue_days:20,since_last_payment_days:10,never_paid:null},{rank:3,overdue_days:20,since_last_payment_days:8.5,never_paid:true},{rank:2,overdue_days:20,since_last_payment_days:10,never_paid:false},{rank:2,overdue_days:3,since_last_payment_days:null,never_paid:false}])
   assert.throws(()=>projectCollection({...base,...bad}),/Invalid collection/,JSON.stringify(bad));
+});
+test('R182 projection: an overdue row carries sinceLastPaymentDays 0 to 7 with neverPaid, or null for both; other ranks stay null',()=>{
+ const base={id:'a',borrower_name:'N',amount_due:'0',amount_collected:'0',amount_remaining:'0',prepaid_today:'0',prepaid_only:false};
+ for(const [since,never] of [[0,false],[7,false],[7,true],[1,true],[null,null]]){
+  const row=projectCollection({...base,rank:2,overdue_days:9,since_last_payment_days:since,never_paid:never});
+  assert.deepEqual([row.status,row.sinceLastPaymentDays,row.neverPaid],['overdue',since,never]);
+ }
+ for(const bad of [{rank:2,since_last_payment_days:8,never_paid:false},{rank:2,since_last_payment_days:-1,never_paid:false},{rank:2,since_last_payment_days:1.5,never_paid:false},
+  {rank:2,since_last_payment_days:'3',never_paid:false},{rank:2,since_last_payment_days:3,never_paid:null},{rank:2,since_last_payment_days:3,never_paid:'no'},{rank:2,since_last_payment_days:3},
+  {rank:2,since_last_payment_days:null,never_paid:true},{rank:0,since_last_payment_days:0,never_paid:false},{rank:1,since_last_payment_days:3,never_paid:false},
+  {rank:4,since_last_payment_days:0,never_paid:false},{rank:0,since_last_payment_days:null,never_paid:true}])
+  assert.throws(()=>projectCollection({...base,overdue_days:bad.rank===2?9:null,...bad}),/Invalid collection/,JSON.stringify(bad));
+ // The SQL emits the pair for rank 2 only inside 0..7, so a df10:-only borrower (no first charge) cannot fail the board; rank 3 order is untouched.
+ assert.match(collectionCte,/CASE WHEN rank = 3 OR \(rank = 2 AND since_days BETWEEN 0 AND 7\) THEN since_days END AS since_last_payment_days/);
+ assert.match(collectionCte,/CASE WHEN rank = 3 OR \(rank = 2 AND since_days BETWEEN 0 AND 7\) THEN never_paid END AS never_paid/);
+ assert.match(collectionCte,/CASE WHEN rank = 3 THEN since_days ELSE 0 END AS sort_days/);
 });
 test('R110 Collection status counts only charges dated by the business date (a future charge part-paid today is not partly paid)',async()=>{
  const {collectionCte}=await import('../../services/api/collection-read-contract.mjs');

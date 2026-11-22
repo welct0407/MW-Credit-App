@@ -94,8 +94,11 @@ export const collectionCteFor = (late, paymentSource = true) => `WITH today_repa
   GROUP BY borrower_id, borrower_name, borrower_description, last_paid, first_due
 ), summaries AS (
   SELECT id, borrower_name, borrower_description, rank, overdue_days,
-    -- R137: days since the last payment (or the first charge) on long overdue rows only; never_paid says which.
-    CASE WHEN rank = 3 THEN since_days END AS since_last_payment_days, CASE WHEN rank = 3 THEN never_paid END AS never_paid,
+    -- R137: days since the last payment (or the first charge) on long overdue rows; never_paid says which. R182: overdue
+    -- rows carry them too, but only for 0 to 7 days: a borrower with only df10: charges has no first charge (null), and a
+    -- first charge after the business date would count negative; both stay null so the projector never fails the board.
+    CASE WHEN rank = 3 OR (rank = 2 AND since_days BETWEEN 0 AND ${LONG_OVERDUE_SINCE_PAYMENT_DAYS - 1}) THEN since_days END AS since_last_payment_days,
+    CASE WHEN rank = 3 OR (rank = 2 AND since_days BETWEEN 0 AND ${LONG_OVERDUE_SINCE_PAYMENT_DAYS - 1}) THEN never_paid END AS never_paid,
     -- R102/R137 owner decision: the long overdue group lists the fewest days since the last payment first; 0 elsewhere.
     CASE WHEN rank = 3 THEN since_days ELSE 0 END AS sort_days, (remaining + collected)::text AS amount_due,
     collected::text AS amount_collected, remaining::text AS amount_remaining,
@@ -282,10 +285,13 @@ async function readGroupChat(client, borrowerId) {
 }
 export function projectCollection(row) {
   if (!validLoanId(row.id) || !collectionStatuses[row.rank] || typeof row.prepaid_only !== 'boolean' || !(row.overdue_days === null || (Number.isSafeInteger(row.overdue_days) && row.overdue_days > 0))) throw new Error('Invalid collection source');
-  // R137: a long overdue row carries the days since the last payment (8 or more) and whether the borrower never paid; other
-  // rows carry null for both. A source row without the columns (an older reader) omits them.
+  // R137: a long overdue row carries the days since the last payment (8 or more) and whether the borrower never paid.
+  // R182: an overdue row carries them too (0 to 7 days), or null for both when the source has no usable date; other rows
+  // carry null for both. A source row without the columns (an older reader) omits them.
   const since = row.since_last_payment_days, never = row.never_paid;
-  if (since !== undefined && (row.rank === 3 ? !(Number.isSafeInteger(since) && since >= LONG_OVERDUE_SINCE_PAYMENT_DAYS && typeof never === 'boolean') : !(since === null && never === null))) throw new Error('Invalid collection source');
+  const sinceOk = row.rank === 3 ? Number.isSafeInteger(since) && since >= LONG_OVERDUE_SINCE_PAYMENT_DAYS && typeof never === 'boolean'
+    : (since === null && never === null) || (row.rank === 2 && Number.isSafeInteger(since) && since >= 0 && since < LONG_OVERDUE_SINCE_PAYMENT_DAYS && typeof never === 'boolean');
+  if (since !== undefined && !sinceOk) throw new Error('Invalid collection source');
   // R102: overdueDays counts from the oldest overdue unpaid charge (null when none is overdue).
   // R097: prepaidToday is what was paid on earlier days toward charges dated today (row display only; collected stays cash today).
   // R110: prepaidPaymentDate names when that advance was paid (null when nothing today was paid earlier).
