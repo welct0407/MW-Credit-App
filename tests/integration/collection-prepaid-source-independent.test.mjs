@@ -90,6 +90,9 @@ test('each missing grant alone also falls back (Payments Row ID, Payments Paymen
 // R137: the last-payment rule follows the same grants. With them, a rebate-offset receipt is no payment (Long Overdue, 20 days, never
 // paid in cash); without them the fallback reads Repayments only and counts any repayment above 0, so the same borrower is Overdue
 // (the fallback can understate Long Overdue, never overstate it). A cash payment d-10 is Long Overdue (10 days) either way; no 42501.
+// R182: an Overdue row carries the days too (0 to 7, else null for both). Rank and days come from the same last-payment CTE
+// in either path, so the fallback's Overdue row shows the fallback's own count (the rebate-offset receipt d-2: 2 days, paid),
+// never a value the projector refuses.
 test('R137 last payment: full rule with the grants, the Repayments-only fallback without them, the read never fails',async()=>{
  const pick=result=>{const rows=byId(result);return ['R137-REB-B','R137-CASH-B'].map(id=>[id,rows[id]?.status,rows[id]?.sinceLastPaymentDays,rows[id]?.neverPaid]);};
  await grantAll();
@@ -98,7 +101,10 @@ test('R137 last payment: full rule with the grants, the Repayments-only fallback
  for(const revoke of [revokeSource,()=>q(`REVOKE SELECT("Payment Method") ON public."Payments" FROM ${role}`),()=>q(`REVOKE SELECT("Ref Payment") ON public."Repayments" FROM ${role}`)]){
   await grantAll();await revoke();
   const fallback=await board();assert.equal(fallback.collectionError,undefined,JSON.stringify(fallback));
-  assert.deepEqual(pick(fallback),[['R137-REB-B','overdue',null,null],['R137-CASH-B','long_overdue',10,false]]);
+  assert.deepEqual(pick(fallback),[['R137-REB-B','overdue',2,false],['R137-CASH-B','long_overdue',10,false]]);
+  // Every Overdue row of the fallback board is inside the projector's range (0 to 7 with a boolean) or null for both.
+  for(const row of fallback.items.filter(x=>x.status==='overdue'))assert.ok((row.sinceLastPaymentDays===null&&row.neverPaid===null)||(Number.isInteger(row.sinceLastPaymentDays)&&row.sinceLastPaymentDays>=0&&row.sinceLastPaymentDays<=7&&typeof row.neverPaid==='boolean'),JSON.stringify(row));
+  {const o=await client();try{const overdue=await readCollection(o,{limit:10,after:null,borrowerId:'R137-REB-B'});assert.equal(overdue.collectionError,undefined);assert.deepEqual([overdue.borrower.status,overdue.borrower.sinceLastPaymentDays,overdue.borrower.neverPaid],['overdue',2,false]);}finally{o.release();}}
   const c=await client();try{const detail=await readCollection(c,{limit:10,after:null,borrowerId:'R137-CASH-B'});assert.equal(detail.collectionError,undefined);assert.equal(detail.borrower.sinceLastPaymentDays,10);}finally{c.release();}
  }
 });
