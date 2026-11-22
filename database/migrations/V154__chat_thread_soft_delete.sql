@@ -3,7 +3,7 @@
 -- and notification events reference the thread, so the row stays and its status becomes 'deleted'. updated_at is the
 -- deletion time. No new table, column, function, grant, role, trigger or data change; existing rows satisfy the CHECK.
 -- 1. pwa_chat_threads.status: the CHECK pwa_chat_threads_status_check is replaced (same name) and accepts 'deleted'.
--- 2. Four RPCs are patched in place, as the chat owner, from their current definitions (exact-count replace, V115
+-- 2. Six RPCs are patched in place, as the chat owner, from their current definitions (exact-count replace, V115
 --    pattern), so owners, ACLs, security, configuration and comments are kept:
 --    pwa_chat_thread_update_v1(jsonb,uuid,jsonb): accepts {"status":"deleted"} only as the sole key. It locks the
 --     thread row first. A deleted thread answers a repeated delete unchanged (idempotent) and not_found (P0002) to any
@@ -13,12 +13,17 @@
 --     unknown (its card is how an unknown outcome is reconciled; the refusal rolls the cancellation back). The check
 --     runs after the cancellation on purpose: a confirm that claimed a pending line first holds its row lock, the
 --     cancellation waits for it, and the check then sees the claimed line.
---    pwa_chat_thread_v1(jsonb,uuid), pwa_chat_messages_v1(jsonb,uuid,integer,integer) and
---     pwa_chat_turn_begin_v1(jsonb,uuid,jsonb): a deleted thread is not_found (P0002).
+--    pwa_chat_thread_v1(jsonb,uuid), pwa_chat_messages_v1(jsonb,uuid,integer,integer),
+--     pwa_chat_message_v1(jsonb,uuid,uuid) and pwa_chat_turn_begin_v1(jsonb,uuid,jsonb): a deleted thread is
+--     not_found (P0002) on every read path and for a new or repeated turn.
+--    pwa_chat_models_default_v1(jsonb): deleted threads are ignored when choosing the default model (updated_at is
+--     now also the deletion time, so deleting an old chat must not change the model of the next new chat).
 -- Unchanged: pwa_chat_threads_v1 (it lists 'active' or 'archived' only, so a deleted thread is on neither list), every
 -- other chat routine, the notification history text and the V108 monitoring reads.
 -- Known and accepted: a turn that runs past its 5-minute claim can still commit its reply into a deleted thread; the
--- reply stays unreachable through the thread and message reads.
+-- reply stays unreachable through the thread and message reads. The proposal read, claim, settle and cancel routines,
+-- turn presence, the reply notification and an idempotent create with a deleted id still find the row (only terminal
+-- proposals remain on it).
 -- On Cloud SQL the runner is not a superuser: temporary authority on mw_chat_owner_<env> only
 -- (owner-authority-cli.mjs prepare --owner mw_chat_owner_<env>, then restore); the preflight names every missing
 -- authority first. Rollback: the service build before this change (it never sends 'deleted'); a later migration
@@ -33,6 +38,12 @@ INSERT INTO v154_patch VALUES
 ('public.pwa_chat_messages_v1(jsonb,uuid,integer,integer)',1,
  $old$FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner) THEN$old$,
  $new$FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner AND t.status<>'deleted') THEN$new$),
+('public.pwa_chat_message_v1(jsonb,uuid,uuid)',1,
+ $old$WHERE m.id=message AND m.thread_id=thread AND m.role='user' AND t.partner_id=partner;$old$,
+ $new$WHERE m.id=message AND m.thread_id=thread AND m.role='user' AND t.partner_id=partner AND t.status<>'deleted';$new$),
+('public.pwa_chat_models_default_v1(jsonb)',1,
+ $old$FROM public.pwa_chat_threads t WHERE t.partner_id=partner ORDER BY t.updated_at DESC,t.id DESC LIMIT 1$old$,
+ $new$FROM public.pwa_chat_threads t WHERE t.partner_id=partner AND t.status<>'deleted' ORDER BY t.updated_at DESC,t.id DESC LIMIT 1$new$),
 ('public.pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)',1,
  $old$FROM public.pwa_chat_threads x WHERE x.id=thread AND x.partner_id=partner FOR UPDATE;$old$,
  $new$FROM public.pwa_chat_threads x WHERE x.id=thread AND x.partner_id=partner AND x.status<>'deleted' FOR UPDATE;$new$),
@@ -97,13 +108,13 @@ BEGIN
  IF cardinality(problems)>0 THEN RAISE EXCEPTION 'V154 preflight: %', array_to_string(problems,'; '); END IF;
 END $preflight$;
 
--- Every chat routine before the change (the self-check compares everything but the four patched bodies).
+-- Every chat routine before the change (the self-check compares everything but the six patched bodies).
 CREATE TEMP TABLE v154_routine ON COMMIT DROP AS
  SELECT p.oid,p.oid::regprocedure::text AS signature,pg_get_userbyid(p.proowner) AS owner,coalesce(p.proacl,acldefault('f',p.proowner))::text AS effective,p.prosecdef AS definer,
   p.provolatile AS volatile,p.proconfig AS config,obj_description(p.oid,'pg_proc') AS comment,p.prosrc AS body
  FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.proname LIKE 'pwa\_chat\_%';
 
--- 2. The widened CHECK and the four patched RPCs, as the chat owner.
+-- 2. The widened CHECK and the six patched RPCs, as the chat owner.
 DO $chat$
 DECLARE chat_owner text:='mw_chat_owner_'||CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END; switched boolean:=false;
  patches jsonb; f text; item jsonb; definition text; found integer;
@@ -126,7 +137,7 @@ BEGIN
 END $chat$;
 RESET ROLE;
 
--- 3. Self-check: the CHECK accepts the three values; the four routines carry exactly their patches and nothing else
+-- 3. Self-check: the CHECK accepts the three values; the six routines carry exactly their patches and nothing else
 -- changed (the body equals the old body with the fragments replaced); every chat routine keeps owner, ACL, security,
 -- volatility, configuration and comment, and no routine was added or dropped (V141 rule: 22 routines, 15 API RPCs).
 DO $check$
@@ -144,8 +155,8 @@ BEGIN
   OR p.prosrc IS DISTINCT FROM coalesce((SELECT replace(replace(o.body,a.old,a.new),coalesce(b.old,''),coalesce(b.new,''))
     FROM v154_patch a LEFT JOIN v154_patch b ON b.signature=a.signature AND b.step=2 WHERE to_regprocedure(a.signature)=o.oid AND a.step=1),o.body);
  IF bad IS NOT NULL THEN RAISE EXCEPTION 'V154: chat routines drifted: %',bad; END IF;
- IF (SELECT count(*) FROM pg_proc p JOIN v154_patch a ON to_regprocedure(a.signature)=p.oid AND a.step=1 WHERE strpos(p.prosrc,'''deleted''')>0)<>4
+ IF (SELECT count(*) FROM pg_proc p JOIN v154_patch a ON to_regprocedure(a.signature)=p.oid AND a.step=1 WHERE strpos(p.prosrc,'''deleted''')>0)<>6
   OR (SELECT count(*) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname LIKE 'pwa\_chat\_%')<>22
   OR (SELECT count(*) FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.proname LIKE 'pwa\_chat\_%' AND has_function_privilege(api,p.oid,'EXECUTE'))<>15 THEN
-  RAISE EXCEPTION 'V154: four patched routines, 22 chat routines and 15 API RPCs expected'; END IF;
+  RAISE EXCEPTION 'V154: six patched routines, 22 chat routines and 15 API RPCs expected'; END IF;
 END $check$;

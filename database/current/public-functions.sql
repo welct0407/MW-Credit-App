@@ -4125,7 +4125,7 @@ CREATE FUNCTION public.pwa_chat_message_v1(actor jsonb, thread uuid, message uui
 DECLARE partner text:=public.pwa_chat_actor_v1(actor); u public.pwa_chat_messages; a public.pwa_chat_messages;
 BEGIN
  SELECT m.* INTO u FROM public.pwa_chat_messages m JOIN public.pwa_chat_threads t ON t.id=m.thread_id
- WHERE m.id=message AND m.thread_id=thread AND m.role='user' AND t.partner_id=partner;
+ WHERE m.id=message AND m.thread_id=thread AND m.role='user' AND t.partner_id=partner AND t.status<>'deleted';
  IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
  SELECT * INTO a FROM public.pwa_chat_messages m WHERE m.thread_id=u.thread_id AND m.seq=u.seq+1 AND m.role='assistant';
  RETURN jsonb_build_object('user',public.pwa_chat_message_json_v1(u),'assistant',CASE WHEN a.id IS NULL THEN 'null'::jsonb ELSE public.pwa_chat_message_json_v1(a) END);
@@ -4173,7 +4173,7 @@ CREATE FUNCTION public.pwa_chat_models_default_v1(actor jsonb) RETURNS text
     AS $$
 DECLARE partner text:=public.pwa_chat_actor_v1(actor);
 BEGIN
- RETURN (SELECT t.model FROM public.pwa_chat_threads t WHERE t.partner_id=partner ORDER BY t.updated_at DESC,t.id DESC LIMIT 1);
+ RETURN (SELECT t.model FROM public.pwa_chat_threads t WHERE t.partner_id=partner AND t.status<>'deleted' ORDER BY t.updated_at DESC,t.id DESC LIMIT 1);
 END $$;
 
 

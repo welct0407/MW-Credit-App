@@ -701,8 +701,8 @@ END $$;
 -- M. V154 (R182): thread soft delete through pwa_chat_thread_update_v1 {"status":"deleted"}. Sole key only; another
 -- Partner's thread is not found; refused while a turn claim is live (55006 turn_in_progress) and while a proposal is
 -- executing or unknown (55006 proposal_executing, pending ones untouched); pending proposals are cancelled; a repeat is
--- answered unchanged; a deleted thread is not found on read, messages, turn begin and any other patch, and on neither
--- list; the row stays (SQL DELETE still raises 55000) and the CHECK refuses any other status.
+-- answered unchanged; a deleted thread is not found on read, messages, the one-message read, turn begin and any other
+-- patch, and on neither list; the default model ignores deleted threads; the row stays (SQL DELETE still raises 55000) and the CHECK refuses any other status.
 SET SESSION AUTHORIZATION v104_chat_api;
 DO $$
 DECLARE a jsonb:=pg_temp.actor('a'); b jsonb:=pg_temp.actor('b'); r jsonb;
@@ -724,9 +724,12 @@ BEGIN
  PERFORM pg_temp.expect(format(update_sql,b,d1,'{"status":"deleted"}'),'P0002','not_found');
  PERFORM pg_temp.expect(format(update_sql,a,d1,'{"status":"deleted"}'),'55006','turn_in_progress');
  IF public.pwa_chat_thread_v1(a,d1)->>'status' IS DISTINCT FROM 'active' THEN RAISE EXCEPTION 'a refused delete leaves the thread active'; END IF;
- -- An archived thread without a turn is deleted directly.
- PERFORM public.pwa_chat_thread_update_v1(a,d3,'{"status":"archived"}');
+ -- An archived thread without a turn is deleted directly. Its model was the default (the latest updated thread); once
+ -- deleted it no longer is, although the deletion made it the latest updated row.
+ PERFORM public.pwa_chat_thread_update_v1(a,d3,'{"status":"archived","model":"claude-sonnet-9-9"}');
+ IF public.pwa_chat_models_default_v1(a) IS DISTINCT FROM 'claude-sonnet-9-9' THEN RAISE EXCEPTION 'default model before the delete'; END IF;
  r:=public.pwa_chat_thread_update_v1(a,d3,'{"status":"deleted"}');
+ IF coalesce(public.pwa_chat_models_default_v1(a),'claude-sonnet-9-9')='claude-sonnet-9-9' THEN RAISE EXCEPTION 'a deleted thread is not the default model source: %',public.pwa_chat_models_default_v1(a); END IF;
  IF r->>'status' IS DISTINCT FROM 'deleted' OR r->>'id' IS DISTINCT FROM d3::text OR r->>'title' IS DISTINCT FROM 'Archived then deleted' THEN RAISE EXCEPTION 'deleted archived thread %',r; END IF;
 END $$;
 RESET SESSION AUTHORIZATION;
@@ -754,6 +757,7 @@ BEGIN
  r:=public.pwa_chat_thread_update_v1(a,d2,'{"status":"deleted"}');
  IF r->>'status' IS DISTINCT FROM 'deleted' THEN RAISE EXCEPTION 'delete after reconciliation %',r; END IF;
  -- The stale claim no longer blocks; the pending proposal of d1 is cancelled.
+ IF public.pwa_chat_message_v1(a,d1,u1)#>>'{user,id}' IS DISTINCT FROM u1::text THEN RAISE EXCEPTION 'the one-message read before the delete'; END IF;
  r:=public.pwa_chat_thread_update_v1(a,d1,'{"status":"deleted"}');
  IF r->>'status' IS DISTINCT FROM 'deleted' OR r->>'id' IS DISTINCT FROM d1::text OR r->>'title' IS DISTINCT FROM 'To delete' THEN RAISE EXCEPTION 'deleted %',r; END IF;
  PERFORM set_config('v154.deleted_at',(SELECT clock_timestamp()::text),true);
@@ -762,6 +766,7 @@ BEGIN
  -- Gone: read, messages, turn begin (new message and a re-POST) and every other patch.
  PERFORM pg_temp.expect(format('SELECT public.pwa_chat_thread_v1(%L::jsonb,%L::uuid)',a,d1),'P0002','not_found');
  PERFORM pg_temp.expect(format('SELECT public.pwa_chat_messages_v1(%L::jsonb,%L::uuid,NULL,10)',a,d1),'P0002','not_found');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_message_v1(%L::jsonb,%L::uuid,%L::uuid)',a,d1,u1),'P0002','not_found');
  PERFORM pg_temp.expect(format('SELECT public.pwa_chat_turn_begin_v1(%L::jsonb,%L::uuid,%L::jsonb)',a,d1,jsonb_build_object('id','df000009-0000-4000-8000-000000000009','text','x')),'P0002','not_found');
  PERFORM pg_temp.expect(format('SELECT public.pwa_chat_turn_begin_v1(%L::jsonb,%L::uuid,%L::jsonb)',a,d1,jsonb_build_object('id',u1,'text','Record an expense of 100')),'P0002','not_found');
  PERFORM pg_temp.expect(format(update_sql,a,d1,'{"title":"Back"}'),'P0002','not_found');
@@ -776,6 +781,7 @@ BEGIN
  -- Known and accepted: a turn past its claim still commits its reply; it stays unreachable.
  PERFORM public.pwa_chat_turn_complete_v1(a,u1,pg_temp.assistant('ok'),pg_temp.history(0,0,2),'[]');
  PERFORM pg_temp.expect(format('SELECT public.pwa_chat_messages_v1(%L::jsonb,%L::uuid,NULL,10)',a,d1),'P0002','not_found');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_message_v1(%L::jsonb,%L::uuid,%L::uuid)',a,d1,u1),'P0002','not_found');
 END $$;
 RESET SESSION AUTHORIZATION;
 DO $$ BEGIN
