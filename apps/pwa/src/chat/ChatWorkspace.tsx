@@ -6,7 +6,7 @@ import {useOnline} from '../online-status';
 import {ChatThreads} from './ChatThreads';
 import {ChatMessageView,ProvisionalMessage} from './ChatMessage';
 import {ChatComposer} from './ChatComposer';
-import {applyTurnEvent,initialTurn,listedDefault,mergeProposal,threadModel,type ChatMessage,type ChatProposal,type TurnState} from './chat-protocol';
+import {afterThreadDelete,applyTurnEvent,initialTurn,listedDefault,mergeProposal,threadModel,type ChatMessage,type ChatProposal,type TurnState} from './chat-protocol';
 import {ChatProposalCard,type ProposalRecord} from './ChatProposalCard';
 import {ChatAccessError,ChatHttpError,createThread,getThread,listMessages,listModels,listThreads,streamTurn,turnPresence,updateThread,waitForOutcome,whenVisible,type ChatAccess,type ChatModels,type ChatThread,type Page} from './chat-client';
 import {EXAMPLES,failureText,modelFallbackText,progressText,threadTitle,type FailureAction} from './chat-text';
@@ -116,10 +116,11 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
   setThread(next);closeSheet(false);setModelNote(false);setNotice(null);
   if(threadRef.current?.id!==next.id||!turnRef.current)void loadMessages(next,null);
  }
- function startNew(){
+ /** leave=false (R182, after deleting the open thread): the thread list stays as it is and keeps the focus. */
+ function startNew(leave=true){
   picked.current=true;if(turnRef.current)stopTurn();
-  itemsGen.current++;setThread(null);setItems([]);setItemsCursor(null);setItemsError(false);setItemsBusy(false);setModelNote(false);setNotice(null);closeSheet(false);
-  requestAnimationFrame(()=>composer.current?.focus());
+  itemsGen.current++;setThread(null);setItems([]);setItemsCursor(null);setItemsError(false);setItemsBusy(false);setModelNote(false);setNotice(null);
+  if(leave){closeSheet(false);requestAnimationFrame(()=>composer.current?.focus())}
  }
  function closeSheet(returnFocus=true){setSheet(open=>{if(open&&returnFocus)requestAnimationFrame(()=>sheetToggle.current?.focus());return false})}
  // biome-ignore lint/correctness/useExhaustiveDependencies: closeSheet only sets state and moves focus.
@@ -278,6 +279,25 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
    if(status==='archived'&&turnRef.current?.threadId===saved.id)stopTurn();
   }catch(error){if(!(error instanceof ChatAccessError))setNotice(failureText(codeOf(error),thai))}
  }
+ /** R182 (CHAT-DEL-05): deletes a thread (soft delete on the service). null when it is gone (a 404 counts as deleted),
+  * else the refusal code for the confirmation dialog. The open thread gives way to a new chat that keeps the composer text. */
+ async function removeThread(target:ChatThread):Promise<string|null>{
+  if(turnRef.current?.threadId===target.id)return 'turn_in_progress';
+  try{await updateThread(accessRef.current,target.id,{status:'deleted'})}
+  catch(error){
+   if(error instanceof ChatAccessError)return 'access';
+   if(!(error instanceof ChatHttpError&&error.status===404))return error instanceof ChatHttpError?error.code:'unavailable';
+  }
+  const openId=threadRef.current?.id??null,wasOpen=openId===target.id;
+  setThreads(previous=>afterThreadDelete({threads:previous,drafts:{},openId},target.id,NEW).threads);
+  if(wasOpen)startNew(false);
+  setDrafts(previous=>afterThreadDelete({threads:[],drafts:previous,openId},target.id,NEW).drafts);
+  setAnnounce(thaiRef.current?'ลบแชทแล้ว':'Chat deleted.');
+  // The saved reads still hold the thread: drop them, then read the list again (precedent: ChatProposalCard).
+  await accessRef.current.offline?.invalidateReads().catch(()=>{});
+  void loadThreads(archivedRef.current);
+  return null;
+ }
  function toggleArchived(){const next=!archivedRef.current;setArchived(next);setThreads([]);setThreadsCursor(null);void loadThreads(next)}
 
  const key=thread?.id??NEW,draft=drafts[key]??'';
@@ -311,7 +331,8 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
  return <section className="chat-workspace" data-sheet={sheet?'open':undefined} aria-label={t('Chat','แชท')}>
   <div id="chat-threads" className="chat-pane">
    <ChatThreads threads={threads} currentId={thread?.id??null} models={modelOptions} archived={archived} busy={threadsBusy} error={threadsError} hasMore={!!threadsCursor} thai={thai}
-    onOpen={openThread} onNew={startNew} onToggleArchived={toggleArchived} onRename={rename} onStatus={(target,status)=>void changeStatus(target,status)}
+    sheetOpen={sheet} onOpen={openThread} onNew={()=>startNew()} onToggleArchived={toggleArchived} onRename={rename} onStatus={(target,status)=>void changeStatus(target,status)}
+    onDelete={removeThread} deleteBlocked={target=>turn?.threadId===target.id} deletePending={target=>target.id===thread?.id&&items.some(item=>linesOf(item,proposals).some(line=>line.state==='pending'))}
     onMore={()=>void loadThreads(archived,threadsCursor)} onRetry={()=>void loadThreads(archived)} onClose={()=>closeSheet()} closeRef={sheetClose}/>
   </div>
   <div className="chat-conversation">
@@ -325,7 +346,7 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
       {modelOptions.map(model=><option key={model.id} value={model.id} disabled={!model.available}>{model.label}{model.available?'':' — '+(thai?'ใช้งานไม่ได้':model.reason??'unavailable')}</option>)}
      </select>
     </label>
-    <button type="button" className="secondary-button chat-new chat-new-in-toolbar" onClick={startNew}><Icon name="add"/><span>{t('New chat','แชทใหม่')}</span></button>
+    <button type="button" className="secondary-button chat-new chat-new-in-toolbar" onClick={()=>startNew()}><Icon name="add"/><span>{t('New chat','แชทใหม่')}</span></button>
    </div>
    {notice&&<p className="chat-notice" role="alert">{notice}</p>}
    {modelsError&&!models&&<p className="chat-notice" role="alert">{t('Models unavailable. Refresh to try again.','โหลดรายการโมเดลไม่ได้ รีเฟรชเพื่อลองอีกครั้ง')}</p>}

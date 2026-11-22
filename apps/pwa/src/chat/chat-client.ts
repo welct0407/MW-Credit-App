@@ -6,7 +6,7 @@ import type {OwnerOfflineRepository} from '../owner-offline';
 import {createSseParser,classifyOutcome,pollOutcome,isGroup,type ChatMessage,type ChatProposal,type Outcome,type PollResult} from './chat-protocol';
 
 export type ChatAccess={origin:string;offline?:OwnerOfflineRepository;awaitStartup?:()=>Promise<void>;token:()=>Promise<string>;authFailure:(status:number)=>void};
-export type ChatThread={id:string;title:string;model:string;status:'active'|'archived';createdAt?:string;lastMessageAt?:string|null;messageCount?:number};
+export type ChatThread={id:string;title:string;model:string;status:'active'|'archived'|'deleted';createdAt?:string;lastMessageAt?:string|null;messageCount?:number};
 export type ChatModel={id:string;label:string;available:boolean;reason?:string};
 export type ChatModels={version:number;default:string;models:ChatModel[]};
 export type Page<T>={items:T[];nextCursor:string|null};
@@ -69,7 +69,7 @@ export async function getThread(access:ChatAccess,id:string,signal?:AbortSignal)
  if(!response.ok)throw await failure(response);
  return (await response.json() as {item:ChatThread}).item;
 }
-export const updateThread=(access:ChatAccess,id:string,patch:{title?:string;model?:string;status?:'active'|'archived'})=>write<{item:ChatThread}>(access,threadPath(id),'PATCH',patch).then(value=>value.item);
+export const updateThread=(access:ChatAccess,id:string,patch:{title?:string;model?:string;status?:'active'|'archived'|'deleted'})=>write<{item:ChatThread}>(access,threadPath(id),'PATCH',patch).then(value=>value.item);
 /** R122: the RTGS romanization of a Thai personal name ({english}); nothing is stored. Failures are ChatHttpError
  * (400 invalid_request, 502 transliteration_invalid, 503 model_unavailable) or ChatAccessError. */
 export const transliterateName=(access:ChatAccess,text:string,signal?:AbortSignal)=>write<{english:string}>(access,'/api/chat/transliterate','POST',{text},signal).then(value=>value.english);

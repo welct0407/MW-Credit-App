@@ -175,3 +175,16 @@
 .chat-proposal-tag{padding:1px 8px;border-radius:999px;border:1px solid #b3261e;background:#b3261e;color:#fff;font-size:var(--text-meta,14px);font-weight:600;white-space:nowrap}
 .chat-proposal-arm-hint{margin:6px 0 0;font-size:var(--text-meta,14px);color:#565656}
 .chat-record-view{display:contents}
+
+/* R182 (CHAT-DEL-01 to 03): Delete in the thread menu, the swipe strip of a touch row and the confirmation's error. */
+.chat-thread-menu .chat-thread-menu-delete{color:#b3261e;border-top:1px solid #e1e4e8}
+.chat-thread.swipe{display:block;background:#fff}
+.chat-thread-strip{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none}
+.chat-thread-strip::-webkit-scrollbar{display:none}
+.chat-thread-body{flex:0 0 100%;display:flex;align-items:stretch;min-width:0;scroll-snap-align:start;background:#fff}
+.chat-thread.current .chat-thread-body{background:var(--surface-selected,#f1f1f1)}
+.chat-thread-delete{flex:0 0 88px;scroll-snap-align:end;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:0;border:0;border-radius:0;background:#b3261e;color:#fff;font:inherit;font-weight:600}
+.chat-thread-delete svg{width:20px;height:20px}
+.chat-delete-dialog .chat-delete-error{color:#8e1b1b}
+/* R182 (CHAT-META-01): each footer item stays whole, so the line breaks at " · " (an item longer than the line wraps inside itself). */
+.chat-meta-item{display:inline-block;max-width:100%}
