@@ -6,7 +6,7 @@ import {runInNewContext} from 'node:vm';
 import {chatOriginAllowed,liveConfiguration} from '../../apps/pwa/src/environment.ts';
 // R090 PWA chat: the pure protocol, markdown and wording modules (no imports, so each transpiles on its own).
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/chat/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
-const {listedDefault,threadModel,createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup,groupInFlight,runningEnded}=await load('chat-protocol.ts');
+const {listedDefault,threadModel,createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup,groupInFlight,runningEnded,afterThreadDelete}=await load('chat-protocol.ts');
 const {parseMarkdown,parseInline,tableCells}=await load('markdown.ts');
 const {modelFallbackText,failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons,lineChipText,groupConfirmText,unchangedText,groupProgressText,groupSummaryText,destructiveKind,destructiveCounts,destructiveTagText,destructiveWarningText}=await load('chat-text.ts');
 const sse=(chunks,end=true)=>{const events=[];const parser=createSseParser((name,data)=>events.push([name,data]));for(const chunk of chunks)parser.push(chunk);if(end)parser.end();return events};
@@ -330,4 +330,39 @@ test('R108: a thread on an unlisted model falls back to the default, which its n
  assert.equal(modelFallbackText('claude-opus-4','Claude Opus 5.5',true),'โมเดลนี้ไม่มีให้ใช้แล้ว ข้อความถัดไปจะใช้ Claude Opus 5.5');
  // The thread list badge shows the model's label when listed, the raw id otherwise.
  assert.match(readFileSync(new URL('../../apps/pwa/src/chat/ChatThreads.tsx',import.meta.url),'utf8'),/const modelLabel=\(id:string\)=>models\.find\(model=>model\.id===id\)\?\.label\?\?id;[\s\S]*chat-model-badge">\{modelLabel\(thread\.model\)\}/);
+});
+// R182 (CHAT-META-01, CHAT-DEL-04/05): the reply footer's time taken and stored time, the delete refusal wording and the
+// client state after a delete.
+test('R182 reply footer: time taken from latencyMs (omitted at 0), Bangkok date-time across midnight UTC, the year in another year',async()=>{
+ const {tookText,replyTimeText,deleteFailureText}=await load('chat-text.ts');
+ for(const [ms,en,th] of [[0,null,null],[undefined,null,null],[-5,null,null],[Number.NaN,null,null],[1,'took 1 s','ใช้เวลา 1 วิ'],[400,'took 1 s','ใช้เวลา 1 วิ'],[14000,'took 14 s','ใช้เวลา 14 วิ'],[14499,'took 14 s','ใช้เวลา 14 วิ'],
+  [59000,'took 59 s','ใช้เวลา 59 วิ'],[59600,'took 1 min','ใช้เวลา 1 นาที'],[65000,'took 1 min 5 s','ใช้เวลา 1 นาที 5 วิ'],[72000,'took 1 min 12 s','ใช้เวลา 1 นาที 12 วิ'],[120000,'took 2 min','ใช้เวลา 2 นาที']]){
+  assert.equal(tookText(ms,false),en,'en '+ms);assert.equal(tookText(ms,true),th,'th '+ms);
+ }
+ const now=Date.parse('2026-11-22T08:00:00Z');
+ assert.equal(replyTimeText('2026-11-22T07:05:09.123Z',false,now),'22-Nov 14:05');assert.equal(replyTimeText('2026-11-22T07:05:09.123Z',true,now),'22-พ.ย. 14:05');
+ // 17:30 UTC on the 21st is 00:30 on the 22nd in Bangkok; 16:59 UTC is still 23:59 on the 21st.
+ assert.equal(replyTimeText('2026-11-21T17:30:00Z',false,now),'22-Nov 00:30');assert.equal(replyTimeText('2026-11-21T16:59:59Z',false,now),'21-Nov 23:59');
+ // Another Bangkok year carries the year (Buddhist Era in Thai); 31 December 17:00 UTC is already the next Bangkok year.
+ assert.equal(replyTimeText('2025-10-03T02:41:00Z',false,now),'03-Oct-2025 09:41');assert.equal(replyTimeText('2025-10-03T02:41:00Z',true,now),'03-ต.ค.-2568 09:41');
+ assert.equal(replyTimeText('2025-12-31T17:00:00Z',false,now),'01-Jan 00:00');assert.equal(replyTimeText('2026-12-31T17:00:00Z',false,now),'01-Jan-2027 00:00');
+ for(const bad of [undefined,null,'','not a time'])assert.equal(replyTimeText(bad,false,now),null);
+ assert.match(deleteFailureText('turn_in_progress',false),/still answering/);assert.match(deleteFailureText('proposal_executing',false),/on its card/);
+ assert.equal(deleteFailureText('unavailable',false),'Could not delete this chat. Try again.');assert.equal(deleteFailureText(undefined,true),'ลบแชทไม่สำเร็จ ลองอีกครั้ง');
+ assert.notEqual(deleteFailureText('turn_in_progress',true),deleteFailureText('proposal_executing',true));
+ // The footer never reads the client clock of a running turn, and the provisional (streaming) state has no footer.
+ const view=readFileSync(new URL('../../apps/pwa/src/chat/ChatMessage.tsx',import.meta.url),'utf8');
+ assert.doesNotMatch(view,/startedAt/);assert.match(view,/const committed=typeof item\.seq==='number'/);
+ assert.match(view,/<time className="chat-meta-item" dateTime=\{item\.createdAt\}>/);
+});
+test('R182 client state after a thread delete: the row and its draft go; the open thread becomes a new chat that keeps the composer text',()=>{
+ const threads=[{id:'a'},{id:'b'},{id:'c'}],drafts={a:'half typed',b:'other',new:'old new draft'};
+ const open=afterThreadDelete({threads,drafts,openId:'a'},'a','new');
+ assert.deepEqual(open,{threads:[{id:'b'},{id:'c'}],drafts:{b:'other',new:'half typed'},openId:null,wasOpen:true});
+ const other=afterThreadDelete({threads,drafts,openId:'a'},'b','new');
+ assert.deepEqual(other,{threads:[{id:'a'},{id:'c'}],drafts:{a:'half typed',new:'old new draft'},openId:'a',wasOpen:false});
+ // The open thread without composer text leaves the new chat's own draft alone; an unknown id changes nothing.
+ assert.deepEqual(afterThreadDelete({threads,drafts:{new:'keep'},openId:'c'},'c','new').drafts,{new:'keep'});
+ assert.deepEqual(afterThreadDelete({threads,drafts,openId:null},'zz','new'),{threads,drafts,openId:null,wasOpen:false});
+ assert.deepEqual([threads.length,Object.keys(drafts).length],[3,3],'inputs are not mutated');
 });

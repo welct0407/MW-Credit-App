@@ -37,8 +37,12 @@ function memoryStore(){
    if(existing){if(existing.partner!==a.partnerId)throw Object.assign(Error('not_found'),{code:'42501'});return {created:false,item:item(existing)};}
    clock+=1000;const t={id:input.id,partner:a.partnerId,title:input.title??'New chat',model:input.model,status:'active',createdAt:new Date(clock).toISOString(),lastMessageAt:null,messageCount:0,sortAt:new Date(clock).toISOString().replace('Z','000Z')};
    threads.set(t.id,t);messages.set(t.id,[]);return {created:true,item:item(t)};},
-  async updateThread(p,tid,patch){const t=own(actor(p),tid);Object.assign(t,patch);return item(t);},
-  async thread(p,tid){return item(own(actor(p),tid));},
+  // V154 (R182): a deleted thread answers a repeated delete unchanged and not_found to every other patch and read;
+  // failUpdate stands for the two SQL refusals of a delete.
+  async updateThread(p,tid,patch){const t=own(actor(p),tid);if(store.failUpdate)throw store.failUpdate;
+   if(t.status==='deleted'){if(patch.status!=='deleted')throw Error('not_found');return item(t);}
+   Object.assign(t,patch);return item(t);},
+  async thread(p,tid){const t=own(actor(p),tid);if(t.status==='deleted')throw Error('not_found');return item(t);},
   async messages(p,tid,{before,limit}){own(actor(p),tid);return messages.get(tid).filter(m=>!before||m.seq<before).toReversed().slice(0,limit+1).map(msg);},
   async message(p,tid,mid){own(actor(p),tid);const list=messages.get(tid),u=list.find(m=>m.id===mid&&m.role==='user');if(!u)throw Error('not_found');
    const a=list.find(m=>m.seq===u.seq+1);return {user:msg(u),assistant:a?msg(a):null};},
@@ -129,6 +133,28 @@ test('models: the allowlist with the unavailable reason; the last chosen model i
  body=await (await s.call('/api/chat/models')).json();assert.equal(body.default,'gemini-3.8-flash');
 });
 
+test('R182 thread delete: PATCH {status:"deleted"} alone answers 200, a repeat 200, with another key 400, the two refusals 409, then the thread is gone',async t=>{
+ const store=memoryStore(),s=await server({store});t.after(s.close);
+ const path=`/api/chat/threads/${T1}`,del=(options={})=>s.call(path,{method:'PATCH',body:{status:'deleted'},...options});
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon',title:'To delete'}});
+ for(const body of [{status:'deleted',title:'x'},{status:'deleted',model:'gemini-4-argon'},{status:'gone'},{status:'deleted',extra:1}])
+  assert.equal((await s.call(path,{method:'PATCH',body})).status,400,JSON.stringify(body));
+ assert.notEqual((await s.call(path,{method:'DELETE'})).status,200,'no HTTP DELETE');assert.equal((await (await s.call(path)).json()).item.status,'active');
+ assert.equal((await del({token:'b'})).status,404);
+ // The SQL refusals (SQLSTATE 55006 with their message) keep their own codes.
+ for(const code of ['turn_in_progress','proposal_executing']){
+  store.failUpdate=Object.assign(Error(code),{code:'55006'});
+  const r=await del();assert.equal(r.status,409,code);assert.deepEqual(await r.json(),{error:code});
+ }
+ store.failUpdate=null;
+ assert.equal((await (await s.call(path)).json()).item.status,'active','a refused delete leaves the thread');
+ let r=await del();assert.equal(r.status,200);const first=await r.json();assert.deepEqual([first.item.id,first.item.status,first.item.title],[T1,'deleted','To delete']);
+ r=await del();assert.equal(r.status,200);assert.deepEqual(await r.json(),first,'a repeat is answered unchanged');
+ assert.equal((await s.call(path)).status,404);
+ for(const body of [{title:'Back'},{status:'active'},{status:'archived'}])assert.equal((await s.call(path,{method:'PATCH',body})).status,404,JSON.stringify(body));
+ for(const status of ['active','archived'])assert.deepEqual((await (await s.call('/api/chat/threads?status='+status)).json()).items,[],status);
+ assert.equal((await s.call('/api/chat/threads?status=deleted')).status,400);
+});
 test('threads: idempotent create, validation, other Partner 404, PATCH, list paging, revocation on writes only',async t=>{
  const s=await server();t.after(s.close);
  let r=await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});assert.equal(r.status,201);assert.equal((await r.json()).item.title,'New chat');

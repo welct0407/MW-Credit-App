@@ -4125,7 +4125,7 @@ CREATE FUNCTION public.pwa_chat_message_v1(actor jsonb, thread uuid, message uui
 DECLARE partner text:=public.pwa_chat_actor_v1(actor); u public.pwa_chat_messages; a public.pwa_chat_messages;
 BEGIN
  SELECT m.* INTO u FROM public.pwa_chat_messages m JOIN public.pwa_chat_threads t ON t.id=m.thread_id
- WHERE m.id=message AND m.thread_id=thread AND m.role='user' AND t.partner_id=partner;
+ WHERE m.id=message AND m.thread_id=thread AND m.role='user' AND t.partner_id=partner AND t.status<>'deleted';
  IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
  SELECT * INTO a FROM public.pwa_chat_messages m WHERE m.thread_id=u.thread_id AND m.seq=u.seq+1 AND m.role='assistant';
  RETURN jsonb_build_object('user',public.pwa_chat_message_json_v1(u),'assistant',CASE WHEN a.id IS NULL THEN 'null'::jsonb ELSE public.pwa_chat_message_json_v1(a) END);
@@ -4150,7 +4150,7 @@ CREATE FUNCTION public.pwa_chat_messages_v1(actor jsonb, thread uuid, before int
 DECLARE partner text:=public.pwa_chat_actor_v1(actor);
 BEGIN
  IF lim IS NULL OR lim NOT BETWEEN 1 AND 50 OR (before IS NOT NULL AND before<1) THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
- IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner) THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner AND t.status<>'deleted') THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
  RETURN coalesce((SELECT jsonb_agg(public.pwa_chat_message_json_v1(x.m) ORDER BY (x.m).seq DESC)
   FROM (SELECT m FROM public.pwa_chat_messages m WHERE m.thread_id=thread AND (before IS NULL OR m.seq<before) ORDER BY m.seq DESC LIMIT lim+1) x),'[]'::jsonb);
 END $$;
@@ -4173,7 +4173,7 @@ CREATE FUNCTION public.pwa_chat_models_default_v1(actor jsonb) RETURNS text
     AS $$
 DECLARE partner text:=public.pwa_chat_actor_v1(actor);
 BEGIN
- RETURN (SELECT t.model FROM public.pwa_chat_threads t WHERE t.partner_id=partner ORDER BY t.updated_at DESC,t.id DESC LIMIT 1);
+ RETURN (SELECT t.model FROM public.pwa_chat_threads t WHERE t.partner_id=partner AND t.status<>'deleted' ORDER BY t.updated_at DESC,t.id DESC LIMIT 1);
 END $$;
 
 
@@ -4496,8 +4496,30 @@ BEGIN
  IF patch IS NULL OR jsonb_typeof(patch)<>'object' OR NOT EXISTS(SELECT 1 FROM jsonb_object_keys(patch)) OR EXISTS(SELECT 1 FROM jsonb_object_keys(patch) k WHERE k NOT IN ('title','model','status'))
   OR (patch ? 'title' AND (jsonb_typeof(patch->'title')<>'string' OR length(patch->>'title') NOT BETWEEN 1 AND 120 OR patch->>'title'<>btrim(patch->>'title') OR patch->>'title' ~ '[[:cntrl:]]'))
   OR (patch ? 'model' AND (jsonb_typeof(patch->'model')<>'string' OR patch->>'model' !~ '^(gemini-[0-9]+(\.[0-9]+)?-[a-z0-9-]+|claude-[a-z]+-[0-9]+(-[0-9]+)?)$' OR length(patch->>'model')>64))
-  OR (patch ? 'status' AND (jsonb_typeof(patch->'status')<>'string' OR patch->>'status' NOT IN ('active','archived'))) THEN
+  OR (patch ? 'status' AND (jsonb_typeof(patch->'status')<>'string' OR patch->>'status' NOT IN ('active','archived','deleted')
+   OR (patch->>'status'='deleted' AND (SELECT count(*) FROM jsonb_object_keys(patch))<>1))) THEN
   RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ -- V154 (R182): soft delete. The row is locked first; a deleted thread is gone for every patch but a repeated delete.
+ SELECT * INTO row_value FROM public.pwa_chat_threads t WHERE t.id=$2 AND t.partner_id=partner FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ IF row_value.status='deleted' THEN
+  IF patch->>'status' IS DISTINCT FROM 'deleted' THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+  RETURN public.pwa_chat_thread_json_v1(row_value);
+ END IF;
+ IF patch->>'status'='deleted' THEN
+  IF EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.thread_id=row_value.id AND m.role='user' AND m.claimed_at>clock_timestamp()-interval '5 minutes') THEN
+   RAISE EXCEPTION 'turn_in_progress' USING ERRCODE='55006'; END IF;
+  -- A group confirmed part-way keeps the thread: its lines are separate proposals of one message, confirmed one at a
+  -- time, so between two lines nothing is executing; cancelling the remaining lines would leave a half-applied group.
+  IF EXISTS(SELECT 1 FROM public.pwa_chat_proposals p WHERE p.thread_id=row_value.id AND p.state='pending' AND p.expires_at>clock_timestamp()
+   AND EXISTS(SELECT 1 FROM public.pwa_chat_proposals q WHERE q.message_id=p.message_id AND q.claimed_at IS NOT NULL)) THEN
+   RAISE EXCEPTION 'proposal_executing' USING ERRCODE='55006'; END IF;
+  -- Pending proposals are cancelled first: a concurrent confirm that claimed one holds its row lock, so the check
+  -- below runs after that claim is visible. An executing or unknown one keeps the thread (its card reconciles it).
+  PERFORM public.pwa_chat_proposal_cancel_v1(actor,row_value.id,NULL,'superseded');
+  IF EXISTS(SELECT 1 FROM public.pwa_chat_proposals x WHERE x.thread_id=row_value.id AND x.state IN ('executing','unknown')) THEN
+   RAISE EXCEPTION 'proposal_executing' USING ERRCODE='55006'; END IF;
+ END IF;
  UPDATE public.pwa_chat_threads t SET title=coalesce(patch->>'title',t.title),model=coalesce(patch->>'model',t.model),status=coalesce(patch->>'status',t.status),updated_at=clock_timestamp()
  WHERE t.id=$2 AND t.partner_id=partner RETURNING * INTO row_value;
  IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
@@ -4523,7 +4545,7 @@ CREATE FUNCTION public.pwa_chat_thread_v1(actor jsonb, id uuid) RETURNS jsonb
 DECLARE partner text:=public.pwa_chat_actor_v1(actor); value jsonb;
 BEGIN
  IF id IS NULL THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
- SELECT public.pwa_chat_thread_json_v1(t) INTO value FROM public.pwa_chat_threads t WHERE t.id=$2 AND t.partner_id=partner;
+ SELECT public.pwa_chat_thread_json_v1(t) INTO value FROM public.pwa_chat_threads t WHERE t.id=$2 AND t.partner_id=partner AND t.status<>'deleted';
  IF value IS NULL THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
  RETURN value;
 END $_$;
@@ -4578,7 +4600,7 @@ BEGIN
   OR jsonb_typeof(message->'text')<>'string' OR length(message->>'text') NOT BETWEEN 1 AND 4000 OR octet_length(message->>'text')>16384 THEN
   RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
  message_id:=(message->>'id')::uuid;
- SELECT * INTO t FROM public.pwa_chat_threads x WHERE x.id=thread AND x.partner_id=partner FOR UPDATE;
+ SELECT * INTO t FROM public.pwa_chat_threads x WHERE x.id=thread AND x.partner_id=partner AND x.status<>'deleted' FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
  SELECT * INTO u FROM public.pwa_chat_messages m WHERE m.id=message_id;
  IF FOUND THEN

@@ -68,6 +68,31 @@ export function sourcesText(tools:{name:string;count:number}[]|undefined,thai:bo
 }
 /** The line under an assistant reply: the sources and the answering model, e.g. "Checked: database (2 queries) · Gemini 4 Argon". */
 export const metaLine=(...parts:(string|null|undefined)[])=>parts.filter(part=>!!part).join(' · ');
+/** R182 (CHAT-META-01): how long a committed reply took, from its stored latencyMs: whole seconds, at least 1 ("took 14 s",
+ * "took 1 min 12 s", "took 2 min"); null when nothing was measured (0 or missing). */
+export function tookText(latencyMs:number|null|undefined,thai:boolean):string|null{
+ if(typeof latencyMs!=='number'||!Number.isFinite(latencyMs)||latencyMs<=0)return null;
+ const total=Math.max(1,Math.round(latencyMs/1000)),minutes=Math.floor(total/60),seconds=total%60;
+ if(!minutes)return thai?`ใช้เวลา ${seconds} วิ`:`took ${seconds} s`;
+ if(thai)return `ใช้เวลา ${minutes} นาที`+(seconds?` ${seconds} วิ`:'');
+ return `took ${minutes} min`+(seconds?` ${seconds} s`:'');
+}
+const REPLY_MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],REPLY_MONTHS_TH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+/** R182 (CHAT-META-01): when a committed reply was stored, as the Bangkok date and time ("22-Nov 14:05", "22-พ.ย. 14:05");
+ * in another Bangkok year than now the year follows the date ("03-Oct-2025 09:41", Buddhist Era in Thai). null for a
+ * missing or unreadable time. */
+export function replyTimeText(iso:string|null|undefined,thai:boolean,now=Date.now()):string|null{
+ const at=iso?Date.parse(iso):Number.NaN;if(!Number.isFinite(at))return null;
+ // Bangkok has no daylight saving: wall-clock fields are the UTC fields of the instant moved by seven hours.
+ const local=new Date(at+7*3600000),year=local.getUTCFullYear(),current=new Date(now+7*3600000).getUTCFullYear(),two=(value:number)=>String(value).padStart(2,'0');
+ return two(local.getUTCDate())+'-'+(thai?REPLY_MONTHS_TH:REPLY_MONTHS)[local.getUTCMonth()]+(year===current?'':'-'+(year+(thai?543:0)))+' '+two(local.getUTCHours())+':'+two(local.getUTCMinutes());
+}
+/** R182 (CHAT-DEL-04): why a chat could not be deleted: the two refusals of the service, or anything else. */
+export function deleteFailureText(code:string|null|undefined,thai:boolean):string{
+ if(code==='turn_in_progress')return thai?'แชทนี้กำลังตอบอยู่ รอให้ตอบเสร็จก่อนแล้วจึงลบ':'This chat is still answering. Wait for the reply, then delete it.';
+ if(code==='proposal_executing')return thai?'มีรายการจากแชทนี้ที่กำลังบันทึกหรือยังต้องตรวจสอบ จัดการที่การ์ดของรายการนั้นก่อนแล้วจึงลบ':'A change from this chat is still being saved or needs checking. Finish it on its card, then delete the chat.';
+ return thai?'ลบแชทไม่สำเร็จ ลองอีกครั้ง':'Could not delete this chat. Try again.';
+}
 /** The service stores the literal "New chat" until the first message names the thread (Archie resolution 12). */
 /** R108 (UX-R108-01): the note for a thread whose model left the menu, so its next turn uses `label` (the default). */
 export function modelFallbackText(previous:string,label:string,thai:boolean){

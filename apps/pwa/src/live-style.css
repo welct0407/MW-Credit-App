@@ -986,3 +986,29 @@ button.line-action:not(#_):disabled{cursor:default;opacity:.7}
 .borrower-card.saved-change-card .saved-discard-button{color:#b3261e;border:1px solid #b3261e;background:#fff}
 .saved-discard-dialog .saved-send-button{background:#0b57d0;border:1px solid #0b57d0;color:#fff}
 @media(max-width:480px){.saved-discard-actions{flex-direction:column;align-items:stretch}.saved-discard-actions button{width:100%}}
+/* R182: payment history toggle and list (Echo PH-UX-01 to 09, PH-TGL-01 to 03). The row is the Payments page row idiom in two lines. */
+.payment-history-toggle[aria-expanded="true"]{background:#eef0f2;border-color:#5f6368;box-shadow:inset 0 -2px #5f6368}
+.ph-panel{grid-column:1/-1;min-width:0;margin:4px 0 8px;border-top:1px solid #d0d4d8}
+.ph-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:10px 0 6px}
+.ph-head h3{margin:0;font-size:16px;font-weight:600;color:#202124}
+.ph-month{margin:0;padding:5px 12px;font-size:14px;font-weight:600;color:#303030;background:#f0f0f0;border-block:1px solid #e1e4e8}
+.ph-list{list-style:none;margin:0;padding:0}
+.ph-row{box-sizing:border-box;display:grid;grid-template-columns:58px minmax(0,1fr) max-content;column-gap:10px;row-gap:0;align-items:baseline;width:100%;min-height:44px;margin:0;padding:7px 12px;border:0;border-bottom:1px solid #e1e4e8;border-radius:0;background:#fff;color:#202124;font:inherit;text-align:left}
+.collection-context button.ph-row{margin:0}
+button.ph-row{cursor:pointer}button.ph-row:active{background:#f1f1f1}
+.ph-date{grid-column:1;grid-row:1;font-weight:600;white-space:nowrap}
+.ph-account{grid-column:2;grid-row:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#303030}
+.ph-amount{grid-column:3;grid-row:1;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.ph-meta{grid-column:2/-1;grid-row:2;display:flex;gap:6px;min-width:0;font-size:14px;line-height:1.35;color:#555}
+.ph-note{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph-receipt{flex:0 0 auto;white-space:nowrap}
+.ph-flag{flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;font-weight:600;white-space:nowrap}
+.ph-flag svg{width:15px;height:15px}
+.ph-flag.processing,.ph-amount.processing{color:#9a6700}
+.ph-flag.error,.ph-amount.error{color:#b3261e}
+.ph-flag.unknown,.ph-flag.cancelled{color:#666}
+.ph-head h3:focus{outline:none}.ph-head h3:focus-visible{outline:2px solid #5f6368;outline-offset:2px}
+.ph-panel .compact-pager{margin-top:8px}
+.ph-state{margin:0;padding:12px;color:#555}
+.ph-state.error{color:#8e1b1b}
+.ph-state button{margin-inline-start:8px}

@@ -38,7 +38,7 @@ const seeded=()=>({
   {id:'aaaaaaaa-0000-4000-8000-000000000004',seq:3,role:'assistant',text:'I could not complete this request. Check the app before asking again.',status:'failed',errorCode:'TURN_TIMEOUT',model:'gemini-a',createdAt:iso(5)},
  ],[T2]:[{id:'bbbbbbbb-0000-4000-8000-000000000001',seq:0,role:'user',text:'Profit this month',status:'ok'},{id:'bbbbbbbb-0000-4000-8000-000000000002',seq:1,role:'assistant',text:'Profit this month is **8,200** baht.',status:'ok',model:'gemini-0-retired',tools:[{name:'sql_query',count:1}]}],[T3]:[]} as Record<string,any[]>,
 });
-type Stub={threads:any[];messages:Record<string,any[]>;creates:any[];patches:any[];polls:string[];outcomes:any[];presence:string[];presenceStatus:number|null;denied:boolean;patchStatus:number|null;
+type Stub={threads:any[];messages:Record<string,any[]>;creates:any[];patches:any[];polls:string[];outcomes:any[];presence:string[];presenceStatus:number|null;denied:boolean;patchStatus:number|null;patchError?:string;
  proposalRequests:{method:string;path:string;body:string|null;authorization:string|null}[];confirmAnswer:any;proposalReads:any[];confirmDrop?:boolean};
 // R106: a reply that proposed a payment (server-built card; synthetic borrower and amounts), pending for 15 minutes.
 const P1='dddddddd-0000-4000-8000-000000000001';
@@ -141,7 +141,7 @@ async function chatRoute(route:any,s:Stub){
  if(path==='/api/chat/threads'&&method==='POST'){const body=request.postDataJSON();s.creates.push(body);const item={id:body.id,title:'New chat',model:body.model,status:'active',createdAt:new Date().toISOString(),lastMessageAt:null,messageCount:0};s.threads.unshift(item);s.messages[item.id]=[];return route.fulfill({status:201,json:{item}})}
  let match=/^\/api\/chat\/threads\/([^/]+)$/.exec(path);
  if(match&&method==='GET'){const thread=s.threads.find(row=>row.id===match![1]);return thread?route.fulfill({json:{item:thread}}):route.fulfill({status:404,json:{error:'not_found'}})}
- if(match&&method==='PATCH'){const body=request.postDataJSON();s.patches.push({id:match[1],body});if(s.patchStatus)return route.fulfill({status:s.patchStatus,json:{error:'unavailable'}});const thread=s.threads.find(row=>row.id===match![1]);Object.assign(thread,body);return route.fulfill({json:{item:thread}})}
+ if(match&&method==='PATCH'){const body=request.postDataJSON();s.patches.push({id:match[1],body});if(s.patchStatus)return route.fulfill({status:s.patchStatus,json:{error:s.patchError??'unavailable'}});const thread=s.threads.find(row=>row.id===match![1]);Object.assign(thread,body);return route.fulfill({json:{item:thread}})}
  match=/^\/api\/chat\/threads\/([^/]+)\/messages$/.exec(path);
  if(match&&method==='GET')return route.fulfill({json:{items:s.messages[match[1]]??[],nextCursor:null}});
  if(/^\/api\/chat\/threads\/[^/]+\/messages\/[^/]+\/presence$/.test(path)&&method==='POST'){s.presence.push(request.postData()??'');return s.presenceStatus?route.fulfill({status:s.presenceStatus,json:{error:'unauthorized',code:'session_invalid'}}):route.fulfill({status:204,body:''})}
@@ -262,8 +262,8 @@ test('model switch PATCHes the thread, updates the badge and reverts on failure'
   await openChat(page);
   const picker=page.getByRole('combobox',{name:'Model',exact:true});
   await expect(picker).toHaveValue('gemini-a');await expect(page.locator('.chat-assistant strong').first()).toHaveText('Somchai');
-  await expect(page.locator('.chat-assistant').first().locator('.chat-sources')).toHaveText('Checked: records (2 reads), loan payoff · Gemini A');
-  await expect(page.locator('.chat-failed .chat-model-line')).toHaveText('Gemini A');
+  await expect(page.locator('.chat-assistant').first().locator('.chat-sources')).toHaveText(/^Checked: records \(2 reads\), loan payoff · Gemini A · \d{2}-[A-Z][a-z]{2} \d{2}:\d{2}$/);
+  await expect(page.locator('.chat-failed .chat-model-line')).toHaveText(/^Gemini A · \d{2}-[A-Z][a-z]{2} \d{2}:\d{2}$/);
   await expect(picker.locator('option[value="gemini-c"]')).toHaveJSProperty('disabled',true);await expect(picker.locator('option[value="gemini-c"]')).toHaveText('Gemini C — pending live check');
   await picker.selectOption('gemini-b');
   await expect.poll(()=>s.patches).toEqual([{id:T1,body:{model:'gemini-b'}}]);
@@ -818,5 +818,134 @@ test('R122: the New borrower form with Translate from Thai fits 320 and 390 px (
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
    await region.page().getByRole('button',{name:language==='ไทย'?'กลับรายชื่อผู้กู้':'Back to borrowers',exact:true}).click();
   }
+ }finally{await context.close()}
+});
+
+// R182 (CHAT-DEL-01 to 05, CHAT-META-01/02): deleting a thread from the ⋯ menu or the swipe strip, and the reply footer.
+const bangkokStamp=(isoTime:string)=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(isoTime)),get=(type:string)=>parts.find(part=>part.type===type)!.value;return get('day')+'-'+get('month').slice(0,3)+' '+get('hour')+':'+get('minute')};
+const threadRow=(page:Page,title:string)=>page.locator('.chat-thread').filter({hasText:title});
+async function openThreadMenu(page:Page,title:string){await page.getByRole('button',{name:'More for '+title,exact:true}).click();return threadRow(page,title).locator('.chat-thread-menu')}
+test('R182: the ⋯ menu ends with Delete…; the confirmation starts on Cancel; active and archived threads are deleted; refusals stay in the dialog',async()=>{
+ const {context,page,s}=await launch({seed:true});
+ try{
+  await openChat(page);await expect(page.locator('.chat-assistant').first()).toContainText('12,450');await openThreads(page);
+  let menu=await openThreadMenu(page,'Profit this month');
+  await expect(menu.getByRole('button')).toHaveText(['Rename','Archive','Delete…']);
+  expect(await menu.getByRole('button',{name:'Delete…',exact:true}).evaluate(e=>[getComputedStyle(e).color,getComputedStyle(e).borderTopStyle])).toEqual(['rgb(179, 38, 30)','solid']);
+  await menu.getByRole('button',{name:'Delete…',exact:true}).click();
+  const dialog=page.locator('dialog.chat-delete-dialog');await expect(dialog).toBeVisible();await expect(dialog.getByRole('heading',{name:'Delete this chat?',exact:true})).toBeVisible();
+  await expect(dialog).toContainText('“Profit this month” will be removed from your chats. This cannot be undone.');await expect(dialog.getByRole('button',{name:'Cancel',exact:true})).toBeFocused();
+  // Cancel and Escape change nothing.
+  await dialog.getByRole('button',{name:'Cancel',exact:true}).click();await expect(dialog).toHaveCount(0);
+  menu=await openThreadMenu(page,'Profit this month');await menu.getByRole('button',{name:'Delete…',exact:true}).click();await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);expect(s.patches).toEqual([]);
+  await expect(threadRow(page,'Profit this month')).toHaveCount(1);
+  // The service's refusals are explained in the dialog, which stays open.
+  menu=await openThreadMenu(page,'Profit this month');await menu.getByRole('button',{name:'Delete…',exact:true}).click();
+  for(const [code,text] of [['turn_in_progress','This chat is still answering. Wait for the reply, then delete it.'],['proposal_executing','A change from this chat is still being saved or needs checking. Finish it on its card, then delete the chat.'],['unavailable','Could not delete this chat. Try again.']]){
+   s.patchStatus=code==='unavailable'?503:409;s.patchError=code;await dialog.getByRole('button',{name:'Delete chat',exact:true}).click();await expect(dialog.getByRole('alert')).toHaveText(text);await expect(dialog).toBeVisible()}
+  await expect(threadRow(page,'Profit this month')).toHaveCount(1);
+  // Confirmed: PATCH {status:'deleted'} alone, the row goes, it is announced and focus moves to a neighbouring row.
+  s.patchStatus=null;s.patchError=undefined;const before=s.patches.length;await dialog.getByRole('button',{name:'Delete chat',exact:true}).click();
+  await expect(dialog).toHaveCount(0);await expect(threadRow(page,'Profit this month')).toHaveCount(0);expect(s.patches.slice(before)).toEqual([{id:T2,body:{status:'deleted'}}]);
+  await expect(page.locator('.chat-workspace [role="status"][aria-live="polite"]')).toHaveText('Chat deleted.');
+  await expect(threadRow(page,'Payoff for Somchai today').locator('.chat-thread-open')).toBeFocused();
+  // The open thread was another one: it stays open.
+  await expect(page.locator('.chat-thread.current .chat-thread-title')).toHaveText('Payoff for Somchai today');
+  // Archived list: Rename, Unarchive, Delete…; a 404 (already gone) counts as deleted.
+  await page.getByRole('button',{name:'Archived',exact:true}).click();await expect(threadRow(page,'Old cash question')).toHaveCount(1);
+  menu=await openThreadMenu(page,'Old cash question');await expect(menu.getByRole('button')).toHaveText(['Rename','Unarchive','Delete…']);await menu.getByRole('button',{name:'Delete…',exact:true}).click();
+  s.patchStatus=404;s.patchError='not_found';s.threads=s.threads.filter(thread=>thread.id!==T3);await dialog.getByRole('button',{name:'Delete chat',exact:true}).click();
+  await expect(dialog).toHaveCount(0);await expect(threadRow(page,'Old cash question')).toHaveCount(0);await expect(page.getByText('No archived threads.',{exact:true})).toBeVisible();
+  expect(s.patches.at(-1)).toEqual({id:T3,body:{status:'deleted'}});
+ }finally{await context.close()}
+});
+test('R182: deleting the open thread shows a new chat that keeps the composer text; Thai wording',async()=>{
+ const {context,page,s}=await launch({seed:true});
+ try{
+  await openChat(page);await expect(page.locator('.chat-assistant').first()).toContainText('12,450');await composer(page).fill('half typed question');
+  await chooseLanguage(page,'ไทย');await openThreads(page);
+  await page.getByRole('button',{name:'ตัวเลือกเพิ่มเติมของ Payoff for Somchai today',exact:true}).click();
+  const menu=threadRow(page,'Payoff for Somchai today').locator('.chat-thread-menu');await expect(menu.getByRole('button')).toHaveText(['เปลี่ยนชื่อ','เก็บถาวร','ลบ…']);await menu.getByRole('button',{name:'ลบ…',exact:true}).click();
+  const dialog=page.locator('dialog.chat-delete-dialog');await expect(dialog.getByRole('heading',{name:'ลบแชทนี้หรือไม่',exact:true})).toBeVisible();await expect(dialog).toContainText('“Payoff for Somchai today” จะถูกลบออกจากรายการแชท และกู้คืนไม่ได้');
+  await expect(dialog.getByRole('button',{name:'ยกเลิก',exact:true})).toBeFocused();await dialog.getByRole('button',{name:'ลบแชท',exact:true}).click();
+  await expect(dialog).toHaveCount(0);expect(s.patches).toEqual([{id:T1,body:{status:'deleted'}}]);await expect(page.locator('.chat-workspace [role="status"][aria-live="polite"]')).toHaveText('ลบแชทแล้ว');
+  await expect(threadRow(page,'Payoff for Somchai today')).toHaveCount(0);await expect(page.locator('.chat-thread.current')).toHaveCount(0);
+  await closeThreads(page);
+  await expect(page.locator('.chat-message')).toHaveCount(0);await expect(page.locator('.chat-welcome')).toBeVisible();await expect(composer(page)).toHaveValue('half typed question');await expect(composer(page)).toBeEnabled();
+  // The next message starts a new thread; the deleted one is not written to again.
+  await page.getByRole('button',{name:'ส่ง',exact:true}).click();await expect.poll(()=>s.creates.length).toBe(1);await expect.poll(async()=>(await streams(page)).length).toBe(1);
+  expect((await streams(page))[0].url).toBe(chatOrigin+'/api/chat/threads/'+s.creates[0].id+'/messages');
+ }finally{await context.close()}
+});
+test('R182: on a touch device swiping a thread row left shows the red Delete; the menu drawer does not open; one row at a time; a tap on the open row only closes it',async()=>{
+ test.skip(!mobile,'The swipe strip exists on coarse pointers only');
+ const {context,page,s}=await launch({seed:true});
+ try{
+  await openChat(page);await expect(page.locator('.chat-assistant').first()).toContainText('12,450');await openThreads(page);
+  await expect(page.locator('.chat-thread.swipe')).toHaveCount(2);
+  const strip=(title:string)=>threadRow(page,title).locator('.chat-thread-strip'),left=(title:string)=>strip(title).evaluate(e=>Math.round(e.scrollLeft));
+  const remove=threadRow(page,'Profit this month').locator('.chat-thread-delete');
+  // Not in the tab order or the accessibility tree: the ⋯ menu is the accessible route.
+  expect(await remove.evaluate(e=>[e.getAttribute('tabindex'),e.getAttribute('aria-hidden'),Math.round(e.getBoundingClientRect().width),getComputedStyle(e).backgroundColor])).toEqual(['-1','true',88,'rgb(179, 38, 30)']);
+  // A real touch swipe to the left scrolls the strip natively to its end and leaves the navigation drawer closed.
+  const session=await context.newCDPSession(page);
+  const swipeLeft=async(title:string)=>{const box=(await strip(title).boundingBox())!,y=Math.round(box.y+box.height/2),from=Math.round(box.x+box.width*0.75);
+   await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:from,y}]});for(let x=from-10;x>=from-150;x-=10)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]})};
+  await swipeLeft('Profit this month');
+  await expect.poll(()=>left('Profit this month')).toBe(88);await expect(remove).toBeInViewport({ratio:0.99});
+  await expect(page.locator('dialog[open]')).toHaveCount(0);await expect(page.locator('.chat-pane')).toBeVisible();expect(s.patches).toEqual([]);
+  // Another row swiped open closes the first one.
+  await swipeLeft('Payoff for Somchai today');
+  await expect.poll(()=>left('Payoff for Somchai today')).toBe(88);await expect.poll(()=>left('Profit this month')).toBe(0);
+  // A tap on the open row's content only closes it (the thread is not opened, the sheet stays).
+  {const box=(await strip('Payoff for Somchai today').boundingBox())!;await page.touchscreen.tap(Math.round(box.x+60),Math.round(box.y+box.height/2))}   // by coordinates: a locator tap would scroll the row back first
+  await expect.poll(()=>left('Payoff for Somchai today')).toBe(0);await expect(page.locator('.chat-pane')).toBeVisible();
+  // The red button asks first; confirming deletes.
+  await strip('Profit this month').evaluate(e=>{e.scrollLeft=88});await expect.poll(()=>left('Profit this month')).toBe(88);await remove.tap();
+  const dialog=page.locator('dialog.chat-delete-dialog');await expect(dialog).toContainText('“Profit this month”');await expect(dialog.getByRole('button',{name:'Cancel',exact:true})).toBeFocused();expect(s.patches).toEqual([]);
+  await dialog.getByRole('button',{name:'Delete chat',exact:true}).click();await expect(threadRow(page,'Profit this month')).toHaveCount(0);expect(s.patches).toEqual([{id:T2,body:{status:'deleted'}}]);
+  // No strip while renaming.
+  const menu=await openThreadMenu(page,'Payoff for Somchai today');await menu.getByRole('button',{name:'Rename',exact:true}).click();await expect(page.locator('.chat-thread-rename')).toBeVisible();await expect(page.locator('.chat-thread-strip')).toHaveCount(0);
+ }finally{await context.close()}
+});
+test('R182: a reply footer shows the time taken and when it was stored; streamed and polled replies read the same after a reload; a streaming reply has none',async()=>{
+ const {context,page,s}=await launch({seed:true});
+ try{
+  const stored=iso(9),old='2025-10-03T02:41:00.000Z';
+  s.messages[T1][1]={...s.messages[T1][1],createdAt:stored,usage:{promptTokens:10,outputTokens:5,thoughtsTokens:0,cachedTokens:0,rounds:2,latencyMs:14000}};
+  s.messages[T1][3]={...s.messages[T1][3],createdAt:old,usage:{promptTokens:10,outputTokens:0,thoughtsTokens:0,cachedTokens:0,rounds:1,latencyMs:72000}};
+  await openChat(page);const replies=page.locator('.chat-assistant:not(.chat-provisional)');
+  const first=replies.first().locator('.chat-sources');
+  await expect(first).toHaveText('Checked: records (2 reads), loan payoff · Gemini A · took 14 s · '+bangkokStamp(stored));
+  await expect(first.locator('time')).toHaveAttribute('datetime',stored);await expect(first.locator('.chat-meta-item')).toHaveText(['Checked: records (2 reads), loan payoff','Gemini A','took 14 s',bangkokStamp(stored)]);
+  // A committed failed reply carries it on its model line; another year shows the year.
+  await expect(page.locator('.chat-failed .chat-model-line')).toHaveText('Gemini A · took 1 min 12 s · 03-Oct-2025 09:41');
+  // Streamed: nothing while streaming, the footer from the committed message, the same after a reload.
+  await composer(page).fill('Payoff for Somchai tomorrow?');await page.getByRole('button',{name:'Send',exact:true}).click();
+  await expect.poll(async()=>(await streams(page)).length).toBe(1);const [post]=await streams(page);
+  await feed(page,ev('accepted',{messageId:post.body.id,seq:4,model:'gemini-a'}),ev('round',{n:1}),ev('delta',{text:'Tomorrow it is'}));
+  const provisional=page.locator('.chat-provisional');await expect(provisional).toContainText('Tomorrow it is');await expect(provisional.locator('time')).toHaveCount(0);await expect(provisional).not.toContainText('took');
+  const streamedAt=new Date().toISOString(),user={id:post.body.id,seq:4,role:'user',text:'Payoff for Somchai tomorrow?',status:'ok',createdAt:streamedAt};
+  const streamed={id:'dddddddd-0000-4000-8000-000000000011',seq:5,role:'assistant',text:'Tomorrow it is **12,465** baht.',status:'ok',model:'gemini-a',createdAt:streamedAt,tools:[{name:'loan_payoff',count:1}],usage:{promptTokens:10,outputTokens:5,thoughtsTokens:0,cachedTokens:0,rounds:1,latencyMs:65000}};
+  await feed(page,ev('message',streamed),ev('done',{}));
+  const streamedFooter='Checked: loan payoff · Gemini A · took 1 min 5 s · '+bangkokStamp(streamedAt);
+  await expect(replies.last().locator('.chat-sources')).toHaveText(streamedFooter);
+  // Polled: a dropped stream reads the stored outcome, with the same kind of footer.
+  s.messages[T1].push(user,streamed);
+  await composer(page).fill('And the day after?');await page.getByRole('button',{name:'Send',exact:true}).click();
+  await expect.poll(async()=>(await streams(page)).length).toBe(2);const second=(await streams(page))[1];
+  const polledAt=new Date().toISOString(),asked={id:second.body.id,seq:6,role:'user',text:'And the day after?',status:'ok',createdAt:polledAt};
+  const polled={id:'dddddddd-0000-4000-8000-000000000012',seq:7,role:'assistant',text:'The day after it is **12,480** baht.',status:'ok',model:'gemini-a',createdAt:polledAt,tools:[{name:'loan_payoff',count:1}],usage:{promptTokens:10,outputTokens:5,thoughtsTokens:0,cachedTokens:0,rounds:1,latencyMs:400}};
+  s.outcomes.push({user:asked,assistant:polled});
+  await feed(page,ev('accepted',{messageId:second.body.id,seq:6,model:'gemini-a'}));await page.evaluate(()=>(window as any).__chatStreams.at(-1).fail());
+  const polledFooter='Checked: loan payoff · Gemini A · took 1 s · '+bangkokStamp(polledAt);
+  await expect(replies.last()).toContainText('12,480',{timeout:10000});await expect(replies.last().locator('.chat-sources')).toHaveText(polledFooter);
+  s.messages[T1].push(asked,polled);
+  await page.reload();await openChat(page);await expect(replies.last()).toContainText('12,480');
+  await expect(replies.last().locator('.chat-sources')).toHaveText(polledFooter);await expect(replies.nth(-2).locator('.chat-sources')).toHaveText(streamedFooter);
+  // The footer breaks only between items at 320px.
+  await page.setViewportSize({width:320,height:700});
+  expect(await replies.last().locator('.chat-meta-item').evaluateAll(list=>list.every(node=>node.getClientRects().length===1))).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  }finally{await context.close()}
 });

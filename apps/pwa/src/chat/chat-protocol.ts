@@ -245,3 +245,11 @@ export async function pollOutcome(read:()=>Promise<Outcome>,{intervalMs=3000,tim
   if(outcome.state!=='pending')return outcome;
  }
 }
+
+/** R182 (CHAT-DEL-05): the client state after a thread was deleted: the row leaves the list and its draft is dropped; when
+ * it was the open thread a new chat takes its place (`openId` null) and keeps the composer text as the new chat's draft. */
+export function afterThreadDelete<T extends {id:string}>(state:{threads:T[];drafts:Record<string,string>;openId:string|null},id:string,newKey:string):{threads:T[];drafts:Record<string,string>;openId:string|null;wasOpen:boolean}{
+ const wasOpen=state.openId===id,text=state.drafts[id]??'',drafts=Object.fromEntries(Object.entries(state.drafts).filter(([key])=>key!==id));
+ if(wasOpen&&text)drafts[newKey]=text;
+ return {threads:state.threads.filter(row=>row.id!==id),drafts,openId:wasOpen?null:state.openId,wasOpen};
+}

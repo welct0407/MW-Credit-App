@@ -7,7 +7,8 @@
 -- thread_full (54000), the append-only triggers (55000), the capability boundary (no EXECUTE without
 -- mw_chat_api_dev; mw_chat_read_dev reads no chat table and calls no chat RPC) and the Cost page function.
 -- G covers V105 (chat reply event, job status); H covers V106 (turn presence, the completion's detached flag); I covers
--- V108 (the Cost page's turn and usage reads); K covers V118 (proposals), L V119 (proposal groups).
+-- V108 (the Cost page's turn and usage reads); K covers V118 (proposals), L V119 (proposal groups); M covers V154 (thread
+-- soft delete).
 \set ON_ERROR_STOP on
 BEGIN;
 DO $$ BEGIN
@@ -697,5 +698,154 @@ DO $$ BEGIN
   OR has_function_privilege('mw_chat_api_dev','public.pwa_chat_proposal_json_v1(public.pwa_chat_proposals)','EXECUTE')
   OR has_function_privilege('mw_notify_api_dev','public.pwa_chat_proposal_claim_v1(jsonb,uuid,uuid)','EXECUTE') THEN RAISE EXCEPTION 'V118 routines reach the wrong capability'; END IF;
 END $$;
+-- M. V154 (R182): thread soft delete through pwa_chat_thread_update_v1 {"status":"deleted"}. Sole key only; another
+-- Partner's thread is not found; refused while a turn claim is live (55006 turn_in_progress), while a proposal is
+-- executing or unknown and while a group is confirmed part-way (55006 proposal_executing, pending ones untouched); pending proposals are cancelled; a repeat is
+-- answered unchanged; a deleted thread is not found on read, messages, the one-message read, turn begin and any other
+-- patch, and on neither list; the default model ignores deleted threads; the row stays (SQL DELETE still raises 55000) and the CHECK refuses any other status.
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); b jsonb:=pg_temp.actor('b'); r jsonb;
+ d1 uuid:='de000001-0000-4000-8000-000000000001'; d2 uuid:='de000002-0000-4000-8000-000000000002'; d3 uuid:='de000003-0000-4000-8000-000000000003';
+ u1 uuid:='df000001-0000-4000-8000-000000000001'; u2 uuid:='df000002-0000-4000-8000-000000000002';
+ update_sql text:='SELECT public.pwa_chat_thread_update_v1(%L::jsonb,%L::uuid,%L::jsonb)';
+BEGIN
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',d1,'model','gemini-4-argon','title','To delete'));
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',d2,'model','gemini-4-argon','title','Executing'));
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',d3,'model','gemini-4-argon','title','Archived then deleted'));
+ PERFORM public.pwa_chat_turn_begin_v1(a,d1,jsonb_build_object('id',u1,'text','Record an expense of 100'));
+ PERFORM public.pwa_chat_proposal_create_v1(a,d1,pg_temp.proposal('dc000001-0000-4000-8000-000000000001',u1));
+ PERFORM public.pwa_chat_turn_begin_v1(a,d2,jsonb_build_object('id',u2,'text','Record an expense of 200'));
+ -- Shape: deleted is the sole key; an unknown status stays refused.
+ PERFORM pg_temp.expect(format(update_sql,a,d1,'{"status":"deleted","title":"x"}'),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(update_sql,a,d1,'{"status":"deleted","model":"gemini-4-argon"}'),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(update_sql,a,d1,'{"status":"gone"}'),'22023','invalid_request');
+ -- Another Partner's thread; a live turn claim.
+ PERFORM pg_temp.expect(format(update_sql,b,d1,'{"status":"deleted"}'),'P0002','not_found');
+ PERFORM pg_temp.expect(format(update_sql,a,d1,'{"status":"deleted"}'),'55006','turn_in_progress');
+ IF public.pwa_chat_thread_v1(a,d1)->>'status' IS DISTINCT FROM 'active' THEN RAISE EXCEPTION 'a refused delete leaves the thread active'; END IF;
+ -- An archived thread without a turn is deleted directly. Its model was the default (the latest updated thread); once
+ -- deleted it no longer is, although the deletion made it the latest updated row.
+ PERFORM public.pwa_chat_thread_update_v1(a,d3,'{"status":"archived","model":"claude-sonnet-9-9"}');
+ IF public.pwa_chat_models_default_v1(a) IS DISTINCT FROM 'claude-sonnet-9-9' THEN RAISE EXCEPTION 'default model before the delete'; END IF;
+ r:=public.pwa_chat_thread_update_v1(a,d3,'{"status":"deleted"}');
+ IF coalesce(public.pwa_chat_models_default_v1(a),'claude-sonnet-9-9')='claude-sonnet-9-9' THEN RAISE EXCEPTION 'a deleted thread is not the default model source: %',public.pwa_chat_models_default_v1(a); END IF;
+ IF r->>'status' IS DISTINCT FROM 'deleted' OR r->>'id' IS DISTINCT FROM d3::text OR r->>'title' IS DISTINCT FROM 'Archived then deleted' THEN RAISE EXCEPTION 'deleted archived thread %',r; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+-- The claims go stale (moved back by the test owner); thread d2 gets an executing and a pending proposal.
+UPDATE public.pwa_chat_messages SET claimed_at=clock_timestamp()-interval '6 minutes' WHERE id IN ('df000001-0000-4000-8000-000000000001','df000002-0000-4000-8000-000000000002');
+INSERT INTO public.pwa_chat_proposals(id,thread_id,message_id,partner_id,kind,operation,command,card,state,created_at,expires_at,claimed_at,attempts)
+SELECT x.id,'de000002-0000-4000-8000-000000000002','df000002-0000-4000-8000-000000000002','CH-A','operation','expense.create',jsonb_build_object('requestId',x.id)::text,'{}',x.state,
+ clock_timestamp()-interval '1 minute',clock_timestamp()+interval '14 minutes',CASE WHEN x.state='executing' THEN clock_timestamp()-interval '30 seconds' END,CASE WHEN x.state='executing' THEN 1 ELSE 0 END
+FROM (VALUES ('dc000002-0000-4000-8000-000000000002'::uuid,'executing'),('dc000003-0000-4000-8000-000000000003'::uuid,'pending')) x(id,state);
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); r jsonb;
+ d1 uuid:='de000001-0000-4000-8000-000000000001'; d2 uuid:='de000002-0000-4000-8000-000000000002'; d3 uuid:='de000003-0000-4000-8000-000000000003';
+ u1 uuid:='df000001-0000-4000-8000-000000000001'; q2 uuid:='dc000002-0000-4000-8000-000000000002'; q3 uuid:='dc000003-0000-4000-8000-000000000003';
+ update_sql text:='SELECT public.pwa_chat_thread_update_v1(%L::jsonb,%L::uuid,%L::jsonb)';
+BEGIN
+ -- Executing, then unknown: refused, and the refusal leaves the pending line pending.
+ PERFORM pg_temp.expect(format(update_sql,a,d2,'{"status":"deleted"}'),'55006','proposal_executing');
+ IF public.pwa_chat_proposals_v1(a,d2,q3,NULL)->>'state' IS DISTINCT FROM 'pending' THEN RAISE EXCEPTION 'a refused delete cancels nothing'; END IF;
+ PERFORM public.pwa_chat_proposal_settle_v1(a,d2,q2,'{"state":"unknown","outcome":null,"record":null}');
+ PERFORM pg_temp.expect(format(update_sql,a,d2,'{"status":"deleted"}'),'55006','proposal_executing');
+ IF public.pwa_chat_thread_v1(a,d2)->>'status' IS DISTINCT FROM 'active' OR public.pwa_chat_proposals_v1(a,d2,q3,NULL)->>'state' IS DISTINCT FROM 'pending' THEN RAISE EXCEPTION 'unknown keeps the thread and its card'; END IF;
+ -- Reconciled, but the two lines share one message (a group): with one line claimed and the other still pending the
+ -- group is part-way, so the delete stays refused until the pending line is cancelled.
+ PERFORM public.pwa_chat_proposal_settle_v1(a,d2,q2,'{"state":"failed","outcome":{"code":"x"},"record":null}');
+ PERFORM pg_temp.expect(format(update_sql,a,d2,'{"status":"deleted"}'),'55006','proposal_executing');
+ IF public.pwa_chat_proposals_v1(a,d2,q3,NULL)->>'state' IS DISTINCT FROM 'pending' THEN RAISE EXCEPTION 'a part-way refusal cancels nothing'; END IF;
+ IF public.pwa_chat_proposal_cancel_v1(a,d2,NULL,'superseded') IS DISTINCT FROM '{"cancelled":1}' THEN RAISE EXCEPTION 'cancel the pending line'; END IF;
+ r:=public.pwa_chat_thread_update_v1(a,d2,'{"status":"deleted"}');
+ IF r->>'status' IS DISTINCT FROM 'deleted' THEN RAISE EXCEPTION 'delete after reconciliation %',r; END IF;
+ -- The stale claim no longer blocks; the pending proposal of d1 is cancelled.
+ IF public.pwa_chat_message_v1(a,d1,u1)#>>'{user,id}' IS DISTINCT FROM u1::text THEN RAISE EXCEPTION 'the one-message read before the delete'; END IF;
+ r:=public.pwa_chat_thread_update_v1(a,d1,'{"status":"deleted"}');
+ IF r->>'status' IS DISTINCT FROM 'deleted' OR r->>'id' IS DISTINCT FROM d1::text OR r->>'title' IS DISTINCT FROM 'To delete' THEN RAISE EXCEPTION 'deleted %',r; END IF;
+ PERFORM set_config('v154.deleted_at',(SELECT clock_timestamp()::text),true);
+ -- A repeat is answered unchanged.
+ IF public.pwa_chat_thread_update_v1(a,d1,'{"status":"deleted"}') IS DISTINCT FROM r THEN RAISE EXCEPTION 'repeated delete'; END IF;
+ -- Gone: read, messages, turn begin (new message and a re-POST) and every other patch.
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_thread_v1(%L::jsonb,%L::uuid)',a,d1),'P0002','not_found');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_messages_v1(%L::jsonb,%L::uuid,NULL,10)',a,d1),'P0002','not_found');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_message_v1(%L::jsonb,%L::uuid,%L::uuid)',a,d1,u1),'P0002','not_found');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_turn_begin_v1(%L::jsonb,%L::uuid,%L::jsonb)',a,d1,jsonb_build_object('id','df000009-0000-4000-8000-000000000009','text','x')),'P0002','not_found');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_turn_begin_v1(%L::jsonb,%L::uuid,%L::jsonb)',a,d1,jsonb_build_object('id',u1,'text','Record an expense of 100')),'P0002','not_found');
+ PERFORM pg_temp.expect(format(update_sql,a,d1,'{"title":"Back"}'),'P0002','not_found');
+ PERFORM pg_temp.expect(format(update_sql,a,d1,'{"status":"active"}'),'P0002','not_found');
+ PERFORM pg_temp.expect(format(update_sql,a,d1,'{"status":"archived"}'),'P0002','not_found');
+ PERFORM pg_temp.expect(format(update_sql,a,d1,'{"model":"gemini-4-argon"}'),'P0002','not_found');
+ PERFORM pg_temp.expect(format(update_sql,a,d1,'{"status":"deleted","title":"x"}'),'22023','invalid_request');
+ -- On neither list.
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(public.pwa_chat_threads_v1(a,'active',NULL,50)||public.pwa_chat_threads_v1(a,'archived',NULL,50)) x WHERE (x->>'id')::uuid IN (d1,d2,d3)) THEN
+  RAISE EXCEPTION 'a deleted thread is on a list'; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_threads_v1(%L::jsonb,''deleted'',NULL,50)',a),'22023','invalid_request');
+ -- Known and accepted: a turn past its claim still commits its reply; it stays unreachable.
+ PERFORM public.pwa_chat_turn_complete_v1(a,u1,pg_temp.assistant('ok'),pg_temp.history(0,0,2),'[]');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_messages_v1(%L::jsonb,%L::uuid,NULL,10)',a,d1),'P0002','not_found');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_message_v1(%L::jsonb,%L::uuid,%L::uuid)',a,d1,u1),'P0002','not_found');
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF (SELECT count(*) FROM public.pwa_chat_threads WHERE id::text IN ('de000001-0000-4000-8000-000000000001','de000002-0000-4000-8000-000000000002','de000003-0000-4000-8000-000000000003') AND status='deleted') IS DISTINCT FROM 3 THEN RAISE EXCEPTION 'three deleted rows stay in the table'; END IF;
+ -- updated_at is the deletion time; the repeat did not move it.
+ IF (SELECT updated_at>current_setting('v154.deleted_at')::timestamptz OR updated_at<=created_at FROM public.pwa_chat_threads WHERE id='de000001-0000-4000-8000-000000000001') IS DISTINCT FROM false THEN
+  RAISE EXCEPTION 'updated_at is the deletion time'; END IF;
+ IF (SELECT array_agg(state||':'||coalesce(cancel_reason,'') ORDER BY id) FROM public.pwa_chat_proposals WHERE id::text LIKE 'dc00000_-%')
+  IS DISTINCT FROM ARRAY['cancelled:superseded','failed:','cancelled:superseded'] THEN RAISE EXCEPTION 'proposals of deleted threads'; END IF;
+END $$;
+-- A group confirmed part-way: line 1 claimed and settled, lines 2 and 3 still pending. Nothing is executing, yet the
+-- delete is refused and cancels nothing; once the rest is cancelled it succeeds. An expired remainder does not block.
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); r jsonb; d4 uuid:='de000004-0000-4000-8000-000000000004'; d5 uuid:='de000005-0000-4000-8000-000000000005';
+ u4 uuid:='df000004-0000-4000-8000-000000000004'; u5 uuid:='df000005-0000-4000-8000-000000000005'; head4 uuid:='dd000004-0000-4000-8000-000000000000'; head5 uuid:='dd000005-0000-4000-8000-000000000000';
+ update_sql text:='SELECT public.pwa_chat_thread_update_v1(%L::jsonb,%L::uuid,%L::jsonb)';
+BEGIN
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',d4,'model','gemini-4-argon','title','Part-way group'));
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',d5,'model','gemini-4-argon','title','Expired remainder'));
+ PERFORM public.pwa_chat_turn_begin_v1(a,d4,jsonb_build_object('id',u4,'text','Edit three charges'));
+ PERFORM public.pwa_chat_proposal_create_v1(a,d4,pg_temp.group_lines('dd000004',u4,3));
+ PERFORM public.pwa_chat_turn_complete_v1(a,u4,pg_temp.assistant('ok'),pg_temp.history(0,0,2),'[]');
+ PERFORM public.pwa_chat_turn_begin_v1(a,d5,jsonb_build_object('id',u5,'text','Edit two charges'));
+ PERFORM public.pwa_chat_proposal_create_v1(a,d5,pg_temp.group_lines('dd000005',u5,2));
+ PERFORM public.pwa_chat_turn_complete_v1(a,u5,pg_temp.assistant('ok'),pg_temp.history(0,0,2),'[]');
+ FOR r IN SELECT x FROM (VALUES (jsonb_build_object('t',d4,'p',head4)),(jsonb_build_object('t',d5,'p',head5))) v(x) LOOP
+  IF public.pwa_chat_proposal_claim_v1(a,(r->>'t')::uuid,(r->>'p')::uuid)->>'claimed' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'claim line 1'; END IF;
+  PERFORM public.pwa_chat_proposal_settle_v1(a,(r->>'t')::uuid,(r->>'p')::uuid,'{"state":"done","outcome":{"code":null},"record":null}');
+ END LOOP;
+ PERFORM pg_temp.expect(format(update_sql,a,d4,'{"status":"deleted"}'),'55006','proposal_executing');
+ IF (SELECT array_agg(x->>'state' ORDER BY (x->'card'->'group'->>'index')::int) FROM jsonb_array_elements(public.pwa_chat_proposals_v1(a,d4,NULL,20)) x) IS DISTINCT FROM ARRAY['done','pending','pending'] THEN
+  RAISE EXCEPTION 'a refused delete leaves the remaining lines pending'; END IF;
+ IF public.pwa_chat_thread_v1(a,d4)->>'status' IS DISTINCT FROM 'active' THEN RAISE EXCEPTION 'part-way group keeps the thread'; END IF;
+ -- The rest cancelled (a group is cancelled by its head; here the superseding cancel of the thread): the delete succeeds.
+ IF public.pwa_chat_proposal_cancel_v1(a,d4,NULL,'superseded') IS DISTINCT FROM '{"cancelled":2}' THEN RAISE EXCEPTION 'cancel the rest'; END IF;
+ IF public.pwa_chat_thread_update_v1(a,d4,'{"status":"deleted"}')->>'status' IS DISTINCT FROM 'deleted' THEN RAISE EXCEPTION 'delete after the rest is cancelled'; END IF;
+ PERFORM pg_temp.expect(format(update_sql,a,d5,'{"status":"deleted"}'),'55006','proposal_executing');
+END $$;
+RESET SESSION AUTHORIZATION;
+-- The remaining line of d5 expires (the guard keeps every column but the lifecycle ones, so a past-dated copy of the
+-- group is written by the test owner instead: same message, one claimed and done, one pending and expired).
+INSERT INTO public.pwa_chat_threads(id,partner_id,title,model) VALUES('de000006-0000-4000-8000-000000000006','CH-A','Expired group','gemini-4-argon');
+INSERT INTO public.pwa_chat_messages(id,thread_id,seq,role,text,status) VALUES('df000006-0000-4000-8000-000000000006','de000006-0000-4000-8000-000000000006',1,'user','Edit two charges','ok');
+INSERT INTO public.pwa_chat_proposals(id,thread_id,message_id,partner_id,kind,operation,command,card,state,created_at,expires_at,claimed_at,settled_at,attempts,outcome)
+SELECT x.id,'de000006-0000-4000-8000-000000000006','df000006-0000-4000-8000-000000000006','CH-A','operation','charge.update',jsonb_build_object('requestId',x.id)::text,'{}',x.state,
+ clock_timestamp()-interval '20 minutes',clock_timestamp()-interval '5 minutes',CASE WHEN x.state='done' THEN clock_timestamp()-interval '19 minutes' END,CASE WHEN x.state='done' THEN clock_timestamp()-interval '19 minutes' END,
+ CASE WHEN x.state='done' THEN 1 ELSE 0 END,CASE WHEN x.state='done' THEN '{"code":null}'::jsonb END
+FROM (VALUES ('dd000006-0000-4000-8000-000000000000'::uuid,'done'),('dd000006-0000-4000-8000-000000000001'::uuid,'pending')) x(id,state);
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a');
+BEGIN
+ IF public.pwa_chat_thread_update_v1(a,'de000006-0000-4000-8000-000000000006','{"status":"deleted"}')->>'status' IS DISTINCT FROM 'deleted' THEN RAISE EXCEPTION 'an expired remainder does not block the delete'; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF (SELECT state FROM public.pwa_chat_proposals WHERE id='dd000006-0000-4000-8000-000000000001') IS DISTINCT FROM 'expired' THEN RAISE EXCEPTION 'the expired remainder is recorded as expired'; END IF;
+END $$;
+SELECT pg_temp.expect($q$DELETE FROM public.pwa_chat_threads WHERE status='deleted'$q$,'55000');
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_threads SET status='gone' WHERE id='de000003-0000-4000-8000-000000000003'$q$,'23514');
 SELECT 'Chat regression passed' AS result;
 ROLLBACK;

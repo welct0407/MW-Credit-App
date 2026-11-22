@@ -70,7 +70,7 @@ test('R102/R137 long_overdue: never paid counts from the first charge (7 and 8 d
  // A d-8 charge paid in full before today is not on the board; today's charge alone is not paid.
  await charge('c-old','old-paid',paid,'2026-09-29','0','2026-10-01','100');await charge('c-today','today');
  const result=await board();assert.equal(result.ok,true,JSON.stringify(result));
- assert.deepEqual(result.items.map(x=>[x.id,x.status,x.overdueDays,x.sinceLastPaymentDays,x.neverPaid]),[['today','not_paid',null,null,null],['d1','overdue',1,null,null],['d7','overdue',7,null,null],['lp','overdue',8,null,null],['d8','long_overdue',8,8,true],['d30','long_overdue',30,30,true]]);
+ assert.deepEqual(result.items.map(x=>[x.id,x.status,x.overdueDays,x.sinceLastPaymentDays,x.neverPaid]),[['today','not_paid',null,null,null],['d1','overdue',1,1,true],['d7','overdue',7,7,true],['lp','overdue',8,0,false],['d8','long_overdue',8,8,true],['d30','long_overdue',30,30,true]]);
  const lp=result.items.find(x=>x.id==='lp');assert.deepEqual([lp.amountCollected,lp.amountRemaining],['50.00','50']);
  const groups=Object.groupBy(result.items,x=>x.status);
  assert.deepEqual([groups.overdue[0].groupRemaining,groups.overdue[0].groupCollected,groups.long_overdue[0].groupRemaining,groups.long_overdue[0].groupCollected],['250.50','50.00','130.25','0']);
@@ -103,8 +103,13 @@ test('R102 owner order: the long overdue group lists fewest days first (10, 19, 
 // last payment (any posted receipt of any amount, per borrower across loans; rebate-offset and net-off receipts are no cash),
 // never paid: since the first charge (df10: rows ignored). Business date 2026-10-07; every borrower below has a charge d-20.
 test('R137 long_overdue counts from the last payment: Archie\'s cases, rebate offset and net-off ignored, partition',async()=>{
- const cases=['pay3','pay10','clear','never9','never7','token','twoloans','rebate','netoff','df10'];for(const b of cases)await borrower(b);
- for(const b of ['pay3','pay10','token','twoloans','rebate','netoff'])await charge('c20-'+b,b,pending,'2026-09-17');
+ const cases=['pay3','pay10','clear','never9','never7','token','twoloans','rebate','netoff','df10','pay7','df10only','df10future'];for(const b of cases)await borrower(b);
+ for(const b of ['pay3','pay10','token','twoloans','rebate','netoff','pay7'])await charge('c20-'+b,b,pending,'2026-09-17');
+ // R182: an overdue row carries the same text source. Paid 7 days ago: 7; only df10: charges: no first charge, null;
+ // a df10: charge overdue with the first ordinary charge after the business date (a negative count): null.
+ await charge('c7-pay7','pay7',paid,'2026-09-30','0','2026-09-30','100');await receipt('p-pay7','c7-pay7','2026-09-30');
+ await charge('df10:only','df10only',pending,'2026-08-01');
+ await charge('df10:future','df10future',pending,'2026-08-01');await charge('c-df10future','df10future',pending,'2026-10-09');
  await charge('c3-pay3','pay3',paid,'2026-10-04','0','2026-10-04','100');await receipt('p-pay3','c3-pay3','2026-10-04');
  await charge('c10-pay10','pay10',paid,'2026-09-27','0','2026-09-27','100');await receipt('p-pay10','c10-pay10','2026-09-27');
  await charge('c10-clear','clear',paid,'2026-09-27','0','2026-09-27','100');await receipt('p-clear','c10-clear','2026-09-27');
@@ -118,8 +123,9 @@ test('R137 long_overdue counts from the last payment: Archie\'s cases, rebate of
  const result=await board();assert.equal(result.ok,true,JSON.stringify(result));
  const row=id=>result.items.find(x=>x.id===id);
  assert.deepEqual(Object.fromEntries(cases.map(id=>[id,row(id)?[row(id).status,row(id).sinceLastPaymentDays,row(id).neverPaid]:null])),{
-  pay3:['overdue',null,null],pay10:['long_overdue',10,false],clear:null,never9:['long_overdue',9,true],never7:['overdue',null,null],
-  token:['overdue',null,null],twoloans:['overdue',null,null],rebate:['long_overdue',20,true],netoff:['long_overdue',20,true],df10:['overdue',null,null]});
+  pay3:['overdue',3,false],pay10:['long_overdue',10,false],clear:null,never9:['long_overdue',9,true],never7:['overdue',7,true],
+  token:['overdue',1,false],twoloans:['overdue',2,false],rebate:['long_overdue',20,true],netoff:['long_overdue',20,true],df10:['overdue',5,true],
+  pay7:['overdue',7,false],df10only:['overdue',null,null],df10future:['overdue',null,null]});
  assert.equal(row('df10').overdueDays,67,'a df10: row is not the first charge (5 days since 10-02) but still counts as unpaid for overdueDays');
  assert.equal(row('pay10').overdueDays,20,'overdueDays still counts from the oldest unpaid charge');
  // Partition: every borrower once, in one status; the long overdue group lists the fewest days since a payment first.
@@ -129,7 +135,8 @@ test('R137 long_overdue counts from the last payment: Archie\'s cases, rebate of
   do{const r=await store.listCollection(owner,{cursor,limit});assert.equal(r.ok,true,JSON.stringify(r));ids.push(...r.items.map(x=>x.id));cursor=r.nextCursor;if(cursor){const c=JSON.parse(Buffer.from(cursor,'base64url').toString());if(c.rank===3)days.push(c.days)}}while(cursor);
   assert.deepEqual(ids,result.items.map(x=>x.id),'paging across rank 3, limit '+limit);assert.ok(days.every(d=>d>=8))}
  const one=await detail('pay10');assert.deepEqual([one.borrower.status,one.borrower.sinceLastPaymentDays,one.borrower.neverPaid],['long_overdue',10,false]);
- assert.equal((await detail('pay3')).borrower.status,'overdue');
+ const three=await detail('pay3');assert.deepEqual([three.borrower.status,three.borrower.sinceLastPaymentDays,three.borrower.neverPaid],['overdue',3,false]);
+ assert.deepEqual([(await detail('df10only')).borrower.sinceLastPaymentDays,(await detail('df10only')).borrower.neverPaid],[null,null]);
 });
 test('multiple repayments aggregate once per charge and preserve signed exact decimals',async()=>{await borrower('a');await charge('c1','a',partial,'2026-10-07','10.125');await charge('c2','a',partial,'2026-10-07','-2.125');await repayment('c1','10.10','0.20');await repayment('c1','2.00','0.30');await repayment('c2','-1.00','-0.25');await repayment('c2','999','999','2026-10-06');await repayment('c2','999','999',null);const r=(await board()).items[0];assert.equal(r.amountCollected,'11.35');assert.equal(r.amountRemaining,'8.000');assert.equal(r.amountDue,'19.350');const children=await detail('a');assert.equal(children.ok,true);assert.deepEqual(children.items.map(x=>[x.id,x.receivedToday]),[['c1','12.60'],['c2','-1.25']]);assert.equal(children.items[0].loanDisplayKey,'ชื่อ a - Synthetic a-฿12,000-01/10-2%')});
 test('relevant null inputs propagate while empty sums and irrelevant nulls do not',async()=>{await borrower('a');await charge('c','a',pending,'2026-10-07',null,null,null);await repayment('c',null,'2');let r=(await board()).items[0];assert.equal(r.amountDue,null);assert.equal(r.amountCollected,null);assert.equal(r.amountRemaining,null);assert.equal((await detail('a')).items[0].totalPaid,null);await q('DELETE FROM "Repayments"');await q('UPDATE "Charges" SET "Charge Date"=$1',['2026-10-09']);await repayment('c','1','2');r=(await board()).items[0];assert.equal(r.amountRemaining,'0');assert.equal(r.amountDue,'3.00')});
