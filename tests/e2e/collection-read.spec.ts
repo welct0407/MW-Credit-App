@@ -199,3 +199,56 @@ test.describe('R163 Collection receipts and the business date',()=>{
   await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await page.waitForTimeout(300);expect(server.receipts.length).toBe(2);
  });
 });
+// R182 (COL-OVD-01, COL-TOP-01): the overdue tile text and the active Collection tab going to the top of the board.
+const r182Row=(id:string,name:string,status:string,extra:Record<string,unknown>={})=>({id,displayName:name,status,overdueDays:status.endsWith('overdue')?3:null,amountDue:'13.75',amountCollected:'3.25',amountRemaining:'10.50',prepaidToday:'0',prepaidOnly:false,...extra});
+async function r182Shell(page:import('@playwright/test').Page,board:(u:URL)=>unknown,detail?:(u:URL)=>unknown){
+ const envelope={ok:true,source:'dev',businessDate:'2026-10-07',timezone:'Asia/Bangkok',asOf:'2026-10-07T05:00:00Z'};
+ await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
+ await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{const u=new URL(r.request().url());
+  const body=u.pathname==='/api/collection'?{...envelope,...(board(u) as object)}:u.pathname.endsWith('/charges')&&detail?{...envelope,...(detail(u) as object)}:{...envelope,horizonEnd:'2027-01-07',reviewRequired:false,items:[]};
+  await r.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(body)}).catch(()=>{})});
+ await page.goto(base);await page.getByRole('button',{name:'Continue with Google'}).click();await page.getByRole('button',{name:'Collection',exact:true}).click();
+}
+test('R182 an Overdue tile shows the since-last-payment text like a Long overdue tile; without a value it stays plain Overdue',async({page},info)=>{
+ if(info.project.name.startsWith('desktop'))await page.setViewportSize({width:1440,height:900});
+ const items=[r182Row('o-today','Paid today','overdue',{sinceLastPaymentDays:0,neverPaid:false}),r182Row('o-yesterday','Paid yesterday','overdue',{sinceLastPaymentDays:1,neverPaid:false}),
+  r182Row('o-three','Paid three days ago','overdue',{sinceLastPaymentDays:3,neverPaid:false}),r182Row('o-seven','Paid seven days ago','overdue',{sinceLastPaymentDays:7,neverPaid:false}),
+  r182Row('o-never1','Never paid one day','overdue',{sinceLastPaymentDays:1,neverPaid:true}),r182Row('o-never5','Never paid five days','overdue',{sinceLastPaymentDays:5,neverPaid:true}),
+  r182Row('o-null','No usable date','overdue',{sinceLastPaymentDays:null,neverPaid:null}),r182Row('o-old','Older payload','overdue'),
+  r182Row('l-ten','Long ten','long_overdue',{sinceLastPaymentDays:10,neverPaid:false}),r182Row('l-old','Long older payload','long_overdue',{overdueDays:12})];
+ await r182Shell(page,()=>({items,nextCursor:null}));
+ const status=page.locator('.collection-compact-tile .collection-tile-status');await expect(status).toHaveCount(10);
+ await expect(status).toHaveText(['Overdue · Last paid today','Overdue · Last paid yesterday','Overdue · No payment for 3 days','Overdue · No payment for 7 days','Overdue · Never paid · 1 day','Overdue · Never paid · 5 days','Overdue','Overdue','Long overdue · No payment for 10 days','Long overdue · 12 days']);
+ // The text wraps naturally: no ellipsis and no sideways page scroll at 320px.
+ await page.setViewportSize({width:320,height:700});
+ expect(await status.nth(5).evaluate(e=>[getComputedStyle(e).textOverflow,e.scrollWidth<=e.clientWidth+1])).toEqual(['clip',true]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await chooseLanguagePreservingForm(page,'ไทย');
+ await expect(status).toHaveText(['เกินกำหนด · ชำระล่าสุดวันนี้','เกินกำหนด · ชำระล่าสุดเมื่อวาน','เกินกำหนด · ไม่ได้ชำระมา 3 วัน','เกินกำหนด · ไม่ได้ชำระมา 7 วัน','เกินกำหนด · ยังไม่เคยชำระ · 1 วัน','เกินกำหนด · ยังไม่เคยชำระ · 5 วัน','เกินกำหนด','เกินกำหนด','เกินกำหนดนาน · ไม่ได้ชำระมา 10 วัน','เกินกำหนดนาน · 12 วัน']);
+});
+test('R182 tapping the active Collection tab goes to the top: page 1 again from a later page with the search kept, a scroll only on page 1, and out of an open borrower on the stacked layout',async({page},info)=>{
+ if(info.project.name.startsWith('desktop'))await page.setViewportSize({width:1440,height:900});
+ const requests:URLSearchParams[]=[],charges:string[]=[];
+ const all=Array.from({length:130},(_,i)=>r182Row('top-'+i,'Board '+String(i).padStart(3,'0'),'not_paid'));
+ await r182Shell(page,u=>{requests.push(u.searchParams);const second=u.searchParams.get('cursor')==='board-2';return {items:second?all.slice(100):all.slice(0,100),nextCursor:second?null:'board-2'}},
+  u=>{charges.push(u.pathname);return {borrower:all[40],items:[{id:'top-charge',loanId:'top-loan',loanDisplayKey:'Synthetic loan',chargeDate:'2026-10-07',paymentStatus:'รอชำระ',paymentDate:null,amountRemaining:'10.50',totalPaid:'0',receivedToday:'0'}],nextCursor:null}});
+ const tile='.collection-compact-tile',count=page.locator('.collection-workspace .list-count'),tab=page.getByRole('button',{name:'Collection',exact:true}).filter({visible:true});
+ const position=()=>page.evaluate(()=>[Math.round(scrollY),Math.round(document.querySelector('.collection-workspace .list-panel')!.scrollTop)]);
+ const scrollDown=async()=>{await page.evaluate(()=>{const panel=document.querySelector('.collection-workspace .list-panel')!;panel.scrollTop=panel.scrollHeight;scrollTo(0,document.documentElement.scrollHeight)});expect((await position()).some(value=>value>200)).toBe(true)};
+ await expect(page.locator(tile)).toHaveCount(100);
+ // A search, then page 2, scrolled down.
+ await page.getByRole('button',{name:'Search borrowers',exact:true}).click();await page.getByRole('searchbox',{name:'Search Thai or English name',exact:true}).fill('Board');await page.getByRole('button',{name:'Submit search',exact:true}).click();
+ await expect.poll(()=>requests.at(-1)!.get('q')).toBe('Board');await page.getByRole('button',{name:'Back from search',exact:true}).click();
+ const next=page.getByRole('button',{name:'Next borrowers page',exact:true});await next.scrollIntoViewIfNeeded();await next.click();await expect(count).toHaveText('Borrowers 101–130');
+ await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
+ // The tab on a later page: page 1 again, search kept, at the top; focus stays on the tab.
+ await tab.click();await expect(count).toHaveText('Borrowers 1–100');expect([requests.at(-1)!.get('q'),requests.at(-1)!.has('cursor')]).toEqual(['Board',false]);
+ await expect.poll(position).toEqual([0,0]);await expect(tab).toBeFocused();
+ // The tab on page 1: a scroll to the top only, no read.
+ await scrollDown();const reads=requests.length;await tab.click();await expect.poll(position).toEqual([0,0]);expect(requests.length).toBe(reads);await expect(page.locator(tile)).toHaveCount(100);
+ // An open borrower: the stacked layout returns to the board at the top; wider layouts keep the selection and scroll the list.
+ await page.locator(tile).nth(40).scrollIntoViewIfNeeded();await page.locator('.collection-tile-main').nth(40).click();await expect(page.locator('.collection-charge')).toHaveCount(1);expect(charges.length).toBeGreaterThan(0);
+ const before=requests.length;
+ if(stacked(page)){await expect(page.locator(tile).first()).toBeHidden();await tab.click();await expect(page.locator(tile+'.selected')).toHaveCount(0);await expect(page.locator(tile).first()).toBeVisible();await expect(page.locator('.collection-charge')).toHaveCount(0)}
+ else{await scrollDown();await tab.click();await expect(page.locator(tile+'.selected')).toHaveCount(1);await expect(page.locator('.collection-charge')).toHaveCount(1)}
+ await expect.poll(position).toEqual([0,0]);expect(requests.length).toBe(before);
+});
