@@ -7,12 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "database/migrations/V104__pwa_chat.sql"
-  "coverage": "R090 definition (V104 with V106 batch 2c changes applied: pwa_chat_messages.detached_at, the widened immutability\
-    \ rule, the replaced turn_begin and turn_complete, and pwa_chat_turn_presence_v1; 23 October 2026), reviewed from the\
-    \ migration source and applied to a disposable PostgreSQL 18 rebuild with stub roles and a stub \"Partners\" table; not\
-    \ captured from DEV or PROD (DEV has V104 and V105 only; V106 is pending). Owner mw_chat_owner_<env>; the ACL shown is\
-    \ the rebuild. "
+  "source": "outputs/dictionary-r182-20261122/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "b7ebfdb984266a74ae4dfca741173aad20587a27"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-chat-thread-v1-actor-jsonb-id-uuid-fb895d5e.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.pwa_chat_thread_v1(actor jsonb, id uuid)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -31,7 +36,7 @@
       DECLARE partner text:=public.pwa_chat_actor_v1(actor); value jsonb;
       BEGIN
        IF id IS NULL THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
-       SELECT public.pwa_chat_thread_json_v1(t) INTO value FROM public.pwa_chat_threads t WHERE t.id=$2 AND t.partner_id=partner;
+       SELECT public.pwa_chat_thread_json_v1(t) INTO value FROM public.pwa_chat_threads t WHERE t.id=$2 AND t.partner_id=partner AND t.status<>'deleted';
        IF value IS NULL THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
        RETURN value;
       END $function$
@@ -42,6 +47,8 @@
     "security_definer": true
     "leakproof": false
     "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
     "settings":
     - "search_path=pg_catalog, public"
     "acl": "{mw_chat_owner_prod=X/mw_chat_owner_prod,mw_chat_api_prod=X/mw_chat_owner_prod}"
