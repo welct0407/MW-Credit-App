@@ -277,7 +277,10 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
     if(req.method==='GET')return reply(200,{item:await store.thread(principal,id)});
     const body=await readBody(req);
     if(!plain(body)||!Object.keys(body).length||Object.keys(body).some(k=>!['title','model','status'].includes(k))
-     ||(body.title!==undefined&&!validTitle(body.title))||(body.status!==undefined&&!['active','archived'].includes(body.status)))throw invalid();
+     ||(body.title!==undefined&&!validTitle(body.title))||(body.status!==undefined&&!['active','archived','deleted'].includes(body.status))
+     // R182 (V154): {status:'deleted'} is a soft delete and travels alone; the refusals (a running turn, an executing or
+     // unknown proposal) come back from the store as 409 turn_in_progress and 409 proposal_executing.
+     ||(body.status==='deleted'&&Object.keys(body).length!==1))throw invalid();
     if(body.model!==undefined)modelOrFail(body.model);
     return reply(200,{item:await store.updateThread(principal,id,body)});
    }
