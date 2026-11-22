@@ -13,7 +13,7 @@ const longNote='Automatic Instagram receipt payment igr:4f0c2a9e-7b1d-4c55-9a8e-
 const payment=(id:string,paymentDate:string|null,amountReceived:string,extra:Record<string,unknown>={})=>({id,paymentDate,amountReceived,status:'Posted',accountLabel:'Dad SCB',notes:null,receiptReference:null,requestId:null,...extra});
 const first=[payment('ph-1','2026-11-21','400',{notes:longNote,localPending:true}),payment('ph-2','2026-11-20','400',{notes:longNote}),payment('ph-3','2026-11-18','800',{status:'Processing',notes:'Paid 2 days at once'}),
  payment('ph-4','2026-11-15','1200',{accountLabel:'Cash',receiptReference:'synthetic-receipt'}),payment('ph-5','2026-11-05','400',{status:'Error',notes:longNote,receiptReference:'synthetic-receipt'}),payment('ph-6','2026-10-29','400'),payment('ph-7','2026-10-26','400',{status:null})];
-const second=[payment('ph-8','2026-09-30','250',{notes:'Second page'})];
+const second=[payment('ph-8','2026-09-30','250',{notes:'Second page'}),payment('ph-9',null,'100',{status:'Cancelled'})];
 type Fixture={history:string[];status:number;hold:boolean;release?:()=>void};
 async function setup(page:Page){
  const state:Fixture={history:[],status:200,hold:false};
@@ -48,8 +48,19 @@ test('R182 payment history opens as a list under month headings and the same but
  // The whole row is the button (owner testing opens every payment).
  expect(await rows(page).evaluateAll(list=>list.map(node=>node.tagName))).toEqual(Array(7).fill('BUTTON'));
  // Page 2, then close: the second tap closes without scrolling the page and keeps the focus on the button.
- await page.getByRole('button',{name:'Next payment history page',exact:true}).click();await expect(rows(page)).toHaveCount(1);await expect(page.locator('.ph-month')).toHaveText(['September 2026']);
- await button.scrollIntoViewIfNeeded();const y=await page.evaluate(()=>scrollY);await button.click();await expect(panel(page)).toHaveCount(0);await expect(button).toHaveAttribute('aria-expanded','false');await expect(button).toBeFocused();expect(await page.evaluate(()=>scrollY)).toBe(y);
+ // Page 2: the pressed pager button is gone, so the panel heading takes the focus and sits in view below the top bar (PH-UX-09).
+ await page.getByRole('button',{name:'Next payment history page',exact:true}).click();await expect(rows(page)).toHaveCount(2);
+ // A payment without a date is grouped under "No date"; a cancelled one is flagged in grey.
+ await expect(page.locator('.ph-month')).toHaveText(['September 2026','No date']);await expect(rows(page).nth(1).locator('.ph-flag')).toHaveText('Cancelled');
+ expect(await rows(page).nth(1).locator('.ph-flag').evaluate(e=>[getComputedStyle(e).color,e.querySelector('svg')])).toEqual(['rgb(102, 102, 102)',null]);
+ const title=panel(page).getByRole('heading',{level:3,name:'Payment history',exact:true});await expect(title).toBeFocused();
+ await expect.poll(()=>title.evaluate(e=>{const bar=document.querySelector('.topbar'),fixed=bar&&/^(sticky|fixed)$/.test(getComputedStyle(bar).position)?bar.getBoundingClientRect().bottom:0,top=e.getBoundingClientRect().top;return top>=fixed-1&&top<innerHeight-40})).toBe(true);
+ await page.getByRole('button',{name:'Previous payment history page',exact:true}).click();await expect(rows(page)).toHaveCount(7);await expect(title).toBeFocused();
+ await page.getByRole('button',{name:'Next payment history page',exact:true}).click();await expect(rows(page)).toHaveCount(2);
+ // Close: the second tap keeps the focus on the button and the button where it was on screen. Closing shortens the page:
+ // when it can no longer hold its offset the browser clamps the scroll to the new end (the only move allowed), and the
+ // button stays in view.
+ await button.scrollIntoViewIfNeeded();const y=(await button.boundingBox())!.y;await button.click();await expect(panel(page)).toHaveCount(0);await expect(button).toHaveAttribute('aria-expanded','false');await expect(button).toBeFocused();{const moved=Math.abs((await button.boundingBox())!.y-y),clamped=await page.evaluate(()=>scrollY>=document.documentElement.scrollHeight-innerHeight-1);expect(moved<=1||clamped,'button moved '+moved+'px without a clamped scroll').toBe(true);await expect(button).toBeInViewport()}
  await button.click();await expect(rows(page)).toHaveCount(7);expect(state.history.at(-1)).toBe('');
  await chooseLanguagePreservingForm(page,'ไทย');await expect(page.locator('.ph-month')).toHaveText(['พฤศจิกายน 2569','ตุลาคม 2569']);await expect(rows(page).nth(1).locator('.ph-date')).toHaveText('20-พ.ย.');await expect(rows(page).nth(3).locator('.ph-receipt')).toHaveText('มีหลักฐาน');
 });
@@ -78,4 +89,13 @@ test('R182 payment history row at 390px: two lines, the amount on the right, a l
  // The flag and the receipt marker stay whole beside a long note.
  const flagged=rows(page).nth(4);expect(await flagged.locator('.ph-flag').evaluate(e=>e.scrollWidth<=e.clientWidth+1)).toBe(true);await expect(flagged.locator('.ph-receipt')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+test('R182 the active Collection tab is left alone while a payment is open from the payment history (phone width)',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await setup(page);await toggle(page).click();await expect(rows(page)).toHaveCount(7);
+ await rows(page).nth(1).click();await expect(rows(page)).toHaveCount(0);await expect(page.locator('.payment-record')).toBeVisible();
+ const tab=page.getByRole('button',{name:'Collection',exact:true}).filter({visible:true});await tab.click();await page.waitForTimeout(300);
+ await expect(page.locator('.payment-record')).toBeVisible();await expect(panel(page)).toHaveCount(1);await expect(toggle(page)).toHaveAttribute('aria-expanded','true');await expect(page.locator('.collection-compact-tile').first()).toBeHidden();
+ // Back from the payment returns to the history list; with only the borrower open the tab goes back to the board.
+ await page.locator('.topbar button').first().click();await expect(rows(page)).toHaveCount(7);await toggle(page).click();await expect(panel(page)).toHaveCount(0);
+ await tab.click();await expect(page.locator('.collection-compact-tile').first()).toBeVisible();await expect(page.locator('.collection-charge')).toHaveCount(0);
 });

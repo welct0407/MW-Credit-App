@@ -1006,7 +1006,8 @@ button.ph-row{cursor:pointer}button.ph-row:active{background:#f1f1f1}
 .ph-flag svg{width:15px;height:15px}
 .ph-flag.processing,.ph-amount.processing{color:#9a6700}
 .ph-flag.error,.ph-amount.error{color:#b3261e}
-.ph-flag.unknown{color:#666}
+.ph-flag.unknown,.ph-flag.cancelled{color:#666}
+.ph-head h3:focus{outline:none}.ph-head h3:focus-visible{outline:2px solid #5f6368;outline-offset:2px}
 .ph-panel .compact-pager{margin-top:8px}
 .ph-state{margin:0;padding:12px;color:#555}
 .ph-state.error{color:#8e1b1b}
