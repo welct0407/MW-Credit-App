@@ -10,7 +10,9 @@
 --     other patch, so it cannot be restored. A delete is refused with turn_in_progress (55006) while a turn claim is
 --     under 5 minutes old; it cancels the thread's pending proposals (pwa_chat_proposal_cancel_v1(...,NULL,
 --     'superseded')) and is then refused with proposal_executing (55006) when a proposal of the thread is executing or
---     unknown (its card is how an unknown outcome is reconciled; the refusal rolls the cancellation back). The check
+--     unknown (its card is how an unknown outcome is reconciled; the refusal rolls the cancellation back). It is
+--     refused the same way while a group is confirmed part-way: a line of the message was claimed and another line
+--     is still pending and not expired (at most 15 minutes after the group was proposed). The executing check
 --     runs after the cancellation on purpose: a confirm that claimed a pending line first holds its row lock, the
 --     cancellation waits for it, and the check then sees the claimed line.
 --    pwa_chat_thread_v1(jsonb,uuid), pwa_chat_messages_v1(jsonb,uuid,integer,integer),
@@ -63,6 +65,11 @@ INSERT INTO v154_patch VALUES
  IF patch->>'status'='deleted' THEN
   IF EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.thread_id=row_value.id AND m.role='user' AND m.claimed_at>clock_timestamp()-interval '5 minutes') THEN
    RAISE EXCEPTION 'turn_in_progress' USING ERRCODE='55006'; END IF;
+  -- A group confirmed part-way keeps the thread: its lines are separate proposals of one message, confirmed one at a
+  -- time, so between two lines nothing is executing; cancelling the remaining lines would leave a half-applied group.
+  IF EXISTS(SELECT 1 FROM public.pwa_chat_proposals p WHERE p.thread_id=row_value.id AND p.state='pending' AND p.expires_at>clock_timestamp()
+   AND EXISTS(SELECT 1 FROM public.pwa_chat_proposals q WHERE q.message_id=p.message_id AND q.claimed_at IS NOT NULL)) THEN
+   RAISE EXCEPTION 'proposal_executing' USING ERRCODE='55006'; END IF;
   -- Pending proposals are cancelled first: a concurrent confirm that claimed one holds its row lock, so the check
   -- below runs after that claim is visible. An executing or unknown one keeps the thread (its card reconciles it).
   PERFORM public.pwa_chat_proposal_cancel_v1(actor,row_value.id,NULL,'superseded');

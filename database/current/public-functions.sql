@@ -4509,6 +4509,11 @@ BEGIN
  IF patch->>'status'='deleted' THEN
   IF EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.thread_id=row_value.id AND m.role='user' AND m.claimed_at>clock_timestamp()-interval '5 minutes') THEN
    RAISE EXCEPTION 'turn_in_progress' USING ERRCODE='55006'; END IF;
+  -- A group confirmed part-way keeps the thread: its lines are separate proposals of one message, confirmed one at a
+  -- time, so between two lines nothing is executing; cancelling the remaining lines would leave a half-applied group.
+  IF EXISTS(SELECT 1 FROM public.pwa_chat_proposals p WHERE p.thread_id=row_value.id AND p.state='pending' AND p.expires_at>clock_timestamp()
+   AND EXISTS(SELECT 1 FROM public.pwa_chat_proposals q WHERE q.message_id=p.message_id AND q.claimed_at IS NOT NULL)) THEN
+   RAISE EXCEPTION 'proposal_executing' USING ERRCODE='55006'; END IF;
   -- Pending proposals are cancelled first: a concurrent confirm that claimed one holds its row lock, so the check
   -- below runs after that claim is visible. An executing or unknown one keeps the thread (its card reconciles it).
   PERFORM public.pwa_chat_proposal_cancel_v1(actor,row_value.id,NULL,'superseded');
