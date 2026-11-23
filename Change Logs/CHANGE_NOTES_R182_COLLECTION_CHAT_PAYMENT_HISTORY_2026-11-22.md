@@ -7,7 +7,7 @@ Owner request of 22 November 2026, with three iPhone screenshots (the chat threa
 3. In the chat list, when I click the three dots, allow me to delete old chats. If I swipe individual chat to left, also show a delete button in red to allow me delete it
 4. At the end of the chat response, show how much time it took to answer this question, also show the date and time it was responded.
 5. Revamp the payment history list when I click it, let echo review and propose a better UX for the list. And if I click the payment history button again, the list show be hidden."
-The owner then asked to engage the team. Built, verified, deployed to DEV and promoted to PROD on 22 November 2026 (pull request #380, merged as `main` `546a8bfd`). Owner instructions, verbatim: "Deploy to dev" (DEV acceptance and deploy authority); then, after the owner's review of DEV on 22 November 2026: "Verified. Push to prod" (the DEV verification and the PROD approval). Owner acceptance of R182 in PROD is pending.
+The owner then asked to engage the team. Built, verified, deployed to DEV and promoted to PROD on 22 November 2026 (pull request #380, merged as `main` `546a8bfd`). Owner instructions, verbatim: "Deploy to dev" (DEV acceptance and deploy authority); then, after the owner's review of DEV on 22 November 2026: "Verified. Push to prod" (the DEV verification and the PROD approval). Owner acceptance of R182 in PROD: 23 November 2026, "All are fine."
 
 ## Changes
 Commits `69a209d`, `e18cfa3`, `2d2ab93`, `d5003c4`, `f3e5423`, `b8971e7`, then Byte's corrections `8214161` and `089a4be`, and the test fix `b2102ce`, on `main` `a5e84cb` (R181), merged in pull request #380 as `main` `546a8bfd` (tree equal to the tested and DEV-deployed `b2102ce`).
@@ -60,7 +60,7 @@ PROD: SQL is forward-only (restore point: the backup `prod-promotion-ee8149c9521
 None.
 
 ## Remaining work
-Owner acceptance of R182, written into the next release's closure pull request. The first real check of the new Overdue tile text, a chat delete and a real finger swipe is the owner's iPhone. None beyond acceptance and the follow-ups below. Recorded, not implemented: 10 payments per page (PH-UX-08), a server-supplied source label instead of the automatic note (PH-UX-03; payment rows have no method or source field, so it needs a server change), Collection top on the other tabs (COL-TOP-02 and 03), bulk chat delete.
+Owner-accepted in PROD on 23 November 2026 ("All are fine."), recorded in the R183 pull request. The first real check of the new Overdue tile text, a chat delete and a real finger swipe is the owner's iPhone. None beyond acceptance and the follow-ups below. Recorded, not implemented: 10 payments per page (PH-UX-08), a server-supplied source label instead of the automatic note (PH-UX-03; payment rows have no method or source field, so it needs a server change), Collection top on the other tabs (COL-TOP-02 and 03), bulk chat delete.
 
 ## DEV deployment record (Forge, 22 November 2026 UTC)
 Authority: the owner's instruction "Deploy to dev". Identifiers verified before each step: project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017`, database `loan_manager_dev`, services `mw-credit-app-{read,command,chat}-dev`, Hosting site `mw-credit-app-dev-737787224638`. Source `b2102ce` (`089a4be..b2102ce` is records and one test file). Revisions, image digest, Hosting version and Flyway rows are in the [Environment inventory](../project/Documents/Environment_Inventory.md).

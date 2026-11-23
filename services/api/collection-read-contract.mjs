@@ -99,8 +99,10 @@ export const collectionCteFor = (late, paymentSource = true) => `WITH today_repa
     -- first charge after the business date would count negative; both stay null so the projector never fails the board.
     CASE WHEN rank = 3 OR (rank = 2 AND since_days BETWEEN 0 AND ${LONG_OVERDUE_SINCE_PAYMENT_DAYS - 1}) THEN since_days END AS since_last_payment_days,
     CASE WHEN rank = 3 OR (rank = 2 AND since_days BETWEEN 0 AND ${LONG_OVERDUE_SINCE_PAYMENT_DAYS - 1}) THEN never_paid END AS never_paid,
-    -- R102/R137 owner decision: the long overdue group lists the fewest days since the last payment first; 0 elsewhere.
-    CASE WHEN rank = 3 THEN since_days ELSE 0 END AS sort_days, (remaining + collected)::text AS amount_due,
+    -- R102/R137 owner decision: the long overdue group lists the fewest days since the last payment first. R183 (owner,
+    -- 23 November 2026, "align with long overdue"): so does the overdue group, by the days its tile shows (0 to
+    -- ${LONG_OVERDUE_SINCE_PAYMENT_DAYS - 1}); a row without a usable count (plain "Overdue": null or negative) takes ${LONG_OVERDUE_SINCE_PAYMENT_DAYS} and sorts last. 0 in the other groups.
+    CASE WHEN rank = 3 THEN since_days WHEN rank = 2 THEN CASE WHEN since_days BETWEEN 0 AND ${LONG_OVERDUE_SINCE_PAYMENT_DAYS - 1} THEN since_days ELSE ${LONG_OVERDUE_SINCE_PAYMENT_DAYS} END ELSE 0 END AS sort_days, (remaining + collected)::text AS amount_due,
     collected::text AS amount_collected, remaining::text AS amount_remaining,
     prepaid::text AS prepaid_today, prepaid_only, prepaid_payment_date FROM grouped
 )`;
@@ -312,9 +314,11 @@ export function encodeCollectionCursor(value, query = '') {
   const { kind, businessDate, id } = value;
   if (!validDate(businessDate) || !validLoanId(id)) throw new Error('Invalid cursor');
   let canonical;
-  // v5 (R102): the board keyset is (rank, days, name, id); days is the long overdue group's sort key (0 in other groups):
-  // since R137 the days since the last payment (8 or more), which keeps the v5 rule days > 0 for rank 3.
-  if (kind === 'collection' && Number.isInteger(value.rank) && value.rank >= 0 && value.rank <= 4 && Number.isSafeInteger(value.days) && (value.rank === 3 ? value.days > 0 : value.days === 0) && typeof value.name === 'string') canonical = { v: 5, kind, businessDate, rank: value.rank, days: value.days, name: value.name, id, queryHash: searchQueryHash(query) };
+  // The board keyset is (rank, days, name, id). v5 (R102): days was the long overdue group's sort key only (since R137 the
+  // days since the last payment, 8 or more) and 0 in every other group. v6 (R183): the overdue group sorts by it too, 0 to
+  // LONG_OVERDUE_SINCE_PAYMENT_DAYS (the last value for a row without a usable count). A v5 cursor is refused (the
+  // re-encoding below differs): resuming the old order inside the overdue group would repeat or skip rows.
+  if (kind === 'collection' && Number.isInteger(value.rank) && value.rank >= 0 && value.rank <= 4 && Number.isSafeInteger(value.days) && (value.rank === 3 ? value.days > 0 : value.rank === 2 ? value.days >= 0 && value.days <= LONG_OVERDUE_SINCE_PAYMENT_DAYS : value.days === 0) && typeof value.name === 'string') canonical = { v: 6, kind, businessDate, rank: value.rank, days: value.days, name: value.name, id, queryHash: searchQueryHash(query) };
   else if (kind === 'collection-charges' && validLoanId(value.parentId) && validDate(value.chargeDate)) canonical = { v: 1, kind, businessDate, parentId: value.parentId, chargeDate: value.chargeDate, id };
   else throw new Error('Invalid cursor');
   return Buffer.from(JSON.stringify(canonical)).toString('base64url');

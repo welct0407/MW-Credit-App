@@ -20,7 +20,7 @@ async function repayment(id,principal,interest,date='2026-10-07',payment=null){a
 // R137: a posted receipt (a "Payments" row) and its repayment on one charge; method null is an ordinary receipt.
 async function receipt(id,charge,date,amount='100',method='Bank Transfer'){await q('INSERT INTO "Payments"("Row ID","Payment Method") VALUES ($1,$2)',[id,method]);await repayment(charge,'0',amount,date,id)}
 const board=()=>store.listCollection(owner,{limit:100});const detail=b=>store.getCollectionCharges(owner,b,{limit:100});
-test('eligibility covers three arms, future receipts, hidden and fully paid zero without directory leak',async()=>{for(const id of ['due','paid','future','hidden','excluded'])await borrower(id,id==='hidden');await charge('c-due','due');await charge('c-paid','paid',paid,'2026-10-06','0','2026-10-07');await charge('c-future','future',pending,'2026-10-09','500');await repayment('c-future','12.34','1.66');await charge('c-hidden','hidden');await charge('c-excluded','excluded',paid,'2026-10-01','0',null);const result=await board();assert.equal(result.ok,true);assert.deepEqual(result.items.map(x=>x.id),['due','future','hidden','paid']);assert.deepEqual(result.items.find(x=>x.id==='future'),{id:'future',displayName:'ชื่อ future - Synthetic future',status:'not_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'14.00',amountCollected:'14.00',amountRemaining:'0',prepaidToday:'0',prepaidOnly:false,groupRemaining:'200.50',groupCollected:'14.00'});assert.equal(result.items.at(-1).status,'fully_paid');assert.equal(result.items.at(-1).amountDue,'0');assert.equal((await detail('excluded')).status,404);assert.equal((await store.getBorrower(owner,'hidden')).status,404);assert.equal((await detail('hidden')).items.length,1)});
+test('eligibility covers three arms, future receipts, hidden and fully paid zero without directory leak',async()=>{for(const id of ['due','paid','future','hidden','excluded'])await borrower(id,id==='hidden');await charge('c-due','due');await charge('c-paid','paid',paid,'2026-10-06','0','2026-10-07');await charge('c-future','future',pending,'2026-10-09','500');await repayment('c-future','12.34','1.66');await charge('c-hidden','hidden');await charge('c-excluded','excluded',paid,'2026-10-01','0',null);const result=await board();assert.equal(result.ok,true);/* R110: a future charge part-paid today is not due yet, so its borrower is in the fully paid group (after the two not paid rows); items carry prepaidPaymentDate (R110) and chatSummaryAt (R146). */assert.deepEqual(result.items.map(x=>x.id),['due','hidden','future','paid']);assert.deepEqual(result.items.find(x=>x.id==='future'),{id:'future',displayName:'ชื่อ future - Synthetic future',status:'fully_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'14.00',amountCollected:'14.00',amountRemaining:'0',prepaidToday:'0',prepaidOnly:false,prepaidPaymentDate:null,groupRemaining:'0',groupCollected:'14.00',chatSummaryAt:null});assert.equal(result.items.at(-1).status,'fully_paid');assert.equal(result.items.at(-1).amountDue,'0');assert.equal((await detail('excluded')).status,404);assert.equal((await store.getBorrower(owner,'hidden')).status,404);assert.equal((await detail('hidden')).items.length,1)});
 // R096: a charge dated today stays in Collection whatever its status, including one paid on an earlier day; prepaid
 // charges dated another day stay out.
 test('a charge dated today is included even when it was paid on an earlier day; other prepaid dates stay out',async()=>{for(const id of ['prepaid','ahead','behind','today','unpaid','mixed'])await borrower(id);
@@ -33,10 +33,10 @@ test('a charge dated today is included even when it was paid on an earlier day; 
  const result=await board();assert.equal(result.ok,true);
  assert.deepEqual(result.items.map(x=>[x.id,x.status]),[['unpaid','not_paid'],['mixed','partially_paid'],['prepaid','fully_paid'],['today','fully_paid']]);
  const pick=id=>{const {groupRemaining:_r,groupCollected:_c,...row}=result.items.find(x=>x.id===id);return row};
- assert.deepEqual(pick('prepaid'),{id:'prepaid',displayName:'ชื่อ prepaid - Synthetic prepaid',status:'fully_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'0',amountCollected:'0',amountRemaining:'0',prepaidToday:'100.25',prepaidOnly:true});
- assert.deepEqual(pick('today'),{id:'today',displayName:'ชื่อ today - Synthetic today',status:'fully_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'100.25',amountCollected:'100.25',amountRemaining:'0',prepaidToday:'0',prepaidOnly:false});
- assert.deepEqual(pick('unpaid'),{id:'unpaid',displayName:'ชื่อ unpaid - Synthetic unpaid',status:'not_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'100.25',amountCollected:'0',amountRemaining:'100.25',prepaidToday:'0',prepaidOnly:false});
- assert.deepEqual(pick('mixed'),{id:'mixed',displayName:'ชื่อ mixed - Synthetic mixed',status:'partially_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'100.25',amountCollected:'0',amountRemaining:'100.25',prepaidToday:'100.25',prepaidOnly:false});
+ assert.deepEqual(pick('prepaid'),{id:'prepaid',displayName:'ชื่อ prepaid - Synthetic prepaid',status:'fully_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'0',amountCollected:'0',amountRemaining:'0',prepaidToday:'100.25',prepaidOnly:true,prepaidPaymentDate:'2026-10-06',chatSummaryAt:null});
+ assert.deepEqual(pick('today'),{id:'today',displayName:'ชื่อ today - Synthetic today',status:'fully_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'100.25',amountCollected:'100.25',amountRemaining:'0',prepaidToday:'0',prepaidOnly:false,prepaidPaymentDate:null,chatSummaryAt:null});
+ assert.deepEqual(pick('unpaid'),{id:'unpaid',displayName:'ชื่อ unpaid - Synthetic unpaid',status:'not_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'100.25',amountCollected:'0',amountRemaining:'100.25',prepaidToday:'0',prepaidOnly:false,prepaidPaymentDate:null,chatSummaryAt:null});
+ assert.deepEqual(pick('mixed'),{id:'mixed',displayName:'ชื่อ mixed - Synthetic mixed',status:'partially_paid',overdueDays:null,sinceLastPaymentDays:null,neverPaid:null,amountDue:'100.25',amountCollected:'0',amountRemaining:'100.25',prepaidToday:'100.25',prepaidOnly:false,prepaidPaymentDate:'2026-10-06',chatSummaryAt:null});
  const prepaid=await detail('prepaid');assert.equal(prepaid.ok,true);assert.equal(prepaid.borrower.status,'fully_paid');
  assert.deepEqual(prepaid.items.map(x=>[x.id,x.chargeDate,x.paymentStatus,x.paymentDate,x.amountRemaining,x.totalPaid,x.receivedToday]),[['c-prepaid','2026-10-07',paid,'2026-10-06','0','100.25','0']]);
  assert.deepEqual((await detail('mixed')).items.map(x=>x.id).sort(),['m-pending','m-prepaid']);
@@ -70,20 +70,57 @@ test('R102/R137 long_overdue: never paid counts from the first charge (7 and 8 d
  // A d-8 charge paid in full before today is not on the board; today's charge alone is not paid.
  await charge('c-old','old-paid',paid,'2026-09-29','0','2026-10-01','100');await charge('c-today','today');
  const result=await board();assert.equal(result.ok,true,JSON.stringify(result));
- assert.deepEqual(result.items.map(x=>[x.id,x.status,x.overdueDays,x.sinceLastPaymentDays,x.neverPaid]),[['today','not_paid',null,null,null],['d1','overdue',1,1,true],['d7','overdue',7,7,true],['lp','overdue',8,0,false],['d8','long_overdue',8,8,true],['d30','long_overdue',30,30,true]]);
+ assert.deepEqual(result.items.map(x=>[x.id,x.status,x.overdueDays,x.sinceLastPaymentDays,x.neverPaid]),[['today','not_paid',null,null,null],['lp','overdue',8,0,false],['d1','overdue',1,1,true],['d7','overdue',7,7,true],['d8','long_overdue',8,8,true],['d30','long_overdue',30,30,true]]);
  const lp=result.items.find(x=>x.id==='lp');assert.deepEqual([lp.amountCollected,lp.amountRemaining],['50.00','50']);
  const groups=Object.groupBy(result.items,x=>x.status);
  assert.deepEqual([groups.overdue[0].groupRemaining,groups.overdue[0].groupCollected,groups.long_overdue[0].groupRemaining,groups.long_overdue[0].groupCollected],['250.50','50.00','130.25','0']);
  assert.equal((await detail('d8')).borrower.status,'long_overdue');
  let cursor=null;const ids=[],cursors=[];
  do{const r=await store.listCollection(owner,{cursor,limit:2});assert.equal(r.ok,true,JSON.stringify(r));ids.push(...r.items.map(x=>x.id));cursor=r.nextCursor;if(cursor)cursors.push(JSON.parse(Buffer.from(cursor,'base64url').toString()))}while(cursor);
- assert.deepEqual(ids,result.items.map(x=>x.id));assert.deepEqual(cursors.map(c=>[c.v,c.rank,c.days]),[[5,2,0],[5,2,0]]);
+ assert.deepEqual(ids,result.items.map(x=>x.id));assert.deepEqual(cursors.map(c=>[c.v,c.rank,c.days]),[[6,2,0],[6,2,7]]);
 });
-test('R102: pre-deploy v3 (rank 3 meant fully paid) and DEV-only v4 Collection cursors are rejected with 400',async()=>{
+test('R102/R183: pre-deploy v3 (rank 3 meant fully paid), DEV-only v4 and pre-R183 v5 Collection cursors are rejected with 400',async()=>{
  await borrower('a');await charge('ca','a');const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
  for(const [v,rank] of [[3,0],[3,3],[4,0],[4,3]]){const before=queries.length;const stale=encode({v,kind:'collection',businessDate:'2026-10-07',rank,name:'',id:'a',queryHash:searchQueryHash('')});
   const result=await store.listCollection(owner,{cursor:stale});assert.equal(result.status,400,JSON.stringify(result));assert.ok(queries.length-before<=1,'rejected before the board query')}
- const v5=encodeCollectionCursor({kind:'collection',businessDate:'2026-10-07',rank:3,days:8,name:'',id:'a'});assert.equal((await store.listCollection(owner,{cursor:v5})).ok,true);
+ // R183: a v5 cursor (the overdue group was not ordered by days then) is refused in every group, before the board query.
+ for(const [rank,days] of [[0,0],[2,0],[3,8],[4,0]]){const before=queries.length;const stale=encode({v:5,kind:'collection',businessDate:'2026-10-07',rank,days,name:'',id:'a',queryHash:searchQueryHash('')});
+  const result=await store.listCollection(owner,{cursor:stale});assert.equal(result.status,400,JSON.stringify(result));assert.ok(queries.length-before<=1,'v5 rejected before the board query')}
+ const v6=encodeCollectionCursor({kind:'collection',businessDate:'2026-10-07',rank:3,days:8,name:'',id:'a'});assert.equal(JSON.parse(Buffer.from(v6,'base64url').toString()).v,6);assert.equal((await store.listCollection(owner,{cursor:v6})).ok,true);
+});
+// R183 (owner, 23 November 2026, "align with long overdue"): inside the overdue group the fewest days since the last payment
+// come first (a payment today on top), then name, then id; a never paid borrower sorts by the days since the first charge;
+// a row without a usable count (only df10: charges, or a first charge after the business date) sorts last. Business date
+// 2026-10-07: d-3 = 10-04, d-5 = 10-02, d-7 = 09-30, d-10 = 09-27, d-20 = 09-17.
+test('R183 owner order: the overdue group lists the fewest days since the last payment first, name then id on ties, rows without a count last; pages resume inside the group',async()=>{
+ const named=async(id,name)=>{await q('INSERT INTO "Borrowers" VALUES ($1,$2,$3,$4,$5,true,0,1000,NULL)',[id,name,'Synthetic '+id,false,'2026-01-01']);await q('INSERT INTO "Loans" VALUES ($1,$2,12000,$3,2)',['loan-'+id,id,'2026-10-01'])};
+ const paidOn=async(id,date)=>{await charge('c20-'+id,id,pending,'2026-09-17');await charge('cp-'+id,id,paid,date,'0',date,'100');await receipt('r-'+id,'cp-'+id,date)};
+ for(const id of ['np','p0','n5','p7','dfonly','dfneg','l10'])await borrower(id);
+ // Names run against the ids for the two d-3 payers, and two more share one name (the id decides).
+ await named('p3-1','ชื่อ zz');await named('p3-2','ชื่อ aa');await named('t3-b','ชื่อ same');await named('t3-a','ชื่อ same');
+ await charge('c-np','np');
+ await paidOn('p0','2026-10-07');for(const id of ['p3-1','p3-2','t3-a','t3-b'])await paidOn(id,'2026-10-04');await paidOn('p7','2026-09-30');await paidOn('l10','2026-09-27');
+ await charge('c5-n5','n5',pending,'2026-10-02');
+ await charge('df10:only','dfonly',pending,'2026-08-01');
+ await charge('df10:neg','dfneg',pending,'2026-08-01');await charge('c-dfneg','dfneg',pending,'2026-10-09');
+ const result=await board();assert.equal(result.ok,true,JSON.stringify(result));
+ const expected=[['np','not_paid',null,null],['p0','overdue',0,false],['p3-2','overdue',3,false],['t3-a','overdue',3,false],['t3-b','overdue',3,false],['p3-1','overdue',3,false],
+  ['n5','overdue',5,true],['p7','overdue',7,false],['dfneg','overdue',null,null],['dfonly','overdue',null,null],['l10','long_overdue',10,false]];
+ assert.deepEqual(result.items.map(x=>[x.id,x.status,x.sinceLastPaymentDays,x.neverPaid]),expected);
+ // The group totals are still whole-group values on every row of the group.
+ assert.equal(new Set(result.items.filter(x=>x.status==='overdue').map(x=>x.groupRemaining)).size,1);
+ // A walk in pages of 1, 2 and 3 equals the full list (no row repeated or skipped across the Overdue boundaries).
+ for(const limit of [1,2,3]){
+  let cursor=null;const ids=[],keys=[];
+  do{const r=await store.listCollection(owner,{cursor,limit});assert.equal(r.ok,true,JSON.stringify(r));ids.push(...r.items.map(x=>x.id));cursor=r.nextCursor;if(cursor){const c=JSON.parse(Buffer.from(cursor,'base64url').toString());keys.push([c.v,c.rank,c.days])}}while(cursor);
+  assert.deepEqual(ids,expected.map(row=>row[0]),'limit '+limit);
+  if(limit===2)assert.deepEqual(keys,[[6,2,0],[6,2,3],[6,2,3],[6,2,7],[6,2,8]]);
+ }
+ // The same cursor as v5 (what a device held before the release) gets 400, not a page in the old order.
+ const page=await store.listCollection(owner,{limit:2}),held=JSON.parse(Buffer.from(page.nextCursor,'base64url').toString());
+ assert.equal((await store.listCollection(owner,{cursor:Buffer.from(JSON.stringify({...held,v:5})).toString('base64url'),limit:2})).status,400);
+ // The detail of an overdue borrower is unchanged by the order.
+ assert.deepEqual([(await detail('p0')).borrower.status,(await detail('p0')).borrower.sinceLastPaymentDays],['overdue',0]);
 });
 test('R102 owner order: the long overdue group lists fewest days first (10, 19, 23, 42), name then id on ties, stable across pages inside the group',async()=>{
  // Bangkok 2026-10-07: d-10 = 09-27, d-19 = 09-18, d-23 = 09-14, d-42 = 08-26. Names run opposite to days to prove the key.
@@ -95,8 +132,8 @@ test('R102 owner order: the long overdue group lists fewest days first (10, 19, 
   let cursor=null;const ids=[],keys=[];
   do{const r=await store.listCollection(owner,{cursor,limit});assert.equal(r.ok,true,JSON.stringify(r));ids.push(...r.items.map(x=>x.id));cursor=r.nextCursor;if(cursor){const c=JSON.parse(Buffer.from(cursor,'base64url').toString());keys.push([c.v,c.rank,c.days])}}while(cursor);
   assert.deepEqual(ids,result.items.map(x=>x.id),'limit '+limit);
-  assert.ok(keys.every(([v])=>v===5));
-  if(limit===2)assert.deepEqual(keys,[[5,3,10],[5,3,19],[5,3,42]]);
+  assert.ok(keys.every(([v])=>v===6));
+  if(limit===2)assert.deepEqual(keys,[[6,3,10],[6,3,19],[6,3,42]]);
  }
 });
 // R137 (owner decision of 9 November 2026): Long Overdue = an unpaid past-due charge and 8 or more days since the borrower's
@@ -227,7 +264,7 @@ test('malformed legacy ranks and invalid search reject before SQL; old borrower 
 });
 
 test('directory hide-only-TRUE contract covers null/false paging search detail and borrower-scoped loans',async()=>{
- await q(`ALTER TABLE "Loans" ADD COLUMN IF NOT EXISTS "Due Date" date, ADD COLUMN IF NOT EXISTS "Close Date" date, ADD COLUMN IF NOT EXISTS "Loan Type" text, ADD COLUMN IF NOT EXISTS "Loan Status" text, ADD COLUMN IF NOT EXISTS "Outstanding Principal" numeric, ADD COLUMN IF NOT EXISTS "Total Principal Received" numeric, ADD COLUMN IF NOT EXISTS "Total Interest Received" numeric, ADD COLUMN IF NOT EXISTS "Total Amount Received" numeric, ADD COLUMN IF NOT EXISTS "Defaulted" boolean, ADD COLUMN IF NOT EXISTS "Auto Charge Enabled" boolean`);
+ await q(`ALTER TABLE "Loans" ADD COLUMN IF NOT EXISTS "Due Date" date, ADD COLUMN IF NOT EXISTS "Close Date" date, ADD COLUMN IF NOT EXISTS "Loan Type" text, ADD COLUMN IF NOT EXISTS "Loan Status" text, ADD COLUMN IF NOT EXISTS "Outstanding Principal" numeric, ADD COLUMN IF NOT EXISTS "Total Principal Received" numeric, ADD COLUMN IF NOT EXISTS "Total Interest Received" numeric, ADD COLUMN IF NOT EXISTS "Total Amount Received" numeric, ADD COLUMN IF NOT EXISTS "Defaulted" boolean, ADD COLUMN IF NOT EXISTS "Auto Charge Enabled" boolean, ADD COLUMN IF NOT EXISTS "Default Loss Amount" numeric`);
  for(let i=0;i<30;i++){const id='visibility-'+String(i).padStart(2,'0');await q('INSERT INTO "Borrowers" VALUES ($1,$2,$3,$4,$5,true,0,1000,NULL)',[id,'ชื่อสังเคราะห์ '+i,'Visibility fixture '+i,i%2?false:null,'2026-01-01']);await q('INSERT INTO "Loans" ("Row ID","Ref Borrowers","Principal Amount","Loan Date","Original Daily Interest Rate","Loan Status") VALUES ($1,$2,12000,$3,2,$4)',['loan-'+id,id,'2026-10-01','ยังไม่ปิดยอด']);await charge('c-'+id,id)}
  await q('INSERT INTO "Borrowers" VALUES ($1,$2,$3,true,$4,true,0,1000,NULL)',['visibility-hidden','ชื่อสังเคราะห์ปิดบัง','Visibility fixture hidden','2026-01-01']);await q('INSERT INTO "Loans" ("Row ID","Ref Borrowers","Principal Amount","Loan Date","Original Daily Interest Rate") VALUES ($1,$2,12000,$3,2)',['loan-visibility-hidden','visibility-hidden','2026-10-01']);await charge('c-hidden','visibility-hidden');
  for(const query of ['', 'visibility fixture']){const first=await store.listBorrowers(owner,{q:query,limit:25});assert.equal(first.ok,true);assert.equal(first.items.length,25);const second=await store.listBorrowers(owner,{q:query,limit:25,cursor:first.nextCursor});assert.equal(second.items.length,5);const ids=[...first.items,...second.items].map(x=>x.id);assert.equal(new Set(ids).size,30);assert.ok(ids.includes('visibility-00'));assert.ok(ids.includes('visibility-01'));assert.ok(!ids.includes('visibility-hidden'))}

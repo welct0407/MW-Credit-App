@@ -23,8 +23,10 @@ test('borrower cursor binds canonical query and accepts old cursor only unfilter
 test('collection root binds query without changing child cursor contract', () => {
   const row = { kind: 'collection', businessDate: '2026-10-08', rank: 1, days: 0, name: 'สมชาย', id: 'b1' };
   const cursor = encodeCollectionCursor(row, '%_');
-  assert.equal(decodeCollectionCursor(cursor, 'collection', undefined, '%_').v, 5); // R102: v5 (rank 3 is long_overdue, ordered by days)
+  assert.equal(decodeCollectionCursor(cursor, 'collection', undefined, '%_').v, 6); // R183: v6 (the overdue group is ordered by days too); R102 was v5
   for (const v of [3, 4]) assert.throws(() => decodeCollectionCursor(old({ v, ...row, days: undefined, queryHash: searchQueryHash('%_') }), 'collection', undefined, '%_'));
+  // v5 with the very same fields (what a device held before the release) is refused.
+  assert.throws(() => decodeCollectionCursor(old({ v: 5, ...row, queryHash: searchQueryHash('%_') }), 'collection', undefined, '%_'), /Invalid cursor/);
   assert.throws(() => decodeCollectionCursor(cursor, 'collection', undefined, 'other'));
   const legacy = old({ v: 1, ...row });
   assert.throws(() => decodeCollectionCursor(legacy, 'collection'));
