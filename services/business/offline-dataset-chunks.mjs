@@ -159,9 +159,14 @@ async function groupChatRefreshByBorrower(c,_a,_stamp,state){
  const rows=(await c.query(`SELECT ${groupChatRefreshColumnsSql} FROM public.pwa_group_chat_refresh_requests r WHERE ($1::text IS NULL OR r.borrower_id COLLATE "C">$1 COLLATE "C") ORDER BY r.borrower_id COLLATE "C" LIMIT 129`,[text(state)])).rows;
  return result([append('groupChatRefreshByBorrower',projectGroupChatRefreshRows(rows.slice(0,128)))],rows.length>128?rows[127].borrower_id:null);
 }
+// R183: the board cursor a walk carries in its traversal state. One written before a release that changed the cursor (v5,
+// before the overdue group sorted by days) no longer decodes: the walk answers dataset_changed (409), which the app
+// takes as "start this domain again", instead of an error it would repeat until the day changes. Only that refusal is
+// translated; every other failure of the read stays what it is.
+const heldCollectionCursor=cursor=>{try{return decodeCollectionCursor(cursor,'collection')}catch(error){if(error?.message==='Invalid cursor')throw Error('dataset_changed');throw error}};
 const collectionPhases=[
  // R149: the bundle is per actor, so each item carries that user's chatSeenAt (V147).
- page('items',(c,cursor,a)=>readCollection(c,{limit:100,after:decodeCollectionCursor(cursor,'collection'),partnerId:a?.partnerId})),
+ page('items',(c,cursor,a)=>readCollection(c,{limit:100,after:heldCollectionCursor(cursor),partnerId:a?.partnerId})),
  async(c,_a,stamp,state)=>{const rows=(await c.query(`${await chargeCte(c)} SELECT ${chargeColumns} FROM eligible WHERE ($3::text IS NULL OR id COLLATE "C">$3 COLLATE "C") ORDER BY id COLLATE "C" LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('charges',rows.slice(0,128).map(projectCharge))],rows.length>128?rows[127].id:null)},
  async(c,_a,_stamp,state)=>{const value=await readStandaloneUpcoming(c,{limit:100,cursor:text(state)}),{items,nextCursor,...metadata}=value;const {dateTotals,...context}=metadata;return result([...(state?[]:[replace('upcoming',{...metadata,items:[],nextCursor:null})]),append('upcoming',items,['items']),...items.map(row=>replace('upcomingDetailsByKey',{...context,borrowerId:row.borrowerId,borrowerLabel:row.label,dueDate:row.dueDate,totalCharge:row.totalCharge,items:[],nextCursor:null},[JSON.stringify([row.borrowerId,row.dueDate])]))],nextCursor)},
  upcomingDetail,borrowerUpcomingMetadata(),borrowerUpcomingEvents(),

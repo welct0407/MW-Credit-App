@@ -1,10 +1,12 @@
-import test from 'node:test';import assert from 'node:assert/strict';import http from 'node:http';
+import test from 'node:test';import assert from 'node:assert/strict';import http from 'node:http';import {createHash} from 'node:crypto';
 import {loadProductionBusinessConfig} from '../../services/production/business-config.mjs';
 import {parseBusinessPolicy,createBusinessMembership} from '../../services/production/business-policy.mjs';
 import {createBusinessPrincipalVerifier} from '../../services/production/business-principal.mjs';
 import {createConnectionGuard} from '../../services/lib/connection-guard.mjs';
 import {createProductionBusinessRuntime} from '../../services/production/business-runtime.mjs';
 import {deltaValueHash} from '../../services/api/offline-dataset-delta.mjs';
+import {encodeTraversalCursor} from '../../services/api/offline-dataset-cursor.mjs';
+import {encodeCollectionCursor} from '../../services/api/collection-read-contract.mjs';
 import {OFFLINE_DATASET_SHAPE,shapedVersion} from '../../services/business/offline-dataset-delta.mjs';
 import {createEnvironmentCommandStore} from '../../services/payment-command/store.mjs';
 import {PROD_RECEIPT_MAPPING} from '../../services/receipts/dev-receipt-adapter.mjs';
@@ -113,4 +115,30 @@ test('PROD factory permits authorized offline traversal and delta while retainin
  const before=pool.calls.length;assert.equal((await store.offlineDataset({...principal,email:'outsider@example.invalid'},'records',undefined,{protocol:2})).status,403);assert.equal(pool.calls.length,before);
  pool.setRows([]);assert.equal((await store.offlineDataset(principal,'records',undefined,{protocol:2})).status,403);pool.setRows([{id:member.partnerId,role:member.partnerRole}]);
  pool.identity.database='loan_manager_dev';assert.equal((await store.offlineDataset(principal,'records',undefined,{protocol:2})).ok,false);
+});
+// R183: a walk that still carries a board cursor from before the release (v5) is told to start again (409 dataset_changed),
+// under both protocols; a failure of the read itself is still 503 and still logged (R130).
+test('R183 offline collection walk: a held v5 board cursor answers 409 dataset_changed; a store failure stays 503 command_unavailable and is logged',async()=>{
+ const config=loadProductionBusinessConfig({...env,FOUNDATION_ROLE:'command',DB_USER:env.DB_USER.replace('-read-','-command-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-read-','-command-')}),membership=createBusinessMembership(config),pool=poolFixture(config);
+ const store=createEnvironmentCommandStore({pool,guardConnection:createConnectionGuard(config),principalAllowed:membership.principalAllowed,resolveActor:membership.resolveActor,actorIssuer:config.issuer});
+ const sha=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex'),day='2026-10-15',startedAt='2026-10-15T00:00:00.000Z';
+ const identity=sha([config.issuer,principal.subject,member.partnerId]);
+ const traversal=state=>encodeTraversalCursor({v:2,domain:'collection',actor:identity,day,startedAt,generation:sha([identity,'collection',day,startedAt]),phase:0,state,done:1});
+ const v6=encodeCollectionCursor({kind:'collection',businessDate:day,rank:2,days:0,name:'Name',id:'b'});
+ const v5=Buffer.from(JSON.stringify({...JSON.parse(Buffer.from(v6,'base64url').toString()),v:5})).toString('base64url');
+ const sourceVersion=shapedVersion('a'.repeat(64)),wrapped=cursor=>Buffer.from(JSON.stringify({v:3,sourceVersion,inner:cursor})).toString('base64url');
+ const logged=[],write=console.log;console.log=line=>{logged.push(String(line))};
+ try{
+  // Protocol 2 (the plain walk) and protocol 3 (the walk continued inside a delta request).
+  assert.deepEqual(await store.offlineDataset(principal,'collection',undefined,{protocol:2,cursor:traversal(v5)}),{ok:false,status:409,code:'dataset_changed'});
+  assert.deepEqual(await store.offlineDataset(principal,'collection',undefined,{protocol:3,input:{cursor:wrapped(traversal(v5)),need:[],sourceVersion}}),{ok:false,status:409,code:'dataset_changed'});
+  assert.deepEqual(logged.filter(line=>/command_store_unavailable|offline_dataset_unavailable/.test(line)),[],'the restart is not logged as unavailable');
+  // The current cursor is read (the fixture has no board rows to give, so the read itself fails): 503, logged.
+  const failing=await store.offlineDataset(principal,'collection',undefined,{protocol:2,cursor:traversal(v6)});
+  assert.deepEqual(failing,{ok:false,status:503,code:'command_unavailable'});
+  assert.equal(logged.filter(line=>line.includes('command_store_unavailable')).length,1,logged.join('\n'));
+  // Any state the board cursor check refuses (here a malformed one) restarts the same way; nothing else is translated.
+  logged.length=0;assert.deepEqual(await store.offlineDataset(principal,'collection',undefined,{protocol:2,cursor:traversal('%')}),{ok:false,status:409,code:'dataset_changed'});
+  assert.deepEqual(logged.filter(line=>line.includes('command_store_unavailable')),[]);
+ }finally{console.log=write}
 });

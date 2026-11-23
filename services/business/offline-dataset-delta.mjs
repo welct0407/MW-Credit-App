@@ -71,7 +71,9 @@ async function readSourceFingerprints(client,sources){
 // also stamped into the version itself (its last 8 hex digits), so the server tells a bundle read under an earlier shape
 // and walks it instead (acceptsRowDelta). A version from before this stamp matches it with probability 2^-32.
 // R165: v13, the collection bundle gains groupChatRefreshByBorrower (a bundle of v12 is walked once to get it).
-export const OFFLINE_DATASET_SHAPE='business-offline-v13';
+// R183: v14, the collection items changed order inside the overdue group (fewest days since the last payment first); as
+// for R116's v6, every installed bundle walks once so no saved list keeps the old order.
+export const OFFLINE_DATASET_SHAPE='business-offline-v14';
 const SHAPE_STAMP='5a9e'+Number(OFFLINE_DATASET_SHAPE.slice(OFFLINE_DATASET_SHAPE.lastIndexOf('-v')+2)).toString(16).padStart(4,'0');
 /** The 64-hex version with the current shape stamped into its last 8 digits. */
 export const shapedVersion=hash=>hash.slice(0,56)+SHAPE_STAMP;
@@ -109,6 +111,8 @@ function domainVersion(fingerprints,actor,domain,businessDate){
  // summaries their inviteUrl; every bundle walks once.
  // v12 (R158): the collection items carry chatUrl and chatInviteUrl and the group chat summaries no longer carry the
  // links; every bundle walks once (the R155 shape stamp makes every device take it).
+ // v14 (R183): the collection items are ordered by the days since the last payment inside the overdue group; every
+ // bundle walks once, also across a day change.
  return shapedVersion(deltaValueHash([OFFLINE_DATASET_SHAPE,actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]));
 }
 export async function readOfflineSourceVersion(client,actor,domain,businessDate){
