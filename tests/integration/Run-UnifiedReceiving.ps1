@@ -76,12 +76,20 @@ try {
   # R114 COL-2: the Collection read's prepaid source with and without the reader's Payments and Repayments."Ref Payment" column grants (R109 guard), same cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/collection-prepaid-source-independent.test.mjs"
   if($LASTEXITCODE){throw 'Collection prepaid source integration checks failed'}
+  # R183: the Collection board's real SQL (status groups, the order inside them and the keyset cursors) on its own fixture
+  # tables, in a second database of this cluster (the file creates its tables and reader role itself; Run-Collection.ps1
+  # stays the manual route).
+  & (Get-PgTool createdb) -h 127.0.0.1 -p $fixturePort -U postgres collection_fixture
+  if($LASTEXITCODE){throw 'Collection fixture database creation failed'}
+  $env:COLLECTION_TEST_DISPOSABLE='1';$env:COLLECTION_TEST_PORT=[string]$fixturePort
+  & node --test --test-concurrency=1 "$PSScriptRoot/collection-postgres.test.mjs"
+  if($LASTEXITCODE){throw 'Collection board integration checks failed'}
   # R109: Default Loan with a loss amount and kept charges (V120), on the same head cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/default-loss-independent.test.mjs"
   if($LASTEXITCODE){throw 'Default loss integration checks failed'}
  }
 } finally {
- Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY -ErrorAction SilentlyContinue
+ Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY,Env:COLLECTION_TEST_DISPOSABLE,Env:COLLECTION_TEST_PORT -ErrorAction SilentlyContinue
  if($started){& (Get-PgTool pg_ctl) -D $data -m fast -w stop | Out-Null}
  Write-Host "Stopped disposable PostgreSQL; synthetic diagnostics retained at $fixtureRoot"
 }
