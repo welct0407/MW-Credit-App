@@ -3907,6 +3907,8 @@ BEGIN
    -- resolves through pwa_effective_payment_plan_v2 unpatched.
    h:=md5('mw-credit-rebate-offset-v1:'||offset_id);
    request:=(substr(h,1,8)||'-'||substr(h,9,4)||'-4'||substr(h,14,3)||'-'||substr('89ab',(get_byte(decode(substr(h,17,2),'hex'),0)%4)+1,1)||substr(h,18,3)||'-'||substr(h,21,12))::uuid;
+   -- A settlement id used before (a deleted offset settlement keeps its journal row) is a source conflict, not a key violation.
+   IF EXISTS(SELECT 1 FROM public.pwa_payment_commands WHERE request_id=request) THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
    system_canonical:=jsonb_build_object('contractVersion',2,'requestId',request::text,
     'actor',jsonb_build_object('issuer','SQL','subject','rebate-settlement','partnerId','SQL:rebate-settlement','loginEmail',creator),
     'command',jsonb_build_object('operation','system.rebate-offset','targetType','rebate-settlement','targetId',target))::text;

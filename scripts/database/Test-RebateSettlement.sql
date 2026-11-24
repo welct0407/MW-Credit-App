@@ -716,6 +716,11 @@ SELECT pg_temp.rs_assert(pg_temp.rs_status('d4')='applied' AND NOT EXISTS(SELECT
   AND public.pwa_rebate_pending_v1('rr1:RP-LA')=200 AND public.pwa_rebate_pending_v1('rr1:RP-LC')=300 AND public.pwa_rebates_owed_v1('RP-R')=1100
   AND (SELECT "Ref Rebate Settlement"='c1840003-0000-4000-8000-000000000001' FROM public."Business Expenses" WHERE "Row ID"='rr1:RP-LA') AND (SELECT "Ref Rebate Settlement" IS NULL FROM public."Business Expenses" WHERE "Row ID"='rr1:RP-LC')
   AND (SELECT "Loan Status"='ยังไม่ปิดยอด' FROM public."Loans" WHERE "Row ID"='RP-RL'),'P5: the offset settlement''s delete: payment, repayments and cash rows gone, charges unpaid, booked charges kept, pending restored: '||current_setting('rs.out_d4'));
+-- The id of a deleted offset settlement is not taken again (its offset payment's journal row remains): a source conflict
+-- with nothing written, not a key violation.
+SELECT set_config('rs.state',pg_temp.rs_state(),false),set_config('rs.p4_again',pg_temp.rs_create2('b1840005-0000-4000-8000-0000000000a1','c1840004-0000-4000-8000-000000000001','RP-R','offset',ARRAY['rr1:RP-LC|14|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,pg_temp.rs_hash('RP-R',14)),true),set_config('rs.run','p4_again',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_code('p4_again')='source_conflict' AND pg_temp.rs_state()=current_setting('rs.state'),'P5: the id of a deleted offset settlement is a source conflict: '||current_setting('rs.out_p4_again'));
 -- An offset of exactly what is due (RP-R: the 14 of today), which pays the due charge only; it is deleted again.
 SELECT set_config('rs.p5',pg_temp.rs_create2('b1840005-0000-4000-8000-000000000002','c1840005-0000-4000-8000-000000000002','RP-R','offset',ARRAY['rr1:RP-LC|14|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,pg_temp.rs_hash('RP-R',14)),true),set_config('rs.run','p5',true);
 :submit
