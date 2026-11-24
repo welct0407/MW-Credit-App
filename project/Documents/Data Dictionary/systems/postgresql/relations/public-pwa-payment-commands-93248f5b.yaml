@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r136-20261109/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r184-20261124/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "3aafed131f2d5f9d9c594ad8363fbd17ce1d2fc9"
+    "commit": "0e7ad584efe30ad67017d13933492caa583cf7a1"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/public-pwa-payment-commands-93248f5b.yaml"
     "identity":
       "system": "postgresql"
@@ -671,18 +671,19 @@
         \ = 'object'::text AND octet_length(result_json::text) <= 524288 AND result_json ?& ARRAY['operation'::text, 'targetType'::text,\
         \ 'targetId'::text, 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text] AND (result_json - ARRAY['operation'::text,\
         \ 'targetType'::text, 'targetId'::text, 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text, 'sourceCreatedBy'::text,\
-        \ 'rebate'::text, 'settlement'::text, 'rollover'::text]) = '{}'::jsonb AND (NOT (result_json ? 'settlement'::text\
-        \ OR result_json ? 'rollover'::text) OR (result_json ->> 'operation'::text) = 'loan.rollover'::text AND jsonb_typeof(result_json\
-        \ -> 'settlement'::text) = 'object'::text AND jsonb_typeof(result_json -> 'rollover'::text) = 'object'::text) AND\
-        \ (NOT result_json ? 'rebate'::text OR (result_json ->> 'operation'::text) = 'loan.close'::text AND jsonb_typeof(result_json\
-        \ -> 'rebate'::text) = 'object'::text) AND (NOT result_json ? 'sourceCreatedBy'::text OR (jsonb_typeof(result_json\
-        \ -> 'sourceCreatedBy'::text) = ANY (ARRAY['string'::text, 'null'::text]))) AND (result_json ->> 'operation'::text)\
-        \ = (canonical_json::jsonb #>> '{command,operation}'::text[]) AND (result_json ->> 'targetType'::text) = (canonical_json::jsonb\
-        \ #>> '{command,targetType}'::text[]) AND (result_json ->> 'targetId'::text) = (canonical_json::jsonb #>> '{command,targetId}'::text[])\
-        \ OR outcome = 'rejected'::text AND result_json IS NULL AND (rejection_code = ANY (ARRAY['source_conflict'::text,\
-        \ 'not_found'::text, 'invalid_reference'::text, 'borrower_name_exists'::text, 'dependency_conflict'::text, 'insufficient_funds'::text,\
-        \ 'plan_changed'::text, 'invalid_date'::text, 'account_unavailable'::text, 'record_requires_reconciliation'::text,\
-        \ 'rollover_ineligible'::text])))) IS TRUE)"
+        \ 'rebate'::text, 'settlement'::text, 'rollover'::text, 'rebateSettlement'::text]) = '{}'::jsonb AND (NOT result_json\
+        \ ? 'rebateSettlement'::text OR (result_json ->> 'operation'::text) = 'rebate-settlement.create'::text AND jsonb_typeof(result_json\
+        \ -> 'rebateSettlement'::text) = 'object'::text) AND (NOT (result_json ? 'settlement'::text OR result_json ? 'rollover'::text)\
+        \ OR (result_json ->> 'operation'::text) = 'loan.rollover'::text AND jsonb_typeof(result_json -> 'settlement'::text)\
+        \ = 'object'::text AND jsonb_typeof(result_json -> 'rollover'::text) = 'object'::text) AND (NOT result_json ? 'rebate'::text\
+        \ OR (result_json ->> 'operation'::text) = 'loan.close'::text AND jsonb_typeof(result_json -> 'rebate'::text) = 'object'::text)\
+        \ AND (NOT result_json ? 'sourceCreatedBy'::text OR (jsonb_typeof(result_json -> 'sourceCreatedBy'::text) = ANY (ARRAY['string'::text,\
+        \ 'null'::text]))) AND (result_json ->> 'operation'::text) = (canonical_json::jsonb #>> '{command,operation}'::text[])\
+        \ AND (result_json ->> 'targetType'::text) = (canonical_json::jsonb #>> '{command,targetType}'::text[]) AND (result_json\
+        \ ->> 'targetId'::text) = (canonical_json::jsonb #>> '{command,targetId}'::text[]) OR outcome = 'rejected'::text AND\
+        \ result_json IS NULL AND (rejection_code = ANY (ARRAY['source_conflict'::text, 'not_found'::text, 'invalid_reference'::text,\
+        \ 'borrower_name_exists'::text, 'dependency_conflict'::text, 'insufficient_funds'::text, 'plan_changed'::text, 'invalid_date'::text,\
+        \ 'account_unavailable'::text, 'record_requires_reconciliation'::text, 'rollover_ineligible'::text])))) IS TRUE)"
       "deferrable": false
       "initially_deferred": false
       "validated": true
