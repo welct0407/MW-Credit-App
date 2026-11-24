@@ -39,6 +39,9 @@ function route(raw) {
     if(correction){if([...url.searchParams.keys()].some(key=>!['targetLoanId','paymentDate','proposedBorrowerId'].includes(key)||url.searchParams.getAll(key).length!==1))return {invalid:true,operation:'unknown'};return {operation:'payment_record',paymentId:decodeURIComponent(correction[1]),preview:true,targetLoanId:url.searchParams.get('targetLoanId'),paymentDate:url.searchParams.get('paymentDate'),proposedBorrowerId:url.searchParams.get('proposedBorrowerId')};}
     const paged=url.pathname==='/api/expense-records'||/^\/api\/(payment-drafts\/[^/]+|borrowers\/[^/]+\/payments)$/.test(url.pathname);
     // R141: the referrer list takes owed=1 (referrers still owed rebates); its value is validated by the read (400).
+    // R184 (V155): the offset preview of Pay rebates; amount (once at most) is a whole-baht string, validated by the read (400).
+    const offsetPreview=/^\/api\/referrers\/([^/]+)\/offset-preview$/.exec(url.pathname);
+    if(offsetPreview){if([...url.searchParams.keys()].some(key=>key!=='amount')||url.searchParams.getAll('amount').length>1)return {invalid:true,operation:'unknown'};return {operation:'referrer_offset_preview',borrowerId:decodeURIComponent(offsetPreview[1]),amount:url.searchParams.get('amount')};}
     if(url.pathname==='/api/referrers'){if([...url.searchParams.keys()].some(key=>key!=='owed')||url.searchParams.getAll('owed').length>1)return {invalid:true,operation:'unknown'};return {operation:'referrer_list',options:{owed:url.searchParams.get('owed')}};}
     if(url.pathname==='/api/borrower-options'){if([...url.searchParams.keys()].some(key=>key!=='q')||url.searchParams.getAll('q').length>1)return {invalid:true,operation:'unknown'};return {operation:'borrower_options',query:url.searchParams.get('q')??''};}
     // R141: the expense list also takes payment=pending and payeeBorrowerId (validated by the read; a bad value is 400).
@@ -98,7 +101,7 @@ function route(raw) {
  * revocation round trip. Exact (operation, method) pairs only; every write, every invalid or
  * unknown route and every method mismatch keeps verifyIdToken(token,true).
  */
-const READ_GET=new Set(['offline_dataset','management','record_list','cash_statement','collection_receipts','upcoming','payment_image','loan_related','payment_record','borrower_options','dashboard','preferences','cash_overview','expense_options','expense_list','expense_record','referrer_list','referrer_record','rebate_settlement_record','loan_options','operation_status','loan_close_preview','loan_rollover_preview','charge_record','loan_record','borrower_record','payment_history','command_result','payment_draft','receipt','command_status']);
+const READ_GET=new Set(['offline_dataset','management','record_list','cash_statement','collection_receipts','upcoming','payment_image','loan_related','payment_record','borrower_options','dashboard','preferences','cash_overview','expense_options','expense_list','expense_record','referrer_list','referrer_record','referrer_offset_preview','rebate_settlement_record','loan_options','operation_status','loan_close_preview','loan_rollover_preview','charge_record','loan_record','borrower_record','payment_history','command_result','payment_draft','receipt','command_status']);
 /** @param {any} target @param {string|undefined} method */
 export function isReadRoute(target,method){
   if(!target||target.invalid)return false;
@@ -158,7 +161,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if (target.operation === 'unknown') return reject(404, 'not_found');
     if ((target.operation === 'command_submit' && req.method !== 'POST') || (['command_status','command_result','payment_draft','payment_history'].includes(target.operation) && req.method !== 'GET')) return reject(405, 'method_not_allowed');
     if((['payment_review','payment_auto_assign','payment_select_all','payment_plan'].includes(target.operation)&&req.method!=='POST')||(target.operation==='command_metadata'&&req.method!=='PATCH')||(target.operation==='receipt'&&!['GET','POST'].includes(req.method))||(target.operation==='receipt_recognition'&&req.method!=='POST'))return reject(405,'method_not_allowed');
-    if(['borrower_create','operation_submit','chat_seen','chat_refresh'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','referrer_list','referrer_record','rebate_settlement_record','loan_close_preview','loan_rollover_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
+    if(['borrower_create','operation_submit','chat_seen','chat_refresh'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','referrer_list','referrer_record','referrer_offset_preview','rebate_settlement_record','loan_close_preview','loan_rollover_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
     let result;
     try {
       if(target.operation==='offline_dataset'){
@@ -194,6 +197,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       else if(target.operation==='expense_list')result=await store.expenses(principal,target.options);
       else if(target.operation==='referrer_list')result=await store.referrers(principal,target.options);
       else if(target.operation==='referrer_record')result=await store.referrerRecord(principal,target.borrowerId);
+      else if(target.operation==='referrer_offset_preview')result=await store.referrerOffsetPreview(principal,target.borrowerId,target.amount);
       else if(target.operation==='rebate_settlement_record')result=await store.rebateSettlementRecord(principal,target.settlementId);
       else if(target.operation==='collection_receipts')result=await store.collectionReceipts(principal,target.borrowerId,target.options);
       else if(target.operation==='payment_record')result=await store.paymentRecord(principal,target.paymentId,{preview:target.preview,targetLoanId:target.targetLoanId??null,paymentDate:target.paymentDate??null,proposedBorrowerId:target.proposedBorrowerId??null});

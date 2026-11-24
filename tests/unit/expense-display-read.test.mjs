@@ -39,7 +39,8 @@ test('R140 the pending rule: Manual, above zero, no payer, not a cutover source'
 test('R140 an expense record carries paymentState and, while pending, pendingAmount (the amount); rebateState stays the rebate rule',async()=>{
  let first=true;const client={query:async sql=>{if(first){first=false;
   assert.match(sql,/CASE WHEN \(e\."Source Type"='Manual'[\s\S]*\) THEN 'pending' END AS "paymentState"/);
-  assert.match(sql,/coalesce\(CASE WHEN e\."Source Type" IS DISTINCT FROM 'Referral Rebate' THEN NULL[\s\S]*,CASE WHEN \(e\."Source Type"='Manual'[\s\S]*\) THEN e\."Amount"::numeric END\)::numeric\(20,2\)::text AS "pendingAmount"/);
+  // R184 (D12): a rebate's pending amount is the SQL rule itself (null for a manual expense), else the pending manual amount.
+  assert.match(sql,/coalesce\(public\.pwa_rebate_pending_v1\(e\."Row ID"\),CASE WHEN \(e\."Source Type"='Manual'[\s\S]*\) THEN e\."Amount"::numeric END\)::numeric\(20,2\)::text AS "pendingAmount"/);
   return {rows:[{id:'E-PEND',sourceType:'Manual',amount:'500.00',paymentState:'pending',pendingAmount:'500.00',rebateState:null,paidByAccountId:null,paidByAccountLabel:null,offsetPaymentId:null,relatedLoanId:null}]}}return {rows:[]}}};
  const item=await readExpenseRecord(client,'E-PEND');
  assert.equal(item.paymentState,'pending');assert.equal(item.pendingAmount,'500.00');assert.equal(item.rebateState,null);assert.equal(item.canEdit,true);assert.equal(item.canDelete,true);

@@ -50,9 +50,9 @@ export async function readBorrowerRecord(client,id,lock=false){
  CASE WHEN b."Total Outstanding Principal"<=0 THEN NULL WHEN b."Active Loan Interest Earned">=b."Total Outstanding Principal" THEN (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date WHEN b."Active Daily Interest">0 THEN (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date+ceil((b."Total Outstanding Principal"-b."Active Loan Interest Earned")/b."Active Daily Interest")::integer ELSE NULL END::text AS "coverageDate",
  r."Borrower Name" AS "referrerName",a."Account Label" AS "preferredReceivingAccountLabel",
  EXISTS(SELECT 1 FROM public."Borrowers" x WHERE x."Ref Referrer"=b."Row ID" AND x."Row ID"<>b."Row ID") AS "isReferrer",
- (SELECT coalesce(sum(${rebatePendingSql('x','o')}),0)::numeric(20,2)::text FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=to_jsonb(x)->>'Ref Offset Payment' WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate') AS "referrerUnpaidAmount",
- (SELECT min(coalesce(l."Close Date",x."Expense Date"))::text FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=to_jsonb(x)->>'Ref Offset Payment' LEFT JOIN public."Loans" l ON l."Row ID"=x."Ref Related Loan"
-  WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate' AND ${rebatePendingSql('x','o')}>0) AS "referrerUnpaidSince",
+ (SELECT coalesce(sum(${rebatePendingSql('x')}),0)::numeric(20,2)::text FROM public."Business Expenses" x WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate') AS "referrerUnpaidAmount",
+ (SELECT min(coalesce(l."Close Date",x."Expense Date"))::text FROM public."Business Expenses" x LEFT JOIN public."Loans" l ON l."Row ID"=x."Ref Related Loan"
+  WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate' AND ${rebatePendingSql('x')}>0) AS "referrerUnpaidSince",
  eo.amount AS "expensesOwedAmount",eo.count AS "expensesOwedCount",
  ${terms?`(t.terms->>'rate')::float8 AS "referralRebateRateEffective",(t.terms->>'cap')::float8 AS "referralRebateCapEffective"`:'NULL::float8 AS "referralRebateRateEffective",NULL::float8 AS "referralRebateCapEffective"'}
  FROM public."Borrowers" b LEFT JOIN public."Borrowers" r ON r."Row ID"=b."Ref Referrer" LEFT JOIN public."Cash Accounts" a ON a."Row ID"=b."Ref Preferred Receiving Cash Account"

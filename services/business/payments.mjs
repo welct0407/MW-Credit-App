@@ -3,8 +3,8 @@ import {lateChargeSchema,lateSql} from '../lib/late-charge-schema.mjs';
 import {paymentLoanDisplayKey} from '../payment-command/draft.mjs';
 import {borrowerDisplayName} from '../api/loan-read-contract.mjs';
 import {validBorrowerId} from './borrowers.mjs';
-import {rebatePendingSql,rebateStateSql} from './rebate-state.mjs';
-import {settlementDates} from './referrers.mjs';
+import {rebatePendingSql,rebateSettledSql,rebateStateSql} from './rebate-state.mjs';
+import {rebateSettlementSchema,settlementDates} from './referrers.mjs';
 /** Explicit current source projection; immutable operation outcomes are separate. */
 export async function readPaymentRecord(client,id){
  if(!validBorrowerId(id))throw Error('invalid_request');
@@ -24,7 +24,9 @@ export async function readPaymentRecord(client,id){
  // R129 (V137): its state (pending, paid on a settlement date, offset, legacy paid at close), pending amount, settlement
  // and the payee's owed total now. The link is read through to_jsonb(e); the settlement and owed reads run only for a
  // REFERRAL_REBATE_V3 row, which exists only from V137 on, so a database before V137 reads the legacy states.
- const rebates=(await client.query(`SELECT ${rebateStateSql('e','o')} AS "rebateState",(${rebatePendingSql('e','o')})::numeric(20,2)::text AS "pendingAmount",
+ // R184 (V155): the state adds 'part-paid'; settledAmount is what settlements applied so far and settlementCount how many
+ // did (read only when the rebate links one); settlementId and settlementDate are the newest.
+ const rebates=(await client.query(`SELECT ${rebateStateSql('e','o')} AS "rebateState",(${rebatePendingSql('e')})::numeric(20,2)::text AS "pendingAmount",(${rebateSettledSql('e','o')})::numeric(20,2)::text AS "settledAmount",e."Row ID" AS "expenseId",
   to_jsonb(e)->>'Ref Rebate Settlement' AS "settlementId",e."Ref Payee Borrower" AS "payeeId",e."Rule Version" AS "ruleVersion",
   l."Row ID" AS "loanId",l."Principal Amount"::numeric::text AS "loanPrincipal",l."Loan Date"::text AS "loanDay",l."Original Daily Interest Rate"::text AS "loanRate",lb."Borrower Name" AS "loanBorrowerName",lb."Description" AS "loanBorrowerDescription",e."Amount"::numeric::text AS amount,coalesce(rb."Borrower Name",'')||' - '||coalesce(rb."Description",'') AS "referrerLabel",
   o."Row ID" AS "offsetPaymentId",o."Amount Received"::numeric::text AS "offsetAmount",ol."Row ID" AS "offsetLoanId",ol."Principal Amount"::numeric::text AS principal,ol."Loan Date"::text AS "loanDate",ol."Original Daily Interest Rate"::text AS rate,
@@ -38,14 +40,20 @@ export async function readPaymentRecord(client,id){
  // R119 (Echo PR-1/PR-2): every referred loan this payment closed, in the Payment Allocations order (then loan id), with the
  // closed loan's display key as the allocations show it; closeRebate stays the first for a phone on an older bundle.
  const dates=await settlementDates(client,rebates.map(r=>r.settlementId));
+ const settled=rebates.filter(r=>r.settlementId).map(r=>r.expenseId);
+ const counts=new Map(settled.length&&await rebateSettlementSchema(client)?(await client.query('SELECT a.expense_id AS id,count(*)::int AS n FROM public.pwa_rebate_settlement_allocations a WHERE a.expense_id IN (SELECT jsonb_array_elements_text($1::jsonb)) GROUP BY a.expense_id',[JSON.stringify(settled)])).rows.map(r=>[r.id,r.n]):[]);
  // The payees travel as one JSON text parameter (the offline records walk's bulkReadClient takes scalar parameters only).
  const v3=[...new Set(rebates.filter(r=>r.ruleVersion==='REFERRAL_REBATE_V3'&&r.payeeId).map(r=>r.payeeId))];
  const owed=new Map(v3.length?(await client.query('SELECT p.id,public.pwa_rebates_owed_v1(p.id)::numeric(20,2)::text AS owed FROM jsonb_array_elements_text($1::jsonb) p(id)',[JSON.stringify(v3)])).rows.map(r=>[r.id,r.owed]):[]);
  item.closeRebates=rebates.map(rebate=>({loanId:rebate.loanId,loanDisplayKey:rebate.loanPrincipal==null?null:paymentLoanDisplayKey({principal:rebate.loanPrincipal,loanDate:rebate.loanDay,rate:rebate.loanRate,name:borrowerDisplayName(rebate.loanBorrowerName,rebate.loanBorrowerDescription)}),amount:rebate.amount,referrerLabel:rebate.referrerLabel,offsetPaymentId:rebate.offsetPaymentId??null,offsetAmount:rebate.offsetAmount??null,
   payableAmount:rebate.offsetAmount==null?rebate.amount:(Number(rebate.amount)-Number(rebate.offsetAmount)).toString(),offsetLoanId:rebate.offsetLoanId??null,
   offsetLoanLabel:rebate.offsetLoanId?paymentLoanDisplayKey({name:rebate.referrerLabel,principal:rebate.principal,loanDate:rebate.loanDate,rate:rebate.rate}):null,paidThrough:rebate.paidThrough??null,
-  rebateState:rebate.rebateState??null,pendingAmount:rebate.pendingAmount??null,settlementId:rebate.settlementId??null,settlementDate:dates.get(rebate.settlementId)?.date??null,owedTotal:owed.get(rebate.payeeId)??null}));
+  rebateState:rebate.rebateState??null,pendingAmount:rebate.pendingAmount??null,settledAmount:rebate.settledAmount??null,settlementCount:rebate.settlementId?counts.get(rebate.expenseId)??1:0,
+  settlementId:rebate.settlementId??null,settlementDate:dates.get(rebate.settlementId)?.date??null,owedTotal:owed.get(rebate.payeeId)??null}));
  item.closeRebate=item.closeRebates[0]??null;
+ // R184 (V155): the offset payment of a rebate settlement names it (the link back from the payment record); the column is
+ // read through to_jsonb(s), and only for a Referral Rebate Offset payment, so an earlier database reads none.
+ item.rebateSettlementId=item.paymentMethod==='Referral Rebate Offset'?(await client.query(`SELECT s.id FROM public.pwa_rebate_settlements s WHERE to_jsonb(s)->>'offset_payment_id'=$1`,[id])).rows[0]?.id??null:null;
  item.cashMovements=(await client.query(`SELECT c."Row ID" id,c."Movement Date"::text AS "movementDate",c."Movement Type" AS "movementType",c."Amount"::numeric::text amount,f."Account Label" AS "fromAccount",t."Account Label" AS "toAccount" FROM public."Cash Ledger" c LEFT JOIN public."Cash Accounts" f ON f."Row ID"=c."Ref From Cash Account" LEFT JOIN public."Cash Accounts" t ON t."Row ID"=c."Ref To Cash Account" WHERE c."Ref Payment"=$1 ORDER BY c."Movement Date",c."Row ID" COLLATE "C"`,[id])).rows;
  return item;
 }

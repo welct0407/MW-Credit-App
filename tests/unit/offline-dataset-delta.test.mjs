@@ -262,7 +262,7 @@ test('R158 the dataset version is v12 and the offline group chat rows carry no l
  const {projectGroupChatRows}=await import('../../services/business/offline-dataset-chunks.mjs');
  const fingerprints={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[]};return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
  const rows=[...offlineSourceTables.records].filter(relation=>!relation.startsWith('pwa_group_chat_')).sort((a,b)=>a<b?-1:a>b?1:0).map(relation=>({relation,fingerprint:'1:42'}));
- assert.equal(await readOfflineSourceVersion(fingerprints,actor,'records',stamp.businessDate),shapedVersion(deltaValueHash(['business-offline-v14',actor.issuer,actor.subject,actor.partnerId,'records',stamp.businessDate,rows])));
+ assert.equal(await readOfflineSourceVersion(fingerprints,actor,'records',stamp.businessDate),shapedVersion(deltaValueHash(['business-offline-v15',actor.issuer,actor.subject,actor.partnerId,'records',stamp.businessDate,rows])));
  const stored=id=>({borrower_id:id,shared_group:false,headline_th:'สรุป',headline_en:'Summary',points:[],last_speaker_role:'partner',last_speaker_borrower_id:null,message_count:2,last_message_at:'2026-11-12T07:05:00.000Z',generated_at:'2026-11-12T07:32:00.000Z'});
  const value=projectGroupChatRows([stored('A'),stored('B'),{...stored('D'),points:'x'}]);
  assert.deepEqual(value.map(row=>row.borrowerId),['A','B'],'a bad row is dropped');
@@ -288,10 +288,10 @@ test('R153 a Borrowers-only change (the link) scopes the collection row delta to
 // case: a records bundle walked before V149 (no igGroupInviteLink on its borrower records), then any row change since
 // its cursor; the old server answered a records delta with the new version and the unchanged borrowers kept the old shape.
 test('R154 hotfix: versions carry the shape stamp; a client version of an earlier shape gets a walk, not a delta',async()=>{
- assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v14');
- const stamped=shapedVersion('c'.repeat(64));assert.match(stamped,/^c{56}5a9e000e$/);assert.equal(acceptsRowDelta(stamped),true);
+ assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v15');
+ const stamped=shapedVersion('c'.repeat(64));assert.match(stamped,/^c{56}5a9e000f$/);assert.equal(acceptsRowDelta(stamped),true);
  // R165: v13; a v12 bundle (5a9e000c) walks once to get groupChatRefreshByBorrower.
- for(const old of ['c'.repeat(64),'0'.repeat(56)+'5a9e000b','0'.repeat(56)+'5a9e000c','5a9e000e'])assert.equal(acceptsRowDelta(old),false,old);
+ for(const old of ['c'.repeat(64),'0'.repeat(56)+'5a9e000b','0'.repeat(56)+'5a9e000c','0'.repeat(56)+'5a9e000e','5a9e000f'])assert.equal(acceptsRowDelta(old),false,old);
  assert.equal(acceptsRowDelta(null),true,'own writes applied locally keep their delta (a reconciliation heals them)');
  const fingerprints={query:async query=>{if(query.includes('has_table_privilege(to_regclass'))return {rows:[]};return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:42'}))}}};
  for(const domain of ['records','collection','cash','management'])assert.equal(acceptsRowDelta(await readOfflineSourceVersion(fingerprints,actor,domain,stamp.businessDate)),true,domain);

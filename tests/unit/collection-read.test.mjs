@@ -271,7 +271,7 @@ test('R161 chatDmUrl rides the read service\'s collection items and borrower lis
  const item=await store.getBorrower('synthetic@example.invalid','a');assert.equal(item.ok,true,JSON.stringify(item));assert.equal(item.item.chatDmUrl,'https://ig.me/m/invented.a');
 });
 test('R161 the offline dataset added no DM link (v12; R165 made it v13 for the refresh rows)',async()=>{
- const {OFFLINE_DATASET_SHAPE}=await import('../../services/business/offline-dataset-delta.mjs');assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v14');
+ const {OFFLINE_DATASET_SHAPE}=await import('../../services/business/offline-dataset-delta.mjs');assert.equal(OFFLINE_DATASET_SHAPE,'business-offline-v15');
 });
 // R183 (owner, 23 November 2026, "align with long overdue"): the overdue group sorts by the days its tile shows; the board
 // cursor is v6 and a v5 cursor is refused, whatever it carried.
