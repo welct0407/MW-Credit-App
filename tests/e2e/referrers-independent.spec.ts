@@ -1,6 +1,6 @@
 import {test,expect,type Page} from './fixtures/test';
 import {chooseLanguage} from './live-controls';
-import {referrerRoute,settlementS1} from './fixtures/referrers-fixture';
+import {referrerMaiDetail,referrerRoute,settlementS1} from './fixtures/referrers-fixture';
 import {spawn,type ChildProcess} from 'node:child_process';
 // R129 (V137) Referrers page: list and search, a referrer's tiles and sections, Pay rebates with a subset unticked through
 // Review, Confirm and the result, and the Delete settlement confirm. Synthetic auth and HTTP seams with the real DOM; it
@@ -10,7 +10,8 @@ test.beforeAll(async({},info)=>{const port=8100+info.workerIndex;base=`http://12
 test.afterAll(()=>server?.kill());test.setTimeout(60000);test.use({actionTimeout:7000});
 const auth=`let listener;const user={uid:'referrers-independent-owner',getIdToken:async()=>'synthetic-bearer'};export const browserLocalPersistence='local',inMemoryPersistence='memory',browserPopupRedirectResolver={};export function initializeAuth(){return {}};export function onAuthStateChanged(a,fn){listener=fn;fn(localStorage.getItem('referrers-owner')?user:null);return()=>{}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){localStorage.setItem('referrers-owner','1');listener(user)};export async function signOut(){localStorage.removeItem('referrers-owner');listener(null)};`;
 type Seam={writes:any[],reads:string[]};
-async function setup(page:Page){
+/** `outcome` (R184) adds fields to an applied command's result, as the server's D13 rebateSettlement. */
+async function setup(page:Page,outcome:(body:any)=>Record<string,unknown>=()=>({})){
  const s:Seam={writes:[],reads:[]};
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));
  await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:auth}));
@@ -18,14 +19,14 @@ async function setup(page:Page){
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
   const path=new URL(r.request().url()).pathname,method=r.request().method();let status=200,result:any={ok:true,items:[],nextCursor:null};
   if(method==='GET')s.reads.push(path);
-  const referrer=method==='GET'?referrerRoute(path):null;
+  const referrer=method==='GET'?referrerRoute(path,new URL(r.request().url()).search):null;
   if(referrer){status=referrer.status;result=referrer.body;}
   else if(path==='/api/preferences')result={ok:true,item:{id:'R-partner',version:'b'.repeat(64),language:null,statementAccountId:null,statementDate:null}};
   else if(path==='/api/expense-options')result={ok:true,businessDate:'2026-11-05',categories:[],accounts:[]};
   else if(path==='/api/dashboard')result={collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]};
   else if(path.startsWith('/api/operations/')&&method==='GET')result={ok:true,kind:'unresolved',safeToUseNewRequestId:false};
   else if(path==='/api/operations'&&method==='POST'){const body=r.request().postDataJSON();s.writes.push(body);
-   result={ok:true,kind:'recorded',originalOutcome:{status:'applied',code:null,result:{operation:body.operation,targetType:'rebate-settlement',targetId:body.targetId,paymentId:null,plan:null,predecessorRequestId:null}}};}
+   result={ok:true,kind:'recorded',originalOutcome:{status:'applied',code:null,result:{operation:body.operation,targetType:'rebate-settlement',targetId:body.targetId,paymentId:null,plan:null,predecessorRequestId:null,...outcome(body)}}};}
   return r.fulfill({status,contentType:'application/json',body:JSON.stringify(result)}).catch(()=>{});
  });
  await page.goto(base);await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');
@@ -182,13 +183,14 @@ for(const size of sizes)test.describe(size.label,()=>{
   expect(s.writes).toHaveLength(0);
   await page.getByRole('button',{name:'Confirm',exact:true}).click();
   await expect(page.getByRole('status').filter({hasText:'Paid ฿300 to'})).toContainText('1 rebate');
-  await expect(page.getByText('฿100 still unpaid')).toBeVisible();await expect(page.getByText('Lisa SCB').first()).toBeVisible();
+  await expect(page.getByText('฿100 still owed to มาย - Mai')).toBeVisible();await expect(page.getByText('Lisa SCB').first()).toBeVisible();
   // Exactly one rebate-settlement.create, ticked ids only, the screen's date, account, method and reference.
   expect(s.writes).toHaveLength(1);
   const command=s.writes[0];
   expect(command).toMatchObject({operation:'rebate-settlement.create',expectedVersion:null,predecessorRequestId:null,receiptId:null});
   expect(command.requestId).toMatch(/^[0-9a-f-]{36}$/);expect(command.targetId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);expect(command.requestId).not.toBe(command.targetId);
-  expect(command.inputs).toEqual({referrerId:'R-MAI',expenseIds:['rr1:L-PEND'],settlementDate:'2026-11-05',cashAccountId:'ca:lisa-scb',paymentMethod:'Bank Transfer',bankReference:'R129-REF',notes:null});
+  // R184: per-rebate lines and the destination (the whole pending amount of the one ticked rebate, paid to the referrer).
+  expect(command.inputs).toEqual({referrerId:'R-MAI',destination:'referrer',allocations:[{expenseId:'rr1:L-PEND',amount:'300',expectedPending:'300'}],settlementDate:'2026-11-05',cashAccountId:'ca:lisa-scb',paymentMethod:'Bank Transfer',bankReference:'R129-REF',notes:null,expectedPlanHash:null});
   // Back to the referrer page, which reads the referrer again.
   const before=s.reads.filter(p=>p==='/api/referrers/R-MAI').length;
   await page.getByRole('button',{name:'Back to referrer page',exact:true}).click();
@@ -206,7 +208,7 @@ for(const size of sizes)test.describe(size.label,()=>{
   await expect(page.getByRole('heading',{name:'Rebates paid'})).toBeVisible();await expect(page.locator('.referrer-line').filter({hasText:'ต้น - Ton'})).toContainText('฿450');
   await noHorizontalScroll(page);
   await page.getByRole('button',{name:'Delete settlement',exact:true}).click();
-  await expect(page.getByRole('note')).toHaveText('Delete settlement ฿450? 1 rebate returns to unpaid. The cash entry is removed.');
+  await expect(page.getByRole('note')).toHaveText('Delete settlement ฿450? ฿450 returns to unpaid on 1 rebate. The cash entry is removed.');
   expect(s.writes).toHaveLength(0);
   // Back keeps the settlement; a second visit to the confirm and Confirm deletes it.
   await page.getByRole('button',{name:'Back to details',exact:true}).click();await expect(page.getByRole('heading',{name:'Rebate settlement'})).toBeVisible();expect(s.writes).toHaveLength(0);
@@ -215,6 +217,78 @@ for(const size of sizes)test.describe(size.label,()=>{
   await expect.poll(()=>s.writes.length).toBe(1);
   expect(s.writes[0]).toMatchObject({operation:'rebate-settlement.delete',targetId:settlementS1.item.id,expectedVersion:settlementS1.item.version,inputs:{},predecessorRequestId:null,receiptId:null});
   // After the delete the page returns to the referrer.
+  await expect(page.getByRole('heading',{name:'Settlement history'})).toBeVisible();
+ });
+});
+
+// R184 (V155), the design's one UI path on a phone (CI runs it on iPhone WebKit, mobile-webkit): choose the offset, lower the
+// amount, Review shows what each rebate gets and the plan, Confirm sends one command, the result shows the server's owedAfter,
+// then the settlement opens from the history and is deleted. Synthetic seams as above; the plan and its hash are the fixture's.
+test.describe('phone 390px offset',()=>{
+ test.use({viewport:{width:390,height:844}});
+ test('Pay rebates by offset: lower the amount, Review per rebate and the plan, Confirm once, owedAfter, then delete the offset',async({page})=>{
+  const OFFSET_ID='rs155:';
+  // The server answers owedAfter 275 (not the page's 400 - 120): the result must show the server's figure (PAY-DEST-08).
+  const s=await setup(page,body=>body.operation==='rebate-settlement.create'&&body.inputs.destination==='offset'?{rebateSettlement:{destination:'offset',amount:body.inputs.allocations.reduce((n:number,l:any)=>n+Number(l.amount),0).toString(),owedAfter:'275',offsetPaymentId:OFFSET_ID+body.targetId,
+   lines:body.inputs.allocations.map((l:any)=>({expenseId:l.expenseId,amount:l.amount,pendingAfter:String(Number(l.expectedPending)-Number(l.amount))}))}}:{});
+  await openReferrers(page);
+  await page.locator('.referrer-row').filter({hasText:'Mai'}).click();
+  await page.getByRole('button',{name:'Pay rebates ฿400'}).click();
+  await expect(page.getByRole('heading',{name:/Pay rebates/})).toBeVisible();
+  const footer=page.locator('.rebate-settle-footer button');await expect(footer).toHaveText('Pay ฿400 · 2 rebates');
+  // Choose the offset: account, method and reference go, the date is today and locked, the amount defaults to what is due.
+  await page.getByRole('radio',{name:"Offset to referrer's loan"}).check();
+  await expect(page.getByLabel('Paying account')).toHaveCount(0);await expect(page.getByLabel('Method')).toHaveCount(0);await expect(page.getByLabel('Bank reference (optional)')).toHaveCount(0);
+  await expect(page.getByLabel('Settlement date',{exact:true})).toHaveValue('2026-11-05');await expect(page.getByLabel('Settlement date',{exact:true})).toBeDisabled();
+  const amount=page.getByLabel('Amount to offset');await expect(amount).toHaveValue('150');await expect(footer).toHaveText('Offset ฿150 · 1 rebate');
+  // Lower it to 120: oldest close first, Nok's rebate gets 120 and Kaew's nothing; the preview follows the amount.
+  await amount.fill('120');await expect(footer).toHaveText('Offset ฿120 · 1 rebate');
+  await expect(page.getByText('฿120 now · ฿180 stays unpaid')).toBeVisible();await expect(page.getByText('Not paid this time')).toBeVisible();
+  const preview=page.locator('.rebate-offset-preview');await expect(preview).toContainText('มาย - Mai-฿3,000-20/10-2%');await expect(preview).toContainText('(฿120)');
+  await expect.poll(()=>s.reads.filter(p=>p==='/api/referrers/R-MAI/offset-preview').length).toBeGreaterThan(0);
+  await noHorizontalScroll(page);
+  await footer.click();
+  // Review: the applied amount of the one rebate it reaches, of its pending amount, the totals, the loan and the plan's charge.
+  const review=page.locator('.rebate-settle-review');await expect(review.locator('li')).toHaveCount(1);
+  await expect(review.locator('li').first()).toContainText('นก - Nok');await expect(review.locator('li').first()).toContainText('฿120');await expect(review.locator('li').first()).toContainText('of ฿300');
+  const summary=page.locator('dl').filter({hasText:'Offsetting now'});
+  await expect(summary).toContainText('Offsetting now฿120');await expect(summary).toContainText('Owed to มาย - Mai after this฿280');await expect(summary).toContainText("Settle byOffset to referrer's loan");
+  await expect(summary).toContainText('มาย - Mai-฿3,000-20/10-2%');await expect(summary.locator('.rebate-offset-run')).toHaveCount(1);await expect(summary).not.toContainText('Paying account');
+  await expect(page.getByRole('note').filter({hasText:'No transfer from Lisa'})).toBeVisible();
+  await noHorizontalScroll(page);
+  expect(s.writes).toHaveLength(0);
+  await page.getByRole('button',{name:'Confirm',exact:true}).click();
+  // The result: what was offset, to which loan, and the server's owedAfter.
+  await expect(page.getByRole('heading',{name:'Rebates offset'})).toBeVisible();
+  await expect(page.getByRole('status').filter({hasText:'Offset ฿120 to'})).toContainText('1 rebate');
+  await expect(page.getByText('฿275 still owed to มาย - Mai')).toBeVisible();await expect(page.getByRole('button',{name:'Pay the rest ฿275'})).toBeVisible();
+  expect(s.writes).toHaveLength(1);
+  const command=s.writes[0];
+  expect(command).toMatchObject({operation:'rebate-settlement.create',expectedVersion:null,predecessorRequestId:null,receiptId:null});
+  expect(command.inputs).toEqual({referrerId:'R-MAI',destination:'offset',allocations:[{expenseId:'rr1:L-PEND',amount:'120',expectedPending:'300'}],settlementDate:'2026-11-05',cashAccountId:null,paymentMethod:null,bankReference:null,notes:null,
+   expectedPlanHash:(120).toString(16).padStart(64,'0')});
+  // The server now lists the offset settlement; its record opens from the history and is deleted with its version.
+  const id=command.targetId,version='f'.repeat(64),label='มาย - Mai-฿3,000-20/10-2%';
+  const record={item:{id,referrerId:'R-MAI',referrerLabel:'มาย - Mai',settlementDate:'2026-11-05',amount:'120.00',accountId:'ca:lisa-cash',accountLabel:null,paymentMethod:'Referral Rebate Offset',bankReference:null,notes:null,createdBy:'owner@example.invalid',createdAt:'2026-11-05T05:00:00.000Z',version,
+   destination:'offset',offsetPaymentId:OFFSET_ID+id,offsetLoanLabel:label,paidThrough:null,deleteBlocked:null,
+   rebates:[{expenseId:'rr1:L-PEND',loanDisplayKey:'นก - Nok-฿10,000-01/09-2%',borrowerLabel:'นก - Nok',closeDate:'2026-10-12',amount:'300.00',offsetAmount:'0.00',appliedAmount:'120.00',paidAmount:'120.00',partial:true,pendingAmount:'180.00'}]}};
+  const detail={...referrerMaiDetail,history:[{kind:'settlement',date:'2026-11-05',amount:'120.00',settlementId:id,rebateCount:1,partialCount:1,destination:'offset',offsetPaymentId:OFFSET_ID+id,offsetLoanLabel:label,accountLabel:null,paymentMethod:'Referral Rebate Offset',bankReference:null},...referrerMaiDetail.history]};
+  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{const path=new URL(r.request().url()).pathname;if(r.request().method()!=='GET')return r.fallback();
+   if(path==='/api/referrers/R-MAI'){s.reads.push(path);return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,...detail})});}
+   if(path==='/api/rebate-settlements/'+encodeURIComponent(id)){s.reads.push(path);return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,...record})});}
+   return r.fallback();});
+  await page.getByRole('button',{name:'Back to referrer page',exact:true}).click();
+  await page.locator('.referrer-line:not(.referrer-referee)').filter({hasText:'Offset ฿120 to'}).click();
+  await expect(page.getByRole('heading',{name:'Rebate settlement'})).toBeVisible();await expect(page.getByRole('heading',{name:'Rebates offset'})).toBeVisible();
+  const details=page.locator('dl');await expect(details).toContainText('Settle byOffset to '+label);await expect(details).not.toContainText('Paying account');
+  await expect(page.getByRole('button',{name:'Offset payment',exact:true})).toBeVisible();await expect(page.locator('.referrer-line').filter({hasText:'นก - Nok'})).toContainText('฿120');
+  await noHorizontalScroll(page);
+  await page.getByRole('button',{name:'Delete offset',exact:true}).click();
+  await expect(page.getByRole('note')).toHaveText('Delete offset ฿120? ฿120 returns to unpaid. The payment on '+label+' is removed and its charges become unpaid again.');
+  expect(s.writes).toHaveLength(1);
+  await page.getByRole('button',{name:'Confirm',exact:true}).click();
+  await expect.poll(()=>s.writes.length).toBe(2);
+  expect(s.writes[1]).toMatchObject({operation:'rebate-settlement.delete',targetId:id,expectedVersion:version,inputs:{},predecessorRequestId:null,receiptId:null});
   await expect(page.getByRole('heading',{name:'Settlement history'})).toBeVisible();
  });
 });

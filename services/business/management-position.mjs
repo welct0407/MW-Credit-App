@@ -1,14 +1,16 @@
-import {expensePendingSql,rebatePendingSql} from './rebate-state.mjs';
+import {expensePendingSql,rebateRules} from './rebate-state.mjs';
 import {readCashOverview} from './cash.mjs';
 /** Read-only composition of the existing native cash providers. */
 export async function readManagementPosition(client){
  const overview=await readCashOverview(client);
  const holders=(await client.query(`SELECT "Ref Cash Holder" id,"Holder Name" label,"Cash In"::numeric::text AS "cashIn","Cash Out"::numeric::text AS "cashOut","Current Balance"::numeric::text AS "currentBalance","Business Cash Held"::numeric::text AS "businessCashHeld","Reimbursement / Advance Due"::numeric::text AS "reimbursementDue" FROM public."Cash Holder Balances" ORDER BY "Holder Name" COLLATE "C","Ref Cash Holder" COLLATE "C"`)).rows;
  // R129 (V137): referral rebates booked and still pending payment (a liability beside the holder balances: Lisa holds this
- // cash until a settlement pays it), the pwa_rebate_pending_v1 rule; 0 before V137 (no REFERRAL_REBATE_V3 row).
- const rebatesPayable=(await client.query(`SELECT coalesce(sum(p.pending),0)::numeric(20,2)::text AS amount,count(*) FILTER (WHERE p.pending>0)::int AS count
-  FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=to_jsonb(x)->>'Ref Offset Payment' CROSS JOIN LATERAL (SELECT ${rebatePendingSql('x','o')} AS pending) p
-  WHERE x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3'`)).rows[0]??{amount:'0.00',count:0};
+ // cash until a settlement pays it). R184 (V155, D12): the amount is the SQL rule pwa_rebate_pending_v1 itself, so a part
+ // paid rebate counts with what is left of it; count is the rebates with something pending.
+ // Before V137 (no rule, no REFERRAL_REBATE_V3 row) nothing is payable.
+ const rebatesPayable=await rebateRules(client)?(await client.query(`SELECT coalesce(sum(p.pending),0)::numeric(20,2)::text AS amount,count(*) FILTER (WHERE p.pending>0)::int AS count
+  FROM public."Business Expenses" x CROSS JOIN LATERAL (SELECT public.pwa_rebate_pending_v1(x."Row ID") AS pending) p
+  WHERE x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3'`)).rows[0]??{amount:'0.00',count:0}:{amount:'0.00',count:0};
  // R140 (V142): manual expenses recorded and still pending payment (no payer yet, so no cash has moved for them).
  const expensesPayable=(await client.query(`SELECT coalesce(sum(x."Amount"::numeric),0)::numeric(20,2)::text AS amount,count(*)::int AS count
   FROM public."Business Expenses" x WHERE ${expensePendingSql('x')}`)).rows[0]??{amount:'0.00',count:0};

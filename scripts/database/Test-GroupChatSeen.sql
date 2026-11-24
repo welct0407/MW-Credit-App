@@ -26,7 +26,7 @@ END $$;
 
 -- The DEV capability grants the operator policy provides live (app-role-policy.mjs), as Test-RowChanges.sql emulates them.
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev;
-REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements FROM mw_app_dev;
+REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements,pwa_rebate_settlement_allocations FROM mw_app_dev;
 INSERT INTO "Partners"("Row ID","Partner Role","Login Email") VALUES('GS-P1','A','gs-one@example.invalid'),('GS-P2','B','GS-Two@Example.invalid '),('GS-P3','B',NULL);
 INSERT INTO "Borrowers"("Row ID","Borrower Name","AI Collection Enabled") VALUES('GS-A','Synthetic seen A',true),('GS-B','Synthetic seen B',true),('GS-N','Synthetic seen none',true);
 INSERT INTO public.pwa_group_chat_summaries(borrower_id,conversation_key,shared_group,headline_th,headline_en,points,last_speaker_role,message_count,window_from,last_message_at,generated_at,source_sha256,model,request_id)

@@ -73,7 +73,9 @@ async function readSourceFingerprints(client,sources){
 // R165: v13, the collection bundle gains groupChatRefreshByBorrower (a bundle of v12 is walked once to get it).
 // R183: v14, the collection items changed order inside the overdue group (fewest days since the last payment first); as
 // for R116's v6, every installed bundle walks once so no saved list keeps the old order.
-export const OFFLINE_DATASET_SHAPE='business-offline-v14';
+// R184: v15, expense and payment records and the referrer reads carry the partial settlement fields (settledAmount, the
+// part-paid state, settlements); every installed bundle walks once so no saved row keeps the earlier shape.
+export const OFFLINE_DATASET_SHAPE='business-offline-v15';
 const SHAPE_STAMP='5a9e'+Number(OFFLINE_DATASET_SHAPE.slice(OFFLINE_DATASET_SHAPE.lastIndexOf('-v')+2)).toString(16).padStart(4,'0');
 /** The 64-hex version with the current shape stamped into its last 8 digits. */
 export const shapedVersion=hash=>hash.slice(0,56)+SHAPE_STAMP;
@@ -113,6 +115,7 @@ function domainVersion(fingerprints,actor,domain,businessDate){
  // links; every bundle walks once (the R155 shape stamp makes every device take it).
  // v14 (R183): the collection items are ordered by the days since the last payment inside the overdue group; every
  // bundle walks once, also across a day change.
+ // v15 (R184): expense and payment records carry the partial rebate settlement fields; every bundle walks once.
  return shapedVersion(deltaValueHash([OFFLINE_DATASET_SHAPE,actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]));
 }
 export async function readOfflineSourceVersion(client,actor,domain,businessDate){

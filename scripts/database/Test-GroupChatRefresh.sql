@@ -28,7 +28,7 @@ END $$;
 
 -- The DEV capability grants the operator policy provides live (app-role-policy.mjs), as Test-RowChanges.sql emulates them.
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev;
-REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements FROM mw_app_dev;
+REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements,pwa_rebate_settlement_allocations FROM mw_app_dev;
 INSERT INTO "Partners"("Row ID","Partner Role","Login Email") VALUES('GR-P1','A','gr-one@example.invalid'),('GR-P2','B','GR-Two@Example.invalid '),('GR-P3','B',NULL);
 INSERT INTO "Borrowers"("Row ID","Borrower Name","AI Collection Enabled") VALUES('GR-A','Synthetic refresh A',true),('GR-B','Synthetic refresh B',true);
 CREATE TEMP TABLE gr_mark ON COMMIT DROP AS SELECT coalesce(max(seq),0) AS seq FROM public.pwa_row_changes;

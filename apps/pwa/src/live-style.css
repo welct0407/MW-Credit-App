@@ -930,6 +930,21 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .rebate-settle-footer>button{flex:1;width:100%;min-height:48px;font-weight:700}
 .rebate-settle-review{list-style:none;margin:0 0 8px;padding:0}.rebate-settle-review li{display:flex;justify-content:space-between;gap:12px;min-height:32px;align-items:center;border-bottom:1px solid #eef1f3}
 .rebate-settle-review strong{font-variant-numeric:tabular-nums}
+/* R184 (Echo PAY-PART-02, 04 to 06; PAY-DEST-02, 07, 08): the applied line of a tick row, the amount field's help, error and
+   one-tap fix directly under the input, the offset preview (one line per loan) and the result page's two actions. */
+.rebate-settle-row small.rebate-settle-applied{color:#1f4e79;font-weight:600}
+.rebate-settle-review strong{display:flex;flex-direction:column;align-items:flex-end;text-align:right}.rebate-settle-review strong small{font-size:13px;font-weight:400;color:#4a5560}
+.borrower-record input.rebate-settle-amount{width:100%;box-sizing:border-box;min-height:44px;font-size:16px;font-variant-numeric:tabular-nums}
+.rebate-settlement-form label+.field-help{margin-top:-6px}
+.rebate-settle-error{color:#a50e0e}.rebate-settle-error .text-action,.rebate-settle-full .text-action{min-height:44px;margin-left:8px}.rebate-settle-full{margin:0}.rebate-settle-full .text-action{margin-left:0}
+.rebate-offset-run{display:block;overflow-wrap:anywhere}.rebate-offset-preview{color:#3c4650}
+/* UX-R184-17: Settle by only (Loan Close keeps its spacing): no 12 px label margins and a tighter row gap, so the
+   settlement date stays on the first phone screen. */
+.borrower-record .rebate-destination{gap:4px 6px}.borrower-record .rebate-destination>label{margin:0;gap:2px}.rebate-destination legend{margin-bottom:4px}.rebate-destination small{line-height:1.3}
+.rebate-destination input:disabled+span,.rebate-destination input:disabled~small{color:#6b7280}
+.rebate-settle-offline{color:#8a4b00;font-weight:600}.rebate-settle-rest{font-weight:600}
+.rebate-settle-result-actions{display:flex;flex-direction:column;gap:8px}.rebate-settle-result-actions>button{width:100%;min-height:44px}
+.rebate-chip-part-paid{color:#8a4b00}.expense-settlement-row{margin-top:2px}.referrer-delete-blocked{color:#8a4b00}
 .destructive-note{font-weight:600;color:#a50e0e}
 .cash-rebates-payable{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:2px 12px;margin:10px 0 0;padding:8px 10px;border-top:1px solid #d5dbe0}
 .cash-rebates-payable strong{font-variant-numeric:tabular-nums}.cash-rebates-payable small{grid-column:1/-1;font-size:13px;color:#4a5560}

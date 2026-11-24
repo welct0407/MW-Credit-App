@@ -20,7 +20,7 @@ import {readLoanRelated} from '../business/loan-related.mjs';
 import {readPreferences} from '../business/preferences.mjs';
 import {readCashOverview,readCashStatement} from '../business/cash.mjs';
 import {readExpenseRecord,readExpenseOptions,readExpensePage} from '../business/expenses.mjs';
-import {readReferrers,readReferrerRecord,readRebateSettlement} from '../business/referrers.mjs';
+import {readReferrers,readReferrerRecord,readRebateSettlement,readRebateOffsetPreview} from '../business/referrers.mjs';
 import {readPaymentRecord,readPaymentCorrectionPreview} from '../business/payments.mjs';
 import {readChargeRecord} from '../business/charges.mjs';
 import {canonicalOperation,operationIdentity} from '../contracts/operation-command.mjs';
@@ -290,6 +290,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     // R129 (V137): the Referrers page, a referrer's detail and one rebate settlement (the expense reads' access gate).
     async referrers(principal,options={}){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async client=>({ok:true,value:await readReferrers(client,options)}),true)},
     async referrerRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const value=await readReferrerRecord(client,id);return value?{ok:true,value}:failure(404,'not_found')},true)},
+    // R184 (V155): the offset preview of Pay rebates (read only; the plan the command recomputes and compares by hash).
+    async referrerOffsetPreview(principal,id,amount){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{try{const value=await readRebateOffsetPreview(client,id,amount);return value?{ok:true,value}:failure(404,'not_found')}catch(error){if(error.message==='invalid_request')return failure(400,'invalid_request');throw error}},true)},
     async rebateSettlementRecord(principal,id){if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id))return failure(400,'invalid_request');return run(principal,async client=>{const value=await readRebateSettlement(client,id);return value?{ok:true,value}:failure(404,'not_found')},true)},
     async paymentImage(principal,id,source='preferred'){
       if(!ownerTesting)return failure(403,'access_denied');if(!validBorrowerId(id)||!['preferred','manual','agent'].includes(source))return failure(400,'invalid_request');

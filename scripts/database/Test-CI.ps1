@@ -35,6 +35,8 @@ if (-not $IsWindows -and (Test-Selected 'migrations')) {
     if ($LASTEXITCODE) { throw 'V144 paid date upgrade checks failed' }
     & python3 "$PSScriptRoot/Test-MigrationsCloud.py" --pre-target 144 --pre-sql scripts/database/Test-PaidDateOrder-Before.sql --sql scripts/database/Test-PaidDateOrder.sql --sql-only
     if ($LASTEXITCODE) { throw 'V145 paid date order upgrade checks failed' }
+    & python3 "$PSScriptRoot/Test-MigrationsCloud.py" --pre-target 154 --pre-sql scripts/database/Test-RebateSettlement-Before.sql --sql scripts/database/Test-RebateSettlementUpgrade.sql --sql-only
+    if ($LASTEXITCODE) { throw 'V155 rebate settlement upgrade checks failed' }
 }
 
 if ($IsWindows -and (Test-Selected 'migrations')) {
@@ -62,6 +64,8 @@ if ($IsWindows -and (Test-Selected 'migrations')) {
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 143 -PreMigrationSqlFile scripts/database/Test-PaidDate-Before.sql -TestSqlFile scripts/database/Test-PaidDate.sql
 
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 144 -PreMigrationSqlFile scripts/database/Test-PaidDateOrder-Before.sql -TestSqlFile scripts/database/Test-PaidDateOrder.sql
+
+& "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 154 -PreMigrationSqlFile scripts/database/Test-RebateSettlement-Before.sql -TestSqlFile scripts/database/Test-RebateSettlementUpgrade.sql
 }
 
 if (Test-Selected 'receiving') {
