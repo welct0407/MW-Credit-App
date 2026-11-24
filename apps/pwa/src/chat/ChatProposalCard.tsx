@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {bilingualHalf} from '../bilingual-text';
 import {Icon} from '../Icon';
 import {wholeBaht} from '../display-money';
 import {displayDateWithYear} from '../display-date';
@@ -27,8 +28,11 @@ const money=(value:unknown)=>{
  const n=Number(value);return (n<0?'-':'')+'฿'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Math.abs(n));
 };
 const MONEY=new Set(['money','signed-money','whole','signed-whole']);
+// UXR-COPY-01 #7 (R185): a stored bilingual category or status ("Other / อื่น ๆ") shows the current language's half.
+const BILINGUAL=new Set(['category','status','loanStatus']);
 function shown(field:CardField,value:unknown,display:string|undefined,thai:boolean){
  if(value===null||value===undefined||value==='')return '—';
+ if(BILINGUAL.has(field.field)&&typeof value==='string')return bilingualHalf(display||value,thai);
  if(display)return display;
  if(MONEY.has(field.type))return money(value);
  if(field.type==='date')return displayDateWithYear(value,thai);
@@ -59,7 +63,7 @@ function RemainderChoice({options,choice,choosing,thai,onChoose,onChange,changeR
   {options.principal.length>1&&<label><span className="field-title">{t('Loan','สัญญา')}</span><select value={option?.loanId??''} onChange={event=>{setLoanId(event.target.value);if(choice?.kind==='principal')onChoose({kind:'principal',loanId:event.target.value});else if(choice?.kind==='split'&&/^[1-9][0-9]{0,16}$/.test(amount))onChoose({kind:'split',loanId:event.target.value,amount});}}>
    {options.principal.map(row=><option key={row.loanId} value={row.loanId}>{row.loanDisplayKey??row.loanId}</option>)}</select></label>}
   {options.split&&<label><span className="field-title">{t('Principal part','ส่วนเงินต้น')}</span><input inputMode="numeric" value={amount} onChange={event=>{const next=event.target.value.trim();setAmount(next);if(/^[1-9][0-9]{0,16}$/.test(next)&&option)onChoose({kind:'split',loanId:option.loanId,amount:next});else if(choice?.kind==='split')onChoose(null);}}/></label>}
-  {options.settles&&<p className="field-help" role="status">{t('This settles the loan. Use Close Loan.','ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ')}</p>}
+  {options.settles&&<p className="field-help" role="status">{t('This settles the loan. Use Close loan.','ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ')}</p>}
   {options.uncovered&&<p className="field-help" role="status">{t(money(options.uncovered)+' is beyond the next 93 days and cannot be allocated.','ยอด '+money(options.uncovered)+' เกินช่วง 93 วันข้างหน้า ไม่สามารถจัดสรรได้')}</p>}
  </fieldset>;
 }

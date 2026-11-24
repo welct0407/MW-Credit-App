@@ -94,7 +94,7 @@ test('Cash ends a filter hold once a pick has loaded, caps a hold at 10 s and cl
  await fixture(page,'hold-cash-pick',{cash:initial});
  await page.route('**/api/**',route=>{const url=new URL(route.request().url()),path=url.pathname;return path==='/api/cash-overview'?route.fulfill({json:initial.overview}):path==='/api/preferences'?route.fulfill({json:initial.preferences}):path==='/api/cash-statements'?route.fulfill({json:statement(url.searchParams.get('accountId')!,url.searchParams.get('accountId')==='acc-b'?'222':'111')}):route.fulfill({json:{ok:true,source:'synthetic',items:[],nextCursor:null}})});
  await page.evaluate(()=>(window as any).selectBackCase('prepared-cash'));
- const select=page.getByRole('combobox',{name:'Account'}),card=page.locator('.cash-dashboard-card'),daily=page.locator('.cash-statement-paper').filter({hasText:'Daily Summary'});
+ const select=page.getByRole('combobox',{name:'Account'}),card=page.locator('.cash-dashboard-card'),daily=page.locator('.cash-statement-paper').filter({hasText:'Daily summary'});
  await expect(daily).toContainText('111');await expect(card).toContainText('100');
  // A pick with the picker still focused (as iOS leaves it): once the new statement shows, updates apply again.
  await select.focus();await select.selectOption('acc-b');await expect(daily).toContainText('222');

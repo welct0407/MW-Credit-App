@@ -272,7 +272,7 @@ test.describe('list return on the real pages',()=>{
    return undefined;
   });
   await menu(page,'Expenses');const target='[data-record-id="rr1:L-X30"]';await expect(page.locator(target)).toBeVisible();
-  await scrollTo(page,target);await page.locator(target).evaluate(node=>(node as HTMLElement).click());await expect(page.getByRole('heading',{name:'Referral Rebate / เงินคืนค่าแนะนำลูกค้า'}).first()).toBeVisible();
+  await scrollTo(page,target);await page.locator(target).evaluate(node=>(node as HTMLElement).click());await expect(page.getByRole('heading',{name:'Referral Rebate',exact:true}).first()).toBeVisible();
   await page.waitForTimeout(400);
   const top=await page.evaluate(()=>{const scrolled:number[]=[];document.querySelectorAll('main *').forEach(n=>{if(/^(auto|scroll)$/.test(getComputedStyle(n).overflowY)&&n.scrollTop>0)scrolled.push(n.scrollTop)});return {y:scrollY,scrolled}});
   expect(top.y,'window scroll when the expense opened').toBe(0);expect(top.scrolled,'scrolled sections when the expense opened').toEqual([]);
@@ -400,7 +400,7 @@ test.describe('list return on the real pages',()=>{
    const one=/^\/api\/upcoming-charges\/([^/]+)\/(.+)$/.exec(path);if(one)return {ok:true,source:'dev',businessDate:BD,asOf:ASOF,borrowerLabel:'ผู้กู้ Upcoming',items:events,dateTotals:dates,nextCursor:null};
    return undefined;
   });
-  await menu(page,'Upcoming Charges');const target='[data-record-id="up-20"]';await expect(page.locator(target)).toBeVisible();
+  await menu(page,'Upcoming charges');const target='[data-record-id="up-20"]';await expect(page.locator(target)).toBeVisible();
   await scrollTo(page,target);await page.waitForTimeout(100);const before=await track(page,target);expect(before.scrollY+before.scrollerTops.reduce((a,b)=>a+b,0)).toBeGreaterThan(200);
   await page.locator(target).evaluate(node=>(node as HTMLElement).click());await expect(page.locator('[data-record-id="ev-3"]')).toBeVisible();await page.waitForTimeout(300);
   const top=await page.evaluate(()=>{const scrolled:number[]=[];document.querySelectorAll('main *').forEach(n=>{if(/^(auto|scroll)$/.test(getComputedStyle(n).overflowY)&&n.scrollTop>0)scrolled.push(n.scrollTop)});return {y:scrollY,scrolled}});
@@ -409,7 +409,7 @@ test.describe('list return on the real pages',()=>{
   await page.locator('[data-record-id="ev-15"]').evaluate(node=>(node as HTMLElement).click());await expect(page.getByRole('button',{name:'Back to upcoming date'})).toBeVisible();
   await page.getByRole('button',{name:'Back to upcoming date'}).click();
   await expect.poll(async()=>(await track(page,'[data-record-id="ev-15"]')).focus).toBe('ev-15');await settleBack(page);near((await track(page,'[data-record-id="ev-15"]')).rowTop!,inner.rowTop!,3);
-  await page.getByRole('button',{name:'Back to Upcoming Charges'}).click();
+  await page.getByRole('button',{name:'Back to upcoming charges'}).click();
   await expect.poll(async()=>(await track(page,target)).focus).toBe('up-20');await settleBack(page);
   const after=await track(page,target);near(after.rowTop!,before.rowTop!,3);near(after.scrollY,before.scrollY,3);
  });
@@ -437,7 +437,7 @@ test.describe('list return on the real pages',()=>{
  async function openAssessments(page:Page){
   await signIn(page,base,()=>undefined,assessmentCommand);
   await menu(page,'Management');
-  const section=page.getByRole('button',{name:'Loan Assessments',exact:true}).filter({visible:true});
+  const section=page.getByRole('button',{name:'Loan assessments',exact:true}).filter({visible:true});
   if(await section.count()===0&&page.viewportSize()!.width<=1050)await page.getByRole('button',{name:'Open navigation',exact:true}).click();
   await section.first().click();
   await expect(page.locator('[data-record-id="as-30"]')).toBeVisible();
@@ -494,7 +494,7 @@ test.describe('list return on the real pages',()=>{
   await page.setViewportSize({width:1280,height:720});
   const rows=Array.from({length:40},(_,i)=>({id:'ch-'+i,label:'Holder '+i,name:'Holder '+i,holderId:'ch-0',currentBalance:'10',cashIn:'1',cashOut:'1',active:true,isDefault:false}));
   await signIn(page,base,()=>undefined,(path,_u,method)=>{if(method!=='GET')return undefined;if(path.startsWith('/api/management/'))return {ok:true,source:'dev',asOf:ASOF,businessDate:BD,items:rows,nextCursor:null};return undefined});
-  await menu(page,'Management');await page.getByRole('button',{name:'Cash Accounts',exact:true}).filter({visible:true}).first().click();
+  await menu(page,'Management');await page.getByRole('button',{name:'Cash accounts',exact:true}).filter({visible:true}).first().click();
   await expect(page.locator('.cash-accounts-layout')).toBeVisible();await page.waitForTimeout(500);
   const shape=await page.evaluate(()=>{const layout=document.querySelector('.cash-accounts-layout') as HTMLElement,panes=Array.from(layout.children) as HTMLElement[],cash=document.querySelector('main>.management-cash') as HTMLElement,heading=cash.querySelector('header') as HTMLElement;
    return {panes:panes.map(p=>({overflow:getComputedStyle(p).overflowY,scrolls:p.scrollHeight>p.clientHeight+1,h:p.clientHeight})),winScrolls:document.documentElement.scrollHeight>innerHeight+1,cashScrolls:cash.scrollHeight>cash.clientHeight+1,headingTop:heading.getBoundingClientRect().top,mainTop:(document.querySelector('main') as HTMLElement).getBoundingClientRect().top}});

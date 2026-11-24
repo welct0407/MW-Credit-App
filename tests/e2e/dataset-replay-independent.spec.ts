@@ -183,7 +183,7 @@ test('R141 Cash Position: the Expenses payable line opens the pending expenses; 
  await expect(page.locator('.expense-tile')).toHaveCount(2);await expect(page.locator('[data-record-id="E-PAID"]')).toHaveCount(0);expect(asked).toContain('?payment=pending');
  const clear=bar.getByRole('button',{name:'Clear filter',exact:true});expect((await clear.boundingBox())!.height).toBeGreaterThanOrEqual(44);await clear.click();
  await expect(page.getByRole('group',{name:'Filter',exact:true})).toHaveCount(0);await expect(page.locator('.expense-tile')).toHaveCount(3);
- await page.getByRole('button',{name:'Back to Cash Position'}).click();
+ await page.getByRole('button',{name:'Back to cash position'}).click();
  await expect(page.getByRole('button',{name:'Show pending expenses',exact:true})).toBeVisible();await expect(page.locator('.expense-tile')).toHaveCount(0);
 });
 test('R141 a pending filter with nothing left says so',async({page})=>{
@@ -214,7 +214,7 @@ test('R141 Cash Position: the Rebates payable line opens the referrers owed reba
  expect(asked).toContain('?owed=1');await expect(page.locator('.referrer-row')).toHaveCount(1);
  // Clear filter shows every referrer; the line opens the filtered list again.
  await bar.getByRole('button',{name:'Clear filter',exact:true}).click();await expect(page.locator('.referrer-row')).toHaveCount(2);await expect(page.getByRole('group',{name:'Filter',exact:true})).toHaveCount(0);
- await page.getByRole('button',{name:'Back to Cash Position'}).click();await line.click();await expect(page.locator('.referrer-row')).toHaveCount(1);
+ await page.getByRole('button',{name:'Back to cash position'}).click();await line.click();await expect(page.locator('.referrer-row')).toHaveCount(1);
  // Settle every owed rebate from the referrer's page, as today.
  await page.locator('.referrer-row').first().click();await page.getByRole('button',{name:'Pay rebates ฿400'}).click();
  await page.locator('.rebate-settle-footer button').click();await page.getByRole('button',{name:'Confirm',exact:true}).click();
@@ -222,7 +222,7 @@ test('R141 Cash Position: the Rebates payable line opens the referrers owed reba
  await page.getByRole('button',{name:'Back to referrer page',exact:true}).click();await expect(page.getByRole('heading',{name:'Settlement history'})).toBeVisible();
  await page.getByRole('button',{name:'Back to referrers',exact:true}).click();
  await expect(page.locator('.referrer-row')).toHaveCount(0);await expect(page.getByText('No rebates owed.',{exact:true})).toBeVisible();
- await page.getByRole('button',{name:'Back to Cash Position'}).click();
+ await page.getByRole('button',{name:'Back to cash position'}).click();
  await expect(page.getByRole('button',{name:'Show referrers owed rebates',exact:true})).toContainText('฿0');
 });
 

@@ -37,7 +37,7 @@ test('Upcoming Charges records the next projected charge: button only on the off
  await routeSyntheticPreferences(page);await page.route('https://mw-credit-app-command-dev-test.run.app/api/dashboard',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})}));
  await page.goto(base);await page.getByRole('button',{name:/Google/}).click();await chooseLanguagePreservingForm(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();await page.locator('.collection-tile-main').first().click();
  await page.locator('.upcoming-date-row').first().click();
- const upcomingRegion=page.getByRole('region',{name:'Upcoming Charges'}),record=upcomingRegion.getByRole('button',{name:/^Record charge/});
+ const upcomingRegion=page.getByRole('region',{name:'Upcoming charges'}),record=upcomingRegion.getByRole('button',{name:/^Record charge/});
  await expect(upcomingRegion.locator('article.collection-charge')).toHaveCount(3);
  await expect(record).toHaveCount(1,{timeout:10000});
  await expect(upcomingRegion.locator('article.collection-charge').filter({hasText:'Next A'}).getByRole('button',{name:/^Record charge/})).toBeVisible();

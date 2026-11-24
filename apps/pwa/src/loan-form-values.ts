@@ -1,6 +1,11 @@
 import {isWhole,wholeText} from './whole-number-input';
 export const loanTypes=['กำหนดวันชำระ','ดอกเบี้ยรายวัน','ผ่อนชำระรายวัน'] as const;
 export function loanTypeLabel(value:string|null,thai:boolean){const index=loanTypes.indexOf(value as typeof loanTypes[number]);return index<0?(value??'—'):thai?loanTypes[index]:['Fixed due date','Daily interest','Daily instalment'][index];}
+/** UXR-LOAN-03: the original daily rate in whole points per day ("9% per day", V53: average daily interest ÷ principal × 100,
+ * for every loan type) and the interest payment interval in days ("Every day", "Every 3 days"); the interval has no effect on a
+ * Fixed due date loan, so it reads "—" there. A missing value reads "—". */
+export function dailyRateText(value:unknown,thai:boolean){return value==null||value===''||!Number.isFinite(Number(value))?'—':String(value)+(thai?'% ต่อวัน':'% per day');}
+export function paymentIntervalText(value:unknown,type:string|null,thai:boolean){const days=Number(value);if(type===loanTypes[0]||value==null||value===''||!Number.isInteger(days)||days<1)return '—';return days===1?(thai?'ทุกวัน':'Every day'):thai?'ทุก '+days+' วัน':'Every '+days+' days';}
 /** One tenth of the principal, rounded half up to whole baht (505 → 51): the default daily interest for a new daily-interest loan. */
 export function tenth(value:string|null){if(!value||!/^\d+(\.\d{1,2})?$/.test(value))return null;const [whole,fraction='']=value.split('.');const cents=BigInt(whole)*100n+BigInt(fraction.padEnd(2,'0'));return String((cents+500n)/1000n);}
 export function stepInterval(value:number|null,step:number){return Math.max(1,(value??0)+step);}

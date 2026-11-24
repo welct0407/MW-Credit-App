@@ -38,6 +38,9 @@ const TOOLS:Record<string,{label:Pair;unit?:Pair}>={
  loan_payoff:{label:['loan payoff','ยอดปิดสินเชื่อ']},
  data_catalogue:{label:['catalogue','รายการตาราง']},
  sum_field:{label:['sum','ผลรวม']},
+ // UXR-COPY-01 #3 (R185): the two write tools read as words, not tool names.
+ action_catalogue:{label:['action list','รายการคำสั่ง']},
+ propose_action:{label:['proposal card','การ์ดข้อเสนอ']},
 };
 export const toolLabel=(name:string,thai:boolean)=>TOOLS[name]?pick(TOOLS[name].label,thai):name;
 /** A running tool shows its name; a finished `read_records` shows the table it read (the event summary, lower-cased like the other labels). */
@@ -135,7 +138,7 @@ const PROPOSAL_CODES:Record<string,Pair>={
  outcome_unknown:['Checking whether the change was saved…','กำลังตรวจสอบว่าบันทึกการเปลี่ยนแปลงแล้วหรือไม่…'],
  // R112: a remainder choice that could not be planned at Confirm (nothing was sent).
  purpose_not_offered:['That choice is no longer offered. Nothing was applied. Ask again for a new card.','ไม่มีตัวเลือกนี้แล้ว ยังไม่มีการบันทึก ถามใหม่เพื่อรับการ์ดใหม่'],
- pay_forward_settles:['This settles the loan. Use Close Loan.','ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ'],
+ pay_forward_settles:['This settles the loan. Use Close loan.','ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ'],
  pay_forward_uncovered:['Part of the remainder is beyond the next 93 days. Nothing was applied.','ยอดคงเหลือบางส่วนเกินช่วง 93 วันข้างหน้า ยังไม่มีการบันทึก'],
 };
 /** A chat-layer code's text, or null when the code is the command service's (the caller uses the app's table). */

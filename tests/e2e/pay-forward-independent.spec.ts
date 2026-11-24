@@ -119,7 +119,7 @@ test('the settlement guard blocks Review, and a remainder beyond 93 days shows w
  const s=await setup(page);await amount(page).fill('1010');await auto(page).click();
  await expect(option(page,/^Repay principal/)).toContainText('This settles the loan');
  await choice(page,/^Repay principal/).check();await expect.poll(()=>s.plans.length).toBe(1);
- await expect(hint(page)).toHaveText('This settles the loan. Use Close Loan.');await expect(hint(page)).toHaveAttribute('role','status');await expect(review(page)).toBeDisabled();
+ await expect(hint(page)).toHaveText('This settles the loan. Use Close loan.');await expect(hint(page)).toHaveAttribute('role','status');await expect(review(page)).toBeDisabled();
  await amount(page).fill('2000');await auto(page).click();await choice(page,/^Pay forward/).check();
  await expect(hint(page)).toContainText('is beyond the next 93 days and cannot be allocated.');await expect(review(page)).toBeDisabled();
  expect(s.reviews).toHaveLength(0);
@@ -177,7 +177,7 @@ test('Ying: Repay principal on a 3,220 slip closes both loans, shows the Closes 
  await choice(page,/^Repay principal/).check();await expect.poll(()=>plans.length).toBe(1);
  expect(plans[0].purpose).toEqual({forward:false,principal:[{loanId:'y-LA',amount:'1000'},{loanId:'y-LB',amount:'2000'}],loans:null});
  // The old guard line (use Close Loan) is gone; each loan shows what it closes, the first with its referral rebate (V124 default offset).
- await expect(page.getByText(/Use Close Loan/)).toHaveCount(0);
+ await expect(page.getByText(/Use Close loan/)).toHaveCount(0);
  const lines=page.locator('.remainder-closes');await expect(lines).toHaveCount(2);
  await expect(lines.nth(0)).toContainText('Closes Ying-A · payoff ฿1,020 (charges ฿20)');await expect(lines.nth(0)).toContainText('Rebate ฿30 to Ying Referrer — offset to their loan');
  await expect(lines.nth(1)).toContainText('Closes Ying-B · payoff ฿2,200 (charges ฿200)');await expect(lines.nth(1)).not.toContainText('Rebate');
