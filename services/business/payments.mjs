@@ -3,7 +3,7 @@ import {lateChargeSchema,lateSql} from '../lib/late-charge-schema.mjs';
 import {paymentLoanDisplayKey} from '../payment-command/draft.mjs';
 import {borrowerDisplayName} from '../api/loan-read-contract.mjs';
 import {validBorrowerId} from './borrowers.mjs';
-import {rebatePendingSql,rebateSettledSql,rebateStateSql} from './rebate-state.mjs';
+import {rebatePendingSql,rebateRules,rebateSettledSql,rebateStateSql} from './rebate-state.mjs';
 import {rebateSettlementSchema,settlementDates} from './referrers.mjs';
 /** Explicit current source projection; immutable operation outcomes are separate. */
 export async function readPaymentRecord(client,id){
@@ -26,7 +26,9 @@ export async function readPaymentRecord(client,id){
  // REFERRAL_REBATE_V3 row, which exists only from V137 on, so a database before V137 reads the legacy states.
  // R184 (V155): the state adds 'part-paid'; settledAmount is what settlements applied so far and settlementCount how many
  // did (read only when the rebate links one); settlementId and settlementDate are the newest.
- const rebates=(await client.query(`SELECT ${rebateStateSql('e','o')} AS "rebateState",(${rebatePendingSql('e')})::numeric(20,2)::text AS "pendingAmount",(${rebateSettledSql('e','o')})::numeric(20,2)::text AS "settledAmount",e."Row ID" AS "expenseId",
+ // The SQL rules are named only where they exist (rebateRules); a database before V137 reads the legacy states.
+ const rules=await rebateRules(client);
+ const rebates=(await client.query(`SELECT ${rebateStateSql('e','o',rules)} AS "rebateState",(${rebatePendingSql('e',rules)})::numeric(20,2)::text AS "pendingAmount",(${rebateSettledSql('e','o',rules)})::numeric(20,2)::text AS "settledAmount",e."Row ID" AS "expenseId",
   to_jsonb(e)->>'Ref Rebate Settlement' AS "settlementId",e."Ref Payee Borrower" AS "payeeId",e."Rule Version" AS "ruleVersion",
   l."Row ID" AS "loanId",l."Principal Amount"::numeric::text AS "loanPrincipal",l."Loan Date"::text AS "loanDay",l."Original Daily Interest Rate"::text AS "loanRate",lb."Borrower Name" AS "loanBorrowerName",lb."Description" AS "loanBorrowerDescription",e."Amount"::numeric::text AS amount,coalesce(rb."Borrower Name",'')||' - '||coalesce(rb."Description",'') AS "referrerLabel",
   o."Row ID" AS "offsetPaymentId",o."Amount Received"::numeric::text AS "offsetAmount",ol."Row ID" AS "offsetLoanId",ol."Principal Amount"::numeric::text AS principal,ol."Loan Date"::text AS "loanDate",ol."Original Daily Interest Rate"::text AS rate,

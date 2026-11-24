@@ -63,6 +63,9 @@ test('the SQL twins: the version mirror is the migration body; pending is the SQ
  // settled = Amount - close-time offset - pending (the allocations' sum, without reading them); null for a manual expense.
  const settled=rebateSettledSql('e','o').replace(/\s+/g,' ');
  assert.match(settled,/^CASE WHEN e\."Source Type" IS DISTINCT FROM 'Referral Rebate' THEN NULL WHEN e\."Rule Version"='REFERRAL_REBATE_V3' THEN greatest\(e\."Amount"::numeric-coalesce\(o\."Amount Received"::numeric,0\)-public\.pwa_rebate_pending_v1\(e\."Row ID"\),0\) ELSE 0 END$/);
+ // With rules false (rebateRules: a database before V137) the expressions name no object of V137 or later.
+ for(const sql of [rebatePendingSql('e',false),rebateStateSql('e','o',false),rebateSettledSql('e','o',false)]){assert.doesNotMatch(sql,/pwa_rebate|Ref Rebate Settlement|REFERRAL_REBATE_V3/);assert.match(sql,/'Referral Rebate'/);}
+ assert.match(rebateStateSql('e','o',false),/THEN 'offset' ELSE 'paid-at-close' END$/);assert.equal(rebatePendingSql('e',false),`CASE WHEN e."Source Type"='Referral Rebate' THEN 0::numeric END`);
  for(const file of ['management-position','borrowers','expenses','payments'])assert.match(readFileSync(new URL('../../services/business/'+file+'.mjs',import.meta.url),'utf8'),/pwa_rebate_pending_v1|rebatePendingSql/,file+' reads the one pending rule');
 });
 test('Referrers sort: unpaid descending, then accruing descending, then the Thai name',()=>{

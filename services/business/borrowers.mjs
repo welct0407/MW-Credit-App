@@ -1,4 +1,4 @@
-import {expensePendingSql,rebatePendingSql} from './rebate-state.mjs';
+import {expensePendingSql,rebatePendingSql,rebateRules} from './rebate-state.mjs';
 import {UUID_V4} from '../lib/ids.mjs';
 import {validIgGroupUrl,validIgGroupInviteLink} from '../api/collection-read-contract.mjs';
 export const borrowerFields=Object.freeze({name:'Borrower Name',description:'Description',communicationName:'Communication Name',instagramUsername:'Instagram Username',city:'City',workingLocation:'Working Location',address:'Address',hidden:'Hidden Flag',referrerId:'Ref Referrer',preferredReceivingAccountId:'Ref Preferred Receiving Cash Account',note:'Borrower Note'});
@@ -42,6 +42,8 @@ export async function readBorrowerRecord(client,id,lock=false){
  // (expensePendingSql; any borrower, apart from the referral rebates owed and from rebate settlement).
  // R129 (V137): isReferrer (this borrower referred someone), referrerUnpaidAmount (the pwa_rebate_pending_v1 rule over
  // their rebates) and referrerUnpaidSince (the oldest close date of an unpaid one). Before V137 nothing is pending.
+ // R184: the pending rule is the SQL function where it exists (rebateRules); before V137 nothing is pending.
+ const rules=await rebateRules(client);
  const details=(await client.query(`SELECT b."Total Amount Loaned"::text AS "totalAmountLoaned",b."Total Interest Earned"::text AS "totalInterestEarned",b."Total Number of Loans" AS "totalNumberOfLoans",b."Total Outstanding Principal"::text AS "outstandingPrincipal",b."Active Loan Interest Earned"::text AS "activeInterest",b."Has Active Loan" AS "hasActiveLoan",b."Has Closed Loan" AS "hasClosedLoan",
  CASE WHEN b."Total Outstanding Principal" IS NULL OR b."Active Loan Interest Earned" IS NULL THEN NULL WHEN b."Total Outstanding Principal">0 THEN b."Active Loan Interest Earned"/b."Total Outstanding Principal" ELSE 0 END::text AS "activeReturn",
  (b."Active Loan Interest Earned"-b."Total Outstanding Principal")::text AS "activeProfit",
@@ -50,9 +52,9 @@ export async function readBorrowerRecord(client,id,lock=false){
  CASE WHEN b."Total Outstanding Principal"<=0 THEN NULL WHEN b."Active Loan Interest Earned">=b."Total Outstanding Principal" THEN (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date WHEN b."Active Daily Interest">0 THEN (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date+ceil((b."Total Outstanding Principal"-b."Active Loan Interest Earned")/b."Active Daily Interest")::integer ELSE NULL END::text AS "coverageDate",
  r."Borrower Name" AS "referrerName",a."Account Label" AS "preferredReceivingAccountLabel",
  EXISTS(SELECT 1 FROM public."Borrowers" x WHERE x."Ref Referrer"=b."Row ID" AND x."Row ID"<>b."Row ID") AS "isReferrer",
- (SELECT coalesce(sum(${rebatePendingSql('x')}),0)::numeric(20,2)::text FROM public."Business Expenses" x WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate') AS "referrerUnpaidAmount",
+ (SELECT coalesce(sum(${rebatePendingSql('x',rules)}),0)::numeric(20,2)::text FROM public."Business Expenses" x WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate') AS "referrerUnpaidAmount",
  (SELECT min(coalesce(l."Close Date",x."Expense Date"))::text FROM public."Business Expenses" x LEFT JOIN public."Loans" l ON l."Row ID"=x."Ref Related Loan"
-  WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate' AND ${rebatePendingSql('x')}>0) AS "referrerUnpaidSince",
+  WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate' AND ${rebatePendingSql('x',rules)}>0) AS "referrerUnpaidSince",
  eo.amount AS "expensesOwedAmount",eo.count AS "expensesOwedCount",
  ${terms?`(t.terms->>'rate')::float8 AS "referralRebateRateEffective",(t.terms->>'cap')::float8 AS "referralRebateCapEffective"`:'NULL::float8 AS "referralRebateRateEffective",NULL::float8 AS "referralRebateCapEffective"'}
  FROM public."Borrowers" b LEFT JOIN public."Borrowers" r ON r."Row ID"=b."Ref Referrer" LEFT JOIN public."Cash Accounts" a ON a."Row ID"=b."Ref Preferred Receiving Cash Account"
