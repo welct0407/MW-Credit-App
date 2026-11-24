@@ -1,0 +1,76 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_rebate_offset_plan_v1(p_referrer text, p_amount numeric, p_day date)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r184-20261124/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_rebate_offset_plan_v1"
+    "arguments": "p_referrer text, p_amount numeric, p_day date"
+    "kind": "f"
+    "arguments_with_defaults": "p_referrer text, p_amount numeric, p_day date"
+    "result": "jsonb"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_rebate_offset_plan_v1(p_referrer text, p_amount numeric, p_day date)
+       RETURNS jsonb
+       LANGUAGE plpgsql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE top numeric:=999999999999; purpose jsonb:='{"forward":true,"principal":[],"loans":null}'::jsonb; capacity jsonb; plan jsonb;
+       available boolean; due numeric:=0; most numeric:=0; covered numeric; lines jsonb; result jsonb;
+      BEGIN
+       IF p_referrer IS NULL OR p_day IS NULL OR (p_amount IS NOT NULL AND (p_amount<=0 OR p_amount<>trunc(p_amount) OR p_amount>top)) THEN
+        RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid rebate offset request'; END IF;
+       available:=EXISTS(SELECT 1 FROM public."Loans" x WHERE x."Ref Borrowers"=p_referrer AND x."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(x."Defaulted",false));
+       IF available THEN
+        BEGIN
+         capacity:=public.pwa_pay_forward_plan_v1(p_referrer,top,p_day,purpose);
+         most:=top-(capacity->>'uncovered')::numeric; due:=least((capacity->>'dueTotal')::numeric,most);
+         IF p_amount IS NOT NULL THEN plan:=public.pwa_pay_forward_plan_v1(p_referrer,p_amount,p_day,purpose); END IF;
+        EXCEPTION WHEN SQLSTATE 'P0001' THEN available:=false; most:=0; due:=0; plan:=NULL;
+        END;
+        IF most<=0 THEN available:=false; plan:=NULL; END IF;
+       END IF;
+       result:=jsonb_build_object('available',available,'dueAmount',trunc(due)::text,'maxAmount',trunc(most)::text);
+       IF p_amount IS NULL THEN RETURN result; END IF;
+       IF plan IS NULL THEN
+        RETURN result||jsonb_build_object('amount',trunc(p_amount)::text,'covered','0','planHash',NULL,'allocations','[]'::jsonb,'materialize','[]'::jsonb,'paidThrough','{}'::jsonb,'lines','[]'::jsonb);
+       END IF;
+       covered:=p_amount-(plan->>'uncovered')::numeric;
+       SELECT coalesce(jsonb_agg(jsonb_build_object('chargeId',a.value->>'chargeId','loanId',coalesce(c."Ref Loans",m.value->>'loanId'),'chargeDate',a.value->>'chargeDate',
+          'principal',a.value->>'principal','interest',a.value->>'interest','lateCharge',a.value->>'lateCharge',
+          'amount',trunc((a.value->>'principal')::numeric+(a.value->>'interest')::numeric+(a.value->>'lateCharge')::numeric)::text,
+          'remaining',trunc((a.value->>'expectedPrincipalRemaining')::numeric+(a.value->>'expectedInterestRemaining')::numeric+(a.value->>'expectedLateChargeRemaining')::numeric)::text,
+          'due',(a.value->>'chargeDate')::date<=p_day,'booked',m.value IS NOT NULL) ORDER BY (a.value->>'chargeDate')::date,(a.value->>'chargeId') COLLATE "C"),'[]'::jsonb)
+        INTO lines FROM jsonb_array_elements(plan->'allocations') a LEFT JOIN public."Charges" c ON c."Row ID"=a.value->>'chargeId'
+         LEFT JOIN jsonb_array_elements(plan->'materialize') m ON m.value->>'chargeId'=a.value->>'chargeId';
+       RETURN result||jsonb_build_object('amount',trunc(p_amount)::text,'covered',trunc(covered)::text,
+        'planHash',encode(sha256(convert_to(jsonb_build_object('referrerId',p_referrer,'amount',trunc(p_amount)::text,'day',to_char(p_day,'YYYY-MM-DD'),'covered',trunc(covered)::text,
+          'allocations',plan->'allocations','materialize',plan->'materialize')::text,'UTF8')),'hex'),
+        'allocations',plan->'allocations','materialize',plan->'materialize','paidThrough',plan->'paidThrough','lines',lines);
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": "R184: the offset of a rebate settlement to the referrer's own loan, the Loan Close offset plan (pwa_pay_forward_plan_v1,\
+      \ forward only: due charges first, then future charges to the 93-day horizon): available (an open, not defaulted loan\
+      \ the plan can pay), dueAmount, maxAmount and, for an amount, covered, lines and planHash. Shown by Pay rebates and\
+      \ recomputed by rebate-settlement.create. Read only."
+    "extension": null

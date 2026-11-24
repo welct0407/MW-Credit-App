@@ -7648,6 +7648,57 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/public-pwa-rebate-settlement-allocations-addcf7f6.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_rebate_settlement_allocations",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "settlement_id",
+          "pointer": "/content/columns/settlement_id"
+        },
+        {
+          "subject": "expense_id",
+          "pointer": "/content/columns/expense_id"
+        },
+        {
+          "subject": "amount",
+          "pointer": "/content/columns/amount"
+        },
+        {
+          "subject": "pwa_rebate_settlement_allocations_amount_check",
+          "pointer": "/content/constraints/pwa_rebate_settlement_allocations_amount_check"
+        },
+        {
+          "subject": "pwa_rebate_settlement_allocations_amount_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlement_allocations_amount_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlement_allocations_expense_id_fkey",
+          "pointer": "/content/constraints/pwa_rebate_settlement_allocations_expense_id_fkey"
+        },
+        {
+          "subject": "pwa_rebate_settlement_allocations_expense_id_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlement_allocations_expense_id_not_null"
+        },
+        {
+          "subject": "pwa_rebate_settlement_allocations_pkey",
+          "pointer": "/content/constraints/pwa_rebate_settlement_allocations_pkey"
+        },
+        {
+          "subject": "pwa_rebate_settlement_allocations_settlement_id_fkey",
+          "pointer": "/content/constraints/pwa_rebate_settlement_allocations_settlement_id_fkey"
+        },
+        {
+          "subject": "pwa_rebate_settlement_allocations_settlement_id_not_null",
+          "pointer": "/content/constraints/pwa_rebate_settlement_allocations_settlement_id_not_null"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/public-pwa-rebate-settlements-f7f8495e.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -7701,6 +7752,10 @@
           "pointer": "/content/columns/created_at"
         },
         {
+          "subject": "offset_payment_id",
+          "pointer": "/content/columns/offset_payment_id"
+        },
+        {
           "subject": "pwa_rebate_settlements_amount_check",
           "pointer": "/content/constraints/pwa_rebate_settlements_amount_check"
         },
@@ -7735,6 +7790,14 @@
         {
           "subject": "pwa_rebate_settlements_notes_check",
           "pointer": "/content/constraints/pwa_rebate_settlements_notes_check"
+        },
+        {
+          "subject": "pwa_rebate_settlements_offset_payment_id_fkey",
+          "pointer": "/content/constraints/pwa_rebate_settlements_offset_payment_id_fkey"
+        },
+        {
+          "subject": "pwa_rebate_settlements_offset_payment_id_key",
+          "pointer": "/content/constraints/pwa_rebate_settlements_offset_payment_id_key"
         },
         {
           "subject": "pwa_rebate_settlements_paid_by_cash_account_fkey",
@@ -12621,6 +12684,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_put_group_chat_summary_v1(canonical_json text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-rebate-offset-plan-v1-p-referrer-text-p-amount-numeric-p-day-date-8d455371.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_rebate_offset_plan_v1(p_referrer text, p_amount numeric, p_day date)",
       "scope": "production",
       "status": "documented",
       "lookup": []

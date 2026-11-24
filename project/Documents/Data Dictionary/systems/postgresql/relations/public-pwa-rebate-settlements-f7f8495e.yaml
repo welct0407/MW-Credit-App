@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r184-20261124/production-postgresql-observations.json"
   "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "8540b873b3ac7bc25f14a0522bba7a2a7518770e"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/public-pwa-rebate-settlements-f7f8495e.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "relation"
+      "name": "public.pwa_rebate_settlements"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -22,9 +31,9 @@
     "is_partition": false
     "options": null
     "acl": "{postgres=arwdDxtm/postgres,mw_app_prod=r/postgres,mw_app_prod_journal_owner=arwd/postgres,mw_ledger_owner_prod=r/postgres}"
-    "comment": "R129: one referral rebate settlement: whole pending rebates (REFERRAL_REBATE_V3) of one referrer paid by Lisa\
-      \ in one cash movement on settlement_date. Written only by pwa_apply_rebate_settlement_v1; immutable (delete and record\
-      \ again)."
+    "comment": "R129/R184: one referral rebate settlement of one referrer: the amounts in pwa_rebate_settlement_allocations,\
+      \ paid by Lisa in one cash movement on settlement_date, or offset to the referrer's own loan (offset_payment_id). Written\
+      \ only by pwa_apply_rebate_settlement_v1; immutable (delete and record again)."
     "view_definition": null
     "partition_key": null
     "partition_bound": null
@@ -84,8 +93,8 @@
       "default_expression": null
       "collation": null
       "acl": "{mw_notify_owner_prod=r/postgres}"
-      "comment": "R129: the cash movement date; not in the future (Bangkok business date), not before the newest close date\
-        \ of the rebates it pays."
+      "comment": "R129/R184: the cash movement date; not in the future (Bangkok business date), not before the newest close\
+        \ date of the rebates it pays; today for an offset."
     "amount":
       "schema": "public"
       "relation": "pwa_rebate_settlements"
@@ -103,7 +112,7 @@
       "default_expression": null
       "collation": null
       "acl": "{mw_notify_owner_prod=r/postgres}"
-      "comment": "R129: whole baht, the sum of the pending amounts of the rebates linked to it."
+      "comment": "R129/R184: whole baht, the sum of its rows in pwa_rebate_settlement_allocations."
     "paid_by_cash_holder":
       "schema": "public"
       "relation": "pwa_rebate_settlements"
@@ -139,7 +148,8 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": null
-      "comment": "R129: an active account of ch:lisa, checked by the apply function."
+      "comment": "R129/R184: an active account of ch:lisa, checked by the apply function; Lisa's default account for an offset\
+        \ (its receipt returns to the same account)."
     "payment_method":
       "schema": "public"
       "relation": "pwa_rebate_settlements"
@@ -230,6 +240,25 @@
       "collation": null
       "acl": null
       "comment": null
+    "offset_payment_id":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "offset_payment_id"
+      "ordinal": 12
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "R184: null when the settlement was paid to the referrer; else the Referral Rebate Offset payment (rs155:<id>)\
+        \ it posted on the referrer's own loan."
   "constraints":
     "pwa_rebate_settlements_amount_check":
       "schema": "public"
@@ -386,6 +415,41 @@
       "delete_action": " "
       "match_type": " "
       "comment": null
+    "pwa_rebate_settlements_offset_payment_id_fkey":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_offset_payment_id_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (offset_payment_id) REFERENCES \"Payments\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 12
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Payments\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "pwa_rebate_settlements_offset_payment_id_key":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_offset_payment_id_key"
+      "kind": "u"
+      "definition": "UNIQUE (offset_payment_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 12
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "pwa_rebate_settlements_paid_by_cash_account_fkey":
       "schema": "public"
       "relation": "pwa_rebate_settlements"
@@ -513,11 +577,13 @@
       "relation": "pwa_rebate_settlements"
       "name": "pwa_rebate_settlements_payment_method_check"
       "kind": "c"
-      "definition": "CHECK (payment_method = ANY (ARRAY['Bank Transfer'::text, 'Cash'::text]))"
+      "definition": "CHECK (offset_payment_id IS NULL AND (payment_method = ANY (ARRAY['Bank Transfer'::text, 'Cash'::text]))\
+        \ OR offset_payment_id IS NOT NULL AND payment_method = 'Referral Rebate Offset'::text)"
       "deferrable": false
       "initially_deferred": false
       "validated": true
       "column_numbers":
+      - 12
       - 7
       "referenced_column_numbers": null
       "referenced_relation": null
@@ -577,6 +643,24 @@
       "match_type": " "
       "comment": null
   "indexes":
+    "pwa_rebate_settlements_offset_payment_id_key":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "pwa_rebate_settlements_offset_payment_id_key"
+      "definition": "CREATE UNIQUE INDEX pwa_rebate_settlements_offset_payment_id_key ON public.pwa_rebate_settlements USING\
+        \ btree (offset_payment_id)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
     "pwa_rebate_settlements_payee_date":
       "schema": "public"
       "relation": "pwa_rebate_settlements"
@@ -663,6 +747,32 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "RI_ConstraintTrigger_a_43971":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_a_43971"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_43971\" AFTER DELETE ON pwa_rebate_settlements FROM\
+        \ pwa_rebate_settlement_allocations NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_43972":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_a_43972"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_43972\" AFTER UPDATE ON pwa_rebate_settlements FROM\
+        \ pwa_rebate_settlement_allocations NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "RI_ConstraintTrigger_c_39205":
       "schema": "public"
       "relation": "pwa_rebate_settlements"
@@ -729,6 +839,30 @@
       "name": "RI_ConstraintTrigger_c_39216"
       "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_39216\" AFTER UPDATE ON pwa_rebate_settlements FROM\
         \ \"Cash Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_43986":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_c_43986"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_43986\" AFTER INSERT ON pwa_rebate_settlements FROM\
+        \ \"Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_43987":
+      "schema": "public"
+      "relation": "pwa_rebate_settlements"
+      "name": "RI_ConstraintTrigger_c_43987"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_43987\" AFTER UPDATE ON pwa_rebate_settlements FROM\
+        \ \"Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
       "enabled": "O"
       "internal": true
       "routine": "\"RI_FKey_check_upd\"()"

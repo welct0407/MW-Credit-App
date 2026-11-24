@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r184-20261124/production-postgresql-observations.json"
   "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "8540b873b3ac7bc25f14a0522bba7a2a7518770e"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-rebates-owed-v1-p-referrer-text-e82a01f7.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.pwa_rebates_owed_v1(p_referrer text)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -24,9 +33,10 @@
        STABLE
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
-       SELECT coalesce(sum(greatest(x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0),0)),0)
+       SELECT coalesce(sum(greatest(x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0)
+         -coalesce((SELECT sum(a.amount) FROM public.pwa_rebate_settlement_allocations a WHERE a.expense_id=x."Row ID"),0),0)),0) -- R184
        FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment"
-       WHERE x."Ref Payee Borrower"=p_referrer AND x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3' AND x."Ref Rebate Settlement" IS NULL;
+       WHERE x."Ref Payee Borrower"=p_referrer AND x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3';
       $function$
     "owner": "postgres"
     "language": "sql"

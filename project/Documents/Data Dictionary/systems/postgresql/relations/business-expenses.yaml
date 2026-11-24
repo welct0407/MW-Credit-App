@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r184-20261124/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "0f2fc4461cb7c8a6fab82a9339a174589f1a01de"
+    "commit": "8540b873b3ac7bc25f14a0522bba7a2a7518770e"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/business-expenses.yaml"
     "identity":
       "system": "postgresql"
@@ -514,8 +514,9 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": "{mw_notify_owner_prod=r/postgres}"
-      "comment": "R129: the settlement that paid this pending referral rebate (REFERRAL_REBATE_V3); null while pending, on\
-        \ offset-only and legacy rows and on other expenses. Set and cleared by the settlement command only."
+      "comment": "R129/R184: the most recently recorded settlement that applied an amount to this referral rebate (REFERRAL_REBATE_V3);\
+        \ null exactly when no settlement did (pending in full, offset-only and legacy rows, other expenses). Set, moved and\
+        \ cleared by the settlement command only."
     "Paid Date":
       "schema": "public"
       "relation": "Business Expenses"
@@ -1168,6 +1169,32 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "RI_ConstraintTrigger_a_43976":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "RI_ConstraintTrigger_a_43976"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_43976\" AFTER DELETE ON \"Business Expenses\" FROM\
+        \ pwa_rebate_settlement_allocations NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_43977":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "RI_ConstraintTrigger_a_43977"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_43977\" AFTER UPDATE ON \"Business Expenses\" FROM\
+        \ pwa_rebate_settlement_allocations NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "RI_ConstraintTrigger_c_17066":
       "schema": "public"
       "relation": "Business Expenses"
@@ -1555,30 +1582,3 @@
       "comment": null
   "policies": {}
   "dependencies": []
-"evidence":
-  "/content/columns/Ref Paid By Cash Account/comment":
-    "reference": "database/migrations/V142__pending_manual_expense.sql (R140)"
-    "reason": "R140 pending manual expense: V142 comments on the two payer columns"
-    "state": "value"
-  "/content/columns/Ref Paid By Cash Holder/comment":
-    "reference": "database/migrations/V142__pending_manual_expense.sql (R140)"
-    "reason": "R140 pending manual expense: V142 comments on the two payer columns"
-    "state": "value"
-  "/content/columns/Payee Name/comment":
-    "reference": "database/migrations/V143__manual_expense_payee_borrower.sql (R140)"
-    "reason": "R140 follow-up: V143 comments on the payee columns"
-    "state": "value"
-  "/content/columns/Ref Payee Borrower/comment":
-    "reference": "database/migrations/V143__manual_expense_payee_borrower.sql (R140)"
-    "reason": "R140 follow-up: V143 comments on the payee columns"
-    "state": "value"
-  "/content/columns/Paid Date":
-    "reference": "database/migrations/V144__expense_pool_fallback_and_paid_date.sql (R140)"
-    "reason": "R140 follow-up (owner feedback of 11 November 2026): V144 adds the nullable column Paid Date and the trigger\
-      \ fires on it"
-    "state": "value"
-  "/content/triggers/zz_cash_source/definition":
-    "reference": "database/migrations/V144__expense_pool_fallback_and_paid_date.sql (R140)"
-    "reason": "R140 follow-up (owner feedback of 11 November 2026): V144 adds the nullable column Paid Date and the trigger\
-      \ fires on it"
-    "state": "value"
