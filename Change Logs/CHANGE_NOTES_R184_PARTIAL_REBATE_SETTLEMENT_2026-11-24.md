@@ -58,8 +58,8 @@ Nothing is skipped yet; every check above is still to run. Byte must confirm thr
 Git baseline `9e64b48` (R183 closed, branch `claude/pensive-allen-9x8ht7`). Nothing is applied to DEV or PROD yet. Once V155 exists, recovery needs a verified restorable PROD backup before the migration, per the hard rules.
 
 ## Open questions
-- Owner authorization of the new table, the new column and the constraint changes (asked 24 November 2026; pending).
-- Defaults in use until the owner answers: offset reach is the Loan Close plan (due charges first, then future charges to the 93-day horizon), with the amount defaulting to what is due now; the existing "Rebate offset" push stays for an offset settlement; the default destination is Payment to referrer.
+- Answered 24 November 2026: the owner authorized the new table, the new column and the constraint changes (see Authority).
+- Answered 24 November 2026: offset reach is the Loan Close plan (due charges first, then future charges to the 93-day horizon), with the amount defaulting to what is due now; the existing "Rebate offset" push stays for an offset settlement. Orchestrator default, open to the owner: the default destination is Payment to referrer (Loan Close preselects the offset).
 
 ## Remaining work
-Owner authorization of V155; then Byte (SQL, API, PWA) and Chase (verification); Echo review of the built UI; the full documentation pass; the pull request and its Development checks; DEV deployment and the V155 owner window, then PROD on the owner's instruction.
+Byte implemented the batch locally (commits `c2601a4`, `a42dc1b`, `b4145bd`, `9fa3a27`, `d424951`; pushed unverified on 24 November 2026 only to keep the work safe in an ephemeral cloud container, with CI skipped on that push). Chase (verification) and Echo (review of the built UI) are in progress; then corrections; the full documentation pass; the pull request and its Development checks; DEV deployment and the V155 owner window, then PROD on the owner's instruction.
