@@ -182,13 +182,14 @@ for(const size of sizes)test.describe(size.label,()=>{
   expect(s.writes).toHaveLength(0);
   await page.getByRole('button',{name:'Confirm',exact:true}).click();
   await expect(page.getByRole('status').filter({hasText:'Paid ฿300 to'})).toContainText('1 rebate');
-  await expect(page.getByText('฿100 still unpaid')).toBeVisible();await expect(page.getByText('Lisa SCB').first()).toBeVisible();
+  await expect(page.getByText('฿100 still owed to มาย - Mai')).toBeVisible();await expect(page.getByText('Lisa SCB').first()).toBeVisible();
   // Exactly one rebate-settlement.create, ticked ids only, the screen's date, account, method and reference.
   expect(s.writes).toHaveLength(1);
   const command=s.writes[0];
   expect(command).toMatchObject({operation:'rebate-settlement.create',expectedVersion:null,predecessorRequestId:null,receiptId:null});
   expect(command.requestId).toMatch(/^[0-9a-f-]{36}$/);expect(command.targetId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);expect(command.requestId).not.toBe(command.targetId);
-  expect(command.inputs).toEqual({referrerId:'R-MAI',expenseIds:['rr1:L-PEND'],settlementDate:'2026-11-05',cashAccountId:'ca:lisa-scb',paymentMethod:'Bank Transfer',bankReference:'R129-REF',notes:null});
+  // R184: per-rebate lines and the destination (the whole pending amount of the one ticked rebate, paid to the referrer).
+  expect(command.inputs).toEqual({referrerId:'R-MAI',destination:'referrer',allocations:[{expenseId:'rr1:L-PEND',amount:'300',expectedPending:'300'}],settlementDate:'2026-11-05',cashAccountId:'ca:lisa-scb',paymentMethod:'Bank Transfer',bankReference:'R129-REF',notes:null,expectedPlanHash:null});
   // Back to the referrer page, which reads the referrer again.
   const before=s.reads.filter(p=>p==='/api/referrers/R-MAI').length;
   await page.getByRole('button',{name:'Back to referrer page',exact:true}).click();
@@ -206,7 +207,7 @@ for(const size of sizes)test.describe(size.label,()=>{
   await expect(page.getByRole('heading',{name:'Rebates paid'})).toBeVisible();await expect(page.locator('.referrer-line').filter({hasText:'ต้น - Ton'})).toContainText('฿450');
   await noHorizontalScroll(page);
   await page.getByRole('button',{name:'Delete settlement',exact:true}).click();
-  await expect(page.getByRole('note')).toHaveText('Delete settlement ฿450? 1 rebate returns to unpaid. The cash entry is removed.');
+  await expect(page.getByRole('note')).toHaveText('Delete settlement ฿450? ฿450 returns to unpaid on 1 rebate. The cash entry is removed.');
   expect(s.writes).toHaveLength(0);
   // Back keeps the settlement; a second visit to the confirm and Confirm deletes it.
   await page.getByRole('button',{name:'Back to details',exact:true}).click();await expect(page.getByRole('heading',{name:'Rebate settlement'})).toBeVisible();expect(s.writes).toHaveLength(0);
