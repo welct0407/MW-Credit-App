@@ -31,7 +31,15 @@ Baseline `9e64b48` on branch `claude/pensive-allen-9x8ht7`.
 - The read fields are additive (`settledAmount`, `appliedAmount` beside `paidAmount`, `partialCount`, `destination`, `deleteBlocked`).
 
 ### Echo's second pass
-Real WebKit, iPhone 17 Pro Max profile, English and Thai. Every proposal code is implemented. Two must-fix findings (UX-R184-09 and UX-R184-10) and seven small items (UX-R184-11 to UX-R184-17) are in Byte's correction round (`apps/pwa/src/**`, `services/business/rebate-state.mjs`, test assertions): in progress, commit `<Byte's correction commit, to be filled>`.
+Real WebKit, iPhone 17 Pro Max profile, English and Thai. Every proposal code is implemented. Byte's correction round, commit `669ac24`, implemented the findings:
+- UX-R184-09: the expense record of a part-paid rebate no longer says "No cash movement yet".
+- UX-R184-10: amounts settled by payment or offset are labelled "settled", not "paid" (referrer unpaid row, expense chip, payment record).
+- UX-R184-11: the live region announces after a one-tap fix.
+- UX-R184-12 and -13: "Offset ฿X (the most)" / "หักสูงสุด ฿X" shows on the offset path whenever the amount is below the limit, before the preview.
+- UX-R184-14: Thai offset verb on the row lines.
+- UX-R184-15: the offset Review is titled "Offset rebates · NAME" and does not repeat the loan label.
+- UX-R184-16: dates stay on one line (`keepTogether`).
+- UX-R184-17: the Settle by group is tighter (223 px to 179 px). Partly met, see Known limitations.
 
 ### Operator notes for promotion
 - The V155 owner window is the journal owner only; there is no notify window and no ledger window.
@@ -45,6 +53,7 @@ Real WebKit, iPhone 17 Pro Max profile, English and Thai. Every proposal code is
 - `pwa_notify_content_v5` facts say `state:'paid'` for a part-paid rebate, although the push text is right.
 - The expense `version` does not change when the older of two settlements is deleted.
 - The iOS keyboard and a real VoiceOver were not exercised.
+- UX-R184-17 is partly met: on the offset path at 390×844 the locked settlement date still sits partly under the sticky footer on the first screen (it is not editable there and the page scrolls). Follow-up for Echo.
 
 ### Archie's decisions (as implemented)
 - D1 Partial amounts live in a new allocation table, one row per settlement and rebate.
@@ -91,15 +100,18 @@ Echo's proposal review (accepted for implementation):
 | e2e "Pay rebates by offset" on mobile-webkit (Chase, `c080a4a`) | 1/1 |
 | `referrers-independent.spec.ts` on desktop-chromium (Chase, `c080a4a`) | 11/11 |
 | Echo's proposal review and second pass, real WebKit, iPhone 17 Pro Max profile, English and Thai | Done; findings in Byte's correction round |
-| `npm run check:docs` (Dewey) | See the last row filled in at the documentation commit |
-| Byte's correction-round checks (`<correction commit>`) | Pending |
+| `npm run check:docs` (Dewey, `e1ad149` and again after the closing edit) | 0 failures, 1 old warning (a change note of 9 November that nothing links to) |
+| Byte's correction round (`669ac24`): `npx biome lint`, `npm run typecheck`, `npm test`, `referrers-independent.spec.ts` on desktop-chromium, "Pay rebates by offset" on mobile-webkit | 0 errors; pass; 1439 tests, 1 skipped, 0 fail; 11/11; 1/1. Database groups not re-run: no database or SQL input changed; in `services/**` only `rebateRules` in `services/business/rebate-state.mjs` changed (it falls back to the legacy states only when the function is absent and rethrows any other error; one new unit test) plus the edit of `services/chat/assets/conversation-business-rules.md` |
 | `Development checks` on the pull request (the one broad run) | Pending: no pull request yet |
 
 ## Not run
 - Real iPhone: the iOS keyboard on the amount field and a real VoiceOver pass were not exercised; one tap on the amount field on the owner's iPhone in DEV covers the keyboard.
 - `en_US.UTF-8` collation, the receiving group in sequence and the new e2e case on the other browser projects are left to the pull request's Development checks.
 - No DEV or PROD action has happened: V155 is not applied anywhere, and no live preview or settlement has run.
-- Byte's correction round has not run its checks yet (see Checks).
+- The database groups were not re-run after `669ac24` (reason in Checks).
+
+### Publication
+`5684064`, `9567456` (marked skip-ci) and `c080a4a` were pushed on 24 November 2026 before the batch was complete, only to keep the work safe in an ephemeral cloud container that had already restarted once; `c080a4a` started the branch's Database workflow on a Chase-verified tree. The final push carries `e1ad149`, `669ac24` and this closing record. No pull request exists yet; the pull request's Development checks remain the one broad run. No DEV or PROD action.
 
 ## Recovery
 Git baseline `9e64b48` (R183 closed, branch `claude/pensive-allen-9x8ht7`). Nothing is applied to DEV or PROD yet; revert the branch to `9e64b48` for the files. Before V155 is applied to PROD, a verified restorable PROD backup is required, per the hard rules. After V155, rollback is a later migration that restores the V154 bodies only while no partial or offset settlement exists; prefer a forward fix. An image rollback onto a V155 database is an accepted risk (see Operator notes).
@@ -111,4 +123,4 @@ Git baseline `9e64b48` (R183 closed, branch `claude/pensive-allen-9x8ht7`). Noth
 - Open for the owner: one tap on the amount field on an iPhone in DEV, to confirm the numeric keypad and selection behavior (Playwright cannot open the iOS keyboard).
 
 ## Remaining work
-Byte's correction round (UX-R184-09 to UX-R184-17) and its checks; the pull request and its `Development checks`; the DEV deployment (migration before the images, the V155 owner window, a restorable backup first on PROD); the owner's iPhone tap in DEV; PROD on the owner's instruction; at closure the dictionary's PostgreSQL records reconciled from a PROD capture, the schema seed and the Environment inventory pins at promotion, and the closure pull request.
+Echo's follow-up on UX-R184-17; the pull request and its `Development checks`; the DEV deployment (migration before the images, the V155 owner window, a restorable backup first on PROD); the owner's iPhone tap in DEV; PROD on the owner's instruction; at closure the dictionary's PostgreSQL records reconciled from a PROD capture, the schema seed and the Environment inventory pins at promotion, and the closure pull request.
