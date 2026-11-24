@@ -93,7 +93,7 @@ SELECT pg_temp.exp_reject($q$UPDATE "Business Expenses" SET "Ref Paid By Cash Ho
 -- R140 V143: a payee borrower on an expense.update of a referral rebate is the existing P5B05 (Manual rows only).
 INSERT INTO "Partners"("Row ID","Partner Name","Partner Role","Login Email") VALUES('EX15-ACT','Synthetic expense actor','A','ex15-actor@example.invalid');
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
-REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements FROM mw_app_dev;
+REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements,pwa_rebate_settlement_allocations FROM mw_app_dev;
 REVOKE USAGE,UPDATE ON SEQUENCE pwa_row_changes_seq_seq FROM mw_app_dev;
 GRANT EXECUTE ON FUNCTION public.pwa_submit_operation_v2(text) TO mw_app_dev;
 SELECT set_config('ex.rebate_payee','{"contractVersion":2,"requestId":"b1430000-0000-4000-8000-0000000000e1","actor":{"issuer":"https://ex.invalid","subject":"ex-owner","partnerId":"EX15-ACT","loginEmail":"ex15-actor@example.invalid"},'
@@ -135,7 +135,7 @@ INSERT INTO public."Cash Pool Contributions"("Row ID","Ref Partner","Contributio
  ('PE-CA','PE-A',(SELECT d FROM pe_day)-30,'Contribution',60000::money),('PE-CB','PE-B',(SELECT d FROM pe_day)-30,'Contribution',40000::money);
 -- Operator grants, emulated and rolled back (Test-RebateSettlement.sql).
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
-REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements FROM mw_app_dev;
+REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements,pwa_rebate_settlement_allocations FROM mw_app_dev;
 REVOKE USAGE,UPDATE ON SEQUENCE pwa_row_changes_seq_seq FROM mw_app_dev;
 GRANT EXECUTE ON FUNCTION public.pwa_submit_operation_v2(text) TO mw_app_dev;
 -- The canonical expense command (operation-command.mjs key order); version NULL for a create, account NULL for pending.
@@ -350,7 +350,7 @@ SELECT pg_temp.pd_assert(NOT EXISTS(SELECT 1 FROM generate_series((SELECT d FROM
   WHERE o.pool>0 AND o.a>=0 AND o.b>=0 AND public.partner_pool_share_at_date(g.day::date,'A')<>o.a/o.pool),'1: valid dates keep the V143 share');
 -- 2. The contribution command: Partner A or B only (P5B04); A is accepted.
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
-REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements FROM mw_app_dev;
+REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements,pwa_rebate_settlement_allocations FROM mw_app_dev;
 REVOKE USAGE,UPDATE ON SEQUENCE pwa_row_changes_seq_seq FROM mw_app_dev;
 GRANT EXECUTE ON FUNCTION public.pwa_submit_operation_v2(text) TO mw_app_dev;
 CREATE FUNCTION pg_temp.pd_actor() RETURNS text LANGUAGE sql AS $f$ SELECT '{"issuer":"https://pd.invalid","subject":"pd-owner","partnerId":"PD-ACT","loginEmail":"pd-actor@example.invalid"}' $f$;

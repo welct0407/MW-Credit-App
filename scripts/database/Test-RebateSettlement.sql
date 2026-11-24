@@ -74,7 +74,7 @@ CREATE FUNCTION pg_temp.rs_ledger(source_key text) RETURNS numeric LANGUAGE sql 
 
 -- Operator grants, emulated and rolled back (Test-RebateOffset.sql); the settlements stay read-only for the capability.
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
-REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements FROM mw_app_dev;
+REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements,pwa_rebate_settlement_allocations FROM mw_app_dev;
 REVOKE USAGE,UPDATE ON SEQUENCE pwa_row_changes_seq_seq FROM mw_app_dev;
 GRANT EXECUTE ON FUNCTION public.pwa_submit_operation_v2(text) TO mw_app_dev;
 GRANT EXECUTE ON FUNCTION public.pwa_submit_selected_charges_v1(text) TO mw_app_dev;
@@ -223,8 +223,12 @@ DECLARE day date:=(SELECT d FROM rs_day); s public.pwa_rebate_settlements%ROWTYP
 BEGIN
  PERFORM pg_temp.rs_assert(pg_temp.rs_status('s1')='applied','3: the settlement applies: '||out::text);
  PERFORM pg_temp.rs_assert(out#>'{originalOutcome,result}'=jsonb_build_object('operation','rebate-settlement.create','targetType','rebate-settlement','targetId','c1111111-1111-4111-8111-111111111111',
-  'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy','rs-actor@example.invalid'),'3: the journalled result has the standard shape, no amount');
+  'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy','rs-actor@example.invalid',
+  -- R184 (D13): the seven-key shape is whole pending paid to the referrer, and its outcome carries the same detail.
+  'rebateSettlement',jsonb_build_object('destination','referrer','amount','400','owedAfter','0','offsetPaymentId',NULL,'lines',jsonb_build_array(
+   jsonb_build_object('expenseId','rr1:RS-LA','amount','300','pendingAfter','0'),jsonb_build_object('expenseId','rr1:RS-LB','amount','100','pendingAfter','0')))),'3: the journalled result has the standard shape and the settlement detail: '||out::text);
  SELECT * INTO s FROM public.pwa_rebate_settlements WHERE id='c1111111-1111-4111-8111-111111111111';
+ PERFORM pg_temp.rs_assert((SELECT count(*)=2 AND sum(amount)=400 AND bool_and(amount=CASE expense_id WHEN 'rr1:RS-LA' THEN 300 ELSE 100 END) FROM public.pwa_rebate_settlement_allocations WHERE settlement_id=s.id) AND s.offset_payment_id IS NULL,'3: one allocation per rebate, its whole pending amount');
  PERFORM pg_temp.rs_assert(s.amount=400 AND s.payee_borrower_id='RS-R' AND s.settlement_date=day AND s.paid_by_cash_holder='ch:lisa' AND s.paid_by_cash_account='RS-LISA-SCB'
   AND s.payment_method='Bank Transfer' AND s.bank_reference='REF-1234' AND s.notes='synthetic settlement' AND s.created_by='rs-actor@example.invalid','3: settlement row 400 as commanded');
  PERFORM pg_temp.rs_assert((SELECT count(*)=2 FROM public."Business Expenses" WHERE "Ref Rebate Settlement"=s.id),'3: both expenses linked');
@@ -479,5 +483,354 @@ SELECT pg_temp.rs_assert(pg_temp.rs_status('s4')='applied' AND (SELECT amount=70
 SELECT pg_temp.rs_assert((SELECT sum("Amount"::numeric) FROM public."Business Expenses" WHERE "Source Type"='Referral Rebate' AND "Ref Payee Borrower" IN ('RS-R','RS-X'))
   =(SELECT sum("Amount") FROM public."Cash Ledger" WHERE "Ref Business Expense" IN (SELECT "Row ID" FROM public."Business Expenses" WHERE "Ref Payee Borrower" IN ('RS-R','RS-X')))
   +(SELECT sum(s.amount) FROM public.pwa_rebate_settlements s),'reconciliation: every rebate amount is its offset cash plus its settlement');
+-- ===================== R184 (V155): partial amounts, the destination and the offset to the referrer's loan =====================
+-- Archie's test plan, cases 1 to 10 (case 11 is Test-AccessMatrix.sql; the upgrade from V154 is Test-RebateSettlementUpgrade.sql):
+--  P1 a partial direct 400 over rebates 300 + 300; P9 replay and conflict; P2 a second partial, then deleting the older
+--  settlement (the link keeps its value and the expense row is still recorded as changed); P8 a closing-payment delete of a
+--  part-paid rebate is refused until its settlements go; P3 every rejection, nothing changed; P4 an offset of 250 (payment per
+--  plan, plan resolved through the journal, Lisa nets zero); P5 its delete, and the refusals after the referrer's loan is
+--  defaulted and of a direct delete of the offset payment; P6 an offset deleted after a later payment closed the loan, an
+--  offset that closes the referrer's loan (delete reopens it) and the refusal while that close's own rebate is settled;
+--  P7 the plan's due step and a defaulted loan's kept charge; P10 the end invariants and push v5 after a partial.
+\set submit 'SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam"; DO $r$ DECLARE k text; BEGIN FOREACH k IN ARRAY string_to_array(current_setting(''rs.run''),'','') LOOP PERFORM set_config(''rs.out_''||k,public.pwa_submit_operation_v2(current_setting(''rs.''||k))::text,false); END LOOP; END $r$; RESET SESSION AUTHORIZATION; SET CONSTRAINTS ALL IMMEDIATE;'
+-- rebate-settlement.create, the nine-key shape; lines are 'expenseId|amount|expectedPending' in the order given.
+CREATE FUNCTION pg_temp.rs_create2(request text,target text,referrer text,destination text,lines text[],day date,account text,method text,ref text,notes text,hash text) RETURNS text LANGUAGE sql AS $f$
+ SELECT '{"contractVersion":2,"requestId":'||to_json(request)::text||',"actor":'||pg_temp.rs_actor()||',"command":{"schemaVersion":1,"operation":"rebate-settlement.create","targetType":"rebate-settlement","targetId":'
+  ||to_json(target)::text||',"expectedVersion":null,"predecessorRequestId":null,"inputs":{"referrerId":'||to_json(referrer)::text||',"destination":'||to_json(destination)::text||',"allocations":['
+  ||coalesce((SELECT string_agg('{"expenseId":'||to_json(split_part(x,'|',1))::text||',"amount":'||to_json(split_part(x,'|',2))::text||',"expectedPending":'||to_json(split_part(x,'|',3))::text||'}',',' ORDER BY o) FROM unnest(lines) WITH ORDINALITY u(x,o)),'')
+  ||'],"settlementDate":'||to_json(to_char(day,'YYYY-MM-DD'))::text||',"cashAccountId":'||coalesce(to_json(account)::text,'null')||',"paymentMethod":'||coalesce(to_json(method)::text,'null')
+  ||',"bankReference":'||coalesce(to_json(ref)::text,'null')||',"notes":'||coalesce(to_json(notes)::text,'null')||',"expectedPlanHash":'||coalesce(to_json(hash)::text,'null')||'}},"receipt":null}' $f$;
+CREATE FUNCTION pg_temp.rs_result(name text) RETURNS jsonb LANGUAGE sql AS $f$ SELECT current_setting('rs.out_'||name)::jsonb#>'{originalOutcome,result,rebateSettlement}' $f$;
+CREATE FUNCTION pg_temp.rs_hash(referrer text,amount numeric) RETURNS text LANGUAGE sql AS $f$ SELECT public.pwa_rebate_offset_plan_v1(referrer,amount,(SELECT d FROM rs_day))->>'planHash' $f$;
+CREATE FUNCTION pg_temp.rs_version(id text) RETURNS text LANGUAGE sql AS $f$ SELECT public.pwa_rebate_settlement_version_v1(id) $f$;
+-- What a refusal must leave unchanged.
+CREATE FUNCTION pg_temp.rs_state() RETURNS text LANGUAGE sql AS $f$
+ SELECT md5((SELECT coalesce(string_agg(to_jsonb(s)::text,'|' ORDER BY s.id),'') FROM public.pwa_rebate_settlements s)||(SELECT coalesce(string_agg(to_jsonb(a)::text,'|' ORDER BY a.settlement_id,a.expense_id),'') FROM public.pwa_rebate_settlement_allocations a)
+  ||(SELECT count(*)||':'||coalesce(sum("Amount Received"::numeric),0) FROM public."Payments")||(SELECT count(*)::text FROM public."Charges")||(SELECT count(*)::text FROM public."Repayments")
+  ||(SELECT count(*)||':'||coalesce(sum("Amount"),0) FROM public."Cash Ledger")||(SELECT coalesce(string_agg("Row ID"||coalesce("Ref Rebate Settlement",'-'),'|' ORDER BY "Row ID"),'') FROM public."Business Expenses" WHERE "Source Type"='Referral Rebate')) $f$;
+
+-- RP-R refers A, B, C and D (rebate 300 each, all closed before RP-R has a loan, so all four are pending). RQ-R (referred by
+-- RQ-G) refers RQ-A. RK-R refers RK-A.
+INSERT INTO public."Borrowers"("Row ID","Borrower Name","Description") VALUES('RP-R','SYNTHETIC PARTIAL REFERRER','Pim'),('RQ-G','SYNTHETIC TOP REFERRER',NULL),('RK-R','SYNTHETIC KEPT REFERRER',NULL);
+INSERT INTO public."Borrowers"("Row ID","Borrower Name","Ref Referrer") VALUES('RP-A','SYNTHETIC PARTIAL A','RP-R'),('RP-B','SYNTHETIC PARTIAL B','RP-R'),('RP-C','SYNTHETIC PARTIAL C','RP-R'),('RP-D','SYNTHETIC PARTIAL D','RP-R'),
+ ('RQ-R','SYNTHETIC OFFSET REFERRER','RQ-G'),('RQ-A','SYNTHETIC OFFSET A','RQ-R'),('RK-A','SYNTHETIC KEPT A','RK-R');
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Defaulted")
+ SELECT 'CI-LISA',v.id,v.b,(SELECT d FROM rs_day)-3,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,100::money,1,false
+ FROM (VALUES ('RP-LA','RP-A'),('RP-LB','RP-B'),('RP-LC','RP-C'),('RP-LD','RP-D'),('RQ-LA','RQ-A'),('RK-LA','RK-A')) v(id,b);
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
+ SELECT l."Row ID"||'-today',l."Row ID",(SELECT d FROM rs_day),0::money,3000::money FROM public."Loans" l WHERE l."Row ID" IN ('RP-LA','RP-LB','RP-LC','RP-LD','RQ-LA','RK-LA');
+UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" IN ('RP-LA','RP-LB','RP-LC','RP-LD','RQ-LA','RK-LA');
+SELECT set_config('rs.c'||n,pg_temp.rs_close('a184'||n||'000-0000-4000-8000-000000000001',v.loan,'expense'),true) FROM (VALUES (1,'RP-LA'),(2,'RP-LB'),(3,'RP-LC'),(4,'RP-LD'),(5,'RQ-LA'),(6,'RK-LA')) v(n,loan);
+SELECT set_config('rs.run','c1,c2,c3,c4,c5,c6',true);
+:submit
+SELECT pg_temp.rs_assert(public.pwa_rebates_owed_v1('RP-R')=1200 AND public.pwa_rebates_owed_v1('RQ-R')=300 AND public.pwa_rebates_owed_v1('RK-R')=300
+  AND (SELECT count(*)=6 AND bool_and("Rule Version"='REFERRAL_REBATE_V3' AND "Ref Rebate Settlement" IS NULL AND "Ref Offset Payment" IS NULL) FROM public."Business Expenses" WHERE "Row ID" IN ('rr1:RP-LA','rr1:RP-LB','rr1:RP-LC','rr1:RP-LD','rr1:RQ-LA','rr1:RK-LA')),'R184 setup: six pending rebates of 300');
+CREATE TEMP TABLE rp_split ON COMMIT DROP AS SELECT "Row ID",to_jsonb(x)-'Ref Rebate Settlement' AS j FROM public."Business Expenses" x WHERE "Row ID" LIKE 'rr1:RP-L%';
+
+-- P1. A partial direct 400 over A (300) and B (300): A in full, B 100 of 300.
+SELECT set_config('rs.p1',pg_temp.rs_create2('b1840001-0000-4000-8000-000000000001','c1840001-0000-4000-8000-000000000001','RP-R','referrer',ARRAY['rr1:RP-LA|300|300','rr1:RP-LB|100|300'],(SELECT d FROM rs_day),'RS-LISA-SCB','Bank Transfer','REF-184','partial',NULL),true),
+ set_config('rs.p1x',pg_temp.rs_create2('b1840001-0000-4000-8000-000000000001','c1840001-0000-4000-8000-000000000001','RP-R','referrer',ARRAY['rr1:RP-LA|300|300','rr1:RP-LB|99|300'],(SELECT d FROM rs_day),'RS-LISA-SCB','Bank Transfer','REF-184','partial',NULL),true);
+SELECT set_config('rs.run','p1',true);
+:submit
+DO $$
+DECLARE day date:=(SELECT d FROM rs_day); sid text:='c1840001-0000-4000-8000-000000000001'; r jsonb:=pg_temp.rs_result('p1');
+BEGIN
+ PERFORM pg_temp.rs_assert(pg_temp.rs_status('p1')='applied','P1: the partial settlement applies: '||current_setting('rs.out_p1'));
+ PERFORM pg_temp.rs_assert((SELECT amount=400 AND offset_payment_id IS NULL AND payment_method='Bank Transfer' AND paid_by_cash_account='RS-LISA-SCB' FROM public.pwa_rebate_settlements WHERE id=sid),'P1: settlement row 400, paid to the referrer');
+ PERFORM pg_temp.rs_assert((SELECT count(*)=1 AND sum("Amount")=400 AND bool_and("Ref From Cash Account"='RS-LISA-SCB' AND "Movement Date"=day) FROM public."Cash Ledger" WHERE "Ref Rebate Settlement"=sid),'P1: one ledger row of 400');
+ PERFORM pg_temp.rs_assert((SELECT jsonb_object_agg(expense_id,amount) FROM public.pwa_rebate_settlement_allocations WHERE settlement_id=sid)='{"rr1:RP-LA":300,"rr1:RP-LB":100}'::jsonb,'P1: allocations 300 and 100');
+ PERFORM pg_temp.rs_assert(public.pwa_rebate_pending_v1('rr1:RP-LA')=0 AND public.pwa_rebate_pending_v1('rr1:RP-LB')=200 AND public.pwa_rebates_owed_v1('RP-R')=800,'P1: pending 0 and 200, owed 800 (Rebates payable falls by 400)');
+ PERFORM pg_temp.rs_assert((SELECT bool_and("Ref Rebate Settlement"=sid) FROM public."Business Expenses" WHERE "Row ID" IN ('rr1:RP-LA','rr1:RP-LB')),'P1: both rebates link the settlement');
+ PERFORM pg_temp.rs_assert(NOT EXISTS(SELECT 1 FROM rp_split p JOIN public."Business Expenses" x USING ("Row ID") WHERE to_jsonb(x)-'Ref Rebate Settlement' IS DISTINCT FROM p.j),'P1: amount, date and Partner split of every expense unchanged');
+ PERFORM pg_temp.rs_assert(NOT EXISTS(SELECT 1 FROM public."Cash Ledger" WHERE "Ref Business Expense" IN ('rr1:RP-LA','rr1:RP-LB')),'P1: no expense cash row');
+ PERFORM pg_temp.rs_assert(r=jsonb_build_object('destination','referrer','amount','400','owedAfter','800','offsetPaymentId',NULL,'lines',jsonb_build_array(
+  jsonb_build_object('expenseId','rr1:RP-LA','amount','300','pendingAfter','0'),jsonb_build_object('expenseId','rr1:RP-LB','amount','100','pendingAfter','200'))),'P1 (D13): result.rebateSettlement: '||r::text);
+END $$;
+-- P9. Replay: the recorded outcome; another payload under the same request id: conflict.
+SELECT set_config('rs.out_p1_first',current_setting('rs.out_p1'),false),set_config('rs.run','p1,p1x',true);
+:submit
+SELECT pg_temp.rs_assert(current_setting('rs.out_p1')::jsonb->'originalOutcome'=current_setting('rs.out_p1_first')::jsonb->'originalOutcome' AND current_setting('rs.out_p1x')::jsonb->>'kind'='conflict'
+  AND (SELECT count(*)=1 FROM public.pwa_rebate_settlements WHERE payee_borrower_id='RP-R') AND public.pwa_rebates_owed_v1('RP-R')=800,'P9: replay returns the recorded outcome, another payload conflicts, nothing is written twice');
+
+-- P2. A second partial completes B; then the older settlement is deleted: B keeps its link value (S2) and is still recorded
+-- as changed in the change log, A returns to pending in full.
+SELECT set_config('rs.p2',pg_temp.rs_create2('b1840002-0000-4000-8000-000000000001','c1840002-0000-4000-8000-000000000001','RP-R','referrer',ARRAY['rr1:RP-LB|200|200'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),set_config('rs.run','p2',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('p2')='applied' AND public.pwa_rebate_pending_v1('rr1:RP-LB')=0 AND public.pwa_rebates_owed_v1('RP-R')=600
+  AND (SELECT "Ref Rebate Settlement"='c1840002-0000-4000-8000-000000000001' FROM public."Business Expenses" WHERE "Row ID"='rr1:RP-LB')
+  AND (SELECT "Ref Rebate Settlement"='c1840001-0000-4000-8000-000000000001' FROM public."Business Expenses" WHERE "Row ID"='rr1:RP-LA')
+  AND pg_temp.rs_result('p2')->>'owedAfter'='600','P2: the second partial completes B; B links the newer settlement, A the older: '||current_setting('rs.out_p2'));
+SELECT set_config('rs.changes_b',(SELECT count(*)::text FROM public.pwa_row_changes WHERE table_name='Business Expenses' AND row_key='rr1:RP-LB'),false),
+ set_config('rs.d1',pg_temp.rs_delete('b1840002-0000-4000-8000-000000000002','c1840001-0000-4000-8000-000000000001',pg_temp.rs_version('c1840001-0000-4000-8000-000000000001')),true),set_config('rs.run','d1',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('d1')='applied' AND public.pwa_rebate_pending_v1('rr1:RP-LA')=300 AND public.pwa_rebate_pending_v1('rr1:RP-LB')=100 AND public.pwa_rebates_owed_v1('RP-R')=1000
+  AND (SELECT "Ref Rebate Settlement" IS NULL FROM public."Business Expenses" WHERE "Row ID"='rr1:RP-LA')
+  AND (SELECT "Ref Rebate Settlement"='c1840002-0000-4000-8000-000000000001' FROM public."Business Expenses" WHERE "Row ID"='rr1:RP-LB')
+  AND NOT EXISTS(SELECT 1 FROM public."Cash Ledger" WHERE "Ref Rebate Settlement"='c1840001-0000-4000-8000-000000000001')
+  AND (SELECT count(*)=1 AND sum(amount)=200 FROM public.pwa_rebate_settlement_allocations WHERE expense_id='rr1:RP-LB')
+  AND current_setting('rs.out_d1')::jsonb#>'{originalOutcome,result}' ? 'rebateSettlement' IS FALSE,'P2: deleting the older settlement: A pending 300 (link null), B pending 100 (link kept): '||current_setting('rs.out_d1'));
+SELECT pg_temp.rs_assert((SELECT count(*) FROM public.pwa_row_changes WHERE table_name='Business Expenses' AND row_key='rr1:RP-LB')>current_setting('rs.changes_b')::bigint,'P2: the expense whose link value stays is recorded as changed (the offline delta re-reads it)');
+SELECT pg_temp.rs_assert(NOT EXISTS(SELECT 1 FROM rp_split p JOIN public."Business Expenses" x USING ("Row ID") WHERE to_jsonb(x)-'Ref Rebate Settlement' IS DISTINCT FROM p.j),'P2: the expenses and their Partner split are unchanged');
+
+-- P8. The closing payment of a part-paid rebate (B: 200 of 300 paid) is not deleted until its settlement goes.
+SELECT set_config('rs.p8',pg_temp.rs_payment_delete('b1840008-0000-4000-8000-000000000001',(SELECT "Ref Closing Payment" FROM public."Loans" WHERE "Row ID"='RP-LB')),true),set_config('rs.run','p8',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_code('p8')='dependency_conflict' AND public.pwa_rebate_pending_v1('rr1:RP-LB')=100,'P8: the closing-payment delete of a part-paid rebate is refused: '||current_setting('rs.out_p8'));
+SELECT set_config('rs.d2',pg_temp.rs_delete('b1840008-0000-4000-8000-000000000002','c1840002-0000-4000-8000-000000000001',pg_temp.rs_version('c1840002-0000-4000-8000-000000000001')),true),set_config('rs.run','d2',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('d2')='applied' AND public.pwa_rebates_owed_v1('RP-R')=1200 AND NOT EXISTS(SELECT 1 FROM public.pwa_rebate_settlement_allocations a JOIN public.pwa_rebate_settlements s ON s.id=a.settlement_id WHERE s.payee_borrower_id='RP-R')
+  AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Row ID" LIKE 'rr1:RP-L%' AND "Ref Rebate Settlement" IS NOT NULL),'P8: with every settlement gone all four rebates are pending in full again');
+
+-- P3. Rejections, each its own request, nothing changed. S3 (A 100 of 300) is applied first: its id is the source conflict.
+SELECT set_config('rs.p3',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000001','c1840003-0000-4000-8000-000000000001','RP-R','referrer',ARRAY['rr1:RP-LA|100|300'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),set_config('rs.run','p3',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('p3')='applied' AND public.pwa_rebate_pending_v1('rr1:RP-LA')=200 AND public.pwa_rebates_owed_v1('RP-R')=1100,'P3: S3 applies (A 100 of 300)');
+SELECT set_config('rs.state',pg_temp.rs_state(),false);
+SELECT set_config('rs.n2_target',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000011','c1840003-0000-4000-8000-000000000001','RP-R','referrer',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),
+ set_config('rs.n2_referrer',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000012','c1840003-0000-4000-8000-000000000012','RP-NOBODY','referrer',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),
+ set_config('rs.n2_payee',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000013','c1840003-0000-4000-8000-000000000013','RP-R','referrer',ARRAY['rr1:RQ-LA|300|300'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),
+ set_config('rs.n2_over',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000014','c1840003-0000-4000-8000-000000000014','RP-R','referrer',ARRAY['rr1:RP-LB|301|300'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),
+ set_config('rs.n2_stale',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000015','c1840003-0000-4000-8000-000000000015','RP-R','referrer',ARRAY['rr1:RP-LA|100|300'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),
+ set_config('rs.n2_unknown',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000016','c1840003-0000-4000-8000-000000000016','RP-R','referrer',ARRAY['rr1:RP-LB|100|300','rr1:RP-NONE|1|1'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),
+ set_config('rs.n2_dad',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000017','c1840003-0000-4000-8000-000000000017','RP-R','referrer',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day),'CI-DAD','Cash',NULL,NULL,NULL),true),
+ set_config('rs.n2_future',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000018','c1840003-0000-4000-8000-000000000018','RP-R','referrer',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day)+1,'CI-LISA','Cash',NULL,NULL,NULL),true),
+ set_config('rs.n2_early',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000019','c1840003-0000-4000-8000-000000000019','RP-R','referrer',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day)-1,'CI-LISA','Cash',NULL,NULL,NULL),true),
+ -- an offset while the referrer has no open loan
+ set_config('rs.n2_noloan',pg_temp.rs_create2('b1840003-0000-4000-8000-00000000001a','c1840003-0000-4000-8000-00000000001a','RP-R','offset',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,repeat('0',64)),true),
+ set_config('rs.run','n2_target,n2_referrer,n2_payee,n2_over,n2_stale,n2_unknown,n2_dad,n2_future,n2_early,n2_noloan',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_code(v.k)=v.code,'P3: '||v.k||' is '||v.code||', got '||coalesce(current_setting('rs.out_'||v.k),'null'))
+ FROM (VALUES ('n2_target','source_conflict'),('n2_referrer','not_found'),('n2_payee','record_requires_reconciliation'),('n2_over','record_requires_reconciliation'),('n2_stale','record_requires_reconciliation'),
+  ('n2_unknown','record_requires_reconciliation'),('n2_dad','account_unavailable'),('n2_future','invalid_date'),('n2_early','invalid_date'),('n2_noloan','plan_changed')) v(k,code);
+SELECT pg_temp.rs_assert(public.pwa_rebate_offset_plan_v1('RP-R',NULL,(SELECT d FROM rs_day))='{"available":false,"dueAmount":"0","maxAmount":"0"}'::jsonb,'P3: no open loan, no offset offered');
+-- RP-R's own loan: 14 due today, then 5 a day on the 93-day schedule.
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Defaulted")
+ VALUES('CI-LISA','RP-RL','RP-R',(SELECT d FROM rs_day)-3,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,5::money,1,false);
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('RP-RL-old','RP-RL',(SELECT d FROM rs_day),0::money,14::money);
+UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='RP-RL';
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT set_config('rs.state',pg_temp.rs_state(),false),set_config('rs.rp_max',public.pwa_rebate_offset_plan_v1('RP-R',NULL,(SELECT d FROM rs_day))->>'maxAmount',false);
+SELECT pg_temp.rs_assert((SELECT p->>'available'='true' AND p->>'dueAmount'='14' AND (p->>'maxAmount')::numeric BETWEEN 400 AND 599
+   AND (p->>'maxAmount')::numeric=999999999999-(public.pwa_pay_forward_plan_v1('RP-R',999999999999,(SELECT d FROM rs_day),'{"forward":true,"principal":[],"loans":null}'::jsonb)->>'uncovered')::numeric
+  FROM (SELECT public.pwa_rebate_offset_plan_v1('RP-R',NULL,(SELECT d FROM rs_day)) p) q),'P3: with an open loan the offset is offered: 14 due, the Loan Close plan''s capacity as the cap: '||public.pwa_rebate_offset_plan_v1('RP-R',NULL,(SELECT d FROM rs_day))::text);
+SELECT set_config('rs.n3_date',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000021','c1840003-0000-4000-8000-000000000021','RP-R','offset',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day)-1,NULL,NULL,NULL,NULL,pg_temp.rs_hash('RP-R',100)),true),
+ set_config('rs.n3_hash',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000022','c1840003-0000-4000-8000-000000000022','RP-R','offset',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,repeat('0',64)),true),
+ -- more than the plan can take (600 over the cap), with the hash the plan function returns for that amount
+ set_config('rs.n3_cover',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000023','c1840003-0000-4000-8000-000000000023','RP-R','offset',ARRAY['rr1:RP-LB|300|300','rr1:RP-LC|300|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,pg_temp.rs_hash('RP-R',600)),true),
+ set_config('rs.n3_stale',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000024','c1840003-0000-4000-8000-000000000024','RP-R','offset',ARRAY['rr1:RP-LA|100|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,pg_temp.rs_hash('RP-R',100)),true),
+ set_config('rs.run','n3_date,n3_hash,n3_cover,n3_stale',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_code(v.k)=v.code,'P3: '||v.k||' is '||v.code||', got '||coalesce(current_setting('rs.out_'||v.k),'null'))
+ FROM (VALUES ('n3_date','invalid_date'),('n3_hash','plan_changed'),('n3_cover','plan_changed'),('n3_stale','record_requires_reconciliation')) v(k,code);
+-- no default account of Lisa: an offset has nowhere to net
+UPDATE public."Cash Accounts" SET "Default Account"=false WHERE "Ref Cash Holder"='ch:lisa' AND "Default Account";
+SELECT set_config('rs.n3_default',pg_temp.rs_create2('b1840003-0000-4000-8000-000000000025','c1840003-0000-4000-8000-000000000025','RP-R','offset',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,pg_temp.rs_hash('RP-R',100)),true),set_config('rs.run','n3_default',true);
+:submit
+UPDATE public."Cash Accounts" SET "Default Account"=true WHERE "Row ID"='CI-LISA';
+SELECT pg_temp.rs_assert(pg_temp.rs_code('n3_default')='account_unavailable','P3: an offset without a default account of Lisa is account_unavailable: '||current_setting('rs.out_n3_default'));
+SELECT pg_temp.rs_assert(pg_temp.rs_state()=current_setting('rs.state'),'P3: nothing written by a refusal');
+-- Invalid commands (22023): unsorted and duplicate lines, a zero, fractional or missing amount, an extra line key, an offset
+-- naming an account or no hash, a payment to the referrer with a hash or without a method, an unknown destination, no lines.
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE day date:=(SELECT d FROM rs_day); good text:=pg_temp.rs_create2('b1840003-0000-4000-8000-000000000031','c1840003-0000-4000-8000-000000000031','RP-R','referrer',ARRAY['rr1:RP-LB|100|300','rr1:RP-LC|100|300'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL);
+ offs text:=pg_temp.rs_create2('b1840003-0000-4000-8000-000000000032','c1840003-0000-4000-8000-000000000032','RP-R','offset',ARRAY['rr1:RP-LB|100|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,repeat('a',64)); v text; n integer:=0;
+BEGIN
+ FOREACH v IN ARRAY ARRAY[
+  pg_temp.rs_create2('b1840003-0000-4000-8000-000000000031','c1840003-0000-4000-8000-000000000031','RP-R','referrer',ARRAY['rr1:RP-LC|100|300','rr1:RP-LB|100|300'],day,'CI-LISA','Cash',NULL,NULL,NULL),
+  pg_temp.rs_create2('b1840003-0000-4000-8000-000000000031','c1840003-0000-4000-8000-000000000031','RP-R','referrer',ARRAY['rr1:RP-LB|100|300','rr1:RP-LB|100|300'],day,'CI-LISA','Cash',NULL,NULL,NULL),
+  pg_temp.rs_create2('b1840003-0000-4000-8000-000000000031','c1840003-0000-4000-8000-000000000031','RP-R','referrer',ARRAY[]::text[],day,'CI-LISA','Cash',NULL,NULL,NULL),
+  replace(good,'"amount":"100","expectedPending":"300"},{','"amount":"0","expectedPending":"300"},{'),
+  replace(good,'"amount":"100","expectedPending":"300"},{','"amount":"1.5","expectedPending":"300"},{'),
+  replace(good,'"amount":"100","expectedPending":"300"},{','"amount":100,"expectedPending":"300"},{'),
+  replace(good,'"amount":"100","expectedPending":"300"},{','"expectedPending":"300"},{'),
+  replace(good,'"expectedPending":"300"},{','"expectedPending":"300","note":"x"},{'),
+  replace(good,'"destination":"referrer"','"destination":"loan"'),
+  replace(good,'"expectedPlanHash":null','"expectedPlanHash":"'||repeat('a',64)||'"'),
+  replace(good,'"paymentMethod":"Cash"','"paymentMethod":null'),
+  replace(good,'"cashAccountId":"CI-LISA"','"cashAccountId":null'),
+  replace(good,',"expectedPlanHash":null',''),
+  replace(offs,'"cashAccountId":null','"cashAccountId":"CI-LISA"'),
+  replace(offs,'"paymentMethod":null','"paymentMethod":"Cash"'),
+  replace(offs,'"expectedPlanHash":"'||repeat('a',64)||'"','"expectedPlanHash":null'),
+  replace(offs,'"expectedPlanHash":"'||repeat('a',64)||'"','"expectedPlanHash":"abc"')] LOOP
+  n:=n+1;
+  BEGIN PERFORM public.pwa_submit_operation_v2(v); RAISE EXCEPTION 'FAILED: P3: invalid command % was accepted: %',n,v;
+  EXCEPTION WHEN SQLSTATE '22023' THEN NULL; END;
+ END LOOP;
+END $$;
+RESET SESSION AUTHORIZATION;
+SELECT pg_temp.rs_assert(pg_temp.rs_state()=current_setting('rs.state'),'P3: nothing written by an invalid command');
+
+-- P4. An offset of 250 to RP-R's loan: A's remaining 200 and 50 of C. The payment follows the plan (14 due, then future
+-- charges booked in date order), the plan resolves through the journal, and Lisa nets zero.
+SELECT set_config('rs.plan4',public.pwa_rebate_offset_plan_v1('RP-R',250,(SELECT d FROM rs_day))::text,false),set_config('rs.charges4',(SELECT count(*)::text FROM public."Charges" WHERE "Ref Loans"='RP-RL'),false);
+SELECT set_config('rs.p4',pg_temp.rs_create2('b1840004-0000-4000-8000-000000000001','c1840004-0000-4000-8000-000000000001','RP-R','offset',ARRAY['rr1:RP-LA|200|200','rr1:RP-LC|50|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,'offset note',current_setting('rs.plan4')::jsonb->>'planHash'),true),set_config('rs.run','p4',true);
+:submit
+DO $$
+DECLARE day date:=(SELECT d FROM rs_day); sid text:='c1840004-0000-4000-8000-000000000001'; pay text:='rs155:c1840004-0000-4000-8000-000000000001'; plan jsonb:=current_setting('rs.plan4')::jsonb; r jsonb:=pg_temp.rs_result('p4'); s public.pwa_rebate_settlements%ROWTYPE;
+BEGIN
+ PERFORM pg_temp.rs_assert(pg_temp.rs_status('p4')='applied','P4: the offset settlement applies: '||current_setting('rs.out_p4'));
+ PERFORM pg_temp.rs_assert(plan->>'covered'='250' AND plan->>'available'='true' AND jsonb_array_length(plan->'lines')>1 AND plan#>>'{lines,0,chargeId}'='RP-RL-old' AND plan#>>'{lines,0,amount}'='14' AND (plan#>>'{lines,0,due}')::boolean
+  AND (plan#>>'{lines,1,booked}')::boolean AND plan#>>'{lines,1,loanId}'='RP-RL' AND (SELECT sum((l->>'amount')::numeric)=250 FROM jsonb_array_elements(plan->'lines') l),'P4: the preview plan: 14 due first, then booked future charges, 250 in all: '||plan::text);
+ SELECT * INTO s FROM public.pwa_rebate_settlements WHERE id=sid;
+ PERFORM pg_temp.rs_assert(s.amount=250 AND s.offset_payment_id=pay AND s.payment_method='Referral Rebate Offset' AND s.paid_by_cash_account='CI-LISA' AND s.bank_reference IS NULL AND s.settlement_date=day AND s.notes='offset note','P4: settlement row 250 with its offset payment');
+ PERFORM pg_temp.rs_assert((SELECT "Status"='Posted' AND "Amount Received"::numeric=250 AND "Payment Method"='Referral Rebate Offset' AND "Ref Borrower"='RP-R' AND "Payment Date"=day AND "Ref Received By Cash Account"='CI-LISA' AND "Created By"='rs-actor@example.invalid'
+   FROM public."Payments" WHERE "Row ID"=pay),'P4: the offset payment rs155:<settlement> is posted on the referrer');
+ PERFORM pg_temp.rs_assert((SELECT jsonb_agg(jsonb_build_object('chargeId',a."Ref Charge",'principal',a."Allocated Principal"::numeric,'interest',a."Allocated Interest"::numeric) ORDER BY a."Ref Charge" COLLATE "C") FROM public."Payment Allocations" a WHERE a."Ref Payment"=pay)
+  =(SELECT jsonb_agg(jsonb_build_object('chargeId',l->>'chargeId','principal',(l->>'principal')::numeric,'interest',(l->>'interest')::numeric) ORDER BY (l->>'chargeId') COLLATE "C") FROM jsonb_array_elements(plan->'allocations') l),'P4: the payment is allocated per plan');
+ PERFORM pg_temp.rs_assert(public.pwa_effective_payment_plan_v2(pay)#>>'{plan,amountReceived}'='250' AND public.pwa_effective_payment_plan_v2(pay)#>'{plan,allocations}'=plan->'allocations'
+  AND (SELECT count(*)=1 FROM public.pwa_payment_commands j WHERE j.result_json->>'paymentId'=pay AND j.canonical_json::jsonb#>>'{command,operation}'='system.rebate-offset' AND j.canonical_json::jsonb#>>'{command,targetId}'=sid),'P4: the plan resolves through the system.rebate-offset journal row');
+ PERFORM pg_temp.rs_assert((SELECT count(*)=2 AND sum(CASE WHEN "Ref To Cash Account"='CI-LISA' THEN "Amount" ELSE 0 END)=250 AND sum(CASE WHEN "Ref From Cash Account"='CI-LISA' THEN "Amount" ELSE 0 END)=250 AND bool_and("Movement Date"=day)
+   FROM public."Cash Ledger" WHERE "Ref Rebate Settlement"=sid OR "Ref Payment"=pay),'P4 (D7): the settlement out and the offset receipt in, same account, day and amount: Lisa nets zero');
+ PERFORM pg_temp.rs_assert(public.pwa_rebate_pending_v1('rr1:RP-LA')=0 AND public.pwa_rebate_pending_v1('rr1:RP-LC')=250 AND public.pwa_rebates_owed_v1('RP-R')=850,'P4: pending 0 and 250, owed 850');
+ PERFORM pg_temp.rs_assert((SELECT "Amount Remaining"=0 FROM public."Charges" WHERE "Row ID"='RP-RL-old') AND (SELECT count(*) FROM public."Charges" WHERE "Ref Loans"='RP-RL')=current_setting('rs.charges4')::bigint+jsonb_array_length(plan->'materialize'),'P4: the due charge is paid and the plan''s future charges are booked');
+ PERFORM pg_temp.rs_assert(r=jsonb_build_object('destination','offset','amount','250','owedAfter','850','offsetPaymentId',pay,'lines',jsonb_build_array(
+  jsonb_build_object('expenseId','rr1:RP-LA','amount','200','pendingAfter','0'),jsonb_build_object('expenseId','rr1:RP-LC','amount','50','pendingAfter','250'))),'P4 (D13): result.rebateSettlement: '||r::text);
+ -- D11: offset settlements and direct settlements are told apart by offset_payment_id (the tiles' rule).
+ PERFORM pg_temp.rs_assert((SELECT sum(amount) FILTER (WHERE offset_payment_id IS NULL)=100 AND sum(amount) FILTER (WHERE offset_payment_id IS NOT NULL)=250 FROM public.pwa_rebate_settlements WHERE payee_borrower_id='RP-R'),'P4 (D11): paid 100, offset 250');
+END $$;
+-- The payment is the settlement's: it is not deleted or changed directly (P5B05), and a settlement names one payment.
+SELECT set_config('rs.p4_pay',pg_temp.rs_payment_delete('b1840004-0000-4000-8000-000000000002','rs155:c1840004-0000-4000-8000-000000000001'),true),set_config('rs.run','p4_pay',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_code('p4_pay')='dependency_conflict' AND EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"='rs155:c1840004-0000-4000-8000-000000000001'),'P5: a direct delete of the offset payment is refused: '||current_setting('rs.out_p4_pay'));
+DO $$ BEGIN
+ BEGIN DELETE FROM public."Payments" WHERE "Row ID"='rs155:c1840004-0000-4000-8000-000000000001'; RAISE EXCEPTION 'FAILED: P5: the offset payment was deleted outside its settlement';
+ EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE 'FAILED%' THEN RAISE; END IF; END;
+ BEGIN UPDATE public.pwa_rebate_settlements SET offset_payment_id=NULL WHERE id='c1840004-0000-4000-8000-000000000001'; RAISE EXCEPTION 'FAILED: P5: a settlement row changed';
+ EXCEPTION WHEN OTHERS THEN IF SQLERRM NOT LIKE 'Rebate settlements are immutable%' THEN RAISE; END IF; END;
+END $$;
+-- The application role reads the allocations and never writes them; the journal owner never updates them.
+SELECT pg_temp.rs_assert(has_table_privilege('mw_app_dev_journal_owner','public.pwa_rebate_settlement_allocations','INSERT') AND has_table_privilege('mw_app_dev_journal_owner','public.pwa_rebate_settlement_allocations','DELETE')
+  AND NOT EXISTS(SELECT 1 FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) a WHERE c.oid='public.pwa_rebate_settlement_allocations'::regclass AND a.privilege_type IN ('UPDATE','TRUNCATE') AND a.grantee<>c.relowner),'P4: allocations are insert and delete only');
+
+-- P5. Deleting the offset settlement removes its payment through the receipt engine: repayments and both cash rows go, the
+-- charges are unpaid again, the booked future charges stay (R111 D4), the amounts return to pending.
+SELECT set_config('rs.charges5',(SELECT count(*)::text FROM public."Charges" WHERE "Ref Loans"='RP-RL'),false),
+ set_config('rs.d4',pg_temp.rs_delete('b1840005-0000-4000-8000-000000000001','c1840004-0000-4000-8000-000000000001',pg_temp.rs_version('c1840004-0000-4000-8000-000000000001')),true),set_config('rs.run','d4',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('d4')='applied' AND NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"='rs155:c1840004-0000-4000-8000-000000000001')
+  AND NOT EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Payment"='rs155:c1840004-0000-4000-8000-000000000001')
+  AND NOT EXISTS(SELECT 1 FROM public."Cash Ledger" WHERE "Ref Payment"='rs155:c1840004-0000-4000-8000-000000000001' OR "Ref Rebate Settlement"='c1840004-0000-4000-8000-000000000001')
+  AND (SELECT "Amount Remaining"=14 FROM public."Charges" WHERE "Row ID"='RP-RL-old') AND (SELECT count(*) FROM public."Charges" WHERE "Ref Loans"='RP-RL')=current_setting('rs.charges5')::bigint
+  AND public.pwa_rebate_pending_v1('rr1:RP-LA')=200 AND public.pwa_rebate_pending_v1('rr1:RP-LC')=300 AND public.pwa_rebates_owed_v1('RP-R')=1100
+  AND (SELECT "Ref Rebate Settlement"='c1840003-0000-4000-8000-000000000001' FROM public."Business Expenses" WHERE "Row ID"='rr1:RP-LA') AND (SELECT "Ref Rebate Settlement" IS NULL FROM public."Business Expenses" WHERE "Row ID"='rr1:RP-LC')
+  AND (SELECT "Loan Status"='ยังไม่ปิดยอด' FROM public."Loans" WHERE "Row ID"='RP-RL'),'P5: the offset settlement''s delete: payment, repayments and cash rows gone, charges unpaid, booked charges kept, pending restored: '||current_setting('rs.out_d4'));
+-- An offset of exactly what is due (RP-R: the 14 of today), which pays the due charge only; it is deleted again.
+SELECT set_config('rs.p5',pg_temp.rs_create2('b1840005-0000-4000-8000-000000000002','c1840005-0000-4000-8000-000000000002','RP-R','offset',ARRAY['rr1:RP-LC|14|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,pg_temp.rs_hash('RP-R',14)),true),set_config('rs.run','p5',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('p5')='applied' AND public.pwa_rebate_pending_v1('rr1:RP-LC')=286 AND (SELECT count(*)=1 AND bool_and("Ref Charges"='RP-RL-old') FROM public."Repayments" WHERE "Ref Payment"='rs155:c1840005-0000-4000-8000-000000000002'),'P5: an offset of exactly what is due pays the due charge only: '||current_setting('rs.out_p5'));
+SELECT set_config('rs.d5a',pg_temp.rs_delete('b1840005-0000-4000-8000-000000000003','c1840005-0000-4000-8000-000000000002',pg_temp.rs_version('c1840005-0000-4000-8000-000000000002')),true),set_config('rs.run','d5a',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('d5a')='applied' AND public.pwa_rebate_pending_v1('rr1:RP-LC')=300,'P5: and is deleted again');
+-- RK-R's loan has 14 due since yesterday. An offset pays it; then the loan is defaulted: the receipt engine refuses to remove
+-- the payment, so the settlement's delete is a dependency conflict with nothing changed; once the default is undone it applies.
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Defaulted")
+ VALUES('CI-LISA','RK-RL','RK-R',(SELECT d FROM rs_day)-3,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,5::money,1,false);
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('RK-RL-old','RK-RL',(SELECT d FROM rs_day)-1,0::money,14::money);
+UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='RK-RL';
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT set_config('rs.k1',pg_temp.rs_create2('b1840005-0000-4000-8000-000000000011','c1840005-0000-4000-8000-000000000011','RK-R','offset',ARRAY['rr1:RK-LA|14|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,pg_temp.rs_hash('RK-R',14)),true),set_config('rs.run','k1',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('k1')='applied' AND public.pwa_rebate_pending_v1('rr1:RK-LA')=286,'P5: RK-R''s offset of 14 applies: '||current_setting('rs.out_k1'));
+UPDATE public."Loans" SET "Defaulted"=true,"Close Date"=(SELECT d FROM rs_day),"Closed By"='rs-actor@example.invalid' WHERE "Row ID"='RK-RL';
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT set_config('rs.state',pg_temp.rs_state(),false),set_config('rs.dk1',pg_temp.rs_delete('b1840005-0000-4000-8000-000000000012','c1840005-0000-4000-8000-000000000011',pg_temp.rs_version('c1840005-0000-4000-8000-000000000011')),true),set_config('rs.run','dk1',true);
+:submit
+SELECT pg_temp.rs_assert((SELECT "Defaulted" FROM public."Loans" WHERE "Row ID"='RK-RL') AND pg_temp.rs_code('dk1')='dependency_conflict' AND pg_temp.rs_state()=current_setting('rs.state')
+  AND public.pwa_rebate_pending_v1('rr1:RK-LA')=286,'P5: after the referrer''s loan is defaulted the offset settlement''s delete is a dependency conflict, nothing changed: '||current_setting('rs.out_dk1'));
+SELECT pg_temp.rs_assert(public.pwa_rebate_offset_plan_v1('RK-R',NULL,(SELECT d FROM rs_day))->>'available'='false','P5: a referrer whose only loan is defaulted is offered no offset');
+UPDATE public."Loans" SET "Defaulted"=false WHERE "Row ID"='RK-RL';
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT set_config('rs.dk2',pg_temp.rs_delete('b1840005-0000-4000-8000-000000000013','c1840005-0000-4000-8000-000000000011',pg_temp.rs_version('c1840005-0000-4000-8000-000000000011')),true),set_config('rs.run','dk2',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('dk2')='applied' AND public.pwa_rebate_pending_v1('rr1:RK-LA')=300 AND NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"='rs155:c1840005-0000-4000-8000-000000000011')
+  AND (SELECT "Amount Remaining"=14 FROM public."Charges" WHERE "Row ID"='RK-RL-old'),'P5: with the default undone the delete applies: '||current_setting('rs.out_dk2'));
+
+-- P7. The plan's due step is the Loan Close offset's (pwa_pay_forward_plan_v1): it takes every unpaid charge due by the day,
+-- including the kept charges of a loan written off with its charges kept (V120: that loan stays open, not Defaulted, at 0
+-- principal). The settlement offset and the Loan Close offset therefore agree; this is recorded, not changed, by R184.
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Defaulted")
+ VALUES('CI-LISA','RK-RW','RK-R',(SELECT d FROM rs_day)-3,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,5::money,1,false);
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('RK-RW-old','RK-RW',(SELECT d FROM rs_day)-1,0::money,9::money);
+UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='RK-RW';
+SELECT set_config('business_crud.default_request',jsonb_build_object('loan','RK-RW','op','post','date',(SELECT d FROM rs_day)::text,'amount','1000','keepCharges',true,'actor','rs-actor@example.invalid')::text,true);
+UPDATE public."Loans" SET "Default Loss Amount"=1000::money WHERE "Row ID"='RK-RW';
+SELECT set_config('business_crud.default_request','',true);
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.rs_assert((SELECT "Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce("Defaulted",false) AND "Outstanding Principal"=0 FROM public."Loans" WHERE "Row ID"='RK-RW')
+  AND (SELECT p->>'available'='true' AND p->>'dueAmount'='23' AND p->>'covered'='23' AND EXISTS(SELECT 1 FROM jsonb_array_elements(p->'lines') l WHERE l->>'chargeId'='RK-RW-old' AND l->>'amount'='9' AND (l->>'due')::boolean)
+    AND p->>'dueAmount'=public.pwa_pay_forward_plan_v1('RK-R',23,(SELECT d FROM rs_day),'{"forward":true,"principal":[],"loans":null}'::jsonb)->>'dueTotal'
+   FROM (SELECT public.pwa_rebate_offset_plan_v1('RK-R',23,(SELECT d FROM rs_day)) p) q),'P7: a kept charge of a written-off open loan is due in the plan, as in the Loan Close offset: '||public.pwa_rebate_offset_plan_v1('RK-R',23,(SELECT d FROM rs_day))::text);
+
+-- P6. RQ-R (referred by RQ-G) has a fixed-due-date loan: 100 principal and 30 interest due today.
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Fixed Interest","Interest Payment Interval","Due Date","Defaulted")
+ VALUES('CI-LISA','RQ-RF','RQ-R',(SELECT d FROM rs_day)-3,100::money,'กำหนดวันชำระ','ยังไม่ปิดยอด',false,0::money,30::money,1,(SELECT d FROM rs_day),false);
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('RQ-RF-due','RQ-RF',(SELECT d FROM rs_day),100::money,30::money);
+UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='RQ-RF';
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.rs_assert(public.pwa_rebate_offset_plan_v1('RQ-R',NULL,(SELECT d FROM rs_day))='{"available":true,"dueAmount":"130","maxAmount":"130"}'::jsonb,'P6: RQ-R can offset up to the 130 due: '||public.pwa_rebate_offset_plan_v1('RQ-R',NULL,(SELECT d FROM rs_day))::text);
+-- An offset of 100 (interest 30, principal 70), then an ordinary payment of the last 30 closes the loan (its rebate of 3 is
+-- pending to RQ-G). Deleting the offset settlement afterwards: the engine removes the offset payment, finds the loan underpaid
+-- and reopens it (the later payment stays posted); the rebate of that close goes with the reopening.
+SELECT set_config('rs.q1',pg_temp.rs_create2('b1840006-0000-4000-8000-000000000001','c1840006-0000-4000-8000-000000000001','RQ-R','offset',ARRAY['rr1:RQ-LA|100|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,pg_temp.rs_hash('RQ-R',100)),true),set_config('rs.run','q1',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('q1')='applied' AND (SELECT "Amount Remaining"=30 FROM public."Charges" WHERE "Row ID"='RQ-RF-due') AND (SELECT "Loan Status"='ยังไม่ปิดยอด' FROM public."Loans" WHERE "Row ID"='RQ-RF'),'P6: the offset of 100 leaves 30 of principal: '||current_setting('rs.out_q1'));
+SELECT set_config('rs.pay_q',pg_temp.rs_pay('ab184006-0000-4000-8000-000000000001','RQ-R','RQ-RF-due',30,0,0),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN PERFORM set_config('rs.out_pay_q',public.pwa_submit_selected_charges_v1(current_setting('rs.pay_q'))::text,false); END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.rs_assert((SELECT "Loan Status"='ปิดยอดแล้ว' AND "Ref Closing Payment"='pwa:ab184006-0000-4000-8000-000000000001' FROM public."Loans" WHERE "Row ID"='RQ-RF') AND public.pwa_rebate_pending_v1('rr1:RQ-RF')=3 AND public.pwa_rebates_owed_v1('RQ-G')=3,
+ 'P6: the later payment closes RQ-R''s loan; its rebate of 3 is pending to RQ-G: '||current_setting('rs.out_pay_q'));
+SELECT set_config('rs.dq1',pg_temp.rs_delete('b1840006-0000-4000-8000-000000000002','c1840006-0000-4000-8000-000000000001',pg_temp.rs_version('c1840006-0000-4000-8000-000000000001')),true),set_config('rs.run','dq1',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('dq1')='applied' AND (SELECT "Loan Status"='ยังไม่ปิดยอด' AND "Ref Closing Payment" IS NULL AND "Close Date" IS NULL FROM public."Loans" WHERE "Row ID"='RQ-RF')
+  AND (SELECT "Status"='Posted' FROM public."Payments" WHERE "Row ID"='pwa:ab184006-0000-4000-8000-000000000001') AND (SELECT "Amount Remaining"=100 FROM public."Charges" WHERE "Row ID"='RQ-RF-due')
+  AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Row ID"='rr1:RQ-RF') AND public.pwa_rebates_owed_v1('RQ-G')=0 AND public.pwa_rebate_pending_v1('rr1:RQ-LA')=300,
+ 'P6: deleting an offset after a later payment closed the loan reopens the loan (the later payment stays), and the rebate of that close goes: '||current_setting('rs.out_dq1'));
+-- An offset of the 100 left closes RQ-R's loan itself; its rebate (3) is pending to RQ-G and is then settled. While that
+-- settlement stands, deleting the offset is a dependency conflict; after it goes, the delete reopens the loan.
+SELECT set_config('rs.q2',pg_temp.rs_create2('b1840006-0000-4000-8000-000000000003','c1840006-0000-4000-8000-000000000003','RQ-R','offset',ARRAY['rr1:RQ-LA|100|300'],(SELECT d FROM rs_day),NULL,NULL,NULL,NULL,pg_temp.rs_hash('RQ-R',100)),true),set_config('rs.run','q2',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('q2')='applied' AND (SELECT "Loan Status"='ปิดยอดแล้ว' AND "Ref Closing Payment"='rs155:c1840006-0000-4000-8000-000000000003' FROM public."Loans" WHERE "Row ID"='RQ-RF')
+  AND public.pwa_rebate_pending_v1('rr1:RQ-RF')=3 AND public.pwa_rebate_pending_v1('rr1:RQ-LA')=200,'P6: an offset that pays the loan off closes it; the close''s own rebate is pending to RQ-G: '||current_setting('rs.out_q2'));
+SELECT set_config('rs.g1',pg_temp.rs_create2('b1840006-0000-4000-8000-000000000004','c1840006-0000-4000-8000-000000000004','RQ-G','referrer',ARRAY['rr1:RQ-RF|3|3'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),set_config('rs.run','g1',true);
+:submit
+SELECT set_config('rs.state',pg_temp.rs_state(),false),set_config('rs.dq2',pg_temp.rs_delete('b1840006-0000-4000-8000-000000000005','c1840006-0000-4000-8000-000000000003',pg_temp.rs_version('c1840006-0000-4000-8000-000000000003')),true),set_config('rs.run','dq2',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('g1')='applied' AND pg_temp.rs_code('dq2')='dependency_conflict' AND pg_temp.rs_state()=current_setting('rs.state')
+  AND (SELECT "Loan Status"='ปิดยอดแล้ว' FROM public."Loans" WHERE "Row ID"='RQ-RF'),'P6: while the rebate of the close the offset caused is settled, the offset''s delete is a dependency conflict, nothing changed: '||current_setting('rs.out_dq2'));
+SELECT set_config('rs.dg1',pg_temp.rs_delete('b1840006-0000-4000-8000-000000000006','c1840006-0000-4000-8000-000000000004',pg_temp.rs_version('c1840006-0000-4000-8000-000000000004')),true),set_config('rs.run','dg1',true);
+:submit
+SELECT set_config('rs.dq3',pg_temp.rs_delete('b1840006-0000-4000-8000-000000000007','c1840006-0000-4000-8000-000000000003',pg_temp.rs_version('c1840006-0000-4000-8000-000000000003')),true),set_config('rs.run','dq3',true);
+:submit
+SELECT pg_temp.rs_assert(pg_temp.rs_status('dg1')='applied' AND pg_temp.rs_status('dq3')='applied' AND (SELECT "Loan Status"='ยังไม่ปิดยอด' AND "Ref Closing Payment" IS NULL FROM public."Loans" WHERE "Row ID"='RQ-RF')
+  AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Row ID"='rr1:RQ-RF') AND NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID" LIKE 'rs155:c1840006%') AND public.pwa_rebate_pending_v1('rr1:RQ-LA')=300,
+ 'P6: with that settlement gone, deleting the offset reopens the referrer''s loan: '||current_setting('rs.out_dq3'));
+
+-- P10. Push content v5 after a partial (unpatched: it reads the pending rules): A's close shows what is still pending and owed.
+SELECT set_config('rs.p10',pg_temp.rs_create2('b1840010-0000-4000-8000-000000000001','c1840010-0000-4000-8000-000000000001','RP-R','referrer',ARRAY['rr1:RP-LA|50|200','rr1:RP-LD|300|300'],(SELECT d FROM rs_day),'CI-LISA','Cash',NULL,NULL,NULL),true),set_config('rs.run','p10',true);
+:submit
+SELECT pg_temp.rs_notice('pa','payment.posted','payment',(SELECT "Ref Closing Payment" FROM public."Loans" WHERE "Row ID"='RP-LA'));
+SET SESSION AUTHORIZATION rs_content_dispatch;
+INSERT INTO rs_push SELECT 'r184',k.name,NULL,(SELECT x.rebates FROM public.pwa_notify_content_v5(k.delivery,k.generation) x) FROM rs_notice k WHERE k.name='pa';
+RESET SESSION AUTHORIZATION;
+SELECT pg_temp.rs_assert(pg_temp.rs_status('p10')='applied' AND public.pwa_rebates_owed_v1('RP-R')=750
+  AND (SELECT (v5->0->>'pending')::numeric=150 AND (v5->0->>'owed')::numeric=750 AND (v5->0->>'amount')::numeric=300 AND v5->0->>'ruleVersion'='REFERRAL_REBATE_V3' FROM rs_push WHERE step='r184' AND name='pa'),
+ 'P10: push v5 after a partial: pending 150, owed 750: '||(SELECT v5::text FROM rs_push WHERE step='r184' AND name='pa'));
+-- End invariants over every rebate and settlement of the file.
+SELECT pg_temp.rs_assert(NOT EXISTS(SELECT 1 FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment"
+   WHERE x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3'
+    AND x."Amount"::numeric IS DISTINCT FROM coalesce(o."Amount Received"::numeric,0)+coalesce((SELECT sum(a.amount) FROM public.pwa_rebate_settlement_allocations a WHERE a.expense_id=x."Row ID"),0)+public.pwa_rebate_pending_v1(x."Row ID")),
+ 'invariant: Amount = close-time offset + allocations + pending, for every rebate');
+SELECT pg_temp.rs_assert(NOT EXISTS(SELECT 1 FROM public.pwa_rebate_settlements s WHERE s.amount IS DISTINCT FROM (SELECT sum(a.amount) FROM public.pwa_rebate_settlement_allocations a WHERE a.settlement_id=s.id))
+  AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" x WHERE x."Ref Rebate Settlement" IS DISTINCT FROM (SELECT a.settlement_id FROM public.pwa_rebate_settlement_allocations a JOIN public.pwa_rebate_settlements s ON s.id=a.settlement_id
+    WHERE a.expense_id=x."Row ID" ORDER BY s.created_at DESC,s.id COLLATE "C" DESC LIMIT 1)),'invariant: every settlement is the sum of its allocations; every link is the rebate''s newest settlement, null without one');
+SELECT pg_temp.rs_assert((SELECT coalesce(sum("Amount"),0) FROM public."Cash Ledger" WHERE "Source Type"='Rebate Settlement')
+  -(SELECT coalesce(sum(p."Amount Received"::numeric),0) FROM public."Payments" p WHERE p."Row ID" IN (SELECT offset_payment_id FROM public.pwa_rebate_settlements))
+  =(SELECT coalesce(sum(amount),0) FROM public.pwa_rebate_settlements WHERE offset_payment_id IS NULL)
+  AND (SELECT count(*) FROM public."Payments" WHERE "Row ID" LIKE 'rs155:%')=(SELECT count(*) FROM public.pwa_rebate_settlements WHERE offset_payment_id IS NOT NULL),'invariant: Lisa''s net cash out for settlements is the direct settlements; every offset payment belongs to a settlement');
+-- R184-END
 SELECT 'Rebate settlement regression passed' AS result;
 ROLLBACK;

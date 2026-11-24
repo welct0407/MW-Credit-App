@@ -35,6 +35,9 @@ INSERT INTO am_expected_tables VALUES
   ('mw_app_dev_journal_owner','public.pwa_rebate_settlements','DELETE,INSERT,SELECT,UPDATE'),
   ('mw_app_dev','public.pwa_rebate_settlements','SELECT'),
   ('mw_ledger_owner_dev','public.pwa_rebate_settlements','SELECT'),
+  -- V155 (R184): the allocations are inserted and deleted by the journal owner's command only (never updated), read by the app.
+  ('mw_app_dev_journal_owner','public.pwa_rebate_settlement_allocations','DELETE,INSERT,SELECT'),
+  ('mw_app_dev','public.pwa_rebate_settlement_allocations','SELECT'),
   ('mw_business_audit_owner','agent_audit.commits','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_changes_owner_dev','public.pwa_row_changes','DELETE,INSERT,SELECT'),
   ('mw_chat_owner_dev','public.pwa_chat_history','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
@@ -112,6 +115,8 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','pwa_rebate_pending_v1(text)'),
   ('mw_app_dev','pwa_rebates_owed_v1(text)'),
   ('mw_app_dev','pwa_rebate_settlement_version_v1(text)'),
+  -- V155 (R184): the offset plan of a rebate settlement (the preview read and, through the journal owner's membership, the command).
+  ('mw_app_dev','pwa_rebate_offset_plan_v1(text,numeric,date)'),
   -- V138 (R136): the rollover quote (the preview read; the journal owner inherits it).
   ('mw_app_dev','loan_rollover_calculation_v1(text,date,numeric)'),
   ('mw_app_dev','pwa_payment_version_v2(text)'),
@@ -460,6 +465,21 @@ DO $$ BEGIN
    WHERE has_function_privilege(r,'public.pwa_convert_legacy_rebate_v1(text)','EXECUTE')) THEN RAISE EXCEPTION 'V137: only postgres may run the legacy rebate conversion'; END IF;
  IF EXISTS(SELECT 1 FROM unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege('mw_app_dev','public.pwa_rebate_settlements',p)) THEN
   RAISE EXCEPTION 'V137: the application role must read pwa_rebate_settlements only'; END IF;
+END $$;
+-- V155 (R184): the notify owner reads two columns of the allocations (push v5 calls the pending rules) and nothing of the
+-- settlement's new column; the plan runs with the caller's rights, no PUBLIC or agent execution; the application role reads
+-- the allocations only (app-role-policy.mjs) and nobody but the table owner may update or truncate them.
+DO $$ BEGIN
+ IF (SELECT array_agg(a.attname::text ORDER BY a.attname) FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_rebate_settlement_allocations'::regclass AND x.grantee='mw_notify_owner_dev'::regrole AND x.privilege_type='SELECT')
+   IS DISTINCT FROM ARRAY['amount','expense_id'] OR has_table_privilege('mw_notify_owner_dev','public.pwa_rebate_settlement_allocations','SELECT')
+  OR has_column_privilege('mw_notify_owner_dev','public.pwa_rebate_settlements','offset_payment_id','SELECT') THEN RAISE EXCEPTION 'V155: notify owner column grants differ'; END IF;
+ IF (SELECT prosecdef OR provolatile<>'s' FROM pg_proc WHERE oid='public.pwa_rebate_offset_plan_v1(text,numeric,date)'::regprocedure)
+  OR has_function_privilege('public','public.pwa_rebate_offset_plan_v1(text,numeric,date)','EXECUTE')
+  OR (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_integration_agent') AND has_function_privilege('mw_integration_agent','public.pwa_rebate_offset_plan_v1(text,numeric,date)','EXECUTE')) THEN
+  RAISE EXCEPTION 'V155: pwa_rebate_offset_plan_v1 must be a stable invoker function without PUBLIC or agent execution'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege('mw_app_dev','public.pwa_rebate_settlement_allocations',p))
+  OR EXISTS(SELECT 1 FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) a WHERE c.oid='public.pwa_rebate_settlement_allocations'::regclass AND a.grantee<>c.relowner AND a.privilege_type IN ('UPDATE','TRUNCATE')) THEN
+  RAISE EXCEPTION 'V155: the allocations are read-only for the application role and never updated'; END IF;
 END $$;
 -- V146 (R146): the group chat summary put runs with the caller's rights (owner postgres, pinned search_path, no PUBLIC
 -- execution); only the application role (and the command login through it) writes the table; the reader login, the chat

@@ -178,7 +178,7 @@ SELECT set_config('rl.negative',replace((SELECT canonical FROM rl_cmds WHERE nam
 
 -- Operator grants, emulated and rolled back (as Test-AgentLoanClose.sql).
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
-REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements FROM mw_app_dev;
+REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes,pwa_rebate_settlements,pwa_rebate_settlement_allocations FROM mw_app_dev;
 REVOKE USAGE,UPDATE ON SEQUENCE pwa_row_changes_seq_seq FROM mw_app_dev;
 GRANT EXECUTE ON FUNCTION public.pwa_submit_operation_v2(text) TO mw_app_dev;
 GRANT EXECUTE ON FUNCTION public.pwa_operation_status_v2(uuid,text,text) TO mw_app_dev;
