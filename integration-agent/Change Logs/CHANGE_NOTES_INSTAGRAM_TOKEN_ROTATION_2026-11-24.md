@@ -31,13 +31,21 @@ Owner request of 24 November 2026: the business Instagram account was moved to a
 ## Not run
 - No inbound webhook has been observed since the re-link: no message arrived between 20:26:29 and the checks. The subscription is confirmed by the API read above only.
 - No Meta renewal of the new token: it is due when the file is 7 days old, on the daily run of 2 December 2026.
-- The 3 held slips were not reconsidered (needs the owner's go, below).
 
 ## Recovery
 Versions 1 and 2 are older tokens and version 2 is the revoked one, so there is no rollback to them. If the new token fails, generate another in the Meta dashboard, add it as a new secret version and start `mw-instagram-token-refresh.service`.
 
 ## Open questions
-- Reconsider the 3 held slips? Proposed: `mw-integration-agent receipt-reconsider --config … --catalogue … --job-id <id>` once per job. It reads the image again from Instagram and sends the job through the normal receipt cycle with every guard. The slips are dated 24 November, so the today-or-yesterday rule needs this done by the end of 25 November Bangkok.
+None.
 
 ## Remaining work
-The reconsideration above, after the owner's go; then read back that `receipts` returns to 1.
+None. Watch for the first inbound webhook after the re-link and the first Meta renewal on 2 December 2026.
+
+## Reconsideration of the held slips (owner go, 24 November 2026, 21:18 Bangkok)
+| Step | Result |
+| --- | --- |
+| Readback before | Exactly 3 jobs created in the window, all `REVIEW` / `RECEIPT_PROCESSING_UNAVAILABLE` |
+| `mw-integration-agent receipt-reconsider --job-id <id>`, once per job, 21:18:04 to 21:18:16 | 3 times `RECONSIDERATION_QUEUED`, `prior_review_superseded` false; the first waited twice for `receipt-worker.lock` |
+| Receipt cycle, 21:18:34 to 21:19:14 | Each job read its image again and was validated; 3 reviews `APPROVED` then `POSTED` under `OWNER_AUTHORIZED_AUTO_PAYMENT`, each with a payment id |
+| Partner notices | 6 notices accepted by Instagram after 21:18; the 3 earlier hold notices stay `IG_PREFLIGHT_FAILED` (undelivered, superseded by the posting) |
+| `mw-resource-health` run of 14:20:33Z | All components 1; `receipts` 1, `held_receipts` 0, `stalled_jobs` 0, `completed_payments` 438 (435 before) |
