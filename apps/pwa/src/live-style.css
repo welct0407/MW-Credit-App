@@ -938,6 +938,9 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .rebate-settlement-form label+.field-help{margin-top:-6px}
 .rebate-settle-error{color:#a50e0e}.rebate-settle-error .text-action,.rebate-settle-full .text-action{min-height:44px;margin-left:8px}.rebate-settle-full{margin:0}.rebate-settle-full .text-action{margin-left:0}
 .rebate-offset-run{display:block;overflow-wrap:anywhere}.rebate-offset-preview{color:#3c4650}
+/* UX-R184-17: Settle by only (Loan Close keeps its spacing): no 12 px label margins and a tighter row gap, so the
+   settlement date stays on the first phone screen. */
+.borrower-record .rebate-destination{gap:4px 6px}.borrower-record .rebate-destination>label{margin:0;gap:2px}.rebate-destination legend{margin-bottom:4px}.rebate-destination small{line-height:1.3}
 .rebate-destination input:disabled+span,.rebate-destination input:disabled~small{color:#6b7280}
 .rebate-settle-offline{color:#8a4b00;font-weight:600}.rebate-settle-rest{font-weight:600}
 .rebate-settle-result-actions{display:flex;flex-direction:column;gap:8px}.rebate-settle-result-actions>button{width:100%;min-height:44px}

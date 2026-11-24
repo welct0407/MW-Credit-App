@@ -100,6 +100,8 @@ function syntheticRecordsClient({fingerprint='stable',onQuery}={}){
   if(sql.startsWith('SELECT "Operating Income MTD"'))return {rows:[{}]};
   if(sql.startsWith('SELECT "Ref Cash Account" id'))return {rows:[]};
   if(/AS day/.test(sql)&&sql.length<200)return {rows:[{day:stamp.businessDate}]};
+  // R184: the record reads ask whether the SQL rebate rules exist (rebateRules); the probe surfaces any other error.
+  if(sql.includes("to_regprocedure('public.pwa_rebate_pending_v1(text)')"))return {rows:[{present:true}]};
   throw Error('Unexpected SQL: '+sql.slice(0,120));
  }};
 }

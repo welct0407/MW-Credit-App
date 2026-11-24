@@ -5,9 +5,12 @@
 // function nor a REFERRAL_REBATE_V3 row: nothing is pending there and every rebate is settled by its offset or was paid at
 // close. A read that must work on such a database asks rebateRules(client) first and passes the answer as `rules`; with
 // rules false the expressions name no object of V137 or later.
-/** Whether the SQL rebate rules exist (pwa_rebate_pending_v1, V137): one catalog read without a table privilege. */
+/** Whether the SQL rebate rules exist (pwa_rebate_pending_v1, V137): one catalog read without a table privilege. Only a
+ * genuinely absent function (the catalog answer, or SQLSTATE 42883 undefined_function) reads as false; any other error
+ * surfaces, so a failing database never silently reads the legacy states. */
 export async function rebateRules(client){
- try{return (await client.query(`SELECT to_regprocedure('public.pwa_rebate_pending_v1(text)') IS NOT NULL AS present`))?.rows?.[0]?.present===true;}catch{return false;}
+ try{return (await client.query(`SELECT to_regprocedure('public.pwa_rebate_pending_v1(text)') IS NOT NULL AS present`))?.rows?.[0]?.present===true;}
+ catch(error){if(error?.code==='42883')return false;throw error;}
 }
 /**
  * The derived state of a referral rebate expense row `e` with its close-time offset payment `o`: 'offset' when the offset took

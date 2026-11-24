@@ -9,7 +9,7 @@ import {invalidateCachedReads,readCachedJson} from './read-cache';
 import {borrowerLabel} from './borrower-label';
 import {useEffect,useId,useRef,useState} from 'react';
 import type {CommandAccess} from './SelectedCharges';
-import {applyOldestFirst,cleanAmountInput,defaultSettleAmount,offsetPreviewRuns,settleAmountState,settlementAllocations,wholeAmount,type OffsetPreviewLine} from './referrer-text';
+import {applyOldestFirst,cleanAmountInput,defaultSettleAmount,keepTogether,offsetPreviewRuns,settleAmountState,settlementAllocations,wholeAmount,type OffsetPreviewLine} from './referrer-text';
 /** R129 (V137): one pending rebate of the referrer (GET /api/referrers/:id unpaid). R184: settledAmount is what settlements
  * already paid toward it (a part-paid rebate). */
 export type UnpaidRebate={expenseId:string;loanId:string|null;loanDisplayKey:string|null;borrowerLabel:string;closeDate:string;amount:string;offsetAmount:string;pendingAmount:string;settledAmount?:string};
@@ -40,7 +40,7 @@ export function RebateSettlementForm({access,thai,detail,onBack,onDone}:{access:
  const [amountText,setAmountText]=useState(''),[edited,setEdited]=useState(false);
  const [date,setDate]=useState<string>(options.businessDate),[account,setAccount]=useState<string>(options.defaultAccountId??options.accounts[0]?.id??''),[method,setMethod]=useState<'Bank Transfer'|'Cash'>('Bank Transfer');
  const [reference,setReference]=useState(''),[notes,setNotes]=useState(''),[error,setError]=useState(''),[checking,setChecking]=useState(false),[command,setCommand]=useState<any>(null),[reviewed,setReviewed]=useState<Reviewed|null>(null),[result,setResult]=useState<any>(null),[dirty,setDirty]=useState(false);
- const [preview,setPreview]=useState<OffsetPreview|null>(null),[previewBusy,setPreviewBusy]=useState(false),[spoken,setSpoken]=useState('');
+ const [preview,setPreview]=useState<OffsetPreview|null>(null),[previewBusy,setPreviewBusy]=useState(false),[spoken,setSpoken]=useState(''),[announce,setAnnounce]=useState(0);
  const flight=useRef(false),allBox=useRef<HTMLInputElement>(null),previewGeneration=useRef(0);
  const draft=useDomainDraft({updateBlocked:!command,repository:access.offline,id:'settle:'+referrer.id,domain:'referrer',label:t('Pay rebates','จ่ายค่าแนะนำ')+' · '+name,value:{ticked,date,account,method,reference,notes,amount:amountText,edited,destination},enabled:dirty&&!command&&!result,
   restore:value=>{if(Array.isArray(value?.ticked)){setTicked(value.ticked.filter((id:unknown)=>typeof id==='string'));setDate(value.date??options.businessDate);setAccount(value.account??account);setMethod(value.method==='Cash'?'Cash':'Bank Transfer');setReference(value.reference??'');setNotes(value.notes??'');
@@ -73,13 +73,17 @@ export function RebateSettlementForm({access,thai,detail,onBack,onDone}:{access:
   return()=>clearTimeout(timer)},[byOffset,amountState,amount,offline,!!command,!!result]);
  // PAY-PART-07: the hidden live region follows the ticks and the destination, and the amount when its field loses focus;
  // not every keystroke. The help line is tied to the input through aria-describedby.
- // biome-ignore lint/correctness/useExhaustiveDependencies: announces on ticks and destination only; the footer text is read at that moment
- useEffect(()=>{setSpoken(footer)},[ticked.join('|'),destination,rows.length]);
+ // UX-R184-11: a one-tap fix bumps `announce`, so the region reads the footer of the render after the change.
+ // biome-ignore lint/correctness/useExhaustiveDependencies: announces on ticks, destination and a one-tap fix only; the footer text is read at that moment
+ useEffect(()=>{setSpoken(footer)},[ticked.join('|'),destination,rows.length,announce]);
  const loanNames=(plan:OffsetPreview|null)=>{const ids=[...new Set((plan?.lines??[]).map(line=>line.loanId??''))],labels=ids.map(id=>plan?.loans?.[id]).filter(Boolean);return labels.length?labels.join(', '):(offset?.loanLabels??[]).join(', ')||t("the referrer's loan",'สินเชื่อผู้แนะนำ')};
  const through=(plan:OffsetPreview|null)=>Object.values(plan?.paidThrough??{}).sort().at(-1)??null;
  // "LOAN · 1–30 Nov (฿500 × 30) · paid through 30 Nov", one line per loan the plan pays.
- const previewLines=(plan:OffsetPreview)=>offsetPreviewRuns(plan.lines,plan.paidThrough).map(run=>(plan.loans?.[run.loanId]??t('Loan','สินเชื่อ'))+' · '+dateRange(run.first,run.last,thai)
-  +' ('+(run.count>1&&run.each?wholeBaht(run.each)+' × '+run.count:wholeBaht(String(run.amount)))+')'+(run.paidThrough?' · '+t('paid through ','ชำระถึง ')+shortDate(run.paidThrough,thai):''));
+ // UX-R184-15: `named` false drops the loan label when one loan is paid and a row above already names it. UX-R184-16: the
+ // dates and "paid through <date>" never break across lines.
+ const previewLines=(plan:OffsetPreview,named=true)=>{const runs=offsetPreviewRuns(plan.lines,plan.paidThrough),label=named||runs.length>1;
+  return runs.map(run=>(label?(plan.loans?.[run.loanId]??t('Loan','สินเชื่อ'))+' · ':'')+keepTogether(dateRange(run.first,run.last,thai))
+   +' ('+(run.count>1&&run.each?keepTogether(wholeBaht(run.each)+' × '+run.count):wholeBaht(String(run.amount)))+')'+(run.paidThrough?' · '+keepTogether(t('paid through ','ชำระถึง ')+shortDate(run.paidThrough,thai)):''))};
  // The page refuses a list older than the server's: the unpaid list, the offset option and (for an offset) the plan are
  // read again before Review. PAY-DEST-04: the destination is never switched silently.
  async function review(){if(flight.current||!chosen.length||amountState!=='ok'||offline||offsetGone||(!byOffset&&!account)||dateInvalid||referenceInvalid||!draft.ready)return;flight.current=true;setChecking(true);setError('');
@@ -113,7 +117,7 @@ export function RebateSettlementForm({access,thai,detail,onBack,onDone}:{access:
   const rest=done&&/^\d+$/.test(done.owedAfter??'')?Number(done.owedAfter):reviewed.owedAfter,day=through(reviewed.plan),heading=offsetDone?t('Rebates offset','หักค่าแนะนำแล้ว'):t('Rebates paid','จ่ายค่าแนะนำแล้ว');
   return <section className="borrower-record rebate-settlement-result" aria-label={heading} aria-busy={checking}><div className="related-loans-heading"><HeaderBack navigationKey="rebate-settle-result" className="icon-action" aria-label={t('Back to referrer','กลับหน้าผู้แนะนำ')} disabled={checking} onClick={onDone}><Icon name="back"/></HeaderBack><h2>{heading}</h2></div>
    {error&&<p role="alert">{error}</p>}
-   <p role="status">{offsetDone?t('Offset '+wholeBaht(paid)+' to '+loanNames(reviewed.plan)+(day?', paid through '+shortDate(day,false):'')+' · '+count(lines),'หัก '+wholeBaht(paid)+' กับ '+loanNames(reviewed.plan)+(day?' ชำระถึง '+shortDate(day,true):'')+' · '+count(lines))
+   <p role="status">{offsetDone?t('Offset '+wholeBaht(paid)+' to '+loanNames(reviewed.plan)+(day?', '+keepTogether('paid through '+shortDate(day,false)):'')+' · '+count(lines),'หัก '+wholeBaht(paid)+' กับ '+loanNames(reviewed.plan)+(day?' '+keepTogether('ชำระถึง '+shortDate(day,true)):'')+' · '+count(lines))
     :t('Paid '+wholeBaht(paid)+' to '+name+', '+count(lines),'จ่ายค่าแนะนำ '+wholeBaht(paid)+' ให้ '+name+' แล้ว '+count(lines))}</p>
    <p>{shortDate(reviewed.date,thai)} · {offsetDone?t('No transfer from Lisa','ไม่มีการโอนเงินจาก Lisa'):accountLabel(reviewed.account)}</p>{rest>0&&<p className="rebate-settle-rest">{t(wholeBaht(rest)+' still owed to '+name,'ยังค้างจ่าย '+name+' '+wholeBaht(rest))}</p>}
    <div className="rebate-settle-result-actions"><button type="button" disabled={checking} onClick={onDone}>{t('Back to referrer page','กลับหน้าผู้แนะนำ')}</button>
@@ -124,7 +128,7 @@ export function RebateSettlementForm({access,thai,detail,onBack,onDone}:{access:
    :code==='plan_changed'?t("The referrer's loan changed. Review it again.",'สินเชื่อผู้แนะนำเปลี่ยนแล้ว โปรดตรวจสอบอีกครั้ง')
    :code==='invalid_date'?(offsetReview?t('An offset is recorded today. Review it again.','การหักบันทึกวันนี้ โปรดตรวจสอบอีกครั้ง'):t('The settlement date must be today or earlier, and not before the newest close.','วันที่จ่ายต้องไม่เกินวันนี้ และไม่ก่อนวันปิดล่าสุด'))
    :code==='account_unavailable'&&offsetReview?t("Lisa has no default account for the offset. Pay the referrer instead, or set Lisa's default account.",'Lisa ไม่มีบัญชีหลักสำหรับการหัก ให้จ่ายเงินให้ผู้แนะนำ หรือกำหนดบัญชีหลักของ Lisa'):null;
-  return <OperationConfirm access={access} command={command} domain="referrer" draftKey={draft.key} label={t('Pay rebates','จ่ายค่าแนะนำ')+' · '+name} thai={thai}
+  return <OperationConfirm access={access} command={command} domain="referrer" draftKey={draft.key} label={(offsetReview?t('Offset rebates','หักค่าแนะนำ'):t('Pay rebates','จ่ายค่าแนะนำ'))+' · '+name} thai={thai}
    onBack={()=>{setCommand(null);setReviewed(null);draft.resume()}}
    onBlocked={code=>{if(['record_requires_reconciliation','source_conflict','invalid_date','plan_changed','account_unavailable'].includes(code))refresh()}}
    rejectionText={rejected}
@@ -136,7 +140,7 @@ export function RebateSettlementForm({access,thai,detail,onBack,onDone}:{access:
    <div><dt>{t('Settle by','ชำระโดย')}</dt><dd>{settleBy(reviewed.destination)}</dd></div>
    <div><dt>{t('Settlement date','วันที่จ่าย')}</dt><dd>{shortDate(reviewed.date,thai)}</dd></div>
    {offsetReview?<><div><dt>{t('Loan','สินเชื่อ')}</dt><dd className="borrower-field-value">{loanNames(plan)}</dd></div>
-    {plan&&<div><dt>{t('Charges','ค่างวด')}</dt><dd className="borrower-field-value">{previewLines(plan).map(line=><span className="rebate-offset-run" key={line}>{line}</span>)}</dd></div>}</>
+    {plan&&<div><dt>{t('Charges','ค่างวด')}</dt><dd className="borrower-field-value">{previewLines(plan,false).map(line=><span className="rebate-offset-run" key={line}>{line}</span>)}</dd></div>}</>
    :<><div><dt>{t('Paying account','บัญชีที่จ่าย')}</dt><dd>{accountLabel(reviewed.account)}</dd></div><div><dt>{t('Method','วิธีจ่าย')}</dt><dd>{methodLabel(reviewed.method)}</dd></div>
     {reviewed.reference&&<div><dt>{t('Bank reference','เลขอ้างอิงธนาคาร')}</dt><dd className="borrower-field-value">{reviewed.reference}</dd></div>}</>}
    {reviewed.notes&&<div><dt>{t('Notes','หมายเหตุ')}</dt><dd className="borrower-field-value">{reviewed.notes}</dd></div>}</dl>
@@ -144,15 +148,16 @@ export function RebateSettlementForm({access,thai,detail,onBack,onDone}:{access:
  // PAY-PART-04/06: one help line, the offset preview, then an error with its one-tap fix, all directly under the input so they
  // stay above the iPhone keyboard. Errors use field-help with aria-invalid and aria-describedby (no role=alert while typing).
  const helpId=fieldId+'amount-help',errorId=fieldId+'amount-error',offsetHelpId=fieldId+'offset-help',referrerHelpId=fieldId+'referrer-help';
- const setAmountTo=(value:number)=>change(()=>{setEdited(true);setAmountText(String(value));setSpoken(footer)});
+ const setAmountTo=(value:number)=>change(()=>{setEdited(true);setAmountText(String(value));setAnnounce(n=>n+1)});
  const amountError=!chosen.length?null:amountState==='empty'?t('Enter an amount','ใส่จำนวนเงิน'):amountState==='zero'?t('At least ฿1','อย่างน้อย ฿1'):amountState==='format'?t('Whole baht only','ใส่เป็นบาทเต็มเท่านั้น')
   :amountState==='over-cap'?t("The referrer's loan can take up to "+wholeBaht(most),'สินเชื่อผู้แนะนำรับได้สูงสุด '+wholeBaht(most)):amountState==='over-total'?t('More than the ticked rebates ('+wholeBaht(total)+')','มากกว่ายอดที่เลือก ('+wholeBaht(total)+')'):null;
  const amountHelp=!chosen.length||amountState!=='ok'?null:byOffset&&amount<total?t(wholeBaht(amount)+' offset · '+wholeBaht(total-amount)+' stays unpaid. Pay it after this.','หัก '+wholeBaht(amount)+' · ค้างต่อ '+wholeBaht(total-amount)+' จ่ายต่อได้หลังรายการนี้')
   :amount<total?t('Paying '+wholeBaht(amount)+' of '+wholeBaht(total)+' · '+wholeBaht(total-amount)+' stays unpaid','จ่าย '+wholeBaht(amount)+' จาก '+wholeBaht(total)+' · ค้างจ่ายต่อ '+wholeBaht(total-amount)):t('Full amount of the ticked rebates','ยอดเต็มของรายการที่เลือก');
  const partPaid=(row:UnpaidRebate)=>wholeAmount(row.settledAmount)>0;
  const rowNote=(row:UnpaidRebate)=>{const line=ticked.includes(row.expenseId)&&amountState==='ok'?appliedOf(row.expenseId):null;
-  if(!line)return null;if(line.applied===0)return t('Not paid this time','ไม่จ่ายรอบนี้');
-  return line.remaining>0?t(wholeBaht(line.applied)+' now · '+wholeBaht(line.remaining)+' stays unpaid','จ่ายรอบนี้ '+wholeBaht(line.applied)+' · ค้างต่อ '+wholeBaht(line.remaining)):null};
+  // UX-R184-14: on the offset path the Thai lines use the offset verb (English is the same on both paths).
+  if(!line)return null;if(line.applied===0)return t('Not paid this time',byOffset?'ไม่หักรอบนี้':'ไม่จ่ายรอบนี้');
+  return line.remaining>0?t(wholeBaht(line.applied)+' now · '+wholeBaht(line.remaining)+' stays unpaid',(byOffset?'หักรอบนี้ ':'จ่ายรอบนี้ ')+wholeBaht(line.applied)+' · ค้างต่อ '+wholeBaht(line.remaining)):null};
  const offsetLabels=(offset?.loanLabels??[]).join(', ');
  const blocked=checking||!chosen.length||amountState!=='ok'||offline||offsetGone||(!byOffset&&!account)||dateInvalid||referenceInvalid||!draft.ready;
  return <section className="borrower-record rebate-settlement-form" aria-busy={checking}><div className="related-loans-heading"><HeaderBack navigationKey="rebate-settle" className="icon-action" aria-label={t('Back to referrer','กลับหน้าผู้แนะนำ')} disabled={checking} onClick={onBack}><Icon name="back"/></HeaderBack><h2>{t('Pay rebates','จ่ายค่าแนะนำ')} · {name}</h2></div>
@@ -176,9 +181,11 @@ export function RebateSettlementForm({access,thai,detail,onBack,onDone}:{access:
      onFocus={event=>{const input=event.currentTarget;requestAnimationFrame(()=>{try{input.setSelectionRange(0,input.value.length)}catch{/* not selectable */}})}}
      onBlur={()=>setSpoken(footer)} onChange={event=>{const text=cleanAmountInput(event.target.value);change(()=>{setEdited(true);setAmountText(text)})}}/></label>
    {amountHelp&&<p className="field-help" id={helpId}>{amountHelp}</p>}
-   {byOffset&&amountState==='ok'&&<p className="field-help rebate-offset-preview" aria-live="off">{previewBusy||!preview?(offline?networkTitle:t('Updating…','กำลังคำนวณ…')):previewLines(preview).map(line=><span className="rebate-offset-run" key={line}>{line}</span>)}</p>}
    {amountError&&<p className="field-help rebate-settle-error" id={errorId}>{amountError}{(amountState==='over-total'||amountState==='over-cap')&&<button type="button" className="text-action" disabled={checking} onClick={()=>setAmountTo(limit)}>{t('Use ','ใช้ ')+wholeBaht(limit)}</button>}</p>}
-   {edited&&amountState==='ok'&&amount<limit&&<p className="rebate-settle-full"><button type="button" className="text-action" disabled={checking} onClick={()=>byOffset?setAmountTo(limit):change(()=>{setEdited(false);setAmountText('');setSpoken(footer)})}>{byOffset?t('Offset the most, ','หักเต็มที่ ')+wholeBaht(limit):t('Pay in full ','จ่ายเต็ม ')+wholeBaht(limit)}</button></p>}
+   {/* UX-R184-12/13: the one-tap buttons sit before the preview (which can take two lines); on the offset path the button
+       shows whenever the amount is below what the loan can take, typed or not, so the owner sees it can take more. */}
+   {amountState==='ok'&&amount<limit&&(byOffset||edited)&&<p className="rebate-settle-full"><button type="button" className="text-action" disabled={checking} onClick={()=>byOffset?setAmountTo(limit):change(()=>{setEdited(false);setAmountText('');setAnnounce(n=>n+1)})}>{byOffset?t('Offset '+wholeBaht(limit)+' (the most)','หักสูงสุด '+wholeBaht(limit)):t('Pay in full ','จ่ายเต็ม ')+wholeBaht(limit)}</button></p>}
+   {byOffset&&amountState==='ok'&&<p className="field-help rebate-offset-preview" aria-live="off">{previewBusy||!preview?(offline?networkTitle:t('Updating…','กำลังคำนวณ…')):previewLines(preview).map(line=><span className="rebate-offset-run" key={line}>{line}</span>)}</p>}
    <label htmlFor={fieldId+'date'}><span className="field-title">{t('Settlement date','วันที่จ่าย')}</span><span className="cash-date-picker"><span className="cash-date-text" aria-hidden="true">{displayDateWithYear(byOffset?today:date,thai)}</span><Icon name="upcoming"/><input id={fieldId+'date'} type="date" aria-label={t('Settlement date','วันที่จ่าย')} required value={byOffset?today:date} max={today} min={byOffset?today:newest||undefined} disabled={checking||byOffset} aria-invalid={dateInvalid||undefined} aria-describedby={byOffset?fieldId+'date-help':undefined} onChange={event=>change(()=>setDate(event.target.value))}/></span></label>
    {/* PAY-DEST-05: an offset posts a payment today, so the date is locked instead of being refused at Confirm. */}
    {byOffset&&<p className="field-help" id={fieldId+'date-help'}>{t('Offset is recorded today','บันทึกการหักวันนี้')}</p>}

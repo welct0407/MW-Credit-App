@@ -213,3 +213,10 @@ test('R184 (D11) tiles: paid is the settlements paid to the referrer plus legacy
  assert.match(list,/sum\(least\(x\.offset_amount,x\.amount\)\) FROM rebates x WHERE x\.payee=r\.id\),0\) \+coalesce\(\(SELECT sum\(s\.amount\) FROM public\.pwa_rebate_settlements s WHERE s\.payee_borrower_id=r\.id AND s\.offset_payment_id IS NOT NULL\),0\)\)::numeric\(20,2\)::text AS "offsetToDate"/);
  assert.match(list,/public\.pwa_rebates_owed_v1\(r\.id\)\)::numeric\(20,2\)::text AS "unpaidAmount"/);
 });
+test('R184 rebateRules: only an absent function reads as the legacy rules; any other error surfaces',async()=>{
+ const {rebateRules}=await import('../../services/business/rebate-state.mjs');
+ assert.equal(await rebateRules({query:async()=>({rows:[{present:true}]})}),true);assert.equal(await rebateRules({query:async()=>({rows:[{present:false}]})}),false);
+ assert.equal(await rebateRules({query:async()=>{throw Object.assign(Error('function does not exist'),{code:'42883'})}}),false);
+ await assert.rejects(rebateRules({query:async()=>{throw Object.assign(Error('connection lost'),{code:'08006'})}}),/connection lost/);
+ await assert.rejects(rebateRules({query:async()=>{throw Error('boom')}}),/boom/);
+});

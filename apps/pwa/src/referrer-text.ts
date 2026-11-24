@@ -77,3 +77,6 @@ export function historyKind(row:{kind?:string;destination?:string|null}):'settle
 }
 /** D11: a referrer's tiles reconcile: every rebate is unpaid, paid or offset (exact in satang). */
 export const tilesTotal=(row:{unpaidAmount:string;paidToDate:string;offsetToDate:string})=>moneySum([row.unpaidAmount,row.paidToDate,row.offsetToDate]);
+/** UX-R184-16: a short phrase that must not break across lines ("paid through 6 Nov", "ชำระถึง 9 พ.ย."): its spaces
+ * become non-breaking, so the date stays whole and with its words. */
+export const keepTogether=(text:string)=>text.replace(/ /g,'\u00a0');
