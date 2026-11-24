@@ -102,11 +102,12 @@ Echo's proposal review (accepted for implementation):
 | Echo's proposal review and second pass, real WebKit, iPhone 17 Pro Max profile, English and Thai | Done; findings in Byte's correction round |
 | `npm run check:docs` (Dewey, `e1ad149` and again after the closing edit) | 0 failures, 1 old warning (a change note of 9 November that nothing links to) |
 | Byte's correction round (`669ac24`): `npx biome lint`, `npm run typecheck`, `npm test`, `referrers-independent.spec.ts` on desktop-chromium, "Pay rebates by offset" on mobile-webkit | 0 errors; pass; 1439 tests, 1 skipped, 0 fail; 11/11; 1/1. Database groups not re-run: no database or SQL input changed; in `services/**` only `rebateRules` in `services/business/rebate-state.mjs` changed (it falls back to the legacy states only when the function is absent and rethrows any other error; one new unit test) plus the edit of `services/chat/assets/conversation-business-rules.md` |
+| GitHub Actions "Database migrations", [run 45373790430](https://github.com/welct0407/MW-Credit-App/actions/runs/45373790430) (push on `c080a4a`, 24 November 2026) | Success; covers the database groups in CI, including the `en_US.UTF-8` collation and the receiving group in sequence, on the tree before Byte's correction round |
 | `Development checks` on the pull request (the one broad run) | Pending: no pull request yet |
 
 ## Not run
 - Real iPhone: the iOS keyboard on the amount field and a real VoiceOver pass were not exercised; one tap on the amount field on the owner's iPhone in DEV covers the keyboard.
-- `en_US.UTF-8` collation, the receiving group in sequence and the new e2e case on the other browser projects are left to the pull request's Development checks.
+- The new e2e case and the browser suites on the other projects, and every check on the final tree (after `669ac24`), are left to the pull request's Development checks. The `en_US.UTF-8` collation and the receiving group in sequence passed in CI on `c080a4a` (see Checks).
 - No DEV or PROD action has happened: V155 is not applied anywhere, and no live preview or settlement has run.
 - The database groups were not re-run after `669ac24` (reason in Checks).
 
