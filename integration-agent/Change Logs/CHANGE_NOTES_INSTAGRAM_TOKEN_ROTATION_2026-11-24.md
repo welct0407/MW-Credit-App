@@ -39,7 +39,7 @@ Versions 1 and 2 are older tokens and version 2 is the revoked one, so there is 
 None.
 
 ## Remaining work
-None. Watch for the first inbound webhook after the re-link and the first Meta renewal on 2 December 2026.
+None. The first Meta renewal of the new token is due on 2 December 2026.
 
 ## Reconsideration of the held slips (owner go, 24 November 2026, 21:18 Bangkok)
 | Step | Result |
@@ -49,3 +49,13 @@ None. Watch for the first inbound webhook after the re-link and the first Meta r
 | Receipt cycle, 21:18:34 to 21:19:14 | Each job read its image again and was validated; 3 reviews `APPROVED` then `POSTED` under `OWNER_AUTHORIZED_AUTO_PAYMENT`, each with a payment id |
 | Partner notices | 6 notices accepted by Instagram after 21:18; the 3 earlier hold notices stay `IG_PREFLIGHT_FAILED` (undelivered, superseded by the posting) |
 | `mw-resource-health` run of 14:20:33Z | All components 1; `receipts` 1, `held_receipts` 0, `stalled_jobs` 0, `completed_payments` 438 (435 before) |
+
+## Readback (25 November 2026, 02:39 Bangkok)
+| Check | Result |
+| --- | --- |
+| Poll runs since the install | 239 runs, 233 clean, 0 token errors (no `HTTP 401` or code 190 in the poll, receipt or summary journals); 6 runs had one failed conversation, always the same one, with Meta `HTTP 500, code 1` (seen 24 times in the four days before the move; the cursor is kept and the next run retries) |
+| Inbound webhooks after the re-link | 31 signed deliveries from 21:19:23 on 24 November to 00:52:23 on 25 November, one carrying a message, processed `DONE`. This closes the "no inbound webhook observed" item above |
+| New receipts since the install | 4 jobs: 2 posted, 2 ignored (one `NOT_PAYMENT_RECEIPT`); with the 3 reconsidered slips, 5 reviews `POSTED`; no open or held job |
+| Partner notices | 10 accepted by Instagram since the install |
+| `mw-resource-health` | All components 1; `completed_payments` 440 |
+
