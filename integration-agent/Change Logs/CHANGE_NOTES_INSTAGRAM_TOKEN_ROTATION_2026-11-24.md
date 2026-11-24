@@ -55,7 +55,7 @@ None. The first Meta renewal of the new token is due on 2 December 2026.
 | --- | --- |
 | Poll runs since the install | 239 runs, 233 clean, 0 token errors (no `HTTP 401` or code 190 in the poll, receipt or summary journals); 6 runs had one failed conversation, always the same one, with Meta `HTTP 500, code 1` (seen 24 times in the four days before the move; the cursor is kept and the next run retries) |
 | Inbound webhooks after the re-link | 31 signed deliveries from 21:19:23 on 24 November to 00:52:23 on 25 November, one carrying a message, processed `DONE`. This closes the "no inbound webhook observed" item above |
-| New receipts since the install | 4 jobs: 2 posted, 2 ignored (one `NOT_PAYMENT_RECEIPT`); with the 3 reconsidered slips, 5 reviews `POSTED`; no open or held job |
+| New receipts since the install | 4 jobs: 2 posted, 2 ignored (one image read as `NOT_PAYMENT_RECEIPT`; one webhook text message with no attachment, which gets the usual terminal `IGNORED` marker with an empty detail); with the 3 reconsidered slips, 5 reviews `POSTED`; no open or held job |
 | Partner notices | 10 accepted by Instagram since the install |
 | `mw-resource-health` | All components 1; `completed_payments` 440 |
 
