@@ -1048,6 +1048,8 @@ button.ph-row{cursor:pointer}button.ph-row:active{background:#f1f1f1}
 :where(.live-shell main input:is([type=checkbox],[type=radio])){accent-color:#713c00}
 /* The narrow allocation and amount fields keep room for six digits. */
 .payment-allocation-row input:not([type=checkbox]),.payment-received-input input{padding-inline:8px}
+/* UXR-DATE-01: the app-format date beside a native date field (the field keeps the device's own format). */
+.date-shown{font-size:14px;color:#565656;white-space:nowrap}.loan-number-control>.date-shown{align-self:center}label>.date-shown{display:block;margin-top:4px}
 /* UXR-FORM-02: what still keeps Review disabled, under the Received / Allocated / Remaining bar. */
 .review-help{margin:6px 8px 8px;padding:6px 10px;font-size:14px;line-height:1.4;color:#5a4a00;background:#fff8e1;border:1px solid #ecd9a0;border-radius:6px;overflow-wrap:anywhere}
 /* UXR-FORM-03: an error reads as an error (the .field-error red). Only un-classed p/div alerts, :where()-wrapped, so the
