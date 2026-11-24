@@ -65,7 +65,7 @@ test('R136 rollover: record action, prefilled form, live statement, confirm and 
  const cashSize=async(part:string)=>Number.parseFloat(await statement.locator(`[data-row="cash"] ${part}`).evaluate(e=>getComputedStyle(e).fontSize));
  expect(await cashSize('dd')).toBeGreaterThan(await cashSize('dt'));
  await expect(page.getByText('฿2,000 = 4 days of ฿500',{exact:true})).toBeVisible();
- await expect(page.getByRole('textbox',{name:/^Loan Arrangement/})).toHaveValue(/^Rollover of loan .*closed on 09\/10\/2026 with early closure penalty ฿2,000\.\nต่อสัญญาจากสินเชื่อ /);
+ await expect(page.getByRole('textbox',{name:/^Loan Arrangement/})).toHaveValue(/^Rollover of loan .*closed on 09-Oct-2026 with early closure penalty ฿2,000\.\nต่อสัญญาจากสินเชื่อ /);
  await expect(page.getByLabel('Due Date',{exact:true})).toHaveValue('2026-11-02');
  // One more day of penalty: the quote is read again and the statement follows.
  await page.getByRole('button',{name:'Increase penalty by one day',exact:true}).click();

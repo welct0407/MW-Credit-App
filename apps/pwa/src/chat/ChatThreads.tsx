@@ -71,7 +71,7 @@ export function ChatThreads({threads,currentId,models,archived,busy,error,hasMor
   <div className="chat-threads-head">
    <h2>{archived?t('Archived threads','แชทที่เก็บถาวร'):t('Threads','รายการแชท')}</h2>
    <button type="button" className="secondary-button chat-archived-toggle" aria-pressed={archived} onClick={onToggleArchived}>{t('Archived','ดูที่เก็บถาวร')}</button>
-   <button ref={closeRef} type="button" className="icon-action chat-threads-close" aria-label={t('Close threads','ปิดรายการแชท')} title={t('Close threads','ปิดรายการแชท')} onClick={onClose}><Icon name="close"/></button>
+   <button ref={closeRef} type="button" className="secondary-button icon-action chat-threads-close" aria-label={t('Close threads','ปิดรายการแชท')} title={t('Close threads','ปิดรายการแชท')} onClick={onClose}><Icon name="close"/></button>
   </div>
   {!archived&&<button type="button" className="secondary-button chat-new chat-new-in-list" onClick={onNew}><Icon name="add"/><span>{t('New chat','แชทใหม่')}</span></button>}
   {error&&<p className="chat-threads-error" role="alert">{t('Threads unavailable.','โหลดรายการแชทไม่ได้')} <button type="button" className="text-action" onClick={onRetry}>{t('Try again','ลองอีกครั้ง')}</button></p>}

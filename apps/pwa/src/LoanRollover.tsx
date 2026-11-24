@@ -5,7 +5,7 @@ import {useEffect,useRef,useState} from 'react';
 import type {CommandAccess} from './SelectedCharges';
 import {beginRequest} from './request-activity';
 import {useDomainDraft} from './domain-draft';
-import {displayDate} from './display-date';
+import {displayDate,displayDateWithYear} from './display-date';
 import {loanTypeLabel,loanValidation,stepMoney,stepInterval,dailyPercentage,instalmentSchedule,termDays,dueDateHelper,dailyPaymentHelper,INSTALMENT} from './loan-form-values';
 import {wholeNumberProps,normalizeWhole} from './whole-number-input';
 import {rolloverStatement,rolloverPrefill,rolloverArrangement,generatedArrangement,penaltyHelper,penaltyStep,negativeCashMessage,ineligibleReason,rolloverRebateLine,rolloverFieldChange,dmy,baht,type RolloverStatement,type RolloverManual} from './rollover-statement';
@@ -103,13 +103,13 @@ export function LoanRollover({access,item,sourceKey,thai,onBack,onApplied}:{acce
   {error&&<p role="alert">{error}</p>}
   {preview&&!preview.eligible&&<p role="alert">{ineligibleReason(preview.reason,thai)}</p>}
   {preview?.eligible&&fields&&<form onSubmit={e=>{e.preventDefault();review()}}>
-   <fieldset className="loan-type-options rollover-day-options"><legend>{t('Loan Date','วันที่กู้')} *</legend>{[[preview.today,t('Today','วันนี้')],[preview.yesterday,t('Yesterday','เมื่อวาน')]].map(([value,label])=><label key={value}><input type="radio" name="rollover-day" disabled={!!preview.source?.loanDate&&value<preview.source.loanDate} checked={day===value} onChange={()=>{setDay(value);requote(value,penalty)}}/><span>{label} · {dmy(value,thai)}</span></label>)}</fieldset>
+   <fieldset className="loan-type-options rollover-day-options"><legend>{t('Loan Date','วันที่กู้')} *</legend>{[[preview.today,t('Today','วันนี้')],[preview.yesterday,t('Yesterday','เมื่อวาน')]].map(([value,label])=><label key={value}><input type="radio" name="rollover-day" disabled={!!preview.source?.loanDate&&value<preview.source.loanDate} checked={day===value} onChange={()=>{setDay(value);requote(value,penalty)}}/><span>{label} · <span className="nowrap">{dmy(value,thai)}</span></span></label>)}</fieldset>
    {!!preview.source?.loanDate&&preview.yesterday<preview.source.loanDate&&<p className="field-help" data-testid="yesterday-reason">{t('Yesterday is before the original loan date '+dmy(preview.source.loanDate,false)+'.','เมื่อวานอยู่ก่อนวันที่กู้ของสินเชื่อเดิม '+dmy(preview.source.loanDate,true))}</p>}
    {/* biome-ignore lint/a11y/noLabelWithoutControl: the type is locked to the original loan's and shown read only */}
    <label><span className="field-title">{t('Loan Type','ประเภทเงินกู้')}</span><span className="borrower-field-value">{loanTypeLabel(item.type,thai)}</span></label>
    {money('principal','Principal Amount','เงินต้น',500)}{money('transferFee','Documentation Fee','ค่าธรรมเนียมเอกสาร',100,false)}
    <label><span className="field-title">{t('Disbursing Cash Account','บัญชีจ่ายเงินกู้')}</span><select required value={fields.disbursingAccountId??''} onChange={e=>update('disbursingAccountId',e.target.value||null)}><option value="">—</option>{preview.accounts.map((a:any)=><option key={a.id} value={a.id}>{a.label}</option>)}</select></label>
-   {instalment&&<><label><span className="field-title">{t('Due Date','วันครบกำหนด')}</span><input type="date" required aria-label={t('Due Date','วันครบกำหนด')} min={day??undefined} value={fields.dueDate??''} onChange={e=>update('dueDate',e.target.value||null)}/></label>
+   {instalment&&<><label><span className="field-title">{t('Due Date','วันครบกำหนด')}</span><input type="date" required aria-label={t('Due Date','วันครบกำหนด')} min={day??undefined} value={fields.dueDate??''} onChange={e=>update('dueDate',e.target.value||null)}/></label>{fields.dueDate?<span className="date-shown" aria-hidden="true">{displayDateWithYear(fields.dueDate,thai)}</span>:null}
     {dueDateHelper(termDays(day,fields.dueDate),thai)&&<p className="field-help">{dueDateHelper(termDays(day,fields.dueDate),thai)}</p>}
     {money('dailyPayment','Daily Payment Amount','ยอดชำระรายวัน')}{schedule&&<p className="field-help">{dailyPaymentHelper(schedule,thai)}</p>}</>}
    {!instalment&&money('currentDailyInterest','Current Daily Interest','ดอกเบี้ยรายวันปัจจุบัน')}

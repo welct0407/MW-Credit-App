@@ -1049,7 +1049,8 @@ button.ph-row{cursor:pointer}button.ph-row:active{background:#f1f1f1}
 /* The narrow allocation and amount fields keep room for six digits. */
 .payment-allocation-row input:not([type=checkbox]),.payment-received-input input{padding-inline:8px}
 /* UXR-DATE-01: the app-format date beside a native date field (the field keeps the device's own format). */
-.date-shown{font-size:14px;color:#565656;white-space:nowrap}.loan-number-control>.date-shown{align-self:center}label>.date-shown{display:block;margin-top:4px}
+/* It follows the field's label, so the label names only the field. */
+.date-shown{display:block;margin:-8px 0 12px;font-size:14px;color:#565656;white-space:nowrap}
 /* UXR-FORM-02: what still keeps Review disabled, under the Received / Allocated / Remaining bar. */
 .review-help{margin:6px 8px 8px;padding:6px 10px;font-size:14px;line-height:1.4;color:#5a4a00;background:#fff8e1;border:1px solid #ecd9a0;border-radius:6px;overflow-wrap:anywhere}
 /* UXR-FORM-03: an error reads as an error (the .field-error red). Only un-classed p/div alerts, :where()-wrapped, so the
@@ -1110,6 +1111,7 @@ button.ph-row{cursor:pointer}button.ph-row:active{background:#f1f1f1}
 .management-financial-workspace .borrower-card>strong{margin-left:auto;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 /* UXR-MGMT-03: an empty Cash statement day and an empty charge section say so. */
 .cash-table-empty{padding:14px 8px;color:#555;text-align:left}
+.cash-transactions td.cash-table-empty{text-align:left;white-space:normal}
 p.cash-table-empty{margin:0;padding:8px 0}
 /* UXR-COPY-01 #5: WebKit's own clear button would sit beside the app's eraser in the header search. */
 .live-shell header input[type=search]::-webkit-search-cancel-button{display:none}
