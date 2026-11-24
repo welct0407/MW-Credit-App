@@ -11,6 +11,7 @@ import {settlementVersionSql} from '../../services/business/referrers.mjs';
 import {sortedExpenseIds as sortedExpenseIdsOf} from '../../services/contracts/rebate-settlement-command.mjs';
 import {OWNER_EMAIL} from '../../services/lib/identity.mjs';
 import {migrationHead} from '../migration-head.mjs';
+import {renderNotification} from '../../services/notifications/content.mjs';
 // R129 V137: referral rebate settlement through the real application role and the command store, on the migration head
 // (receiving group): a close books a pending rebate, the Referrers reads (list, detail, accruing estimate, history), the
 // settle and delete operations, the expense and payment states, the version mirror, and the design's case 14 (two
@@ -222,4 +223,217 @@ test('PROD defect: the records offline dataset still reads after a close with a 
  // A second settlement stays: its Cash Ledger row (Source Type 'Rebate Settlement') is in the records and cash bundles.
  assert.equal((await store.operation(principal,await settleCommand(s.referrer,['rr1:'+legacyLoan]))).originalOutcome?.status,'applied');
  await recordsAfter(state,'second settlement');await recordsWalk('second settlement','cash');
+});
+
+// R184 (V155): partial settlement and the offset to the referrer's own loan, through the real application role and command
+// store: the design's two-connection cases (section 5) and the invariants after any order of creates and deletes. Synthetic.
+const later=(ms,run)=>new Promise(resolve=>setTimeout(resolve,ms)).then(run);
+const outcomeOf=r=>r.originalOutcome?.status==='applied'?'applied':r.originalOutcome?.code??r.code;
+const byteOrder=(a,b)=>Buffer.compare(Buffer.from(a.expenseId),Buffer.from(b.expenseId));
+/** Per-rebate lines [expenseId, amount, expectedPending], ascending by expense id (the canonical order). */
+const linesOf=list=>list.map(([expenseId,amount,expectedPending])=>({expenseId,amount:String(amount),expectedPending:String(expectedPending)})).sort(byteOrder);
+const partCommand=async(referrer,allocations,over={})=>({requestId:randomUUID(),operation:'rebate-settlement.create',targetId:randomUUID(),expectedVersion:null,predecessorRequestId:null,receiptId:null,
+ inputs:{referrerId:referrer,destination:'referrer',allocations,settlementDate:today,cashAccountId:await lisaAccount(),paymentMethod:'Bank Transfer',bankReference:null,notes:null,expectedPlanHash:null,...over}});
+/** An offset of the lines' total to the referrer's own loan, with the plan hash the preview read answers now. */
+async function offsetCommand(referrer,allocations){
+ const amount=String(allocations.reduce((sum,line)=>sum+Number(line.amount),0)),preview=await store.referrerOffsetPreview(principal,referrer,amount);
+ assert.equal(preview.status,200,JSON.stringify(preview).slice(0,300));assert.equal(preview.covered,amount,'the plan covers the amount: '+JSON.stringify(preview).slice(0,300));
+ return {preview,command:await partCommand(referrer,allocations,{destination:'offset',cashAccountId:null,paymentMethod:null,bankReference:null,expectedPlanHash:preview.planHash})};
+}
+/** The referrer's own open loan (1,000, 100 a day, auto charge) with `interest` due today. */
+async function ownLoan(s,interest){
+ const loan=s.id+'-RL';await admin.query(loanSql,[loan,s.referrer,fixture.lendingAccountId]);await admin.query(chargeSql,[loan+'-today',loan,interest]);
+ await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"=$1`,[loan]);return loan;
+}
+const pendingOf=async id=>Number((await admin.query('SELECT public.pwa_rebate_pending_v1($1) AS v',[id])).rows[0].v);
+const deleteSettlement=async id=>{const record=await store.rebateSettlementRecord(principal,id);assert.equal(record.status,200,JSON.stringify(record).slice(0,300));return store.operation(principal,deleteCommand(id,record.item.version))};
+/** D2, D4, D7: for every rebate of the referrer Amount = close-time offset + allocations + pending (pending never clamps a
+ * negative), the link is the newest settlement that applied to it (null exactly when none did); every settlement's rows sum
+ * to its amount; a direct settlement has one Lisa cash row of its amount, an offset settlement none and its payment's receipt
+ * nets it on Lisa's default account; the owed total is the sum of the pending amounts. */
+async function assertInvariants(referrer,label){
+ const rows=(await admin.query(`SELECT x."Row ID" AS id,x."Amount"::numeric AS amount,coalesce(o."Amount Received"::numeric,0) AS off,
+   coalesce((SELECT sum(a.amount) FROM public.pwa_rebate_settlement_allocations a WHERE a.expense_id=x."Row ID"),0) AS alloc,public.pwa_rebate_pending_v1(x."Row ID") AS pending,x."Ref Rebate Settlement" AS link,
+   (SELECT a.settlement_id FROM public.pwa_rebate_settlement_allocations a JOIN public.pwa_rebate_settlements s ON s.id=a.settlement_id WHERE a.expense_id=x."Row ID" ORDER BY s.created_at DESC,s.id COLLATE "C" DESC LIMIT 1) AS newest
+  FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment" WHERE x."Ref Payee Borrower"=$1 AND x."Source Type"='Referral Rebate' AND x."Rule Version"='REFERRAL_REBATE_V3'`,[referrer])).rows;
+ for(const r of rows){
+  assert.ok(Number(r.amount)-Number(r.off)-Number(r.alloc)>=0,label+': '+r.id+' allocations exceed the rebate: '+JSON.stringify(r));
+  assert.equal(Number(r.amount),Number(r.off)+Number(r.alloc)+Number(r.pending),label+': '+r.id+' Amount = offset + allocations + pending: '+JSON.stringify(r));
+  assert.equal(r.link,r.newest,label+': '+r.id+' links its newest settlement: '+JSON.stringify(r));
+ }
+ const settlements=(await admin.query(`SELECT s.id,s.amount,s.offset_payment_id,s.paid_by_cash_account AS account,(SELECT coalesce(sum(a.amount),0) FROM public.pwa_rebate_settlement_allocations a WHERE a.settlement_id=s.id) AS alloc,
+   (SELECT count(*)::int FROM public."Cash Ledger" c WHERE c."Source Type"='Rebate Settlement' AND c."Ref Rebate Settlement"=s.id AND c."Amount"::numeric=s.amount AND c."Ref From Cash Holder"='ch:lisa') AS out,
+   (SELECT count(*)::int FROM public."Cash Ledger" c WHERE c."Ref Payment"=s.offset_payment_id AND c."Amount"::numeric=s.amount AND c."Ref To Cash Account"=s.paid_by_cash_account) AS back,
+   (SELECT p."Status" FROM public."Payments" p WHERE p."Row ID"=s.offset_payment_id) AS status
+  FROM public.pwa_rebate_settlements s WHERE s.payee_borrower_id=$1`,[referrer])).rows;
+ for(const s of settlements){
+  assert.equal(Number(s.alloc),Number(s.amount),label+': settlement '+s.id+' rows sum to its amount');
+  assert.equal(s.out,1,label+': settlement '+s.id+' has one Lisa cash row of its amount');
+  if(s.offset_payment_id){assert.equal(s.status,'Posted',label+': the offset payment is posted');assert.equal(s.back,1,label+': the offset receipt returns the amount to the same Lisa account');}
+ }
+ const owedNow=Number(await owed(referrer)),sum=rows.reduce((total,r)=>total+Number(r.pending),0);
+ assert.equal(owedNow,sum,label+': owed is the sum of the pending amounts');
+ return {rows,settlements,owed:owedNow};
+}
+
+test('R184 two partials of one rebate with the same expectedPending in parallel: exactly one applies, nothing of the other',async()=>{
+ for(let round=0;round<3;round++){
+  const s=await scenario();await close(s.loans[0]);const id='rr1:'+s.loans[0];
+  const [a,b]=[await partCommand(s.referrer,linesOf([[id,100,300]])),await partCommand(s.referrer,linesOf([[id,150,300]]))];
+  const [x,y]=await Promise.all([store.operation(principal,a),store.operation(principal,b)]);
+  assert.deepEqual([outcomeOf(x),outcomeOf(y)].sort(),['applied','record_requires_reconciliation'],JSON.stringify([x,y]).slice(0,600));
+  const won=outcomeOf(x)==='applied'?{r:x,amount:100,target:a.targetId}:{r:y,amount:150,target:b.targetId},lost=won.target===a.targetId?b.targetId:a.targetId;
+  assert.deepEqual(won.r.originalOutcome.result.rebateSettlement,{destination:'referrer',amount:String(won.amount),owedAfter:String(300-won.amount),offsetPaymentId:null,lines:[{expenseId:id,amount:String(won.amount),pendingAfter:String(300-won.amount)}]});
+  assert.equal(await pendingOf(id),300-won.amount);
+  assert.equal((await admin.query('SELECT count(*)::int AS n FROM public.pwa_rebate_settlements WHERE id=$1',[lost])).rows[0].n,0,'the refused settlement wrote nothing');
+  assert.equal((await admin.query('SELECT count(*)::int AS n FROM public.pwa_rebate_settlement_allocations WHERE settlement_id=$1',[lost])).rows[0].n,0);
+  assert.equal((await admin.query(`SELECT count(*)::int AS n FROM public."Cash Ledger" WHERE "Ref Rebate Settlement"=$1`,[lost])).rows[0].n,0);
+  await assertInvariants(s.referrer,'two partials round '+round);
+  // The loser read again: its stale expectedPending is refused again, a fresh one applies.
+  const retry=await store.operation(principal,await partCommand(s.referrer,linesOf([[id,50,300]])));assert.equal(outcomeOf(retry),'record_requires_reconciliation');
+  assert.equal(outcomeOf(await store.operation(principal,await partCommand(s.referrer,linesOf([[id,50,300-won.amount]])))),'applied');
+  await assertInvariants(s.referrer,'two partials retried round '+round);
+ }
+});
+
+test('R184 a partial settlement in parallel with a referee\'s Loan Close: both apply and owedTotal and owedAfter are exact for their order',async t=>{
+ for(let round=0;round<3;round++){
+  const s=await scenario({count:2});await close(s.loans[0]);const first='rr1:'+s.loans[0];
+  const preview=await store.loanClosePreview(principal,s.loans[1]);assert.equal(preview.status,200);assert.equal(preview.rebate.owedBefore,'300');
+  const settle=await partCommand(s.referrer,linesOf([[first,120,300]]));
+  const [x,y]=await Promise.all([later([0,0,150][round],()=>store.operation(principal,settle)),later([150,0,0][round],()=>store.operation(principal,closeCommand(s.loans[1],preview,{rebatePath:'expense'})))]);
+  assert.deepEqual([outcomeOf(x),outcomeOf(y)],['applied','applied'],JSON.stringify([x,y]).slice(0,600));
+  const owedTotal=y.originalOutcome.result.rebate.owedTotal,owedAfter=x.originalOutcome.result.rebateSettlement.owedAfter;
+  // Close first: it saw 300 + 300 owed and the settlement then left 480. Settlement first: it left 180, then the close 480.
+  assert.ok((owedTotal==='600'&&owedAfter==='480')||(owedTotal==='480'&&owedAfter==='180'),'exact for one order: '+JSON.stringify({owedTotal,owedAfter}));t.diagnostic('round '+round+': '+(owedTotal==='600'?'close':'settlement')+' first');
+  const inv=await assertInvariants(s.referrer,'settle vs close round '+round);assert.equal(inv.owed,480);
+ }
+});
+
+test('R184 an offset settlement in parallel with a payment on the referrer\'s own loan: no hang, one consistent outcome',async t=>{
+ const deadline=(promise,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(Error(label+' did not finish in 30 s (lock wait)')),30000))]);
+ for(let round=0;round<3;round++){
+  const s=await scenario();await close(s.loans[0]);const id='rr1:'+s.loans[0],loan=await ownLoan(s,500);
+  const {command:offset}=await offsetCommand(s.referrer,linesOf([[id,200,300]]));
+  const assigned=await store.autoAssign(principal,s.referrer,{amountReceived:'500'});assert.equal(assigned.status,200,JSON.stringify(assigned).slice(0,300));
+  const payment={schemaVersion:7,requestId:randomUUID(),borrowerId:s.referrer,allocations:assigned.allocations,cashAccountId:fixture.receivingAccountId,paymentDate:today,amountReceived:'500',paymentMethod:'Bank Transfer',notes:null,receiptId:null,bankReference:null,transferTime:null};
+  const [x,y]=await deadline(Promise.all([later([0,40,150][round],()=>store.operation(principal,offset)),store.submit(principal,payment)]),'offset vs payment');
+  const offsetOutcome=outcomeOf(x),paymentOutcome=y.originalOutcome?.status==='posted'?'posted':y.originalOutcome?.code??y.code;
+  // The offset applies or finds the plan changed (the payment took the due charge first); the payment posts or is refused as stale.
+  // A lock timeout or deadlock is busy with nothing applied (design section 4); a hang fails the deadline above.
+  assert.ok(['applied','plan_changed','command_busy'].includes(offsetOutcome),'offset: '+JSON.stringify(x).slice(0,400));
+  assert.ok(['posted','selection_unavailable','record_requires_reconciliation','command_busy'].includes(paymentOutcome),'payment: '+JSON.stringify(y).slice(0,400));
+  assert.ok(offsetOutcome==='applied'||paymentOutcome==='posted','at least one applies');t.diagnostic('round '+round+': offset '+offsetOutcome+', payment '+paymentOutcome);
+  assert.equal((await admin.query(`SELECT count(*)::int AS n FROM pg_locks WHERE NOT granted`)).rows[0].n,0,'nothing waits on a lock afterwards');
+  const charge=(await admin.query(`SELECT "Amount Remaining"::numeric AS left FROM "Charges" WHERE "Row ID"=$1`,[loan+'-today'])).rows[0];
+  const repaid=(await admin.query(`SELECT coalesce(sum(r."Interest Paid"::numeric+r."Principal Paid"::numeric+r."Late Charge Paid"::numeric),0) AS paid FROM "Repayments" r WHERE r."Ref Charges"=$1`,[loan+'-today'])).rows[0];
+  assert.equal(Number(charge.left)+Number(repaid.paid),500,'the due charge is never paid twice: '+JSON.stringify({charge,repaid}));
+  await assertInvariants(s.referrer,'offset vs payment round '+round);
+  assert.equal(await pendingOf(id),offsetOutcome==='applied'?100:300);
+ }
+});
+
+test('R184 offset lifecycle: preview, apply, replay, the reads, the "Rebate offset" push, the preview read\'s refusals, delete',async()=>{
+ const s=await scenario();await close(s.loans[0]);const id='rr1:'+s.loans[0],loan=await ownLoan(s,500);
+ // The preview read validates its amount and its borrower (400 and 404) and is owner-gated like the other Referrers reads.
+ for(const bad of ['0','01','1.5','-1','abc','1000000000000',null])assert.equal((await store.referrerOffsetPreview(principal,s.referrer,bad)).status,400,String(bad));
+ assert.equal((await store.referrerOffsetPreview(principal,'bad\nid','100')).status,400);assert.equal((await store.referrerOffsetPreview(principal,s.id+'-NOBODY','100')).status,404);
+ const stranger=await store.referrerOffsetPreview({ok:true,email:'stranger@example.invalid',subject:'r184-stranger'},s.referrer,'100');assert.ok([401,403].includes(stranger.status),JSON.stringify(stranger));
+ const detail=await store.referrerRecord(principal,s.referrer);assert.deepEqual([detail.settleOptions.offset.available,detail.settleOptions.offset.dueAmount],[true,'500']);
+ const {preview,command}=await offsetCommand(s.referrer,linesOf([[id,200,300]]));
+ assert.deepEqual(preview.lines.map(l=>[l.chargeId,l.amount,l.due]),[[loan+'-today','200',true]],'200 goes to the due charge');
+ const applied=await store.operation(principal,command);assert.equal(outcomeOf(applied),'applied',JSON.stringify(applied).slice(0,500));
+ const target=command.targetId,paymentId='rs155:'+target;
+ assert.deepEqual(applied.originalOutcome.result.rebateSettlement,{destination:'offset',amount:'200',owedAfter:'100',offsetPaymentId:paymentId,lines:[{expenseId:id,amount:'200',pendingAfter:'100'}]});
+ // D13: replay returns the recorded outcome; the same id with another payload conflicts and nothing more is written.
+ const replay=await store.operation(principal,command);assert.deepEqual(replay.originalOutcome,applied.originalOutcome,'replay: the recorded outcome');
+ const other=await store.operation(principal,{...command,inputs:{...command.inputs,notes:'changed'}});assert.notEqual(outcomeOf(other),'applied',JSON.stringify(other).slice(0,300));
+ assert.equal((await admin.query('SELECT count(*)::int AS n FROM public."Payments" WHERE "Ref Borrower"=$1',[s.referrer])).rows[0].n,1,'one offset payment');
+ const inv=await assertInvariants(s.referrer,'offset applied');assert.equal(inv.owed,100);
+ assert.equal((await admin.query(`SELECT "Amount Remaining"::numeric AS v FROM "Charges" WHERE "Row ID"=$1`,[loan+'-today'])).rows[0].v,'300.00');
+ // The reads: payment, settlement, expense and the referrer's tiles (total = unpaid + paid + offset).
+ const payment=await store.paymentRecord(principal,paymentId);assert.equal(payment.status,200);assert.deepEqual([payment.item.paymentMethod,payment.item.rebateSettlementId],['Referral Rebate Offset',target]);
+ const record=await store.rebateSettlementRecord(principal,target);assert.equal(record.status,200);
+ assert.deepEqual([record.item.destination,record.item.offsetPaymentId,record.item.accountLabel,record.item.deleteBlocked,record.item.rebates.map(r=>[r.appliedAmount,r.partial,r.pendingAmount])],['offset',paymentId,null,null,[['200.00',true,'100.00']]]);
+ const expense=await store.expenseRecord(principal,id);
+ assert.deepEqual([expense.item.rebateState,expense.item.settledAmount,expense.item.pendingAmount,expense.item.settlementId,expense.item.settlementDestination,expense.item.settlements],['part-paid','200.00','100.00',target,'offset',[{settlementId:target,date:today,amount:'200.00',destination:'offset'}]]);
+ const after=await store.referrerRecord(principal,s.referrer);
+ assert.deepEqual([after.referrer.unpaidAmount,after.referrer.paidToDate,after.referrer.offsetToDate],['100.00','0.00','200.00']);assertRefereesSum(after);
+ assert.deepEqual(after.history.map(h=>[h.kind,h.destination,h.amount,h.partialCount,h.offsetPaymentId]),[['settlement','offset','200.00',1,paymentId]]);
+ // D14: the offset payment's push is the existing "Rebate offset" line, without the loan part (no close-time rebate names it).
+ const event=(await admin.query(`INSERT INTO public.pwa_notification_events(dedupe_key,event_type,source_kind,source_id,source_version,actor_partner_id,actor_login_email) VALUES('payment.posted:'||$1||':posted','payment.posted','payment',$1,'posted',NULL,NULL) RETURNING event_id`,[paymentId])).rows[0].event_id;
+ const sub=(await admin.query(`INSERT INTO public.pwa_push_subscriptions(issuer,subject,partner_id,endpoint_hash,endpoint,p256dh,auth) VALUES('https://securetoken.google.com/clever-oasis-508610-n7','r184-push',$1,encode(sha256(convert_to('r184-push','UTF8')),'hex'),'https://fcm.googleapis.com/fcm/send/r184-push','synthetic','synthetic') RETURNING subscription_id`,[fixture.actorId])).rows[0].subscription_id;
+ const delivery=(await admin.query(`INSERT INTO public.pwa_notification_deliveries(event_id,channel,destination_key,recipient_partner_id,subscription_id,subscription_version,state,lease_generation,lease_expires_at) VALUES($1,'web-push',encode(sha256(convert_to('r184-push','UTF8')),'hex'),$2,$3,1,'leased',3,clock_timestamp()+interval '10 minutes') RETURNING delivery_id`,[event,fixture.actorId,sub])).rows[0].delivery_id;
+ await admin.query(`DO $$BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='chase_dispatch') THEN CREATE ROLE chase_dispatch LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; END IF; END$$`);
+ await admin.query('GRANT mw_notify_dispatch_dev TO chase_dispatch WITH INHERIT TRUE, SET FALSE, ADMIN FALSE');await admin.query('GRANT USAGE ON SCHEMA public TO chase_dispatch');
+ const dispatch=new pg.Client({host:'127.0.0.1',port:Number(process.env.PAYMENT_REHEARSAL_PORT),database:'payment_rehearsal',user:'chase_dispatch',password:''});await dispatch.connect();
+ let facts;try{facts=(await dispatch.query('SELECT * FROM public.pwa_notify_content_v5($1::uuid,$2::bigint)',[delivery,3])).rows[0];}finally{await dispatch.end()}
+ const push=renderNotification({found:facts.found,eventType:facts.event_type,language:facts.language,borrowerName:facts.borrower_name,amount:facts.amount,rebatePayee:facts.rebate_payee??null,rebatePayable:facts.rebate_payable??null,paymentMethod:facts.payment_method??null,rebateLoan:facts.rebate_loan??null,lateChargeAmount:facts.late_charge_amount??null,rebates:facts.rebates??null});
+ assert.deepEqual(push,{title:'Rebate offset',body:'Rebate offset ฿200 · Mai '+s.id},JSON.stringify(facts));
+ // Delete: the amount returns to pending, the payment and both cash rows go, the charge is unpaid again.
+ const removed=await deleteSettlement(target);assert.equal(outcomeOf(removed),'applied',JSON.stringify(removed).slice(0,400));
+ assert.equal(await pendingOf(id),300);assert.equal((await admin.query('SELECT count(*)::int AS n FROM public."Payments" WHERE "Row ID"=$1',[paymentId])).rows[0].n,0);
+ assert.equal((await admin.query(`SELECT count(*)::int AS n FROM public."Cash Ledger" WHERE "Ref Payment"=$1 OR "Ref Rebate Settlement"=$2`,[paymentId,target])).rows[0].n,0);
+ assert.equal((await admin.query(`SELECT "Amount Remaining"::numeric AS v FROM "Charges" WHERE "Row ID"=$1`,[loan+'-today'])).rows[0].v,'500.00');
+ assert.equal((await store.expenseRecord(principal,id)).item.rebateState,'pending');await assertInvariants(s.referrer,'offset deleted');
+ // D10: the deleted settlement's id is not reusable for another offset (its journal row stays): source_conflict.
+ const {command:again}=await offsetCommand(s.referrer,linesOf([[id,100,300]]));
+ assert.equal(outcomeOf(await store.operation(principal,{...again,targetId:target})),'source_conflict');
+});
+
+test('R184 any order of partial creates (to the referrer or offset) and deletes keeps every rebate exact; each delete is in the change log',async t=>{
+ for(const start of [184,7,2026]){
+ const s=await scenario({count:3});for(const l of s.loans)await close(l);const ids=s.loans.map(l=>'rr1:'+l);await ownLoan(s,5000);
+ let seed=start;const random=()=>{seed=(seed*1103515245+12345)%2147483648;return seed/2147483648};const pick=list=>list[Math.floor(random()*list.length)];
+ const kinds=[];
+ for(let step=0;step<24;step++){
+  const live=(await admin.query('SELECT id,offset_payment_id FROM public.pwa_rebate_settlements WHERE payee_borrower_id=$1',[s.referrer])).rows;
+  const pending=new Map();for(const id of ids)pending.set(id,await pendingOf(id));
+  const open=ids.filter(id=>pending.get(id)>0);
+  if(open.length&&(!live.length||random()<0.6)){
+   const chosen=open.filter(()=>random()<0.6);if(!chosen.length)chosen.push(pick(open));
+   const allocations=linesOf(chosen.map(id=>[id,1+Math.floor(random()*pending.get(id)),pending.get(id)]));
+   const offset=random()<0.35,command=offset?(await offsetCommand(s.referrer,allocations)).command:await partCommand(s.referrer,allocations);
+   const r=await store.operation(principal,command);assert.equal(outcomeOf(r),'applied','step '+step+' create: '+JSON.stringify(r).slice(0,400));
+   assert.deepEqual(r.originalOutcome.result.rebateSettlement.lines,allocations.map(a=>({expenseId:a.expenseId,amount:a.amount,pendingAfter:String(pending.get(a.expenseId)-Number(a.amount))})));
+   kinds.push((offset?'offset ':'pay ')+allocations.map(a=>a.amount).join('+'));
+  }else{
+   const victim=pick(live),touched=(await admin.query('SELECT expense_id FROM public.pwa_rebate_settlement_allocations WHERE settlement_id=$1',[victim.id])).rows.map(r=>r.expense_id);
+   const seq=(await admin.query('SELECT coalesce(max(seq),0)::bigint AS s FROM public.pwa_row_changes')).rows[0].s;
+   const r=await deleteSettlement(victim.id),code=outcomeOf(r);
+   if(code==='applied'){
+    // D4: every rebate the settlement paid toward is recorded as changed, also when its link (a newer settlement) stays.
+    const logged=(await admin.query(`SELECT DISTINCT row_key FROM public.pwa_row_changes WHERE table_name='Business Expenses' AND seq>$1 AND row_key=ANY($2::text[])`,[seq,touched])).rows.map(r=>r.row_key).sort();
+    assert.deepEqual(logged,[...touched].sort(),'step '+step+': the change log names every rebate the delete returned to pending');
+   }else assert.ok(victim.offset_payment_id&&code==='dependency_conflict','step '+step+' delete: '+JSON.stringify(r).slice(0,400));
+   kinds.push('delete '+(victim.offset_payment_id?'offset':'pay')+' '+code);
+  }
+  await assertInvariants(s.referrer,'step '+step);
+ }
+ t.diagnostic('seed '+start+': '+kinds.join(' | '));
+ // Everything goes, newest first; every rebate is pending in full again.
+ for(const row of (await admin.query('SELECT id FROM public.pwa_rebate_settlements WHERE payee_borrower_id=$1 ORDER BY created_at DESC',[s.referrer])).rows)assert.equal(outcomeOf(await deleteSettlement(row.id)),'applied');
+ for(const id of ids)assert.equal(await pendingOf(id),300);assert.equal(await owed(s.referrer),'900.00');await assertInvariants(s.referrer,'all deleted');
+ }
+});
+
+test('R184 deleting the older of two settlements of one rebate: the link stays on the newer, the expense is logged, and nothing else sees a null link',async()=>{
+ const s=await scenario();await close(s.loans[0]);const id='rr1:'+s.loans[0];
+ const a=await partCommand(s.referrer,linesOf([[id,100,300]]));assert.equal(outcomeOf(await store.operation(principal,a)),'applied');
+ const b=await partCommand(s.referrer,linesOf([[id,50,200]]));assert.equal(outcomeOf(await store.operation(principal,b)),'applied');
+ const before=await store.expenseRecord(principal,id);assert.deepEqual([before.item.rebateState,before.item.settlementId,before.item.settlements.map(x=>x.settlementId)],['part-paid',b.targetId,[b.targetId,a.targetId]]);
+ // A second connection holds the expense row's lock state open: a closing-payment delete started while the settlement delete
+ // runs waits, then sees the committed link (never the transient null) and is refused with "Remove the settlement first".
+ const seq=(await admin.query('SELECT coalesce(max(seq),0)::bigint AS s FROM public.pwa_row_changes')).rows[0].s;
+ const remove=await paymentDelete(await closing(s.loans[0]));
+ const [removed,refused]=await Promise.all([deleteSettlement(a.targetId),store.operation(principal,remove)]);
+ assert.equal(outcomeOf(removed),'applied',JSON.stringify(removed).slice(0,300));assert.ok(['dependency_conflict','command_busy'].includes(outcomeOf(refused)),JSON.stringify(refused).slice(0,300));
+ assert.ok((await admin.query('SELECT 1 FROM public."Payments" WHERE "Row ID"=$1',[remove.targetId])).rowCount,'the closing payment stays');
+ assert.equal(outcomeOf(await store.operation(principal,await paymentDelete(remove.targetId))),'dependency_conflict','afterwards: Remove the settlement first');
+ const after=await store.expenseRecord(principal,id);
+ assert.deepEqual([after.item.rebateState,after.item.pendingAmount,after.item.settlementId,after.item.settlements.map(x=>[x.settlementId,x.amount])],['part-paid','250.00',b.targetId,[[b.targetId,'50.00']]]);
+ // The expense row itself ends as it was (its version, a hash of the row, is unchanged); its pending amount changed, so the
+ // clear-and-set of the link puts it in the change log (and a new xmin in the offline fingerprint).
+ const log=(await admin.query(`SELECT count(*)::int AS n FROM public.pwa_row_changes WHERE table_name='Business Expenses' AND row_key=$1 AND seq>$2`,[id,seq])).rows[0].n;assert.ok(log>=1,'the expense is in the change log');
+ await assertInvariants(s.referrer,'older deleted');
 });
