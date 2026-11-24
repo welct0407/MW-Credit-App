@@ -18,7 +18,7 @@ Decisions settled before implementation:
 - Thai strings use Echo's drafts and need the owner's or Lisa's wording check before promotion.
 
 ## Changes
-Baseline `8374c998` (`origin/main`, R184 closed) on branch `claude/jolly-brahmagupta-csy64t`. Review report and mock-up CSS: session scratchpad only (see Privacy). The files are Byte's; the list below is the scope, and Dewey fills in the actual files from the diff.
+Baseline `8374c998` (`origin/main`, R184 closed) on branch `claude/jolly-brahmagupta-csy64t`. Review report and mock-up CSS: session scratchpad only (see Privacy). Code batch complete at `08aecf34` (69 files under `apps`, `services` and `tests`, 425 insertions and 191 deletions against the baseline).
 
 | Code | Priority | Change |
 | --- | --- | --- |
@@ -48,18 +48,45 @@ Baseline `8374c998` (`origin/main`, R184 closed) on branch `claude/jolly-brahmag
 | UXR-A11Y-02 | Low | Skip link (click handler and focus, no fragment), Dashboard DOM order made to match the visual order (columns swap at 768 px and wider), "Income MTD" as `h2` |
 | UXR-COPY-01 | Low | Seven copy fixes: assessment type separator, "—" for an empty Address, chat footer wording, payments month row spacing for screen readers, hide WebKit's own search clear button, sentence-case labels, single-language display of stored "EN / TH" values |
 
+Files, from `git diff --stat 8374c998 08aecf34 -- apps services tests`:
+- Styles: `apps/pwa/src/live-style.css`, `apps/pwa/src/chat/chat.css` (BTN-01, FORM-01, FORM-03, REC-01, NAV-01, NAV-02, MGMT-01, MGMT-02, DASH-01, DASH-02, A11Y-01).
+- Buttons, actions and forms: `OperationConfirm.tsx`, `live-main.tsx` (BTN-01, AUTH-01, PWA-01, A11Y-02 skip link), `BorrowerRecord.tsx` (REC-01), `LoanRecord.tsx` (LOAN-02, LOAN-03, MGMT-04), `LoanForm.tsx`, `loan-form-values.ts` (LOAN-03), `SelectedCharges.tsx` (FORM-02), `CollectionRecords.tsx` (COLL-01).
+- Payments and dates: new `bilingual-text.ts`, `display-date.ts`, `PaymentGroups.tsx`, `CompactPager.tsx`, `offline-dataset.ts`, `services/business/record-lists.mjs` (PAY-01, PAY-02, DATE-01, COPY-01 #4 and #7), `ReferrerRecords.tsx`, `ExpenseRecords.tsx`, `LoanRollover.tsx`, `rollover-statement.ts`, `ChargeForm.tsx`, `PaymentCorrectionForm.tsx`.
+- Layout and labels: `Dashboard.tsx`, `live/LiveHeader.tsx`, `WaitingToSyncButton.tsx`, `CashWorkspace.tsx`, `ChargeRecord.tsx` (MGMT-03), `ManagementAssessments.tsx`, the other Management and loan screens, `chat/ChatProposalCard.tsx`, `chat/ChatThreads.tsx`, `chat/chat-text.ts` (COPY-01 #1 to #7).
+- Tests: new `tests/unit/r185-ux-review.test.mjs`; `tests/unit/r136-rollover.test.mjs`; 31 e2e specs updated for the new labels and the delete-loan confirm (`page.once('dialog', ...)`), with new cases in `receiving-ux-independent.spec.ts`.
+
+Deviations and decisions made during implementation:
+- UXR-PAY-01: the borrower line reads "in Oct" without the year; month rows read "Oct 2026".
+- UXR-REC-01 is scoped to the borrower and loan records (`record-captioned-actions`).
+- UXR-A11Y-02: the skip link keeps its `href` so it can take focus, and a click handler prevents the jump.
+- UXR-DATE-01: the date hints sit outside the label on the Loan, Expense, Correct payment, Rollover and Charge forms.
+- Messages that name an action follow the new labels.
+- The main live-dev chunk is 1,001.5 kB against the 1,000 kB warning limit. This is a warning only; nothing gates on it.
+
 Records updated in this preparation step (Dewey):
 - [Release tracker](../project/Documents/Release_Tracker.md): R185 row added.
 - [Development Changes](../project/Documents/Development_Changes.md): R185 entry added.
 - [Read service notes](../docs/Development_Read_Service.md) and the PWA API dictionary (`systems/pwa/human-api.yaml`): the three payment-groups fields. [Solution design](../project/Documents/Solution_Design.md): an R185 paragraph and the Direct Loan Delete sentence; [PWA system guide](../project/Documents/Data%20Dictionary/systems/pwa/application.yaml), `direct_loan_delete.submission`; [Project README](../project/README.md), the R061 row: each now says the loan delete asks once first (R185, Open).
 
 ## Checks
-| Command | Result |
-| --- | --- |
-| (to be filled by Byte and Chase, each check once, with the commit or CI run) | – |
+| Who | Command | Result | Commit |
+| --- | --- | --- | --- |
+| Byte | lint, type check, `npm run build`, `npx vite build --mode live-dev`, `npm test` | Pass; `npm test` 1,443 passed, 1 skipped | final `08aecf34` tree, uncommitted at the time |
+| Byte | targeted Playwright on desktop-chromium: LOAN-02 direct delete (4), FORM-02, phase5-final-ui (5), loan-form-defaults (4); after the fixes 20 targeted including the new skip-link test, borrower-search (3), Correct payment (2) | Pass | – |
+| Byte | targeted Playwright on mobile-webkit: rollover, expense (2); 5 tests | Pass | `08aecf34` |
+| Byte | PAY-01 SQL on a throwaway local PostgreSQL | Pass | – |
+| Chase | PAY-01 SQL on disposable PostgreSQL 16 | Pass | `b5dc8be7` |
+| Chase | first round: desktop-chromium 68 pass, 4 fail; mobile-webkit 38 pass, 2 fail, 10 skipped | Findings D1 to D4, all fixed in `08aecf34` | `b5dc8be7` |
+| Chase | adversarial diff review | Clean apart from D1 to D4 | `b5dc8be7` |
+| Echo | local-build visual check, iPhone WebKit, desktop, iPad | 20 OK; 6 follow-ups (PAY-02-R1, BTN-01-R1, MGMT-03-R1, DATE-01-R1 and R2, COPY-01-R1), all fixed | `b5dc8be7` |
+| Chase | fix-delta re-check | Pending | – |
+| CI | pull request `Development checks` | Pending | – |
+| Dewey | `npm run check:docs` | 0 failures, 0 warnings (before the final line of this note) | – |
 
 ## Not run
-Nothing has been run for this batch yet. Known gaps already: the iPhone Home Screen app (installation, safe areas, on-screen keyboard, the loan delete confirm dialog as a standalone app), VoiceOver and Dynamic Type, and real Thai typography are not covered by Playwright WebKit on Linux.
+- UXR-PAY-01 against the real service: DEV is on R184, so one DEV read after the deploy.
+- UXR-LOAN-03 on a Fixed due date loan.
+- Nothing after a submit, and no real-iPhone check: the iPhone Home Screen app (installation, safe areas, on-screen keyboard, the delete confirm as a standalone app), VoiceOver, Dynamic Type and real Thai typography are not covered by Playwright WebKit on Linux.
 
 ## Recovery
 Git baseline `8374c998` (R184 closed). A frontend-only revert restores the previous behaviour. UXR-PAY-01's read addition is additive; a rollback of its service image leaves the PWA without the new line, which the PWA hides when the fields are missing. No SQL, no backup needed.
