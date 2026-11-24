@@ -1046,6 +1046,9 @@ button.ph-row{cursor:pointer}button.ph-row:active{background:#f1f1f1}
 :where(.live-shell main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=hidden]),textarea)){border:1px solid #b9bfc5;border-radius:6px;padding:8px 12px;background-color:#fff;color:#222;min-height:44px;box-sizing:border-box}
 :where(.live-shell main :is(input,textarea,select):focus-visible){border-color:#713c00}
 :where(.live-shell main input:is([type=checkbox],[type=radio])){accent-color:#713c00}
+/* The Collection note keeps its own 2px vertical padding (R182): FORM-01's 8px made it 4px taller, so on an iPhone the
+   closed payment history left the page 4px taller than the screen and WebKit no longer kept the history button in place. */
+.collection-note textarea{padding:2px 8px}
 /* The narrow allocation and amount fields keep room for six digits. */
 .payment-allocation-row input:not([type=checkbox]),.payment-received-input input{padding-inline:8px}
 /* UXR-DATE-01: the app-format date beside a native date field (the field keeps the device's own format). */
@@ -1094,7 +1097,9 @@ button.ph-row{cursor:pointer}button.ph-row:active{background:#f1f1f1}
 .live-shell .borrower-direct-actions .borrower-detail-chat:has(>.record-action-label){width:auto;gap:6px;padding:0 10px}
 @media (max-width:767px){
  .live-shell .borrower-record>.related-loans-heading>.record-captioned-actions:not(#_){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;flex:1 0 100%;max-width:100%;justify-self:stretch;margin:8px 0 0}
- .live-shell .record-captioned-actions :is(.record-action,.borrower-detail-chat):not(#_){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:auto;height:auto;min-width:0;min-height:58px;flex:1 1 auto;margin:0;padding:6px 4px;border:1px solid #c9ced3;border-radius:8px;background:#fff;text-decoration:none}
+ .live-shell .record-captioned-actions :is(.record-action,.borrower-detail-chat):not(#_){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:auto;height:auto;min-width:0;min-height:58px;flex:1 1 auto;margin:0;padding:6px 4px;background:#fff;text-decoration:none}
+ .live-shell .record-captioned-actions .record-action:not(#_){border:1px solid #c9ced3;border-radius:8px}
+ /* The chat link keeps its own R161 border (blue group, pink direct message). */
  .live-shell .record-captioned-actions .record-action-label:not(#_){display:block;font-size:12px;line-height:1.2;text-align:center;overflow-wrap:anywhere}
  .live-shell .record-captioned-actions .destructive-action:not(#_){border-color:#b3261e;color:#b3261e}
 }

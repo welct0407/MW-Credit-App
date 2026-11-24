@@ -79,14 +79,17 @@ Records updated in this preparation step (Dewey):
 | Chase | first round: desktop-chromium 68 pass, 4 fail; mobile-webkit 38 pass, 2 fail, 10 skipped | Findings D1 to D4, all fixed in `08aecf34` | `b5dc8be7` |
 | Chase | adversarial diff review | Clean apart from D1 to D4 | `b5dc8be7` |
 | Echo | local-build visual check, iPhone WebKit, desktop, iPad | 20 OK; 6 follow-ups (PAY-02-R1, BTN-01-R1, MGMT-03-R1, DATE-01-R1 and R2, COPY-01-R1), all fixed | `b5dc8be7` |
-| Chase | fix-delta re-check | Pending | – |
-| CI | pull request `Development checks` | Pending | – |
+| Chase | fix-delta re-check: phase5-borrower `:406` and `:474`, upcoming-read `:75`, loan-rollover `:42` on desktop-chromium | Pass, 4/4 | `08aecf34` |
+| CI | pull request `Development checks`, [run 45511306647](https://github.com/welct0407/MW-Credit-App/actions/runs/45511306647) | Failed on 3 tests, fixed in the next commit: (1) `borrower-chat-button.spec.ts:136` pinned the old "New loan" class list (spec updated); Byte also found a product bug there, the REC-01 phone grid had overridden the borrower chat link's pink and blue border, now restored; (2) the W5 Delete margin on phones: below 768 px the spec checks the red border, the grid and a gap of at least 6 px, and the 12 px margin check stays from 768 px up; (3) R182 `payment-history.spec.ts:35` on mobile-webkit: FORM-01's 8 px padding made the Collection note textarea 4 px taller, fixed with `.collection-note textarea{padding:2px 8px}` and confirmed against `8374c998` | `88203156` |
+| CI | rerun on the fixed commit | Pending | – |
 | Dewey | `npm run check:docs` | 0 failures, 0 warnings (before the final line of this note) | – |
 
 ## Not run
 - UXR-PAY-01 against the real service: DEV is on R184, so one DEV read after the deploy.
 - UXR-LOAN-03 on a Fixed due date loan.
 - Nothing after a submit, and no real-iPhone check: the iPhone Home Screen app (installation, safe areas, on-screen keyboard, the delete confirm as a standalone app), VoiceOver, Dynamic Type and real Thai typography are not covered by Playwright WebKit on Linux.
+
+Known flaky test: `collection-read.spec.ts:228` on mobile-webkit fails intermittently on `8374c998` (1 of 6 runs) and on R185 (2 of 6). It predates this batch and is not caused by it.
 
 ## Recovery
 Git baseline `8374c998` (R184 closed). A frontend-only revert restores the previous behaviour. UXR-PAY-01's read addition is additive; a rollback of its service image leaves the PWA without the new line, which the PWA hides when the fields are missing. No SQL, no backup needed.

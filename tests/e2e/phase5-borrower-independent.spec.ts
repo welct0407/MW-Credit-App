@@ -551,7 +551,10 @@ test('F11 UI standalone Upcoming date groups exact detail scope global refresh e
 test('W5 borrower record: distinct Delete, named referrer, 44px checkbox rows and Save/Cancel kept in reach on phones',async({page})=>{
  await setup(page);await full(page);const mobile=page.viewportSize()!.width<=1050;
  const remove=page.getByRole('button',{name:'Delete borrower',exact:true});await expect(remove).toHaveCSS('color','rgb(179, 38, 30)');
- expect(await remove.evaluate(e=>parseFloat(getComputedStyle(e).marginInlineStart))).toBeGreaterThanOrEqual(12);
+ // R185 UXR-REC-01: below 768px the captioned actions are a three-column grid and Delete is its own red-outlined cell, at
+ // least 6px from its neighbour; from 768px the captions row keeps the 12px margin.
+ if(page.viewportSize()!.width<768){const grid=await remove.evaluate(e=>{const r=e.getBoundingClientRect(),p=e.previousElementSibling!.getBoundingClientRect();return{display:getComputedStyle(e.parentElement!).display,border:getComputedStyle(e).borderTopColor,gap:Math.max(r.left-p.right,r.top-p.bottom)}});expect(grid.display).toBe('grid');expect(grid.border).toBe('rgb(179, 38, 30)');expect(grid.gap).toBeGreaterThanOrEqual(6)}
+ else expect(await remove.evaluate(e=>parseFloat(getComputedStyle(e).marginInlineStart))).toBeGreaterThanOrEqual(12);
  await page.getByRole('button',{name:'Edit borrower',exact:true}).click();
  await expect(page.getByRole('combobox',{name:'Referrer',exact:true})).toBeVisible();
  for(const name of ['AI Collection Enabled','Hide from Borrowers List']){const box=page.getByRole('checkbox',{name,exact:true});const geometry=await box.evaluate(e=>{const r=e.getBoundingClientRect(),row=e.closest('label')!.getBoundingClientRect();return {width:r.width,height:r.height,row:row.height}});expect(geometry).toMatchObject({width:24,height:24});expect(geometry.row).toBeGreaterThanOrEqual(44);const before=await box.isChecked(),row=page.locator('label').filter({has:box});await row.evaluate(e=>e.scrollIntoView({block:'center'}));await row.click({position:{x:8,y:8}});await expect(box).toBeChecked({checked:!before});await row.click({position:{x:8,y:8}});await expect(box).toBeChecked({checked:before})}
