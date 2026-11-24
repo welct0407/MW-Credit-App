@@ -1,7 +1,7 @@
 # Change notes — PROD cleanup of three zero-amount charges, 10 November 2026
 
 ## Purpose
-The owner asked why one borrower still had 3 zero-amount charges after the [9 November weekly replacement plan](CHANGE_NOTES_PROD_WEEKLY_REPLACEMENT_PLAN_2026-11-09.md), and to engage the team and delete them properly. Authority: the owner's chat instruction of 10 November 2026 ("engage the team and delete them properly"; "go ahead once Chase confirms"). It covers this one deletion only.
+The owner asked why one borrower still had 3 zero-amount charges after the [9 November weekly replacement plan](https://github.com/welct0407/MW-Credit-App/blob/f14ddaca/Change%20Logs/CHANGE_NOTES_PROD_WEEKLY_REPLACEMENT_PLAN_2026-11-09.md), and to engage the team and delete them properly. Authority: the owner's chat instruction of 10 November 2026 ("engage the team and delete them properly"; "go ahead once Chase confirms"). It covers this one deletion only.
 
 ## Changes
 - Why they existed: on 9 November the 3 charges could not be deleted, because 3 zero-amount `Payment Allocations` rows from 2 posted September payments referenced them through foreign key `appsheet_ref_11`. They were set to zero and kept.

@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r154-20261114/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r184-20261124/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "2fc76d31ed592244afee120191d5692c8265fc4f"
+    "commit": "8540b873b3ac7bc25f14a0522bba7a2a7518770e"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-operation-v2-canonical-json-text-cc36a6de.yaml"
     "identity":
       "system": "postgresql"
@@ -97,8 +97,41 @@
       \ /* R140 V145 */) THEN RAISE EXCEPTION 'expense paid date';END IF; /* R140 V144: a paid date is a valid date and needs\
       \ an account */ /* R140 V143: a borrower payee carries no typed name */\r\n ELSIF op='rebate-settlement.create' THEN\n\
       \ -- R129: whole pending rebates of one referrer (1 to 200 distinct expense ids, ascending), date, Lisa's account, method,\n\
-      \ -- optional bank reference (Bank Transfer only) and notes.\n IF (SELECT array_agg(key ORDER BY key COLLATE \"C\")\
-      \ FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['bankReference','cashAccountId','expenseIds','notes','paymentMethod','referrerId','settlementDate']\
+      \ -- optional bank reference (Bank Transfer only) and notes.\n IF i ? 'allocations' THEN\n -- R184: 1 to 200 lines {expenseId,\
+      \ amount, expectedPending} ascending by expense id (whole-baht strings of at least 1), the\n -- destination ('referrer':\
+      \ Lisa's account, method, optional bank reference; 'offset': those three null and the plan hash).\n IF (SELECT array_agg(key\
+      \ ORDER BY key COLLATE \"C\") FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['allocations','bankReference','cashAccountId','destination','expectedPlanHash','notes','paymentMethod','referrerId','settlementDate']\
+      \ THEN RAISE EXCEPTION 'settlement keys';END IF;\n IF jsonb_typeof(i->'referrerId') IS DISTINCT FROM 'string' OR octet_length(i->>'referrerId')\
+      \ NOT BETWEEN 1 AND 256 OR i->>'referrerId'~'[[:cntrl:]]'\n  OR jsonb_typeof(i->'destination') IS DISTINCT FROM 'string'\
+      \ OR i->>'destination' NOT IN('referrer','offset')\n  OR jsonb_typeof(i->'settlementDate') IS DISTINCT FROM 'string'\
+      \ OR i->>'settlementDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'settlementDate')::date)::text<>i->>'settlementDate'\n\
+      \  OR jsonb_typeof(i->'notes') NOT IN('string','null') OR coalesce(octet_length(i->>'notes'),0)>65536\n  OR jsonb_typeof(i->'cashAccountId')\
+      \ NOT IN('string','null') OR jsonb_typeof(i->'paymentMethod') NOT IN('string','null') OR jsonb_typeof(i->'bankReference')\
+      \ NOT IN('string','null') OR jsonb_typeof(i->'expectedPlanHash') NOT IN('string','null')\n  OR jsonb_typeof(i->'allocations')\
+      \ IS DISTINCT FROM 'array' OR jsonb_array_length(i->'allocations') NOT BETWEEN 1 AND 200\n THEN RAISE EXCEPTION 'settlement\
+      \ input';END IF;\n IF i->>'destination'='offset' THEN\n  IF i->'cashAccountId'<>'null'::jsonb OR i->'paymentMethod'<>'null'::jsonb\
+      \ OR i->'bankReference'<>'null'::jsonb OR i->>'expectedPlanHash' IS NULL OR i->>'expectedPlanHash'!~'^[a-f0-9]{64}$'\
+      \ THEN RAISE EXCEPTION 'settlement offset';END IF;\n ELSIF i->>'cashAccountId' IS NULL OR octet_length(i->>'cashAccountId')\
+      \ NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]'\n  OR i->>'paymentMethod' IS NULL OR i->>'paymentMethod'\
+      \ NOT IN('Bank Transfer','Cash') OR i->'expectedPlanHash'<>'null'::jsonb\n  OR (i->'bankReference'<>'null'::jsonb AND\
+      \ (octet_length(i->>'bankReference') NOT BETWEEN 1 AND 256 OR btrim(i->>'bankReference')='' OR i->>'bankReference'~'[\\\
+      r\\n]' OR i->>'paymentMethod'<>'Bank Transfer'))\n THEN RAISE EXCEPTION 'settlement payment';END IF;\n IF EXISTS(SELECT\
+      \ 1 FROM jsonb_array_elements(i->'allocations') x WHERE jsonb_typeof(x) IS DISTINCT FROM 'object') THEN RAISE EXCEPTION\
+      \ 'settlement line';END IF;\n IF EXISTS(SELECT 1 FROM jsonb_array_elements(i->'allocations') x WHERE (SELECT array_agg(key\
+      \ ORDER BY key COLLATE \"C\") FROM jsonb_object_keys(x) key) IS DISTINCT FROM ARRAY['amount','expectedPending','expenseId']\n\
+      \   OR jsonb_typeof(x->'expenseId') IS DISTINCT FROM 'string' OR octet_length(x->>'expenseId') NOT BETWEEN 1 AND 256\
+      \ OR x->>'expenseId'~'[[:cntrl:]]'\n   OR jsonb_typeof(x->'amount') IS DISTINCT FROM 'string' OR x->>'amount'!~'^[1-9][0-9]{0,11}$'\
+      \ OR jsonb_typeof(x->'expectedPending') IS DISTINCT FROM 'string' OR x->>'expectedPending'!~'^[1-9][0-9]{0,11}$')\n\
+      \  OR EXISTS(SELECT 1 FROM jsonb_array_elements(i->'allocations') WITH ORDINALITY x(v,n) JOIN jsonb_array_elements(i->'allocations')\
+      \ WITH ORDINALITY y(v,n) ON y.n=x.n+1 WHERE NOT ((x.v->>'expenseId') COLLATE \"C\"<(y.v->>'expenseId') COLLATE \"C\"\
+      ))\n THEN RAISE EXCEPTION 'settlement line';END IF;\n input_text:='{\"referrerId\":'||to_json(i->>'referrerId')::text||',\"\
+      destination\":'||to_json(i->>'destination')::text||',\"allocations\":['\n  ||(SELECT string_agg('{\"expenseId\":'||to_json(x.v->>'expenseId')::text||',\"\
+      amount\":'||to_json(x.v->>'amount')::text||',\"expectedPending\":'||to_json(x.v->>'expectedPending')::text||'}',','\
+      \ ORDER BY x.n) FROM jsonb_array_elements(i->'allocations') WITH ORDINALITY x(v,n))\n  ||'],\"settlementDate\":'||to_json(i->>'settlementDate')::text||',\"\
+      cashAccountId\":'||coalesce(to_json(i->>'cashAccountId')::text,'null')||',\"paymentMethod\":'||coalesce(to_json(i->>'paymentMethod')::text,'null')\n\
+      \  ||',\"bankReference\":'||coalesce(to_json(i->>'bankReference')::text,'null')||',\"notes\":'||coalesce(to_json(i->>'notes')::text,'null')||',\"\
+      expectedPlanHash\":'||coalesce(to_json(i->>'expectedPlanHash')::text,'null')||'}';\n ELSE\n IF (SELECT array_agg(key\
+      \ ORDER BY key COLLATE \"C\") FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['bankReference','cashAccountId','expenseIds','notes','paymentMethod','referrerId','settlementDate']\
       \ THEN RAISE EXCEPTION 'settlement keys';END IF;\n IF jsonb_typeof(i->'referrerId') IS DISTINCT FROM 'string' OR octet_length(i->>'referrerId')\
       \ NOT BETWEEN 1 AND 256 OR i->>'referrerId'~'[[:cntrl:]]'\n  OR jsonb_typeof(i->'cashAccountId') IS DISTINCT FROM 'string'\
       \ OR octet_length(i->>'cashAccountId') NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]'\n  OR jsonb_typeof(i->'settlementDate')\
@@ -115,8 +148,8 @@
       :'||to_json(i->>'referrerId')::text||',\"expenseIds\":['||(SELECT string_agg(to_json(x.v)::text,',' ORDER BY x.n) FROM\
       \ jsonb_array_elements_text(i->'expenseIds') WITH ORDINALITY x(v,n))\n  ||'],\"settlementDate\":'||to_json(i->>'settlementDate')::text||',\"\
       cashAccountId\":'||to_json(i->>'cashAccountId')::text||',\"paymentMethod\":'||to_json(i->>'paymentMethod')::text\n \
-      \ ||',\"bankReference\":'||coalesce(to_json(i->>'bankReference')::text,'null')||',\"notes\":'||coalesce(to_json(i->>'notes')::text,'null')||'}';\n\
-      \ ELSIF op='payment.correct' THEN input_text:=public.pwa_payment_correction_text_v2(i);IF (i->>'receiptMode'='replace')\
+      \ ||',\"bankReference\":'||coalesce(to_json(i->>'bankReference')::text,'null')||',\"notes\":'||coalesce(to_json(i->>'notes')::text,'null')||'}';\
+      \ END IF;\n ELSIF op='payment.correct' THEN input_text:=public.pwa_payment_correction_text_v2(i);IF (i->>'receiptMode'='replace')\
       \ IS DISTINCT FROM (r<>'null'::jsonb) THEN RAISE EXCEPTION 'receipt mode';END IF;\r\n ELSIF op='payment.move-interest'\
       \ THEN IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['allocationId','targetChargeId']\
       \ THEN RAISE EXCEPTION 'move keys';END IF;FOREACH k IN ARRAY ARRAY['allocationId','targetChargeId'] LOOP IF jsonb_typeof(i->k)\

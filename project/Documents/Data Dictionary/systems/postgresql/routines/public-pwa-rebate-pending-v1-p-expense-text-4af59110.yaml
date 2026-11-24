@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r131-20261105/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r184-20261124/production-postgresql-observations.json"
   "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "8540b873b3ac7bc25f14a0522bba7a2a7518770e"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-rebate-pending-v1-p-expense-text-4af59110.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.pwa_rebate_pending_v1(p_expense text)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -24,8 +33,9 @@
        STABLE
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
-       SELECT CASE WHEN x."Rule Version"='REFERRAL_REBATE_V3' AND x."Ref Rebate Settlement" IS NULL
-         THEN greatest(x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0),0) ELSE 0 END
+       SELECT CASE WHEN x."Rule Version"='REFERRAL_REBATE_V3'
+         THEN greatest(x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0)
+          -coalesce((SELECT sum(a.amount) FROM public.pwa_rebate_settlement_allocations a WHERE a.expense_id=x."Row ID"),0),0) ELSE 0 END -- R184
        FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment"
        WHERE x."Row ID"=p_expense AND x."Source Type"='Referral Rebate';
       $function$
@@ -41,7 +51,7 @@
     "settings":
     - "search_path=pg_catalog, public"
     "acl": "{postgres=X/postgres,mw_app_prod=X/postgres,mw_notify_owner_prod=X/postgres}"
-    "comment": "R129: the pending (unpaid) amount of a referral rebate expense: REFERRAL_REBATE_V3, not linked to a settlement,\
-      \ Amount less its offset payment; 0 for offset-only, paid and legacy rows; null for an unknown or non-referral expense.\
-      \ Read only."
+    "comment": "R129/R184: the pending (unpaid) amount of a referral rebate expense: REFERRAL_REBATE_V3, Amount less its close-time\
+      \ offset payment less the amounts settlements applied to it (pwa_rebate_settlement_allocations); 0 for offset-only,\
+      \ paid and legacy rows; null for an unknown or non-referral expense. Read only."
     "extension": null
