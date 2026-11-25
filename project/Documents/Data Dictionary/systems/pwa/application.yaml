@@ -342,7 +342,7 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/a4fc75d8c9d421f2b70b0b68019bcbf360a0006c/apps/pwa/src/live-style.css"
   "direct_loan_delete":
     "submission": "Loan Delete submits the existing online operation without a durable pending queue, after one native confirm (R185,\
-      \ Open; no confirm screen, and none when a stored delete request is being recovered). If scoped session recovery metadata cannot be retained, no POST is sent."
+      \ Released; no confirm screen, and none when a stored delete request is being recovered). If scoped session recovery metadata cannot be retained, no POST is sent."
     "recovery": "Session key scopes owner/environment/loan and stores only request UUID plus expected version. Reopen automatically\
       \ checks GET status without reposting; explicit retry uses the sameUUID only after unresolved status. Applied returns\
       \ to prior view; known rejection displays its actual stable reason."
