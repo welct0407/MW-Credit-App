@@ -21,6 +21,16 @@ export const receiptStage=(state:{preparing?:boolean;uploading?:boolean;reading?
  state.preparing?'preparing':state.uploading?'uploading':state.reading?'reading':state.offline?'offline':null;
 export const slowAfter=(stage:ReceiptStage):number|null=>stage==='uploading'?UPLOAD_SLOW_MS:stage==='reading'?READING_SLOW_MS:null;
 
+/** R186 (owner): the receipt status line's tone. In progress (uploading, reading) is info; a slip read and filled is success; a
+ * slip not read, not a completed transfer (unconfirmed) or failed is warning; a receipt kept on the device is neutral; preparing
+ * and no status have no tone (the line is empty). */
+export type ReceiptTone='info'|'success'|'warning'|'neutral';
+export function receiptTone(stage:ReceiptStage,phase:string|null|undefined):ReceiptTone|null{
+ if(stage==='uploading'||stage==='reading')return 'info';
+ if(stage==='offline')return 'neutral';
+ if(stage==='preparing')return null;
+ return phase==='reading'?'info':phase==='failed'||phase==='unconfirmed'?'warning':phase==='done'?'success':null;
+}
 /** R142-UX-06 copy: "receipt/หลักฐาน" before reading, "slip/สลิป" while reading; '' while preparing; null without a stage. */
 export function receiptStageText(stage:ReceiptStage,slow:boolean,thai:boolean):string|null{
  const t=(en:string,th:string)=>thai?th:en;
