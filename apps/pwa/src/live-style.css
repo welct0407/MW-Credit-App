@@ -1071,13 +1071,26 @@ button.ph-row{cursor:pointer}button.ph-row:active{background:#f1f1f1}
  .live-desktop-nav .live-vertical-nav button{white-space:nowrap}
  :lang(th) .live-desktop-nav .live-vertical-nav button{white-space:normal}
 }
-/* UXR-DASH-01: two KPI columns on phones from 400 px; the two cash-pool figures keep their full rows (.dashboard-wide). */
-.live-shell .dashboard-section dl>.dashboard-wide{grid-column:1/-1}
+/* UXR-DASH-01: two KPI columns on phones from 400 px. R186 (owner): below 768 px Total and Available Cash Pool share one row,
+   like the other pairs (at 320-399 px their group alone is two columns); from 768 px they keep their full rows (.dashboard-wide).
+   A long figure wraps inside its half instead of overflowing. */
+@media (min-width:768px){.live-shell .dashboard-section dl>.dashboard-wide{grid-column:1/-1}}
+@media (max-width:399px){
+ .live-shell .dashboard-section dl:has(>.dashboard-wide){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin-block:10px}
+ .live-shell .dashboard-section dl:has(>.dashboard-wide)>div{min-width:0;display:flex;flex-direction:column;justify-content:space-between}
+ .live-shell .dashboard-section dl:has(>.dashboard-wide) dt{font-size:14px;line-height:1.3}
+ .live-shell .dashboard-section dl:has(>.dashboard-wide) dd{margin:2px 0 0;font-size:21px;line-height:1.25;overflow-wrap:anywhere}
+}
+/* R186 UXR186-DASH-01: a half is (width − 90)/2 px; -฿1,250,000 needs 134px at 21px (from 358px wide) and 128px at 20px (from
+   346px), so only below 360px the pair's figures drop to 18px (115px, fits at 320px). From 360px they keep the 21px DASH-01
+   size and the 20px typography minimum. */
+@media (max-width:359px){.live-shell .dashboard-section dl:has(>.dashboard-wide) dd{font-size:18px}}
 @media (min-width:400px) and (max-width:767px){
  .live-shell .dashboard-section dl:has(>div){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin-block:10px}
- .live-shell .dashboard-section dl:has(>div)>div{min-width:0}
+ /* R186 UXR186-DASH-02: in a pair, the labels stay on top and the figures align along the bottom when one label wraps. */
+ .live-shell .dashboard-section dl:has(>div)>div{min-width:0;display:flex;flex-direction:column;justify-content:space-between}
  .live-shell .dashboard-section dl:has(>div) dt{font-size:14px;line-height:1.3}
- .live-shell .dashboard-section dl:has(>div) dd{margin:2px 0 0;font-size:21px;line-height:1.25}
+ .live-shell .dashboard-section dl:has(>div) dd{margin:2px 0 0;font-size:21px;line-height:1.25;overflow-wrap:anywhere}
 }
 /* UXR-DASH-02: from 1200 px the first card's figures use four columns; the cash-pool figures sit side by side. */
 @media (min-width:1200px){
@@ -1124,3 +1137,15 @@ p.cash-table-empty{margin:0;padding:8px 0}
 .skip-link{position:absolute;left:8px;top:-60px;z-index:100;padding:10px 14px;background:#fff;color:#222;border:2px solid #444;border-radius:6px;text-decoration:underline}
 .skip-link:focus{top:8px}
 .live-shell main:focus{outline:none}
+/* R186 (owner): the receipt status line of Receive payment and Close loan, a toned box with a leading icon (spinner while in
+   progress; the spinner turns only without prefers-reduced-motion). Text on fill: info 9.3:1, success 7.5:1, warning 8.2:1,
+   neutral 11.8:1. Empty, it takes no space and draws nothing but stays the same live region. */
+.receipt-status{display:flex;align-items:flex-start;gap:8px;margin:8px 0;padding:10px 12px;border:1px solid transparent;border-left-width:4px;border-radius:6px;font-size:15px;line-height:1.4;font-weight:600;overflow-wrap:anywhere}
+.receipt-status:empty{display:block;margin:0;padding:0;border:0;background:none}
+.receipt-status[data-tone=info]{background:#e8f1fb;border-color:#b9d2ef;border-left-color:#1a5fb4;color:#123f73}
+.receipt-status[data-tone=success]{background:#e9f6ee;border-color:#b7dfc4;border-left-color:#16803b;color:#0f5a2a}
+.receipt-status[data-tone=warning]{background:#fff8e1;border-color:#ecd9a0;border-left-color:#b26a00;color:#5a4a00}
+.receipt-status[data-tone=neutral]{background:#f2f2f2;border-color:#d0d4d8;border-left-color:#6b7178;color:#303030}
+.receipt-status-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:21px}
+.receipt-status-icon .app-icon{width:20px;height:20px}
+.receipt-status-icon .collection-spinner{flex-basis:16px;width:16px;height:16px;border-color:#9dbbe0;border-top-color:currentColor}

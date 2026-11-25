@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
 import {createRecognizerClient,RECOGNITION_UPSTREAM_TIMEOUT_MS} from '../../services/receipts/recognizer-client.mjs';
-import {RECOGNITION_DEADLINE_MS,UPLOAD_SLOW_MS,READING_SLOW_MS,receiptStage,receiptStageText,watchSlow} from '../../apps/pwa/src/recognition-timing.ts';
+import {RECOGNITION_DEADLINE_MS,UPLOAD_SLOW_MS,READING_SLOW_MS,receiptStage,receiptStageText,receiptTone,watchSlow} from '../../apps/pwa/src/recognition-timing.ts';
 
 // R077 timing chain: the agent recognizer gives up at 42 s, the command route waits for it up to 45 s and the
 // PWA waits up to 60 s, so each layer answers before the one above it gives up.
@@ -80,14 +80,16 @@ test('R142 offline: the receipt is kept on the device, sent later and not read',
 test('R142 one status element per form, reused in place, focus never moved, picker aria-busy kept',async()=>{
  const receive=await pwa('SelectedCharges.tsx'),close=await pwa('LoanClose.tsx'),correction=await pwa('PaymentCorrectionForm.tsx'),manual=await pwa('PaymentResult.tsx'),picker=await pwa('ReceiptPicker.tsx');
  // Receive payment: the reading/failed/unconfirmed/result lines are one always-rendered element whose text changes.
- const line=receive.match(/ <p className=\{'field-help'\+\(!stage&&recognized\?' recognition-note':''\)\} role="status"[^\n]*/)?.[0];
+ // R186: the element is the shared ReceiptStatus (one role="status" paragraph, toned, no focus).
+ const line=receive.match(/ <ReceiptStatus tone=\{statusEmpty\?null:receiptTone\(stage,recognition\?\.phase\)\} className=\{!stage&&recognized\?'recognition-note':undefined\}>[^\n]*/)?.[0];
  assert.ok(line,'the receiving form keeps one status element');
  assert.doesNotMatch(receive,/recognition\?\.phase==='(reading|failed|unconfirmed)'&&<p/);
  assert.doesNotMatch(receive,/\{recognized&&<p className="field-help recognition-note" role="status">/);
  assert.match(line,/\{stage\?stageText:/);assert.doesNotMatch(line,/focus/);
  assert.match(receive,/offline:queueEnabled&&\(!!access\.offlineOnly\|\|!online\)&&!!localImage&&!receipt/);
  // Close Loan: the status and summary lines are one element.
- assert.match(close,/<p className=\{'field-help'\+\(!stage&&slipNotes\.summary\?' recognition-note':''\)\} role="status" style=\{statusText\?undefined:\{margin:0\}\}>\{statusText\}<\/p>/);
+ assert.match(close,/<ReceiptStatus tone=\{statusText\?receiptTone\(stage,recognition\?\.phase\):null\} className=\{!stage&&slipNotes\.summary\?'recognition-note':undefined\}>\{statusText\}<\/ReceiptStatus>/);
+ const status=await pwa('ReceiptStatus.tsx');assert.match(status,/<p className=\{'receipt-status'[^>]*role="status">/);assert.doesNotMatch(status,/\.focus\(/);
  assert.doesNotMatch(close,/\{slipNotes\.(status|summary)&&<p/);
  // Correction and manual receipt: Uploading and the slow-upload message only, directly above the picker.
  for(const [name,source,flag] of [['correction',correction,'uploading'],['manual receipt',manual,'uploading:uploadingReceipt']]){
@@ -142,4 +144,10 @@ test('R142 regression: the default slow timers are called as plain functions (br
  globalThis.clearTimeout=function(id){if(this!==undefined&&this!==globalThis)throw new TypeError('Illegal invocation');calls.push('clear '+id)};
  try{watchSlow('uploading',()=>{})();watchSlow('reading',()=>{})()}finally{globalThis.setTimeout=realSet;globalThis.clearTimeout=realClear}
  assert.deepEqual(calls,[UPLOAD_SLOW_MS,'clear 7',READING_SLOW_MS,'clear 7']);
+});
+
+test('R186 receipt status tone: in progress info, read success, not read or unconfirmed warning, kept on device neutral',()=>{
+ assert.equal(receiptTone('uploading',null),'info');assert.equal(receiptTone('reading','reading'),'info');assert.equal(receiptTone(null,'reading'),'info');
+ assert.equal(receiptTone('offline',null),'neutral');assert.equal(receiptTone('preparing','done'),null);
+ assert.equal(receiptTone(null,'done'),'success');assert.equal(receiptTone(null,'failed'),'warning');assert.equal(receiptTone(null,'unconfirmed'),'warning');assert.equal(receiptTone(null,null),null);
 });
