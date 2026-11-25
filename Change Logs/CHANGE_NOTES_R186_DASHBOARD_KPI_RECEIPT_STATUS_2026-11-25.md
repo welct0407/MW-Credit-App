@@ -14,7 +14,7 @@ Baseline `c75f3148` (`main`, R185 closed) on branch `claude/jolly-brahmagupta-cs
 - Dashboard: remove "Pending Payment Amount" from the first KPI group; the remaining four KPIs keep their order and layout.
 - Dashboard on iPhone (owner override of R185 UXR-DASH-01): "Total Cash Pool" and "Available Cash Pool" share one row on phones; tablet (768 px and wider) and desktop keep their current layout.
 - Receipt processing: the status text of the automatic receipt flow for a payment or a loan close is a prominent status element with a tone (info, success, warning, neutral); the R142-UX-05 and R142-UX-08 contract of the status element is kept.
-- Files: new `apps/pwa/src/ReceiptStatus.tsx`; `receiptTone` in `recognition-timing.ts`; the `.receipt-status[data-tone]` rules in `live-style.css`; the Dashboard edits (`Dashboard.tsx` and its CSS). Echo's two refinements (`14b31fa4`): UXR186-DASH-01, the cash-pool figures were 18 px below 400 px; UXR186-DASH-02, the figures are aligned along the bottom.
+- Files: new `apps/pwa/src/ReceiptStatus.tsx`; `ReferrerRecords.tsx` (rows stay enabled while the list refreshes, a CI fix); `receiptTone` in `recognition-timing.ts`; the `.receipt-status[data-tone]` rules in `live-style.css`; the Dashboard edits (`Dashboard.tsx` and its CSS). Echo's two refinements (`14b31fa4`): UXR186-DASH-01, the cash-pool figures were 18 px below 400 px (CI then required 20 px or more, so they are 21 px down to 360 px); UXR186-DASH-02, the figures are aligned along the bottom.
 - Records (Dewey): [Release tracker](../project/Documents/Release_Tracker.md) and [Development Changes](../project/Documents/Development_Changes.md) entries; the documentation pass against the final diff.
 
 ## Checks
@@ -27,11 +27,15 @@ Baseline `c75f3148` (`main`, R185 closed) on branch `claude/jolly-brahmagupta-cs
 | Chase | adversarial review: the status element keeps the R142-UX-05/08 contract, the tone mapping covers every stage and phase, no command logic changed, the KPI removal is clean | Pass, no defects | `875af188` |
 | Chase | `receipt-recognition-independent` and `unified-receiving-independent` on mobile-webkit | 28 passed | `875af188` |
 | Echo | local-build visual check, `c75f3148` (before) against `875af188` (after) | All three changes OK; findings UXR186-DASH-01 and -02, both fixed in `14b31fa4`; 14 before and after images shown to the owner on a private review page (not in Git) | `875af188`, `14b31fa4` |
-| CI | pull request `Development checks` | Pending | – |
+| CI | pull request `Development checks`, [run 45637656779](https://github.com/welct0407/MW-Credit-App/actions/runs/45637656779) | 6 shards failed from 2 causes, both fixed in the product: (1) the typography rule `back-consumers-independent:324` (Dashboard values at least 20 px at 390 px): UXR186-DASH-01 had made the cash-pool figures 18 px below 400 px; now 21 px down to 360 px and 18 px only below 360 px (measured: a seven-digit value, -฿1,250,000, needs 21 px from 358 px and 20 px from 346 px); (2) `referrers-independent:106` on mobile-webkit, the same race as R185's Expenses Clear filter (the list refreshed 2 ms before the tap and its rows were disabled while busy, so the tap was dropped); it passes 10/10 locally at both `c75f3148` and R186, so R186 did not cause it; `ReferrerRecords.tsx` rows are no longer disabled while the list refreshes, since opening a referrer already overrides the refresh | `ee68cda7` |
+| Byte | after the two fixes: Dashboard specs on mobile-chromium 320 px 4/4 and mobile-webkit F11; referrers spec on mobile-webkit x3 33 passed and on desktop 11 passed; lint, type check, build | Pass | – |
+| CI | rerun on the next head | Pending | – |
 
 ## Not run
 - Real iPhone and the iPhone Home Screen app; the PROD Dashboard and a real receipt flow are seen only after deployment (no authenticated PROD read is planned).
 - Database groups: no SQL or service input changed.
+
+Known flaky tests, passed on retry in run 45637656779 and outside R186: `back-consumers-independent.spec.ts:209` (offline loan draft), `collection-chat-seen-sync:74`, `rebate-offset:116` and `collection-read.spec.ts:228` (already known).
 
 ## Recovery
 Git baseline `c75f3148` (R185 closed). A Hosting-only revert (redeploy the previous Hosting version, pinned in the Environment inventory at promotion) restores the previous behaviour. No SQL, no backup, no service image.
