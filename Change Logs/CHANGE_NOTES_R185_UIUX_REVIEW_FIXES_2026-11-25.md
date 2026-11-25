@@ -61,6 +61,7 @@ Deviations and decisions made during implementation:
 - UXR-A11Y-02: the skip link keeps its `href` so it can take focus, and a click handler prevents the jump.
 - UXR-DATE-01: the date hints sit outside the label on the Loan, Expense, Correct payment, Rollover and Charge forms.
 - Messages that name an action follow the new labels.
+- `ExpenseRecords.tsx` no longer disables "Clear filter" while the list is loading (a CI fix for the race above); clearing already cancels the read in flight.
 - The main live-dev chunk is 1,001.5 kB against the 1,000 kB warning limit. This is a warning only; nothing gates on it.
 
 Records updated in this preparation step (Dewey):
@@ -81,7 +82,9 @@ Records updated in this preparation step (Dewey):
 | Echo | local-build visual check, iPhone WebKit, desktop, iPad | 20 OK; 6 follow-ups (PAY-02-R1, BTN-01-R1, MGMT-03-R1, DATE-01-R1 and R2, COPY-01-R1), all fixed | `b5dc8be7` |
 | Chase | fix-delta re-check: phase5-borrower `:406` and `:474`, upcoming-read `:75`, loan-rollover `:42` on desktop-chromium | Pass, 4/4 | `08aecf34` |
 | CI | pull request `Development checks`, [run 45511306647](https://github.com/welct0407/MW-Credit-App/actions/runs/45511306647) | Failed on 3 tests, fixed in the next commit: (1) `borrower-chat-button.spec.ts:136` pinned the old "New loan" class list (spec updated); Byte also found a product bug there, the REC-01 phone grid had overridden the borrower chat link's pink and blue border, now restored; (2) the W5 Delete margin on phones: below 768 px the spec checks the red border, the grid and a gap of at least 6 px, and the 12 px margin check stays from 768 px up; (3) R182 `payment-history.spec.ts:35` on mobile-webkit: FORM-01's 8 px padding made the Collection note textarea 4 px taller, fixed with `.collection-note textarea{padding:2px 8px}` and confirmed against `8374c998` | `88203156` |
-| CI | rerun on the fixed commit | Pending | – |
+| CI | rerun, [run 45514069330](https://github.com/welct0407/MW-Credit-App/actions/runs/45514069330) | 14 of 15 jobs passed; one test failed: `phase5-borrower-independent.spec.ts:442` (R141 owed expenses, clearing the filter after switching to Thai) on desktop-chromium. Root cause: a race that already existed and that R185's timing exposed (3 of 13 runs on R185, 0 of 18 at `8374c998`): the Expenses "Clear filter" button was disabled while a background re-read of the filtered list was in flight, and a tap landing as it became disabled was dropped. Fixed by Byte (see below) | `e69304bb` |
+| Byte | after the Clear filter fix: a probe copy of the test 10/10; all R141 tests x5 on desktop-chromium, 20 passed; the owed-expenses test x3 on mobile-webkit, passed; lint and type check | Pass | – |
+| CI | rerun on the next head | Pending | – |
 | Dewey | `npm run check:docs` | 0 failures, 0 warnings (before the final line of this note) | – |
 
 ## Not run
