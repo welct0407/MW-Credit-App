@@ -57,7 +57,7 @@ These are capability milestones, not a duplicate release ledger. Detailed source
 | AppSheet retirement — R057 | Technical AppSheet dependencies retired while preserving shared SQL, storage and compatibility identifiers | Released |
 | Integration delivery — R058 | Instagram-first delivery attempts; automatic email fallback only after an explicit provider messaging-window rejection | Released |
 | Offline and usability package — R059/R060 | Cumulative PWA improvements, prepared offline datasets and saved-change synchronization; production command recovery completes offline dataset access | Released |
-| Submitted-action feedback — R061 | Direct online loan deletion (R185, Open, adds one confirm before the request), request recovery and specific failure feedback; submitted changes synchronize without a second approval | Released |
+| Submitted-action feedback — R061 | Direct online loan deletion (R185 adds one confirm before the request), request recovery and specific failure feedback; submitted changes synchronize without a second approval | Released |
 | Editable settings — R062 | Borrower/partner settings, independent delivery email, persistent language and explicitly saved cash defaults; V92 and API/PWA delivery | Released in DEV and PROD |
 
 ## Current roadmap and remaining work

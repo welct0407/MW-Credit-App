@@ -1,7 +1,7 @@
 # Change notes — R185 DEV UI/UX review fixes, 25 November 2026
 
 ## Purpose
-Echo reviewed the whole PWA on DEV (iPhone WebKit, desktop Chromium, iPad layout checks) and proposed 25 changes, each with a `UXR-` code. The owner approved all of them on 25 November 2026 (Asia/Bangkok): "Go for all the changes and follow your recommendations". Status: Open, in implementation; nothing is deployed yet.
+Echo reviewed the whole PWA on DEV (iPhone WebKit, desktop Chromium, iPad layout checks) and proposed 25 changes, each with a `UXR-` code. The owner approved all of them on 25 November 2026 (Asia/Bangkok): "Go for all the changes and follow your recommendations". Status: Released to DEV and PROD on 25 November 2026 (PR #388, package `fc7c4515`, tag `R185`); owner acceptance pending.
 
 Production instruction: the owner, 25 November 2026 (Asia/Bangkok): "Push all the way to prod". Under the [Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion) it covers the pull request and its merge to main; the DEV deploy, then the PROD promotion of the R185 package (Hosting plus the rebuilt shared business service image, as in R183; no SQL and no backup); the R185 tag through the Release tag workflow; and the records-only closure pull request. It does not cover financial writes, forced notifications or unrelated changes.
 
@@ -84,7 +84,9 @@ Records updated in this preparation step (Dewey):
 | CI | pull request `Development checks`, [run 45511306647](https://github.com/welct0407/MW-Credit-App/actions/runs/45511306647) | Failed on 3 tests, fixed in the next commit: (1) `borrower-chat-button.spec.ts:136` pinned the old "New loan" class list (spec updated); Byte also found a product bug there, the REC-01 phone grid had overridden the borrower chat link's pink and blue border, now restored; (2) the W5 Delete margin on phones: below 768 px the spec checks the red border, the grid and a gap of at least 6 px, and the 12 px margin check stays from 768 px up; (3) R182 `payment-history.spec.ts:35` on mobile-webkit: FORM-01's 8 px padding made the Collection note textarea 4 px taller, fixed with `.collection-note textarea{padding:2px 8px}` and confirmed against `8374c998` | `88203156` |
 | CI | rerun, [run 45514069330](https://github.com/welct0407/MW-Credit-App/actions/runs/45514069330) | 14 of 15 jobs passed; one test failed: `phase5-borrower-independent.spec.ts:442` (R141 owed expenses, clearing the filter after switching to Thai) on desktop-chromium. Root cause: a race that already existed and that R185's timing exposed (3 of 13 runs on R185, 0 of 18 at `8374c998`): the Expenses "Clear filter" button was disabled while a background re-read of the filtered list was in flight, and a tap landing as it became disabled was dropped. Fixed by Byte (see below) | `e69304bb` |
 | Byte | after the Clear filter fix: a probe copy of the test 10/10; all R141 tests x5 on desktop-chromium, 20 passed; the owed-expenses test x3 on mobile-webkit, passed; lint and type check | Pass | – |
-| CI | rerun on the next head | Pending | – |
+| CI | pull request `Development checks`, [run 45516470958](https://github.com/welct0407/MW-Credit-App/actions/runs/45516470958) (the one broad run on the head `6d49c64b`, merged as `fc7c4515` with an equal tree) | Success, all 17 jobs | `6d49c64b` |
+| Forge | PROD runner reused evidence: Terraform run 44874582128 and database run 45506845022 | Reused (on `639c0f2f`; no `infrastructure/**` or SQL change) | `639c0f2f` |
+| Dewey | `npm run check:docs`, `component-versions.mjs render --check` at closure | 0 failures, 0 warnings; render check ok (R185) | – |
 | Dewey | `npm run check:docs` | 0 failures, 0 warnings (before the final line of this note) | – |
 
 ## Not run
@@ -95,15 +97,52 @@ Records updated in this preparation step (Dewey):
 Known flaky test: `collection-read.spec.ts:228` on mobile-webkit fails intermittently on `8374c998` (1 of 6 runs) and on R185 (2 of 6). It predates this batch and is not caused by it.
 
 ## Recovery
-Git baseline `8374c998` (R184 closed). A frontend-only revert restores the previous behaviour. UXR-PAY-01's read addition is additive; a rollback of its service image leaves the PWA without the new line, which the PWA hides when the fields are missing. No SQL, no backup needed.
+Git baseline `8374c998` (R184 closed; baseline tag R184 `f14ddaca`). Images and Hosting: the pins and the rollback files in the DEV and PROD records below. A frontend-only revert restores the previous behaviour. UXR-PAY-01's read addition is additive; a rollback of its service image leaves the PWA without the new line, which the PWA hides when the fields are missing. No SQL, no backup needed.
 
 ## Open questions
 - Thai wording: every string marked "Thai draft" in Echo's review needs the owner's or Lisa's check before promotion (FORM-02, NAV-04, COLL-01, PAY-01, LOAN-02, LOAN-03, MGMT-03, MGMT-04, PWA-01, A11Y-02, COPY-01 #3).
+- Known: `collection-read.spec.ts:228` on mobile-webkit is flaky and predates R185 (see Checks); the main live-dev chunk is 1,001.5 kB against the 1,000 kB warning limit (warning only).
 - UXR-COPY-01 #5: the double clear button was seen in Playwright WebKit; confirm on the owner's iPhone whether it appears there.
 - iPhone Home Screen checks Playwright cannot cover: the confirm dialog, safe areas, keyboard, the new Installation help text read on the device, and the two-line title with a real Thai title.
-- None on authority: promotion is authorized (see Purpose). Open only: the Thai wording check, which the owner's or Lisa's review must settle before or after promotion as the owner decides.
+- Owner acceptance of R185 in PROD, written into the next release's closure or product pull request.
+- No real-iPhone check was made (see Not run).
 
 ## Remaining work
-Implementation (Byte), verification (Chase), Echo's pass on the result, the documentation pass against the final diff (Dewey), then DEV deploy, PROD promotion, the R185 tag and the closure pull request, and the owner's wording check.
+Owner acceptance of R185 and the Thai wording check by the owner or Lisa (every "Thai draft" string shipped as drafted). Follow-ups: the real-iPhone checks above, the first real use of the Payments "Last payment" line on PROD (the DEV read after deploy returned the three fields; no authenticated PROD read was made), the known `collection-read:228` flake and the 1,001.5 kB chunk warning.
+
+## DEV deployment record (Forge, 25 November 2026 UTC)
+Authority: the owner's "Push all the way to prod" (DEV first). Package: `main` `fc7c451514022d861b863ba6327c3f7fbd9ededf` (PR #388); its tree equals the tested head `6d49c64b`; CI run 45516470958 passed all 17 jobs. No SQL.
+
+| Step | Result |
+| --- | --- |
+| Image | `api@sha256:590e1ccf4d1821c0fa9c841f7e8600969bcbf478690a24dae77623a337cfcbdb`; Cloud Build `81121ec5-8e33-44c5-b8be-5fe0ef28292f`, 00:27:04Z to 00:27:42Z |
+| Cloud Run | `dev` plan 0 add, 3 change, 0 destroy, image only (plan sha `ae40a837…755c`, JSON `9fbb848e…d5b6`); applied 00:29:06Z to 00:29:43Z; re-plan clean. Revisions: read `mw-credit-app-read-dev-00106-nsg`, command `mw-credit-app-command-dev-00123-qgt`, chat `mw-credit-app-chat-dev-00075-4ts`; notify and jobs unchanged (`06c6ba44…`). Activation generation `1795566589514271` (previous `1795519117060526`) |
+| Hosting | Build `b5774774f0d0e33840d581dd`; version `74b5946fad92ead6`, release `1795566724658000`; applied 00:31:53Z to 00:32:05Z; check covered 17 files |
+| Verified, read-only | `/health` of all three services reports R185 `fc7c451`; unauthenticated requests get 401; all three origins serve `build-version.json` R185 and `sw.js` is no-store; authenticated `GET /api/payment-records?limit=5` returned 200 with 5 rows, all three new fields present with the right types; no ERROR, 42501 or 5xx from 00:29Z to 00:32:34Z |
+
+Rollback: `dev.activation.before-r185.tfvars` (image `8b83c1b9…`; read `00105-t5k`, command `00122-wkq`, chat `00074-6sz`); Hosting back to `cdc7cf000b2d0215` (release `1795519137884000`).
+
+## PROD promotion record (Forge, 25 November 2026 UTC)
+Authority: the owner, 25 November 2026 (Asia/Bangkok): "Push all the way to prod". Scope: the R185 package (Hosting and the rebuilt shared business service image); no SQL, no backup, no authenticated PROD read, financial write or notification.
+
+Freeze (pinned here): package `main` `fc7c451514022d861b863ba6327c3f7fbd9ededf` (PR #388, tree equal to the tested head `6d49c64b`); baseline tag R184 `f14ddaca`; frozen 2026-11-25T00:33:54Z; next unused number R186. The runner reused evidence: Terraform run 44874582128 and database run 45506845022 on `639c0f2f`. Targets verified: Flyway 155, 0 failed, 0 pending; the history row count (155) was read afterwards at 00:46:37Z by a read-only query, and the manifest's `verifiedAt` is 00:34:59Z. Package manifest (outside Git): `/root/.mw-private/MW-Credit-App/promotion/r185/promotion-package.json`, sha256 `a6675cff2230a0fe33fa9eca28a14f870881d6c976890d8f51c0cc7022a5ebdd`, copied to `gs://mw-credit-operator-private-737787224638/promotion-packages/r185/`; Hosting receipt `promotion-receipts/r185-hosting-receipt.json`. Revisions, digests and the Hosting version are in the [Environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Step | Result |
+| --- | --- |
+| Image | `mw-credit-app-prod/api@sha256:687dcfae3834b25aefc26277ce2b3af06e0ed65ef00c9cc8032a961ddccae87c`; Cloud Build `7a3a82d7-69ad-4807-8333-9b36661ab471` (`cloudbuild-business.yaml`, `_MW_RELEASE=R185`, git archive of `fc7c4515`), 00:35:08Z to 00:35:44Z |
+| Cloud Run | Plan 0 add, 3 change, 0 destroy, image only (plan `bf152803…d5a1`, JSON `dadeae10…b9e9`); applied 00:44:13Z to 00:44:49Z; re-plan clean. Revisions: read `00072-v7c`, command `00077-wsf`, chat `00056-8c5`; notify `00032-khj` and jobs `00032-9nr` unchanged. Activation generation `1795567500372172` (previous `1795520286480533`) |
+| Hosting | Candidate `5b2728bf…`, 18 files; runner check, then apply 00:47:29Z to 00:48:19Z; version `dde9a59785592cb7`, release `1795567692041000` |
+| Verified, read-only (00:48Z) | All three PROD origins serve R185 (index and entry 200, the entry contains `fc7c451`, `sw.js` no-store); `/health` of read, command and chat reports R185 `fc7c451`; unauthenticated requests get 401; no ERROR, 42501 or response of 409 or higher from 00:33:54Z to 00:48:42Z; no authenticated PROD read, financial write or notification |
+
+Rollback: `production.activation.before-r185.tfvars` (image `fe56cef2…`; read `00071-zpn`, command `00076-gqx`, chat `00055-kxt`); Hosting back to `c98044b4308753cd` (release `1795520460114000`). SQL unchanged, so no database restore applies.
+
+## Tag record (Dewey, 25 November 2026)
+Annotated tag `R185` (object `e3bfe527fd91983621078722e8aca5d151268117`) on `main` `fc7c451514022d861b863ba6327c3f7fbd9ededf`, created by the Release tag workflow, run [45521085734](https://github.com/welct0407/MW-Credit-App/actions/runs/45521085734), which succeeded at 00:49:59Z and published the GitHub Release R185.
+
+## Closure records (Dewey)
+- Component versions (`derive --release R185 --commit fc7c4515`): changed in R185 are the PWA frontend and the API read, command and chat services; unchanged: notification and jobs workers (R175), database schema (R184, V155), integration agent (R181, revision 47), Grafana dashboards (R180), Metabase reports (R144). `render --write` and `render --check` pass (R185). `scripts/promotion/components.json` was not changed by the tool. Drift (`drift --env all`) is run by Forge; its result is forwarded by the coordinator and not yet recorded here.
+- Environment inventory: the R185 Hosting and Cloud Run rows for DEV and PROD (the R184 rows are now previous) and the component versions regenerated. Flyway rows unchanged (no SQL).
+- Released wording: Solution design, read service notes, the PWA API dictionary and the PWA system guide no longer say "Open" for R185; the project README R061 row notes the confirm.
+- Pruned at closure (Open R186 has no note, plus the three newest Released: R185, R184, R183): `Change Logs/CHANGE_NOTES_R182_COLLECTION_CHAT_PAYMENT_HISTORY_2026-11-22.md`, with its links (release tracker, Development Changes, environment inventory, Solution design) repointed to permalinks at `fc7c4515`; and the three 10 November notes that no current document linked to, which cleared the three `check:docs` warnings: `CHANGE_NOTES_FABLE_5_2_TEAM_MODEL_2026-11-10.md`, `CHANGE_NOTES_MERGE_CHECKIN_PROMPT_2026-11-10.md` and `CHANGE_NOTES_PROD_ZERO_CHARGE_CLEANUP_2026-11-10.md`. R185's section of Development Changes became its follow-up row.
 
 Privacy: the review screenshots, mock-ups and the write-guard audit stay in the session scratchpad and are not committed. They show borrower screens (masked by Echo) and are deleted after the owner's review.
