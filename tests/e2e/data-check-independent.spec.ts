@@ -42,7 +42,7 @@ test('a persistent mismatch shows the line, indicator, dot and one toast; it sur
  // UX-RECON-07: one toast.
  await expect(page.locator('.data-check-toast')).toHaveText('Data check found a difference in Cash. Tap the warning icon for details.');
  // UX-RECON-05: the dot on "All synced" (nothing is waiting).
- await expect(async()=>{await account(page);await expect(page.getByRole('button',{name:'All synced, data check found a difference',exact:true}).filter({visible:true})).toBeVisible({timeout:1000})}).toPass({timeout:15000});
+ await expect(async()=>{await account(page);await expect(page.getByRole('button',{name:'Saved changes: none, data check found a difference',exact:true}).filter({visible:true})).toBeVisible({timeout:1000})}).toPass({timeout:15000});
  await page.keyboard.press('Escape');
  // UX-RECON-06/02: the indicator opens Saved changes at the line, directly above Full sync.
  await expect(async()=>{if(await page.locator('#data-check-warning').count()===0)await indicator(page).click({timeout:1000});await expect(page.locator('#data-check-warning')).toBeVisible({timeout:1000})}).toPass({timeout:15000});

@@ -57,7 +57,7 @@ test('Daily cash withdrawal reloads as-of balances, blocks an overdraw and confi
  await expect(summary).toContainText('SYNTHETIC Dad SCB → SYNTHETIC Dad เงินสด');await expect(summary).toContainText('฿650 (remaining ฿0)');await expect(summary).toContainText('฿200 (remaining ฿300)');await expect(summary).toContainText('฿850');
  await page.getByRole('button',{name:'Confirm',exact:true}).click();
  // DCW-10: one request with both lines, then back on Cash Position, refreshed.
- await expect(page.getByRole('heading',{name:'Cash Position',exact:true})).toBeVisible();await expect(page.locator('#refreshes')).toHaveText('1');
+ await expect(page.getByRole('heading',{name:'Cash position',exact:true})).toBeVisible();await expect(page.locator('#refreshes')).toHaveText('1');
  expect(posts).toHaveLength(1);
  expect(posts[0]).toMatchObject({operation:'cash-withdrawal.create',expectedVersion:null,predecessorRequestId:null,receiptId:null,inputs:{movementDate:'2026-10-09',movementTime:'10:00',toAccountId:'dad-cash',lines:[{fromAccountId:'dad-scb',amount:'650'},{fromAccountId:'dad-ttb',amount:'200'}]}});
  expect(posts[0].targetId).toMatch(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
@@ -70,7 +70,7 @@ test('R123 a withdrawal under review keeps its reviewed date and time when the p
  const summary=page.locator('.dcw-summary');await expect(summary).toContainText('10-Oct 23:50');
  await page.clock.setFixedTime(new Date('2026-10-10T17:01:00Z'));await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
  await expect(summary).toContainText('10-Oct 23:50');await expect(summary).not.toContainText('11-Oct');
- await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect(page.getByRole('heading',{name:'Cash Position',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect(page.getByRole('heading',{name:'Cash position',exact:true})).toBeVisible();
  expect(posts).toHaveLength(1);expect(posts[0].inputs).toMatchObject({movementDate:'2026-10-10',movementTime:'23:50',lines:[{fromAccountId:'dad-ttb',amount:'100'}]});
 });
 test('R126 the date box and the time selects share one 44px row at 390px and the time wraps at 320px',async({page})=>{

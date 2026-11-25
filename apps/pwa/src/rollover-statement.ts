@@ -3,11 +3,14 @@
 // form, with the same first-day components the server books (first_day_components_v83). Whole baht throughout.
 import {INSTALMENT,DAILY_INTEREST,instalmentSchedule,addDays} from './loan-form-values';
 import {shortDate} from './pay-forward-text';
+import {displayDateWithYear} from './display-date';
 export const ROLLOVER_TYPES=[INSTALMENT,DAILY_INTEREST] as const;
 const whole=new Intl.NumberFormat('en-US',{maximumFractionDigits:0});
 export const baht=(value:number)=>(value<0?'−':'')+'฿'+whole.format(Math.abs(value));
 const amount=(value:unknown)=>typeof value==='string'&&/^-?\d+(\.\d+)?$/.test(value)?Number(value):typeof value==='number'&&Number.isFinite(value)?value:null;
-export const dmy=(day:string|null|undefined)=>day&&/^\d{4}-\d{2}-\d{2}$/.test(day)?`${day.slice(8,10)}/${day.slice(5,7)}/${day.slice(0,4)}`:'—';
+/** UXR-DATE-01 (R185): a full date in the app's form, "25-Nov-2026" (Thai "25-พ.ย.-2569"); the language is always passed, never
+ * the ambient UI language, so generated stored text does not depend on who rolled the loan over. */
+export const dmy=(day:string|null|undefined,thai:boolean)=>displayDateWithYear(day,thai);
 /** Whether the loan record offers Rollover: an open, auto-enabled, non-defaulted daily-instalment or daily-interest loan with outstanding principal (a read without the figure keeps it). */
 export function rolloverOffered(item:any){
  if(item?.status!=='ยังไม่ปิดยอด'||!item.autoChargeEnabled||item.defaulted||!(ROLLOVER_TYPES as readonly string[]).includes(item.type))return false;
@@ -32,8 +35,8 @@ function wholeText(value:unknown):string|null{const n=amount(value);return n===n
 /** The bilingual arrangement note naming the original loan, then a blank line and the original loan's own arrangement. */
 export function rolloverArrangement(source:any,day:string,penalty:string|null,sourceKey:string){
  const instalment=source.type===INSTALMENT,p=baht(amount(source.principal)??0),daily=baht(amount(instalment?source.dailyPayment:source.currentDailyInterest)??0),fine=baht(amount(penalty)??0);
- const en=`Rollover of loan ${sourceKey} (loan date ${dmy(source.loanDate)}, principal ${p}, ${instalment?`daily payment ${daily}, due ${dmy(source.dueDate)}`:`daily interest ${daily}`}), closed on ${dmy(day)} with early closure penalty ${fine}.`;
- const th=`ต่อสัญญาจากสินเชื่อ ${sourceKey} (วันที่กู้ ${dmy(source.loanDate)} เงินต้น ${p} ${instalment?`ยอดชำระรายวัน ${daily} ครบกำหนด ${dmy(source.dueDate)}`:`ดอกเบี้ยรายวัน ${daily}`}) ปิดเมื่อ ${dmy(day)} ค่าปรับปิดก่อนกำหนด ${fine}`;
+ const en=`Rollover of loan ${sourceKey} (loan date ${dmy(source.loanDate,false)}, principal ${p}, ${instalment?`daily payment ${daily}, due ${dmy(source.dueDate,false)}`:`daily interest ${daily}`}), closed on ${dmy(day,false)} with early closure penalty ${fine}.`;
+ const th=`ต่อสัญญาจากสินเชื่อ ${sourceKey} (วันที่กู้ ${dmy(source.loanDate,true)} เงินต้น ${p} ${instalment?`ยอดชำระรายวัน ${daily} ครบกำหนด ${dmy(source.dueDate,true)}`:`ดอกเบี้ยรายวัน ${daily}`}) ปิดเมื่อ ${dmy(day,true)} ค่าปรับปิดก่อนกำหนด ${fine}`;
  const own=typeof source.arrangement==='string'&&source.arrangement.trim()?'\n\n'+source.arrangement:'';
  return en+'\n'+th+own;
 }
@@ -58,7 +61,7 @@ export function rolloverStatement(input:{type:string;principal:string|null;trans
  const settledInterest=(Array.isArray(q.allocations)?q.allocations:[]).reduce((sum:number,line:any)=>sum+(amount(line.interest)??0)+(amount(line.lateCharge)??0),0);
  const profit=settledInterest+firstInterest;
  const rows:StatementRow[]=[
-  {key:'title',label:t('Rollover statement, ','ใบสรุปการต่อสัญญา ')+dmy(input.loanDate),value:0,kind:'heading'},
+  {key:'title',label:t('Rollover statement, ','ใบสรุปการต่อสัญญา ')+dmy(input.loanDate,thai),value:0,kind:'heading'},
   {key:'principal',label:t('New loan principal','เงินต้นสินเชื่อใหม่'),value:principal},
   {key:'fee',label:t('− Documentation fee','− ค่าธรรมเนียมเอกสาร'),value:fee},
   {key:'firstDay',label:instalment&&schedule?t(`− First-day payment (day 1 of ${schedule.term})`,`− ยอดชำระวันแรก (วันที่ 1 จาก ${schedule.term})`):t('− First-day payment','− ยอดชำระวันแรก'),value:payment},
@@ -77,7 +80,7 @@ export function rolloverStatement(input:{type:string;principal:string|null;trans
  rows.push({key:'penalty',label:t(`− Early closure penalty (${penaltyDays} days of ${baht(daily)})`,`− ค่าปรับปิดก่อนกำหนด (${penaltyDays} วัน × ${baht(daily)})`),value:penalty},
   {key:'settlement',label:t('Deducted for the original loan','หักชำระสินเชื่อเดิม'),value:settlement,kind:'total'},
   {key:'cash',label:t('Cash issued to borrower','เงินสดที่จ่ายให้ผู้กู้'),value:cashIssued,kind:'cash'},
-  {key:'profit',label:!input.today||input.today===input.loanDate?t('Profit recognized today','กำไรรับรู้วันนี้'):t('Profit recognized on ','กำไรรับรู้ ')+dmy(input.loanDate),value:profit,kind:'memo'});
+  {key:'profit',label:!input.today||input.today===input.loanDate?t('Profit recognized today','กำไรรับรู้วันนี้'):t('Profit recognized on ','กำไรรับรู้ ')+dmy(input.loanDate,thai),value:profit,kind:'memo'});
  return {rows,available,settlement,cashIssued,profit,firstDayPayment:payment,fee,principal,negative:cashIssued<0,unpaid};
 }
 /** The message above the disabled Review button when cash issued would be negative (D6, Echo R136-UX-06). */

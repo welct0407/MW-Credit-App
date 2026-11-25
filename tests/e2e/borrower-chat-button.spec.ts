@@ -138,7 +138,7 @@ test('R161 Borrowers list with command access: the chat button left of New loan 
  await boot(page,commandBase);await borrowers(page);
  const tile=tileOf(page,'b-dm'),chat=chatIn(page,'b-dm'),newLoan=page.getByRole('button',{name:'New loan for '+nameOf('b-dm'),exact:true});
  await expect(chat).toHaveAttribute('href','https://ig.me/m/invented.dm');await expectLook(chat,DM);
- expect(await tile.evaluate(node=>[...node.querySelectorAll('button,a')].map(item=>item.className))).toEqual(['borrower-tile-main','borrower-tile-chat chat-link-dm','icon-action']);
+ expect(await tile.evaluate(node=>[...node.querySelectorAll('button,a')].map(item=>item.className))).toEqual(['borrower-tile-main','borrower-tile-chat chat-link-dm','secondary-button icon-action']);
  await tile.locator('.borrower-tile-main').focus();await page.keyboard.press('Tab');await expect(chat).toBeFocused();await page.keyboard.press('Tab');await expect(newLoan).toBeFocused();
  for(const size of sizes(page,info,[320,390])){
   const width=size.width;await page.setViewportSize(size);

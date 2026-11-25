@@ -244,7 +244,7 @@
 .borrower-tile-main{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:10px;flex:1;min-width:0;background:transparent;border:0;border-radius:0;padding:8px 10px;text-align:left;color:inherit}
 .borrower-tile-main>span{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}.borrower-tile-main>strong{text-align:right;align-self:center}.borrower-tile>.icon-action{flex:0 0 44px}
 /* biome-ignore lint/complexity/noImportantStyles: profit and recovery status colours must win over the table, cell and link colours they are shown in */
-.profit-positive{color:#16803b!important}.profit-negative{color:#c62828!important}.recovery-low{color:#b85c00!important}.recovery-middle{color:#9a7800!important}.recovery-covered{color:#00838f!important}.recovery-closed{color:#777!important;font-style:italic}
+.profit-positive{color:#126b30!important}.profit-negative{color:#c62828!important}.recovery-low{color:#b85c00!important}.recovery-middle{color:#9a7800!important}.recovery-covered{color:#00838f!important}.recovery-closed{color:#777!important;font-style:italic}
 .borrower-record>.related-loans-heading h2{flex:1;min-width:0;text-align:left}
 .borrower-record form>.related-loans{grid-column:1/-1}.loan-record-main{min-width:0}.loan-record-main>strong{overflow-wrap:anywhere}.loan-record-amount{flex:0 0 auto;text-align:right}
 
@@ -598,7 +598,7 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
  .dashboard-record>.dashboard-section:first-of-type dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
  .dashboard-section{min-width:0}
 }
-@media(max-width:767px){.dashboard-record>.dashboard-section:last-of-type{order:1}.dashboard-record>.dashboard-section:first-of-type{order:0}.dashboard-record>.dashboard-section:nth-of-type(2){order:2}}
+/* R185 UXR-A11Y-02: the Dashboard cards are in reading order in the DOM (KPIs, Business cash held, Income MTD); no CSS order. */
 
 .payment-record>.related-loans-heading{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.payment-record>.related-loans-heading>h2{flex:1 1 160px;min-width:0;margin-right:8px}.payment-direct-actions{position:static;max-width:100%;flex-wrap:wrap;margin-left:auto}
 
@@ -650,7 +650,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .live-sync-status.syncing { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 3px; padding: 0 4px; }
 .live-sync-status.syncing .header-load-percent { font-size: 12px; line-height: 14px; font-weight: 600; min-width: 0; text-align: right; font-variant-numeric: tabular-nums; }
 .live-sync-status.syncing .header-load-progress { width: 60px; height: 6px; flex: 0 0 auto; border-radius: 3px; }
-.waiting-sync-button.all-synced { opacity: .8; }
+/* R185 UXR-NAV-04: "Saved changes: none" reads at full contrast; it is an entry, not a disabled control. */
+.waiting-sync-button.all-synced { opacity: 1; }
 .full-sync-section { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-tint); }
 .full-sync-button { display: inline-flex; align-items: center; gap: 8px; }
 /* UX-RECON-02/05/06/07: persistent data-check difference (warning colour of the failed-refresh badge). */
@@ -1027,3 +1028,99 @@ button.ph-row{cursor:pointer}button.ph-row:active{background:#f1f1f1}
 .ph-state{margin:0;padding:12px;color:#555}
 .ph-state.error{color:#8e1b1b}
 .ph-state button{margin-inline-start:8px}
+/* R185 (Echo's DEV UI/UX review, owner-approved; Archie's corrections). */
+/* UXR-BTN-01: a button without a class gets the app's secondary look instead of the browser default; a form's own submit
+   button is the brand primary. Every selector is :where()-wrapped down to one element, so any classed or scoped rule wins;
+   width and margin go only to a submit button that is a direct child of its form (not one in a sticky actions row). */
+:where(.live-shell main) button:where(:not([class]),[class=""]){display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid #bfc3c7;border-radius:6px;background:#fff;color:#333;font-weight:500;-webkit-appearance:none;appearance:none}
+:where(.live-shell main) button:where(:not([class]),[class=""]):where(:disabled){background:#f2f2f2;color:#595959}
+:where(.live-shell main form) button:where([type=submit]):where(:not([class]),[class=""]){border-color:#713c00;background:#713c00;color:#fff;font-weight:600}
+:where(.live-shell main form) button:where([type=submit]):where(:not([class]),[class=""]):where(:disabled){border-color:#bfc3c7;background:#f2f2f2;color:#595959}
+:where(.live-shell main form>button[type=submit]):where(:not([class]),[class=""]){display:flex;width:100%;margin-top:12px}
+.primary-button{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin-top:12px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
+.primary-button:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
+/* UXR-AUTH-01: the only action on the signed-out card. */
+.primary-button.sign-in-button{min-height:48px;font-size:17px}
+/* UXR-FORM-01: one text-field look instead of each browser's default border and 1 px padding; selects keep theirs. Fully
+   :where()-wrapped (no specificity), so the invalid border, the cash date overlay and the chat composer keep their rules. */
+:where(.live-shell main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=hidden]),textarea)){border:1px solid #b9bfc5;border-radius:6px;padding:8px 12px;background-color:#fff;color:#222;min-height:44px;box-sizing:border-box}
+:where(.live-shell main :is(input,textarea,select):focus-visible){border-color:#713c00}
+:where(.live-shell main input:is([type=checkbox],[type=radio])){accent-color:#713c00}
+/* The Collection note keeps its own 2px vertical padding (R182): FORM-01's 8px made it 4px taller, so on an iPhone the
+   closed payment history left the page 4px taller than the screen and WebKit no longer kept the history button in place. */
+.collection-note textarea{padding:2px 8px}
+/* The narrow allocation and amount fields keep room for six digits. */
+.payment-allocation-row input:not([type=checkbox]),.payment-received-input input{padding-inline:8px}
+/* UXR-DATE-01: the app-format date beside a native date field (the field keeps the device's own format). */
+/* It follows the field's label, so the label names only the field. */
+.date-shown{display:block;margin:-8px 0 12px;font-size:14px;color:#565656;white-space:nowrap}
+/* UXR-FORM-02: what still keeps Review disabled, under the Received / Allocated / Remaining bar. */
+.review-help{margin:6px 8px 8px;padding:6px 10px;font-size:14px;line-height:1.4;color:#5a4a00;background:#fff8e1;border:1px solid #ecd9a0;border-radius:6px;overflow-wrap:anywhere}
+/* UXR-FORM-03: an error reads as an error (the .field-error red). Only un-classed p/div alerts, :where()-wrapped, so the
+   classed alerts keep their own looks. */
+:where(.live-shell main :is(p,div)[role=alert]:not([class],:empty)){display:block;margin:8px 0;padding:10px 12px 10px 14px;border:1px solid #f0c4c0;border-left:4px solid #b3261e;border-radius:6px;background:#fdf3f2;color:#7a1c16;font-weight:500}
+:where(.live-shell main :is(p,div)[role=alert]:not([class])>button){margin:6px 0 0 8px}
+/* UXR-NAV-01: on phones the page title may take two lines at 18 px instead of being cut off. */
+@media (max-width:480px){
+ .live-shell .live-brand{gap:6px}
+ .live-shell .live-brand h1{font-size:18px;line-height:1.2;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2}
+}
+/* UXR-NAV-02: the expanded desktop sidebar is 220 px, so English labels never wrap; Thai labels may still wrap. */
+@media (min-width:1200px){
+ .live-body:has(.live-desktop-nav):not(.nav-collapsed){grid-template-columns:220px minmax(0,1fr)}
+ .live-desktop-nav .live-vertical-nav button{white-space:nowrap}
+ :lang(th) .live-desktop-nav .live-vertical-nav button{white-space:normal}
+}
+/* UXR-DASH-01: two KPI columns on phones from 400 px; the two cash-pool figures keep their full rows (.dashboard-wide). */
+.live-shell .dashboard-section dl>.dashboard-wide{grid-column:1/-1}
+@media (min-width:400px) and (max-width:767px){
+ .live-shell .dashboard-section dl:has(>div){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin-block:10px}
+ .live-shell .dashboard-section dl:has(>div)>div{min-width:0}
+ .live-shell .dashboard-section dl:has(>div) dt{font-size:14px;line-height:1.3}
+ .live-shell .dashboard-section dl:has(>div) dd{margin:2px 0 0;font-size:21px;line-height:1.25}
+}
+/* UXR-DASH-02: from 1200 px the first card's figures use four columns; the cash-pool figures sit side by side. */
+@media (min-width:1200px){
+ .live-shell .dashboard-record>.dashboard-section:first-of-type dl:has(>div){grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 24px}
+ .live-shell .dashboard-record>.dashboard-section:first-of-type dl>.dashboard-wide{grid-column:span 2}
+}
+/* UXR-COLL-01: each charge row names its two amounts. */
+.collection-charge-row .charge-row-right{display:grid;justify-items:end;gap:2px}
+.charge-amount-label{font-weight:400;font-size:13px;color:#555}
+/* UXR-PAY-01: the borrower row's latest payment line. */
+.payment-group-meta{display:block;margin:2px 0 0;font-size:13px;font-weight:400;color:#555}
+/* UXR-PAY-02: the page position on the left, Next with its caption. */
+.compact-pager.has-page{align-items:center}
+.compact-pager-page{margin-right:auto;font-size:14px;color:#555}
+.compact-pager .compact-pager-next{width:auto;padding:0 10px;gap:4px}
+/* UXR-REC-01: on phones the borrower and loan record actions keep their captions, three to a row; Delete reads red. */
+.live-shell .borrower-direct-actions .borrower-detail-chat:has(>.record-action-label){width:auto;gap:6px;padding:0 10px}
+@media (max-width:767px){
+ .live-shell .borrower-record>.related-loans-heading>.record-captioned-actions:not(#_){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;flex:1 0 100%;max-width:100%;justify-self:stretch;margin:8px 0 0}
+ .live-shell .record-captioned-actions :is(.record-action,.borrower-detail-chat):not(#_){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:auto;height:auto;min-width:0;min-height:58px;flex:1 1 auto;margin:0;padding:6px 4px;background:#fff;text-decoration:none}
+ .live-shell .record-captioned-actions .record-action:not(#_){border:1px solid #c9ced3;border-radius:8px}
+ /* The chat link keeps its own R161 border (blue group, pink direct message). */
+ .live-shell .record-captioned-actions .record-action-label:not(#_){display:block;font-size:12px;line-height:1.2;text-align:center;overflow-wrap:anywhere}
+ .live-shell .record-captioned-actions .destructive-action:not(#_){border-color:#b3261e;color:#b3261e}
+}
+/* UXR-MGMT-01: Analytics actions keep their captions on phones (headings with one action stay icon-only). */
+@media (max-width:767px){
+ .live-shell main[data-workspace=management] header.related-loans-heading:has(.record-action+.record-action){flex-wrap:wrap}
+ .live-shell main[data-workspace=management] header.related-loans-heading>.borrower-direct-actions:has(.record-action+.record-action):not(#_){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;flex-basis:100%}
+ .live-shell main[data-workspace=management] .borrower-direct-actions:has(.record-action+.record-action) .record-action:not(#_){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:auto;min-height:62px;padding:6px 4px;text-align:center}
+ .live-shell main[data-workspace=management] .borrower-direct-actions:has(.record-action+.record-action) .record-action-label:not(#_){display:block;font-size:12px;line-height:1.2;text-align:center}
+}
+/* UXR-MGMT-02: Contributions and Settlements rows: amount on the right, compact height (as Expenses rows). */
+.management-financial-workspace .borrower-card{justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;min-height:60px}
+.management-financial-workspace .borrower-card>span{gap:2px}
+.management-financial-workspace .borrower-card>strong{margin-left:auto;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* UXR-MGMT-03: an empty Cash statement day and an empty charge section say so. */
+.cash-table-empty{padding:14px 8px;color:#555;text-align:left}
+.cash-transactions td.cash-table-empty{text-align:left;white-space:normal}
+p.cash-table-empty{margin:0;padding:8px 0}
+/* UXR-COPY-01 #5: WebKit's own clear button would sit beside the app's eraser in the header search. */
+.live-shell header input[type=search]::-webkit-search-cancel-button{display:none}
+/* UXR-A11Y-02: the skip link appears only when focused. */
+.skip-link{position:absolute;left:8px;top:-60px;z-index:100;padding:10px 14px;background:#fff;color:#222;border:2px solid #444;border-radius:6px;text-decoration:underline}
+.skip-link:focus{top:8px}
+.live-shell main:focus{outline:none}

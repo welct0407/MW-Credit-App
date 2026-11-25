@@ -34,7 +34,7 @@ export function LoanDefault({access,item,thai,onBack,onApplied,onEditLoan}:{acce
  const reviewDisabled=!businessDate||offline||plan.outcome===null||plan.blockers.length>0;
  function review(){if(reviewDisabled||plan.amount===null)return;setBlockedCode('');setCommand({requestId:crypto.randomUUID(),operation:'loan.default',targetId:item.id,expectedVersion:item.version,predecessorRequestId:null,receiptId:null,inputs:{businessDate,amount:plan.amount,keepCharges:plan.keep}})}
  // Server refusals the pre-checks did not catch (UX-S07, S08), shown above OperationConfirm's generic message.
- const blockedHint=blockedCode==='invalid_date'?t('The business date changed. Reopen Default Loan.','วันที่ทำรายการเปลี่ยนแล้ว เปิดบันทึกผิดนัดใหม่')
+ const blockedHint=blockedCode==='invalid_date'?t('The business date changed. Reopen Default loan.','วันที่ทำรายการเปลี่ยนแล้ว เปิดบันทึกผิดนัดใหม่')
   :blockedCode==='record_requires_reconciliation'?(item.type==='ดอกเบี้ยรายวัน'&&(item.originalRate===null||item.originalRate===undefined)?messages['rate-missing']:item.defaultLossDate===businessDate?messages['same-day']:''):'';
  const detail=<dl>
   <div><dt>{t('Borrower','ผู้กู้')}</dt><dd>{item.borrowerDisplayName}</dd></div>
@@ -43,8 +43,8 @@ export function LoanDefault({access,item,thai,onBack,onApplied,onEditLoan}:{acce
   <div><dt>{t('Keep unpaid charges for collection','เก็บรายการเรียกเก็บค้างชำระไว้ติดตาม')}</dt><dd>{plan.keep?t('Yes','ใช่'):t('No','ไม่')}</dd></div>
  </dl>;
  if(command)return <OperationConfirm key={command.requestId} access={access} command={command} domain="loan" label={heading} thai={thai} onBack={()=>{setCommand(null);setBlockedCode('')}} onApplied={onApplied} onBlocked={setBlockedCode}>{detail}<p>{summary}</p>{blockedHint&&<p role="alert">{blockedHint}</p>}</OperationConfirm>;
- return <section className="borrower-record loan-default" aria-label={t('Default Loan','บันทึกผิดนัด')}>
-  <div className="related-loans-heading"><HeaderBack navigationKey="loan-default" className="icon-action" aria-label={t('Back to loan details','กลับรายละเอียดสินเชื่อ')} onClick={onBack}><Icon name="back"/></HeaderBack><h2>{t('Default Loan','บันทึกผิดนัด')} · {item.borrowerDisplayName}</h2></div>
+ return <section className="borrower-record loan-default" aria-label={t('Default loan','บันทึกผิดนัด')}>
+  <div className="related-loans-heading"><HeaderBack navigationKey="loan-default" className="icon-action" aria-label={t('Back to loan details','กลับรายละเอียดสินเชื่อ')} onClick={onBack}><Icon name="back"/></HeaderBack><h2>{t('Default loan','บันทึกผิดนัด')} · {item.borrowerDisplayName}</h2></div>
   {loadError&&<p role="alert">{t('Default Loan is unavailable. Try again when connected.','บันทึกผิดนัดไม่ได้ ลองอีกครั้งเมื่อเชื่อมต่อ')}<button type="button" onClick={()=>void load()}>{t('Retry','ลองอีกครั้ง')}</button></p>}
   <form onSubmit={event=>{event.preventDefault();review()}}>
    <section className="close-summary" aria-label={t('Current position','สถานะปัจจุบัน')}><dl>

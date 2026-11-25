@@ -117,7 +117,8 @@
 .chat-proposal[data-destructive=true]{border-left-color:#b3261e;background:#fff8f7}
 .chat-proposal[data-state=done]{border-left-color:#1e7a34}
 .chat-proposal[data-state=failed]{border-left-color:#b3261e}
-.chat-proposal[data-state=expired],.chat-proposal[data-state=cancelled]{opacity:.8;border-left-color:#8a8f94}
+/* R185 UXR-A11Y-01: no opacity (it took labels and "Ask again" under 4.5:1); muted text colour instead. */
+.chat-proposal[data-state=expired],.chat-proposal[data-state=cancelled]{color:#444;border-left-color:#8a8f94}
 .chat-proposal-head{display:flex;gap:8px;align-items:flex-start}
 .chat-proposal-head h3{margin:0;font-size:var(--text-body,16px);font-weight:600}
 .chat-proposal-icon{flex:0 0 auto;width:20px;height:20px;margin-top:2px}

@@ -6,7 +6,7 @@ const url=text=>'data:text/javascript;base64,'+Buffer.from(text).toString('base6
 const wholeUrl=url(transpile('whole-number-input.ts'));
 const valuesUrl=url(transpile('loan-form-values.ts').replace("'./whole-number-input'",JSON.stringify(wholeUrl)));
 const values=await import(valuesUrl);
-const rollover=await import(url(transpile('rollover-statement.ts').replace("'./loan-form-values'",JSON.stringify(valuesUrl)).replace("'./pay-forward-text'",JSON.stringify(url(transpile('pay-forward-text.ts'))))));
+const rollover=await import(url(transpile('rollover-statement.ts').replace("'./loan-form-values'",JSON.stringify(valuesUrl)).replace("'./pay-forward-text'",JSON.stringify(url(transpile('pay-forward-text.ts')))).replace("'./display-date'",JSON.stringify(url(transpile('display-date.ts'))))));
 const {loanFormChange,percentOf,twentieth,tenth,instalmentSchedule,dailyPaymentHelper,dueDateHelper,loanSummaryLines,addDays,termDays}=values;
 const {rolloverStatement,negativeCashMessage,penaltyHelper,penaltyStep,rolloverArrangement,rolloverPrefill,rolloverOffered,rolloverResultLine,generatedArrangement,rolloverRebateLine,rolloverFieldChange,scaleByRatio}=rollover;
 const INST='ผ่อนชำระรายวัน',DAILY='ดอกเบี้ยรายวัน';
@@ -86,7 +86,7 @@ test('Part B: penalty helper and step, prefill, the bilingual arrangement note, 
  const source={type:INST,principal:'10000.00',transferFee:'1000.00',dailyPayment:'500.00',currentDailyInterest:null,loanDate:'2026-10-15',dueDate:'2026-11-08',paymentInterval:1,term:25,arrangement:null};
  assert.deepEqual(rolloverPrefill(source,'2026-11-01'),{type:INST,principal:'10000',transferFee:'1000',paymentInterval:1,dueDate:'2026-11-25',dailyPayment:'500',currentDailyInterest:null});
  const note=rolloverArrangement(source,'2026-11-01','2000','KEY');
- assert.equal(note,'Rollover of loan KEY (loan date 15/10/2026, principal ฿10,000, daily payment ฿500, due 08/11/2026), closed on 01/11/2026 with early closure penalty ฿2,000.\nต่อสัญญาจากสินเชื่อ KEY (วันที่กู้ 15/10/2026 เงินต้น ฿10,000 ยอดชำระรายวัน ฿500 ครบกำหนด 08/11/2026) ปิดเมื่อ 01/11/2026 ค่าปรับปิดก่อนกำหนด ฿2,000');
+ assert.equal(note,'Rollover of loan KEY (loan date 15-Oct-2026, principal ฿10,000, daily payment ฿500, due 08-Nov-2026), closed on 01-Nov-2026 with early closure penalty ฿2,000.\nต่อสัญญาจากสินเชื่อ KEY (วันที่กู้ 15-ต.ค.-2569 เงินต้น ฿10,000 ยอดชำระรายวัน ฿500 ครบกำหนด 08-พ.ย.-2569) ปิดเมื่อ 01-พ.ย.-2569 ค่าปรับปิดก่อนกำหนด ฿2,000');
  assert.equal(generatedArrangement(note),true);
  assert.match(rolloverArrangement({...source,arrangement:'Original terms'},'2026-11-01','2000','KEY'),/฿2,000\n\nOriginal terms$/);
  assert.match(rolloverArrangement({...source,type:DAILY,currentDailyInterest:'300'},'2026-11-01','1200','KEY'),/principal ฿10,000, daily interest ฿300\), closed/);
@@ -117,8 +117,8 @@ test('Echo UX-13: the rollover form re-derives untouched terms from the original
 });
 test('Echo UX-14 and UX-19: the profit row names a past rollover day; leaving Daily instalment clears what the form filled',()=>{
  assert.equal(rolloverStatement({...terms(),today:'2026-11-01',quote:quote()},false).rows.at(-1).label,'Profit recognized today');
- assert.equal(rolloverStatement({...terms(),today:'2026-11-02',quote:quote()},false).rows.at(-1).label,'Profit recognized on 01/11/2026');
- assert.equal(rolloverStatement({...terms(),today:'2026-11-02',quote:quote()},true).rows.at(-1).label,'กำไรรับรู้ 01/11/2026');
+ assert.equal(rolloverStatement({...terms(),today:'2026-11-02',quote:quote()},false).rows.at(-1).label,'Profit recognized on 01-Nov-2026');
+ assert.equal(rolloverStatement({...terms(),today:'2026-11-02',quote:quote()},true).rows.at(-1).label,'กำไรรับรู้ 01-พ.ย.-2569');
  let s={fields:{...empty,principal:'10000'},manual:{}};s=change(s,'type',INST);s=change(s,'dailyPayment','450');s=change(s,'type',DAILY);
  assert.deepEqual([s.fields.transferFee,s.fields.dueDate,s.fields.dailyPayment],[null,null,'450'],'filled fee and due date cleared; the typed daily payment stays');
  let f={fields:{...empty,principal:'10000'},manual:{}};f=change(f,'transferFee','700');f=change(f,'type',INST);f=change(f,'type','กำหนดวันชำระ');

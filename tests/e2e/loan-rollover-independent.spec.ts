@@ -37,7 +37,7 @@ function preview(url:URL){const penalty=url.searchParams.get('penalty')??'2000',
 async function seedOldDraft(page:Page){await page.evaluate(async source=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');
  await ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'r136-owner'}).saveDraft('loan:rollover:R-loan',{domain:'loan',label:'Synthetic rollover borrower',draft:{kind:'rollover',loanId:'R-loan',targetId:'f1111111-1111-4111-8111-111111111111',day:'2026-10-01',penalty:'2000',arrangementEdited:false,
   fields:{principal:'10000',transferFee:'1000',disbursingAccountId:'C-account',dueDate:'2026-10-25',dailyPayment:'500',currentDailyInterest:null,paymentInterval:1,arrangement:source}}})},
- 'Rollover of loan OLD (loan date 22/09/2026, principal ฿10,000, daily payment ฿500, due 16/10/2026), closed on 01/10/2026 with early closure penalty ฿2,000.\nต่อสัญญาจากสินเชื่อ OLD (วันที่กู้ 22/09/2026 เงินต้น ฿10,000 ยอดชำระรายวัน ฿500 ครบกำหนด 16/10/2026) ปิดเมื่อ 01/10/2026 ค่าปรับปิดก่อนกำหนด ฿2,000')}
+ 'Rollover of loan OLD (loan date 22-Sep-2026, principal ฿10,000, daily payment ฿500, due 16-Oct-2026), closed on 01-Oct-2026 with early closure penalty ฿2,000.\nต่อสัญญาจากสินเชื่อ OLD (วันที่กู้ 22-ก.ย.-2569 เงินต้น ฿10,000 ยอดชำระรายวัน ฿500 ครบกำหนด 16-ต.ค.-2569) ปิดเมื่อ 01-ต.ค.-2569 ค่าปรับปิดก่อนกำหนด ฿2,000')}
 const savedDraft=(page:Page)=>page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'r136-owner'}).draft('loan:rollover:R-loan')});
 test('R136 rollover: record action, prefilled form, live statement, confirm and the new loan with its result line',async({page})=>{
  const writes:any[]=[],previews:string[]=[];let created:any=null;
@@ -65,7 +65,7 @@ test('R136 rollover: record action, prefilled form, live statement, confirm and 
  const cashSize=async(part:string)=>Number.parseFloat(await statement.locator(`[data-row="cash"] ${part}`).evaluate(e=>getComputedStyle(e).fontSize));
  expect(await cashSize('dd')).toBeGreaterThan(await cashSize('dt'));
  await expect(page.getByText('฿2,000 = 4 days of ฿500',{exact:true})).toBeVisible();
- await expect(page.getByRole('textbox',{name:/^Loan Arrangement/})).toHaveValue(/^Rollover of loan .*closed on 09\/10\/2026 with early closure penalty ฿2,000\.\nต่อสัญญาจากสินเชื่อ /);
+ await expect(page.getByRole('textbox',{name:/^Loan Arrangement/})).toHaveValue(/^Rollover of loan .*closed on 09-Oct-2026 with early closure penalty ฿2,000\.\nต่อสัญญาจากสินเชื่อ /);
  await expect(page.getByLabel('Due Date',{exact:true})).toHaveValue('2026-11-02');
  // One more day of penalty: the quote is read again and the statement follows.
  await page.getByRole('button',{name:'Increase penalty by one day',exact:true}).click();
@@ -112,9 +112,9 @@ test('R136 rollover: Yesterday before the original loan date is offered disabled
   await setup(page,(path,url)=>{if(path==='/api/loan-records/R-loan/rollover-preview')return preview(url);if(path.startsWith('/api/loan-records/')&&(path.endsWith('/charges')||path.endsWith('/payments')))return {ok:true,items:[],nextCursor:null};
    if(path==='/api/loan-records/R-loan')return {ok:true,item:{...original,loanDate:'2026-10-09',dueDate:'2026-11-02'},asOf:Date.now(),businessDate:'2026-10-09'};return undefined},[{...row,loanDate:'2026-10-09'}]);
   await page.locator('.borrower-tile-main').click();await page.locator('.loan-record').click();await page.getByRole('button',{name:'Rollover',exact:true}).click();
-  await expect(page.getByRole('radio',{name:/^Today · 09\/10\/2026/})).toBeChecked();
-  const yesterday=page.getByRole('radio',{name:/^Yesterday · 08\/10\/2026/});await expect(yesterday).toBeDisabled();
-  await expect(page.getByTestId('yesterday-reason')).toHaveText('Yesterday is before the original loan date 09/10/2026.');
+  await expect(page.getByRole('radio',{name:/^Today · 09-Oct-2026/})).toBeChecked();
+  const yesterday=page.getByRole('radio',{name:/^Yesterday · 08-Oct-2026/});await expect(yesterday).toBeDisabled();
+  await expect(page.getByTestId('yesterday-reason')).toHaveText('Yesterday is before the original loan date 09-Oct-2026.');
   // UX-24: the disabled choice reads disabled and both choices keep one height.
   const choices=page.locator('.rollover-day-options label');expect(await choices.nth(1).evaluate(e=>getComputedStyle(e).cursor)).toBe('not-allowed');
   const [a,b]=await Promise.all([choices.nth(0).boundingBox(),choices.nth(1).boundingBox()]);expect(Math.abs(a!.height-b!.height)).toBeLessThan(1);
