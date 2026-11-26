@@ -29,6 +29,12 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "bridge" {
         service        = "http://127.0.0.1:8011"
       },
       {
+        hostname       = "muse-broker.mw-credit.com"
+        origin_request = null
+        path           = "^/(health|v1/secrets(/[A-Za-z0-9_-]+)?)$" # Muse secret broker (26 Nov 2026): read-only routes only
+        service        = "http://127.0.0.1:8793"
+      },
+      {
         hostname       = null
         origin_request = null
         path           = null

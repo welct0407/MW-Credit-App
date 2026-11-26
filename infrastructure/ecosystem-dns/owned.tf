@@ -110,3 +110,25 @@ resource "cloudflare_dns_record" "alerts" {
   type    = "CNAME"
   zone_id = "77d9da76cfeaaf21ae589f95a958965c"
 }
+
+# Muse secret broker (26 November 2026): proxied CNAME to the existing mw-collection-webhook tunnel.
+resource "cloudflare_dns_record" "muse_broker" {
+  lifecycle { prevent_destroy = true }
+  comment                 = "Muse secret broker (read-only), tunnel mw-collection-webhook"
+  content                 = "f75df9f1-0acf-4e8c-b797-a5fcf85b22f9.cfargotunnel.com"
+  data                    = null
+  include_shadow_metadata = false
+  name                    = "muse-broker.mw-credit.com"
+  priority                = null
+  private_routing         = null
+  proxied                 = true
+  settings = {
+    flatten_cname = false
+    ipv4_only     = false
+    ipv6_only     = false
+  }
+  tags    = []
+  ttl     = 1
+  type    = "CNAME"
+  zone_id = "77d9da76cfeaaf21ae589f95a958965c"
+}
