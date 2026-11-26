@@ -1,6 +1,6 @@
 # R057 network extension: ecosystem-tunnels
 
-Owns the existing mw-collection-webhook tunnel and its remotely managed hooks/charts/muse-broker ingress configuration (muse-broker added 26 November 2026). Cloudflare5.27.0 import/read uses only metadata GET: tunnel_secret is null and there is no computed token attribute. Never add a tunnel-token data source or a tunnel_secret value. The observed warp-routing.enabled=false field is unsupported by this pinned schema and remains external; review it before any future configuration update.
+Owns the existing mw-collection-webhook tunnel and its remotely managed hooks/charts ingress configuration. Cloudflare5.27.0 import/read uses only metadata GET: tunnel_secret is null and there is no computed token attribute. Never add a tunnel-token data source or a tunnel_secret value. The observed warp-routing.enabled=false field is unsupported by this pinned schema and remains external; review it before any future configuration update.
 
 Backend: existing protected bucket `mw-credit-app-tfstate-737787224638`, unique prefix `ecosystem-tunnels`. Terraform1.16.5 and the committed provider lockfile pin the reviewed code. All resources use `prevent_destroy` and retained exact-ID import blocks.
 

@@ -1,40 +1,43 @@
-# Change notes — Muse secret broker, 26 November 2026
+# Change notes — Muse secret broker, built and dropped, 26 November 2026
 
 ## Purpose
-The owner authorised a read-only Secret Manager broker on `vm-mw-credit-agent` so the assistant Muse can list secrets and read values for DEV and PROD (one shared project) without holding any Google credential. It replaces the first plan of the day, a service-account key, which the organisation policy `iam.managed.disableServiceAccountKeyCreation` refused. No key was created and the policy is unchanged.
+The owner asked for a way for the assistant Muse to read Secret Manager (DEV and PROD, one shared project). The first plan was a service-account key, which the organisation policy `iam.managed.disableServiceAccountKeyCreation` refused; no key was created and the policy is unchanged. The second plan was a read-only broker on `vm-mw-credit-agent`. It was built, verified and then dropped the same day on the owner's instruction, in favour of direct access from Muse to Google Cloud (feasibility still under review). This note records what was live for about two hours and what remains.
 
 ## Changes
-- IAM (gcloud; owner-accepted drift from Terraform): service account `muse-secret-reader@clever-oasis-508610-n7.iam.gserviceaccount.com` ("Muse — Secret Manager reader (read-only)") with project roles `roles/secretmanager.viewer` and `roles/secretmanager.secretAccessor` only; `mw-integration-agent@` holds `roles/iam.serviceAccountTokenCreator` on that account only. No keys exist.
-- `integration-agent/muse-broker/muse_broker.py`: standard-library broker on `127.0.0.1:8793` with three GET routes: `/health`, `/v1/secrets` and `/v1/secrets/{id}[?version=N]`. Muse authenticates with a bearer key checked against its SHA-256 digest in constant time. The broker uses the metadata token and IAM Credentials impersonation, with a cached 1-hour token. It allows 60 requests per minute and 8 concurrent, and audits each request as one JSON line with no values.
-- `integration-agent/systemd/mw-muse-broker.service` (hardened, `mwagent`), installed by hand and enabled; `integration-agent/tests/test_muse_broker.py`.
-- VM: `/opt/mw-muse-broker/muse_broker.py` (root 0644, sha256 `19fd5272…c5c9da`), `/etc/systemd/system/mw-muse-broker.service` (sha256 `14c81bb3…6439`), `/etc/mw-integration-agent/secrets/muse-broker-api-key.sha256` (`mwagent:mwagent` 0600). The plaintext key went only to the owner.
-- Cloudflare: ingress `muse-broker.mw-credit.com` → `http://127.0.0.1:8793`, path `^/(health|v1/secrets(/[A-Za-z0-9_-]+)?)$`, on tunnel `mw-collection-webhook` (`infrastructure/ecosystem-tunnels/owned.tf`; plan 0/1/0 sha256 `b6ab9259…`); proxied CNAME `muse-broker.mw-credit.com` (`infrastructure/ecosystem-dns/owned.tf`; plan 1/0/0 sha256 `1a81952e…`). The running cloudflared picked up the remote configuration without a restart.
-- Docs: [OPERATIONS](../docs/OPERATIONS.md#muse-secret-broker-since-26-november-2026), the [environment inventory](../../project/Documents/Environment_Inventory.md), and the `ecosystem-dns` and `ecosystem-tunnels` READMEs.
+- Live from 16:01Z to about 17:00Z, then removed:
+  - `mw-muse-broker.service` on `127.0.0.1:8793`, a standard-library Python broker installed at `/opt/mw-muse-broker/`.
+  - A key-hash file under `/etc/mw-integration-agent/secrets/`.
+  - Tunnel ingress `muse-broker.mw-credit.com` on `mw-collection-webhook` and its proxied CNAME.
+  - `roles/iam.serviceAccountTokenCreator` for `mw-integration-agent@` on `muse-secret-reader@`.
+- Removal order:
+  1. The hash file was deleted, which cut off Muse's key.
+  2. The unit was stopped, disabled and deleted, and the script directory removed.
+  3. The tunnel and DNS Terraform changes were reverted: plan 0/1/0, then 0/0/1. Both stacks are byte-identical to their state before the broker.
+  4. The TokenCreator binding was removed.
+- Repository: the broker code (`integration-agent/muse-broker/`), its unit and tests are removed. `OPERATIONS.md`, the environment inventory and the `ecosystem-dns` and `ecosystem-tunnels` READMEs are back to their state before the broker. The broker version is kept in commit `2152ed7` for reference.
+- Kept: service account `muse-secret-reader@clever-oasis-508610-n7.iam.gserviceaccount.com`, created with gcloud outside Terraform. It still holds project roles `roles/secretmanager.viewer` and `roles/secretmanager.secretAccessor`, but it has no keys and no IAM bindings that let anyone act as it, so it is unusable until someone with project IAM rights grants that.
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| `python -m unittest tests.test_muse_broker tests.test_systemd_units` | Pass, 18 broker tests plus the existing unit-file tests |
-| `ruff check integration-agent` | Pass |
-| Terraform baseline plans, both stacks, before the edit | No changes |
-| Terraform re-plans after the applies | No changes |
-| Loopback `GET /v1/secrets` with the key, on the VM | 200, count 40 = `gcloud secrets list` count 40 |
-| Loopback and tunnel without a key or with a wrong key | 401; POST 405 |
-| Tunnel `GET /v1/secrets` with the key, from the cloud session | 200, count 40 |
-| Tunnel value fetch `mw-credit-app-dev-native-receipt-catalog` | 200, version 1, 1,046 bytes (value not shown) |
-| Unknown secret / route outside the tunnel regex | 404 / 404 |
-| `systemctl restart mw-muse-broker`, then tunnel list | Active, enabled, 200, count 40 |
-| Journal scan for values, `Bearer` or tokens | 0 matches |
-| `hooks.mw-credit.com/instagram`, `charts.mw-credit.com`; the five live services | 403 and 200 as before; all active |
+| VM: unit files, port 8793, `/opt/mw-muse-broker`, hash file | 0 unit files, nothing listening, directory and hash file gone |
+| VM: `systemctl is-active` for the webhook, cloudflared, recognizer, chat relay and charts | All active |
+| Terraform re-plan `ecosystem-tunnels`, `ecosystem-dns` after the removal applies | No changes |
+| `git diff 2152ed7^` for both `owned.tf` files | Empty |
+| `dig muse-broker.mw-credit.com`; `https://muse-broker.mw-credit.com/health` | No record; no answer |
+| `hooks.mw-credit.com/instagram`, `charts.mw-credit.com` | 403 and 200, as before |
+| `get-iam-policy` on `muse-secret-reader@` | No bindings; 0 keys |
+| Earlier, while live: loopback and tunnel list (40 secrets = `gcloud secrets list`), 401 on missing or wrong keys, one value fetch reported by length only, restart survival, no values in the journal | Passed (commit `2152ed7`) |
 
 ## Not run
-- The full agent suite was not run locally. The broker is a separate script, and CI runs the suite on push.
+None beyond the read-backs above; no code remains to test.
 
 ## Recovery
-Cut Muse off by deleting the hash file (every call answers 401), then `systemctl disable --now mw-muse-broker`. Full removal: remove the TokenCreator binding, then revert the two Terraform edits and apply reviewed plans. Optionally delete the service account. The commands are in [OPERATIONS](../docs/OPERATIONS.md#muse-secret-broker-since-26-november-2026).
+To restore the broker, use the files and the OPERATIONS section in commit `2152ed7`. That needs a new key, the TokenCreator grant and reviewed Terraform plans.
 
 ## Open questions
-- The broker exposes every secret in the project, PROD included. Any process running as the VM identity can also mint the reader token. The owner may want an allowlist of secret ids or labels.
+- Whether to delete `muse-secret-reader@`: `gcloud iam service-accounts delete muse-secret-reader@clever-oasis-508610-n7.iam.gserviceaccount.com --project=clever-oasis-508610-n7`.
+- The direct-access route for Muse (OAuth as a dedicated organisation user through Google's remote MCP server) awaits the owner's decision and a feasibility test.
 
 ## Remaining work
-None.
+None for the broker.

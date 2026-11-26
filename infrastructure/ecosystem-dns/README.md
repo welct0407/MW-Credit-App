@@ -1,6 +1,6 @@
 # R057 ecosystem adoption: dns
 
-Only alerts, charts, hooks, monitor and reports CNAME records, plus muse-broker (created here on 26 November 2026, not imported). Use the existing DNS-scoped operator token in CLOUDFLARE_API_TOKEN; resolve via the established Secret Manager authentication route. No tunnel/account administration.
+Only alerts, charts, hooks, monitor and reports CNAME records. Use the existing DNS-scoped operator token in CLOUDFLARE_API_TOKEN; resolve via the established Secret Manager authentication route. No tunnel/account administration.
 
 Terraform 1.16.5 and the committed provider lockfile pin the reviewed implementation. The existing protected GCS backend bucket is `mw-credit-app-tfstate-737787224638` with the unique `ecosystem-dns` prefix. Use the existing GCP operator authentication for backend access; Azure roots additionally use the established Azure CLI account. Keep credentials, TF_DATA_DIR, saved plans and diagnostic output outside every repository.
 
