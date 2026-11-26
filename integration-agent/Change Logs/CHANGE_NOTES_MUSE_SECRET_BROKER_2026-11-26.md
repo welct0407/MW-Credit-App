@@ -25,7 +25,7 @@ The owner asked for a way for the assistant Muse to read Secret Manager (DEV and
 | VM: `systemctl is-active` for the webhook, cloudflared, recognizer, chat relay and charts | All active |
 | Terraform re-plan `ecosystem-tunnels`, `ecosystem-dns` after the removal applies | No changes |
 | `git diff 2152ed7^` for both `owned.tf` files | Empty |
-| `dig muse-broker.mw-credit.com`; `https://muse-broker.mw-credit.com/health` | No record; no answer |
+| DNS-over-HTTPS lookup of `muse-broker.mw-credit.com` (A and CNAME); `https://muse-broker.mw-credit.com/health` | NXDOMAIN; no answer |
 | `hooks.mw-credit.com/instagram`, `charts.mw-credit.com` | 403 and 200, as before |
 | `describe` on `muse-secret-reader@` after deletion; project policy entries naming it | Not found; 0 |
 | `gcloud services list --enabled` for `admin.googleapis.com` after the test | Not enabled |
