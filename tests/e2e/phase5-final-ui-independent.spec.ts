@@ -242,7 +242,7 @@ test('R187 Dashboard KPIs: this and last month Realized Profit replace Net Profi
   body={...body,lastMonthRealizedProfit:'-250'};await page.getByRole('button',{name:'Refresh Dashboard'}).first().click();
   await expect(kpis.locator('dt')).toHaveText(['Today’s Profit','Yesterday’s Profit','Realized Profit MTD (before write-offs)','Last month Realized Profit (before write-offs)']);
   const last=kpis.locator(':scope > div').nth(3).locator('dd'),mtd=kpis.locator(':scope > div').nth(2).locator('dd');
-  await expect(mtd).toHaveText('฿1,200');await expect(mtd).toHaveCSS('color','rgb(24, 128, 56)');await expect(last).toHaveText('-฿250');await expect(last).toHaveCSS('color','rgb(179, 38, 30)');
+  /* UXR187-DASH-01: in each grid row the figures share one bottom line, though the long labels wrap. */{const cells=await kpis.locator(':scope > div').evaluateAll(es=>es.map(e=>({top:Math.round(e.getBoundingClientRect().top),bottom:Math.round(e.querySelector('dd')!.getBoundingClientRect().bottom)})));for(const c of cells)for(const o of cells)if(c.top===o.top)expect(Math.abs(c.bottom-o.bottom)).toBeLessThanOrEqual(1)}await expect(mtd).toHaveText('฿1,200');await expect(mtd).toHaveCSS('color','rgb(24, 128, 56)');await expect(last).toHaveText('-฿250');await expect(last).toHaveCSS('color','rgb(179, 38, 30)');
  }finally{await context.close()}
 });
 test('Dashboard native drawer follows opening and closing touch while fixed page and modal cleanup remain intact',async({},info)=>{
