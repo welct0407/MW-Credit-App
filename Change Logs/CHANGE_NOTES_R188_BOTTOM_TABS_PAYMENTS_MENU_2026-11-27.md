@@ -11,7 +11,8 @@ Team: Byte (implementation), Echo (a quick visual check), Chase (a light review)
 Baseline `0178d511` (`main`, R187 closed). Scope:
 - Phone bottom tab bar: Dashboard, Collection, Borrowers, Chat; the Payments tab leaves it.
 - Menu drawer: a Payments entry.
-- Unchanged: the desktop sidebar and the tablet rail (they list every route); no API, SQL or service change. The drawer order is Payments, Referrers, Expenses, Upcoming, Cash, Management; the `aria-current` logic is unchanged.
+- Behaviour note: the iPad portrait layout uses the bottom bar, so it now also shows four tabs with Payments in the drawer, in line with the owner's request.
+- Unchanged: the desktop sidebar and the iPad landscape rail (they list every route); no API, SQL or service change. The drawer order is Payments, Referrers, Expenses, Upcoming, Cash, Management; the `aria-current` logic is unchanged.
 - Files: `apps/pwa/src/live/LiveHeader.tsx` (one flag: `frequent:false` for payments); the `openPayments` helper in `tests/e2e/live-controls.ts`; the specs `phase5-final-ui-independent`, `rebate-offset-independent` and `chat.spec`.
 - Records (Dewey): [Release tracker](../project/Documents/Release_Tracker.md) and [Development Changes](../project/Documents/Development_Changes.md) entries; the documentation pass against the final diff.
 
@@ -22,7 +23,7 @@ Baseline `0178d511` (`main`, R187 closed). Scope:
 | Byte | `npm test` | 1,447 passed, 1 skipped | `796e62a6` |
 | Byte | desktop-chromium and mobile-chromium specs, including the Thai bottom-bar fit at 320, 375 and 412 px; the mobile-webkit drawer path | 10/10; drawer path passes | `796e62a6` |
 | Chase | review: one flag changed (`frequent:false` for payments in `LiveHeader.tsx`); the desktop sidebar and tablet rail list every route; the drawer order is Payments, Referrers, Expenses, Upcoming, Cash, Management; the `aria-current` logic is unchanged | Pass, no defects | `796e62a6` |
-| Echo | iPhone visual check | Pending | – |
+| Echo | iPhone visual check (local build, WebKit): iPhone 440 px, four tabs of 110 x 63 px in English and Thai, nothing clipped (the three-tab build gives 147 px tabs); Payments is the first drawer entry with the same icon and a 48 px row, shows the current-page mark when open, and no bottom tab is active; Back from a payment record works; the iPad landscape rail is unchanged | OK, no findings | `796e62a6` |
 | CI | pull request `Development checks` | Pending | – |
 
 ## Not run
@@ -36,4 +37,4 @@ Git baseline `0178d511` (R187 closed). A frontend-only revert restores the five 
 - None on authority: promotion is authorized (see Purpose).
 
 ## Remaining work
-Echo's iPhone visual check, the pull request and its Development checks, the merge, the DEV deploy, the PROD promotion (Hosting only), the R188 tag and the closure pull request.
+The pull request and its Development checks, the merge, the DEV deploy, the PROD promotion (Hosting only), the R188 tag and the closure pull request.
