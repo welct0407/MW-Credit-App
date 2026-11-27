@@ -1,5 +1,5 @@
 import {test,expect,type Page} from './fixtures/test';
-import {chooseLanguage,chooseLanguagePreservingForm} from './live-controls';
+import {chooseLanguage,chooseLanguagePreservingForm,openPayments} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess,base:string;
 test.beforeAll(async({},info)=>{const port=7900+info.workerIndex;base=`http://127.0.0.1:${port}`;server=spawn(process.execPath,['--input-type=module','-e',`import {createServer} from 'vite';const s=await createServer({mode:'live-dev',cacheDir:'node_modules/.cache/rebate-independent-${port}',server:{host:'127.0.0.1',port:${port},strictPort:true}});await s.listen();`],{env:{...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-key',VITE_FIREBASE_APP_ID:'synthetic-app',VITE_API_ORIGIN:'https://mw-credit-app-read-dev-test.run.app',VITE_COMMAND_API_ORIGIN:'https://mw-credit-app-command-dev-test.run.app',VITE_COMMAND_MODE:'dev-owner-testing'},stdio:'pipe'});await expect.poll(async()=>{try{return(await fetch(base)).status}catch{return 0}},{timeout:20000}).toBe(200)});
@@ -140,8 +140,7 @@ async function openClosingPayment(page:Page,rebateLine:any,extra:any={}){
  await page.route('https://mw-credit-app-command-dev-test.run.app/api/payment-records**',r=>{const u=new URL(r.request().url());
   if(u.pathname==='/api/payment-records'){const month=u.searchParams.get('month');const result=month?{level:'payments',items:[row],nextCursor:null}:u.searchParams.has('borrowerId')?{level:'months',items:[{month:'2026-10',amountReceived:'1300',count:1}],nextCursor:null}:{level:'borrowers',items:[{id:record.id,borrowerId:record.id,borrowerDisplayName:'SYNTHETIC closing borrower'}],nextCursor:null};return r.fulfill({contentType:'application/json',body:JSON.stringify(result)})}
   return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,asOf:new Date().toISOString(),businessDate:'2026-10-09',item:{id:'C-closing',version:'e'.repeat(64),borrowerName:'SYNTHETIC closing borrower',paymentDate:'2026-10-09',amountReceived:'1300',postedAmount:'1300',status:'Posted',notes:null,allocations:[],repayments:[],cashMovements:[],agentReceiptPresent:false,receiptReference:null,...(rebateLine?{closeRebate:rebateLine,...extra}:{})}})})});
- const nav=page.locator(page.viewportSize()!.width<=1050?'.live-bottom-nav':'#live-desktop-navigation');
- await nav.getByRole('button',{name:'Payments',exact:true}).click();
+ await openPayments(page);
  const list=page.getByRole('region',{name:'Payments list',exact:true});await expect(list.locator('.payment-borrower-group')).toHaveCount(1);
  for(const group of await list.locator('.payment-borrower-group').all()){if(await group.getAttribute('open')===null)await group.locator(':scope > summary').click();await expect(group.locator('.payment-month-group').first()).toBeVisible();for(const month of await group.locator('.payment-month-group').all())if(await month.getAttribute('open')===null)await month.locator(':scope > summary').click()}
  await expect(list.locator('.borrower-card')).toHaveCount(1);await list.locator('.borrower-card').first().click();return page.getByRole('region',{name:'Full payment details',exact:true});
