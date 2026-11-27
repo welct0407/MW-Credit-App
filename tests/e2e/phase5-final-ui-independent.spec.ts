@@ -223,7 +223,7 @@ test('R102 Dashboard hides Long Overdue when a cached pre-R102 response has no c
 // R187 (owner): the KPI row is Today's Profit, Yesterday's Profit, Realized Profit MTD and last month's Realized Profit (both
 // before write-offs). Net Profit and Principal Loss Recognized (R109) left the row though /api/dashboard still carries them;
 // last month's row is hidden while a cached response from before R187 lacks it, and a loss reads green/red like the others.
-test('R187 Dashboard KPIs: this and last month Realized Profit replace Net Profit and Principal Loss Recognized',async()=>{
+test('R187 Dashboard KPIs: this and last month Realized Profit replace Net Profit and Principal Loss Recognized, which move to All time',async()=>{
  const{context,page}=await launch();try{
   await page.setViewportSize({width:mobile?320:1440,height:900});
   let body:any={pendingPaymentAmount:'0',todayProfit:'0',yesterdayProfit:'0',netProfit:'-500',principalLoss:'4500',collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{realizedProfitMtd:'1200'},portfolio:{},incomeMtd:{},businessCashHeld:[]};
@@ -231,7 +231,14 @@ test('R187 Dashboard KPIs: this and last month Realized Profit replace Net Profi
   const nav=page.locator(mobile?'.live-bottom-nav':'#live-desktop-navigation');await nav.getByRole('button',{name:'Dashboard',exact:true}).click();const view=page.getByRole('region',{name:'Dashboard',exact:true});
   const kpis=view.locator('.dashboard-section').first().locator(':scope > dl').first();
   await expect(kpis.locator('dt')).toHaveText(['Today’s Profit','Yesterday’s Profit','Realized Profit MTD (before write-offs)']);
-  await expect(view.getByText('Net Profit',{exact:true})).toHaveCount(0);await expect(view.getByText('Principal Loss Recognized',{exact:true})).toHaveCount(0);
+  await expect(kpis).not.toContainText('Net Profit');await expect(kpis).not.toContainText('Principal Loss Recognized');
+  // The owner's "All time" section right after Monthly forecast in the same card: lifetime Net Profit and Principal Loss.
+  const headings=await view.locator('.dashboard-section').first().locator('h3').allTextContents();expect(headings.indexOf('All time')).toBe(headings.indexOf('Monthly forecast')+1);
+  const allTime=view.locator('.dashboard-secondary').filter({has:page.getByRole('heading',{name:'All time',exact:true})}).locator('dl');
+  await expect(allTime.locator('dt')).toHaveText(['Net Profit','Principal Loss Recognized']);await expect(allTime.locator('dd')).toHaveText(['-฿500','฿4,500']);
+  await expect(allTime.locator('dd').nth(0)).toHaveCSS('color','rgb(179, 38, 30)');await expect(allTime.locator('dd').nth(1)).toHaveCSS('color','rgb(179, 38, 30)');
+  for(const [loss,shown] of [['0','฿0'],[undefined,null]] as const){body={...body,principalLoss:loss};await page.getByRole('button',{name:'Refresh Dashboard'}).first().click();
+   if(shown)await expect(allTime.locator('dd').nth(1)).toHaveText(shown);else await expect(allTime.locator('dt')).toHaveText(['Net Profit'])}
   body={...body,lastMonthRealizedProfit:'-250'};await page.getByRole('button',{name:'Refresh Dashboard'}).first().click();
   await expect(kpis.locator('dt')).toHaveText(['Today’s Profit','Yesterday’s Profit','Realized Profit MTD (before write-offs)','Last month Realized Profit (before write-offs)']);
   const last=kpis.locator(':scope > div').nth(3).locator('dd'),mtd=kpis.locator(':scope > div').nth(2).locator('dd');
