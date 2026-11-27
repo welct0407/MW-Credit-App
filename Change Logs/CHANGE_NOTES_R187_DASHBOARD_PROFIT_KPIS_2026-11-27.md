@@ -76,7 +76,7 @@ Freeze (pinned here): package `main` `e55efc50a289b8f1b1c50f6c3ddec0abf729023e` 
 Rollback: `production.activation.before-r187.tfvars` (image `687dcfae…`; read `00072-v7c`, command `00077-wsf`, chat `00056-8c5`) and Hosting `cd6f19ef6c5c8985` (release `1795620244466000`). SQL unchanged.
 
 ## Tag record (Dewey, 27 November 2026)
-Annotated tag `R187` (object `a9d344a17d1cf8bf836eec4294e88e758df4eadc`) on `main` `e55efc50a289b8f1b1c50f6c3ddec0abf729023e`, created by the Release tag workflow (dispatched at about 06:27Z; the coordinator confirmed the tag; the run number was not forwarded). The tag exists on origin.
+Annotated tag `R187` (object `a9d344a17d1cf8bf836eec4294e88e758df4eadc`) on `main` `e55efc50a289b8f1b1c50f6c3ddec0abf729023e`, created by the Release tag workflow, run [45951838230](https://github.com/welct0407/MW-Credit-App/actions/runs/45951838230), which succeeded between 06:26:09Z and 06:26:33Z and published the GitHub Release R187. The tag exists on origin. Drift after the tag: exit 0, drift 0, unverified 4 (see the closure records).
 
 ## Closure records (Dewey)
 - Component versions (`derive --release R187 --commit e55efc50`): changed in R187 are the PWA frontend and the API read, command and chat services; unchanged: notify and jobs (R175), database schema (R184, V155), integration agent (R181), Grafana dashboards (R180), Metabase reports (R144). `render --write` and `render --check` pass (R187).
