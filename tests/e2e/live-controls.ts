@@ -48,3 +48,12 @@ export async function routeSyntheticPreferences(target:Page|BrowserContext,origi
  await target.route(origin+'/api/operations/*',r=>{const id=new URL(r.request().url()).pathname.split('/').at(-1);if(r.request().method()!=='GET'||!writes.some(command=>command.requestId===id))return r.fallback();return r.fulfill({json:{ok:true,kind:'recorded',originalOutcome:{status:'applied',code:null,result:null}}})});
  return writes;
 }
+/** R188 (owner): Payments left the phone's bottom bar for the menu drawer; the sidebar and the tablet rail keep it. Opens
+ * Payments the way a person would at the current width and waits for a phone's drawer to close. */
+export async function openPayments(page:Page) {
+  if (await page.locator('.live-bottom-nav').isVisible()) {
+    await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+    await page.locator('dialog.live-menu-dialog').getByRole('button', { name: 'Payments', exact: true }).click();
+    await expect(page.locator('dialog.live-menu-dialog[open]')).toHaveCount(0);
+  } else await page.locator('#live-desktop-navigation').getByRole('button', { name: 'Payments', exact: true }).click();
+}

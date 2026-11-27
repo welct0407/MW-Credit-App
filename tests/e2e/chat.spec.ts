@@ -178,15 +178,15 @@ const composer=(page:Page)=>page.getByRole('textbox',{name:/^(Message|ข้อ�
 async function openThreads(page:Page){if(page.viewportSize()!.width<=1050){await page.getByRole('button',{name:/^(Threads|รายการแชท): /}).click();await expect(page.locator('.chat-pane')).toBeVisible()}}
 async function closeThreads(page:Page){if(page.viewportSize()!.width<=1050)await page.getByRole('button',{name:/^(Close threads|ปิดรายการแชท)$/}).click()}
 
-test('Chat is the fifth and last bottom item, and last in the desktop sidebar',async()=>{
+test('Chat is the fourth and last bottom item (R188: Payments moved to the menu), and last in the desktop sidebar',async()=>{
  const {context,page}=await launch();
  try{
   if(!mobile){const labels=await page.locator('#live-desktop-navigation nav > button:not(.management-nav-item)').evaluateAll(buttons=>buttons.map(button=>button.getAttribute('aria-label')));expect(labels.at(-1)).toBe('Chat');expect(labels.slice(0,4)).toEqual(['Dashboard','Collection','Payments','Borrowers']);await page.setViewportSize({width:320,height:800})}
   const nav=page.locator('.live-bottom-nav');
   for(const language of ['EN','ไทย'] as const){
    await chooseLanguage(page,language);
-   expect(await nav.locator('button').evaluateAll(buttons=>buttons.map(button=>button.getAttribute('aria-label')))).toEqual(language==='EN'?['Dashboard','Collection','Payments','Borrowers','Chat']:['ภาพรวม','งานติดตาม','รับชำระ','ผู้กู้','แชท']);
-   expect(await nav.locator('svg.app-icon').nth(4).getAttribute('data-icon')).toBe('chat');
+   expect(await nav.locator('button').evaluateAll(buttons=>buttons.map(button=>button.getAttribute('aria-label')))).toEqual(language==='EN'?['Dashboard','Collection','Borrowers','Chat']:['ภาพรวม','งานติดตาม','ผู้กู้','แชท']);
+   expect(await nav.locator('svg.app-icon').nth(3).getAttribute('data-icon')).toBe('chat');
    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
    for(const width of [320,375,412]){
     await page.setViewportSize({width,height:800});
@@ -210,7 +210,7 @@ test('Chat is hidden when the build has no VITE_CHAT_API_ORIGIN',async()=>{
   try{
    if(!mobile)await expect(page.locator('#live-desktop-navigation').getByRole('button',{name:'Chat',exact:true})).toHaveCount(0);
    await page.setViewportSize({width:320,height:800});
-   expect(await page.locator('.live-bottom-nav button').evaluateAll(buttons=>buttons.map(button=>button.getAttribute('aria-label')))).toEqual(['Dashboard','Collection','Payments','Borrowers']);
+   expect(await page.locator('.live-bottom-nav button').evaluateAll(buttons=>buttons.map(button=>button.getAttribute('aria-label')))).toEqual(['Dashboard','Collection','Borrowers']);/* R188: Payments is in the menu drawer */
    await expect(page.getByRole('button',{name:'Chat',exact:true})).toHaveCount(0);
   }finally{await context.close()}
  }finally{fixture.setBuildRoot(join(root,'chat'))}
