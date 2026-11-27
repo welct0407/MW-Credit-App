@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {readDashboard} from '../../services/business/dashboard.mjs';
+import {readDashboard,LAST_MONTH_REALIZED_PROFIT_SQL} from '../../services/business/dashboard.mjs';
+import {readFileSync} from 'node:fs';
 // R109: the Dashboard read carries "Total Principal Loss" (olap_portfolio_summary, V120) as principalLoss, a numeric
 // string beside the profit figures. A database before V120 has no such column: the field is omitted (the PWA hides the
 // row), never fabricated as zero; a present non-numeric value is refused like any other metric.
@@ -23,4 +24,33 @@ test('a provider without the column omits the figure; a non-numeric value or a m
  await assert.rejects(readDashboard(client([{...row,principalLoss:'n/a'}])),/Dashboard provider unavailable/);
  const {netProfit,...missing}=row;assert.ok(netProfit);
  await assert.rejects(readDashboard(client([missing])),/Dashboard provider unavailable/);
+});
+
+// R187: last month's Realized Profit (before write-offs) is read inline, gated on the V130 predicate and the V132 late
+// columns, under a savepoint; it is omitted (never zero-filled, never failing the Dashboard) when gated off, failing or
+// non-numeric. Net Profit and Principal Loss stay in the response.
+function lastMonthClient({ready=true,value='1234.5',fail=false}={}){const c=client([{...row,principalLoss:'4500'}]);const base=c.query;c.query=async sql=>{
+ if(sql.includes('is_principal_writeoff(text,text,numeric,numeric,text,numeric,numeric,bigint)')){c.queries.push(sql);return {rows:[{ready}]}}
+ if(sql.includes('"lastMonthRealizedProfit"')){c.queries.push(sql);if(fail)throw Error('permission denied');return {rows:[{lastMonthRealizedProfit:value}]}}
+ return base(sql)};return c}
+test('R187 lastMonthRealizedProfit is the previous Bangkok month of the view\'s Realized Profit MTD',async()=>{
+ const c=lastMonthClient(),value=await readDashboard(c);
+ assert.equal(value.lastMonthRealizedProfit,'1234.5');assert.equal(value.netProfit,'-8');assert.equal(value.principalLoss,'4500');
+ const sql=c.queries.find(text=>text.includes('"lastMonthRealizedProfit"'));
+ assert.match(sql,/date_trunc\('month',d\)::date ms FROM \(SELECT public\.olap_reporting_date\(\) d\)/);
+ assert.match(sql,/BETWEEN \(ctx\.ms-interval '1 month'\)::date AND ctx\.ms-1/);
+ assert.match(sql,/sum\(r\."Interest Paid"::numeric\+r\."Late Charge Paid"::numeric\) FILTER\(WHERE NOT r\.loss_pair\)/);
+ assert.doesNotMatch(sql,/wx\.\*/);
+ assert.deepEqual(c.queries.filter(text=>/SAVEPOINT/.test(text)),['SAVEPOINT dashboard_last_month','RELEASE SAVEPOINT dashboard_last_month']);
+});
+test('R187 the last-month field is omitted when gated off, failing or non-numeric, and the Dashboard still answers',async()=>{
+ const gated=lastMonthClient({ready:false}),off=await readDashboard(gated);assert.equal('lastMonthRealizedProfit' in off,false);assert.equal(gated.queries.some(text=>text.includes('"lastMonthRealizedProfit"')),false);
+ const failing=lastMonthClient({fail:true}),failed=await readDashboard(failing);assert.equal('lastMonthRealizedProfit' in failed,false);assert.equal(failed.todayProfit,'4');
+ assert.deepEqual(failing.queries.filter(text=>/SAVEPOINT/.test(text)),['SAVEPOINT dashboard_last_month','ROLLBACK TO SAVEPOINT dashboard_last_month','RELEASE SAVEPOINT dashboard_last_month']);
+ for(const value of ['n/a','',null,'1e3'])assert.equal('lastMonthRealizedProfit' in await readDashboard(lastMonthClient({value})),false,String(value));
+ assert.equal((await readDashboard(lastMonthClient({value:'-20'}))).lastMonthRealizedProfit,'-20');
+});
+test('R187 the real-SQL test runs the Dashboard read verbatim',()=>{
+ const script=readFileSync(new URL('../../scripts/database/Test-LastMonthRealizedProfit.sql',import.meta.url),'utf8');
+ assert.ok(script.includes(LAST_MONTH_REALIZED_PROFIT_SQL),'scripts/database/Test-LastMonthRealizedProfit.sql must hold LAST_MONTH_REALIZED_PROFIT_SQL unchanged');
 });
