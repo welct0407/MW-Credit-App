@@ -1,7 +1,7 @@
 # Change notes — R188 Payments moves to the menu, 27 November 2026
 
 ## Purpose
-Owner request of 27 November 2026 (verbatim): "I hardly use the payment page in the bottom buttons. Let's move it to menu, leave only 4 at the bottom". On a phone the bottom tab bar becomes Dashboard, Collection, Borrowers and Chat, and Payments moves into the menu drawer. The desktop sidebar and the tablet rail are unchanged. Status: Released to DEV and PROD on 27 November 2026 (PWA Hosting only; PR #394, package `3fdc2ebf`; tag `R188` pending confirmation); owner acceptance pending.
+Owner request of 27 November 2026 (verbatim): "I hardly use the payment page in the bottom buttons. Let's move it to menu, leave only 4 at the bottom". On a phone the bottom tab bar becomes Dashboard, Collection, Borrowers and Chat, and Payments moves into the menu drawer. The desktop sidebar and the tablet rail are unchanged. Status: Released to DEV and PROD on 27 November 2026 (PWA Hosting only; PR #394, package `3fdc2ebf`; tag `R188`); owner acceptance pending.
 
 Production instruction: the owner, 27 November 2026: "Push all the way to prod". Under the [Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion) it covers the pull request and its merge, the DEV deploy and then the PROD promotion, the tag and the closure pull request. It does not cover financial writes, forced notifications or unrelated changes. Deploy set: PWA Hosting only (`frontend-only`); the services stay on R187; no SQL, no backup.
 
@@ -65,10 +65,10 @@ Freeze (pinned here): package `main` `3fdc2ebf10a19b8bf6288b2613bdc97ebd0b954e` 
 Rollback: Hosting back to `d12cef58ba4c96a1` (release `1795760709542000`). The services were not changed.
 
 ## Tag record (Dewey, 27 November 2026)
-Pending: the Release tag workflow for `R188` on `3fdc2ebf10a19b8bf6288b2613bdc97ebd0b954e` was dispatched; the run and the tag object are recorded here once received.
+Annotated tag `R188` (object `9d083f8bd8f93d596d2c1bf124fb3561011320de`) on `main` `3fdc2ebf10a19b8bf6288b2613bdc97ebd0b954e`, created by the Release tag workflow, run [45975013939](https://github.com/welct0407/MW-Credit-App/actions/runs/45975013939), which succeeded between 09:35:44Z and 09:36:09Z and published the GitHub Release R188. The tag exists on origin.
 
 ## Closure records (Dewey)
-- Component versions: pending the tag (`derive --release R188 --commit 3fdc2ebf`, then `render --write` and `render --check`). Drift (`drift --env all`) is run by Forge; its result is recorded here when received.
+- Component versions (`derive --release R188 --commit 3fdc2ebf`): changed in R188 is the PWA frontend only; unchanged: the read, command and chat services (R187), notify and jobs (R175), database schema (R184, V155), integration agent (R181), Grafana dashboards (R180), Metabase reports (R144). `render --write` and `render --check` pass (R188). Drift (`drift --env all`) is run by Forge; its result is recorded here when received.
 - Environment inventory: the R188 Hosting rows for DEV and PROD (the R187 Hosting rows are now previous); the Cloud Run and Flyway rows are unchanged (services on R187, no SQL).
 - Released wording: the R188 clause of the Solution design says Released.
 - Pruned at closure (Open R189 has no note, plus the three newest Released: R188, R187, R186): `Change Logs/CHANGE_NOTES_R185_UIUX_REVIEW_FIXES_2026-11-25.md`, with its inbound links (release tracker, Development Changes, environment inventory, Solution design) repointed to permalinks at `3fdc2ebf`. R188's entry in Development Changes became its follow-up row.
