@@ -16,3 +16,17 @@ test('unknown snapshot protocols and injected projection fields fail closed',()=
  const value=projectViewedSnapshot('expense',{id:'e',version,amount:'-10',notes:'explanation'},'2026-01-01',asOf);
  for(const modified of [{...value,domain:'unknown'},{...value,schemaVersion:2},{...value,asOf:'2999-01-01T00:00:00Z'},{...value,record:{...value.record,token:'secret'}},{...value,related:{unknown:{rows:[],hasMore:false,truncated:false}}}])assert.throws(()=>validateViewedSnapshot(modified));
 });
+// R189: the borrower's unpaid charges (manual open loans only) survive the projection, null included; a snapshot saved
+// before R189 has neither key and stays valid.
+test('R189 borrower unpaid charges survive pick and validate; an older snapshot without them stays valid',()=>{
+ const details={outstandingPrincipal:'2000',unpaidChargesCurrent:'150.00',unpaidChargesTotal:'450.00',hasActiveLoan:true,loginEmail:'private'};
+ const borrower=projectViewedSnapshot('borrower',{id:'b',version,name:'Synthetic',details},'2026-01-01',asOf);
+ assert.deepEqual(borrower.record.details,{outstandingPrincipal:'2000',unpaidChargesCurrent:'150.00',unpaidChargesTotal:'450.00',hasActiveLoan:true});
+ assert.deepEqual(Object.keys(borrower.record.details).slice(0,3),['outstandingPrincipal','unpaidChargesCurrent','unpaidChargesTotal']);
+ validateViewedSnapshot(JSON.parse(JSON.stringify(borrower)));
+ const auto=projectViewedSnapshot('borrower',{id:'b',version,name:'Synthetic',details:{...details,unpaidChargesCurrent:null,unpaidChargesTotal:null}},'2026-01-01',asOf);
+ assert.equal(auto.record.details.unpaidChargesCurrent,null);assert.equal(auto.record.details.unpaidChargesTotal,null);
+ const older={...borrower,record:{...borrower.record,details:{outstandingPrincipal:'2000',hasActiveLoan:true}}};
+ validateViewedSnapshot(older);
+ assert.throws(()=>validateViewedSnapshot({...borrower,record:{...borrower.record,details:{...borrower.record.details,unpaidChargesProjected:'1'}}}));
+});

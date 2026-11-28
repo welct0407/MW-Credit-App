@@ -43,6 +43,10 @@ export async function readBorrowerRecord(client,id,lock=false){
  // R129 (V137): isReferrer (this borrower referred someone), referrerUnpaidAmount (the pwa_rebate_pending_v1 rule over
  // their rebates) and referrerUnpaidSince (the oldest close date of an unpaid one). Before V137 nothing is pending.
  // R184: the pending rule is the SQL function where it exists (rebateRules); before V137 nothing is pending.
+ // R189 (owner, 28 November 2026): unpaidChargesCurrent and unpaidChargesTotal, only when every open loan
+ // ("Loan Status" ยังไม่ปิดยอด, defaulted included) has auto charge disabled (NULL counts as disabled): the Amount Remaining
+ // of their recorded charges (late charges included; the df10: default postings excluded) dated up to today (Bangkok),
+ // and of all of them, future-dated included. No projected rows (a manual loan has none). Otherwise both are null.
  const rules=await rebateRules(client);
  const details=(await client.query(`SELECT b."Total Amount Loaned"::text AS "totalAmountLoaned",b."Total Interest Earned"::text AS "totalInterestEarned",b."Total Number of Loans" AS "totalNumberOfLoans",b."Total Outstanding Principal"::text AS "outstandingPrincipal",b."Active Loan Interest Earned"::text AS "activeInterest",b."Has Active Loan" AS "hasActiveLoan",b."Has Closed Loan" AS "hasClosedLoan",
  CASE WHEN b."Total Outstanding Principal" IS NULL OR b."Active Loan Interest Earned" IS NULL THEN NULL WHEN b."Total Outstanding Principal">0 THEN b."Active Loan Interest Earned"/b."Total Outstanding Principal" ELSE 0 END::text AS "activeReturn",
@@ -55,10 +59,13 @@ export async function readBorrowerRecord(client,id,lock=false){
  (SELECT coalesce(sum(${rebatePendingSql('x',rules)}),0)::numeric(20,2)::text FROM public."Business Expenses" x WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate') AS "referrerUnpaidAmount",
  (SELECT min(coalesce(l."Close Date",x."Expense Date"))::text FROM public."Business Expenses" x LEFT JOIN public."Loans" l ON l."Row ID"=x."Ref Related Loan"
   WHERE x."Ref Payee Borrower"=b."Row ID" AND x."Source Type"='Referral Rebate' AND ${rebatePendingSql('x',rules)}>0) AS "referrerUnpaidSince",
- eo.amount AS "expensesOwedAmount",eo.count AS "expensesOwedCount",
+ eo.amount AS "expensesOwedAmount",eo.count AS "expensesOwedCount",uc.due_now AS "unpaidChargesCurrent",uc.due_all AS "unpaidChargesTotal",
  ${terms?`(t.terms->>'rate')::float8 AS "referralRebateRateEffective",(t.terms->>'cap')::float8 AS "referralRebateCapEffective"`:'NULL::float8 AS "referralRebateRateEffective",NULL::float8 AS "referralRebateCapEffective"'}
  FROM public."Borrowers" b LEFT JOIN public."Borrowers" r ON r."Row ID"=b."Ref Referrer" LEFT JOIN public."Cash Accounts" a ON a."Row ID"=b."Ref Preferred Receiving Cash Account"
- CROSS JOIN LATERAL (SELECT coalesce(sum(x."Amount"::numeric),0)::numeric(20,2)::text AS amount,count(*)::int AS count FROM public."Business Expenses" x WHERE x."Ref Payee Borrower"=b."Row ID" AND ${expensePendingSql('x')}) eo${terms?' CROSS JOIN LATERAL (SELECT public.referral_rebate_terms(b."Row ID") AS terms) t':''} WHERE b."Row ID"=$1`,[id])).rows[0];
+ CROSS JOIN LATERAL (SELECT coalesce(sum(x."Amount"::numeric),0)::numeric(20,2)::text AS amount,count(*)::int AS count FROM public."Business Expenses" x WHERE x."Ref Payee Borrower"=b."Row ID" AND ${expensePendingSql('x')}) eo
+ LEFT JOIN LATERAL (SELECT coalesce(sum(c."Amount Remaining"::numeric) FILTER(WHERE c."Charge Date"<=(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date),0)::numeric(20,2)::text AS due_now,coalesce(sum(c."Amount Remaining"::numeric),0)::numeric(20,2)::text AS due_all
+  FROM public."Loans" l LEFT JOIN public."Charges" c ON c."Ref Loans"=l."Row ID" AND NOT starts_with(c."Row ID",'df10:') AND coalesce(c."Amount Remaining"::numeric,0)>0
+  WHERE l."Ref Borrowers"=b."Row ID" AND l."Loan Status"='ยังไม่ปิดยอด' HAVING count(*)>0 AND NOT bool_or(coalesce(l."Auto Charge Enabled",false))) uc ON true${terms?' CROSS JOIN LATERAL (SELECT public.referral_rebate_terms(b."Row ID") AS terms) t':''} WHERE b."Row ID"=$1`,[id])).rows[0];
  // The effective terms (the referrer's own or the default) come from referral_rebate_terms, so the PWA holds no default.
  if(!terms){delete details.referralRebateRateEffective;delete details.referralRebateCapEffective;}
  return {...record,details};

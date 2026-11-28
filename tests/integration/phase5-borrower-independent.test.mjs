@@ -172,3 +172,35 @@ test('R154 the group invite link: absent before the column; with it a create, ke
  }finally{await admin.query('ALTER TABLE public."Borrowers" DROP COLUMN IF EXISTS "IG Group Invite Link"')}
  const after=(await store.borrowerRecord(principal,before.id)).item;assert.equal(Object.hasOwn(after,'igGroupInviteLink'),false);assert.equal(after.version,before.version);
 });
+
+// R189 (owner, 28 November 2026): the unpaid charges of a borrower whose open loans all have auto charge disabled (NULL
+// counts as disabled): current (Charge Date up to today, Bangkok) and total (future-dated recorded charges included),
+// from Amount Remaining. Any auto-charged open loan, or no open loan, gives null for both. Synthetic rows only.
+test('R189 unpaid charges: current and total for all-manual open loans; null with an auto-charged open loan or only closed loans',async()=>{
+ const today="(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date",tag='C-R189-'+randomUUID().slice(0,8);
+ const unpaid=async id=>{const r=await store.borrowerRecord(principal,id);assert.equal(r.status,200,JSON.stringify(r));return [r.item.details.unpaidChargesCurrent,r.item.details.unpaidChargesTotal]};
+ const loan=(id,borrower,auto,status='ยังไม่ปิดยอด')=>admin.query(`INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Close Date") VALUES($1,$2,$3,${today}-20,1000::money,$4,'กำหนดวันชำระ',$5,CASE WHEN $4='ปิดยอดแล้ว' THEN ${today}-1 END)`,[id,borrower,fixture.lendingAccountId,status,auto]);
+ const charge=(id,loanId,days,principalDue,interestDue)=>admin.query(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,${today}+$3::integer,$4::numeric::money,$5::numeric::money)`,[id,loanId,days,principalDue,interestDue]);
+ const repay=(chargeId,loanId,principalPaid,interestPaid)=>admin.query(`INSERT INTO "Repayments"("Row ID","Payment Date","Principal Paid","Interest Paid","Notes","Ref Loans","Ref Charges","Created By") VALUES($1,${today},$2::numeric::money,$3::numeric::money,'R189 synthetic',$4,$5,$6)`,[chargeId+'-R',principalPaid,interestPaid,loanId,chargeId,OWNER_EMAIL]);
+ const manual=(await create()).id;assert.deepEqual(await unpaid(manual),[null,null],'no loan: null');
+ const L1=tag+'-L1';await loan(L1,manual,false);assert.deepEqual(await unpaid(manual),['0.00','0.00'],'a manual open loan with no charge: zero');
+ await charge(tag+'-PAST',L1,-3,100,10);// 110 current
+ await charge(tag+'-LATE',L1,-5,200,20);await repay(tag+'-LATE',L1,50,0);// overdue and part paid: 170 current
+ await charge(tag+'-PAID',L1,-1,40,4);await repay(tag+'-PAID',L1,40,4);// fully paid: 0
+ await charge(tag+'-TODAY',L1,0,0,15);// due today: current
+ await charge(tag+'-NEXT',L1,2,0,15);await charge(tag+'-LATER',L1,5,300,30);// future-dated: total only
+ assert.equal(Number((await admin.query('SELECT "Amount Remaining" AS v FROM "Charges" WHERE "Row ID"=$1',[tag+'-LATE'])).rows[0].v),170,'Amount Remaining follows the repayment');
+ assert.deepEqual(await unpaid(manual),['295.00','640.00']);
+ // A NULL flag counts as disabled.
+ const L2=tag+'-L2';await loan(L2,manual,null);await charge(tag+'-L2C',L2,-2,10,0);assert.deepEqual(await unpaid(manual),['305.00','650.00'],'NULL auto charge is manual');
+ // One auto-charged open loan hides both; switching it to manual shows them again (its own charges count too).
+ const L3=tag+'-L3';await loan(L3,manual,true);await charge(tag+'-L3C',L3,-1,5,0);assert.deepEqual(await unpaid(manual),[null,null],'an auto-charged open loan: null');
+ await admin.query('UPDATE "Loans" SET "Auto Charge Enabled"=false WHERE "Row ID"=$1',[L3]);assert.deepEqual(await unpaid(manual),['310.00','655.00']);
+ // A closed loan, auto-charged or not, is out of scope; a borrower with only closed loans reads null.
+ const closedOnly=(await create()).id,L4=tag+'-L4';await loan(L4,closedOnly,false,'ปิดยอดแล้ว');await charge(tag+'-L4C',L4,-2,10,0);
+ assert.deepEqual(await unpaid(closedOnly),[null,null],'only closed loans: null');
+ const L5=tag+'-L5';await loan(L5,manual,true,'ปิดยอดแล้ว');assert.deepEqual(await unpaid(manual),['310.00','655.00'],'a closed auto-charged loan does not hide the lines');
+ // Fully paid charges read zero, not null.
+ const paid=(await create()).id,L6=tag+'-L6';await loan(L6,paid,false);await charge(tag+'-L6C',L6,-1,30,3);await repay(tag+'-L6C',L6,30,3);await charge(tag+'-L6F',L6,3,0,0);
+ assert.deepEqual(await unpaid(paid),['0.00','0.00'],'fully paid: zero');
+});
